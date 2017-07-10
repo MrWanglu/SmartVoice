@@ -1,4 +1,4 @@
-package cn.fintecher.pangolin.util;
+package cn.fintecher.pangolin.entity.util;
 
 /**
  * Created by LLWL Xi'an Team.

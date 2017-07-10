@@ -1,4 +1,4 @@
-package cn.fintecher;
+package cn.fintecher.bussiness;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

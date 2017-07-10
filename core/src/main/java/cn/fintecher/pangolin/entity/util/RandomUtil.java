@@ -1,4 +1,4 @@
-package cn.fintecher.pangolin.util;
+package cn.fintecher.pangolin.entity.util;
 
 import java.util.Random;
 

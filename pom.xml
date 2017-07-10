@@ -17,14 +17,14 @@
         <java.version>1.8</java.version>
         <spring-cloud.version>Dalston.SR1</spring-cloud.version>
         <apache.common.lang3.version>3.4</apache.common.lang3.version>
+        <lombok.version>1.16.16</lombok.version>
+        <springfox.version>2.7.0</springfox.version>
     </properties>
 
     <modules>
         <module>core</module>
         <module>entity</module>
         <module>service</module>
-        <!--<module>entity</module>-->
-        <!--<module>service</module>-->
     </modules>
     <build>
         <plugins>

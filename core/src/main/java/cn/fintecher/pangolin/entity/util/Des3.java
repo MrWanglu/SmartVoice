@@ -1,4 +1,4 @@
-package cn.fintecher.pangolin.util;
+package cn.fintecher.pangolin.entity.util;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKeyFactory;

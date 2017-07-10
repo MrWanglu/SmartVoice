@@ -1,4 +1,4 @@
-package cn.fintecher.pangolin.util;
+package cn.fintecher.pangolin.entity.util;
 
 import org.apache.commons.lang3.StringUtils;
 
