@@ -1,4 +1,4 @@
-package cn.fintecher.bussiness;
+package cn.fintecher.pangolin.business;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

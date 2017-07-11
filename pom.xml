@@ -5,7 +5,12 @@
     <groupId>cn.fintecher</groupId>
     <artifactId>pangolin</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.5.4.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
     <name>pangolin</name>
     <description>穿山甲贷后催收系统重制版</description>
     <packaging>pom</packaging>
@@ -19,6 +24,8 @@
         <apache.common.lang3.version>3.4</apache.common.lang3.version>
         <lombok.version>1.16.16</lombok.version>
         <springfox.version>2.7.0</springfox.version>
+        <apt.version>1.1.3</apt.version>
+        <querydsl.version>4.1.3</querydsl.version>
     </properties>
 
     <modules>

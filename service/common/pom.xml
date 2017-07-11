@@ -4,26 +4,19 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>cn.fintecher</groupId>
-	<artifactId>pangolin-common</artifactId>
+    <artifactId>pangolin-service-common</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>pangolin-common</name>
+    <name>pangolin-service-common</name>
 	<description>穿山甲通用服务</description>
 
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.4.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
+        <artifactId>pangolin-service</artifactId>
+        <groupId>cn.fintecher</groupId>
+        <version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>1.8</java.version>
-		<spring-cloud.version>Dalston.SR1</spring-cloud.version>
-	</properties>
 
 	<dependencies>
 		<dependency>
