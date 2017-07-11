@@ -1,22 +1,18 @@
 package cn.fintecher.pangolin.entity;
 
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.util.List;
 
 /**
  * Created by ChenChang on 2017/7/10.
  */
-@Document
+@Entity
+@Table
 @Data
-public class Operator {
-    private @Id
-    String id;
-    private @DBRef
-    Department department;
-    private @DBRef
-    List<Role> roles;
+public class Operator extends BaseEntity {
+    private Department department;
+    private List<Role> roles;
 }

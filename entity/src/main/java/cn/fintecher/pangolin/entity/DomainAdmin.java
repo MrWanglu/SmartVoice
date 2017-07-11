@@ -1,12 +1,15 @@
 package cn.fintecher.pangolin.entity;
 
 import lombok.Data;
-import org.springframework.data.mongodb.core.mapping.Document;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 /**
  * Created by ChenChang on 2017/7/10.
  */
-@Document
+@Entity
+@Table
 @Data
-public class DomainAdmin {
+public class DomainAdmin extends BaseEntity {
 }
