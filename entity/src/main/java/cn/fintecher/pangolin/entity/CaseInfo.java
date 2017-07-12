@@ -9,7 +9,7 @@ import javax.persistence.Table;
  * Created by ChenChang on 2017/7/10.
  */
 @Entity
-@Table
+@Table(name = "case_info")
 @Data
 public class CaseInfo extends BaseEntity {
 
