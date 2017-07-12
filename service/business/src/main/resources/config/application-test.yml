@@ -8,10 +8,18 @@ spring:
             enabled: false # we use gulp + BrowserSync for livereload
     jackson:
         serialization.indent_output: true
-    data:
-        mongodb:
-            uri: mongodb://192.168.1.5:27017
-            database: file_db_test
+    datasource:
+        type: com.zaxxer.hikari.HikariDataSource
+        url: jdbc:mysql://192.168.1.5:3306/pangolin_business?useUnicode=true&characterEncoding=utf8&useSSL=false
+        name:
+        username: mysql
+        password: mysql
+        hikari:
+            data-source-properties:
+                cachePrepStmts: true
+                prepStmtCacheSize: 250
+                prepStmtCacheSqlLimit: 2048
+                useServerPrepStmts: true
     rabbitmq:
         username: test
         password: test
