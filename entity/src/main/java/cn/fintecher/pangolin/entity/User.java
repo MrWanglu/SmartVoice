@@ -12,7 +12,7 @@ import java.util.List;
 @Entity
 @Table
 @Data
-public class Operator extends BaseEntity {
+public class User extends BaseEntity {
     private Department department;
     private List<Role> roles;
 }
