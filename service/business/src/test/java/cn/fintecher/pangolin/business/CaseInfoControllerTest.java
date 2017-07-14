@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business;
 
 import cn.fintecher.pangolin.business.repository.AreaCodeRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.repository.PersonalRepository;
 import cn.fintecher.pangolin.business.web.CaseInfoController;
 import cn.fintecher.pangolin.entity.AreaCode;
 import cn.fintecher.pangolin.entity.CaseInfo;
@@ -43,6 +44,8 @@ public class CaseInfoControllerTest {
     private CaseInfoRepository caseInfoRepository;
     @Autowired
     private AreaCodeRepository areaCodeRepository;
+    @Autowired
+    private PersonalRepository personalRepository;
 
     @Before
     public void setup() {
@@ -57,10 +60,7 @@ public class CaseInfoControllerTest {
     public void initTest() {
         AreaCode areaCode = areaCodeRepository.findOne(1783);
         caseInfo = new CaseInfo();
-        Personal personalInfo = new Personal();
-        personalInfo.setAge(20);
-        personalInfo.setIdCard("650102198205060732");
-        personalInfo.setName("陈畅");
+        Personal personalInfo = personalRepository.findOne("8a80cb815d3faeef015d3faf0c6a0000");
         caseInfo.setPersonalInfo(personalInfo);
         caseInfo.setArea(areaCode);
     }
@@ -72,7 +72,7 @@ public class CaseInfoControllerTest {
         restDataDictMockMvc.perform(put("/api/caseInfo")
                 .contentType(TestUtil.APPLICATION_JSON_UTF8)
                 .content(TestUtil.convertObjectToJsonBytes(caseInfo)))
-                .andExpect(status().isOk());
+                .andExpect(status().is2xxSuccessful());
     }
 
 }
