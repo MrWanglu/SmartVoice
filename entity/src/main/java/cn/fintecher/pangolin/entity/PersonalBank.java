@@ -25,6 +25,6 @@ public class PersonalBank extends BaseEntity {
     private Date operatorTime;
     @ManyToOne
     @JoinColumn(name = "personal_id")
-    private PersonalInfo personalInfo;
+    private Personal personalInfo;
 
 }

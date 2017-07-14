@@ -13,9 +13,9 @@ import java.util.Set;
  * Created by ChenChang on 2017/7/10.
  */
 @Entity
-@Table(name = "personal_info")
+@Table(name = "Personal")
 @Data
-public class PersonalInfo extends BaseEntity {
+public class Personal extends BaseEntity {
     private String name;
     private Integer sex;
     private Integer marital;
@@ -40,7 +40,7 @@ public class PersonalInfo extends BaseEntity {
     private String referencePwd;
     private String referenceAuthCode;
     private String electricityPwd;
-    private Integer scope;
+    private Integer dataSource;
     private String operator;
     private Date operatorTime;
     @JsonIgnore

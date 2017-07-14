@@ -70,7 +70,7 @@ public class CaseInfo extends BaseEntity {
     private String principalId;
     @ManyToOne
     @JoinColumn(name = "personal_id")
-    private PersonalInfo personalInfo;
+    private Personal personalInfo;
 
     @ManyToOne
     @JoinColumn(name = "depart_id")
