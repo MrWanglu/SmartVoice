@@ -14,7 +14,7 @@ import java.util.Date;
 @Entity
 @Table(name = "personal_contact")
 @Data
-public class PersonalContact {
+public class PersonalContact extends BaseEntity {
     private Integer relation;
     private String name;
     private Integer informed;

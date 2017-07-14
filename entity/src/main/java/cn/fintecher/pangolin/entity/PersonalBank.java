@@ -14,7 +14,7 @@ import java.util.Date;
 @Entity
 @Table(name = "personal_bank")
 @Data
-public class PersonalBank {
+public class PersonalBank extends BaseEntity {
     private String accountType;
     private String depositBank;
     private String depositBranch;

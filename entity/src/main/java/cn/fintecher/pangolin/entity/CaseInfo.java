@@ -71,7 +71,7 @@ public class CaseInfo extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "personal_id")
     private PersonalInfo personalInfo;
-    private Domain domain;
+
     @ManyToOne
     @JoinColumn(name = "depart_id")
     private Department department;

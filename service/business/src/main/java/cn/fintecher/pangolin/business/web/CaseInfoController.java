@@ -72,6 +72,7 @@ public class CaseInfoController {
     @GetMapping("/queryCaseInfo")
     public ResponseEntity<Page<CaseInfo>> queryCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate, @ApiIgnore Pageable pageable) throws URISyntaxException {
         log.debug("REST request to get all CaseInfo");
+
         Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/queryCaseInfo");
         return new ResponseEntity<>(page, headers, HttpStatus.OK);
