@@ -4,14 +4,19 @@ import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.*;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -49,9 +54,7 @@ public class AccTelPoolController extends BaseController {
 
     private static final String ENTITY_PERSONALCONTACT = "PersonalContact";
 
-    private static final String ENTITY_PERSONALBANK = "PersonalBank";
-
-    private static final String ENTITY_PERSONALCAR = "PersonalCar";
+    private static final String ENTITY_UPLOADFILE = "UploadFile";
 
     @Inject
     CaseInfoService caseInfoService;
@@ -73,6 +76,9 @@ public class AccTelPoolController extends BaseController {
 
     @Inject
     PersonalContactRepository personalContactRepository;
+
+    @Inject
+    RabbitTemplate rabbitTemplate;
 
     /**
      * @Description 电催案件重新分配
@@ -510,51 +516,34 @@ public class AccTelPoolController extends BaseController {
      */
     @PostMapping("/saveRepairInfo")
     @ApiOperation(value = "电催页面添加修复信息", notes = "电催页面添加修复信息")
-    public ResponseEntity<Void> saveRepairInfo(@RequestBody RepairInfoModel repairInfoModel,
-                                               @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<PersonalContact> saveRepairInfo(@RequestBody RepairInfoModel repairInfoModel,
+                                                          @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("REST request to save repair information");
         try {
             User tokenUser = getUserByToken(token);
-
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("添加成功", ENTITY_PERSONALCONTACT)).body(null);
+            PersonalContact personalContact = caseInfoService.saveRepairInfo(repairInfoModel, tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("添加成功", ENTITY_PERSONALCONTACT)).body(personalContact);
         } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONALCONTACT, "personalContact", "添加失败")).body(null);
         }
     }
 
     /**
-     * @Description 通过机构反选用户
-     */
-
-    /**
-     * @Description 绑定主叫号码
-     */
-
-    /**
-     * @Description 获取百度地图
-     */
-
-    /**
-     * @Description 发送短信
-     */
-
-    /**
-     * @Description 上传还款凭证
-     */
-
-    /**
      * @Description 通过关系显示姓名
-     */
-
-    /**
-     * @Description 拨打电话
-     */
-
-    /**
-     * @Description 发送邮件
      */
 
     /**
      * @Description 查看凭证
      */
+    @GetMapping("/getPayProof")
+    @ApiOperation(value = "查看凭证", notes = "查看凭证")
+    public ResponseEntity<List<UploadFile>> getPayProof(@RequestParam @ApiParam(value = "还款审批ID") String casePayId) {
+        log.debug("REST request to get payment proof");
+        try {
+            List<UploadFile> uploadFiles = caseInfoService.getRepaymentVoucher(casePayId);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("下载成功", ENTITY_UPLOADFILE)).body(uploadFiles);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_UPLOADFILE, "uploadFile", "下载失败")).body(null);
+        }
+    }
 }

@@ -2,9 +2,6 @@ package cn.fintecher.pangolin.business.model;
 
 import lombok.Data;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author : xiaqun
  * @Description : 修复信息模型
@@ -16,6 +13,8 @@ public class RepairInfoModel {
     private String personalId; //客户信息ID
     private Integer relation; //关系
     private String name; //姓名
-    private List<Map<Integer,String>> phoneList; //电话集合
-    private List<Map<Integer,String>> socialList; //社交帐号集合
+    private Integer phoneStatus; //电话状态
+    private String phone; //电话号码
+    private Integer socialType; //社交帐号类型
+    private String socialValue; //社交帐号内容
 }

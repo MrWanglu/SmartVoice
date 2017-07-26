@@ -220,22 +220,8 @@ public class AccVisitPoolController extends BaseController {
     @GetMapping("/getRepaymentVoucher")
     @ApiOperation(value = "查看还款凭证", notes = "查看还款凭证")
     public ResponseEntity<List<UploadFile>> getRepaymentVoucher(@ApiParam(value = "还款ID", required = true) @RequestParam String payId) {
-        //下载外访资料
-        List<UploadFile> uploadFiles = new ArrayList<>();//文件对象集合
         try {
-            QCasePayFile qCasePayFile = QCasePayFile.casePayFile;
-            Iterable<CasePayFile> caseFlowupFiles = casePayFileRepository.findAll(qCasePayFile.payId.eq(payId));
-            Iterator<CasePayFile> it = caseFlowupFiles.iterator();
-            while (it.hasNext()) {
-                CasePayFile casePayFile = it.next();
-                ResponseEntity<UploadFile> entity = restTemplate.getForEntity("http://file-service/api/uploadFile/" + casePayFile.getFileid(), UploadFile.class);
-                if (!entity.hasBody()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("UploadFile", "Load Fail", "下载失败")).body(null);
-                } else {
-                    UploadFile uploadFile = entity.getBody();//文件对象
-                    uploadFiles.add(uploadFile);
-                }
-            }
+            List<UploadFile> uploadFiles = caseInfoService.getRepaymentVoucher(payId);
             return new ResponseEntity<>(uploadFiles, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
