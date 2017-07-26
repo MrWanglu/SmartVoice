@@ -8,19 +8,26 @@ import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import com.querydsl.core.BooleanBuilder;
+import cn.fintecher.pangolin.web.PaginationUtil;
+import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.util.*;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @Author: PeiShouWen
@@ -40,12 +47,9 @@ public class RoleController extends BaseController {
     @Autowired
     private UserRepository userRepository;
 
-    /**
-     * @Description : 查询所有角色
-     */
-    @GetMapping(value = "/query")
+    @GetMapping(value = "/getAllRolePage")
     @ResponseBody
-    @ApiOperation(value = "查询所有角色分页", notes = "查询所有角色分页")
+    @ApiOperation(value = "带条件的分页查询", notes = "带条件的分页查询")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
                     value = "页数 (0..N)"),
@@ -54,40 +58,19 @@ public class RoleController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<Role>> query(@RequestParam(required = false) String realName,
-                                            @RequestParam(required = false) Integer state,
-                                            @ApiIgnore Pageable pageable,
-                                            @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<Page<Role>> getAllRolePage(@QuerydslPredicate(root = Principal.class) Predicate predicate,
+                                                     @ApiIgnore Pageable pageable) throws URISyntaxException {
         logger.debug("REST request to get all Role");
-        User user;
-        try {
-            user = getUserByToken(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
-        }
-        QRole qRole = QRole.role;
-        BooleanBuilder builder = new BooleanBuilder();
-        if (Objects.nonNull(realName)) {
-            builder.and(qRole.name.like(realName.concat("%")));
-        }
-        if (Objects.nonNull(state)) {
-            builder.and(qRole.status.eq(state));
-        }
-        if (Objects.nonNull(user.getCompanyCode())) {
-            builder.and(qRole.companyCode.eq(user.getCompanyCode()));
-        }
-        Page<Role> page = roleRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        Page<Role> page = roleRepository.findAll(predicate, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/roleController/getAllRolePage");
+        return new ResponseEntity<>(page, headers, HttpStatus.OK);
     }
 
-    /**
-     * @Description : 新建角色
-     */
+
     @PostMapping("/createRole")
-    @ApiOperation(value = "新建角色", notes = "新建角色")
+    @ApiOperation(value = "增加角色", notes = "增加角色")
     public ResponseEntity<Role> createRole(@Validated @ApiParam("角色对象") @RequestBody Role role,
-                                           @RequestHeader(value = "X-UserToken") String token) {
+                                           @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
         logger.debug("REST request to save caseInfo : {}", role);
         if (role.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
@@ -102,19 +85,18 @@ public class RoleController extends BaseController {
         }
         //增加角色的code需要传入
         QRole qRole = QRole.role;
-        Iterator<Role> roles = roleRepository.findAll(qRole.name.eq(role.getName()).and(qRole.companyCode.eq(role.getCompanyCode()))).iterator();
-        if (roles.hasNext()) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role name has been occupied", "该角色名已被占用")).body(roles.next());
+        Iterable<Role> roles = roleRepository.findAll(qRole.name.eq(role.getName()).and(qRole.companyCode.eq(user.getCompanyCode())));
+        if (roles.iterator().hasNext()){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role name has been occupied", "该角色名已被占用")).body(null);
+        }else {
+            role.setOperator(user.getUserName());
+            role.setOperateTime(ZWDateUtil.getNowDateTime());
+            Role role1 = roleRepository.save(role);
+            return ResponseEntity.ok().body(role1);
         }
-        role.setOperator(user.getUserName());
-        role.setOperateTime(ZWDateUtil.getNowDateTime());
-        Role role1 = roleRepository.save(role);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(role1);
     }
 
-    /**
-     * @Description : 更新角色
-     */
+
     @PostMapping("/updateRole")
     @ApiOperation(value = "更新角色", notes = "更新角色")
     public ResponseEntity<Role> updateRole(@Validated @ApiParam("需更新的角色对象") @RequestBody Role role,
@@ -129,74 +111,85 @@ public class RoleController extends BaseController {
         if (Objects.equals(Constants.ADMIN_ROLE_ID, role.getId())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role can not be modified", "该角色不能被修改")).body(null);
         }
+        //更新角色的公司code码需要前端传
         //判断角色的名称是否重复
         QRole qRole = QRole.role;
-        Iterator<Role> roles = roleRepository.findAll(qRole.id.ne(role.getId()).and(qRole.name.eq(role.getName())).and(qRole.companyCode.eq(role.getCompanyCode()))).iterator();
-        if (roles.hasNext()) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role name has been occupied", "该角色名已被占用")).body(roles.next());
-        }
-        //判断角色的状态
-        if (Objects.equals(Status.Disable.getValue(), role.getStatus())) {
-            QUser qUser = QUser.user;
-            List<User> userList = new ArrayList<>();
-            Iterator<User> users = userRepository.findAll(qUser.roles.any().id.eq(role.getId())).iterator();
-            while (users.hasNext()) {
-                userList.add(users.next());
+        Iterable<Role> roles = roleRepository.findAll(qRole.id.ne(role.getId()).and(qRole.name.eq(role.getName())).and(qRole.companyCode.eq(user.getCompanyCode())));
+        if (roles.iterator().hasNext()){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role name has been occupied", "该角色名已被占用")).body(null);
+        }else {
+            //判断角色的状态
+            if (Objects.equals(Status.Disable.getValue(), role.getStatus())) {
+                QUser qUser = QUser.user;
+                Iterable<User> users = userRepository.findAll(qUser.roles.any().id.eq(role.getId()));
+                if (users.iterator().hasNext()){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role of related user, please delete the user", "该角色下有关联的用户，请先删除用户")).body(null);
+                }else {
+                    Role role1 = roleRepository.findOne(role.getId());
+                    Iterable<Resource> resources = resourceRepository.findAll(QResource.resource.roles.contains(role1));
+                    resources.forEach(e->{
+                        e.getRoles().remove(role1);
+                        resourceRepository.saveAndFlush(e);
+                    });
+                    Role roleNew = roleRepository.save(role);
+                    return ResponseEntity.ok().body(roleNew);
+                }
+            } else {
+                Role role1 = roleRepository.save(role);
+                return ResponseEntity.ok().body(role1);
             }
-            if (0 != userList.size()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role of related user, please delete the user", "该角色关联" + userList.size() + "个用户，请先删除用户")).body(null);
-            }
-            role.setResources(new HashSet<>());
-            Role role1 = roleRepository.save(role);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(role1);
-        } else {
-            Role role1 = roleRepository.save(role);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(role1);
         }
     }
 
-    /**
-     * @Description : 查找角色通过id
-     */
 
-    @GetMapping("/getRoleById")
+    @GetMapping("/getRole")
     @ApiOperation(value = "查找角色通过id", notes = "查找角色通过id")
-    public ResponseEntity<Role> getRoleById(@RequestParam(required = false) String id) {
+    public ResponseEntity<Role> getRole(@ApiParam(value = "角色id", required = true) @RequestParam(value = "id") String id) throws URISyntaxException {
         Role role = roleRepository.findOne(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(role);
+        return ResponseEntity.ok().body(role);
     }
 
-    /**
-     * @Description : 角色查找资源
-     */
-
-    @GetMapping("/getResoByRole")
+    @GetMapping("/getRoleRes")
     @ApiOperation(value = "角色查找资源", notes = "角色查找资源")
-    public ResponseEntity<List<Resource>> getResoByRole(@RequestParam String id,
-                                                        @RequestHeader(value = "X-UserToken") String token) {
-        User user;
-        try {
-            user = getUserByToken(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
-        }
+    public ResponseEntity<List<Resource>> getRoleRes(@ApiParam(value = "角色id", required = true) @RequestParam(value = "id") String id,
+                                                     @QuerydslPredicate(root = Role.class) Predicate predicate) throws URISyntaxException {
         QResource qResource = QResource.resource;
-        List<Resource> resourceList = new ArrayList<>();
-        Iterator<Resource> resources = resourceRepository.findAll(qResource.roles.any().id.eq(id)).iterator();
-        while (resources.hasNext()) {
-            resourceList.add(resources.next());
+        Iterable<Resource> resources = resourceRepository.findAll(qResource.roles.any().id.eq(id));
+        List<Resource> resourceList = new ArrayList<Resource>();
+        while (resources.iterator().hasNext()) {
+            resourceList.add(resources.iterator().next());
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(resourceList);
+        return ResponseEntity.ok().body(resourceList);
     }
 
-    /**
-     * @Description : 删除角色
-     */
+
+    @GetMapping("/roleFindUsers")
+    @ApiOperation(value = "角色查找用户分页", notes = "角色查找用户分页")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<User>> roleFindUsers(@ApiParam(value = "角色id", required = true) @RequestParam String id,
+                                                    @ApiIgnore Pageable pageable) throws URISyntaxException {
+
+        Role role = roleRepository.findOne(id);
+        if (Objects.nonNull(role)) {
+            QUser qUser = QUser.user;
+            Page<User> userPage = userRepository.findAll(qUser.roles.any().id.eq(id).and(qUser.companyCode.eq(role.getCompanyCode())), pageable);
+            return ResponseEntity.ok().body(userPage);
+        }
+        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                "The role does not exist", "该角色不存在")).body(null);
+    }
+
     @DeleteMapping("/deleteRole")
     @ApiOperation(value = "删除角色", notes = "删除角色")
-    public ResponseEntity<Role> deleteRole(@RequestParam String id,
-                                           @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<Role> deleteRole(@ApiParam(value = "角色id", required = true) @RequestParam String id,
+                                           @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
         logger.debug("REST request to save Role : {}", id);
         User userToken;
         try {
@@ -211,45 +204,25 @@ public class RoleController extends BaseController {
         }
         Role role = roleRepository.findOne(id);
         QUser qUser = QUser.user;
-        List<User> userList = new ArrayList<>();
-        Iterator<User> users = userRepository.findAll(qUser.roles.any().id.eq(id).and(qUser.companyCode.eq(role.getCompanyCode()))).iterator();
-        while (users.hasNext()) {
-            userList.add(users.next());
-        }
-        if (0 != userList.size()) {
+        Iterable<User> userIterator = userRepository.findAll(qUser.roles.any().id.eq(id).and(qUser.companyCode.eq(role.getCompanyCode())));
+        if (userIterator.iterator().hasNext()) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                    "The role has an associated user, please delete the relationship with the user first", "该角色关联" + userList.size() + "个用户，请先删除与用户的关系")).body(null);
+                    "The role has an associated user, please delete the relationship with the user first", "该角色下有关联用户，请先删除与用户的关系")).body(null);
         }
-        role.setResources(new HashSet<>());
-        Role role1 = roleRepository.save(role);
+        Iterable<Resource> resources = resourceRepository.findAll(QResource.resource.roles.contains(role));
+        resources.forEach(e->{
+            e.getRoles().remove(role);
+            resourceRepository.saveAndFlush(e);
+        });
         roleRepository.delete(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(role1);
+        return ResponseEntity.ok().body(null);
     }
 
-    /**
-     * @Description : 查询所有角色不分页
-     */
-    @GetMapping("/getRoleNoPage")
-    @ApiOperation(value = "查询所有角色不分页", notes = "查询所有角色不分页")
-    public ResponseEntity<List<Role>> getRoleNoPage(@RequestHeader(value = "X-UserToken") String token) {
+    @GetMapping("/findAllRole")
+    @ApiOperation(value = "查询所有角色分页", notes = "查询所有角色分页")
+    public ResponseEntity<Page<Role>> getAllRole(@ApiIgnore Pageable pageable) throws URISyntaxException {
         logger.debug("REST request to get all of Role");
-        User user;
-        try {
-            user = getUserByToken(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
-        }
-        QRole qRole = QRole.role;
-        List<Role> roleList = new ArrayList<>();
-        BooleanBuilder builder = new BooleanBuilder();
-        if (Objects.nonNull(user.getCompanyCode())) {
-            builder.and(qRole.companyCode.eq(user.getCompanyCode()));
-        }
-        Iterator<Role> roles = roleRepository.findAll(builder).iterator();
-        while (roles.hasNext()) {
-            roleList.add(roles.next());
-        }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(roleList);
+        Page<Role> page = roleRepository.findAll(pageable);
+        return new ResponseEntity<>(page, HttpStatus.OK);
     }
 }
