@@ -1,11 +1,9 @@
 package cn.fintecher.pangolin.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -20,14 +18,12 @@ public class PersonalAddress extends BaseEntity {
     private String name;
     private Integer type;
     private Integer status;
-    private String detail;
     private Integer source;
+    private String detail;
+    private String personalId;
     private String operator;
     private Date operatorTime;
-    private BigDecimal longitude;
-    private BigDecimal latitude;
-    @ManyToOne
-    @JoinColumn(name = "personal_id")
-    private Personal personalInfo;
-
+//    private BigDecimal longitude = new BigDecimal(0);
+//    private BigDecimal latitude = new BigDecimal(0);
 }
+

@@ -80,4 +80,10 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
     @Query(value = "select count(*) from case_info where current_collector = :userId and collection_status in (20,21,22,23,25)", nativeQuery = true)
     Integer getCaseCount(@Param("userId") String userId);
 
+    /**
+     @Description 获得指定用户的待催收金额
+     */
+    @Query(value= "select sum(overdue_amount) from case_info where current_collector = :id or assist_collector = :id and collection_status = :collectionStatus",nativeQuery = true)
+    BigDecimal getCollectionAmt(@Param("id") String id, @Param("collectionStatus") Integer collectionStatus);
+
 }

@@ -3,9 +3,8 @@ package cn.fintecher.pangolin.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
+
+import javax.persistence.*;
 import java.util.Date;
 import java.util.Set;
 
@@ -49,8 +48,6 @@ public class Personal extends BaseEntity {
     @JsonIgnore
     @OneToMany(mappedBy = "personalInfo", targetEntity = PersonalBank.class)
     private Set<PersonalBank> personalBankInfos;
-    @JsonIgnore
-    @OneToMany(mappedBy = "personalInfo", targetEntity = PersonalAddress.class)
+    @OneToMany(cascade= {CascadeType.ALL},fetch=FetchType.LAZY ,mappedBy = "personalId", targetEntity = PersonalAddress.class)
     private Set<PersonalAddress> personalAddresses;
-
 }
