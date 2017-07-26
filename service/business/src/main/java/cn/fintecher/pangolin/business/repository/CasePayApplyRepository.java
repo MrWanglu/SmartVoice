@@ -41,6 +41,8 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
             }
         });
         bindings.bind(root.approveResult).first(SimpleExpression::eq); //审核结果
+        bindings.bind(root.personalName).first(SimpleExpression::eq);//客户姓名
+        bindings.bind(root.batchNumber).first(SimpleExpression::eq);//案件批次号
         bindings.bind(root.applyDerateAmt).all((path, value) -> { //减免金额
             Iterator<? extends BigDecimal> it = value.iterator();
             BigDecimal applyDerateMinAmt = it.next();
@@ -51,7 +53,8 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
                 return path.goe(applyDerateMinAmt);
             }
         });
-        bindings.bind(root.approveType).first(SimpleExpression::eq); //减免类型
-        bindings.bind(root.approveCostresult).first(SimpleExpression::eq); //减免审批结果
+        bindings.bind(root.approveType).first(SimpleExpression::eq);//减免类型
+        bindings.bind(root.approveCostresult).first(SimpleExpression::eq);//减免审批状态
+        bindings.bind(root.applayUserName).first(SimpleExpression::eq);//申请人
     }
 }

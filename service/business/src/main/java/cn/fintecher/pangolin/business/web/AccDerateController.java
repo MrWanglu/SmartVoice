@@ -1,6 +1,5 @@
 package cn.fintecher.pangolin.business.web;
 
-import cn.fintecher.pangolin.business.model.CasePayApplyParams;
 import cn.fintecher.pangolin.business.model.CasePayApplys;
 import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
@@ -50,91 +49,26 @@ public class AccDerateController extends BaseController {
     @Inject
     private CaseAssistRepository caseAssistRepository;
 
-
     /**
      * @Description 费用减免审批页面多条件查询减免记录
      */
     @GetMapping("/getCasePayApply")
-    @ApiOperation(value = "费用减免审批多条件查询减免记录", notes = "费用减免审批多条件查询减免记录")
+    @ApiOperation(value = "费用减免审批及还款审核多条件查询减免记录", notes = "费用减免审批及还款审核多条件查询减免记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "页数 (0..N)"),
             @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "每页大小."),
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CasePayApply>> getCasePayApply(CasePayApplyParams casePayApplyParams,
+    public ResponseEntity<Page<CasePayApply>> getCasePayApply(@RequestParam @ApiParam(value = "减免标识") Integer derateFlag,
                                                               @QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
                                                               @ApiIgnore Pageable pageable) throws URISyntaxException {
         BooleanBuilder builder = new BooleanBuilder(predicate);
-        if (Objects.nonNull(casePayApplyParams.getPersonalName())) {
-            builder.and(QCasePayApply.casePayApply.personalName.eq(casePayApplyParams.getPersonalName()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getPersonalPhone())) {
-            builder.and(QCasePayApply.casePayApply.personalPhone.eq(casePayApplyParams.getPersonalPhone()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getBatchNumber())) {
-            builder.and(QCasePayApply.casePayApply.batchNumber.eq(casePayApplyParams.getBatchNumber()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getApplyDerateAmt())) {
-            builder.and(QCasePayApply.casePayApply.applyDerateAmt.between(casePayApplyParams.getPayaApplyMinAmt(), casePayApplyParams.getPayaApplyMaxAmt()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getApproveType())) {
-            builder.and(QCasePayApply.casePayApply.approveType.eq(casePayApplyParams.getApproveType()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getApproveCostresult())) {
-            builder.and(QCasePayApply.casePayApply.approveCostresult.eq(casePayApplyParams.getApproveCostresult()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getPrincipalId())) {
-            builder.and(QCasePayApply.casePayApply.principalId.eq(casePayApplyParams.getPrincipalId()));
-        }
-
+        builder.and(QCasePayApply.casePayApply.derateFlag.eq(derateFlag));
         Page<CasePayApply> page = casePayApplyRepository.findAll(builder, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/accDerateController/getCasePayApply");
         return new ResponseEntity<>(page, headers, HttpStatus.OK);
     }
 
-    /**
-     * @Description 还款审核页面多条件查询减免记录
-     */
-    @GetMapping("/getAccReimbursementApply")
-    @ApiOperation(value = "还款审核多条件查询减免记录", notes = "还款审核多条件查询减免记录")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "页数 (0..N)"),
-            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "每页大小."),
-            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query", value = "依据什么排序: 属性名,asc/desc.")
-    })
-    public ResponseEntity<Page<CasePayApply>> getAccReimbursementApply(CasePayApplyParams casePayApplyParams,
-                                                                       @QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
-                                                                       @ApiIgnore Pageable pageable) throws URISyntaxException {
-        BooleanBuilder builder = new BooleanBuilder(predicate);
-        if (Objects.nonNull(casePayApplyParams.getPersonalName())) {
-            builder.and(QCasePayApply.casePayApply.personalName.eq(casePayApplyParams.getPersonalName()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getPersonalPhone())) {
-            builder.and(QCasePayApply.casePayApply.personalPhone.eq(casePayApplyParams.getPersonalPhone()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getBatchNumber())) {
-            builder.and(QCasePayApply.casePayApply.batchNumber.eq(casePayApplyParams.getBatchNumber()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getPayType())) {
-            builder.and(QCasePayApply.casePayApply.payType.eq(casePayApplyParams.getPayType()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getPayWay())) {
-            builder.and(QCasePayApply.casePayApply.payWay.eq(casePayApplyParams.getPayWay()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getApproveStatus())) {
-            builder.and(QCasePayApply.casePayApply.approveStatus.eq(casePayApplyParams.getApproveStatus()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getApplayUserName())) {
-            builder.and(QCasePayApply.casePayApply.applayUserName.eq(casePayApplyParams.getApplayUserName()));
-        }
-        if (Objects.nonNull(casePayApplyParams.getPrincipalId())) {
-            builder.and(QCasePayApply.casePayApply.principalId.eq(casePayApplyParams.getPrincipalId()));
-        }
-
-        Page<CasePayApply> page = casePayApplyRepository.findAll(builder, pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/accDerateController/getAccReimbursementApply");
-        return new ResponseEntity<>(page, headers, HttpStatus.OK);
-    }
 
 
 //    @GetMapping("/exportPayApply")
