@@ -199,12 +199,18 @@ public class DepartmentController extends BaseController {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + userList.size() + "个用户,不能停用,请先移出用户")).body(null);
                 }
                 //子机构状态
-                Department deptSon = departmentRepository.findOne(dept.getId());
-                if (Objects.equals(Status.Disable, deptSon.getStatus())) {
-                    Department dept1 = departmentRepository.save(department);
-                    return ResponseEntity.ok().body(dept1);
+                Iterator<Department> departments = departmentRepository.findAll(qDepartment.code.like(department.getCode()).and(qDepartment.companyCode.eq(department.getCompanyCode())).and(qDepartment.id.ne(department.getId()))).iterator();
+                List<Department> departmentList = new ArrayList<>();
+                if(departments.hasNext()){
+                    departmentList.add(departments.next());
                 }
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Setup status to stop using, please modify child institutions", "子机构状态为停用，请先修改子机构状态")).body(null);
+                for(Department department1: departmentList) {
+                    if (Objects.equals(Status.Enable,department1.getStatus())) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Setup status to stop using, please modify child institutions", "子机构状态为启用，请先修改子机构状态")).body(null);
+                    }
+                }
+                Department dept1 = departmentRepository.save(department);
+                return ResponseEntity.ok().body(dept1);
             }
         }
         Department result = departmentRepository.save(department);
