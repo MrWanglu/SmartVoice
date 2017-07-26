@@ -504,4 +504,57 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONALCONTACT, "personalContact", "查询失败")).body(null);
         }
     }
+
+    /**
+     * @Description 电催页面添加修复信息
+     */
+    @PostMapping("/saveRepairInfo")
+    @ApiOperation(value = "电催页面添加修复信息", notes = "电催页面添加修复信息")
+    public ResponseEntity<Void> saveRepairInfo(@RequestBody RepairInfoModel repairInfoModel,
+                                               @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to save repair information");
+        try {
+            User tokenUser = getUserByToken(token);
+
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("添加成功", ENTITY_PERSONALCONTACT)).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONALCONTACT, "personalContact", "添加失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 通过机构反选用户
+     */
+
+    /**
+     * @Description 绑定主叫号码
+     */
+
+    /**
+     * @Description 获取百度地图
+     */
+
+    /**
+     * @Description 发送短信
+     */
+
+    /**
+     * @Description 上传还款凭证
+     */
+
+    /**
+     * @Description 通过关系显示姓名
+     */
+
+    /**
+     * @Description 拨打电话
+     */
+
+    /**
+     * @Description 发送邮件
+     */
+
+    /**
+     * @Description 查看凭证
+     */
 }
