@@ -53,8 +53,7 @@ public class CaseJudicialCollectionController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
-        builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
-
+        builder.and(QCaseInfo.caseInfo.endType.eq(CaseInfo.EndType.JUDGMENT_CLOSED.getValue()));
         if (Objects.nonNull(user.getCompanyCode())) {
             builder.and(QCaseInfo.caseInfo.companyCode.ne(user.getCompanyCode()));
         }
