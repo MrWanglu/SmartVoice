@@ -99,6 +99,12 @@ public class DepartmentController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
+        //判断公司的名称是否重复
+        QDepartment qDepartment = QDepartment.department;
+        Iterator<Department> departmentIterator = departmentRepository.findAll(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode()))).iterator();
+        if (Objects.nonNull(departmentIterator)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用,请重新输入名称")).body(null);
+        }
         if (Objects.equals(Status.Disable.getValue(), department.getParent().getStatus())) {
             department.setStatus(Status.Disable.getValue());
         }
@@ -200,9 +206,9 @@ public class DepartmentController extends BaseController {
     /**
      * @Description :删除部门
      */
-    @DeleteMapping("/department/{id}")
+    @DeleteMapping("/deleteDepartment")
     @ApiOperation(value = "删除部门", notes = "删除部门")
-    public ResponseEntity<Void> deleteDepartment(@PathVariable String id) {
+    public ResponseEntity<Void> deleteDepartment(@RequestParam String id) {
         log.debug("REST request to delete department : {}", id);
         Department department = departmentRepository.findOne(id);
         if (Objects.isNull(department)) {
@@ -210,15 +216,19 @@ public class DepartmentController extends BaseController {
         }
         //机构关联的案件数
         CollectionCaseModel collectionCaseModel = caseInfoService.haveCollectionCase(department);
-        int number = collectionCaseModel.getNum();
-        if (0 != number) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + number + "个未处理的案件，不能删除，请先处理完该机构下的案件")).body(null);
+        if (Objects.nonNull(collectionCaseModel)) {
+            int number = collectionCaseModel.getNum();
+            if (0 != number) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + number + "个未处理的案件，不能删除，请先处理完该机构下的案件")).body(null);
+            }
         }
         //机构下关联的协催正在催收的案件
         AssistingStatisticsModel assistingStatisticsMode = caseAssistService.getDepartmentCollectingAssist(department);
-        int num = assistingStatisticsMode.getNum();
-        if (0 != number) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + number + "个未处理的协催案件，不能停用，请先处理完该机构下的案件")).body(null);
+        if (Objects.nonNull(assistingStatisticsMode)) {
+            int num = assistingStatisticsMode.getNum();
+            if (0 != num) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + num + "个未处理的协催案件，不能停用，请先处理完该机构下的案件")).body(null);
+            }
         }
         //首先的移除下面的用户
         QUser qUser = QUser.user;
@@ -232,7 +242,7 @@ public class DepartmentController extends BaseController {
         }
         //子机构数量
         QDepartment qDepartment = QDepartment.department;
-        List<Department> departments = (List) departmentRepository.findAll(qDepartment.code.like(department.getCode().concat("%")));
+        List<Department> departments = (List) departmentRepository.findAll(qDepartment.code.like(department.getCode().concat("%")).and(qDepartment.id.ne(department.getId())));
         int num1 = departments.size();
         if (num1 > 0) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department is following agencies cannot be deleted", "该部门下子机构不能删除")).body(null);
