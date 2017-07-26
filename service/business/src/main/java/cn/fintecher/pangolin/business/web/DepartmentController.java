@@ -102,7 +102,7 @@ public class DepartmentController extends BaseController {
         //判断公司的名称是否重复
         QDepartment qDepartment = QDepartment.department;
         Iterator<Department> departmentIterator = departmentRepository.findAll(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode()))).iterator();
-        if (Objects.nonNull(departmentIterator)) {
+        if (departmentIterator.hasNext()) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用,请重新输入名称")).body(null);
         }
         if (Objects.equals(Status.Disable.getValue(), department.getParent().getStatus())) {
@@ -149,10 +149,16 @@ public class DepartmentController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
+        Department dept = departmentRepository.findOne(department.getId());
+        //判断公司的名称是否重复
+        QDepartment qDepartment = QDepartment.department;
+        Iterator<Department> departmentIterator = departmentRepository.findAll(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode())).and(qDepartment.id.ne(department.getId()))).iterator();
+        if (departmentIterator.hasNext()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用,请重新输入名称")).body(null);
+        }
         if (!(Objects.equals(department.getParent().getType(), department.getType())) && Objects.nonNull(department.getParent().getType())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The type is inconsistent", "父子机构类型不一致,不能修改")).body(null);
         }
-        Department dept = departmentRepository.findOne(department.getId());
         //status  状态 Eable(0)启用 Disable(1) 停用  机构的状态改变
         if (!(Objects.equals(department.getStatus(), dept.getStatus()))) {
             //状态由停用变为启用
