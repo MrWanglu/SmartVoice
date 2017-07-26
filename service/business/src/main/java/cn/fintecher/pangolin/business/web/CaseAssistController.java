@@ -111,11 +111,11 @@ public class CaseAssistController extends BaseController {
 
     @GetMapping("/getAssistCustInfo")
     @ApiOperation(value = "协催案件详情页面的客户信息", notes = "协催案件详情页面的客户信息")
-    public ResponseEntity<Personal> getAssistCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+    public ResponseEntity<PersonalInfoModel> getAssistCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
         log.debug("REST request to get customer information ");
         try {
-            Personal personal = caseInfoService.getCustInfo(caseId);
-            return ResponseEntity.ok().body(personal);
+            PersonalInfoModel custInfo = caseInfoService.getCustInfo(caseId);
+            return ResponseEntity.ok().body(custInfo);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "getAssistCustInfo", e.getMessage())).body(null);
