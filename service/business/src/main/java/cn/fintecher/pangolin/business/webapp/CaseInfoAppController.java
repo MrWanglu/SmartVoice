@@ -91,7 +91,7 @@ public class CaseInfoAppController extends BaseController {
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.andAnyOf(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()),
                 QCaseInfo.caseInfo.assistCollector.id.eq(user.getId()));
-        builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
+        builder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()));
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/queryCaseDetail");
         return new ResponseEntity<>(page, headers, HttpStatus.OK);
