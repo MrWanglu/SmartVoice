@@ -12,9 +12,7 @@ import cn.fintecher.pangolin.web.ResponseUtil;
 import com.querydsl.core.types.CollectionExpression;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -147,5 +145,30 @@ public class PersonalController extends BaseController{
         personalRepository.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id)).build();
     }
+
+    /**
+     * @Description 费用减免审批页面多条件查询减免记录
+     */
+    @GetMapping("/getPersonalCaseInfo")
+    @ApiOperation(value = "客户查询", notes = "客户查询（分页、条件）")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query", value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "每页大小."),
+            @ApiImplicitParam(name = "sort", dataType = "string", paramType = "query", value = "依据什么排序: 属性名(,asc|desc). ", allowMultiple = true)
+    })
+    public ResponseEntity<Page<CaseInfo>> getPersonalCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                              @ApiIgnore Pageable pageable) throws URISyntaxException {
+        Page<CaseInfo> page = caseInfoRepository.findAll(pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/accDerateController/getPersonalCaseInfo");
+        return new ResponseEntity<>(page, headers, HttpStatus.OK);
+    }
+//    @PostMapping("/createExcelTemplate")
+//    @ResponseBody
+//    @ApiOperation(value = "客户信息导出", notes = "客户信息导出")
+//    public ResponseEntity createExcelTemplate(@RequestBody @ApiParam("配置项") Map<String, Object> map) {
+//
+//
+//        return null;
+//    }
 
 }

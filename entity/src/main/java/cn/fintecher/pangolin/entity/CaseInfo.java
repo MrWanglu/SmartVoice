@@ -66,6 +66,7 @@ public class CaseInfo extends BaseEntity {
     private BigDecimal leftCapital; //剩余本金
     private BigDecimal leftInterest; //剩余利息
     private String endRemark; //结案说明
+    private Integer endType; //结案方式
     private Date followupTime; //最新跟进时间
     private Integer followupBack; //催收反馈
     private BigDecimal promiseAmt; //承诺还款金额
@@ -235,7 +236,7 @@ public class CaseInfo extends BaseEntity {
     /**
      * @Description 结案方式枚举类
      */
-    public enum CupoEndtype {
+    public enum EndType {
         //已还款
         REPAID(110, "已还款"),
         //司法结案
@@ -250,7 +251,7 @@ public class CaseInfo extends BaseEntity {
 
         private String remark;
 
-        CupoEndtype(Integer value, String remark) {
+        EndType(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }

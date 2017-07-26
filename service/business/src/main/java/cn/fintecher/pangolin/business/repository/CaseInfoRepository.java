@@ -62,6 +62,16 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
         bindings.bind(root.collectionType).first((path, value) -> path.eq(value));
         //产品系列
         bindings.bind(root.product.productSeries.id).first((path, value) -> path.eq(value));
+        //客户姓名
+        bindings.bind(root.personalInfo.name).first((path, value) -> path.eq(value));
+        //客户手机号
+        bindings.bind(root.personalInfo.mobileNo).first((path, value) -> path.eq(value));
+        //批次号
+        bindings.bind(root.batchNumber).first((path, value) -> path.eq(value));
+        //申请省份
+        bindings.bind(root.area.id).first((path, value) -> path.eq(value));
+        //申请城市
+        bindings.bind(root.area.areaName).first((path, value) -> path.eq(value));
     }
 
     /**
@@ -69,5 +79,11 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
      */
     @Query(value = "select count(*) from case_info where current_collector = :userId and collection_status in (20,21,22,23,25)", nativeQuery = true)
     Integer getCaseCount(@Param("userId") String userId);
+
+    /**
+     @Description 获得指定用户的待催收金额
+     */
+    @Query(value= "select sum(overdue_amount) from case_info where current_collector = :id or assist_collector = :id and collection_status = :collectionStatus",nativeQuery = true)
+    BigDecimal getCollectionAmt(@Param("id") String id, @Param("collectionStatus") Integer collectionStatus);
 
 }
