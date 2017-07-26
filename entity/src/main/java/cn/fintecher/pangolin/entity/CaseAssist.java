@@ -34,7 +34,7 @@ public class CaseAssist extends BaseEntity {
     @ApiModelProperty("已留案天数")
     private Integer hasLeaveDays;
     @ApiModelProperty("打标标记（0-无，1-红色，2-蓝色，3-黄色）")
-    private String markId;
+    private Integer markId;
     @ApiModelProperty("挂起标识")
     private Integer handupFlag;
     @ApiModelProperty("协催公司code码")

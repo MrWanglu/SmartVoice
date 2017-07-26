@@ -11,5 +11,5 @@ import lombok.Data;
 @Data
 public class AssistCaseMarkParams {
     private String assistId; //协催案件ID
-    private String markId; //打标标记
+    private Integer markId; //打标标记
 }
