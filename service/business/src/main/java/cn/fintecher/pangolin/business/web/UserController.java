@@ -138,15 +138,19 @@ public class UserController extends BaseController {
         if (Objects.equals(Status.Disable.getValue(), user.getStatus()) || !(Objects.equals(user.getDepartment().getType(), userOld.getDepartment().getType()))) {
             //用户下的电催和外访的案件
             CollectionCaseModel collectionCaseModel = caseInfoService.haveCollectionCase(userOld);
-            int number = collectionCaseModel.getNum();
-            if (0 != number) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User associated case, please handle cases", "该用户下关联" + number + "个未处理的案件，不能停用，请先处理完该用户下的案件")).body(null);
+            if (Objects.nonNull(collectionCaseModel)) {
+                int number = collectionCaseModel.getNum();
+                if (0 != number) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User associated case, please handle cases", "该用户下关联" + number + "个未处理的案件，不能停用，请先处理完该用户下的案件")).body(null);
+                }
             }
             //用户下的协催案件
             AssistingStatisticsModel assistingStatisticsMode = caseAssistService.getCollectorAssist(userOld);
-            int number1 = assistingStatisticsMode.getNum();
-            if (0 != number) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User associated case, please handle cases", "该用户下关联" + number + "个未处理的协催案件，不能停用，请先处理完该用户下的案件")).body(null);
+            if (Objects.nonNull(assistingStatisticsMode)) {
+                int number1 = assistingStatisticsMode.getNum();
+                if (0 != number1) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User associated case, please handle cases", "该用户下关联" + number1 + "个未处理的协催案件，不能停用，请先处理完该用户下的案件")).body(null);
+                }
             }
         }
         //修改用户 判断部门
