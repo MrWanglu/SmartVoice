@@ -158,7 +158,9 @@ public class CaseInfo extends BaseEntity {
         //已结案
         CASE_OVER(24, "已结案"),
         //待分配
-        WAIT_FOR_DIS(25, "待分配");
+        WAIT_FOR_DIS(25, "待分配"),
+        //已委外
+        CASE_OUT(166, "已委外");
 
 
         private Integer value;
