@@ -187,7 +187,8 @@ public class CaseFollowupRecord extends BaseEntity {
         //电话
         TEL(78, "电话"),
         //外访
-        VISIT(79, "外访");
+        VISIT(79, "外访"),
+        ASSIST(162, "协催");
         private Integer value;
 
         private String remark;

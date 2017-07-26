@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.*;
@@ -43,7 +44,7 @@ import java.util.Objects;
 @Api(value = "CaseAssistController", description = "案件协催")
 public class CaseAssistController extends BaseController {
 
-    private final Logger log = LoggerFactory.getLogger(CaseAssistApplyController.class);
+    private final Logger log = LoggerFactory.getLogger(CaseAssistController.class);
 
     @Inject
     private CaseInfoService caseInfoService;
@@ -55,9 +56,11 @@ public class CaseAssistController extends BaseController {
     private CaseFollowupRecordRepository caseFollowupRecordRepository;
     @Inject
     private AccVisitPoolController accVisitPoolController;
+    @Inject
+    private CaseInfoRepository caseInfoRepository;
 
     @PutMapping("/assistCaseMarkColor")
-    @ApiOperation(value = "外访案件颜色打标", notes = "外访案件颜色打标")
+    @ApiOperation(value = "协催案件颜色打标", notes = "协催案件颜色打标")
     public ResponseEntity<CaseAssist> assistCaseMarkColor(@RequestBody AssistCaseMarkParams caseMarkParams,
                                                           @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("REST request to mark color");
@@ -338,6 +341,22 @@ public class CaseAssistController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("系统错误", "receiveCaseAssist", e.getMessage())).body(null);
+        }
+    }
+
+    @GetMapping("/findCaseAssistInfo/{id}")
+    @ApiOperation(value = "根据协催案件ID查找对应案件信息",notes = "根据协催案件ID查找对应案件信息")
+    public ResponseEntity<CaseInfo> findCaseAssistInfo (@PathVariable("id") @ApiParam("协催案件ID") String id) {
+        try {
+            CaseAssist one = caseAssistRepository.findOne(id);
+            if (Objects.isNull(one)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController","findCaseAssistInfo","协催案件不存在")).body(null);
+            }
+            CaseInfo caseInfo = one.getCaseId();
+            return ResponseEntity.ok().body(caseInfo);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("系统错误", "findCaseAssistInfo", e.getMessage())).body(null);
         }
     }
 
