@@ -174,15 +174,19 @@ public class DepartmentController extends BaseController {
             if (Objects.equals(Status.Disable.getValue(), department.getStatus())) {
                 //机构关联的电催和外访的案件数
                 CollectionCaseModel collectionCaseModel = caseInfoService.haveCollectionCase(dept);
-                int number = collectionCaseModel.getNum();
-                if (0 != number) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + number + "个未处理的案件，不能停用，请先处理完该机构下的案件")).body(null);
+                if (Objects.nonNull(collectionCaseModel)) {
+                    int number = collectionCaseModel.getNum();
+                    if (0 != number) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + number + "个未处理的案件，不能停用，请先处理完该机构下的案件")).body(null);
+                    }
                 }
                 //机构下关联的协催正在催收的案件
                 AssistingStatisticsModel assistingStatisticsMode = caseAssistService.getDepartmentCollectingAssist(dept);
-                int num = assistingStatisticsMode.getNum();
-                if (0 != number) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + number + "个未处理的协催案件，不能停用，请先处理完该机构下的案件")).body(null);
+                if (Objects.nonNull(assistingStatisticsMode)) {
+                    int num = assistingStatisticsMode.getNum();
+                    if (0 != num) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + num + "个未处理的协催案件，不能停用，请先处理完该机构下的案件")).body(null);
+                    }
                 }
                 //首先的移除部门下面的用户
                 QUser qUser = QUser.user;
