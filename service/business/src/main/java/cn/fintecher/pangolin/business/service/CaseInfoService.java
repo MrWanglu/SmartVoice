@@ -76,6 +76,9 @@ public class CaseInfoService {
     @Inject
     RestTemplate restTemplate;
 
+    @Inject
+    PersonalIncomeExpRepository personalIncomeExpRepository;
+
     /**
      * @Description 重新分配
      */
@@ -213,11 +216,15 @@ public class CaseInfoService {
         //获取客户单位信息
         PersonalJob personalJob = personalJobRepository.findByPersonalId(personal.getId());
 
+        //获取客户收支信息
+        PersonalIncomeExp personalIncomeExp = personalIncomeExpRepository.findByPersonalId(personal.getId());
+
         PersonalInfoModel personalInfoModel = new PersonalInfoModel();
         personalInfoModel.setPersonal(personal);
         personalInfoModel.setPersonalBanks(personalBankList);
         personalInfoModel.setPersonalCars(personalCarList);
         personalInfoModel.setPersonalJob(personalJob);
+        personalInfoModel.setPersonalIncomeExp(personalIncomeExp);
         return personalInfoModel;
     }
 

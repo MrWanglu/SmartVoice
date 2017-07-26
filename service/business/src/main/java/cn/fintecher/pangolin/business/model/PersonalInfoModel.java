@@ -1,9 +1,6 @@
 package cn.fintecher.pangolin.business.model;
 
-import cn.fintecher.pangolin.entity.Personal;
-import cn.fintecher.pangolin.entity.PersonalBank;
-import cn.fintecher.pangolin.entity.PersonalCar;
-import cn.fintecher.pangolin.entity.PersonalJob;
+import cn.fintecher.pangolin.entity.*;
 import lombok.Data;
 
 import java.util.List;
@@ -20,4 +17,5 @@ public class PersonalInfoModel {
     private List<PersonalBank> personalBanks; //客户开户信息
     private List<PersonalCar> personalCars; //客户车产信息
     private PersonalJob personalJob; //客户工作单位信息
+    private PersonalIncomeExp personalIncomeExp; //客户收支信息
 }

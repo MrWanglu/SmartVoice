@@ -529,10 +529,6 @@ public class AccTelPoolController extends BaseController {
     }
 
     /**
-     * @Description 通过关系显示姓名
-     */
-
-    /**
      * @Description 查看凭证
      */
     @GetMapping("/getPayProof")
