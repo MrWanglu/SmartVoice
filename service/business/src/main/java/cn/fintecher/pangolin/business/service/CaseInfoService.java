@@ -3,12 +3,15 @@ package cn.fintecher.pangolin.business.service;
 import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
@@ -69,6 +72,9 @@ public class CaseInfoService {
 
     @Inject
     PersonalJobRepository personalJobRepository;
+
+    @Inject
+    RestTemplate restTemplate;
 
     /**
      * @Description 重新分配
@@ -386,6 +392,7 @@ public class CaseInfoService {
             caseInfo.setOperator(tokenUser); //操作人
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseInfo.setEndRemark(endCaseParams.getEndRemark()); //结案说明
+            caseInfo.setEndType(endCaseParams.getEndType()); //结案方式
             caseInfoRepository.saveAndFlush(caseInfo);
         } else { //是协催案件
             Iterator<CaseAssist> it = getCaseAssist(endCaseParams.getCaseId());
@@ -433,6 +440,7 @@ public class CaseInfoService {
                 caseInfo.setOperator(tokenUser); //操作人
                 caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                 caseInfo.setEndRemark(endCaseParams.getEndRemark()); //结案说明
+                caseInfo.setEndType(endCaseParams.getEndType()); //结案方式
                 caseInfoRepository.saveAndFlush(caseInfo);
             }
         }
@@ -806,12 +814,39 @@ public class CaseInfoService {
     /**
      * @Description 添加修复信息
      */
-    public void saveRepairInfo(RepairInfoModel repairInfoModel, User tokenUser) {
-        Integer sum;
-        if (repairInfoModel.getPhoneList().size() > repairInfoModel.getSocialList().size()) {
-            sum = repairInfoModel.getPhoneList().size();
-        } else {
-            sum = repairInfoModel.getSocialList().size();
+    public PersonalContact saveRepairInfo(RepairInfoModel repairInfoModel, User tokenUser) {
+        PersonalContact personalContact = new PersonalContact();
+        personalContact.setRelation(repairInfoModel.getRelation()); //关系
+        personalContact.setName(repairInfoModel.getName()); //姓名
+        personalContact.setPhone(repairInfoModel.getPhone()); //电话号码
+        personalContact.setPhoneStatus(repairInfoModel.getPhoneStatus()); //电话状态
+        personalContact.setSocialType(repairInfoModel.getSocialType()); //社交帐号类型
+        personalContact.setSocialValue(repairInfoModel.getSocialValue()); //社交帐号内容
+        personalContact.setOperator(tokenUser.getUserName()); //操作人
+        personalContact.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        personalContactRepository.saveAndFlush(personalContact);
+        return personalContact;
+    }
+
+    /**
+     * @Description 查看凭证
+     */
+    public List<UploadFile> getRepaymentVoucher(String casePayId) {
+        //下载外访资料
+        List<UploadFile> uploadFiles = new ArrayList<>();//文件对象集合
+        QCasePayFile qCasePayFile = QCasePayFile.casePayFile;
+        Iterable<CasePayFile> caseFlowupFiles = casePayFileRepository.findAll(qCasePayFile.payId.eq(casePayId));
+        Iterator<CasePayFile> it = caseFlowupFiles.iterator();
+        while (it.hasNext()) {
+            CasePayFile casePayFile = it.next();
+            ResponseEntity<UploadFile> entity = restTemplate.getForEntity("http://file-service/api/uploadFile/" + casePayFile.getFileid(), UploadFile.class);
+            if (!entity.hasBody()) {
+                throw new RuntimeException("下载失败");
+            } else {
+                UploadFile uploadFile = entity.getBody();//文件对象
+                uploadFiles.add(uploadFile);
+            }
         }
+        return uploadFiles;
     }
 }
