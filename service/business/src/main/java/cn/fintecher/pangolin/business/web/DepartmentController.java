@@ -167,8 +167,9 @@ public class DepartmentController extends BaseController {
                 if (Objects.equals(Status.Enable.getValue(), department.getParent().getStatus())) {
                     Department deptNew = departmentRepository.save(department);
                     return ResponseEntity.ok().body(deptNew);
+                } else {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The parent department for the disabled", "父部门为停用,请先修改父部门状态")).body(null);
                 }
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The parent department for the disabled", "父部门为停用,请先修改父部门状态")).body(null);
             }
             //状态由启用变为停用
             if (Objects.equals(Status.Disable.getValue(), department.getStatus())) {
@@ -201,11 +202,11 @@ public class DepartmentController extends BaseController {
                 //子机构状态
                 Iterator<Department> departments = departmentRepository.findAll(qDepartment.code.like(department.getCode()).and(qDepartment.companyCode.eq(department.getCompanyCode())).and(qDepartment.id.ne(department.getId()))).iterator();
                 List<Department> departmentList = new ArrayList<>();
-                if(departments.hasNext()){
+                if (departments.hasNext()) {
                     departmentList.add(departments.next());
                 }
-                for(Department department1: departmentList) {
-                    if (Objects.equals(Status.Enable,department1.getStatus())) {
+                for (Department department1 : departmentList) {
+                    if (Objects.equals(Status.Enable, department1.getStatus())) {
                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Setup status to stop using, please modify child institutions", "子机构状态为启用，请先修改子机构状态")).body(null);
                     }
                 }
