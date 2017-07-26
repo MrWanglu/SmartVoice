@@ -9,10 +9,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -51,6 +48,10 @@ public class AccTelPoolController extends BaseController {
     private static final String ENTITY_CASEASSISTAPPLY = "CaseAssistApply";
 
     private static final String ENTITY_PERSONALCONTACT = "PersonalContact";
+
+    private static final String ENTITY_PERSONALBANK = "PersonalBank";
+
+    private static final String ENTITY_PERSONALCAR = "PersonalCar";
 
     @Inject
     CaseInfoService caseInfoService;
@@ -96,11 +97,11 @@ public class AccTelPoolController extends BaseController {
      */
     @GetMapping("/getTelCustInfo")
     @ApiOperation(value = "电催详情页面的客户信息", notes = "电催详情页面的客户信息")
-    public ResponseEntity<Personal> getTelCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+    public ResponseEntity<PersonalInfoModel> getTelCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
         log.debug("REST request to get customer information ");
         try {
-            Personal personal = caseInfoService.getCustInfo(caseId);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取客户信息失败", ENTITY_PERSONAL)).body(personal);
+            PersonalInfoModel personalInfoModel = caseInfoService.getCustInfo(caseId);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取客户信息成功", ENTITY_PERSONAL)).body(personalInfoModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONAL, "user", "获取客户信息失败")).body(null);

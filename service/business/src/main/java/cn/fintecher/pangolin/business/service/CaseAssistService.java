@@ -3,10 +3,7 @@ package cn.fintecher.pangolin.business.service;
 import cn.fintecher.pangolin.business.model.AssistingStatisticsModel;
 import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.DepartmentRepository;
-import cn.fintecher.pangolin.entity.CaseAssist;
-import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.Department;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.springframework.stereotype.Service;
 

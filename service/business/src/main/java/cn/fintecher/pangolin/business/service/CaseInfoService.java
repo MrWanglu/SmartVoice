@@ -61,6 +61,15 @@ public class CaseInfoService {
     @Inject
     PersonalContactRepository personalContactRepository;
 
+    @Inject
+    PersonalBankRepository personalBankRepository;
+
+    @Inject
+    PersonalCarRepository personalCarRepository;
+
+    @Inject
+    PersonalJobRepository personalJobRepository;
+
     /**
      * @Description 重新分配
      */
@@ -169,12 +178,41 @@ public class CaseInfoService {
     /**
      * @Description 客户信息
      */
-    public Personal getCustInfo(String caseId) {
+    public PersonalInfoModel getCustInfo(String caseId) {
         CaseInfo caseInfo = caseInfoRepository.findOne(caseId); //获得案件
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
-        return caseInfo.getPersonalInfo();
+        //获取客户基本信息
+        Personal personal = caseInfo.getPersonalInfo();
+
+        //获取客户开户信息
+        QPersonalBank qPersonalBank = QPersonalBank.personalBank;
+        Iterable<PersonalBank> personalBanks = personalBankRepository.findAll(qPersonalBank.personalInfo.id.eq(personal.getId()));
+        Iterator<PersonalBank> personalBankIterator = personalBanks.iterator();
+        List<PersonalBank> personalBankList = new ArrayList<>();
+        while (personalBankIterator.hasNext()) {
+            personalBankList.add(personalBankIterator.next());
+        }
+
+        //获取客户车产信息
+        QPersonalCar qPersonalCar = QPersonalCar.personalCar;
+        Iterable<PersonalCar> personalCars = personalCarRepository.findAll(qPersonalCar.personalId.id.eq(personal.getId()));
+        Iterator<PersonalCar> personalCarIterator = personalCars.iterator();
+        List<PersonalCar> personalCarList = new ArrayList<>();
+        while (personalCarIterator.hasNext()) {
+            personalCarList.add(personalCarIterator.next());
+        }
+
+        //获取客户单位信息
+        PersonalJob personalJob = personalJobRepository.findByPersonalId(personal.getId());
+
+        PersonalInfoModel personalInfoModel = new PersonalInfoModel();
+        personalInfoModel.setPersonal(personal);
+        personalInfoModel.setPersonalBanks(personalBankList);
+        personalInfoModel.setPersonalCars(personalCarList);
+        personalInfoModel.setPersonalJob(personalJob);
+        return personalInfoModel;
     }
 
     /**
