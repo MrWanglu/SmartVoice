@@ -801,7 +801,8 @@ public class CaseInfoService {
      */
     private Iterator<CaseAssist> getCaseAssist(String caseId) {
         QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
-        Iterable<CaseAssist> caseAssists = caseAssistRepository.findAll(qCaseAssist.caseId.id.eq(caseId)); //查询协催案件
+        Iterable<CaseAssist> caseAssists = caseAssistRepository.findAll(qCaseAssist.caseId.id.eq(caseId).
+                and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue()))); //查询协催案件
         return caseAssists.iterator();
     }
 
