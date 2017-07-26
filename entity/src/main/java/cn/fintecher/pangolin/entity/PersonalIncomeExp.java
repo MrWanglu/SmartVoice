@@ -17,7 +17,7 @@ import java.util.Date;
 @Entity
 @Table(name = "personal_income_exp")
 @Data
-public class PersonalIncomeExp {
+public class PersonalIncomeExp extends BaseEntity{
     @ApiModelProperty(notes = "客户ID")
     private String personalId;
 
