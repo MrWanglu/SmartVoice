@@ -76,10 +76,10 @@ public class CompanyController extends BaseController {
      * @Description : 删除注册公司
      */
     @DeleteMapping("/company/{id}")
-    public ResponseEntity<Void> deleteCaseInfo(@PathVariable String id) {
+    public ResponseEntity<Void> deleteCompany(@PathVariable String id) {
         logger.debug("REST request to delete caseInfo : {}", id);
         companyRepository.delete(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id)).build();
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
     }
 
     /**
