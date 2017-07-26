@@ -1,0 +1,65 @@
+spring:
+    profiles:
+        active: dev
+        include: swagger
+    devtools:
+        restart:
+            enabled: true
+        livereload:
+            enabled: false # we use gulp + BrowserSync for livereload
+    jackson:
+        serialization.indent_output: true
+    data:
+        mongodb:
+            uri: mongodb://192.168.3.10:27017
+            database: pangolin_common_db
+    rabbitmq:
+        username: dev
+        password: dev
+        host: 192.168.3.10
+        virtual-host: dev
+        port: 5672
+    mail:
+        host:  smtp.yeah.net
+        username: cuidaren@yeah.net
+        password: cuidaren123456
+        port : 25
+        properties:
+          mail:
+            smtp:
+              auth: true
+              starttls:
+                enable: true
+                required: true
+    freemarker:
+      enabled: false
+eureka:
+  instance:
+    hostname: common-service
+    prefer-ip-address: true
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+            defaultZone: http://localhost:8761/eureka/
+pangolin:
+  call-server:
+    enterprise-code: 4216052302
+    secret: e10adc3949ba59abbe56e057f20f883e
+    host: m.icsoc.net/v2/wintelapi/webcall
+    protocol: http
+    port: 80
+    two-way-interface: /cti
+  sma:
+    seed: abc
+    smaUrl:  http://116.236.220.210:18082/sma/
+    sysTarget: mr.cui
+  message:
+    url: http://sms.zzlgroup.com/sms/sendMsg.html
+    urlQueue: http://sms.zzlgroup.com/sms/querySmsRecordMinute.html
+    channel: 5
+    sysNumber: cuibei_business
+    seed: zzl_apt
+    verificationCode: 123654
+server:
+    port: 9002
