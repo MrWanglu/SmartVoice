@@ -172,8 +172,9 @@ public class CaseAssistController extends BaseController {
         }
     }
 
-    @GetMapping("/handUp")
-    @ApiOperation(value = "协催案件挂起操作", notes = "协催案件挂起操作")
+    // TODO 协催案件暂时不做挂起功能
+//    @GetMapping("/handUp")
+//    @ApiOperation(value = "协催案件挂起操作", notes = "协催案件挂起操作")
     public ResponseEntity<CaseAssist> handUp(@RequestParam @ApiParam(value = "协催案件id", required = true) String id,
                                              @RequestParam @ApiParam(value = "是否挂起id:1挂起;2取消挂起", required = true) Integer cupoPause) {
         log.debug("REST request to handUp : {}", id);
@@ -182,10 +183,18 @@ public class CaseAssistController extends BaseController {
             if (Objects.isNull(one)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createEntityCreationAlert("协催案件不存在","CaseAssistController")).body(null);
             }
+            CaseInfo caseInfo = one.getCaseId();
             if (Objects.equals(1, cupoPause)) {//挂起请求
+                // 修改协催案件为挂起
                 one.setHandupFlag(CaseInfo.HandUpFlag.YES_HANG.getValue());
+                //修改原案件为挂起
+                caseInfo.setHandUpFlag(CaseInfo.HandUpFlag.YES_HANG.getValue());
+                one.setCaseId(caseInfo);
             } else if (Objects.equals(2, cupoPause)) {//取消挂起请求
                 one.setHandupFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());
+                //取消原案件挂起
+                caseInfo.setHandUpFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());
+                one.setCaseId(caseInfo);
             } else {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createEntityCreationAlert("请求异常","CaseAssistController")).body(null);
             }
@@ -236,6 +245,8 @@ public class CaseAssistController extends BaseController {
             endCaseParams.setEndRemark(closeAssistCaseModel.getRemark());
             endCaseParams.setIsAssist(true);
             endCaseParams.setEndType(closeAssistCaseModel.getType());
+
+            caseAssistRepository.save(one);
             caseInfoService.endCase(endCaseParams, tokenUser);
             return ResponseEntity.ok().body(null);
         } catch (Exception e) {
@@ -369,12 +380,28 @@ public class CaseAssistController extends BaseController {
                                                               @ApiIgnore Pageable pageable) {
         log.debug("Rest request to findAllCaseAssist");
         try {
+            QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
+            // 过滤掉协催结束的协催案件
+            exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
             Page<CaseAssist> page = caseAssistRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("系统错误", "findAllCaseAssist", e.getMessage())).body(null);
         }
+    }
+
+    public ResponseEntity<Page<CaseAssist>> findAllCaseAssistByAssistor(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
+                                                                        @ApiIgnore Pageable pageable,
+                                                                        @RequestHeader(value = "X-UserToken") String token) throws Exception {
+        log.debug("Rest request to findAllCaseAssistByAssistor");
+        User user = getUserByToken(token);
+        //左边案件列表展示协催员自己的所有协催案件
+        QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+        BooleanBuilder exp = new BooleanBuilder(predicate);
+        exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
+        Page<CaseAssist> page = caseAssistRepository.findAll(exp, pageable);
+        return ResponseEntity.ok().body(page);
     }
 }

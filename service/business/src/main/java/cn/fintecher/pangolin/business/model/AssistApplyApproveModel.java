@@ -12,8 +12,8 @@ import lombok.Data;
 @Data
 @ApiModel("协催申请审批对象")
 public class AssistApplyApproveModel {
-    @ApiModelProperty("审批类型：电催审批，外访审批")
-    private Integer approveType;
+    @ApiModelProperty("申请说明")
+    private String applyRemark;
     @ApiModelProperty("审批结果")
     private Integer approveResult;
     @ApiModelProperty("审批意见")
