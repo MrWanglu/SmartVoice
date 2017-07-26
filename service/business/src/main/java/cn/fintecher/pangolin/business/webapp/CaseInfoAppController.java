@@ -3,31 +3,22 @@ package cn.fintecher.pangolin.business.webapp;
 import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.web.BaseController;
-import cn.fintecher.pangolin.entity.CaseAssist;
-import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.QCaseInfo;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
 
+import com.querydsl.core.types.Predicate;
 
 /**
  * @author : gaobeibei
@@ -36,7 +27,7 @@ import javax.inject.Inject;
  */
 @RestController
 @RequestMapping(value = "/api/CaseInfoAppController")
-@Api(value = "催收任务查询", description = "催收任务查询")
+@Api(value = "APP催收任务查询", description = "APP催收任务查询")
 public class CaseInfoAppController extends BaseController {
     final Logger log = LoggerFactory.getLogger(CaseInfoAppController.class);
     @Inject
@@ -57,8 +48,8 @@ public class CaseInfoAppController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
-        builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(user.getDepartment().getCode()));
-        builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
+        builder.and(QCaseAssist.caseAssist.assistCollector.id.eq(user.getId()));
+        builder.and(QCaseAssist.caseAssist.caseId.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
         Page<CaseAssist> page = caseAssistRepository.findAll(predicate, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/queryAssistDetail");
         return new ResponseEntity<>(page, headers, HttpStatus.OK);
@@ -72,14 +63,13 @@ public class CaseInfoAppController extends BaseController {
         User user = null;
         try {
             user = getUserByToken(token);
-        } catch (final Exception e) {
+        } catch (Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
-        builder.and(QCaseInfo.caseInfo.assistFlag.eq(CaseInfo.AssistFlag.NO_ASSIST.getValue()));
-        builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(user.getDepartment().getCode()));
+        builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
         builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/queryVisitDetail");
@@ -94,14 +84,13 @@ public class CaseInfoAppController extends BaseController {
         User user = null;
         try {
             user = getUserByToken(token);
-        } catch (final Exception e) {
+        } catch (Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
-        builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
-        builder.or(QCaseInfo.caseInfo.assistFlag.eq(CaseInfo.AssistFlag.YES_ASSIST.getValue()));
-        builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(user.getDepartment().getCode()));
+        builder.andAnyOf(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()),
+                QCaseInfo.caseInfo.assistCollector.id.eq(user.getId()));
         builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/queryCaseDetail");
