@@ -19,7 +19,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api")
-public class DomainController {
+public class DomainController extends BaseController{
 
     private static final String ENTITY_NAME = "domain";
     private final Logger log = LoggerFactory.getLogger(DomainController.class);

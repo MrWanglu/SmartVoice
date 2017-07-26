@@ -11,10 +11,10 @@ spring:
         serialization.indent_output: true
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        url: jdbc:mysql://192.168.1.5:3306/pangolin_business?useUnicode=true&characterEncoding=utf8&useSSL=false
+        url: jdbc:mysql://192.168.3.10:3306/pangolin_business?useUnicode=true&characterEncoding=utf8&useSSL=false
         name:
-        username: mysql
-        password: mysql
+        username: pangolin
+        password: Pangolin123!
         hikari:
             data-source-properties:
                 cachePrepStmts: true
@@ -24,9 +24,17 @@ spring:
     rabbitmq:
         username: dev
         password: dev
-        host: 192.168.1.6
+        host: 192.168.3.10
         virtual-host: dev
         port: 5672
+
+    cache:
+        jcache:
+            config: ehcache.xml
+    redis:
+        database: 0
+        host: 192.168.3.10
+        port: 6379
 
 eureka:
   instance:
@@ -39,4 +47,9 @@ eureka:
             defaultZone: http://localhost:8761/eureka/
 
 server:
-    port: 9012
+    port: 9001
+
+cuibei:
+  baiduMap:
+    webUrl: http://api.map.baidu.com/place/v2/search?region=全国&ak=
+    webAk: lHaYCXlRADlhW0fnv8tpIhCfqD85pTSr

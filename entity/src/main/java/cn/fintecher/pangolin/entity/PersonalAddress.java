@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -23,6 +24,8 @@ public class PersonalAddress extends BaseEntity {
     private Integer source;
     private String operator;
     private Date operatorTime;
+    private BigDecimal longitude;
+    private BigDecimal latitude;
     @ManyToOne
     @JoinColumn(name = "personal_id")
     private Personal personalInfo;

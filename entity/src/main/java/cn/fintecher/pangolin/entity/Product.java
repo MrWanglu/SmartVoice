@@ -16,13 +16,13 @@ import java.util.Date;
 @Table(name = "product")
 @Data
 public class Product extends BaseEntity {
-    private String code;
-    private String name;
+    private String prodcutCode;
+    private String prodcutName;
     private Integer periods;
     private BigDecimal contractRate;
     private BigDecimal multipleRate;
     private Integer payWay;
-    private Integer status;
+    private Integer productStatus;
     private BigDecimal interestRate;
     private String operator;
     private Date operatorTime;

@@ -1,11 +1,20 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.PersonalInfoExportModel;
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.PersonalRepository;
+import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.Personal;
+import cn.fintecher.pangolin.entity.QCaseInfo;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
+import com.querydsl.core.types.CollectionExpression;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -17,26 +26,73 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by ChenChang on 2017/5/23.
  */
 @RestController
-@RequestMapping("/api")
-public class PersonalController {
+@RequestMapping("/api/personalController")
+@Api(value = "PersonalController", description = "客户信息操作")
+public class PersonalController extends BaseController{
 
     private static final String ENTITY_NAME = "personal";
     private final Logger log = LoggerFactory.getLogger(PersonalController.class);
-    private final PersonalRepository personalRepository;
 
-    public PersonalController(PersonalRepository personalRepository) {
-        this.personalRepository = personalRepository;
+    @Inject
+    private PersonalRepository personalRepository;
+    @Inject
+    private CaseInfoRepository caseInfoRepository;
+
+    @PostMapping("/personalInfoExport")
+    @ApiOperation(value = "客户信息导出", notes = "客户信息导出")
+    public ResponseEntity personalInfoExport(@RequestBody @ApiParam("配置项") PersonalInfoExportModel model) {
+        Integer exportType = model.getExportType();  //导出维度  0-催收员，1-产品类型，2-批次号，3-案件状态
+        Set<Object> dataFilter = model.getDataFilter(); // 数据过滤
+        Map<String, List<String>> dataInfo = model.getDataInfo(); //数据项
+
+        QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+        // 催收员
+        if (Objects.equals(exportType, 0)) {
+            List<String> orgData = dataInfo.get("orgData"); // 数据信息
+            BooleanExpression exp = qCaseInfo.currentCollector.realName.in((CollectionExpression<?, ? extends String>) dataFilter);
+            Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
+            // TODO 导出
+            Map<String,String> headMap = new HashMap<>();
+            headMap.put("","");
+            Map<String,Object> dataMap = new HashMap<>();
+            if (!orgData.isEmpty()) {
+                orgData.forEach(e-> dataMap.put(e,""));
+            }
+
+        }
+
+        // 产品类型
+        if (Objects.equals(exportType, 1)) {
+            List<String> baseInfo = dataInfo.get("baseInfo"); // 基本信息
+            List<String> workInfo = dataInfo.get("workInfo"); // 工作信息
+            List<String> contactInfo = dataInfo.get("contactInfo"); // 联系人信息
+            List<String> bankInfo = dataInfo.get("bankInfo"); // 开户信息
+            BooleanExpression exp = qCaseInfo.product.productSeries.seriesName.in((CollectionExpression<?, ? extends String>) dataFilter);
+            Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
+            // TODO 导出
+        }
+
+        // 批次号
+        if (Objects.equals(exportType, 2)) {
+
+        }
+
+        // 案件状态
+        if (Objects.equals(exportType, 3)) {
+
+        }
+
+        return null;
     }
-
 
     @PostMapping("/personal")
     public ResponseEntity<Personal> createPersonal(@RequestBody Personal personal) throws URISyntaxException {

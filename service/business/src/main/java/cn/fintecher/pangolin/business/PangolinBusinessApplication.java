@@ -6,9 +6,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.web.client.RestTemplate;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -20,7 +23,11 @@ import java.net.UnknownHostException;
 @EntityScan("cn.fintecher.pangolin.entity")
 public class PangolinBusinessApplication {
     private static final Logger log = LoggerFactory.getLogger(PangolinBusinessApplication.class);
-
+    @Bean
+    @LoadBalanced
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
     public static void main(String[] args) throws UnknownHostException {
         SpringApplication app = new SpringApplication(PangolinBusinessApplication.class);
         Environment env = app.run(args).getEnvironment();

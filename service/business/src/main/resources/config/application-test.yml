@@ -8,6 +8,7 @@ spring:
             enabled: false # we use gulp + BrowserSync for livereload
     jackson:
         serialization.indent_output: true
+        serialization.write_dates_as_timestamps: true
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
         url: jdbc:mysql://192.168.1.5:3306/pangolin_business?useUnicode=true&characterEncoding=utf8&useSSL=false
@@ -36,4 +37,9 @@ eureka:
     serviceUrl:
             defaultZone: http://localhost:8761/eureka/
 server:
-    port: 9012
+    port: 9001
+
+cuibei:
+  baiduMap:
+    webUrl: http://api.map.baidu.com/place/v2/search?region=全国&ak=
+    webAk: lHaYCXlRADlhW0fnv8tpIhCfqD85pTSr

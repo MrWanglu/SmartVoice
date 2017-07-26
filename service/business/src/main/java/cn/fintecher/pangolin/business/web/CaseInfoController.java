@@ -2,9 +2,12 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.entity.CaseInfo;
+import cn.fintecher.pangolin.entity.QCaseInfo;
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +30,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api")
-public class CaseInfoController {
+public class CaseInfoController extends BaseController {
 
     private static final String ENTITY_NAME = "caseInfo";
     private final Logger log = LoggerFactory.getLogger(CaseInfoController.class);
@@ -70,10 +73,13 @@ public class CaseInfoController {
     }
 
     @GetMapping("/queryCaseInfo")
-    public ResponseEntity<Page<CaseInfo>> queryCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate, @ApiIgnore Pageable pageable) throws URISyntaxException {
-        log.debug("REST request to get all CaseInfo");
-
-        Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);
+    public ResponseEntity<Page<CaseInfo>> queryCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                        @ApiIgnore Pageable pageable,
+                                                        @RequestHeader(value = "X-UserToken") String token) throws Exception {
+        User user = getUserByToken(token);
+        BooleanBuilder builder = new BooleanBuilder(predicate);
+        builder.and(QCaseInfo.caseInfo.department.code.startsWith(""));
+        Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/queryCaseInfo");
         return new ResponseEntity<>(page, headers, HttpStatus.OK);
     }

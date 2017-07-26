@@ -13,9 +13,9 @@ import java.util.Date;
 @Table(name = "product_series")
 @Data
 public class ProductSeries extends BaseEntity {
-    private String name;
-    private Integer status;
-    private Integer flag;
+    private String seriesName;
+    private Integer seriesStatus;
+    private Integer seriesFlag;
     private String operator;
     private Date operatorTime;
     //Fixme 修改成关系的

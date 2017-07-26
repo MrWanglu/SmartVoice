@@ -3,19 +3,16 @@ package cn.fintecher.pangolin.business;
 
 import cn.fintecher.pangolin.business.repository.AreaCodeRepository;
 import cn.fintecher.pangolin.business.repository.PersonalRepository;
-import cn.fintecher.pangolin.business.web.PersonalController;
 import cn.fintecher.pangolin.entity.Personal;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -42,14 +39,14 @@ public class PersonalControllerTest {
     @Autowired
     private AreaCodeRepository areaCodeRepository;
 
-    @Before
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
-        PersonalController personalController = new PersonalController(personalRepository);
-        this.restDataDictMockMvc = MockMvcBuilders.standaloneSetup(personalController)
-                .setCustomArgumentResolvers(pageableArgumentResolver)
-                .setMessageConverters(jacksonMessageConverter).build();
-    }
+//    @Before
+//    public void setup() {
+//        MockitoAnnotations.initMocks(this);
+//        PersonalController personalController = new PersonalController(personalRepository);
+//        this.restDataDictMockMvc = MockMvcBuilders.standaloneSetup(personalController)
+//                .setCustomArgumentResolvers(pageableArgumentResolver)
+//                .setMessageConverters(jacksonMessageConverter).build();
+//    }
 
     @Before
     public void initTest() {

@@ -1,0 +1,38 @@
+spring:
+    profiles:
+        active: dev
+    devtools:
+        restart:
+            enabled: false
+        livereload:
+            enabled: false # we use gulp + BrowserSync for livereload
+    jackson:
+        serialization.indent_output: true
+    data:
+        mongodb:
+            uri: mongodb://172.19.28.134:27017
+            database: dataimp_db
+    rabbitmq:
+        username: cuidaren
+        password: CuiDaRen!23456
+        host: 172.19.28.135
+        virtual-host: cuidaren
+        port: 5672
+eureka:
+  instance:
+    hostname: dataimp-service
+    prefer-ip-address: true
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+            defaultZone: http://172.19.28.135:8761/eureka/
+
+server:
+    port: 9003
+
+# 高德地域查询restapi
+cuibei:
+    placeInquire:
+        webUrl: http://restapi.amap.com/v3/place/text?&output=json&extensions=all
+        ak: 803c595254626ef5a6edeb02944174e4

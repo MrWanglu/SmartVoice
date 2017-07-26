@@ -28,7 +28,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api")
-public class AreaCodeController {
+public class AreaCodeController extends BaseController {
     private final Logger log = LoggerFactory.getLogger(AreaCodeController.class);
     private final AreaCodeRepository areaCodeRepository;
 
