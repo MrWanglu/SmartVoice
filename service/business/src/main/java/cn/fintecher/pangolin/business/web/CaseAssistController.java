@@ -179,9 +179,12 @@ public class CaseAssistController extends BaseController {
         log.debug("REST request to handUp : {}", id);
         try {
             CaseAssist one = caseAssistRepository.findOne(id);
-            if (1 == cupoPause) {//挂起请求
+            if (Objects.isNull(one)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createEntityCreationAlert("协催案件不存在","CaseAssistController")).body(null);
+            }
+            if (Objects.equals(1, cupoPause)) {//挂起请求
                 one.setHandupFlag(CaseInfo.HandUpFlag.YES_HANG.getValue());
-            } else if (2 == cupoPause) {//取消挂起请求
+            } else if (Objects.equals(2, cupoPause)) {//取消挂起请求
                 one.setHandupFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());
             } else {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createEntityCreationAlert("请求异常","CaseAssistController")).body(null);
