@@ -233,8 +233,10 @@ public class CaseInfoService {
         if (BigDecimal.ZERO.compareTo(payApplyParams.getPayAmt()) == 1) {
             throw new RuntimeException("还款金额不能小于0");
         }
-        if (BigDecimal.ZERO.compareTo(payApplyParams.getDerateFee()) == 1) {
-            throw new RuntimeException("减免金额不能小于0");
+        if (Objects.equals(payApplyParams.getDerateFlag(), 1)) {
+            if (BigDecimal.ZERO.compareTo(payApplyParams.getDerateFee()) == 1) {
+                throw new RuntimeException("减免金额不能小于0");
+            }
         }
 
         //更新案件状态
@@ -799,5 +801,17 @@ public class CaseInfoService {
             list.add(it.next());
         }
         return list;
+    }
+
+    /**
+     * @Description 添加修复信息
+     */
+    public void saveRepairInfo(RepairInfoModel repairInfoModel, User tokenUser) {
+        Integer sum;
+        if (repairInfoModel.getPhoneList().size() > repairInfoModel.getSocialList().size()) {
+            sum = repairInfoModel.getPhoneList().size();
+        } else {
+            sum = repairInfoModel.getSocialList().size();
+        }
     }
 }
