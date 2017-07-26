@@ -13,7 +13,7 @@ import java.util.Date;
 @Data
 public class Outsource extends BaseEntity {
     //委托方编号最大999（3位）
-    public final static String PRIN_SEQ = "prinSeq";
+    public final static String OUT_PRIN_SEQ = "prinSeq";
 
     @ApiModelProperty("委外方编码")
     private String outsCode;

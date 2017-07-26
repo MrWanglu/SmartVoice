@@ -68,7 +68,7 @@ public class OutsourceController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "The outsourcename is not allowed to be used", "该名字不允许被使用")).body(null);
             }
-            LabelValue labelValue = batchSeqService.nextSeq(Outsource.PRIN_SEQ, Outsource.principalStatus.PRINCODE_DIGIT.getPrincipalCode());
+            LabelValue labelValue = batchSeqService.nextSeq(Outsource.OUT_PRIN_SEQ, Outsource.principalStatus.PRINCODE_DIGIT.getPrincipalCode());
             if (Objects.isNull(labelValue)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "The client code for failure", "委托方编号获取失败")).body(null);
