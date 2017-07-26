@@ -21,7 +21,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -210,7 +212,7 @@ public class OutsourceController extends BaseController {
      */
     @PostMapping("/getAllOutsource")
     @ApiOperation(value = "查询所有委托方", notes = "查询所有委托方")
-    public ResponseEntity<Outsource> deleteOutsource(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<List<Outsource>> getAllOutsource(@RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
@@ -218,7 +220,12 @@ public class OutsourceController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
-//        Page<Outsource> page = outsourceRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        QOutsource qOutsource = QOutsource.outsource;
+        List<Outsource> outsourceList = new ArrayList<>();
+        Iterator<Outsource> outsourceIterator = outsourceRepository.findAll().iterator();
+        if (outsourceIterator.hasNext()) {
+            outsourceList.add(outsourceIterator.next());
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(outsourceList);
     }
 }
