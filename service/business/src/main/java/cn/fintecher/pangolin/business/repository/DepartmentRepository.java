@@ -15,7 +15,7 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 public interface DepartmentRepository extends QueryDslPredicateExecutor<Department>, JpaRepository<Department, String>,QuerydslBinderCustomizer<QDepartment> {
     @Override
     default void customize(final QuerydslBindings bindings, final QDepartment root) {
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like(value));
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
         //机构类型
         bindings.bind(root.type).first((path, value) -> path.eq(value));
         //机构等级

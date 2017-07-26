@@ -16,7 +16,7 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 public interface CompanyRepository extends QueryDslPredicateExecutor<Company>, JpaRepository<Company, String>, QuerydslBinderCustomizer<QCompany> {
     @Override
     default void customize(final QuerydslBindings bindings, final QCompany root) {
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like(value));
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
         //公司状态
         bindings.bind(root.status).first((path, value) -> path.eq(value));
         //公司code

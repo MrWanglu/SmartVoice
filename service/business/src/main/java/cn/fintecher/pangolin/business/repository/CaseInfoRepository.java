@@ -23,7 +23,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
     @Override
     default void customize(final QuerydslBindings bindings, final QCaseInfo root) {
 
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like(value));
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
         bindings.bind(root.product.prodcutName).first((path, value) -> path.eq(value));
         //机构码搜索
         bindings.bind(root.department.code).first((path, value) -> path.startsWith(value));
@@ -81,9 +81,9 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
     Integer getCaseCount(@Param("userId") String userId);
 
     /**
-     @Description 获得指定用户的待催收金额
+     * @Description 获得指定用户的待催收金额
      */
-    @Query(value= "select sum(overdue_amount) from case_info where current_collector = :id or assist_collector = :id and collection_status = :collectionStatus",nativeQuery = true)
+    @Query(value = "select sum(overdue_amount) from case_info where current_collector = :id or assist_collector = :id and collection_status = :collectionStatus", nativeQuery = true)
     BigDecimal getCollectionAmt(@Param("id") String id, @Param("collectionStatus") Integer collectionStatus);
 
 }

@@ -19,7 +19,7 @@ public interface CaseAssistRepository extends QueryDslPredicateExecutor<CaseAssi
 
     @Override
     default void customize(final QuerydslBindings bindings, final QCaseAssist root) {
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like(value));
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
         bindings.bind(root.caseId.collectionType).first((path, value) -> path.eq(value));
     }
 }

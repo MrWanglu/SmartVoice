@@ -160,6 +160,7 @@ public class CaseInfoService {
             if (Objects.isNull(caseAssist)) {
                 throw new RuntimeException("协催案件未找到");
             }
+            caseAssist.setLatelyCollector(caseAssist.getCurrentCollector()); //上一个协催员
             caseAssist.setAssistCollector(user); //协催员
             caseAssist.setOperator(tokenUser); //操作员
             caseAssist.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间

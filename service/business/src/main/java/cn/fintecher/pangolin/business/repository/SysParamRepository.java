@@ -16,7 +16,7 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 public interface SysParamRepository extends QueryDslPredicateExecutor<SysParam>, JpaRepository<SysParam, String>, QuerydslBinderCustomizer<QSysParam> {
     @Override
     default void customize(final QuerydslBindings bindings, final QSysParam root) {
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like(value));
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
         //公司的特定标识
         bindings.bind(root.companyCode).first((path, value) -> path.eq(value));
         //参数的自定义code

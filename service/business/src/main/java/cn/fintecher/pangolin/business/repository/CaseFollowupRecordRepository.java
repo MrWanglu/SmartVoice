@@ -26,7 +26,7 @@ import java.util.List;
 public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<CaseFollowupRecord>, JpaRepository<CaseFollowupRecord, String>, QuerydslBinderCustomizer<QCaseFollowupRecord> {
     @Override
     default void customize(final QuerydslBindings bindings, final QCaseFollowupRecord root) {
-        bindings.bind(String.class).first((SingleValueBinding<StringPath, String>) StringExpression::like);
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
         bindings.bind(root.collectionFeedback).first(SimpleExpression::eq); //催收反馈
         bindings.bind(root.type).first(SimpleExpression::eq); //跟进方式
         bindings.bind(root.source).first(SimpleExpression::eq); //跟进来源
