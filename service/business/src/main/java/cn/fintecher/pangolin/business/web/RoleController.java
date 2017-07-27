@@ -26,6 +26,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -85,8 +86,8 @@ public class RoleController extends BaseController {
         }
         //增加角色的code需要传入
         QRole qRole = QRole.role;
-        Iterable<Role> roles = roleRepository.findAll(qRole.name.eq(role.getName()).and(qRole.companyCode.eq(user.getCompanyCode())));
-        if (roles.iterator().hasNext()){
+        Iterator<Role> roles = roleRepository.findAll(qRole.name.eq(role.getName()).and(qRole.companyCode.eq(user.getCompanyCode()))).iterator();
+        if (roles.hasNext()){
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role name has been occupied", "该角色名已被占用")).body(null);
         }else {
             role.setOperator(user.getUserName());
@@ -114,8 +115,8 @@ public class RoleController extends BaseController {
         //更新角色的公司code码需要前端传
         //判断角色的名称是否重复
         QRole qRole = QRole.role;
-        Iterable<Role> roles = roleRepository.findAll(qRole.id.ne(role.getId()).and(qRole.name.eq(role.getName())).and(qRole.companyCode.eq(user.getCompanyCode())));
-        if (roles.iterator().hasNext()){
+        Iterator<Role> roles = roleRepository.findAll(qRole.id.ne(role.getId()).and(qRole.name.eq(role.getName())).and(qRole.companyCode.eq(user.getCompanyCode()))).iterator();
+        if (roles.hasNext()){
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role name has been occupied", "该角色名已被占用")).body(null);
         }else {
             //判断角色的状态
@@ -154,10 +155,10 @@ public class RoleController extends BaseController {
     public ResponseEntity<List<Resource>> getRoleRes(@ApiParam(value = "角色id", required = true) @RequestParam(value = "id") String id,
                                                      @QuerydslPredicate(root = Role.class) Predicate predicate) throws URISyntaxException {
         QResource qResource = QResource.resource;
-        Iterable<Resource> resources = resourceRepository.findAll(qResource.roles.any().id.eq(id));
+        Iterator<Resource> resources = resourceRepository.findAll(qResource.roles.any().id.eq(id)).iterator();
         List<Resource> resourceList = new ArrayList<Resource>();
-        while (resources.iterator().hasNext()) {
-            resourceList.add(resources.iterator().next());
+        while (resources.hasNext()) {
+            resourceList.add(resources.next());
         }
         return ResponseEntity.ok().body(resourceList);
     }
