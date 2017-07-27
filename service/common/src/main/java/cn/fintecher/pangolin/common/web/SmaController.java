@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.common.web;
 
+import cn.fintecher.pangolin.common.client.DataDictClient;
 import cn.fintecher.pangolin.common.client.UserClient;
 import cn.fintecher.pangolin.common.model.AddTaskRecorderRequest;
 import cn.fintecher.pangolin.common.model.BindCallNumberRequest;
@@ -15,9 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -47,6 +46,8 @@ public class SmaController {
     private String sysTarget;
     @Autowired
     private UserClient userClient;
+    @Autowired
+    private DataDictClient dataDictClient;
 
     /**
      * @Description : 呼叫类型设置
@@ -54,14 +55,12 @@ public class SmaController {
     @GetMapping("/getSmaType")
     @ApiOperation(value = "呼叫类型", notes = "呼叫类型")
     public ResponseEntity<List<DataDict>> getSmaType() {
-        RestTemplate restTemplate = new RestTemplate();
-        ParameterizedTypeReference<List<DataDict>> responseType = new ParameterizedTypeReference<List<DataDict>>() {
-        };
-//        ResponseEntity<List<UploadFile>> resp = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("getAllUploadFileByIds/").concat(ids),
-//                HttpMethod.GET, null, responseType);
-        // ResponseEntity<List<DataDict>> dataDictList = restTemplate.getForEntity("http://business-service/api/dataDictResource?typeCode=0038",  );
-        ResponseEntity<List<DataDict>> resp = restTemplate.exchange("http://business-service/api/dataDictResource?typeCode=0038", HttpMethod.GET, null, responseType);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(resp.getBody());
+//        RestTemplate restTemplate = new RestTemplate();
+//        ParameterizedTypeReference<List<DataDict>> responseType = new ParameterizedTypeReference<List<DataDict>>() {
+//        };
+//        ResponseEntity<List<DataDict>> resp = restTemplate.exchange("http://bussines-service/api/dataDictResource?typeCode=0038", HttpMethod.GET, null, responseType);
+        ResponseEntity<List<DataDict>> dataDict = dataDictClient.getDataDictByTypeCode("0038");
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(dataDict.getBody());
     }
 
     /**
