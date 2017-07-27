@@ -94,7 +94,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", ENTITY_CASEINFO)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "user", "重新分配失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("重新分配失败", "user", e.getMessage())).body(null);
         }
     }
 
@@ -110,7 +110,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取客户信息成功", ENTITY_PERSONAL)).body(personalInfoModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONAL, "user", "获取客户信息失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取客户信息失败", "user", e.getMessage())).body(null);
         }
     }
 
@@ -126,7 +126,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取案件信息成功", ENTITY_CASEINFO)).body(caseInfo);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "获取案件信息失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取案件信息失败", "caseInfo", e.getMessage())).body(null);
         }
     }
 
@@ -144,7 +144,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款操作成功", ENTITY_CASEPAYAPPLY)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEPAYAPPLY, "casePayApply", "申请还款失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("申请还款失败", "casePayApply", e.getMessage())).body(null);
         }
     }
 
@@ -162,7 +162,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款撤回成功", ENTITY_CASEPAYAPPLY)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEPAYAPPLY, "casePayApply", "撤回失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("撤回失败", "casePayApply", e.getMessage())).body(null);
         }
     }
 
@@ -191,7 +191,7 @@ public class AccTelPoolController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEPAYAPPLY, "casePayApply", "查询失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "casePayApply", e.getMessage())).body(null);
         }
     }
 
@@ -209,7 +209,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("跟进记录添加成功", ENTITY_CASEFOLLOWUPRECORD)).body(result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEFOLLOWUPRECORD, "caseFollowupRecord", "添加跟进记录失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("添加跟进记录失败", "caseFollowupRecord", e.getMessage())).body(null);
         }
     }
 
@@ -239,7 +239,7 @@ public class AccTelPoolController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEFOLLOWUPRECORD, "caseFollowupRecord", "查询失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "caseFollowupRecord", e.getMessage())).body(null);
         }
     }
 
@@ -278,7 +278,7 @@ public class AccTelPoolController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "查询失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "caseInfo", e.getMessage())).body(null);
         }
     }
 
@@ -311,7 +311,7 @@ public class AccTelPoolController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "查询失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "caseInfo", e.getMessage())).body(null);
         }
     }
 
@@ -328,7 +328,7 @@ public class AccTelPoolController extends BaseController {
             caseInfoService.endCase(endCaseParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("结案成功", ENTITY_CASEINFO)).body(null);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "结案失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("结案失败", "caseInfo", e.getMessage())).body(null);
         }
     }
 
@@ -346,7 +346,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("协催申请成功", ENTITY_CASEASSISTAPPLY)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEASSISTAPPLY, "caseAssistApply", "协催申请失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("协催申请失败", "caseAssistApply", e.getMessage())).body(null);
         }
     }
 
@@ -375,7 +375,7 @@ public class AccTelPoolController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEASSISTAPPLY, "caseAssistApply", "查询失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "caseAssistApply", e.getMessage())).body(null);
         }
     }
 
@@ -396,7 +396,7 @@ public class AccTelPoolController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEASSISTAPPLY, "caseAssistApply", "查询失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "caseAssistApply", e.getMessage())).body(null);
         }
     }
 
@@ -417,7 +417,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("新增成功", ENTITY_PERSONALCONTACT)).body(personalContact);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONALCONTACT, "personalContact", "新增联系人信息失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("新增联系人信息失败", "personalContact", e.getMessage())).body(null);
         }
     }
 
@@ -434,7 +434,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取分配信息成功", ENTITY_CASEINFO)).body(batchDistributeModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "获取分配信息失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取分配信息失败", "caseInfo", e.getMessage())).body(null);
         }
     }
 
@@ -452,7 +452,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("批量分配成功", ENTITY_CASEINFO)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "批量分配失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("批量分配失败", "caseInfo", e.getMessage())).body(null);
         }
     }
 
@@ -470,7 +470,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("案件颜色打标成功", ENTITY_CASEINFO)).body(caseInfo);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "案件颜色打标失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("案件颜色打标失败", "caseInfo", e.getMessage())).body(null);
         }
     }
 
@@ -488,7 +488,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("联系人电话状态修改成功", ENTITY_PERSONALCONTACT)).body(personalContact);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONALCONTACT, "personalContact", "修改失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("修改失败", "personalContact", e.getMessage())).body(null);
         }
     }
 
@@ -507,7 +507,7 @@ public class AccTelPoolController extends BaseController {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("联系人信息查询成功", ENTITY_PERSONALCONTACT)).body(personalContacts);
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONALCONTACT, "personalContact", "查询失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "personalContact", e.getMessage())).body(null);
         }
     }
 
@@ -524,7 +524,7 @@ public class AccTelPoolController extends BaseController {
             PersonalContact personalContact = caseInfoService.saveRepairInfo(repairInfoModel, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("添加成功", ENTITY_PERSONALCONTACT)).body(personalContact);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONALCONTACT, "personalContact", "添加失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("添加失败", "personalContact", e.getMessage())).body(null);
         }
     }
 
@@ -539,7 +539,7 @@ public class AccTelPoolController extends BaseController {
             List<UploadFile> uploadFiles = caseInfoService.getRepaymentVoucher(casePayId);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("下载成功", ENTITY_UPLOADFILE)).body(uploadFiles);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_UPLOADFILE, "uploadFile", "下载失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("下载失败", "uploadFile", e.getMessage())).body(null);
         }
     }
 }
