@@ -156,10 +156,9 @@ public class CaseAssistController extends BaseController {
     }
 
 
-    @PostMapping("/saveFollowupRecord/{id}")
+    @PostMapping("/saveFollowupRecord")
     @ApiOperation(value = "协催案件页面添加跟进记录", notes = "协催案件页面添加跟进记录")
-    public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@PathVariable("id") @ApiParam("协催案件ID") String id,
-                                                                 @RequestBody CaseFollowupRecord caseFollowupRecord,
+    public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@RequestBody CaseFollowupRecord caseFollowupRecord,
                                                                  @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("REST request to save {}", caseFollowupRecord);
         try {
