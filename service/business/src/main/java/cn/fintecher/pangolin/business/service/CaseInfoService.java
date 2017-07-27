@@ -209,7 +209,8 @@ public class CaseInfoService {
             throw new RuntimeException("挂起案件不允许做还款操作");
         }
         if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.OVER_PAYING.getValue())
-                || Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.EARLY_PAYING.getValue())) {
+                || Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.EARLY_PAYING.getValue())
+                || Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.Repaid.getValue())) {
             throw new RuntimeException("该案件正在还款中或已还款，不允许再次还款");
         }
         if (BigDecimal.ZERO.compareTo(payApplyParams.getPayAmt()) == 1) {
