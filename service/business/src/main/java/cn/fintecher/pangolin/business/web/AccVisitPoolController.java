@@ -80,6 +80,9 @@ public class AccVisitPoolController extends BaseController {
     @Inject
     CaseAssistApplyRepository caseAssistApplyRepository;
 
+    @Inject
+    SendMessageRecordRepository sendMessageRecordRepository;
+
     /**
      * @Description 外访主页面多条件查询外访案件
      */
@@ -245,7 +248,7 @@ public class AccVisitPoolController extends BaseController {
     }
 
 //    /**
-//     * @Description 电催详情页面的客户信息
+//     * @Description 外访详情页面的客户信息
 //     */
 //    @GetMapping("/getVisitCustInfo")
 //    @ApiOperation(value = "外访详情页面的客户信息", notes = "外访详情页面的客户信息")
@@ -440,6 +443,27 @@ public class AccVisitPoolController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("打标失败", ENTITY_NAME, e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 外访页面多条件查询发送信息记录
+     */
+    @GetMapping("/getAllSendMessageRecord")
+    @ApiOperation(value = "外访页面多条件查询发送信息记录", notes = "外访页面多条件查询发送信息记录")
+    public ResponseEntity<Page<SendMessageRecord>> getAllSendMessageRecord(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                                           @ApiIgnore Pageable pageable,
+                                                                           @RequestParam @ApiParam(value = "案件ID", required = true) String caseId) throws URISyntaxException {
+        log.debug("REST request to get all send message record by {caseId}", caseId);
+        try {
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(QSendMessageRecord.sendMessageRecord.caseId.eq(caseId)); //只查当前案件的信息发送记录
+            Page<SendMessageRecord> page = sendMessageRecordRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccVisitPoolController/getAllSendMessageRecord");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "SendMessageRecord", e.getMessage())).body(null);
         }
     }
 
