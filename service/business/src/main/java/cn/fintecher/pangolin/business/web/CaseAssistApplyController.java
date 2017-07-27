@@ -99,7 +99,7 @@ public class CaseAssistApplyController extends BaseController {
             QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 查出所有电催待审批的案件
-            exp.and(qCaseAssistApply.approveStatus.eq(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue()));
+//            exp.and(qCaseAssistApply.approveStatus.eq(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue()));
             Page<CaseAssistApply> page = caseAssistApplyRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
