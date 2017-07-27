@@ -28,6 +28,14 @@ public class CallService {
     @Value("${pangolin.call-server.secret}")
     private String secret;
 
+//    //中通天鸿的电话呼叫
+//    public void tianHongCallUp(AddTaskRecorderRequest request) {
+//        HttpClient client = new HttpClient();
+//        client.setConnectionTimeout(1000 * 60);
+//        client.getHostConfiguration().setHost(callCti, 80, "http");
+//    }
+
+
     public HttpMethod getPostMethod(CallRequest request) {
         PostMethod post = new PostMethod(twoWayInterface);
         String timeValue = Long.toString(System.currentTimeMillis());

@@ -84,26 +84,26 @@ public class UserController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "New user institutions must be greater than the first class", "新增用户,用户机构等级必须大于一级")).body(null);
         }
-        //新增用户的个数限制
-//        QSysParam qSysParam1 = QSysParam.sysParam;
-//        Iterator<SysParam> sysParamsNumber = sysParamRepository.findAll(qSysParam1.code.eq(Constants.APPLY_USER_NUMBER_CODE).and(qSysParam1.type.eq(Constants.APPLY_USER_NUMBER_TYPE)).and(qSysParam1.companyCode.eq(userToken.getCompanyCode()))).iterator();
-//        List<SysParam> sysParam = new ArrayList<>();
-//        if (sysParamsNumber.hasNext() && Objects.equals(Status.Enable.getValue(), sysParamsNumber.next().getStatus())) {
-//            sysParam.add(sysParamsNumber.next());
-//        }
-//        if (sysParam.size() > 0) {
-//            QUser qUser1 = QUser.user;
-//            List<User> userList = new ArrayList<>();
-//            Iterator<User> userIterator = userRepository.findAll(qUser1.companyCode.eq(user.getCompanyCode())).iterator();
-//            if (userIterator.hasNext()) {
-//                userList.add(userIterator.next());
-//            }
-//            int size = Integer.parseInt(sysParam.get(0).getValue());
-//            if (size > userList.size()) {
-//                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-//                        "New user has reached the online", "新增用户已达到上线")).body(null);
-//            }
-//        }
+//        新增用户的个数限制
+        QSysParam qSysParam1 = QSysParam.sysParam;
+        Iterator<SysParam> sysParamsNumber = sysParamRepository.findAll(qSysParam1.code.eq(Constants.APPLY_USER_NUMBER_CODE).and(qSysParam1.type.eq(Constants.APPLY_USER_NUMBER_TYPE)).and(qSysParam1.companyCode.eq(userToken.getCompanyCode()))).iterator();
+        List<SysParam> sysParam = new ArrayList<>();
+        if (sysParamsNumber.hasNext()) {
+            sysParam.add(sysParamsNumber.next());
+        }
+        if (sysParam.size() > 0 && Objects.equals(Status.Enable.getValue(), sysParam.get(0).getStatus())) {
+            QUser qUser1 = QUser.user;
+            List<User> userList = new ArrayList<>();
+            Iterator<User> userIterator = userRepository.findAll(qUser1.companyCode.eq(user.getCompanyCode())).iterator();
+            if (userIterator.hasNext()) {
+                userList.add(userIterator.next());
+            }
+            int size = Integer.parseInt(sysParam.get(0).getValue());
+            if (userList.size() > size) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                        "New user has reached the online", "新增用户已达到上线")).body(null);
+            }
+        }
         //用户名不能重复
         QUser qUser = QUser.user;
         Iterator<User> userList = userRepository.findAll(qUser.userName.eq(user.getUserName()).and(qUser.companyCode.eq(user.getCompanyCode()))).iterator();

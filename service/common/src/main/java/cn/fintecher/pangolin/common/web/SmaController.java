@@ -61,10 +61,6 @@ public class SmaController {
     @GetMapping("/getSmaType")
     @ApiOperation(value = "呼叫类型", notes = "呼叫类型")
     public ResponseEntity<List<DataDict>> getSmaType() {
-//        RestTemplate restTemplate = new RestTemplate();
-//        ParameterizedTypeReference<List<DataDict>> responseType = new ParameterizedTypeReference<List<DataDict>>() {
-//        };
-//        ResponseEntity<List<DataDict>> resp = restTemplate.exchange("http://bussines-service/api/dataDictResource?typeCode=0038", HttpMethod.GET, null, responseType);
         ResponseEntity<List<DataDict>> dataDict = dataDictClient.getDataDictByTypeCode("0038");
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(dataDict.getBody());
     }
@@ -78,12 +74,25 @@ public class SmaController {
         User user = userClient.getUserByToken(token).getBody();
         //呼叫中心配置
         SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), user.getCompanyCode(), Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
-        if(Objects.isNull(sysParam)){
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail to get", "获取失败")).body(null);
+        if (Objects.isNull(sysParam)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "未获取呼叫配置的系统参数", "Did not get call configuration of system parameters")).body(null);
         }
-        Map paramMap = new HashMap();
-        paramMap.put("empId", user.getId());
-        return smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);
+        // 163 erpv3   164  中通天鸿  165  云羿
+        if (Objects.equals("163", sysParam.getValue())) {
+            Map paramMap = new HashMap();
+            paramMap.put("empId", user.getId());
+            return smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);
+        }
+        //164  中通天鸿 对呼绑定 在user中的callPhone 字段
+        if (Objects.equals("164", sysParam.getValue()) || Objects.equals("165", sysParam.getValue())) {
+            if (Objects.nonNull(user.getCallPhone())) {
+                Map paramMap = new HashMap();
+                paramMap.put("callPhone", user.getCallPhone());
+                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Is binding", "已经绑定")).body(paramMap);
+            }
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unbounded calling number", "未绑定主叫号码")).body(null);
+        }
+        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
     }
 
     @PostMapping("/bindTaskDataByCallerId")
@@ -91,28 +100,67 @@ public class SmaController {
     public ResponseEntity<Map<String, String>> bindTaskDataByCallerId(@RequestBody BindCallNumberRequest request, @RequestHeader(value = "X-UserToken") String token) {
         // 是否登录
         User user = userClient.getUserByToken(token).getBody();
-        Map paramMap = new HashMap();
-        paramMap.put("empId", user.getId());
-        paramMap.put("callerid", request.getCallerId());//固定话机ID
-        paramMap.put("salesmanCode", user.getRealName() + user.getUserName());
-        paramMap.put("caller", request.getCaller());//主叫号码选填
-        return smaRequestService.smaRequest("bindTaskDataByCallerid.html", paramMap);
+
+        //呼叫中心配置
+        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), user.getCompanyCode(), Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        if (Objects.isNull(sysParam)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "未获取呼叫配置的系统参数", "Did not get call configuration of system parameters")).body(null);
+        }
+        // 163 erpv3   164  中通天鸿  165  云羿
+        if (Objects.equals("163", sysParam.getValue())) {
+            Map paramMap = new HashMap();
+            paramMap.put("empId", user.getId());
+            paramMap.put("callerid", request.getCallerId());//固定话机ID
+            paramMap.put("salesmanCode", user.getRealName() + user.getUserName());
+            paramMap.put("caller", request.getCaller());//主叫号码选填
+            return smaRequestService.smaRequest("bindTaskDataByCallerid.html", paramMap);
+        }
+        //164  中通天鸿 对呼绑定 在user中的callPhone 字段
+        if (Objects.equals("164", sysParam.getValue()) || Objects.equals("165", sysParam.getValue())) {
+            if (Objects.nonNull(user.getCallPhone())) {
+                Map paramMap = new HashMap();
+                paramMap.put("callPhone", user.getCallPhone());
+                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Is binding", "已经绑定")).body(paramMap);
+            } else {
+                user.setCallPhone(request.getCaller());
+                User user1 = userClient.saveUser(user).getBody();
+                Map paramMap1 = new HashMap();
+                paramMap1.put("callPhone", user1.getCallPhone());
+                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Binding success", "绑定成功")).body(paramMap1);
+            }
+        }
+        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
+
     }
 
     @PostMapping("/addTaskRecorder")
     @ApiOperation(value = "开始电话呼叫", notes = "开始电话呼叫")
     public ResponseEntity<Map<String, String>> addTaskRecorder(@RequestBody AddTaskRecorderRequest request, @RequestHeader(value = "X-UserToken") String token) {
         User user = userClient.getUserByToken(token).getBody();
-        Map paramMap = new HashMap();
-        paramMap.put("id", request.getTaskId());//呼叫流程id
-        paramMap.put("caller", request.getCaller());//主叫号码
-        paramMap.put("callee", request.getCallee());//被叫号码
-        paramMap.put("empId", user.getId());//业务员ID
-        paramMap.put("applyId", "");//信贷借款id
-        paramMap.put("custInfoId", MD5.MD5Encode(request.getCustomer()));//客户ID
-        paramMap.put("sysTarget", sysTarget);//ACC贷后，Review评审
-        paramMap.put("salesmanCode", user.getRealName() + user.getUserName());
-        return smaRequestService.smaRequest("addTaskRecoder.html", paramMap);
+//        呼叫中心配置
+        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), user.getCompanyCode(), Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        if (Objects.isNull(sysParam)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
+        }
+        // 163 erpv3   164  中通天鸿  165  云羿
+        if (Objects.equals("163", sysParam.getValue())) {
+            Map paramMap = new HashMap();
+            paramMap.put("id", request.getTaskId());//呼叫流程id
+            paramMap.put("caller", request.getCaller());//主叫号码
+            paramMap.put("callee", request.getCallee());//被叫号码
+            paramMap.put("empId", user.getId());//业务员ID
+            paramMap.put("applyId", "");//信贷借款id
+            paramMap.put("custInfoId", MD5.MD5Encode(request.getCustomer()));//客户ID
+            paramMap.put("sysTarget", sysTarget);//ACC贷后，Review评审
+            paramMap.put("salesmanCode", user.getRealName() + user.getUserName());
+            return smaRequestService.smaRequest("addTaskRecoder.html", paramMap);
+        }
+        if (Objects.equals("164", sysParam.getValue())) {
+            if (Objects.isNull(user.getCallPhone())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Users are not binding calling number", "用户未绑定主叫号码")).body(null);
+            }
+        }
+        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
     }
 
     @PostMapping("/addTaskVoiceFileByTaskId")
