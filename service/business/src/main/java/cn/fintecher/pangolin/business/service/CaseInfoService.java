@@ -145,7 +145,7 @@ public class CaseInfoService {
                 caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
             }
         } else { //是协催案件
-            if (!Objects.equals(tokenUser.getType(), CaseInfo.CollectionType.VISIT.getValue())) {
+            if (!Objects.equals(user.getType(), CaseInfo.CollectionType.VISIT.getValue())) {
                 throw new RuntimeException("协催案件不能分配给外访以外人员");
             }
             Iterator<CaseAssist> it = getCaseAssist(reDistributionParams.getCaseId());
@@ -185,17 +185,17 @@ public class CaseInfoService {
         caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
     }
 
-    /**
-     * @Description 客户信息
-     */
-    public Personal getCustInfo(String caseId) {
-        CaseInfo caseInfo = caseInfoRepository.findOne(caseId); //获得案件
-        if (Objects.isNull(caseInfo)) {
-            throw new RuntimeException("该案件未找到");
-        }
-        //获取客户基本信息
-        return caseInfo.getPersonalInfo();
-    }
+//    /**
+//     * @Description 客户信息
+//     */
+//    public Personal getCustInfo(String caseId) {
+//        CaseInfo caseInfo = caseInfoRepository.findOne(caseId); //获得案件
+//        if (Objects.isNull(caseInfo)) {
+//            throw new RuntimeException("该案件未找到");
+//        }
+//        //获取客户基本信息
+//        return caseInfo.getPersonalInfo();
+//    }
 
     /**
      * @Description 申请还款操作

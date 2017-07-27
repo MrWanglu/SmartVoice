@@ -244,21 +244,21 @@ public class AccVisitPoolController extends BaseController {
         }
     }
 
-    /**
-     * @Description 电催详情页面的客户信息
-     */
-    @GetMapping("/getVisitCustInfo")
-    @ApiOperation(value = "外访详情页面的客户信息", notes = "外访详情页面的客户信息")
-    public ResponseEntity<Personal> getVisitCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
-        log.debug("REST request to get customer information ");
-        try {
-            Personal personal = caseInfoService.getCustInfo(caseId);
-            return ResponseEntity.ok().body(personal);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", ENTITY_PERSONAL, e.getMessage())).body(null);
-        }
-    }
+//    /**
+//     * @Description 电催详情页面的客户信息
+//     */
+//    @GetMapping("/getVisitCustInfo")
+//    @ApiOperation(value = "外访详情页面的客户信息", notes = "外访详情页面的客户信息")
+//    public ResponseEntity<Personal> getVisitCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+//        log.debug("REST request to get customer information ");
+//        try {
+//            Personal personal = caseInfoService.getCustInfo(caseId);
+//            return ResponseEntity.ok().body(personal);
+//        } catch (Exception e) {
+//            log.error(e.getMessage(), e);
+//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", ENTITY_PERSONAL, e.getMessage())).body(null);
+//        }
+//    }
 
     /**
      * @Description 外访页面申请还款操作
