@@ -40,27 +40,27 @@ public class Personal extends BaseEntity {
     private Integer dataSource;
     private String operator;
     private Date operatorTime;
-    @OneToMany
-    @JoinColumn(name = "personal_id")
+    @OneToMany(cascade = CascadeType.REFRESH)
+    @JoinColumn(name = "personalId", insertable = false, updatable = false)
     private Set<PersonalContact> personalContacts; //客户联系人
-    @OneToMany
-    @JoinColumn(name = "personal_id")
+    @OneToMany(cascade = CascadeType.REFRESH)
+    @JoinColumn(name = "personalId",  insertable = false, updatable = false)
     private Set<PersonalBank> personalBankInfos; //客户开户信息
 
-    @OneToMany
-    @JoinColumn(name = "personal_id")
+    @OneToMany(cascade = CascadeType.REFRESH)
+    @JoinColumn(name = "personalId", insertable = false, updatable = false)
     private Set<PersonalAddress> personalAddresses; //客户联系人
 
-    @OneToMany
-    @JoinColumn(name = "personal_id")
+    @OneToMany(cascade = CascadeType.REFRESH)
+    @JoinColumn(name = "personalId",insertable = false, updatable = false)
     private Set<PersonalCar> personalCars; //客户车产信息
 
-    @OneToOne
-    @JoinColumn(name = "personal_id")
-    private PersonalIncomeExp personalIncomeExp; //客户收支信息
+    @OneToMany(cascade = CascadeType.REFRESH)
+    @JoinColumn(name = "personalId",  insertable = false, updatable = false)
+    private Set<PersonalIncomeExp> personalIncomeExps; //客户收支信息
 
-    @OneToOne
-    @JoinColumn(name = "personal_id")
-    private PersonalJob personalJob; //客户工作信息
+    @OneToMany(cascade = CascadeType.REFRESH)
+    @JoinColumn(name = "personalId", insertable = false, updatable = false)
+    private Set<PersonalJob> personalJobs; //客户工作信息
 
 }
