@@ -2,10 +2,7 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.ApplyAssistModel;
 import cn.fintecher.pangolin.business.model.AssistApplyApproveModel;
-import cn.fintecher.pangolin.business.repository.CaseAssistApplyRepository;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
-import cn.fintecher.pangolin.business.repository.RoleRepository;
-import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -30,7 +27,6 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.inject.Inject;
 import java.util.Date;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * @Author : sunyanping
@@ -54,6 +50,8 @@ public class CaseAssistApplyController extends BaseController {
     private UserRepository userRepository;
     @Inject
     private RoleRepository roleRepository;
+    @Inject
+    private CaseAssistRepository caseAssistRepository;
 
     @GetMapping("/findAllApplyByCaseNumber/{caseNumber}")
     @ApiOperation(value = "查询某个案件的所有协催申请", notes = "查询某个案件的所有协催申请")
@@ -98,7 +96,6 @@ public class CaseAssistApplyController extends BaseController {
             QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 查出所有电催待审批的案件
-//            exp.and(qCaseAssistApply.approveStatus.eq(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue()));
             Page<CaseAssistApply> page = caseAssistApplyRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
@@ -120,18 +117,15 @@ public class CaseAssistApplyController extends BaseController {
             if (Objects.isNull(apply)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistApplyController", "assistApplyApprove", "申请不存在!")).body(null);
             }
-
             String caseId = apply.getCaseId();
             CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
-
             //修改案件协催申请信息
             Integer approveResult = approveModel.getApproveResult();
+            CaseAssist caseAssist = new CaseAssist();
             // 审批通过
             if (approveResult == CaseAssistApply.ApproveResult.VISIT_PASS.getValue()) {
                 // 案件协催表增加记录
-                CaseAssist caseAssist = new CaseAssist();
                 caseAssist.setCaseId(caseInfo);
-                //            caseAssist.setLeftDays(); //协催剩余天数
                 caseAssist.setAssistWay(apply.getAssistWay()); //协催方式
                 caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue()); //协催状态（协催待分配）
                 caseAssist.setCaseFlowinTime(new Date()); //流入时间
@@ -167,6 +161,7 @@ public class CaseAssistApplyController extends BaseController {
             apply.setApproveOutName(user.getRealName()); //审批人姓名
             apply.setApproveOutDatetime(new Date()); //审批时间
             CaseAssistApply save = caseAssistApplyRepository.save(apply);
+            caseAssistRepository.save(caseAssist);
             return ResponseEntity.ok().body(save);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -181,9 +176,7 @@ public class CaseAssistApplyController extends BaseController {
                                                 @PathVariable("id") @ApiParam("案件协催申请ID") String id,
                                                 @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("Rest request to assistApplyTelApprove");
-        // token验证
         User user = getUserByToken(token);
-
         try {
             CaseAssistApply apply = caseAssistApplyRepository.findOne(id);
             if (Objects.isNull(apply)) {
@@ -194,26 +187,23 @@ public class CaseAssistApplyController extends BaseController {
             if (Objects.equals(approveStatus, CaseAssistApply.ApproveStatus.TEL_COMPLETE.getValue())) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistApplyController", "assistApplyTelApprove", "该申请已经审批过，不能再审批!")).body(null);
             }
-
             String caseId = apply.getCaseId();
             CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
-
             if (Objects.isNull(caseInfo)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistApplyController", "assistApplyTelApprove", "案件不存在!")).body(null);
             }
-
             //修改案件协催申请信息
             Integer approveResult = approveModel.getApproveResult(); //审批结果
             // 审批通过
             if (approveResult == CaseAssistApply.ApproveResult.TEL_PASS.getValue()) {
                 // TODO 提醒外访主管审批
-                String title = "有协催申请需要审批!";
-                String content = "电催组申请对案件["+apply.getCaseNumber()+"]进行协催，请及时审批!";
-                QRole qRole = QRole.role;
-                BooleanExpression exp = qRole.name.contains("外访主管");
-                Role one = roleRepository.findOne(exp);
-                Set<User> users = one.getUsers();
-                users.forEach(u -> sendAssistApproveReminder(title,content,u.getId()));
+//                String title = "有协催申请需要审批!";
+//                String content = "电催组申请对案件["+apply.getCaseNumber()+"]进行协催，请及时审批!";
+//                QRole qRole = QRole.role;
+//                BooleanExpression exp = qRole.name.contains("外访主管");
+//                Role one = roleRepository.findOne(exp);
+//                Set<User> users = one.getUsers();
+//                users.forEach(u -> sendAssistApproveReminder(title,content,u.getId()));
             }
             // 审批拒绝
             if (approveResult == CaseAssistApply.ApproveResult.TEL_REJECT.getValue()) {
@@ -232,7 +222,6 @@ public class CaseAssistApplyController extends BaseController {
             apply.setApprovePhoneUser(user.getUserName()); //审批人
             apply.setApprovePhoneName(user.getRealName()); //审批人姓名
             apply.setApprovePhoneDatetime(new Date()); //审批时间
-
             CaseAssistApply save = caseAssistApplyRepository.save(apply);
             return ResponseEntity.ok().body(save);
         } catch (Exception e) {
