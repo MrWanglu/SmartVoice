@@ -604,7 +604,7 @@ public class CaseInfoService {
         List<CaseTurnRecord> caseTurnRecords = new ArrayList<>();
         for (BatchInfoModel batchInfoModel : batchInfoModels) {
             Integer caseCount = batchInfoModel.getDistributionCount(); //分配案件数
-            if (!Objects.equals(tokenUser.getDepartment().getType(), Department.Type.OUTBOUND_COLLECTION.getValue())) { //分配给外访以外
+            if (!Objects.equals(tokenUser.getType(), CaseInfo.CollectionType.VISIT.getValue())) { //分配给外访以外
                 for (int i = 0; i < caseCount; i++) {
                     CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(i)); //获得案件信息
                     if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
