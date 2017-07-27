@@ -52,18 +52,34 @@ public class PersonalController extends BaseController{
         Set<Object> dataFilter = model.getDataFilter(); // 数据过滤
         Map<String, List<String>> dataInfo = model.getDataInfo(); //数据项
 
+
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
         // 催收员
         if (Objects.equals(exportType, 0)) {
-            List<String> orgData = dataInfo.get("orgData"); // 数据信息
-            BooleanExpression exp = qCaseInfo.currentCollector.realName.in((CollectionExpression<?, ? extends String>) dataFilter);
+            String[] collectData = {"机构名称", "客户姓名", "身份证号", "联系电话", "归属城市", "总期数", "逾期天数", "逾期金额", "贷款日期", "还款状态", "催收员"};
+            List<String> collect = dataInfo.get("collect"); // 催收员为维度数据选选项
+            // 查找出所有属于该催收员的数据
+            BooleanExpression exp = qCaseInfo.currentCollector.realName.eq((String) dataFilter.iterator().next());
             Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
+            Iterator<CaseInfo> iterator = all.iterator();
+            if (iterator.hasNext()) {
+                all.iterator().next();
+                List<Map<String,Object>> listMap = new ArrayList<>(); //数据
+                for (String head : collect) {
+                    if (Objects.equals(head,collectData[0])) {
+                        Map<String,Object> map = new HashMap<>();
+                        map.put(head,"");
+                    }
+                }
+            }
+
+
             // TODO 导出
             Map<String,String> headMap = new HashMap<>();
             headMap.put("","");
             Map<String,Object> dataMap = new HashMap<>();
-            if (!orgData.isEmpty()) {
-                orgData.forEach(e-> dataMap.put(e,""));
+            if (!collect.isEmpty()) {
+                collect.forEach(e-> dataMap.put(e,""));
             }
 
         }
