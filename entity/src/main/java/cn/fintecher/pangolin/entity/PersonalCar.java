@@ -4,8 +4,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -51,8 +49,6 @@ public class PersonalCar extends BaseEntity {
     private String loanType;
 
     @ApiModelProperty(notes = "客户信息")
-    @ManyToOne(targetEntity = Personal.class)
-    @JoinColumn(name = "personal_id")
     private String personalId;
 
     @ApiModelProperty(notes = "操作员")

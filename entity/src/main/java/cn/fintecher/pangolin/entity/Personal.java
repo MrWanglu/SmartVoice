@@ -1,8 +1,6 @@
 package cn.fintecher.pangolin.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-
 
 import javax.persistence.*;
 import java.util.Date;
@@ -42,12 +40,27 @@ public class Personal extends BaseEntity {
     private Integer dataSource;
     private String operator;
     private Date operatorTime;
-    @JsonIgnore
-    @OneToMany(mappedBy = "personalInfo", targetEntity = PersonalContact.class)
-    private Set<PersonalContact> personalContacts;
-    @JsonIgnore
-    @OneToMany(mappedBy = "personalInfo", targetEntity = PersonalBank.class)
-    private Set<PersonalBank> personalBankInfos;
-    @OneToMany(cascade= {CascadeType.ALL},fetch=FetchType.LAZY ,mappedBy = "personalId", targetEntity = PersonalAddress.class)
-    private Set<PersonalAddress> personalAddresses;
+    @OneToMany
+    @JoinColumn(name = "personal_id")
+    private Set<PersonalContact> personalContacts; //客户联系人
+    @OneToMany
+    @JoinColumn(name = "personal_id")
+    private Set<PersonalBank> personalBankInfos; //客户开户信息
+
+    @OneToMany
+    @JoinColumn(name = "personal_id")
+    private Set<PersonalAddress> personalAddresses; //客户联系人
+
+    @OneToMany
+    @JoinColumn(name = "personal_id")
+    private Set<PersonalCar> personalCars; //客户车产信息
+
+    @OneToOne
+    @JoinColumn(name = "personal_id")
+    private PersonalIncomeExp personalIncomeExp; //客户收支信息
+
+    @OneToOne
+    @JoinColumn(name = "personal_id")
+    private PersonalJob personalJob; //客户工作信息
+
 }
