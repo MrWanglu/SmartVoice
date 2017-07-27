@@ -1,10 +1,7 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.*;
-import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
-import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
-import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
@@ -58,6 +55,25 @@ public class CaseAssistController extends BaseController {
     private AccVisitPoolController accVisitPoolController;
     @Inject
     private CaseInfoRepository caseInfoRepository;
+    @Inject
+    private SendMessageRecordRepository sendMessageRecordRepository;
+
+    @GetMapping("/findAssistCaseMessageRecord")
+    @ApiOperation(value = "协催案件查询短信记录",notes = "协催案件查询短信记录")
+    public ResponseEntity<Page<SendMessageRecord>> findAssistCaseMessageRecord(@QuerydslPredicate(root = SendMessageRecord.class) Predicate predicate,
+                                                                               @ApiIgnore Pageable pageable,
+                                                                               @RequestParam @ApiParam("案件ID") String caseId) {
+        try {
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(QSendMessageRecord.sendMessageRecord.caseId.eq(caseId));
+            Page<SendMessageRecord> page = sendMessageRecordRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseAssistController/findAssistCaseMessageRecord");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (URISyntaxException e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "findAssistCaseMessageRecord", e.getMessage())).body(null);
+        }
+    }
 
     @PutMapping("/assistCaseMarkColor")
     @ApiOperation(value = "协催案件颜色打标", notes = "协催案件颜色打标")
