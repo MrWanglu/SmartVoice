@@ -21,15 +21,15 @@ public class Swagger2Config {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("cn.fintecher.pangolin.file"))
+                .apis(RequestHandlerSelectors.basePackage("cn.fintecher.pangolin.common"))
                 .paths(PathSelectors.any())
                 .build();
     }
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("穿山甲文件服务 APIs")
-                .description("穿山甲文件服务 APIs")
+                .title("穿山甲common服务 APIs")
+                .description("穿山甲common服务 APIs")
                 .version("0.0.1-SNAPSHOT")
                 .build();
     }
