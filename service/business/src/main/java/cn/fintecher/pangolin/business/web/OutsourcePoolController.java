@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.OutCaseIdList;
 import cn.fintecher.pangolin.business.model.OutsourceInfo;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.math.BigDecimal;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -168,7 +170,51 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("委外失败", ENTITY_NAME, e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", ENTITY_NAME1, e.getMessage())).body(null);
+        }
+    }
+
+    @PostMapping("/closeOutsourcePool")
+    @ApiOperation(value = "委外结案", notes = "委外结案")
+    public ResponseEntity<List<OutsourcePool>> closeOutsourcePool(@RequestBody OutCaseIdList outCaseIdList, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+        try{
+            List<String> outCaseIds = outCaseIdList.getOutCaseIds();
+            List<OutsourcePool> outsourcePools = new ArrayList<>();
+            User user = getUserByToken(token);
+            for (String outId:outCaseIds){
+                OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
+                outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode());//状态改为委外结束
+                outsourcePool.setOperator(user.getUserName());//委外结案人
+                outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());//委外结案时间
+                outsourcePools.add(outsourcePool);
+            }
+            outsourcePools = outsourcePoolRepository.save(outsourcePools);
+            return ResponseEntity.ok().body(outsourcePools);
+        }catch (Exception e){
+            log.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("委外结案失败", ENTITY_NAME1, e.getMessage())).body(null);
+        }
+    }
+
+    @PostMapping("/backOutsourcePool")
+    @ApiOperation(value = "退案", notes = "退案")
+    public ResponseEntity<List<OutsourcePool>> backOutsourcePool(@RequestBody OutCaseIdList outCaseIdList, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+        try{
+            List<String> outCaseIds = outCaseIdList.getOutCaseIds();
+            List<OutsourcePool> outsourcePools = new ArrayList<>();
+            User user = getUserByToken(token);
+            for (String outId:outCaseIds){
+                OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
+                outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());//状态改为待委外
+                outsourcePool.setOperator(user.getUserName());//委外退案人
+                outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());//委外退案时间
+                outsourcePools.add(outsourcePool);
+            }
+            outsourcePools = outsourcePoolRepository.save(outsourcePools);
+            return ResponseEntity.ok().body(outsourcePools);
+        }catch (Exception e){
+            log.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("委外退案失败", ENTITY_NAME1, e.getMessage())).body(null);
         }
     }
 

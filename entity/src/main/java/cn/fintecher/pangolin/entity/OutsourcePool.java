@@ -39,13 +39,13 @@ public class OutsourcePool extends BaseEntity {
     public enum OutStatus {
 
         //待委外
-        TO_OUTSIDE(130),
+        TO_OUTSIDE(167),
         //委外中
-        OUTSIDING(131),
+        OUTSIDING(168),
         //委外到期
-        OUTSIDE_EXPIRE(132),
+        OUTSIDE_EXPIRE(169),
         //委外结束
-        OUTSIDE_OVER(133);
+        OUTSIDE_OVER(170);
         private Integer code;
 
         OutStatus(Integer code) {
