@@ -78,10 +78,9 @@ public class CaseAssistApplyController extends BaseController {
         log.debug("Rest request get all tel passed apply");
         try {
             QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
-            // 查出所有电催审批通过的申请
+            // 查出所有电催审批通过的
             BooleanBuilder exp = new BooleanBuilder(predicate);
-            exp.and(qCaseAssistApply.approveStatus.eq(CaseAssistApply.ApproveStatus.TEL_COMPLETE.getValue()))
-                    .and(qCaseAssistApply.approvePhoneResult.eq(CaseAssistApply.ApproveResult.TEL_PASS.getValue()));
+            exp.and(qCaseAssistApply.approvePhoneResult.eq(CaseAssistApply.ApproveResult.TEL_PASS.getValue()));
             Page<CaseAssistApply> page = caseAssistApplyRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
@@ -160,13 +159,13 @@ public class CaseAssistApplyController extends BaseController {
                 sendAssistApproveReminder(title,content,applyUserId);
                 sendAssistApproveReminder(title,content,telUserId);
             }
-            apply.setApproveStatus(CaseAssistApply.ApproveStatus.VISIT_COMPLETE.getValue()); //审批状态
             // 修改申请表信息
-            apply.setApprovePhoneResult(approveResult); //审批结果
-            apply.setApprovePhoneMemo(approveModel.getApproveMemo()); //审批意见
-            apply.setApprovePhoneUser(user.getUserName()); //审批人
-            apply.setApprovePhoneName(user.getRealName()); //审批人姓名
-            apply.setApprovePhoneDatetime(new Date()); //审批时间
+            apply.setApproveStatus(CaseAssistApply.ApproveStatus.VISIT_COMPLETE.getValue()); //审批状态
+            apply.setApproveOutResult(approveResult); //审批结果
+            apply.setApproveOutMemo(approveModel.getApproveMemo()); //审批意见
+            apply.setApproveOutUser(user.getUserName()); //审批人
+            apply.setApproveOutName(user.getRealName()); //审批人姓名
+            apply.setApproveOutDatetime(new Date()); //审批时间
             CaseAssistApply save = caseAssistApplyRepository.save(apply);
             return ResponseEntity.ok().body(save);
         } catch (Exception e) {
@@ -226,13 +225,14 @@ public class CaseAssistApplyController extends BaseController {
                 String userId = userRepository.findByUserName(apply.getApplyUserName()).getId();
                 sendAssistApproveReminder(title,content,userId);
             }
-            apply.setApproveStatus(CaseAssistApply.ApproveStatus.TEL_COMPLETE.getValue()); //审批状态
             // 修改申请表信息
+            apply.setApproveStatus(CaseAssistApply.ApproveStatus.TEL_COMPLETE.getValue()); //审批状态
             apply.setApprovePhoneResult(approveResult); //审批结果
             apply.setApprovePhoneMemo(approveModel.getApproveMemo()); //审批意见
             apply.setApprovePhoneUser(user.getUserName()); //审批人
             apply.setApprovePhoneName(user.getRealName()); //审批人姓名
             apply.setApprovePhoneDatetime(new Date()); //审批时间
+
             CaseAssistApply save = caseAssistApplyRepository.save(apply);
             return ResponseEntity.ok().body(save);
         } catch (Exception e) {
