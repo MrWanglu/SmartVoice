@@ -154,6 +154,7 @@ public class RoleController extends BaseController {
     @ApiOperation(value = "角色查找资源", notes = "角色查找资源")
     public ResponseEntity<List<Resource>> getRoleRes(@ApiParam(value = "角色id", required = true) @RequestParam(value = "id") String id,
                                                      @QuerydslPredicate(root = Role.class) Predicate predicate) throws URISyntaxException {
+
         QResource qResource = QResource.resource;
         Iterator<Resource> resources = resourceRepository.findAll(qResource.roles.any().id.eq(id)).iterator();
         List<Resource> resourceList = new ArrayList<Resource>();
