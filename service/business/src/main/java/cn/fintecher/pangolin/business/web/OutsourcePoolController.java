@@ -69,7 +69,7 @@ public class OutsourcePoolController extends BaseController {
                     if (CaseInfo.CollectionStatus.CASE_OVER.getValue().equals(caseInfo.getCollectionStatus())) {
                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已结案案件不能再委外")).body(null);
                     }
-                    if (CaseInfo.CollectionStatus.Repaid.getValue().equals(caseInfo.getCollectionStatus())) {
+                    if (CaseInfo.CollectionStatus.REPAID.getValue().equals(caseInfo.getCollectionStatus())) {
                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已还款案件不能再委外")).body(null);
                     }
                     Outsource outsource = outsourceRepository.findOne(outsourceInfo.getOutsId());
