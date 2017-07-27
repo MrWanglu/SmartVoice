@@ -127,19 +127,19 @@ public class CaseAssistController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("还款失败", "doTelPay", e.getMessage())).body(null);
         }
     }
-
-    @GetMapping("/getAssistCustInfo")
-    @ApiOperation(value = "协催案件详情页面的客户信息", notes = "协催案件详情页面的客户信息")
-    public ResponseEntity<Personal> getAssistCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
-        log.debug("REST request to get customer information ");
-        try {
-            Personal custInfo = caseInfoService.getCustInfo(caseId);
-            return ResponseEntity.ok().body(custInfo);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "getAssistCustInfo", e.getMessage())).body(null);
-        }
-    }
+//
+//    @GetMapping("/getAssistCustInfo")
+//    @ApiOperation(value = "协催案件详情页面的客户信息", notes = "协催案件详情页面的客户信息")
+//    public ResponseEntity<Personal> getAssistCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+//        log.debug("REST request to get customer information ");
+//        try {
+//            Personal custInfo = caseInfoService.getCustInfo(caseId);
+//            return ResponseEntity.ok().body(custInfo);
+//        } catch (Exception e) {
+//            log.error(e.getMessage(), e);
+//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "getAssistCustInfo", e.getMessage())).body(null);
+//        }
+//    }
 
     @GetMapping("/getAssistRepaymentVoucher")
     @ApiOperation(value = "协催案件查看还款凭证", notes = "协催案件查看还款凭证")

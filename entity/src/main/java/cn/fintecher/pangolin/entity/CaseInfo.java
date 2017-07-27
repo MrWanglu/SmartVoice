@@ -160,8 +160,11 @@ public class CaseInfo extends BaseEntity {
         //待分配
         WAIT_FOR_DIS(25, "待分配"),
         //已委外
-        CASE_OUT(166, "已委外");
-
+        CASE_OUT(166, "已委外"),
+        //已还款
+        Repaid(171, "已还款"),
+        //部分已还款
+        part_Repaid(172, "部分已还款");
 
         private Integer value;
         private String remark;

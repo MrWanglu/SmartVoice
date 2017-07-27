@@ -98,21 +98,21 @@ public class AccTelPoolController extends BaseController {
         }
     }
 
-    /**
-     * @Description 电催详情页面的客户信息
-     */
-    @GetMapping("/getTelCustInfo")
-    @ApiOperation(value = "电催详情页面的客户信息", notes = "电催详情页面的客户信息")
-    public ResponseEntity<Personal> getTelCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
-        log.debug("REST request to get customer information ");
-        try {
-            Personal personal = caseInfoService.getCustInfo(caseId);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取客户信息成功", ENTITY_PERSONAL)).body(personal);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取客户信息失败", "user", e.getMessage())).body(null);
-        }
-    }
+//    /**
+//     * @Description 电催详情页面的客户信息
+//     */
+//    @GetMapping("/getTelCustInfo")
+//    @ApiOperation(value = "电催详情页面的客户信息", notes = "电催详情页面的客户信息")
+//    public ResponseEntity<Personal> getTelCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+//        log.debug("REST request to get customer information ");
+//        try {
+//            Personal personal = caseInfoService.getCustInfo(caseId);
+//            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取客户信息成功", ENTITY_PERSONAL)).body(personal);
+//        } catch (Exception e) {
+//            log.error(e.getMessage(), e);
+//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取客户信息失败", "user", e.getMessage())).body(null);
+//        }
+//    }
 
     /**
      * @Description 通过案件ID获得案件信息
