@@ -362,6 +362,9 @@ public class CaseInfoService {
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
+        if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
+            throw new RuntimeException("该案件已结案");
+        }
         if (Objects.equals(endCaseParams.getIsAssist(), false)) { //不是协催案件
             if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                 Iterator<CaseAssist> it = getCaseAssist(endCaseParams.getCaseId());
