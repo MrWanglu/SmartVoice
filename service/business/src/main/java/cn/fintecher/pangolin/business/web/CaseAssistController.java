@@ -287,16 +287,15 @@ public class CaseAssistController extends BaseController {
         }
     }
 
-    @PutMapping("/assignCaseAssist")
+    @PostMapping("/assignCaseAssist")
     @ApiOperation(value = "协催案件分配", notes = "协催案件分配")
-    public ResponseEntity assignCaseAssist(@RequestParam("caseAssistId") @ApiParam("协催案件ID") String caseAssistId,
-                                           @RequestParam("assistorId") @ApiParam("要分配的协催员ID") String assistorId,
+    public ResponseEntity assignCaseAssist(@RequestBody AssignAssistParam assignAssistParam,
                                            @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("Rest request to assignCaseAssist");
         User user = getUserByToken(token);
         try {
-            CaseAssist caseAssist = caseAssistRepository.findOne(caseAssistId);
-            User assistor = userRepository.findOne(assistorId);
+            CaseAssist caseAssist = caseAssistRepository.findOne(assignAssistParam.getCaseAssistId());
+            User assistor = userRepository.findOne(assignAssistParam.getAssistorId());
 
             // 协催分配
             ReDistributionParams reDistributionParams = new ReDistributionParams();
