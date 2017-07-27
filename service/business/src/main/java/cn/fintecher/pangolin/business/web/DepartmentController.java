@@ -9,6 +9,7 @@ import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.DataDictService;
 import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.ShortUUID;
 import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -321,6 +322,42 @@ public class DepartmentController extends BaseController {
         List<Department> departmentList = new ArrayList<>();
         QDepartment qDepartment = QDepartment.department;
         Iterator<Department> departments = departmentRepository.findAll(qDepartment.code.like(user.getDepartment().getCode().concat("%"))).iterator();
+        while (departments.hasNext()) {
+            departmentList.add(departments.next());
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
+    }
+
+    /**
+     * @Description :查询所属公司的部门
+     */
+    @GetMapping(value = "/queryAllDepartment")
+    @ApiOperation(value = "查询所属公司的部门", notes = "查询所属公司的部门")
+    public ResponseEntity<List<Department>> queryAllDepartment(@RequestParam(required = false) String companyCode,
+                                                               @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        if (Objects.equals(Constants.ADMIN_USER_NAME, user.getUserName())) {
+            if (Objects.isNull(companyCode)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "请输入公司code码")).body(null);
+            } else {
+                List<Department> departmentList = new ArrayList<>();
+                QDepartment qDepartment = QDepartment.department;
+                Iterator<Department> departments = departmentRepository.findAll(qDepartment.code.like(user.getDepartment().getCode().concat("%")).and(qDepartment.companyCode.eq(companyCode))).iterator();
+                while (departments.hasNext()) {
+                    departmentList.add(departments.next());
+                }
+                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
+            }
+        }
+        List<Department> departmentList = new ArrayList<>();
+        QDepartment qDepartment = QDepartment.department;
+        Iterator<Department> departments = departmentRepository.findAll(qDepartment.code.like(user.getDepartment().getCode().concat("%")).and(qDepartment.companyCode.eq(user.getCompanyCode()))).iterator();
         while (departments.hasNext()) {
             departmentList.add(departments.next());
         }
