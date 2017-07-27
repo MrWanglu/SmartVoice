@@ -57,6 +57,28 @@ public class CaseAssistController extends BaseController {
     private SendMessageRecordRepository sendMessageRecordRepository;
     @Inject
     private DepartmentService departmentService;
+    @Inject
+    private CasePayApplyRepository casePayApplyRepository;
+
+    @GetMapping("/findAssistCasePayRecord")
+    @ApiOperation(value = "查询还款申请/记录",notes = "查询还款申请/记录")
+    public ResponseEntity<Page<CasePayApply>> findAssistCasePayRecord(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
+                                                  @RequestParam @ApiParam("协催案件ID") String assistId,
+                                                  @ApiIgnore Pageable pageable) {
+        try {
+            CaseAssist one = caseAssistRepository.findOne(assistId);
+            String caseId = one.getCaseId().getId();
+
+            QCasePayApply qCasePayApply = QCasePayApply.casePayApply;
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(qCasePayApply.caseId.eq(caseId));
+            Page<CasePayApply> page = casePayApplyRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "findAssistCasePayRecord", e.getMessage())).body(null);
+        }
+    }
 
     @GetMapping("/findAssistCaseMessageRecord")
     @ApiOperation(value = "协催案件查询短信记录",notes = "协催案件查询短信记录")
