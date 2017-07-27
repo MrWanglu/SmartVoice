@@ -211,11 +211,11 @@ public class CaseAssistController extends BaseController {
     public ResponseEntity<Page<CaseAssist>> getAllRecordAssistCase(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
                                                                    @ApiIgnore Pageable pageable,
                                                                    @RequestHeader(value = "X-UserToken") String token) throws Exception {
-        log.debug("REST request to get all handle Visit case");
+        log.debug("REST request to getAllRecordAssistCase");
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCaseAssist.caseAssist.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+//            builder.and(QCaseAssist.caseAssist.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
             builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())); //查询协催结束的协催案件
             Page<CaseAssist> page = caseAssistRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseAssistController/getAllRecordAssistCase");
