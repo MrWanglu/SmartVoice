@@ -210,7 +210,7 @@ public class CaseInfoService {
         }
         if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.OVER_PAYING.getValue())
                 || Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.EARLY_PAYING.getValue())
-                || Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.Repaid.getValue())) {
+                || Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.REPAID.getValue())) {
             throw new RuntimeException("该案件正在还款中或已还款，不允许再次还款");
         }
         if (BigDecimal.ZERO.compareTo(payApplyParams.getPayAmt()) == 1) {
@@ -296,17 +296,39 @@ public class CaseInfoService {
         if (Objects.isNull(casePayApply)) {
             throw new RuntimeException("该还款审批未找到");
         }
-        casePayApply.setApproveStatus(CasePayApply.ApproveStatus.REVOKE.getValue()); //还款审批状态 54-撤回
-        casePayApply.setOperatorUserName(tokenUser.getUserName()); //操作人用户名
-        casePayApply.setOperatorRealName(tokenUser.getRealName()); //操作人名称
-        casePayApply.setOperatorDate(ZWDateUtil.getNowDateTime()); //操作时间
-        casePayApplyRepository.saveAndFlush(casePayApply);
+        if (Objects.equals(casePayApply.getApproveStatus(), CasePayApply.ApproveStatus.REVOKE.getValue())) {
+            throw new RuntimeException("还款已撤回，不能再次撤回");
+        }
 
         //修改原案件催收状态
         CaseInfo caseInfo = caseInfoRepository.findOne(casePayApply.getCaseId());
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
+        if (Objects.equals(caseInfo.getHandUpFlag(), 1)) {
+            throw new RuntimeException("挂起案件不允许操作");
+        }
+        if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.REPAID.getValue()) //已还款
+                || Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue()) //已结案
+                || Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.PART_REPAID.getValue()) //部分已还款
+                || Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OUT.getValue())) { //已委外
+            throw new RuntimeException("已还款或已结案案件不允许操作");
+        }
+        if (Objects.equals(casePayApply.getDerateFlag(), 1)) { //有减免标识
+            if (!Objects.equals(casePayApply.getApproveStatus(), CasePayApply.ApproveStatus.DERATE_TO_AUDIT.getValue())) { //减免待审核
+                throw new RuntimeException("非待审核状态的还款申请不能撤回");
+            }
+        } else { //没有减免标识
+            if (!Objects.equals(casePayApply.getApproveStatus(), CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue())) { //还款待审核
+                throw new RuntimeException("非待审核状态的还款申请不能撤回");
+            }
+        }
+        casePayApply.setApproveStatus(CasePayApply.ApproveStatus.REVOKE.getValue()); //还款审批状态 54-撤回
+        casePayApply.setOperatorUserName(tokenUser.getUserName()); //操作人用户名
+        casePayApply.setOperatorRealName(tokenUser.getRealName()); //操作人名称
+        casePayApply.setOperatorDate(ZWDateUtil.getNowDateTime()); //操作时间
+        casePayApplyRepository.saveAndFlush(casePayApply);
+
         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue()); //案件催收状态 21-催收中
         caseInfoRepository.saveAndFlush(caseInfo);
     }
@@ -339,6 +361,9 @@ public class CaseInfoService {
         CaseInfo caseInfo = caseInfoRepository.findOne(endCaseParams.getCaseId());
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
+        }
+        if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
+            throw new RuntimeException("该案件已结案");
         }
         if (Objects.equals(endCaseParams.getIsAssist(), false)) { //不是协催案件
             if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识

@@ -162,9 +162,9 @@ public class CaseInfo extends BaseEntity {
         //已委外
         CASE_OUT(166, "已委外"),
         //已还款
-        Repaid(171, "已还款"),
+        REPAID(171, "已还款"),
         //部分已还款
-        part_Repaid(172, "部分已还款");
+        PART_REPAID(172, "部分已还款");
 
         private Integer value;
         private String remark;

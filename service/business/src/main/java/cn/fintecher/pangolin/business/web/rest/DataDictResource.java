@@ -30,6 +30,9 @@ public class DataDictResource {
     @Autowired
     DataDictRepository dataDictRepository;
 
+    /**
+     * @Description : 通过TypeCode查找数据字典列表
+     */
     @GetMapping
     @ApiOperation(value = "通过TypeCode查找数据字典列表", notes = "通过TypeCode查找数据字典列表")
     public ResponseEntity<List<DataDict>> getDataDictByTypeCode(@RequestParam String typeCode) {

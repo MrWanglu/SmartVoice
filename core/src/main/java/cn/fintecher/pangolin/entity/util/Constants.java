@@ -26,8 +26,9 @@ public final class Constants {
     public static final String USER_RESET_PASSWORD_TYPE = "0004";
     public static final String LOGIN_RET_PASSWORD = "21218cca77804d2ba1922c33e0151105"; //默认密码888888
     public static final String RET_PASSWORD = "21218cca77804d2ba1922c33e0151105"; //默认密码888888
-
-
+    //呼叫中心模块
+    public static final String PHONE_CALL_CODE = "SysParam.phone.call";
+    public static final String PHONE_CALL_TYPE = "0005";
     //导入批次号最大999(3位)
     public final static String ORDER_SEQ = "orderSeq";
     //案件编号最大99999（5位）

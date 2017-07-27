@@ -1,12 +1,16 @@
 package cn.fintecher.pangolin.common.web;
 
+import cn.fintecher.pangolin.common.client.DataDictClient;
+import cn.fintecher.pangolin.common.client.SysParamClient;
 import cn.fintecher.pangolin.common.client.UserClient;
 import cn.fintecher.pangolin.common.model.AddTaskRecorderRequest;
 import cn.fintecher.pangolin.common.model.BindCallNumberRequest;
 import cn.fintecher.pangolin.common.service.SmaRequestService;
 import cn.fintecher.pangolin.entity.DataDict;
+import cn.fintecher.pangolin.entity.SysParam;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.message.AddTaskVoiceFileMessage;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.MD5;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
@@ -15,9 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -26,6 +28,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -47,6 +50,10 @@ public class SmaController {
     private String sysTarget;
     @Autowired
     private UserClient userClient;
+    @Autowired
+    private DataDictClient dataDictClient;
+    @Autowired
+    private SysParamClient sysParamClient;
 
     /**
      * @Description : 呼叫类型设置
@@ -54,24 +61,26 @@ public class SmaController {
     @GetMapping("/getSmaType")
     @ApiOperation(value = "呼叫类型", notes = "呼叫类型")
     public ResponseEntity<List<DataDict>> getSmaType() {
-        RestTemplate restTemplate = new RestTemplate();
-        ParameterizedTypeReference<List<DataDict>> responseType = new ParameterizedTypeReference<List<DataDict>>() {
-        };
-//        ResponseEntity<List<UploadFile>> resp = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("getAllUploadFileByIds/").concat(ids),
-//                HttpMethod.GET, null, responseType);
-        // ResponseEntity<List<DataDict>> dataDictList = restTemplate.getForEntity("http://business-service/api/dataDictResource?typeCode=0038",  );
-        ResponseEntity<List<DataDict>> resp = restTemplate.exchange("http://business-service/api/dataDictResource?typeCode=0038", HttpMethod.GET, null, responseType);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(resp.getBody());
+//        RestTemplate restTemplate = new RestTemplate();
+//        ParameterizedTypeReference<List<DataDict>> responseType = new ParameterizedTypeReference<List<DataDict>>() {
+//        };
+//        ResponseEntity<List<DataDict>> resp = restTemplate.exchange("http://bussines-service/api/dataDictResource?typeCode=0038", HttpMethod.GET, null, responseType);
+        ResponseEntity<List<DataDict>> dataDict = dataDictClient.getDataDictByTypeCode("0038");
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(dataDict.getBody());
     }
 
     /**
-     * @Description : v3系统的话绑定的是座机 0，需要添加中通天鸿 1和云羿的呼叫系统 2
+     * @Description : v3系统的话绑定的是座机 163，需要添加中通天鸿 164 和云羿的呼叫系统 165
      */
     @GetMapping("/validateTaskIdInEmpId")
     @ApiOperation(value = "验证呼叫ID是否绑定", notes = "验证呼叫ID是否绑定")
     public ResponseEntity<Map<String, String>> validateTaskIdInEmpId(@RequestHeader(value = "X-UserToken") String token) {
-
         User user = userClient.getUserByToken(token).getBody();
+        //呼叫中心配置
+        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), user.getCompanyCode(), Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        if(Objects.isNull(sysParam)){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail to get", "获取失败")).body(null);
+        }
         Map paramMap = new HashMap();
         paramMap.put("empId", user.getId());
         return smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);

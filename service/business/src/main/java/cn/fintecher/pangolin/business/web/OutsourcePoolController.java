@@ -69,6 +69,9 @@ public class OutsourcePoolController extends BaseController {
                     if (CaseInfo.CollectionStatus.CASE_OVER.getValue().equals(caseInfo.getCollectionStatus())) {
                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已结案案件不能再委外")).body(null);
                     }
+                    if (CaseInfo.CollectionStatus.REPAID.getValue().equals(caseInfo.getCollectionStatus())) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已还款案件不能再委外")).body(null);
+                    }
                     Outsource outsource = outsourceRepository.findOne(outsourceInfo.getOutsId());
                     OutsourceRecord outsourceRecord = new OutsourceRecord();
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OUT.getValue());
@@ -217,5 +220,6 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("委外退案失败", ENTITY_NAME1, e.getMessage())).body(null);
         }
     }
+
 
 }
