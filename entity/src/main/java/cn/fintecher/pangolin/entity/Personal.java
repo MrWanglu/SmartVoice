@@ -43,24 +43,24 @@ public class Personal extends BaseEntity {
     @OneToMany(cascade = CascadeType.REFRESH)
     @JoinColumn(name = "personalId", insertable = false, updatable = false)
     private Set<PersonalContact> personalContacts; //客户联系人
+
     @OneToMany(cascade = CascadeType.REFRESH)
-    @JoinColumn(name = "personalId",  insertable = false, updatable = false)
+    @JoinColumn(name = "personalId", insertable = false, updatable = false)
     private Set<PersonalBank> personalBankInfos; //客户开户信息
 
     @OneToMany(cascade = CascadeType.REFRESH)
     @JoinColumn(name = "personalId", insertable = false, updatable = false)
-    private Set<PersonalAddress> personalAddresses; //客户联系人
+    private Set<PersonalAddress> personalAddresses; //客户房产信息
 
     @OneToMany(cascade = CascadeType.REFRESH)
-    @JoinColumn(name = "personalId",insertable = false, updatable = false)
+    @JoinColumn(name = "personalId", insertable = false, updatable = false)
     private Set<PersonalCar> personalCars; //客户车产信息
 
     @OneToMany(cascade = CascadeType.REFRESH)
-    @JoinColumn(name = "personalId",  insertable = false, updatable = false)
+    @JoinColumn(name = "personalId", insertable = false, updatable = false)
     private Set<PersonalIncomeExp> personalIncomeExps; //客户收支信息
 
     @OneToMany(cascade = CascadeType.REFRESH)
     @JoinColumn(name = "personalId", insertable = false, updatable = false)
     private Set<PersonalJob> personalJobs; //客户工作信息
-
 }

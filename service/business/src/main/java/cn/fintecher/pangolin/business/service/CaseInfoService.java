@@ -188,45 +188,13 @@ public class CaseInfoService {
     /**
      * @Description 客户信息
      */
-    public PersonalInfoModel getCustInfo(String caseId) {
+    public Personal getCustInfo(String caseId) {
         CaseInfo caseInfo = caseInfoRepository.findOne(caseId); //获得案件
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
         //获取客户基本信息
-        Personal personal = caseInfo.getPersonalInfo();
-
-        //获取客户开户信息
-        QPersonalBank qPersonalBank = QPersonalBank.personalBank;
-        Iterable<PersonalBank> personalBanks = personalBankRepository.findAll(qPersonalBank.personalInfo.id.eq(personal.getId()));
-        Iterator<PersonalBank> personalBankIterator = personalBanks.iterator();
-        List<PersonalBank> personalBankList = new ArrayList<>();
-        while (personalBankIterator.hasNext()) {
-            personalBankList.add(personalBankIterator.next());
-        }
-
-        //获取客户车产信息
-        QPersonalCar qPersonalCar = QPersonalCar.personalCar;
-        Iterable<PersonalCar> personalCars = personalCarRepository.findAll(qPersonalCar.personalId.id.eq(personal.getId()));
-        Iterator<PersonalCar> personalCarIterator = personalCars.iterator();
-        List<PersonalCar> personalCarList = new ArrayList<>();
-        while (personalCarIterator.hasNext()) {
-            personalCarList.add(personalCarIterator.next());
-        }
-
-        //获取客户单位信息
-        PersonalJob personalJob = personalJobRepository.findByPersonalId(personal.getId());
-
-        //获取客户收支信息
-        PersonalIncomeExp personalIncomeExp = personalIncomeExpRepository.findByPersonalId(personal.getId());
-
-        PersonalInfoModel personalInfoModel = new PersonalInfoModel();
-        personalInfoModel.setPersonal(personal);
-        personalInfoModel.setPersonalBanks(personalBankList);
-        personalInfoModel.setPersonalCars(personalCarList);
-        personalInfoModel.setPersonalJob(personalJob);
-        personalInfoModel.setPersonalIncomeExp(personalIncomeExp);
-        return personalInfoModel;
+        return caseInfo.getPersonalInfo();
     }
 
     /**
@@ -806,19 +774,6 @@ public class CaseInfoService {
         return caseAssists.iterator();
     }
 
-    /**
-     * @Description 获取联系人信息
-     */
-    public List<PersonalContact> getPersonalContact(String personalId) {
-        QPersonalContact qPersonalContact = QPersonalContact.personalContact;
-        Iterable<PersonalContact> personalContacts = personalContactRepository.findAll(qPersonalContact.personalInfo.id.eq(personalId));
-        Iterator<PersonalContact> it = personalContacts.iterator();
-        List<PersonalContact> list = new ArrayList<>();
-        while (it.hasNext()) {
-            list.add(it.next());
-        }
-        return list;
-    }
 
     /**
      * @Description 添加修复信息

@@ -103,11 +103,11 @@ public class AccTelPoolController extends BaseController {
      */
     @GetMapping("/getTelCustInfo")
     @ApiOperation(value = "电催详情页面的客户信息", notes = "电催详情页面的客户信息")
-    public ResponseEntity<PersonalInfoModel> getTelCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+    public ResponseEntity<Personal> getTelCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
         log.debug("REST request to get customer information ");
         try {
-            PersonalInfoModel personalInfoModel = caseInfoService.getCustInfo(caseId);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取客户信息成功", ENTITY_PERSONAL)).body(personalInfoModel);
+            Personal personal = caseInfoService.getCustInfo(caseId);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取客户信息成功", ENTITY_PERSONAL)).body(personal);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取客户信息失败", "user", e.getMessage())).body(null);
@@ -492,24 +492,6 @@ public class AccTelPoolController extends BaseController {
         }
     }
 
-    /**
-     * @Description 电催页面查询客户联系人信息
-     */
-    @GetMapping("/getPersonalContact")
-    @ApiOperation(value = "电催页面查询客户联系人信息", notes = "电催页面查询客户联系人信息")
-    public ResponseEntity<List<PersonalContact>> getPersonalContact(@RequestParam @ApiParam(value = "客户信息ID", required = true) String personalId) {
-        log.debug("REST request to get personal contacts by {personalId}", personalId);
-        try {
-            List<PersonalContact> personalContacts = caseInfoService.getPersonalContact(personalId);
-            if (personalContacts.isEmpty()) {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("联系人信息为空", ENTITY_PERSONALCONTACT)).body(personalContacts);
-            } else {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("联系人信息查询成功", ENTITY_PERSONALCONTACT)).body(personalContacts);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "personalContact", e.getMessage())).body(null);
-        }
-    }
 
     /**
      * @Description 电催页面添加修复信息
