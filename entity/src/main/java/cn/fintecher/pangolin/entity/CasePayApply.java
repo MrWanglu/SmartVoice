@@ -213,9 +213,7 @@ public class CasePayApply extends BaseEntity {
         //审核拒绝(驳回)
         AUDIT_REJECT(59, "审核拒绝(驳回)"),
         //还款审核中
-        PAY_TO_REVIEW(124, "还款审核中"),
-        //失效
-        FAILURE(125, "失效");
+        PAY_TO_REVIEW(124, "还款审核中");
 
         private Integer value;
 

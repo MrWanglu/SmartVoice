@@ -7,16 +7,18 @@ import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import com.querydsl.core.BooleanBuilder;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +46,7 @@ public class OutsourcePoolController extends BaseController {
     @Autowired
     private OutsourceRecordRepository outsourceRecordRepository;
     private static final String ENTITY_NAME = "OutSource";
+    private static final String ENTITY_NAME1 = "OutSourcePool";
 
     @PostMapping("/outsource")
     @ApiOperation(value = "委外处理", notes = "委外处理")
@@ -88,7 +91,7 @@ public class OutsourcePoolController extends BaseController {
                     outsourcePool.setCaseInfo(caseInfo);
                     outsourcePool.setOperator(user.getUserName());
                     outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());
-                    outsourcePool.setOut_status(OutsourcePool.OutStatus.OUTSIDING.getCode());//委外中
+                    outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDING.getCode());//委外中
                     outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
                     outsourcePools.add(outsourcePool);
                 }
@@ -102,6 +105,71 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("委外失败", ENTITY_NAME, e.getMessage())).body(null);
         }
 
+    }
+
+    /**
+     * @Description : 查询委外案件
+     */
+    @PostMapping("/query")
+    @ApiOperation(value = "查询委外案件", notes = "查询委外案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<OutsourcePool>> query(@RequestParam(required = false) @ApiParam(value = "最小逾期天数") Integer overDayMin,
+                                                     @RequestParam(required = false) @ApiParam(value = "最大逾期天数") Integer overDayMax,
+                                                     @RequestParam(required = false) @ApiParam(value = "委外方") String outsName,
+                                                     @RequestParam(required = false) @ApiParam(value = "催收状态") Integer oupoStatus,
+                                                     @RequestParam(required = false) @ApiParam(value = "最小案件金额") BigDecimal oupoAmtMin,
+                                                     @RequestParam(required = false) @ApiParam(value = "最大案件金额") BigDecimal oupoAmtMax,
+                                                     @RequestParam(required = false) @ApiParam(value = "还款状态") String payStatus,
+                                                     @RequestParam(required = false) @ApiParam(value = "最小还款金额") BigDecimal oupoPaynumMin,
+                                                     @RequestParam(required = false) @ApiParam(value = "最大还款金额") BigDecimal oupoPaynumMax,
+                                                     @RequestParam(required = false) @ApiParam(value = "批次号") String outbatch,
+                                                     @ApiIgnore Pageable pageable) {
+        try{
+            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.nonNull(overDayMin)) {
+                builder.and(qOutsourcePool.caseInfo.overdueDays.gt(overDayMin));
+            }
+            if (Objects.nonNull(overDayMax)) {
+                builder.and(qOutsourcePool.caseInfo.overdueDays.lt(overDayMax));
+            }
+            if (Objects.nonNull(outsName)) {
+                builder.and(qOutsourcePool.outsource.outsName.eq(outsName));
+            }
+            if (Objects.nonNull(oupoStatus)) {
+                builder.and(qOutsourcePool.caseInfo.collectionStatus.eq(oupoStatus));
+            }
+            if (Objects.nonNull(oupoAmtMin)) {
+                builder.and(qOutsourcePool.caseInfo.overdueAmount.gt(oupoAmtMin));
+            }
+            if (Objects.nonNull(oupoAmtMax)) {
+                builder.and(qOutsourcePool.caseInfo.overdueAmount.lt(oupoAmtMax));
+            }
+            if (Objects.nonNull(payStatus)) {
+                builder.and(qOutsourcePool.caseInfo.payStatus.eq(payStatus));
+            }
+            if (Objects.nonNull(oupoPaynumMin)) {
+                builder.and(qOutsourcePool.caseInfo.hasPayAmount.gt(oupoPaynumMin));
+            }
+            if (Objects.nonNull(oupoPaynumMax)) {
+                builder.and(qOutsourcePool.caseInfo.hasPayAmount.lt(oupoPaynumMax));
+            }
+            if (Objects.nonNull(outbatch)) {
+                builder.and(qOutsourcePool.outBatch.eq(outbatch));
+            }
+            Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("委外失败", ENTITY_NAME, e.getMessage())).body(null);
+        }
     }
 
 }

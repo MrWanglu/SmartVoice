@@ -31,7 +31,10 @@ public class OutsourcePool extends BaseEntity {
     private String operator;
 
     @ApiModelProperty("委外状态")
-    private Integer out_status;
+    private Integer outStatus;
+
+    @ApiModelProperty("委外批次号")
+    private String outBatch;
 
     public enum OutStatus {
 

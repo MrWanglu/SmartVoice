@@ -3,8 +3,6 @@ package cn.fintecher.pangolin.entity;
 import lombok.Data;
 
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.util.Date;
 
@@ -33,10 +31,7 @@ public class PersonalContact extends BaseEntity {
     private Date operatorTime;
     private Integer socialType; //社交帐号类型
     private String socialValue; //社交帐号内容
-
-    @ManyToOne
-    @JoinColumn(name = "personal_id")
-    private Personal personalInfo;
+    private String personalId; //客户信息ID
 
     /**
      * @Description 社交帐号枚举类
