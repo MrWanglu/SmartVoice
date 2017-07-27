@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
+import cn.fintecher.pangolin.business.service.DepartmentService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -26,10 +27,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @Author : sunyanping
@@ -57,6 +55,8 @@ public class CaseAssistController extends BaseController {
     private CaseInfoRepository caseInfoRepository;
     @Inject
     private SendMessageRecordRepository sendMessageRecordRepository;
+    @Inject
+    private DepartmentService departmentService;
 
     @GetMapping("/findAssistCaseMessageRecord")
     @ApiOperation(value = "协催案件查询短信记录",notes = "协催案件查询短信记录")
@@ -221,26 +221,6 @@ public class CaseAssistController extends BaseController {
         }
     }
 
-    @GetMapping("/getAllRecordAssistCase")
-    @ApiOperation(value = "多条件查询协催已处理记录", notes = "多条件查询协催已处理记录")
-    public ResponseEntity<Page<CaseAssist>> getAllRecordAssistCase(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
-                                                                   @ApiIgnore Pageable pageable,
-                                                                   @RequestHeader(value = "X-UserToken") String token) throws Exception {
-        log.debug("REST request to getAllRecordAssistCase");
-        try {
-            User tokenUser = getUserByToken(token);
-            BooleanBuilder builder = new BooleanBuilder(predicate);
-//            builder.and(QCaseAssist.caseAssist.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
-            builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())); //查询协催结束的协催案件
-            Page<CaseAssist> page = caseAssistRepository.findAll(builder, pageable);
-            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseAssistController/getAllRecordAssistCase");
-            return new ResponseEntity<>(page, headers, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "getAllRecordAssistCase", e.getMessage())).body(null);
-        }
-    }
-
     @PostMapping("/endCaseAssist")
     @ApiOperation(value = "协催案件结案", notes = "协催案件结案")
     public ResponseEntity<Void> endCaseAssist(@RequestBody CloseAssistCaseModel closeAssistCaseModel,
@@ -389,34 +369,65 @@ public class CaseAssistController extends BaseController {
         }
     }
 
+    @GetMapping("/getAllRecordAssistCase")
+    @ApiOperation(value = "多条件查询协催已处理记录", notes = "多条件查询协催已处理记录")
+    public ResponseEntity<Page<CaseAssist>> getAllRecordAssistCase(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
+                                                                   @ApiIgnore Pageable pageable,
+                                                                   @RequestHeader(value = "X-UserToken") String token) throws Exception {
+        log.debug("REST request to getAllRecordAssistCase");
+        User user = getUserByToken(token);
+        try {
+            List<Department> departments = departmentService.querySonDepartment(user);
+            if (departments.isEmpty()) {
+                QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+                BooleanBuilder exp = new BooleanBuilder(predicate);
+                exp.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
+                // 协催员智能看见自己的协催案件
+                exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
+                Page<CaseAssist> page = caseAssistRepository.findAll(exp, pageable);
+                return ResponseEntity.ok().body(page);
+            } else {
+                BooleanBuilder builder = new BooleanBuilder(predicate);
+                builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())); //查询协催结束的协催案件
+                Page<CaseAssist> page = caseAssistRepository.findAll(builder, pageable);
+                return ResponseEntity.ok().body(page);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "getAllRecordAssistCase", e.getMessage())).body(null);
+        }
+    }
+
     @GetMapping("/findAllCaseAssist")
     @ApiOperation(value = "获取所有协催案件", notes = "获取所有协催案件")
     public ResponseEntity<Page<CaseAssist>> findAllCaseAssist(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
-                                                              @ApiIgnore Pageable pageable) {
+                                                              @ApiIgnore Pageable pageable,
+                                                              @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("Rest request to findAllCaseAssist");
+        User user = getUserByToken(token);
+
         try {
-            QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
-            BooleanBuilder exp = new BooleanBuilder(predicate);
-            // 过滤掉协催结束的协催案件
-            exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
-            Page<CaseAssist> page = caseAssistRepository.findAll(exp, pageable);
-            return ResponseEntity.ok().body(page);
+            List<Department> departments = departmentService.querySonDepartment(user);
+            if (departments.isEmpty()) {
+                QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+                BooleanBuilder exp = new BooleanBuilder(predicate);
+                // 过滤掉协催结束的协催案件
+                exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
+                // 协催员智能看见自己的协催案件
+                exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
+                Page<CaseAssist> page = caseAssistRepository.findAll(exp, pageable);
+                return ResponseEntity.ok().body(page);
+            } else {
+                QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+                BooleanBuilder exp = new BooleanBuilder(predicate);
+                // 过滤掉协催结束的协催案件
+                exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
+                Page<CaseAssist> page = caseAssistRepository.findAll(exp, pageable);
+                return ResponseEntity.ok().body(page);
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("系统错误", "findAllCaseAssist", e.getMessage())).body(null);
         }
-    }
-
-    public ResponseEntity<Page<CaseAssist>> findAllCaseAssistByAssistor(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
-                                                                        @ApiIgnore Pageable pageable,
-                                                                        @RequestHeader(value = "X-UserToken") String token) throws Exception {
-        log.debug("Rest request to findAllCaseAssistByAssistor");
-        User user = getUserByToken(token);
-        //左边案件列表展示协催员自己的所有协催案件
-        QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
-        BooleanBuilder exp = new BooleanBuilder(predicate);
-        exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
-        Page<CaseAssist> page = caseAssistRepository.findAll(exp, pageable);
-        return ResponseEntity.ok().body(page);
     }
 }
