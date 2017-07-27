@@ -62,7 +62,7 @@ public class CaseAssistController extends BaseController {
 
     @GetMapping("/findCaseInfoAssistRecord")
     @ApiOperation(value = "查询案件协催记录",notes = "查询案件协催记录")
-    public ResponseEntity<Page<CaseAssist>> findCaseInfoAssistRecord(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
+    public ResponseEntity<Page<CaseAssist>> findCaseInfoAssistRecord(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
                                                                      @RequestParam @ApiParam("案件ID") String caseId,
                                                                      @ApiIgnore Pageable pageable) {
         try {
@@ -75,7 +75,6 @@ public class CaseAssistController extends BaseController {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "findCaseInfoAssistRecord", e.getMessage())).body(null);
         }
-
     }
 
     @GetMapping("/findAssistCasePayRecord")
