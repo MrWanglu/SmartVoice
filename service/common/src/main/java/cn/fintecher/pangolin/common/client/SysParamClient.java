@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient("business-service")
 public interface SysParamClient {
     @RequestMapping(method = RequestMethod.GET, value = "/api/sysParamResource")
-    ResponseEntity<SysParam> getSysParamByCodeAndType(@RequestParam String userId,
-                                                      @RequestParam String companyCode,
-                                                      @RequestParam String code,
-                                                      @RequestParam String type);
+    ResponseEntity<SysParam> getSysParamByCodeAndType(@RequestParam(value = "userId") String userId,
+                                                      @RequestParam(value = "companyCode") String companyCode,
+                                                      @RequestParam(value = "code") String code,
+                                                      @RequestParam(value = "type") String type);
 }

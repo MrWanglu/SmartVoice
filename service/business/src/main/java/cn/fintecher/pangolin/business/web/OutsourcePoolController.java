@@ -120,7 +120,7 @@ public class OutsourcePoolController extends BaseController {
     /**
      * @Description : 查询委外案件
      */
-    @PostMapping("/query")
+    @GetMapping("/query")
     @ApiOperation(value = "查询委外案件", notes = "查询委外案件")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
