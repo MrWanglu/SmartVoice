@@ -48,7 +48,7 @@ public class LoginController extends BaseController {
      * 无MD5加密用户登录 开发使用
      */
     @PostMapping("/noUseMD5Login")
-    @ApiOperation(value = "用户登陆", notes = "用户登陆")
+    @ApiOperation(value = "用户登陆测试", notes = "用户登陆测试")
     public ResponseEntity noUseMd5Login(@RequestBody UserLoginRequest loginRequest, HttpServletRequest request) {
         loginRequest.setPassword(MD5.MD5Encode(loginRequest.getPassword()));
         return login(loginRequest, request);
