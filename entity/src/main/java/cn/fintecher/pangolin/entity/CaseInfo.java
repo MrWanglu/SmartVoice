@@ -71,6 +71,7 @@ public class CaseInfo extends BaseEntity {
     private Integer followupBack; //催收反馈
     private BigDecimal promiseAmt; //承诺还款金额
     private Date promiseTime; //承诺还款日期
+    private BigDecimal creditAmount; //授信金额
 
     private Date operatorTime;
     private Integer caseMark;
