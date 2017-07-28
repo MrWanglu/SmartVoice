@@ -116,7 +116,7 @@ public class OutsourceController extends BaseController {
     /**
      * @Description : 查询委托方
      */
-    @PostMapping("/query")
+    @GetMapping("/query")
     @ApiOperation(value = "查询委托方", notes = "查询委托方")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
@@ -192,7 +192,7 @@ public class OutsourceController extends BaseController {
     /**
      * @Description : 删除委托方
      */
-    @PostMapping("/deleteOutsource")
+    @DeleteMapping("/deleteOutsource")
     @ApiOperation(value = "删除委托方", notes = "删除委托方")
     public ResponseEntity<Outsource> deleteOutsource(@RequestParam String id,
                                                      @RequestHeader(value = "X-UserToken") String token) {
@@ -210,7 +210,7 @@ public class OutsourceController extends BaseController {
     /**
      * @Description : 查询所有委托方
      */
-    @PostMapping("/getAllOutsource")
+    @GetMapping("/getAllOutsource")
     @ApiOperation(value = "查询所有委托方", notes = "查询所有委托方")
     public ResponseEntity<List<Outsource>> getAllOutsource(@RequestHeader(value = "X-UserToken") String token) {
         User user;
