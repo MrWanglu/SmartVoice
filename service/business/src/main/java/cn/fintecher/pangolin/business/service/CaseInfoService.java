@@ -757,6 +757,7 @@ public class CaseInfoService {
      */
     public PersonalContact saveRepairInfo(RepairInfoModel repairInfoModel, User tokenUser) {
         PersonalContact personalContact = new PersonalContact();
+        personalContact.setPersonalId(repairInfoModel.getPersonalId()); //客户信息ID
         personalContact.setRelation(repairInfoModel.getRelation()); //关系
         personalContact.setName(repairInfoModel.getName()); //姓名
         personalContact.setPhone(repairInfoModel.getPhone()); //电话号码
