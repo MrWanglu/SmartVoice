@@ -30,13 +30,9 @@ public class Personal extends BaseEntity {
     private String idCardAddress;
     private String cityLiveTime;
     private String localLiveTime;
-    private String cityHouseStatus;
     private String localPhoneNo;
     private String localHomeAddress;
     private String electricityAccount;
-    private String referenceNo;
-    private String referencePwd;
-    private String referenceAuthCode;
     private String electricityPwd;
     private Integer dataSource;
     private String operator;
@@ -51,7 +47,7 @@ public class Personal extends BaseEntity {
 
     @OneToMany(cascade = CascadeType.REFRESH)
     @JoinColumn(name = "personalId", insertable = false, updatable = false)
-    private Set<PersonalAddress> personalAddresses; //客户房产信息
+    private Set<PersonalAddress> personalAddresses; //客户地址信息
 
     @OneToMany(cascade = CascadeType.REFRESH)
     @JoinColumn(name = "personalId", insertable = false, updatable = false)
@@ -64,4 +60,8 @@ public class Personal extends BaseEntity {
     @OneToMany(cascade = CascadeType.REFRESH)
     @JoinColumn(name = "personalId", insertable = false, updatable = false)
     private Set<PersonalJob> personalJobs; //客户工作信息
+
+    @OneToMany(cascade = CascadeType.REFRESH)
+    @JoinColumn(name = "personalId", insertable = false, updatable = false)
+    private Set<PersonalProperty> personalProperties; //客户房产信息
 }
