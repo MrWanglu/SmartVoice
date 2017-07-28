@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.entity;
 
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -12,7 +13,7 @@ import java.util.Date;
  * @Description : 客户工作单位信息
  * @Date : 10:59 2017/7/26
  */
-
+@Data
 @Entity
 @Table(name = "personal_job")
 public class PersonalJob extends BaseEntity {
