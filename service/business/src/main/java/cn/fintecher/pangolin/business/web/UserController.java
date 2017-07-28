@@ -80,44 +80,48 @@ public class UserController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "The username is not allowed to be used", "该用户名不允许被使用")).body(null);
         }
-        if (user.getDepartment().getType() <= 9 && !Objects.equals(Constants.ADMIN_USER_NAME, userToken.getUserName())) {
+        if (user.getDepartment().getLevel() <= 9 && !Objects.equals(Constants.ADMIN_USER_NAME, userToken.getUserName())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "New user institutions must be greater than the first class", "新增用户,用户机构等级必须大于一级")).body(null);
         }
 //        新增用户的个数限制
         QSysParam qSysParam1 = QSysParam.sysParam;
-        Iterator<SysParam> sysParamsNumber = sysParamRepository.findAll(qSysParam1.code.eq(Constants.APPLY_USER_NUMBER_CODE).and(qSysParam1.type.eq(Constants.APPLY_USER_NUMBER_TYPE)).and(qSysParam1.companyCode.eq(user.getDepartment().getCompanyCode()))).iterator();
-        List<SysParam> sysParam = new ArrayList<>();
-        if (sysParamsNumber.hasNext()) {
-            sysParam.add(sysParamsNumber.next());
+        SysParam sysParamsNumber = null;
+        try {
+            sysParamsNumber = sysParamRepository.findOne(qSysParam1.code.eq(Constants.APPLY_USER_NUMBER_CODE).and(qSysParam1.type.eq(Constants.APPLY_USER_NUMBER_TYPE)).and(qSysParam1.companyCode.eq(user.getDepartment().getCompanyCode())));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User number parameters", "用户个数参数异常")).body(null);
         }
-        if (sysParam.size() > 0 && Objects.equals(Status.Enable.getValue(), sysParam.get(0).getStatus())) {
+        if (Objects.nonNull(sysParamsNumber) && Objects.equals(Status.Enable.getValue(), sysParamsNumber.getStatus())) {
             QUser qUser1 = QUser.user;
-            List<User> userList = new ArrayList<>();
-            Iterator<User> userIterator = userRepository.findAll(qUser1.companyCode.eq(user.getCompanyCode())).iterator();
-            if (userIterator.hasNext()) {
-                userList.add(userIterator.next());
-            }
-            int size = Integer.parseInt(sysParam.get(0).getValue());
-            if (userList.size() > size) {
+            int userNum = (int) userRepository.count(qUser1.companyCode.eq(user.getCompanyCode()));
+            int size = Integer.parseInt(sysParamsNumber.getValue());
+            if (userNum > size) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "New user has reached the online", "新增用户已达到上线")).body(null);
             }
         }
         //用户名不能重复
         QUser qUser = QUser.user;
-        Iterator<User> userList = userRepository.findAll(qUser.userName.eq(user.getUserName()).and(qUser.companyCode.eq(user.getCompanyCode()))).iterator();
-        if (userList.hasNext()) {
+        boolean exist = userRepository.exists(qUser.userName.eq(user.getUserName()).and(qUser.companyCode.eq(user.getCompanyCode())));
+        if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "User name cannot be repeated", "用户名不能重复")).body(null);
         }
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         //新增用户的密码设置
         QSysParam qSysParam = QSysParam.sysParam;
-        Iterator<SysParam> sysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.APPLY_PASSWORD_CODE).and(qSysParam.type.eq(Constants.APPLY_PASSWORD_TYPE)).and(qSysParam.companyCode.eq(userToken.getCompanyCode()))).iterator();
+        SysParam sysParamsPassword = null;
+        try {
+            sysParamsPassword = sysParamRepository.findOne(qSysParam.code.eq(Constants.APPLY_USER_NUMBER_CODE).and(qSysParam.type.eq(Constants.APPLY_USER_NUMBER_TYPE)).and(qSysParam.companyCode.eq(user.getDepartment().getCompanyCode())));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user password parameters abnormality", "用户密码参数异常")).body(null);
+        }
         String hashedPassword;
-        if (sysParams.hasNext()) {
-            hashedPassword = passwordEncoder.encode(sysParams.next().getValue());
+        if (Objects.nonNull(sysParamsPassword)) {
+            hashedPassword = passwordEncoder.encode(sysParamsPassword.getValue());
         } else {
             //默认密码888888
             hashedPassword = passwordEncoder.encode(Constants.RET_PASSWORD);
