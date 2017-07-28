@@ -116,6 +116,11 @@
             <artifactId>json-smart</artifactId>
             <version>RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>RELEASE</version>
+        </dependency>
     </dependencies>
 
 
