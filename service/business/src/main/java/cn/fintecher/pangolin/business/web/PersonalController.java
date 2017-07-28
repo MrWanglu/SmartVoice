@@ -447,17 +447,15 @@ public class PersonalController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfo>> getPersonalCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                               @ApiIgnore Pageable pageable) throws URISyntaxException {
+        try {
         Page<CaseInfo> page = caseInfoRepository.findAll(pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/accDerateController/getPersonalCaseInfo");
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/PersonalController/getPersonalCaseInfo");
         return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", ENTITY_NAME, e.getMessage())).body(null);
+        }
     }
-//    @PostMapping("/createExcelTemplate")
-//    @ResponseBody
-//    @ApiOperation(value = "客户信息导出", notes = "客户信息导出")
-//    public ResponseEntity createExcelTemplate(@RequestBody @ApiParam("配置项") Map<String, Object> map) {
-//
-//
-//        return null;
-//    }
+
 
 }

@@ -59,6 +59,7 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
         bindings.bind(root.approveType).first(SimpleExpression::eq);//减免类型
         bindings.bind(root.approveCostresult).first(SimpleExpression::eq);//减免审批状态
         bindings.bind(root.applayUserName).first(SimpleExpression::eq);//申请人
+
     }
 
     /**
