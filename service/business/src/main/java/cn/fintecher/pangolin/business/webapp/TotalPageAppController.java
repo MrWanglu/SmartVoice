@@ -5,11 +5,9 @@ import cn.fintecher.pangolin.business.model.UserStatisAppModel;
 import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CasePayApplyRepository;
+import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.web.BaseController;
-import cn.fintecher.pangolin.entity.CaseFollowupRecord;
-import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.CasePayApply;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
@@ -18,17 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import javax.inject.Inject;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author : gaobeibei
@@ -48,11 +39,17 @@ public class TotalPageAppController extends BaseController {
     @Inject
     CaseFollowupRecordRepository caseFollowupRecordRepository;
 
+    @Inject
+    UserRepository userRepository;
+
     @GetMapping(value = "/getTotalPage")
     @ApiOperation(value = "APP首页信息查询", notes = "APP首页信息查询")
     public ResponseEntity<UserStatisAppModel> getTotalPage(@RequestHeader(value = "X-UserToken") String token) throws ParseException {
 
         UserStatisAppModel userStatisAppModel = new UserStatisAppModel();
+        List<RankModel> payList = new ArrayList<RankModel>();
+        List<RankModel> followList = new ArrayList<RankModel>();
+        List<RankModel> collList = new ArrayList<RankModel>();
         User user = null;
         try {
             user = getUserByToken(token);
@@ -85,13 +82,19 @@ public class TotalPageAppController extends BaseController {
         userStatisAppModel.setMonthAssistNum(caseFollowupRecordRepository.getCollectionNum(user.getId(), CaseFollowupRecord.Type.ASSIST.getValue(),startDayOfMonth, endDate));
         userStatisAppModel.setWeekCollectionNum(userStatisAppModel.getWeekVisitNum()+userStatisAppModel.getWeekAssistNum());
         userStatisAppModel.setMonthCollectionNum(userStatisAppModel.getMonthAssistNum()+userStatisAppModel.getMonthVisitNum());
-        userStatisAppModel.setPayList(parseRank(casePayApplyRepository.queryPayList(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDate,endDate)));
-        userStatisAppModel.setFollowList(parseRank(caseFollowupRecordRepository.getFlowupCaseList(startDate,endDate)));
-        userStatisAppModel.setCollectionList(parseRank(caseFollowupRecordRepository.getCollectionList(startDate,endDate)));
+        payList = parseRank(casePayApplyRepository.queryPayList(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDate,endDate),user.getId());
+        followList = parseRank(caseFollowupRecordRepository.getFlowupCaseList(startDate,endDate),user.getId());
+        collList = parseRank(caseFollowupRecordRepository.getCollectionList(startDate,endDate),user.getId());
+        userStatisAppModel.setPersonalPayRank(payList.get(0));
+        userStatisAppModel.setPersonalFollowRank(followList.get(0));
+        userStatisAppModel.setPersonalCollectionRank(collList.get(0));
+        userStatisAppModel.setPayList(payList.subList(1,payList.size()));
+        userStatisAppModel.setFollowList(followList.subList(1,followList.size()));
+        userStatisAppModel.setCollectionList(collList.subList(1,collList.size()));
         return new ResponseEntity<>(userStatisAppModel, HttpStatus.OK);
     }
 
-    private List<RankModel> parseRank(List<Object[]> list){
+    private List<RankModel> parseRank(List<Object[]> list, String id){
         int rank = 1;
         List<RankModel> rankModelList = new ArrayList<RankModel>();
         for(Object[] object : list){
@@ -101,6 +104,9 @@ public class TotalPageAppController extends BaseController {
             rankModel.setUserName(object[1].toString());
             rankModel.setUserId(object[2].toString());
             rankModelList.add(rankModel);
+            if(id.equals(rankModel.getUserId())){
+                rankModelList.add(0,rankModel);
+            }
         }
         return rankModelList;
     }

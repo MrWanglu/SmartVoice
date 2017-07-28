@@ -21,6 +21,9 @@ public class UserStatisAppModel {
     private Integer monthAssistNum; //月协催数
     private Integer weekCollectionNum; //周催计数
     private Integer monthCollectionNum; //月催计数
+    private RankModel personalPayRank; //本人回款排行
+    private RankModel personalFollowRank; //本人跟催排行
+    private RankModel personalCollectionRank; //本人催计排行
     private List<RankModel> payList; //周回款榜
     private List<RankModel> followList; //周跟催榜
     private List<RankModel> collectionList; //周催计榜
