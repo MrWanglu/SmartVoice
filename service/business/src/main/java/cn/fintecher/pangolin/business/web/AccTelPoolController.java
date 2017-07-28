@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,15 +45,17 @@ public class AccTelPoolController extends BaseController {
 
     private static final String ENTITY_PERSONAL = "Personal";
 
-    private static final String ENTITY_CASEPAYAPPLY = "CasePayApply";
+    private static final String ENTITY_CASE_PAY_APPLY = "CasePayApply";
 
-    private static final String ENTITY_CASEFOLLOWUPRECORD = "CaseFollowupRecord";
+    private static final String ENTITY_CASE_FOLLOWUP_RECORD = "CaseFollowupRecord";
 
-    private static final String ENTITY_CASEASSISTAPPLY = "CaseAssistApply";
+    private static final String ENTITY_CASE_ASSIST_APPLY = "CaseAssistApply";
 
-    private static final String ENTITY_PERSONALCONTACT = "PersonalContact";
+    private static final String ENTITY_PERSONAL_CONTACT = "PersonalContact";
 
-    private static final String ENTITY_UPLOADFILE = "UploadFile";
+    private static final String ENTITY_UPLOAD_FILE = "UploadFile";
+
+    private static final String ENTITY_SEND_MESSAGE_RECORD = "SendMessageRecord";
 
     @Inject
     CaseInfoService caseInfoService;
@@ -86,7 +87,7 @@ public class AccTelPoolController extends BaseController {
     @PostMapping("/telCaseDistribution")
     @ApiOperation(value = "电催案件重新分配", notes = "电催案件重新分配")
     public ResponseEntity<Void> telCaseDistribution(@RequestBody ReDistributionParams reDistributionParams,
-                                                    @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                    @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to reDistribute");
         try {
             User tokenUser = getUserByToken(token);
@@ -94,7 +95,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", ENTITY_CASEINFO)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("重新分配失败", "user", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "user", "重新分配失败")).body(null);
         }
     }
 
@@ -126,7 +127,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取案件信息成功", ENTITY_CASEINFO)).body(caseInfo);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取案件信息失败", "caseInfo", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "获取案件信息失败")).body(null);
         }
     }
 
@@ -136,15 +137,15 @@ public class AccTelPoolController extends BaseController {
     @PostMapping("/doTelPay")
     @ApiOperation(value = "电催页面还款操作", notes = "电催页面还款操作")
     public ResponseEntity<Void> doTelPay(@RequestBody PayApplyParams payApplyParams,
-                                         @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                         @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to apply payment");
         try {
             User tokenUser = getUserByToken(token);
             caseInfoService.doPay(payApplyParams, tokenUser);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款操作成功", ENTITY_CASEPAYAPPLY)).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款操作成功", ENTITY_CASE_PAY_APPLY)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("申请还款失败", "casePayApply", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_PAY_APPLY, "casePayApply", "申请还款失败")).body(null);
         }
     }
 
@@ -154,15 +155,15 @@ public class AccTelPoolController extends BaseController {
     @GetMapping("/telWithdraw")
     @ApiOperation(value = "电催页面还款撤回", notes = "电催页面还款撤回")
     public ResponseEntity<Void> telWithdraw(@RequestParam @ApiParam(value = "还款审批ID", required = true) String payApplyId,
-                                            @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                            @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to withdraw by {payApplyId}", payApplyId);
         try {
             User tokenUser = getUserByToken(token);
             caseInfoService.payWithdraw(payApplyId, tokenUser);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款撤回成功", ENTITY_CASEPAYAPPLY)).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款撤回成功", ENTITY_CASE_PAY_APPLY)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("撤回失败", "casePayApply", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_PAY_APPLY, "casePayApply", "撤回失败")).body(null);
         }
     }
 
@@ -181,7 +182,7 @@ public class AccTelPoolController extends BaseController {
     })
     public ResponseEntity<Page<CasePayApply>> getPaymentRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
                                                                @QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
-                                                               @ApiIgnore Pageable pageable) throws URISyntaxException {
+                                                               @ApiIgnore Pageable pageable) {
         log.debug("REST request to get payment records by {caseId}", caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
@@ -191,7 +192,7 @@ public class AccTelPoolController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "casePayApply", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_PAY_APPLY, "casePayApply", "查询失败")).body(null);
         }
     }
 
@@ -206,10 +207,10 @@ public class AccTelPoolController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             CaseFollowupRecord result = caseInfoService.saveFollowupRecord(caseFollowupRecord, tokenUser);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("跟进记录添加成功", ENTITY_CASEFOLLOWUPRECORD)).body(result);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("跟进记录添加成功", ENTITY_CASE_FOLLOWUP_RECORD)).body(result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("添加跟进记录失败", "caseFollowupRecord", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_FOLLOWUP_RECORD, "caseFollowupRecord", "添加跟进记录失败")).body(null);
         }
     }
 
@@ -228,7 +229,7 @@ public class AccTelPoolController extends BaseController {
     })
     public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
                                                                       @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
-                                                                      @ApiIgnore Pageable pageable) throws URISyntaxException {
+                                                                      @ApiIgnore Pageable pageable) {
         log.debug("REST request to get case followup records by {caseId}", caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
@@ -239,7 +240,7 @@ public class AccTelPoolController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "caseFollowupRecord", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_FOLLOWUP_RECORD, "caseFollowupRecord", "查询失败")).body(null);
         }
     }
 
@@ -258,7 +259,7 @@ public class AccTelPoolController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfo>> getAllTelCase(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                         @ApiIgnore Pageable pageable,
-                                                        @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                        @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get all tel case");
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //待分配
@@ -278,7 +279,7 @@ public class AccTelPoolController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "caseInfo", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "查询失败")).body(null);
         }
     }
 
@@ -297,7 +298,7 @@ public class AccTelPoolController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfo>> getAllHandleTelCase(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                               @ApiIgnore Pageable pageable,
-                                                              @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                              @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get all handle tel case");
         try {
             User tokenUser = getUserByToken(token);
@@ -311,7 +312,7 @@ public class AccTelPoolController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "caseInfo", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "查询失败")).body(null);
         }
     }
 
@@ -321,14 +322,14 @@ public class AccTelPoolController extends BaseController {
     @GetMapping("/endTelCase")
     @ApiOperation(value = "电催案件结案", notes = "电催案件结案")
     public ResponseEntity<Void> endTelCase(EndCaseParams endCaseParams,
-                                           @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                           @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to end case by {endCaseParams}", endCaseParams);
         try {
             User tokenUser = getUserByToken(token);
             caseInfoService.endCase(endCaseParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("结案成功", ENTITY_CASEINFO)).body(null);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("结案失败", "caseInfo", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "结案失败")).body(null);
         }
     }
 
@@ -338,15 +339,15 @@ public class AccTelPoolController extends BaseController {
     @PostMapping("/assistApply")
     @ApiOperation(value = "协催申请", notes = "协催申请")
     public ResponseEntity<Void> assistApply(AssistApplyParams assistApplyParams,
-                                            @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                            @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save assist apply");
         try {
             User tokenUser = getUserByToken(token);
             caseInfoService.saveAssistApply(assistApplyParams, tokenUser);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("协催申请成功", ENTITY_CASEASSISTAPPLY)).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("协催申请成功", ENTITY_CASE_ASSIST_APPLY)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("协催申请失败", "caseAssistApply", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_ASSIST_APPLY, "caseAssistApply", "协催申请失败")).body(null);
         }
     }
 
@@ -365,7 +366,7 @@ public class AccTelPoolController extends BaseController {
     })
     public ResponseEntity<Page<CaseAssistApply>> getAllAssistApplyRecord(@QuerydslPredicate(root = CaseAssistApply.class) Predicate predicate,
                                                                          @ApiIgnore Pageable pageable,
-                                                                         @RequestParam @ApiParam(value = "案件ID", required = true) String caseId) throws URISyntaxException {
+                                                                         @RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
         log.debug("REST request to get all assist apply record by {caseId}", caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
@@ -375,7 +376,7 @@ public class AccTelPoolController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "caseAssistApply", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_ASSIST_APPLY, "caseAssistApply", "查询失败")).body(null);
         }
     }
 
@@ -386,7 +387,7 @@ public class AccTelPoolController extends BaseController {
     @ApiOperation(value = "电催页面多条件查询发送信息记录", notes = "电催页面多条件查询发送信息记录")
     public ResponseEntity<Page<SendMessageRecord>> getAllSendMessageRecord(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                                            @ApiIgnore Pageable pageable,
-                                                                           @RequestParam @ApiParam(value = "案件ID", required = true) String caseId) throws URISyntaxException {
+                                                                           @RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
         log.debug("REST request to get all send message record by {caseId}", caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
@@ -396,7 +397,7 @@ public class AccTelPoolController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "caseAssistApply", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_SEND_MESSAGE_RECORD, "caseAssistApply", "查询失败")).body(null);
         }
     }
 
@@ -406,7 +407,7 @@ public class AccTelPoolController extends BaseController {
     @PostMapping("/savePersonalContactPhone")
     @ApiOperation(value = "电催页面新增联系人电话或邮箱地址", notes = "电催页面新增联系人电话或邮箱地址")
     public ResponseEntity<PersonalContact> savePersonalContactPhone(@RequestBody PersonalContact personalContact,
-                                                                    @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                                    @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save new phone number");
         try {
             User tokenUser = getUserByToken(token);
@@ -414,7 +415,7 @@ public class AccTelPoolController extends BaseController {
             personalContact.setOperator(tokenUser.getUserName()); //操作人
             personalContact.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             personalContactRepository.saveAndFlush(personalContact);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("新增成功", ENTITY_PERSONALCONTACT)).body(personalContact);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("新增成功", ENTITY_PERSONAL_CONTACT)).body(personalContact);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("新增联系人信息失败", "personalContact", e.getMessage())).body(null);
@@ -426,7 +427,7 @@ public class AccTelPoolController extends BaseController {
      */
     @GetMapping("/getBatchInfo")
     @ApiOperation(value = "电催页面获取分配信息", notes = "电催页面获取分配信息")
-    public ResponseEntity<BatchDistributeModel> getBatchInfo(@RequestHeader(value = "X-UserToken") String token) throws Exception {
+    public ResponseEntity<BatchDistributeModel> getBatchInfo(@RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get batch info");
         try {
             User tokenUser = getUserByToken(token);
@@ -444,7 +445,7 @@ public class AccTelPoolController extends BaseController {
     @PostMapping("/batchTelCase")
     @ApiOperation(value = "电催页面批量分配", notes = "电催页面批量分配")
     public ResponseEntity<Void> batchTelCase(@RequestBody BatchDistributeModel batchDistributeModel,
-                                             @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                             @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to batch case");
         try {
             User tokenUser = getUserByToken(token);
@@ -462,7 +463,7 @@ public class AccTelPoolController extends BaseController {
     @PutMapping("/telCaseMarkColor")
     @ApiOperation(value = "电催案件颜色打标", notes = "电催案件颜色打标")
     public ResponseEntity<CaseInfo> telCaseMarkColor(@RequestBody CaseMarkParams caseMarkParams,
-                                                     @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                     @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to mark color");
         try {
             User tokenUser = getUserByToken(token);
@@ -480,12 +481,12 @@ public class AccTelPoolController extends BaseController {
     @PutMapping("/modifyPhoneStatus")
     @ApiOperation(value = "修改联系人电话状态", notes = "修改联系人电话状态")
     public ResponseEntity<PersonalContact> modifyPhoneStatus(@RequestBody PhoneStatusParams phoneStatusParams,
-                                                             @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                             @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to modify phone status");
         try {
             User tokenUser = getUserByToken(token);
             PersonalContact personalContact = caseInfoService.modifyPhoneStatus(phoneStatusParams, tokenUser);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("联系人电话状态修改成功", ENTITY_PERSONALCONTACT)).body(personalContact);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("联系人电话状态修改成功", ENTITY_PERSONAL_CONTACT)).body(personalContact);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("修改失败", "personalContact", e.getMessage())).body(null);
@@ -499,12 +500,12 @@ public class AccTelPoolController extends BaseController {
     @PostMapping("/saveRepairInfo")
     @ApiOperation(value = "电催页面添加修复信息", notes = "电催页面添加修复信息")
     public ResponseEntity<PersonalContact> saveRepairInfo(@RequestBody RepairInfoModel repairInfoModel,
-                                                          @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                          @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save repair information");
         try {
             User tokenUser = getUserByToken(token);
             PersonalContact personalContact = caseInfoService.saveRepairInfo(repairInfoModel, tokenUser);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("添加成功", ENTITY_PERSONALCONTACT)).body(personalContact);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("添加成功", ENTITY_PERSONAL_CONTACT)).body(personalContact);
         } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("添加失败", "personalContact", e.getMessage())).body(null);
         }
@@ -519,7 +520,7 @@ public class AccTelPoolController extends BaseController {
         log.debug("REST request to get payment proof");
         try {
             List<UploadFile> uploadFiles = caseInfoService.getRepaymentVoucher(casePayId);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("下载成功", ENTITY_UPLOADFILE)).body(uploadFiles);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("下载成功", ENTITY_UPLOAD_FILE)).body(uploadFiles);
         } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("下载失败", "uploadFile", e.getMessage())).body(null);
         }
