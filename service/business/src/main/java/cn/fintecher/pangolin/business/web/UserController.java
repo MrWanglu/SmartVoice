@@ -86,7 +86,7 @@ public class UserController extends BaseController {
         }
 //        新增用户的个数限制
         QSysParam qSysParam1 = QSysParam.sysParam;
-        Iterator<SysParam> sysParamsNumber = sysParamRepository.findAll(qSysParam1.code.eq(Constants.APPLY_USER_NUMBER_CODE).and(qSysParam1.type.eq(Constants.APPLY_USER_NUMBER_TYPE)).and(qSysParam1.companyCode.eq(userToken.getCompanyCode()))).iterator();
+        Iterator<SysParam> sysParamsNumber = sysParamRepository.findAll(qSysParam1.code.eq(Constants.APPLY_USER_NUMBER_CODE).and(qSysParam1.type.eq(Constants.APPLY_USER_NUMBER_TYPE)).and(qSysParam1.companyCode.eq(user.getDepartment().getCompanyCode()))).iterator();
         List<SysParam> sysParam = new ArrayList<>();
         if (sysParamsNumber.hasNext()) {
             sysParam.add(sysParamsNumber.next());
