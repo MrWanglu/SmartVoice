@@ -21,6 +21,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,8 +103,8 @@ public class DepartmentController extends BaseController {
         }
         //判断公司的名称是否重复
         QDepartment qDepartment = QDepartment.department;
-        Iterator<Department> departmentIterator = departmentRepository.findAll(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode()))).iterator();
-        if (departmentIterator.hasNext()) {
+        boolean exist = departmentRepository.exists(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode())));
+        if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用,请重新输入名称")).body(null);
         }
         if (Objects.equals(Status.Disable.getValue(), department.getParent().getStatus())) {
@@ -153,8 +154,8 @@ public class DepartmentController extends BaseController {
         Department dept = departmentRepository.findOne(department.getId());
         //判断公司的名称是否重复
         QDepartment qDepartment = QDepartment.department;
-        Iterator<Department> departmentIterator = departmentRepository.findAll(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode())).and(qDepartment.id.ne(department.getId()))).iterator();
-        if (departmentIterator.hasNext()) {
+        boolean exist = departmentRepository.exists(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode())).and(qDepartment.id.ne(department.getId())));
+        if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用,请重新输入名称")).body(null);
         }
         if (!(Objects.equals(department.getParent().getType(), department.getType())) && Objects.nonNull(department.getParent().getType())) {
@@ -192,20 +193,13 @@ public class DepartmentController extends BaseController {
                 }
                 //首先的移除部门下面的用户
                 QUser qUser = QUser.user;
-                List<User> userList = new ArrayList<>();
-                Iterator<User> users = userRepository.findAll(qUser.department.code.like(dept.getCode().concat("%"))).iterator();
-                while (users.hasNext()) {
-                    userList.add(users.next());
-                }
-                if (userList.size() > 0) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + userList.size() + "个用户,不能停用,请先移出用户")).body(null);
+                int usersNum = (int) userRepository.count(qUser.department.code.like(dept.getCode().concat("%")));
+                if (usersNum > 0) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户,不能停用,请先移出用户")).body(null);
                 }
                 //子机构状态
                 Iterator<Department> departments = departmentRepository.findAll(qDepartment.code.like(department.getCode()).and(qDepartment.companyCode.eq(department.getCompanyCode())).and(qDepartment.id.ne(department.getId()))).iterator();
-                List<Department> departmentList = new ArrayList<>();
-                if (departments.hasNext()) {
-                    departmentList.add(departments.next());
-                }
+                List<Department> departmentList = IteratorUtils.toList(departments);
                 for (Department department1 : departmentList) {
                     if (Objects.equals(Status.Enable, department1.getStatus())) {
                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Setup status to stop using, please modify child institutions", "子机构状态为启用，请先修改子机构状态")).body(null);
@@ -248,21 +242,19 @@ public class DepartmentController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + num + "个未处理的协催案件，不能停用，请先处理完该机构下的案件")).body(null);
             }
         }
-        //首先的移除下面的用户
+        //首先的移除部门下面的用户
         QUser qUser = QUser.user;
-        List<User> userList = new ArrayList<>();
-        Iterator<User> users = userRepository.findAll(qUser.department.code.like(department.getCode().concat("%"))).iterator();
-        while (users.hasNext()) {
-            userList.add(users.next());
+        int usersNum = (int) userRepository.count(qUser.department.code.like(department.getCode().concat("%")).and(qUser.companyCode.eq(department.getCompanyCode())));
+        if (usersNum > 0) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户,不能停用,请先移出用户")).body(null);
         }
-        if (userList.size() > 0) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot delete", "该部门下有" + userList.size() + "个用户不能删除")).body(null);
+        if (usersNum > 0) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot delete", "该部门下有" + usersNum + "个用户不能删除")).body(null);
         }
         //子机构数量
         QDepartment qDepartment = QDepartment.department;
-        List<Department> departments = (List) departmentRepository.findAll(qDepartment.code.like(department.getCode().concat("%")).and(qDepartment.id.ne(department.getId())));
-        int num1 = departments.size();
-        if (num1 > 0) {
+        int deptNum = (int) departmentRepository.count(qDepartment.code.like(department.getCode().concat("%")).and(qDepartment.id.ne(department.getId())).and(qUser.companyCode.eq(department.getCompanyCode())));
+        if (deptNum > 0) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department is following agencies cannot be deleted", "该部门下子机构不能删除")).body(null);
         }
         departmentRepository.delete(id);
