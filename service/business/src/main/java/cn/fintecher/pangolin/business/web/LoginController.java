@@ -74,16 +74,20 @@ public class LoginController extends BaseController {
             } else {
                 //登录的密码设定的时间限制
                 QSysParam qSysParam = QSysParam.sysParam;
-                Iterable<SysParam> sysParams;
-                if (Objects.isNull(user.getCompanyCode())) {
-                    sysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.USER_OVERDAY_CODE).and(qSysParam.type.eq(Constants.USER_OVERDAY_TYPE)).and(qSysParam.companyCode.isNull()));
-                } else {
-                    sysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.USER_OVERDAY_CODE).and(qSysParam.type.eq(Constants.USER_OVERDAY_TYPE)).and(qSysParam.companyCode.eq(user.getCompanyCode())));
+                SysParam sysParams = null;
+                try {
+                    if (Objects.isNull(user.getCompanyCode())) {
+                        sysParams = sysParamRepository.findOne(qSysParam.code.eq(Constants.USER_OVERDAY_CODE).and(qSysParam.type.eq(Constants.USER_OVERDAY_TYPE)).and(qSysParam.companyCode.isNull()));
+                    } else {
+                        sysParams = sysParamRepository.findOne(qSysParam.code.eq(Constants.USER_OVERDAY_CODE).and(qSysParam.type.eq(Constants.USER_OVERDAY_TYPE)).and(qSysParam.companyCode.eq(user.getCompanyCode())));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Abnormal days overdue parameters", "过期天数参数异常")).body(null);
                 }
-
-                if (sysParams.iterator().hasNext()) {
-                    if (Objects.equals(Status.Enable.getValue(), sysParams.iterator().next().getStatus())) {
-                        int overDay = Integer.parseInt(sysParams.iterator().next().getValue());
+                if (Objects.nonNull(sysParams)) {
+                    if (Objects.equals(Status.Enable.getValue(), sysParams.getStatus())) {
+                        int overDay = Integer.parseInt(sysParams.getValue());
                         Date nowDate = ZWDateUtil.getNowDate();
                         Calendar calendar1 = Calendar.getInstance();
                         Calendar calendar2 = Calendar.getInstance();
@@ -168,15 +172,17 @@ public class LoginController extends BaseController {
         }
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         User userOld = userRepository.findOne(request.getUserId());
+        //重置密码的设置
         QSysParam qSysParam = QSysParam.sysParam;
-        Iterable<SysParam> sysParams;
-        if (Objects.isNull(user.getCompanyCode())) {
-            sysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.USER_RESET_PASSWORD_CODE).and(qSysParam.type.eq(Constants.USER_RESET_PASSWORD_TYPE)).and(qSysParam.companyCode.isNull()));
-        } else {
-            sysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.USER_RESET_PASSWORD_CODE).and(qSysParam.type.eq(Constants.USER_RESET_PASSWORD_TYPE)).and(qSysParam.companyCode.eq(userOld.getCompanyCode())));
+        SysParam sysParamsPassword = null;
+        try {
+            sysParamsPassword = sysParamRepository.findOne(qSysParam.code.eq(Constants.USER_RESET_PASSWORD_CODE).and(qSysParam.type.eq(Constants.USER_RESET_PASSWORD_TYPE)).and(qSysParam.companyCode.eq(userOld.getCompanyCode())));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "To reset the password parameter abnormalities", "重置密码参数异常")).body(null);
         }
-        if (Objects.nonNull(sysParams) && Objects.equals(Status.Enable.getValue(), sysParams.iterator().next().getStatus())) {
-            user.setPassword(passwordEncoder.encode(sysParams.iterator().next().getValue()));
+        if (Objects.nonNull(sysParamsPassword) && Objects.equals(Status.Enable.getValue(), sysParamsPassword.getStatus())) {
+            user.setPassword(passwordEncoder.encode(sysParamsPassword.getValue()));
         } else {
             userOld.setPassword(passwordEncoder.encode(Constants.LOGIN_RET_PASSWORD));
         }
