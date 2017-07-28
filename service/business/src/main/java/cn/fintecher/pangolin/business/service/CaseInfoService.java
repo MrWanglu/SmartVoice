@@ -94,24 +94,18 @@ public class CaseInfoService {
             throw new RuntimeException("该用户已停用");
         }
         CaseInfo caseInfo = caseInfoRepository.findOne(reDistributionParams.getCaseId());
+        QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
         if (Objects.equals(reDistributionParams.getIsAssist(), false)) { //不是协催案件
             if (Objects.equals(user.getType(), CaseInfo.CollectionType.TEL.getValue())) { //分配给15-电催
                 setAttribute(caseInfo, user, tokenUser);
             } else if (Objects.equals(user.getType(), CaseInfo.CollectionType.VISIT.getValue())) { //分配给16-外访
                 if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
-                    Iterator<CaseAssist> it = getCaseAssist(reDistributionParams.getCaseId());
                     if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
                         CaseAssistApply caseAssistApply = getCaseAssistApply(reDistributionParams.getCaseId(), tokenUser, "");
                         caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                     } else { //有协催案件
-                        CaseAssist caseAssist = null;
-                        CaseAssist temp;
-                        while (it.hasNext()) {
-                            temp = it.next();
-                            if (Objects.isNull(temp.getAssistCloseFlag())) { //协催结束标识为空
-                                caseAssist = temp;
-                            }
-                        }
+                        CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(reDistributionParams.getCaseId()).
+                                and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
                         if (Objects.isNull(caseAssist)) {
                             throw new RuntimeException("协催案件未找到");
                         }
@@ -148,15 +142,8 @@ public class CaseInfoService {
             if (!Objects.equals(user.getType(), CaseInfo.CollectionType.VISIT.getValue())) {
                 throw new RuntimeException("协催案件不能分配给外访以外人员");
             }
-            Iterator<CaseAssist> it = getCaseAssist(reDistributionParams.getCaseId());
-            CaseAssist caseAssist = null;
-            CaseAssist temp;
-            while (it.hasNext()) {
-                temp = it.next();
-                if (Objects.isNull(temp.getAssistCloseFlag())) { //协催结束标识为空
-                    caseAssist = temp;
-                }
-            }
+            CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(reDistributionParams.getCaseId()).
+                    and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
             if (Objects.isNull(caseAssist)) {
                 throw new RuntimeException("协催案件未找到");
             }
@@ -365,21 +352,15 @@ public class CaseInfoService {
         if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
             throw new RuntimeException("该案件已结案");
         }
+        QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
         if (Objects.equals(endCaseParams.getIsAssist(), false)) { //不是协催案件
             if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
-                Iterator<CaseAssist> it = getCaseAssist(endCaseParams.getCaseId());
                 if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
                     CaseAssistApply caseAssistApply = getCaseAssistApply(endCaseParams.getCaseId(), tokenUser, endCaseParams.getEndRemark());
                     caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                 } else { //有协催案件
-                    CaseAssist caseAssist = null;
-                    CaseAssist temp;
-                    while (it.hasNext()) {
-                        temp = it.next();
-                        if (Objects.isNull(temp.getAssistCloseFlag())) { //协催结束标识为空
-                            caseAssist = temp;
-                        }
-                    }
+                    CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(endCaseParams.getCaseId()).
+                            and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
                     if (Objects.isNull(caseAssist)) {
                         throw new RuntimeException("协催案件未找到");
                     }
@@ -397,15 +378,8 @@ public class CaseInfoService {
             caseInfo.setEndType(endCaseParams.getEndType()); //结案方式
             caseInfoRepository.saveAndFlush(caseInfo);
         } else { //是协催案件
-            Iterator<CaseAssist> it = getCaseAssist(endCaseParams.getCaseId());
-            CaseAssist caseAssist = null;
-            CaseAssist temp;
-            while (it.hasNext()) {
-                temp = it.next();
-                if (Objects.isNull(temp.getAssistCloseFlag())) { //协催结束标识为空
-                    caseAssist = temp;
-                }
-            }
+            CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(endCaseParams.getCaseId()).
+                    and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
             if (Objects.isNull(caseAssist)) {
                 throw new RuntimeException("协催案件未找到");
             }
@@ -459,9 +433,11 @@ public class CaseInfoService {
         if (!Objects.equals(caseInfo.getCollectionType(), CaseInfo.CollectionType.TEL.getValue())) {
             throw new RuntimeException("非电催案件不允许申请协催");
         }
+        QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
         if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
-            Iterator<CaseAssist> it = getCaseAssist(assistApplyParams.getCaseId());
-            if (!it.hasNext()) { //有协催申请
+            CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(assistApplyParams.getCaseId()).
+                    and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
+            if (Objects.isNull(caseAssist)) { //有协催申请
                 throw new RuntimeException("该案件已经提交了协催申请，不允许重复提交");
             } else { //有协催案件
                 throw new RuntimeException("该案件正在协催，不允许重复申请");
@@ -469,11 +445,11 @@ public class CaseInfoService {
         }
         //获得失效日数
         QSysParam qSysParam = QSysParam.sysParam;
-        Iterable<SysParam> sysParams = sysParamRepository.findAll(qSysParam.code.eq(ASSIST_APPLY_CODE).and(qSysParam.type.eq(TYPE_TEL)).and(qSysParam.companyCode.eq(tokenUser.getCompanyCode())));
-        if (Objects.isNull(sysParams)) {
+        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(ASSIST_APPLY_CODE).and(qSysParam.type.eq(TYPE_TEL)).and(qSysParam.companyCode.eq(tokenUser.getCompanyCode())));
+        if (Objects.isNull(sysParam)) {
             throw new RuntimeException("协催失效配置天数未找到");
         }
-        Integer days = Integer.parseInt(sysParams.iterator().next().getValue());
+        Integer days = Integer.parseInt(sysParam.getValue());
         Long nowtime = ZWDateUtil.getNowDateTime().getTime();
         Long invalidTime = nowtime + days * 86400000;
         Date applyInvalidTime = new Date(invalidTime); //失效日期
@@ -602,25 +578,19 @@ public class CaseInfoService {
         List<CaseAssistApply> caseAssistApplies = new ArrayList<>();
         List<CaseInfo> caseInfos = new ArrayList<>();
         List<CaseTurnRecord> caseTurnRecords = new ArrayList<>();
+        QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
         for (BatchInfoModel batchInfoModel : batchInfoModels) {
             Integer caseCount = batchInfoModel.getDistributionCount(); //分配案件数
             if (!Objects.equals(tokenUser.getType(), CaseInfo.CollectionType.VISIT.getValue())) { //分配给外访以外
                 for (int i = 0; i < caseCount; i++) {
                     CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(i)); //获得案件信息
                     if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
-                        Iterator<CaseAssist> it = getCaseAssist(caseIds.get(i));
                         if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseIds.get(i), tokenUser, "");
+                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseIds.get(i), tokenUser, "案件流转强制拒绝");
                             caseAssistApplies.add(caseAssistApply);
                         } else { //有协催案件
-                            CaseAssist caseAssist = null;
-                            CaseAssist temp;
-                            while (it.hasNext()) {
-                                temp = it.next();
-                                if (Objects.isNull(temp.getAssistCloseFlag())) { //协催结束标识为空
-                                    caseAssist = temp;
-                                }
-                            }
+                            CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseIds.get(i)).
+                                    and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
                             if (Objects.isNull(caseAssist)) {
                                 throw new RuntimeException("协催案件未找到");
                             }
@@ -670,15 +640,8 @@ public class CaseInfoService {
                         if (!Objects.equals(batchInfoModel.getCollectionUser().getType(), CaseInfo.CollectionType.VISIT.getValue())) {
                             throw new RuntimeException("协催案件不能分配给外访以外人员");
                         }
-                        Iterator<CaseAssist> it = getCaseAssist(caseIds.get(i));
-                        CaseAssist caseAssist = null;
-                        CaseAssist temp;
-                        while (it.hasNext()) {
-                            temp = it.next();
-                            if (Objects.isNull(temp.getAssistCloseFlag())) { //协催结束标识为空
-                                caseAssist = temp;
-                            }
-                        }
+                        CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseIds.get(i)).
+                                and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
                         if (Objects.isNull(caseAssist)) {
                             throw new RuntimeException("协催案件未找到");
                         }
@@ -766,12 +729,11 @@ public class CaseInfoService {
         list.add(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue()); // 32-电催待审批
         list.add(CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue()); // 34-外访待审批
         QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
-        Iterable<CaseAssistApply> caseAssistApplies = caseAssistApplyRepository.findAll(qCaseAssistApply.caseId.eq(caseId)
+        CaseAssistApply caseAssistApply = caseAssistApplyRepository.findOne(qCaseAssistApply.caseId.eq(caseId)
                 .and(qCaseAssistApply.approvePhoneResult.in(list)));
-        if (!caseAssistApplies.iterator().hasNext()) {
+        if (Objects.isNull(caseAssistApply)) {
             throw new RuntimeException("协催申请记录未找到");
         }
-        CaseAssistApply caseAssistApply = caseAssistApplies.iterator().next(); //获得协催申请
         if (Objects.equals(caseAssistApply.getCollectionType(), CaseInfo.CollectionType.TEL.getValue())) { // 15-电催
             caseAssistApply.setApproveStatus(CaseAssistApply.ApproveStatus.TEL_COMPLETE.getValue()); //审批状态 33-电催完成
             caseAssistApply.setApprovePhoneResult(CaseAssistApply.ApproveResult.FORCED_REJECT.getValue()); //电催审批结果 40-强制拒绝
@@ -789,17 +751,6 @@ public class CaseInfoService {
         }
         return caseAssistApply;
     }
-
-    /**
-     * @Description 查询协催案件
-     */
-    private Iterator<CaseAssist> getCaseAssist(String caseId) {
-        QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
-        Iterable<CaseAssist> caseAssists = caseAssistRepository.findAll(qCaseAssist.caseId.id.eq(caseId).
-                and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue()))); //查询协催案件
-        return caseAssists.iterator();
-    }
-
 
     /**
      * @Description 添加修复信息

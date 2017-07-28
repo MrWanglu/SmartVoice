@@ -1,10 +1,8 @@
 package cn.fintecher.pangolin.business.repository;
 
 
-import cn.fintecher.pangolin.entity.CaseAssist;
 import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.QCaseInfo;
-import cn.fintecher.pangolin.entity.User;
 import com.querydsl.core.types.dsl.StringPath;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +12,7 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Iterator;
 
 /**
@@ -50,6 +49,53 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
                 return path.between(firstOverdueDays, secondOverdueDays);
             } else {
                 return path.goe(firstOverdueDays);
+            }
+        });
+        //案件手数
+        bindings.bind(root.handNumber).all((path, value) -> {
+            Iterator<? extends Integer> it = value.iterator();
+            Integer firstHandNumber = it.next();
+            if (it.hasNext()) {
+                Integer secondHandNumber = it.next();
+                return path.between(firstHandNumber, secondHandNumber);
+            } else {
+                return path.goe(firstHandNumber);
+            }
+        });
+        //佣金比例%
+        bindings.bind(root.commissionRate).all((path, value) -> {
+            Iterator<? extends BigDecimal> it = value.iterator();
+            BigDecimal firstCommissionRate = it.next();
+            if (it.hasNext()) {
+                BigDecimal secondCommissionRate = it.next();
+                return path.between(firstCommissionRate, secondCommissionRate);
+            } else {
+                //大于等于
+                return path.goe(firstCommissionRate);
+            }
+        });
+        //委案日期
+        bindings.bind(root.delegationDate).all((path, value) -> {
+            Iterator<? extends Date> it = value.iterator();
+            Date firstDelegationDate = it.next();
+            if (it.hasNext()) {
+                Date secondDelegationDate = it.next();
+                return path.between(firstDelegationDate, secondDelegationDate);
+            } else {
+                //大于等于
+                return path.goe(firstDelegationDate);
+            }
+        });
+        //结案日期
+        bindings.bind(root.closeDate).all((path, value) -> {
+            Iterator<? extends Date> it = value.iterator();
+            Date firstCloseDate = it.next();
+            if (it.hasNext()) {
+                Date secondCloseDate = it.next();
+                return path.between(firstCloseDate, secondCloseDate);
+            } else {
+                //大于等于
+                return path.goe(firstCloseDate);
             }
         });
         //委托方

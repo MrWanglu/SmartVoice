@@ -26,6 +26,7 @@ public class Personal extends BaseEntity {
     private String qq;
     private String email;
     private Integer idCardValidityPeriod;
+    private String idCardIssuingAuthority; //身份证发证机关
     private String idCardAddress;
     private String cityLiveTime;
     private String localLiveTime;
