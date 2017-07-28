@@ -5,7 +5,6 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @Author : sunyanping
@@ -17,7 +16,7 @@ public class PersonalInfoExportModel {
     @ApiModelProperty("导出维度")
     private Integer exportType;
     @ApiModelProperty("数据过滤")
-    private Set<Object> dataFilter;
+    private Map<String,List<Object>> dataFilter;
     @ApiModelProperty("数据配置项")
     private Map<String, List<String>> dataInfo;
 }
