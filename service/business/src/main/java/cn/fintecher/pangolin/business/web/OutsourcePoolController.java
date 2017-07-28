@@ -8,13 +8,18 @@ import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
+import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -221,5 +226,42 @@ public class OutsourcePoolController extends BaseController {
         }
     }
 
-
+    /**
+     * @Description 查询可委外案件
+     */
+    @GetMapping("/getAllOutCase")
+    @ApiOperation(value = "查询可委外案件", notes = "查询可委外案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseInfo>> getAllOutCase(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                        @ApiIgnore Pageable pageable,
+                                                        @RequestHeader(value = "X-UserToken") String token) throws Exception {
+        log.debug("REST request to get all case");
+        List<Integer> list = new ArrayList<>();
+        list.add(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //待分配
+        list.add(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //待催收
+        list.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue()); //催收中
+        list.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue()); //逾期还款中
+        list.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue()); //提前结清还款中
+        list.add(CaseInfo.CollectionStatus.PART_REPAID.getValue()); //部分已还款
+        try {
+            User tokenUser = getUserByToken(token);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+            builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            builder.and(QCaseInfo.caseInfo.collectionStatus.in(list)); //不查询已结案、已还款案件
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/outsourcePoolController/getAllOutCase");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "caseInfo", e.getMessage())).body(null);
+        }
+    }
 }
