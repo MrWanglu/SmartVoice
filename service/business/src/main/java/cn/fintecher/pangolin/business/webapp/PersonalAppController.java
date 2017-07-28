@@ -1,22 +1,17 @@
 package cn.fintecher.pangolin.business.webapp;
 
-import cn.fintecher.pangolin.business.model.AddressRepairInfo;
-import cn.fintecher.pangolin.business.model.RepairInfoModel;
+
 import cn.fintecher.pangolin.business.repository.PersonalAddressRepository;
 import cn.fintecher.pangolin.business.repository.PersonalContactRepository;
 import cn.fintecher.pangolin.business.repository.PersonalRepository;
 import cn.fintecher.pangolin.business.web.BaseController;
 import cn.fintecher.pangolin.entity.*;
-import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import cn.fintecher.pangolin.web.ResponseUtil;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.util.FileUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
@@ -24,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
-import java.net.URISyntaxException;
 import java.util.List;
 
 /**
