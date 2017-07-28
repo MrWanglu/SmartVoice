@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.model.ApplyAssistModel;
 import cn.fintecher.pangolin.business.model.AssistApplyApproveModel;
 import cn.fintecher.pangolin.business.repository.*;
+import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -26,6 +27,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -52,6 +54,8 @@ public class CaseAssistApplyController extends BaseController {
     private RoleRepository roleRepository;
     @Inject
     private CaseAssistRepository caseAssistRepository;
+    @Inject
+    private UserService userService;
 
     @GetMapping("/findAllApplyByCaseNumber/{caseNumber}")
     @ApiOperation(value = "查询某个案件的所有协催申请", notes = "查询某个案件的所有协催申请")
@@ -197,13 +201,10 @@ public class CaseAssistApplyController extends BaseController {
             // 审批通过
             if (approveResult == CaseAssistApply.ApproveResult.TEL_PASS.getValue()) {
                 // TODO 提醒外访主管审批
-//                String title = "有协催申请需要审批!";
-//                String content = "电催组申请对案件["+apply.getCaseNumber()+"]进行协催，请及时审批!";
-//                QRole qRole = QRole.role;
-//                BooleanExpression exp = qRole.name.contains("外访主管");
-//                Role one = roleRepository.findOne(exp);
-//                Set<User> users = one.getUsers();
-//                users.forEach(u -> sendAssistApproveReminder(title,content,u.getId()));
+                String title = "有协催申请需要审批!";
+                String content = "电催组申请对案件["+apply.getCaseNumber()+"]进行协催，请及时审批!";
+                List<User> allUser = userService.getAllUser(user.getCompanyCode(), 2, 0, 0);//公司Code 电催 启用 管理者
+                allUser.forEach(u -> sendAssistApproveReminder(title,content,u.getId()));
             }
             // 审批拒绝
             if (approveResult == CaseAssistApply.ApproveResult.TEL_REJECT.getValue()) {
