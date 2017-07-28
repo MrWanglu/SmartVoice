@@ -4,11 +4,13 @@ import cn.fintecher.pangolin.business.model.PersonalInfoExportModel;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.PersonalRepository;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
-import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.CaseInfo;
+import cn.fintecher.pangolin.entity.Personal;
+import cn.fintecher.pangolin.entity.PersonalContact;
+import cn.fintecher.pangolin.entity.QCaseInfo;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
-import com.querydsl.core.types.CollectionExpression;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import io.swagger.annotations.*;
@@ -63,7 +65,8 @@ public class PersonalController extends BaseController {
     @ApiOperation(value = "客户信息导出", notes = "客户信息导出")
     public ResponseEntity personalInfoExport(@RequestBody @ApiParam("配置项") PersonalInfoExportModel model) {
         Integer exportType = model.getExportType();  //导出维度  0-催收员，1-产品类型，2-批次号，3-案件状态
-        Set<Object> dataFilter = model.getDataFilter(); // 数据过滤
+        // 数据过滤
+        Map<String, List<Object>> dataFilter = model.getDataFilter();
         Map<String, List<String>> dataInfo = model.getDataInfo(); //数据项
 
         HSSFWorkbook workbook = null;
@@ -79,7 +82,11 @@ public class PersonalController extends BaseController {
                 String[] collectPro = {"deptName", "custName", "idCard", "phone", "city", "periods", "overDays", "overAmt", "loanDate", "payStatus", "collector"};
                 List<String> collect = dataInfo.get("collect"); // 催收员为维度数据选选项
                 // 查找出所有属于该催收员的数据
-                BooleanExpression exp = qCaseInfo.currentCollector.realName.eq((String) dataFilter.iterator().next());
+                String orgCode = (String) dataFilter.get("org").get(0);// 组织机构Code
+                String collectorName = (String) dataFilter.get("collector").get(0); //催收员名称
+                // 部门下的催收员
+                BooleanExpression exp = qCaseInfo.department.code.startsWith(orgCode);
+                exp.and(qCaseInfo.currentCollector.realName.eq(collectorName));
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
                 Iterator<CaseInfo> iterator = all.iterator();
                 if (!iterator.hasNext()) {
@@ -138,7 +145,8 @@ public class PersonalController extends BaseController {
                 List<String> bankInfo = dataInfo.get("bankInfo"); // 开户信息
 
                 // 查找出某产品类型的所有案件
-                BooleanExpression exp = qCaseInfo.product.productSeries.seriesName.in((CollectionExpression<?, ? extends String>) dataFilter);
+                String prodName = (String)dataFilter.get("prodName").get(0);//产品名称
+                BooleanExpression exp = qCaseInfo.product.productSeries.seriesName.eq(prodName);
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
                 Iterator<CaseInfo> iterator = all.iterator();
                 if (!iterator.hasNext()) {
@@ -240,7 +248,9 @@ public class PersonalController extends BaseController {
                 String[] batchNumData = {"机构名称", "客户姓名", "身份证号", "联系电话", "归属城市", "总期数", "逾期天数", "逾期金额", "贷款日期", "还款状态", "批次号"};
                 String[] batchNumPro = {"deptName", "custName", "idCard", "phone", "city", "periods", "overDays", "overAmt", "loanDate", "payStatus", "batchNum"};
                 List<String> batch = dataInfo.get("batch"); // 催收员为维度数据选选项
-                BooleanExpression exp = qCaseInfo.batchNumber.eq((String) dataFilter.iterator().next());
+
+                String batchNumber = (String)dataFilter.get("batchNumber").get(0); //批次号
+                BooleanExpression exp = qCaseInfo.batchNumber.eq(batchNumber);
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
                 Iterator<CaseInfo> iterator = all.iterator();
                 if (!iterator.hasNext()) {
@@ -283,7 +293,9 @@ public class PersonalController extends BaseController {
                 String[] caseStatusData = {"机构名称", "客户姓名", "身份证号", "联系电话", "归属城市", "总期数", "逾期天数", "逾期金额", "贷款日期", "还款状态", "案件状态"};
                 String[] caseStatusPro = {"deptName", "custName", "idCard", "phone", "city", "periods", "overDays", "overAmt", "loanDate", "payStatus", "caseStatus"};
                 List<String> caseStatus = dataInfo.get("caseStatus"); // 案件状态为维度数据选选项
-                BooleanExpression exp = qCaseInfo.collectionStatus.eq((Integer) dataFilter.iterator().next());
+
+                List<Integer> stList = (List)dataFilter.get("caseInfoStatus");//状态
+                BooleanExpression exp = qCaseInfo.collectionStatus.in(stList);
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
                 Iterator<CaseInfo> iterator = all.iterator();
                 if (!iterator.hasNext()) {
