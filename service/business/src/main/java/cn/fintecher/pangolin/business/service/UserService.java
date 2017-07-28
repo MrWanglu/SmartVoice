@@ -5,6 +5,8 @@ import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.entity.Department;
 import cn.fintecher.pangolin.entity.QUser;
 import cn.fintecher.pangolin.entity.User;
+import com.querydsl.core.BooleanBuilder;
+import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,9 @@ public class UserService {
     @Autowired
     private DepartmentRepository departmentRepository;
 
+    /**
+     * @Description : 得到特定公司部门下的用户 id 部门的id  state 用户的状态
+     */
     public List<User> getAllUser(String id, Integer state) {
         Department department = departmentRepository.findOne(id);
         QUser qUser = QUser.user;
@@ -45,4 +50,26 @@ public class UserService {
         return userReturn;
     }
 
+    /**
+     * @Description : 得到外访的主管 type 用户类型   state 用户的状态   companyCode 公司code   manager 是否管理者  0 是  1 否
+     */
+    public List<User> getAllUser(String companyCode, Integer type, Integer state,Integer manager) {
+        QUser qUser = QUser.user;
+        BooleanBuilder builder = new BooleanBuilder();
+        if (Objects.nonNull(companyCode)) {
+            builder.and(qUser.companyCode.eq(companyCode));
+        }
+        if (Objects.nonNull(type)) {
+            builder.and(qUser.type.eq(type));
+        }
+        if (Objects.nonNull(state)) {
+            builder.and(qUser.status.eq(state));
+        }
+        if (Objects.nonNull(manager)) {
+            builder.and(qUser.manager.eq(manager));
+        }
+        Iterator<User> userList = userRepository.findAll(builder).iterator();
+        List<User> userReturn = IteratorUtils.toList(userList);
+        return userReturn;
+    }
 }
