@@ -459,6 +459,7 @@ public class CaseInfoService {
         caseAssistApply.setCaseId(assistApplyParams.getCaseId()); //案件ID
         caseAssistApply.setCaseNumber(caseInfo.getCaseNumber()); //案件编号
         caseAssistApply.setPersonalName(caseInfo.getPersonalInfo().getName()); //客户姓名
+        caseAssistApply.setPersonalPhone(caseInfo.getPersonalInfo().getMobileNo()); // 客户电话
         caseAssistApply.setPersonalId(caseInfo.getPersonalInfo().getId()); //客户信息ID
         caseAssistApply.setCollectionType(caseInfo.getCollectionType()); //催收类型
         caseAssistApply.setDepartId(caseInfo.getDepartment().getId()); //部门ID
