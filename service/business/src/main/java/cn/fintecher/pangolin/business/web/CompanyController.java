@@ -17,8 +17,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 
@@ -42,16 +40,21 @@ public class CompanyController extends BaseController {
     @PostMapping("/createCompany")
     @ApiOperation(value = "新增注册公司", notes = "新增注册公司")
     public ResponseEntity<Company> createCompany(@Validated @ApiParam("公司对象") @RequestBody Company company,
-                                                 @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+                                                 @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
         logger.debug("REST request to save company : {}", company);
         if (company.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "idexists", "新增不应该含有ID")).body(null);
         }
         Company result = companyRepository.save(company);
-        return ResponseEntity.created(new URI("/api/companyController/" + result.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId()))
-                .body(result);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(result);
     }
 
     /**
@@ -60,16 +63,21 @@ public class CompanyController extends BaseController {
     @PostMapping("/updateCompany")
     @ApiOperation(value = "更新注册公司", notes = "更新注册公司")
     public ResponseEntity<Company> updateCompany(@Validated @ApiParam("公司对象") @RequestBody Company company,
-                                                 @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+                                                 @RequestHeader(value = "X-UserToken") String token) {
         logger.debug("REST request to update company : {}", company);
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
         if (company.getId() == null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "idexists", "修改应该含有ID")).body(null);
         }
         Company result = companyRepository.save(company);
-        return ResponseEntity.created(new URI("/api/companyController/" + result.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId()))
-                .body(result);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(result);
     }
 
     /**

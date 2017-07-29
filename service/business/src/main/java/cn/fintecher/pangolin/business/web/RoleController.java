@@ -24,7 +24,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -158,7 +157,7 @@ public class RoleController extends BaseController {
 
     @GetMapping("/getRole")
     @ApiOperation(value = "查找角色通过id", notes = "查找角色通过id")
-    public ResponseEntity<Role> getRole(@ApiParam(value = "角色id", required = true) @RequestParam(value = "id") String id) throws URISyntaxException {
+    public ResponseEntity<Role> getRole(@ApiParam(value = "角色id", required = true) @RequestParam(value = "id") String id){
         try {
             Role role = roleRepository.findOne(id);
             return ResponseEntity.ok().body(role);

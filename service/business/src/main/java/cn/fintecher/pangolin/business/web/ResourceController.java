@@ -20,8 +20,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +88,7 @@ public class ResourceController extends BaseController {
     @PostMapping("/createResource")
     @ApiOperation(value = "增加资源", notes = "增加资源")
     public ResponseEntity<Resource> createResource(@Validated @ApiParam("资源") @RequestBody Resource resource,
-                                                   @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+                                                   @RequestHeader(value = "X-UserToken") String token) {
         logger.debug("REST request to save resource : {}", resource);
         User user;
         try {
@@ -108,9 +106,7 @@ public class ResourceController extends BaseController {
                     "Can't add without permission", "没有权限不能添加")).body(null);
         }
         Resource result = resourceRepository.save(resource);
-        return ResponseEntity.created(new URI("/api/resourceController/" + result.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId()))
-                .body(result);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(result);
     }
 
     /**
@@ -119,7 +115,7 @@ public class ResourceController extends BaseController {
     @PostMapping("/updateResource")
     @ApiOperation(value = "修改资源", notes = "修改资源")
     public ResponseEntity<Resource> updateCompany(@Validated @ApiParam("资源对象") @RequestBody Resource resource,
-                                                  @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+                                                  @RequestHeader(value = "X-UserToken") String token) {
         logger.debug("REST request to update resource : {}", resource);
         if (resource.getId() == null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
@@ -137,9 +133,7 @@ public class ResourceController extends BaseController {
                     "Can't add without permission", "没有权限不能添加")).body(null);
         }
         Resource result = resourceRepository.save(resource);
-        return ResponseEntity.created(new URI("/api/resourceController/" + result.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId()))
-                .body(result);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(result);
     }
 
     /**

@@ -14,7 +14,6 @@ import cn.fintecher.pangolin.entity.util.ShortUUID;
 import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
@@ -25,14 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -86,7 +81,7 @@ public class DepartmentController extends BaseController {
     @PostMapping("/createDepartment")
     @ApiOperation(value = "增加部门", notes = "增加部门")
     public ResponseEntity<Department> createDepartment(@RequestBody Department department,
-                                                       @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+                                                       @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save department : {}", department);
         if (department.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "新增部门不应该含有ID")).body(null);
@@ -126,9 +121,7 @@ public class DepartmentController extends BaseController {
         department.setOperator(user.getUserName());
         department.setOperateTime(ZWDateUtil.getNowDateTime());
         Department result = departmentRepository.save(department);
-        return ResponseEntity.created(new URI("/api/department/" + result.getId()))
-                .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.getId().toString()))
-                .body(result);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(result);
     }
 
     /**
@@ -136,7 +129,7 @@ public class DepartmentController extends BaseController {
      */
     @PostMapping("/updateDepartment")
     @ApiOperation(value = "修改部门", notes = "修改部门")
-    public ResponseEntity<Department> updateDepartment(@RequestBody Department department, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+    public ResponseEntity<Department> updateDepartment(@RequestBody Department department, @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to update Department : {}", department);
         if (department.getId() == null) {
             return createDepartment(department, token);
@@ -207,9 +200,7 @@ public class DepartmentController extends BaseController {
             }
         }
         Department result = departmentRepository.save(department);
-        return ResponseEntity.ok()
-                .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, department.getId().toString()))
-                .body(result);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(result);
     }
 
     /**
@@ -273,15 +264,20 @@ public class DepartmentController extends BaseController {
     })
     public ResponseEntity<Page<Department>> queryCaseInfo(@QuerydslPredicate(root = Department.class) Predicate predicate,
                                                           @ApiIgnore Pageable pageable,
-                                                          @RequestHeader(value = "X-UserToken") String token) throws Exception {
-        User user = getUserByToken(token);
+                                                          @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if (Objects.nonNull(user.getCompanyCode())) {
             builder.and(QDepartment.department.companyCode.like(user.getCompanyCode().concat("%")));
         }
         Page<Department> page = departmentRepository.findAll(builder, pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/departmentController");
-        return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(page);
     }
 
     /**
