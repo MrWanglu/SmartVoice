@@ -114,9 +114,7 @@ public class DepartmentController extends BaseController {
         if (Objects.isNull(department.getParent().getLevel())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "部门级别不能为空")).body(null);
         } else {
-            if (department.getLevel() - department.getParent().getLevel() != 1) {
-                department.setLevel(department.getParent().getLevel() + 1);
-            }
+            department.setLevel(department.getParent().getLevel() + 1);
         }
         department.setOperator(user.getUserName());
         department.setOperateTime(ZWDateUtil.getNowDateTime());
