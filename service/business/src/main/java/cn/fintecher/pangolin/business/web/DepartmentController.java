@@ -17,10 +17,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -354,5 +351,70 @@ public class DepartmentController extends BaseController {
             departmentList.add(departments.next());
         }
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
+    }
+
+    /**
+     * @Description :移动组织机构
+     */
+    @ApiOperation(value = "移动组织机构", notes = "移动组织机构")
+    @GetMapping("/moveDepartment")
+    public ResponseEntity<Department> moveDepartment(@ApiParam(value = "要移动组织机构的id", required = true) @RequestParam String deptId,
+                                                     @ApiParam(value = "移动到的组织机构的id", required = true) @RequestParam String parentDeptId) {
+        if (Objects.isNull(deptId) || Objects.isNull(parentDeptId)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "参数不完整", "Incomplete parameter")).body(null);
+        }
+        //需要移动的机构
+        Department dept = departmentRepository.findOne(deptId);
+        //移动后的父机构
+        Department deptParent = departmentRepository.findOne(parentDeptId);
+        if (Objects.isNull(deptParent)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "There is no parent", "父机构不存在")).body(null);
+        }
+        if (Objects.equals(Status.Disable.getValue(), deptParent.getStatus())) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The state of the parent department is disabled and cannot be moved", "父部门的状态为停用，不能移动")).body(null);
+        }
+        //如果子部门的类型和父部门一样 直接移动 部门的等级和code码需要变化
+        if (Objects.equals(dept.getType(), deptParent.getType())) {
+            dept.setLevel(deptParent.getLevel() + 1);
+            dept.setCode(deptParent + "_" + ShortUUID.generateShortUuid());
+            dept.setParent(deptParent);
+            Department department = departmentRepository.save(dept);
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(department);
+        }
+        //如果子部门和父部门的类型不一致需要判断部门下的案件和用户
+        //首先的移除部门下面的用户
+        QUser qUser = QUser.user;
+        int usersNum = (int) userRepository.count(qUser.department.code.like(dept.getCode().concat("%")).and(qUser.companyCode.eq(dept.getCompanyCode())));
+        if (usersNum > 0) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户,不能移动,请先移出用户")).body(null);
+        }
+        //子机构数量
+        QDepartment qDepartment = QDepartment.department;
+        int deptNum = (int) departmentRepository.count(qDepartment.code.like(dept.getCode().concat("%")).and(qDepartment.id.ne(dept.getId())).and(qUser.companyCode.eq(dept.getCompanyCode())));
+        if (deptNum > 0) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department is following agencies cannot be deleted", "该部门下子机构不能移动")).body(null);
+        }
+//机构关联的案件数
+        CollectionCaseModel collectionCaseModel = caseInfoService.haveCollectionCase(dept);
+        if (Objects.nonNull(collectionCaseModel)) {
+            int number = collectionCaseModel.getNum();
+            if (0 != number) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + number + "个未处理的案件，不能移动，请先处理完该机构下的案件")).body(null);
+            }
+        }
+        //机构下关联的协催正在催收的案件
+        AssistingStatisticsModel assistingStatisticsMode = caseAssistService.getDepartmentCollectingAssist(dept);
+        if (Objects.nonNull(assistingStatisticsMode)) {
+            int num = assistingStatisticsMode.getNum();
+            if (0 != num) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + num + "个未处理的协催案件，不能移动，请先处理完该机构下的案件")).body(null);
+            }
+        }
+        dept.setType(deptParent.getType());
+        dept.setLevel(deptParent.getLevel() + 1);
+        dept.setCode(deptParent + "_" + ShortUUID.generateShortUuid());
+        dept.setParent(deptParent);
+        Department department = departmentRepository.save(dept);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(department);
     }
 }
