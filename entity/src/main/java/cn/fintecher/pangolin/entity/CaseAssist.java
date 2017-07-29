@@ -19,7 +19,7 @@ import java.util.Date;
 @Table(name = "case_assist")
 @Data
 public class CaseAssist extends BaseEntity {
-    @ApiModelProperty("挂起标识")
+    @ApiModelProperty("案件信息")
     @ManyToOne
     @JoinColumn(name = "case_id")
     private CaseInfo caseId;

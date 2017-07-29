@@ -27,7 +27,10 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @Author : sunyanping
@@ -64,16 +67,26 @@ public class CaseAssistController extends BaseController {
     @ApiOperation(value = "查询案件协催记录",notes = "查询案件协催记录")
     public ResponseEntity<Page<CaseAssist>> findCaseInfoAssistRecord(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
                                                                      @RequestParam @ApiParam("案件ID") String caseId,
-                                                                     @ApiIgnore Pageable pageable) {
+                                                                     @ApiIgnore Pageable pageable,
+                                                                     @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to findCaseInfoAssistRecord");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "findCaseInfoAssistRecord", e.getMessage())).body(null);
+        }
         try {
             BooleanBuilder exp = new BooleanBuilder(predicate);
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+            exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
             exp.and(qCaseAssist.caseId.id.eq(caseId));
             Page<CaseAssist> page = caseAssistRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "findCaseInfoAssistRecord", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "findCaseInfoAssistRecord", "系统异常!")).body(null);
         }
     }
 
@@ -81,18 +94,28 @@ public class CaseAssistController extends BaseController {
     @ApiOperation(value = "查询还款申请/记录",notes = "查询还款申请/记录")
     public ResponseEntity<Page<CasePayApply>> findAssistCasePayRecord(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
                                                                       @RequestParam @ApiParam("协催案件ID") String assistId,
-                                                                      @ApiIgnore Pageable pageable) {
+                                                                      @ApiIgnore Pageable pageable,
+                                                                      @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to findAssistCasePayRecord");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "findAssistCaseMessageRecord", e.getMessage())).body(null);
+        }
         try {
             CaseAssist one = caseAssistRepository.findOne(assistId);
             String caseId = one.getCaseId().getId();
             QCasePayApply qCasePayApply = QCasePayApply.casePayApply;
             BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(qCasePayApply.companyCode.eq(user.getCompanyCode()));
             builder.and(qCasePayApply.caseId.eq(caseId));
             Page<CasePayApply> page = casePayApplyRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "findAssistCasePayRecord", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "findAssistCasePayRecord", "系统异常!")).body(null);
         }
     }
 
@@ -100,16 +123,26 @@ public class CaseAssistController extends BaseController {
     @ApiOperation(value = "协催案件查询短信记录",notes = "协催案件查询短信记录")
     public ResponseEntity<Page<SendMessageRecord>> findAssistCaseMessageRecord(@QuerydslPredicate(root = SendMessageRecord.class) Predicate predicate,
                                                                                @ApiIgnore Pageable pageable,
-                                                                               @RequestParam @ApiParam("案件ID") String caseId) {
+                                                                               @RequestParam @ApiParam("案件ID") String caseId,
+                                                                               @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to findAssistCaseMessageRecord");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "findAssistCaseMessageRecord", e.getMessage())).body(null);
+        }
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(QSendMessageRecord.sendMessageRecord.companyCode.eq(user.getCompanyCode()));
             builder.and(QSendMessageRecord.sendMessageRecord.caseId.eq(caseId));
             Page<SendMessageRecord> page = sendMessageRecordRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseAssistController/findAssistCaseMessageRecord");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (URISyntaxException e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "findAssistCaseMessageRecord", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "findAssistCaseMessageRecord", "系统异常!")).body(null);
         }
     }
 
@@ -118,20 +151,26 @@ public class CaseAssistController extends BaseController {
     public ResponseEntity<CaseAssist> assistCaseMarkColor(@RequestBody AssistCaseMarkParams caseMarkParams,
                                                           @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("REST request to mark color");
+        User user = null;
         try {
-            User tokenUser = getUserByToken(token);
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistCaseMarkColor", e.getMessage())).body(null);
+        }
+        try {
             CaseAssist caseAssist = caseAssistRepository.findOne(caseMarkParams.getAssistId());
             if (Objects.isNull(caseAssist)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("协催案件未找到", "assistCaseMarkColor", "协催案件未找到")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistCaseMarkColor", "协催案件未找到")).body(null);
             }
             caseAssist.setMarkId(caseMarkParams.getMarkId()); //打标
-            caseAssist.setOperator(tokenUser); //操作人
+            caseAssist.setOperator(user); //操作人
             caseAssist.setOperatorTime(new Date()); //操作时间
-            CaseAssist save = caseAssistRepository.save(caseAssist);
-            return ResponseEntity.ok().body(save);
+            caseAssistRepository.save(caseAssist);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("打标成功","")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("打标失败", "assistCaseMarkColor", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistCaseMarkColor", "系统异常!")).body(null);
         }
     }
 
@@ -140,13 +179,24 @@ public class CaseAssistController extends BaseController {
     public ResponseEntity<Void> assistWithdraw(@RequestParam @ApiParam(value = "还款审批ID", required = true) String payApplyId,
                                                @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("REST request to withdraw by {}", payApplyId);
+        User user = null;
         try {
-            User tokenUser = getUserByToken(token);
-            caseInfoService.payWithdraw(payApplyId, tokenUser);
-            return ResponseEntity.ok().body(null);
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistWithdraw", e.getMessage())).body(null);
+        }
+        try {
+            try {
+                caseInfoService.payWithdraw(payApplyId, user);
+            } catch (final Exception e) {
+                log.debug(e.getMessage());
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistWithdraw", e.getMessage())).body(null);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款成功","")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("撤回失败", "assistWithdraw", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistWithdraw", "系统异常!")).body(null);
         }
     }
 
@@ -155,28 +205,26 @@ public class CaseAssistController extends BaseController {
     public ResponseEntity<Void> doTelPay(@RequestBody PayApplyParams payApplyParams,
                                          @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("REST request to apply payment");
+        User user = null;
         try {
-            User tokenUser = getUserByToken(token);
-            caseInfoService.doPay(payApplyParams, tokenUser);
-            return ResponseEntity.ok().body(null);
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "doTelPay", e.getMessage())).body(null);
+        }
+        try {
+            try {
+                caseInfoService.doPay(payApplyParams, user);
+            } catch (Exception e) {
+                log.debug(e.getMessage());
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "doTelPay", e.getMessage())).body(null);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款成功!","")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("还款失败", "doTelPay", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "doTelPay", "系统异常!")).body(null);
         }
     }
-//
-//    @GetMapping("/getAssistCustInfo")
-//    @ApiOperation(value = "协催案件详情页面的客户信息", notes = "协催案件详情页面的客户信息")
-//    public ResponseEntity<Personal> getAssistCustInfo(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
-//        log.debug("REST request to get customer information ");
-//        try {
-//            Personal custInfo = caseInfoService.getCustInfo(caseId);
-//            return ResponseEntity.ok().body(custInfo);
-//        } catch (Exception e) {
-//            log.error(e.getMessage(), e);
-//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "getAssistCustInfo", e.getMessage())).body(null);
-//        }
-//    }
 
     @GetMapping("/getAssistRepaymentVoucher")
     @ApiOperation(value = "协催案件查看还款凭证", notes = "协催案件查看还款凭证")
@@ -194,17 +242,18 @@ public class CaseAssistController extends BaseController {
     @ApiOperation(value = "协催页面多条件查询跟进记录",notes = "协催页面多条件查询跟进记录")
     public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
                                                                       @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
-                                                                      @ApiIgnore Pageable pageable) throws URISyntaxException {
+                                                                      @ApiIgnore Pageable pageable) {
         log.debug("REST request to get case followup records by {caseId}",caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseId.id.eq(caseId));
+            QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
+            builder.and(qCaseFollowupRecord.caseId.id.eq(caseId));
             Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseAssistController/getFollowupRecord");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "getFollowupRecord", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "getFollowupRecord", "系统异常!")).body(null);
         }
     }
 
@@ -213,13 +262,25 @@ public class CaseAssistController extends BaseController {
     public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@RequestBody CaseFollowupRecord caseFollowupRecord,
                                                                  @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("REST request to save {}", caseFollowupRecord);
+        User user = null;
         try {
-            User tokenUser = getUserByToken(token);
-            CaseFollowupRecord result = caseInfoService.saveFollowupRecord(caseFollowupRecord, tokenUser);
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "saveFollowupRecord", e.getMessage())).body(null);
+        }
+        try {
+            CaseFollowupRecord result = null;
+            try {
+                result = caseInfoService.saveFollowupRecord(caseFollowupRecord, user);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "saveFollowupRecord", e.getMessage())).body(null);
+            }
             return ResponseEntity.ok().body(result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("添加失败", "saveFollowupRecord", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "saveFollowupRecord", "系统异常!")).body(null);
         }
     }
 
@@ -260,38 +321,61 @@ public class CaseAssistController extends BaseController {
     @PostMapping("/endCaseAssist")
     @ApiOperation(value = "协催案件结案", notes = "协催案件结案")
     public ResponseEntity<Void> endCaseAssist(@RequestBody CloseAssistCaseModel closeAssistCaseModel,
-                                              @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                              @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to end case by {}", closeAssistCaseModel);
+        User user = null;
         try {
-            User tokenUser = getUserByToken(token);
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "endCaseAssist", e.getMessage())).body(null);
+        }
+        try {
             String assistId = closeAssistCaseModel.getAssistId();
             CaseAssist one = caseAssistRepository.findOne(assistId);
             // 修改协催案件状态
-            one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue());
-            one.setOperator(tokenUser);
-            one.setOperatorTime(new Date());
+//            one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue());
+//            one.setOperator(user);
+//            one.setOperatorTime(new Date());
             EndCaseParams endCaseParams = new EndCaseParams();
             endCaseParams.setCaseId(one.getCaseId().getId());
             endCaseParams.setEndRemark(closeAssistCaseModel.getRemark());
             endCaseParams.setIsAssist(true);
             endCaseParams.setEndType(closeAssistCaseModel.getType());
-            caseAssistRepository.save(one);
-            caseInfoService.endCase(endCaseParams, tokenUser);
+//            caseAssistRepository.save(one);
+            try {
+                caseInfoService.endCase(endCaseParams, user);
+            } catch (final Exception e) {
+                log.debug(e.getMessage());
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "endCaseAssist", e.getMessage())).body(null);
+            }
             return ResponseEntity.ok().body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("结案失败", "CaseAssistController", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "endCaseAssist", "系统错误!")).body(null);
         }
     }
 
     @GetMapping("/getBatchInfo")
     @ApiOperation(value = "协催页面获取分配信息", notes = "协催页面获取分配信息")
-    public ResponseEntity<BatchDistributeModel> getBatchInfo(@RequestHeader(value = "X-UserToken") String token) throws Exception {
+    public ResponseEntity<BatchDistributeModel> getBatchInfo(@RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get batch info");
+        User user = null;
         try {
-            User tokenUser = getUserByToken(token);
-            BatchDistributeModel batchDistributeModel = caseInfoService.getBatchDistribution(tokenUser);
-            return ResponseEntity.ok().body(batchDistributeModel);
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "getBatchInfo", e.getMessage())).body(null);
+        }
+        try {
+            BatchDistributeModel batchDistributeModel = null;
+            try {
+                batchDistributeModel = caseInfoService.getBatchDistribution(user);
+            } catch (final Exception e) {
+                log.debug(e.getMessage());
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "getBatchInfo", e.getMessage())).body(null);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功!", "")).body(batchDistributeModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取分配信息失败", "CaseAssistController", e.getMessage())).body(null);
@@ -302,10 +386,16 @@ public class CaseAssistController extends BaseController {
     @PostMapping("/batchCaseAssist")
     @ApiOperation(value = "协催页面批量分配", notes = "协催页面批量分配")
     public ResponseEntity<Void> batchCaseAssist(@RequestBody AssistCaseBatchModel assistCaseBatchModel,
-                                                @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to batch assist case");
+        User user = null;
         try {
-            User tokenUser = getUserByToken(token);
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "batchCaseAssist", e.getMessage())).body(null);
+        }
+        try {
             List<String> assistIds = assistCaseBatchModel.getAssistIds();
             List<CaseAssist> all = caseAssistRepository.findAll(assistIds);
             List<String> caseInfoIds = new ArrayList<>();
@@ -313,20 +403,31 @@ public class CaseAssistController extends BaseController {
             BatchDistributeModel batchDistributeModel = new BatchDistributeModel();
             BeanUtils.copyProperties(assistCaseBatchModel, batchDistributeModel);
             batchDistributeModel.setCaseIds(caseInfoIds);
-            caseInfoService.batchCase(batchDistributeModel, tokenUser);
-            return ResponseEntity.ok().body(null);
+            try {
+                caseInfoService.batchCase(batchDistributeModel, user);
+            } catch (final Exception e) {
+                log.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "batchCaseAssist", e.getMessage())).body(null);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("分配失败", "batchCaseAssist", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "batchCaseAssist", "系统异常!")).body(null);
         }
     }
 
     @PostMapping("/assignCaseAssist")
     @ApiOperation(value = "协催案件分配", notes = "协催案件分配")
     public ResponseEntity assignCaseAssist(@RequestBody AssignAssistParam assignAssistParam,
-                                           @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                           @RequestHeader(value = "X-UserToken") String token) {
         log.debug("Rest request to assignCaseAssist");
-        User user = getUserByToken(token);
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assignCaseAssist", e.getMessage())).body(null);
+        }
         try {
             CaseAssist caseAssist = caseAssistRepository.findOne(assignAssistParam.getCaseAssistId());
             User assistor = userRepository.findOne(assignAssistParam.getAssistorId());
@@ -336,16 +437,94 @@ public class CaseAssistController extends BaseController {
             reDistributionParams.setCaseId(caseAssist.getCaseId().getId());//案件ID
             reDistributionParams.setUserName(assistor.getUserName()); //协催员用户名
             reDistributionParams.setIsAssist(true);
-            caseInfoService.reDistribution(reDistributionParams, user);
-            return ResponseEntity.ok().body("分配成功!");
+            try {
+                caseInfoService.reDistribution(reDistributionParams, user);
+            } catch (final Exception e) {
+                log.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assignCaseAssist", e.getMessage())).body(null);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("分配失败", "assignCaseAssist", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assignCaseAssist", "系统错误!")).body(null);
         }
     }
 
-    @PutMapping("/receiveCaseAssist/{id}")
-    @ApiOperation(value = "协催案件抢单", notes = "协催案件抢单")
+    @GetMapping("/getAllRecordAssistCase")
+    @ApiOperation(value = "多条件查询协催已处理记录", notes = "多条件查询协催已处理记录")
+    public ResponseEntity<Page<CaseAssist>> getAllRecordAssistCase(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
+                                                                   @ApiIgnore Pageable pageable,
+                                                                   @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to getAllRecordAssistCase");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "findAllCaseAssist", e.getMessage())).body(null);
+        }
+        try {
+            List<Department> departments = departmentService.querySonDepartment(user); //是否有子部门
+            QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+            BooleanBuilder exp = new BooleanBuilder(predicate);
+            exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
+            Page<CaseAssist> page = null;
+            if (departments.isEmpty()) {
+                exp.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
+                // 协催员智能看见自己的协催案件
+                exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
+                page = caseAssistRepository.findAll(exp, pageable);
+            } else {
+                exp.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())); //查询协催结束的协催案件
+                page = caseAssistRepository.findAll(exp, pageable);
+            }
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "getAllRecordAssistCase", "系统错误!")).body(null);
+        }
+    }
+
+    @GetMapping("/findAllCaseAssist")
+    @ApiOperation(value = "获取所有协催案件", notes = "获取所有协催案件")
+    public ResponseEntity<Page<CaseAssist>> findAllCaseAssist(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
+                                                              @ApiIgnore Pageable pageable,
+                                                              @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("Rest request to findAllCaseAssist");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "findAllCaseAssist", e.getMessage())).body(null);
+        }
+        try {
+            List<Department> departments = departmentService.querySonDepartment(user); //是否有子部门
+            QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+            BooleanBuilder exp = new BooleanBuilder(predicate);
+            exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
+            Page<CaseAssist> page = null;
+            if (departments.isEmpty()) {
+                // 过滤掉协催结束的协催案件
+                exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
+                // 协催员智能看见自己的协催案件
+                exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
+                page = caseAssistRepository.findAll(exp, pageable);
+            } else {
+                // 过滤掉协催结束的协催案件
+                exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
+                page = caseAssistRepository.findAll(exp, pageable);
+            }
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "findAllCaseAssist", "系统错误!")).body(null);
+        }
+    }
+
+
+    //    @PutMapping("/receiveCaseAssist/{id}")
+//    @ApiOperation(value = "协催案件抢单", notes = "协催案件抢单")
     public ResponseEntity receiveCaseAssist(@PathVariable("id") @ApiParam("协催案件ID") String id,
                                             @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("Rest request to receiveCaseAssist");
@@ -384,80 +563,4 @@ public class CaseAssistController extends BaseController {
         }
     }
 
-    @GetMapping("/findCaseAssistInfo/{id}")
-    @ApiOperation(value = "根据协催案件ID查找对应案件信息",notes = "根据协催案件ID查找对应案件信息")
-    public ResponseEntity<CaseInfo> findCaseAssistInfo (@PathVariable("id") @ApiParam("协催案件ID") String id) {
-        try {
-            CaseAssist one = caseAssistRepository.findOne(id);
-            if (Objects.isNull(one)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController","findCaseAssistInfo","协催案件不存在")).body(null);
-            }
-            CaseInfo caseInfo = one.getCaseId();
-            return ResponseEntity.ok().body(caseInfo);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("系统错误", "findCaseAssistInfo", e.getMessage())).body(null);
-        }
-    }
-
-    @GetMapping("/getAllRecordAssistCase")
-    @ApiOperation(value = "多条件查询协催已处理记录", notes = "多条件查询协催已处理记录")
-    public ResponseEntity<Page<CaseAssist>> getAllRecordAssistCase(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
-                                                                   @ApiIgnore Pageable pageable,
-                                                                   @RequestHeader(value = "X-UserToken") String token) throws Exception {
-        log.debug("REST request to getAllRecordAssistCase");
-        User user = getUserByToken(token);
-        try {
-            List<Department> departments = departmentService.querySonDepartment(user);
-            if (departments.isEmpty()) {
-                QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
-                BooleanBuilder exp = new BooleanBuilder(predicate);
-                exp.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
-                // 协催员智能看见自己的协催案件
-                exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
-                Page<CaseAssist> page = caseAssistRepository.findAll(exp, pageable);
-                return ResponseEntity.ok().body(page);
-            } else {
-                BooleanBuilder builder = new BooleanBuilder(predicate);
-                builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())); //查询协催结束的协催案件
-                Page<CaseAssist> page = caseAssistRepository.findAll(builder, pageable);
-                return ResponseEntity.ok().body(page);
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "getAllRecordAssistCase", e.getMessage())).body(null);
-        }
-    }
-
-    @GetMapping("/findAllCaseAssist")
-    @ApiOperation(value = "获取所有协催案件", notes = "获取所有协催案件")
-    public ResponseEntity<Page<CaseAssist>> findAllCaseAssist(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
-                                                              @ApiIgnore Pageable pageable,
-                                                              @RequestHeader(value = "X-UserToken") String token) throws Exception {
-        log.debug("Rest request to findAllCaseAssist");
-        User user = getUserByToken(token);
-        try {
-            List<Department> departments = departmentService.querySonDepartment(user);
-            if (departments.isEmpty()) {
-                QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
-                BooleanBuilder exp = new BooleanBuilder(predicate);
-                // 过滤掉协催结束的协催案件
-                exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
-                // 协催员智能看见自己的协催案件
-                exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
-                Page<CaseAssist> page = caseAssistRepository.findAll(exp, pageable);
-                return ResponseEntity.ok().body(page);
-            } else {
-                QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
-                BooleanBuilder exp = new BooleanBuilder(predicate);
-                // 过滤掉协催结束的协催案件
-                exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
-                Page<CaseAssist> page = caseAssistRepository.findAll(exp, pageable);
-                return ResponseEntity.ok().body(page);
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("系统错误", "findAllCaseAssist", e.getMessage())).body(null);
-        }
-    }
 }
