@@ -94,22 +94,13 @@ public class AccDerateController extends BaseController {
 
     @GetMapping("/exportPayApply")
     @ApiOperation(value = "导出还款记录", notes = "导出还款记录")
-    public ResponseEntity exportPayApplyModel(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
-                                              @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity exportPayApplyModel(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate){
         log.debug("entry the export the pay records");
-        User user;
         HSSFWorkbook workbook = null;
         File file = null;
         ByteArrayOutputStream out = null;
         FileOutputStream fileOutputStream = null;
         try {
-            User userToken;
-            try {
-                userToken = getUserByToken(token);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("用户未登录", ENTITY_NAME, e.getMessage())).body(null);
-            }
             BooleanBuilder builder = new BooleanBuilder(predicate);
             builder.and(QCasePayApply.casePayApply.approveStatus.eq(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue()));
             Iterator<CasePayApply> iterable = casePayApplyRepository.findAll(builder).iterator();
