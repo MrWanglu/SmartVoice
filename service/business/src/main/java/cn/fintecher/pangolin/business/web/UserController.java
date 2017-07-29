@@ -114,7 +114,7 @@ public class UserController extends BaseController {
         QSysParam qSysParam = QSysParam.sysParam;
         SysParam sysParamsPassword = null;
         try {
-            sysParamsPassword = sysParamRepository.findOne(qSysParam.code.eq(Constants.APPLY_USER_NUMBER_CODE).and(qSysParam.type.eq(Constants.APPLY_USER_NUMBER_TYPE)).and(qSysParam.companyCode.eq(user.getDepartment().getCompanyCode())));
+            sysParamsPassword = sysParamRepository.findOne(qSysParam.code.eq(Constants.APPLY_PASSWORD_CODE).and(qSysParam.type.eq(Constants.APPLY_PASSWORD_TYPE)).and(qSysParam.companyCode.eq(user.getDepartment().getCompanyCode())));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user password parameters abnormality", "用户密码参数异常")).body(null);
