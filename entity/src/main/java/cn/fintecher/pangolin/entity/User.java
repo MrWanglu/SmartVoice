@@ -83,4 +83,29 @@ public class User extends BaseEntity {
             return value;
         }
     }
+
+    /**
+     * 用户催收类型
+     */
+    public enum Type {
+        TEL(1, "电话催收"),
+        VISIT(2,"外访催收"),
+        JUD(3,"司法催收"),
+        OUT(4,"委外催收"),
+        INTILL(5,"智能催收"),
+        REMINDER(6,"提醒催收"),
+        REPAIR(7,"修复管理");
+
+        private Integer value;
+        private String name;
+
+        Type(Integer value, String name) {
+            this.value = value;
+            this.name = name;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+    }
 }
