@@ -11,9 +11,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -68,8 +66,16 @@ public class CaseAssistController extends BaseController {
 
     @GetMapping("/findCaseInfoAssistRecord")
     @ApiOperation(value = "查询案件协催记录",notes = "查询案件协催记录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
     public ResponseEntity<Page<CaseAssist>> findCaseInfoAssistRecord(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
-                                                                     @RequestParam @ApiParam("案件ID") String caseId,
+                                                                     @RequestParam(value = "caseId",required = true) @ApiParam("案件ID") String caseId,
                                                                      @ApiIgnore Pageable pageable,
                                                                      @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to findCaseInfoAssistRecord");
@@ -243,8 +249,16 @@ public class CaseAssistController extends BaseController {
 
     @GetMapping("/getFollowupRecord")
     @ApiOperation(value = "协催页面多条件查询跟进记录",notes = "协催页面多条件查询跟进记录")
-    public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
-                                                                      @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
+                                                                      @RequestParam(value = "caseId") @ApiParam(value = "案件ID", required = true) String caseId,
                                                                       @ApiIgnore Pageable pageable) {
         log.debug("REST request to get case followup records by {caseId}",caseId);
         try {
