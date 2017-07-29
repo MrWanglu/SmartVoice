@@ -1,11 +1,10 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.ResAddRole;
 import cn.fintecher.pangolin.business.repository.ResourceRepository;
+import cn.fintecher.pangolin.business.repository.RoleRepository;
 import cn.fintecher.pangolin.business.service.DataDictService;
-import cn.fintecher.pangolin.entity.DataDict;
-import cn.fintecher.pangolin.entity.QResource;
-import cn.fintecher.pangolin.entity.Resource;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
@@ -40,6 +39,8 @@ public class ResourceController extends BaseController {
     private ResourceRepository resourceRepository;
     @Autowired
     DataDictService dataDictService;
+    @Autowired
+    private RoleRepository roleRepository;
 
     /**
      * @Description : 资源的level属性
@@ -157,6 +158,26 @@ public class ResourceController extends BaseController {
     public ResponseEntity<List<Resource>> getAllResource() {
         List<Resource> list = resourceRepository.findAll();
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(list);
+    }
+
+    /**
+     * @Description : 资源添加角色
+     */
+    @PostMapping("/resourceAddRole")
+    @ApiOperation(value = "资源添加角色", notes = "资源添加角色")
+    public ResponseEntity<Role> roleAddResource(@ApiParam("资源id集合") @RequestBody ResAddRole request) {
+        Role role = roleRepository.findOne(request.getRoleId());
+        if (Objects.isNull(role)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                    "Role does not exist", "角色不存在")).body(null);
+        }
+        roleRepository.deleteResoByRoleId(request.getRoleId());
+        List<Resource> resources = resourceRepository.findAll(request.getResoIds());
+        for (Resource resource : resources) {
+            resource.getRoles().add(role);
+            resourceRepository.save(resource);
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
     }
 
     /**
