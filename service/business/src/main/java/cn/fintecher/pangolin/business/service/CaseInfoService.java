@@ -244,9 +244,9 @@ public class CaseInfoService {
         casePayApply.setDerateFlag(payApplyParams.getDerateFlag()); //减免标识
         casePayApply.setApproveDerateRemark(payApplyParams.getDerateDescripton()); //减免费用备注
         if (Objects.equals(payApplyParams.getDerateFlag(), 1)) { //减免标识 1-有减免
-            casePayApply.setApproveStatus(CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue()); //审批状态 57-还款待审核
-        } else { //减免标识 0-没有减免
             casePayApply.setApproveStatus(CasePayApply.ApproveStatus.DERATE_TO_AUDIT.getValue()); //审批状态 55-减免待审核
+        } else { //减免标识 0-没有减免
+            casePayApply.setApproveStatus(CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue()); //审批状态 57-还款待审核
         }
         casePayApply.setPayMemo(payApplyParams.getPayDescripton()); //还款说明
         casePayApply.setApplayUserName(tokenUser.getUserName()); //申请人
