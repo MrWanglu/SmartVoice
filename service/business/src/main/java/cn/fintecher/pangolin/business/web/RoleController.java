@@ -179,8 +179,8 @@ public class RoleController extends BaseController {
      */
     @GetMapping("/getRoleRes")
     @ApiOperation(value = "角色查找资源", notes = "角色查找资源")
-    public ResponseEntity<List<Resource>> getRoleRes(@RequestParam String id,
-                                                     @RequestParam String companyCode) {
+    public ResponseEntity<List<Resource>> getRoleRes(@RequestParam(required = false) String id,
+                                                     @RequestParam(required = false) String companyCode) {
         try {
             QResource qResource = QResource.resource;
             BooleanBuilder builder = new BooleanBuilder();
