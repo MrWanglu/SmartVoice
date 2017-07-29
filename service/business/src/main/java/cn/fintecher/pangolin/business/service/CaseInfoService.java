@@ -869,6 +869,8 @@ public class CaseInfoService {
         }
         casePayApply.setApprovePayName(userToken.getUserName());    //审批人用户名
         casePayApply.setApprovePayMemo(casePayApply.getApprovePayMemo());  //审核意见
+        casePayApply.setOperatorUserName(userToken.getUserName());  //操作人用户名
+        casePayApply.setOperatorRealName(userToken.getRealName());  //操作人姓名
         CasePayApply payApply = casePayApplyRepository.save(casePayApply);
         return payApply;
     }
