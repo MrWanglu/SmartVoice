@@ -11,10 +11,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -38,6 +35,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/PaymentController")
+@Api(value = "PaymentController", description = "还款审批")
 public class PaymentController extends BaseController {
     final Logger log = LoggerFactory.getLogger(PaymentController.class);
 
