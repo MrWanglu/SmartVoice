@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -110,6 +111,11 @@ public class CaseInfo extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "operator")
     private User operator;
+
+    @ApiModelProperty("上一个协催员")
+    @ManyToOne
+    @JoinColumn(name = "lately_assist")
+    private User latelyAssist;
 
     /**
      * @Description 催收类型枚举类
