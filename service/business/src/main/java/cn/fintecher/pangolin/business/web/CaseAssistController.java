@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.DepartmentService;
+import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -62,6 +63,8 @@ public class CaseAssistController extends BaseController {
     private DepartmentService departmentService;
     @Inject
     private CasePayApplyRepository casePayApplyRepository;
+    @Inject
+    private UserService userService;
 
     @GetMapping("/findCaseInfoAssistRecord")
     @ApiOperation(value = "查询案件协催记录",notes = "查询案件协催记录")
@@ -368,17 +371,36 @@ public class CaseAssistController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "getBatchInfo", e.getMessage())).body(null);
         }
         try {
-            BatchDistributeModel batchDistributeModel = null;
-            try {
-                batchDistributeModel = caseInfoService.getBatchDistribution(user);
-            } catch (final Exception e) {
-                log.debug(e.getMessage());
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "getBatchInfo", e.getMessage())).body(null);
+            List<User> allUser = new ArrayList<>();
+            // 如果登录人是属于外访部门
+            if (Objects.equals(user.getType(),User.Type.VISIT.getValue())) {
+                allUser = userService.getAllUser(user.getDepartment().getId(), 0);//0-表示启用的用户
+            } else {
+                allUser = userService.getAllUser(user.getCompanyCode(), User.Type.VISIT.getValue(), 0, null);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功!", "")).body(batchDistributeModel);
+            Integer avgCaseNum = 0; //人均案件数
+            Integer userNum = 0; //登录用户部门下的所有启用用户总数
+            Integer caseNum = 0; //登录用户部门下的所有启用用户持有未结案案件总数
+            List<BatchInfoModel> batchInfoModels = new ArrayList<>();
+            for (User u : allUser) {
+                BatchInfoModel batchInfoModel = new BatchInfoModel();
+                Integer caseCount = caseInfoRepository.getCaseCount(u.getId());
+                batchInfoModel.setCaseCount(caseCount); //持有案件数
+                batchInfoModel.setCollectionUser(u); //催收人
+                batchInfoModels.add(batchInfoModel);
+                userNum++;
+                caseNum = caseNum + caseCount;
+            }
+            if (userNum != 0) {
+                avgCaseNum = (caseNum % userNum == 0) ? caseNum / userNum : (caseNum / userNum + 1);
+            }
+            BatchDistributeModel batchDistributeModel = new BatchDistributeModel();
+            batchDistributeModel.setAverageNum(avgCaseNum);
+            batchDistributeModel.setBatchInfoModelList(batchInfoModels);
+            return ResponseEntity.ok().body(batchDistributeModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取分配信息失败", "CaseAssistController", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "getBatchInfo", "系统异常!")).body(null);
         }
     }
 
