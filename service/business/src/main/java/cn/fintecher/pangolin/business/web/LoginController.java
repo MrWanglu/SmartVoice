@@ -10,6 +10,7 @@ import cn.fintecher.pangolin.entity.SysParam;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.UserLoginRequest;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.MD5;
 import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -42,6 +43,16 @@ public class LoginController extends BaseController {
     UserRepository userRepository;
     @Autowired
     private SysParamRepository sysParamRepository;
+
+    /**
+     * 无MD5加密用户登录 开发使用
+     */
+    @PostMapping("/noUseMD5Login")
+    @ApiOperation(value = "用户登陆测试", notes = "用户登陆测试")
+    public ResponseEntity noUseMd5Login(@RequestBody UserLoginRequest loginRequest, HttpServletRequest request) {
+        loginRequest.setPassword(MD5.MD5Encode(loginRequest.getPassword()));
+        return login(loginRequest, request);
+    }
 
     /**
      * @Description : 用户登录返回部门和角色

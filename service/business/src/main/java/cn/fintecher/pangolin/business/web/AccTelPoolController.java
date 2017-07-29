@@ -202,7 +202,7 @@ public class AccTelPoolController extends BaseController {
     @PostMapping("/saveFollowupRecord")
     @ApiOperation(value = "电催页面添加跟进记录", notes = "电催页面添加跟进记录")
     public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@RequestBody CaseFollowupRecord caseFollowupRecord,
-                                                                 @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                                 @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save {caseFollowupRecord}", caseFollowupRecord);
         try {
             User tokenUser = getUserByToken(token);

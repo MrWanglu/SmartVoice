@@ -61,5 +61,8 @@ pangolin:
     sysNumber: cuibei_business
     seed: zzl_apt
     verificationCode: 123654
+  zhongtong-server:
+    cti: http://m.icsoc.net/v2/wintelapi/webcall/cti
+    webCall1800: http://m.icsoc.net/v2/wintelapi/webcall/webcall800
 server:
     port: 9002

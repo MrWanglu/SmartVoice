@@ -3,10 +3,10 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.model.PersonalInfoExportModel;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.PersonalRepository;
+import cn.fintecher.pangolin.business.service.PersonalInfoExportService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.Personal;
-import cn.fintecher.pangolin.entity.PersonalContact;
 import cn.fintecher.pangolin.entity.QCaseInfo;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
@@ -14,6 +14,8 @@ import cn.fintecher.pangolin.web.ResponseUtil;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import io.swagger.annotations.*;
+import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.joda.time.DateTime;
@@ -60,6 +62,8 @@ public class PersonalController extends BaseController {
     private CaseInfoRepository caseInfoRepository;
     @Inject
     private RestTemplate restTemplate;
+    @Inject
+    private PersonalInfoExportService personalInfoExportService;
 
     @PostMapping("/personalInfoExport")
     @ApiOperation(value = "客户信息导出", notes = "客户信息导出")
@@ -69,6 +73,8 @@ public class PersonalController extends BaseController {
         Map<String, List<Object>> dataFilter = model.getDataFilter();
         Map<String, List<String>> dataInfo = model.getDataInfo(); //数据项
 
+
+
         HSSFWorkbook workbook = null;
         File file = null;
         ByteArrayOutputStream out = null;
@@ -76,265 +82,123 @@ public class PersonalController extends BaseController {
 
         try {
             QCaseInfo qCaseInfo = caseInfo;
+            Map<String, String> headMap = new HashMap<>(); //存储头信息
+            List<Map<String, Object>> dataList = new ArrayList<>(); //存储数据信息
+            List<CaseInfo> caseInfos = new ArrayList<>(); //数据
+            List<List<String>> list = new ArrayList<>(); //选项
+            Integer maxNum = null; //最大联系人数
             // 催收员
             if (Objects.equals(exportType, 0)) {
-                String[] collectData = {"机构名称", "客户姓名", "身份证号", "联系电话", "归属城市", "总期数", "逾期天数", "逾期金额", "贷款日期", "还款状态", "催收员"};
-                String[] collectPro = {"deptName", "custName", "idCard", "phone", "city", "periods", "overDays", "overAmt", "loanDate", "payStatus", "collector"};
-                List<String> collect = dataInfo.get("collect"); // 催收员为维度数据选选项
                 // 查找出所有属于该催收员的数据
-                String orgCode = (String) dataFilter.get("org").get(0);// 组织机构Code
-                String collectorName = (String) dataFilter.get("collector").get(0); //催收员名称
+                String orgCode = null;// 组织机构Code
+                String collectorName = null; //催收员名称
+                List<Object> orgObj = dataFilter.get("org");
+                if (Objects.isNull(orgObj) || orgObj.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "数据筛选机构为空!")).body(null);
+                } else {
+                    orgCode = (String) orgObj.get(0);
+                }
+                List<Object> collectorObj = dataFilter.get("collector");
+                if (Objects.isNull(collectorObj) || collectorObj.isEmpty()) {
+                    collectorName = null;
+                } else {
+                    collectorName = (String) collectorObj.get(0);
+                }
                 // 部门下的催收员
                 BooleanExpression exp = qCaseInfo.department.code.startsWith(orgCode);
                 exp.and(qCaseInfo.currentCollector.realName.eq(collectorName));
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
-                Iterator<CaseInfo> iterator = all.iterator();
-                if (!iterator.hasNext()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createAlert("要导出的数据为空!", "要导出的数据为空!")).body(null);
+                caseInfos = IterableUtils.toList(all);
+                if (caseInfos.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "要导出的数据为空!")).body(null);
                 }
-                Map<String, String> headMap = new HashMap<>(); //存储头信息
-                // 遍历collect
-                for (int i = 0; i < collect.size(); i++) {
-                    for (int k = 0; k < collectData.length; k++) {
-                        if (Objects.equals(collect.get(i), collectData[k])) {
-                            headMap.put(collectPro[k], collect.get(i));
-                        }
-                    }
+                List<String> collect = dataInfo.get("collect"); // 催收员为维度数据选选项
+                if (Objects.isNull(collect) || collect.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "选项为空!")).body(null);
                 }
-                List<Map<String, Object>> dataList = new ArrayList<>(); //存储数据信息
-                // 遍历数据
-                while (iterator.hasNext()) {
-                    CaseInfo caseInfo = all.iterator().next();
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("deptName", caseInfo.getDepartment().getName());
-                    map.put("custName", caseInfo.getPersonalInfo().getName());
-                    map.put("idCard", caseInfo.getPersonalInfo().getIdCard());
-                    map.put("phone", caseInfo.getPersonalInfo().getMobileNo());
-                    map.put("city", caseInfo.getPersonalInfo().getIdCardAddress());
-                    map.put("periods", caseInfo.getPeriods());
-                    map.put("overDays", caseInfo.getOverdueDays());
-                    map.put("overAmt", caseInfo.getOverdueAmount());
-                    map.put("loanDate", caseInfo.getLoanDate());
-                    map.put("payStatus", caseInfo.getPayStatus());
-                    map.put("collector", caseInfo.getCurrentCollector().getRealName());
-                    dataList.add(map);
-                }
-                workbook = new HSSFWorkbook();
-                HSSFSheet sheet = workbook.createSheet("客户信息");
-                ExcelExportHelper.createExcel(workbook, sheet, headMap, dataList, 0, 0);
-
+                list.add(collect);
             }
             // 产品类型
             if (Objects.equals(exportType, 1)) {
-                String[] baseInfoData = {"客户姓名", "身份证号", "归属城市", "手机号", "身份证户籍地址", "家庭地址", "家庭电话"};
-                String[] baseInfoPro = {"custName", "idCard", "city", "phone", "idCardAddress", "homeAddress", "homePhone"};
-
-                String[] workInfoData = {"工作单位名称", "工作单位地址", "工作单位电话"};
-                String[] workInfoPro = {"workName", "workAddress", "workPhone"};
-
-                String[] contactInfoData = {"关系", "姓名", "手机号码", "住宅电话", "现居住地址", "工作单位", "单位电话"};
-                String[] contactInfoPro = {"relation", "contactName", "contactPhone", "contactHomePhone", "contactAddress", "contactWorkCompany", "contactWorkPhone"};
-
-                String[] bankInfoData = {"还款卡银行", "还款卡号"};
-                String[] bankInfoPro = {"bankName", "bankCard"};
-
+                String prodName = null; //产品名称
+                List<Object> prodObj = dataFilter.get("prodName");
+                if (Objects.isNull(prodObj) || prodObj.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "数据筛选产品名称为空!")).body(null);
+                } else {
+                    prodName = (String) prodObj.get(0);
+                }
+                // 查找出某产品类型的所有案件
+                BooleanExpression exp = qCaseInfo.product.productSeries.seriesName.eq(prodName);
+                Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
+                caseInfos = IterableUtils.toList(all);
+                if (caseInfos.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "要导出的数据为空!")).body(null);
+                }
                 // 以产品类型为维度选项
                 List<String> baseInfo = dataInfo.get("baseInfo"); // 基本信息
                 List<String> workInfo = dataInfo.get("workInfo"); // 工作信息
                 List<String> contactInfo = dataInfo.get("contactInfo"); // 联系人信息
                 List<String> bankInfo = dataInfo.get("bankInfo"); // 开户信息
-
-                // 查找出某产品类型的所有案件
-                String prodName = (String)dataFilter.get("prodName").get(0);//产品名称
-                BooleanExpression exp = qCaseInfo.product.productSeries.seriesName.eq(prodName);
-                Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
-                Iterator<CaseInfo> iterator = all.iterator();
-                if (!iterator.hasNext()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createAlert("要导出的数据为空!", "要导出的数据为空!")).body(null);
+                if ((Objects.isNull(baseInfo) || baseInfo.isEmpty())
+                        && (Objects.isNull(workInfo) || workInfo.isEmpty())
+                        && (Objects.isNull(contactInfo) || contactInfo.isEmpty())
+                        && (Objects.isNull(bankInfo) || bankInfo.isEmpty())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "选项为空!")).body(null);
                 }
-                Map<String, String> headMap = new HashMap<>(); //存储头信息
-                // 遍历选项
-                for (int i = 0; i < baseInfo.size(); i++) {
-                    for (int k = 0; k < baseInfoData.length; k++) {
-                        if (Objects.equals(baseInfo.get(i), baseInfoData[k])) {
-                            headMap.put(baseInfoPro[k], baseInfo.get(i));
-                        }
-                    }
-                }
-                for (int i = 0; i < workInfo.size(); i++) {
-                    for (int k = 0; k < workInfoData.length; k++) {
-                        if (Objects.equals(baseInfo.get(i), workInfoData[k])) {
-                            headMap.put(workInfoPro[k], workInfo.get(i));
-                        }
-                    }
-                }
-
-                int num = 0;
-                for (int i = 0; i < contactInfo.size(); i++) {
-                    for (int k = 0; k < contactInfoData.length; k++) {
-                        if (Objects.equals(contactInfo.get(i), contactInfoData[k])) {
-                            // 遍历所有的案件 获取联系人最多的案件的联系人的数量
-                            while (iterator.hasNext()) {
-                                CaseInfo caseInfo = iterator.next();
-                                Set<PersonalContact> personalContacts = caseInfo.getPersonalInfo().getPersonalContacts();
-                                if (Objects.nonNull(personalContacts) && personalContacts.size() > num) {
-                                    num = personalContacts.size();
-                                }
-                            }
-                            if (num != 0) {
-                                for (int m = 1; m <= num; m++) {
-                                    headMap.put(contactInfoPro[k] + m, contactInfo.get(i) + m);
-                                }
-                            }
-
-                        }
-                    }
-                }
-                for (int i = 0; i < bankInfo.size(); i++) {
-                    for (int k = 0; k < bankInfoData.length; k++) {
-                        if (Objects.equals(bankInfo.get(i), bankInfoData[k])) {
-                            headMap.put(bankInfoPro[k], bankInfo.get(i));
-                        }
-                    }
-                }
-                List<Map<String, Object>> dataList = new ArrayList<>(); //存储数据信息
-                // 遍历数据
-                while (iterator.hasNext()) {
-                    CaseInfo caseInfo = all.iterator().next();
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("custName", caseInfo.getPersonalInfo().getName());
-                    map.put("idCard", caseInfo.getPersonalInfo().getIdCard());
-                    map.put("city", caseInfo.getPersonalInfo().getIdCardAddress());
-                    map.put("phone", caseInfo.getPersonalInfo().getMobileNo());
-                    map.put("idCardAddress", caseInfo.getPersonalInfo().getIdCardAddress());
-                    map.put("homeAddress", caseInfo.getPersonalInfo().getLocalHomeAddress());
-                    map.put("homePhone", caseInfo.getPersonalInfo().getLocalPhoneNo());
-                    map.put("workName", caseInfo.getPersonalInfo().getPersonalJobs().iterator().next().getCompanyName()); //单位名称
-                    map.put("workAddress", caseInfo.getPersonalInfo().getPersonalJobs().iterator().next().getAddress()); //单位地址
-                    map.put("workPhone", caseInfo.getPersonalInfo().getPersonalJobs().iterator().next().getPhone()); //单位电话
-                    Set<PersonalContact> personalContacts = caseInfo.getPersonalInfo().getPersonalContacts();
-                    PersonalContact[] p = (PersonalContact[]) personalContacts.toArray();
-                    if (num != 0) {
-                        for (int m = 1; m <= num; m++) {
-                            if (personalContacts.isEmpty() || m > personalContacts.size()) {
-                                map.put("relation" + m, "");
-                                map.put("contactName" + m, "");
-                                map.put("contactPhone" + m, "");
-                                map.put("contactHomePhone" + m, "");
-                                map.put("contactAddress" + m, "");
-                                map.put("contactWorkAddress" + m, "");
-                                map.put("contactWorkPhone" + m, "");
-                            } else {
-                                map.put("relation" + m, p[m].getRelation());
-                                map.put("contactName" + m, p[m].getName());
-                                map.put("contactPhone" + m, p[m].getMobile());
-                                map.put("contactHomePhone" + m, p[m].getPhone());
-                                map.put("contactAddress" + m, p[m].getAddress());
-                                map.put("contactWorkCompany" + m, p[m].getEmployer());
-                                map.put("contactWorkPhone" + m, p[m].getWorkPhone());
-                            }
-                        }
-                    }
-                    map.put("bankName", caseInfo.getPersonalInfo().getPersonalBankInfos().iterator().next().getDepositBank());
-                    map.put("bankCard", caseInfo.getPersonalInfo().getPersonalBankInfos().iterator().next().getCardNumber());
-                    dataList.add(map);
-                }
-                workbook = new HSSFWorkbook();
-                HSSFSheet sheet = workbook.createSheet("客户信息");
-                ExcelExportHelper.createExcel(workbook, sheet, headMap, dataList, 0, 0);
+                list.add(baseInfo);
+                list.add(workInfo);
+                list.add(contactInfo);
+                list.add(bankInfo);
+                maxNum = personalInfoExportService.getMaxNum(caseInfos);
             }
             // 批次号
             if (Objects.equals(exportType, 2)) {
-                String[] batchNumData = {"机构名称", "客户姓名", "身份证号", "联系电话", "归属城市", "总期数", "逾期天数", "逾期金额", "贷款日期", "还款状态", "批次号"};
-                String[] batchNumPro = {"deptName", "custName", "idCard", "phone", "city", "periods", "overDays", "overAmt", "loanDate", "payStatus", "batchNum"};
-                List<String> batch = dataInfo.get("batch"); // 催收员为维度数据选选项
-
-                String batchNumber = (String)dataFilter.get("batchNumber").get(0); //批次号
+                String batchNumber = null; //批次号
+                List<Object> batchNumObj = dataFilter.get("batchNumber");
+                if (Objects.isNull(batchNumObj) || batchNumObj.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "数据筛选产品名称为空!")).body(null);
+                } else {
+                    batchNumber = (String) batchNumObj.get(0);
+                }
                 BooleanExpression exp = qCaseInfo.batchNumber.eq(batchNumber);
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
-                Iterator<CaseInfo> iterator = all.iterator();
-                if (!iterator.hasNext()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createAlert("要导出的数据为空!", "要导出的数据为空!")).body(null);
+                caseInfos = IterableUtils.toList(all);
+                if (caseInfos.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "要导出的数据为空!")).body(null);
                 }
-                Map<String, String> headMap = new HashMap<>(); //存储头信息
-                // 遍历batch
-                for (int i = 0; i < batch.size(); i++) {
-                    for (int k = 0; k < batchNumData.length; k++) {
-                        if (Objects.equals(batch.get(i), batchNumData[k])) {
-                            headMap.put(batchNumPro[k], batch.get(i));
-                        }
-                    }
+                List<String> batch = dataInfo.get("batch"); // 批次号为维度数据选选项
+                if (Objects.isNull(batch) || batch.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "选项为空!")).body(null);
                 }
-                List<Map<String, Object>> dataList = new ArrayList<>(); //存储数据信息
-                // 遍历数据
-                while (iterator.hasNext()) {
-                    CaseInfo caseInfo = all.iterator().next();
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("deptName", caseInfo.getDepartment().getName());
-                    map.put("custName", caseInfo.getPersonalInfo().getName());
-                    map.put("idCard", caseInfo.getPersonalInfo().getIdCard());
-                    map.put("phone", caseInfo.getPersonalInfo().getMobileNo());
-                    map.put("city", caseInfo.getPersonalInfo().getIdCardAddress());
-                    map.put("periods", caseInfo.getPeriods());
-                    map.put("overDays", caseInfo.getOverdueDays());
-                    map.put("overAmt", caseInfo.getOverdueAmount());
-                    map.put("loanDate", caseInfo.getLoanDate());
-                    map.put("payStatus", caseInfo.getPayStatus());
-                    map.put("batchNum", caseInfo.getBatchNumber());
-                    dataList.add(map);
-                }
-                workbook = new HSSFWorkbook();
-                HSSFSheet sheet = workbook.createSheet("客户信息");
-                ExcelExportHelper.createExcel(workbook, sheet, headMap, dataList, 0, 0);
+                list.add(batch);
             }
 
             // 案件状态
             if (Objects.equals(exportType, 3)) {
-                String[] caseStatusData = {"机构名称", "客户姓名", "身份证号", "联系电话", "归属城市", "总期数", "逾期天数", "逾期金额", "贷款日期", "还款状态", "案件状态"};
-                String[] caseStatusPro = {"deptName", "custName", "idCard", "phone", "city", "periods", "overDays", "overAmt", "loanDate", "payStatus", "caseStatus"};
-                List<String> caseStatus = dataInfo.get("caseStatus"); // 案件状态为维度数据选选项
-
-                List<Integer> stList = (List)dataFilter.get("caseInfoStatus");//状态
+                List<Integer> stList = (List) dataFilter.get("caseInfoStatus");
+                if (Objects.isNull(stList) || stList.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "数据筛选产品名称为空!")).body(null);
+                }
                 BooleanExpression exp = qCaseInfo.collectionStatus.in(stList);
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
-                Iterator<CaseInfo> iterator = all.iterator();
-                if (!iterator.hasNext()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createAlert("要导出的数据为空!", "要导出的数据为空!")).body(null);
+                caseInfos = IterableUtils.toList(all);
+                if (caseInfos.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "要导出的数据为空!")).body(null);
                 }
-                Map<String, String> headMap = new HashMap<>(); //存储头信息
-                // 遍历batch
-                for (int i = 0; i < caseStatus.size(); i++) {
-                    for (int k = 0; k < caseStatusData.length; k++) {
-                        if (Objects.equals(caseStatus.get(i), caseStatusData[k])) {
-                            headMap.put(caseStatusPro[k], caseStatus.get(i));
-                        }
-                    }
+                List<String> caseStatus = dataInfo.get("caseStatus"); // 案件状态为维度数据选选项
+                if (Objects.isNull(caseStatus) || caseStatus.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "选项为空!")).body(null);
                 }
-                List<Map<String, Object>> dataList = new ArrayList<>(); //存储数据信息
-                // 遍历数据
-                while (iterator.hasNext()) {
-                    CaseInfo caseInfo = all.iterator().next();
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("deptName", caseInfo.getDepartment().getName());
-                    map.put("custName", caseInfo.getPersonalInfo().getName());
-                    map.put("idCard", caseInfo.getPersonalInfo().getIdCard());
-                    map.put("phone", caseInfo.getPersonalInfo().getMobileNo());
-                    map.put("city", caseInfo.getPersonalInfo().getIdCardAddress());
-                    map.put("periods", caseInfo.getPeriods());
-                    map.put("overDays", caseInfo.getOverdueDays());
-                    map.put("overAmt", caseInfo.getOverdueAmount());
-                    map.put("loanDate", caseInfo.getLoanDate());
-                    map.put("payStatus", caseInfo.getPayStatus());
-                    map.put("caseStatus", caseInfo.getCollectionStatus());
-                    dataList.add(map);
-                }
-                workbook = new HSSFWorkbook();
-                HSSFSheet sheet = workbook.createSheet("客户信息");
-                ExcelExportHelper.createExcel(workbook, sheet, headMap, dataList, 0, 0);
+                list.add(caseStatus);
             }
+            headMap = personalInfoExportService.createHeadMap(exportType, list, null);
+            dataList = personalInfoExportService.createDataList(caseInfos);
+            workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet("客户信息");
+            ExcelExportHelper.createExcel(workbook, sheet, headMap, dataList, 0, 0);
             out = new ByteArrayOutputStream();
             workbook.write(out);
-            String filePath = File.separator.concat(DateTime.now().toString("yyyyMMddhhmmss") + "客户信息表.xls");
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "客户信息表.xls");
             file = new File(filePath);
             fileOutputStream = new FileOutputStream(file);
             fileOutputStream.write(out.toByteArray());
@@ -378,7 +242,6 @@ public class PersonalController extends BaseController {
                 file.delete();
             }
         }
-
     }
 
     @PostMapping("/personal")

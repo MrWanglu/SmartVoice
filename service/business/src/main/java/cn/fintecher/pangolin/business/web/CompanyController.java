@@ -160,4 +160,15 @@ public class CompanyController extends BaseController {
         List<Company> list = companyRepository.findAll();
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(list);
     }
+
+    /**
+     * @Description : 获取公司通过code
+     */
+    @GetMapping(value = "/getCompanyByCode")
+    @ApiOperation(value = "获取公司通过code", notes = "获取公司通过code")
+    public ResponseEntity<Company> getCompanyByCode(String code) {
+        QCompany qCompany = QCompany.company;
+        Company company = companyRepository.findOne(qCompany.code.eq(code));
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(company);
+    }
 }

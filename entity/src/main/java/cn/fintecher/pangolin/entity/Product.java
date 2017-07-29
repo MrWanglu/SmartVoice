@@ -27,6 +27,12 @@ public class Product extends BaseEntity {
     private String operator;
     private Date operatorTime;
     private String companyCode;
+    private BigDecimal yearRate; //年化利率
+    private BigDecimal interestAmt; //罚息金额
+    private BigDecimal prepaymentAmount; //提前还款违约金
+    private BigDecimal prepaymentRate; //提前还款违约金费率
+    private BigDecimal insServiceFee; //分期服务费
+    private BigDecimal insServiceRate; //分期服务费率
     @ManyToOne
     @JoinColumn(name = "series_id")
     private ProductSeries productSeries;
