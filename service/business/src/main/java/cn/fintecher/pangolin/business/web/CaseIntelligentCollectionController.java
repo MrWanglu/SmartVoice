@@ -7,7 +7,7 @@ import cn.fintecher.pangolin.business.model.MessageBatchSendRequest;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.PersonalContactRepository;
 import cn.fintecher.pangolin.entity.*;
-import cn.fintecher.pangolin.web.PaginationUtil;
+import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.Api;
@@ -20,8 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -64,16 +62,21 @@ public class CaseIntelligentCollectionController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfo>> queryCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                         @ApiIgnore Pageable pageable,
-                                                        @RequestHeader(value = "X-UserToken") String token) throws Exception {
-        User user = getUserByToken(token);
+                                                        @RequestHeader(value = "X-UserToken") String token){
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
         if (Objects.nonNull(user.getCompanyCode())) {
-            builder.and(QCaseInfo.caseInfo.companyCode.ne(user.getCompanyCode()));
+            builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseIntelligentCollectionController");
-        return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
 
     /**

@@ -65,7 +65,7 @@ public class CaseJudicialCollectionController extends BaseController {
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseInfo.caseInfo.endType.eq(CaseInfo.EndType.JUDGMENT_CLOSED.getValue()));
         if (Objects.nonNull(user.getCompanyCode())) {
-            builder.and(QCaseInfo.caseInfo.companyCode.ne(user.getCompanyCode()));
+            builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);

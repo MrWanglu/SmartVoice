@@ -31,7 +31,7 @@ public class CaseInfo extends BaseEntity {
     private BigDecimal perPayAmount;
     private Integer overduePeriods;
     private Integer overdueDays;
-    private BigDecimal hasPayAmount;
+    private BigDecimal hasPayAmount = new BigDecimal(0); //逾期已还款金额
     private Integer hasPayPeriods;
     private Date latelyPayDate;
     private BigDecimal latelyPayAmount;
@@ -56,11 +56,11 @@ public class CaseInfo extends BaseEntity {
     private Date loanDate;
     private BigDecimal overdueManageFee;
     private Integer handUpFlag;
-    private BigDecimal derateAmt;
-    private BigDecimal realPayAmount;
-    private BigDecimal earlySettleAmt;
-    private BigDecimal earlyRealSettleAmt;
-    private BigDecimal earlyDerateAmt;
+    private BigDecimal derateAmt = new BigDecimal(0); //逾期减免金额
+    private BigDecimal realPayAmount = new BigDecimal(0); //逾期实际还款金额
+    private BigDecimal earlySettleAmt = new BigDecimal(0); //提前结清已还款金额
+    private BigDecimal earlyRealSettleAmt = new BigDecimal(0); //提前结清实际还款金额
+    private BigDecimal earlyDerateAmt = new BigDecimal(0); //提前结清减免金额
     private BigDecimal otherAmt;
     private BigDecimal score;
     private String companyCode;
