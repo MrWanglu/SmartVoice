@@ -9,7 +9,6 @@ import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
@@ -17,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -46,6 +44,9 @@ public class RoleController extends BaseController {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * @Description : 带条件的分页查询
+     */
     @GetMapping(value = "/getAllRolePage")
     @ResponseBody
     @ApiOperation(value = "带条件的分页查询", notes = "带条件的分页查询")
@@ -84,7 +85,9 @@ public class RoleController extends BaseController {
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
 
-
+    /**
+     * @Description : 增加角色
+     */
     @PostMapping("/createRole")
     @ApiOperation(value = "增加角色", notes = "增加角色")
     public ResponseEntity<Role> createRole(@Validated @ApiParam("角色对象") @RequestBody Role role,
@@ -114,7 +117,9 @@ public class RoleController extends BaseController {
         }
     }
 
-
+    /**
+     * @Description : 更新角色
+     */
     @PostMapping("/updateRole")
     @ApiOperation(value = "更新角色", notes = "更新角色")
     public ResponseEntity<Role> updateRole(@Validated @ApiParam("需更新的角色对象") @RequestBody Role role,
@@ -154,7 +159,9 @@ public class RoleController extends BaseController {
         }
     }
 
-
+    /**
+     * @Description : 查找角色通过id
+     */
     @GetMapping("/getRole")
     @ApiOperation(value = "查找角色通过id", notes = "查找角色通过id")
     public ResponseEntity<Role> getRole(@ApiParam(value = "角色id", required = true) @RequestParam(value = "id") String id) {
@@ -167,13 +174,23 @@ public class RoleController extends BaseController {
         }
     }
 
+    /**
+     * @Description : 角色查找资源
+     */
     @GetMapping("/getRoleRes")
     @ApiOperation(value = "角色查找资源", notes = "角色查找资源")
-    public ResponseEntity<List<Resource>> getRoleRes(@ApiParam(value = "角色id", required = true) @RequestParam(value = "id") String id,
-                                                     @QuerydslPredicate(root = Role.class) Predicate predicate) {
+    public ResponseEntity<List<Resource>> getRoleRes(@RequestParam(required = false) String id,
+                                                     @RequestParam(required = false) String companyCode) {
         try {
             QResource qResource = QResource.resource;
-            Iterator<Resource> resources = resourceRepository.findAll(qResource.roles.any().id.eq(id)).iterator();
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.nonNull(id)) {
+                builder.and(qResource.roles.any().id.eq(id));
+            }
+            if (Objects.nonNull(companyCode)) {
+                builder.and(qResource.roles.any().companyCode.eq(companyCode));
+            }
+            Iterator<Resource> resources = resourceRepository.findAll(builder).iterator();
             List<Resource> resourceList = IteratorUtils.toList(resources);
             return ResponseEntity.ok().body(resourceList);
         } catch (Exception e) {
@@ -182,7 +199,9 @@ public class RoleController extends BaseController {
         }
     }
 
-
+    /**
+     * @Description : 角色查找用户分页
+     */
     @GetMapping("/roleFindUsers")
     @ApiOperation(value = "角色查找用户分页", notes = "角色查找用户分页")
     @ApiImplicitParams({
@@ -193,19 +212,38 @@ public class RoleController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<User>> roleFindUsers(@ApiParam(value = "角色id", required = true) @RequestParam String id,
+    public ResponseEntity<Page<User>> roleFindUsers(@RequestParam String id,
+                                                    @RequestParam(required = false) String name,
+                                                    @RequestParam(required = false) Integer status,
+                                                    @RequestParam(required = false) String companyCode,
                                                     @ApiIgnore Pageable pageable) {
 
         Role role = roleRepository.findOne(id);
         if (Objects.nonNull(role)) {
             QUser qUser = QUser.user;
-            Page<User> userPage = userRepository.findAll(qUser.roles.any().id.eq(id).and(qUser.companyCode.eq(role.getCompanyCode())), pageable);
-            return ResponseEntity.ok().body(userPage);
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.nonNull(id)) {
+                builder.and(qUser.roles.any().id.eq(id));
+            }
+            if (Objects.nonNull(name)) {
+                builder.and(qUser.roles.any().name.like(name.concat("%")));
+            }
+            if (Objects.nonNull(status)) {
+                builder.and(qUser.roles.any().status.eq(status));
+            }
+            if (Objects.nonNull(companyCode)) {
+                builder.and(qUser.roles.any().companyCode.eq(companyCode));
+            }
+            Page<User> page = userRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
         }
         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                 "The role does not exist", "该角色不存在")).body(null);
     }
 
+    /**
+     * @Description : 删除角色
+     */
     @DeleteMapping("/deleteRole")
     @ApiOperation(value = "删除角色", notes = "删除角色")
     public ResponseEntity<Role> deleteRole(@ApiParam(value = "角色id", required = true) @RequestParam String id,
@@ -236,6 +274,9 @@ public class RoleController extends BaseController {
         return ResponseEntity.ok().body(null);
     }
 
+    /**
+     * @Description : 查询所有角色分页
+     */
     @GetMapping("/findAllRole")
     @ApiOperation(value = "查询所有角色分页", notes = "查询所有角色分页")
     public ResponseEntity<Page<Role>> getAllRole(@ApiIgnore Pageable pageable) {
