@@ -792,4 +792,87 @@ public class CaseInfoService {
         }
         return uploadFiles;
     }
+    /**
+     * 案件审核处理
+     */
+    public CasePayApply passCaseinfo(CasePayApplyParams casePayApplyParams, User userToken) {
+//        BooleanBuilder builder = new BooleanBuilder();
+//        builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
+//        Iterable<CaseInfo> caseinfoallBycaseover = caseInfoRepository.findAll(builder);
+//        if (Objects.isNull(caseinfoallBycaseover.iterator().next().getEarlyDerateAmt())) {
+//            caseinfoallBycaseover.iterator().next().setEarlyDerateAmt(BigDecimal.ZERO);
+//        }
+
+        CasePayApply casePayApply = casePayApplyRepository.findOne(casePayApplyParams.getCasePayId());//查找减免审批的案件
+        CaseInfo caseInfo = caseInfoRepository.findOne(casePayApply.getCaseId());//查找案件
+
+
+        if (Objects.equals(casePayApplyParams.getApproveResult(), CasePayApply.ApproveResult.REJECT.getValue())) {     //如果审核意见为驳回
+            casePayApply.setApproveStatus(CasePayApply.ApproveStatus.AUDIT_REJECT.getValue());      //审核状态改为：审核拒绝
+            casePayApply.setApproveResult(CasePayApply.ApproveResult.REJECT.getValue());        //审核结果该我：驳回
+            casePayApply.setApprovePayDatetime(ZWDateUtil.getNowDate());   //审批时间为当前时间
+
+            //同步更新原来案件
+            caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue());       //原案件状态变为：催收中
+            caseInfo.setOperatorTime(ZWDateUtil.getNowDate());      //处理日期为当前日期
+            caseInfoRepository.save(caseInfo);
+
+        } else {     //审核结果为入账
+            BigDecimal applyDerateAmt = casePayApply.getApplyDerateAmt();//减免金额
+            if (Objects.isNull(applyDerateAmt)) {
+                applyDerateAmt = new BigDecimal(0);
+            }
+            //逾期还款
+            if (Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.PARTOVERDUE.getValue())) {     //部分逾期还款
+
+                caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount()));  //实际还款金额
+                caseInfo.setOperatorTime(ZWDateUtil.getNowDate());//处理日期为当前日期
+
+                int result = caseInfo.getRealPayAmount().compareTo(caseInfo.getOverdueAmount());    //比较实际还款金额与逾期总金额
+                if (result == -1) {
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.PART_REPAID.getValue());       //原案件状态变为：部分已还款
+                } else {
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.OVER_PAYING.getValue());       //原案件状态变为：逾期还款中
+                }
+                caseInfoRepository.save(caseInfo);
+
+            } else if (Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.ALLOVERDUE.getValue())  //全额逾期还款
+                    || Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.DERATEOVERDUE.getValue())) {   //减免逾期还款
+                caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount()));  //实际还款金额
+                caseInfo.setOperatorTime(ZWDateUtil.getNowDate());//处理日期为当前日期
+                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.REPAID.getValue());       //原案件状态变为：已还款
+                caseInfo.setDerateAmt(applyDerateAmt);  //减免金额
+                caseInfoRepository.save(caseInfo);
+
+                //提前结清
+            } else if (Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.PARTADVANCE.getValue())) {      //部分提前结清
+
+                caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount()));  //实际还款金额
+                caseInfo.setOperatorTime(ZWDateUtil.getNowDate());//处理日期为当前日期
+                int result = caseInfo.getRealPayAmount().compareTo(caseInfo.getOverdueAmount());
+                if (result == -1) {
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.PART_REPAID.getValue());       //原案件状态变为：部分已还款
+                } else {
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.EARLY_PAYING.getValue());       //原案件状态变为：提前结清还款中
+                }
+                caseInfoRepository.save(caseInfo);
+            } else if (Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.ALLADVANCE.getValue())  //全额提前结清
+                    || Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.DERATEADVANCE.getValue())) {    //减免提前结清
+                caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount()));  //实际还款金额
+                caseInfo.setOperatorTime(ZWDateUtil.getNowDate());//处理日期为当前日期
+                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.REPAID.getValue());       //原案件状态变为：提前结清还款中
+                caseInfo.setDerateAmt(applyDerateAmt);  //减免金额
+                caseInfoRepository.save(caseInfo);
+            }
+            casePayApply.setApproveStatus(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue());   //审核通过
+            casePayApply.setApproveResult(CasePayApply.ApproveResult.AGREE.getValue());     //入账
+            casePayApply.setApprovePayDatetime(ZWDateUtil.getNowDate());    //还款审批时间
+        }
+        casePayApply.setApprovePayName(userToken.getUserName());    //审批人用户名
+        casePayApply.setApprovePayMemo(casePayApply.getApprovePayMemo());  //审核意见
+        casePayApply.setOperatorUserName(userToken.getUserName());  //操作人用户名
+        casePayApply.setOperatorRealName(userToken.getRealName());  //操作人姓名
+        CasePayApply payApply = casePayApplyRepository.save(casePayApply);
+        return payApply;
+    }
 }

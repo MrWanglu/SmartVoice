@@ -1,12 +1,10 @@
 package cn.fintecher.pangolin.business.web;
 
-import cn.fintecher.pangolin.business.model.CasePayApplys;
-import cn.fintecher.pangolin.business.model.ExportPayApply;
+import cn.fintecher.pangolin.business.model.CasePayApplyParams;
 import cn.fintecher.pangolin.business.model.ExportPayApplyModel;
-import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CasePayApplyRepository;
-import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.ExcelUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -16,6 +14,8 @@ import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.joda.time.DateTime;
@@ -34,15 +34,12 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-import org.apache.commons.io.FileUtils;
-
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URISyntaxException;
 import java.util.*;
 
 
@@ -64,9 +61,7 @@ public class AccDerateController extends BaseController {
     @Inject
     private CaseInfoRepository caseInfoRepository;
     @Inject
-    private CaseAssistRepository caseAssistRepository;
-    @Inject
-    private UserRepository userRepository;
+    private CaseInfoService caseInfoService;
     @Autowired
     private RestTemplate restTemplate;
 
@@ -83,7 +78,7 @@ public class AccDerateController extends BaseController {
     })
     public ResponseEntity<Page<CasePayApply>> getCasePayApply(@RequestParam @ApiParam(value = "减免标识") Integer derateFlag,
                                                               @QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
-                                                              @ApiIgnore Pageable pageable) throws URISyntaxException {
+                                                              @ApiIgnore Pageable pageable){
         try {
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCasePayApply.casePayApply.derateFlag.eq(derateFlag));
@@ -99,45 +94,39 @@ public class AccDerateController extends BaseController {
 
     @GetMapping("/exportPayApply")
     @ApiOperation(value = "导出还款记录", notes = "导出还款记录")
-    public ResponseEntity exportPayApplyModel(ExportPayApply exportPayApply,
-                                              @QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
-                                              @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity exportPayApplyModel(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate){
         log.debug("entry the export the pay records");
-        User user;
         HSSFWorkbook workbook = null;
         File file = null;
         ByteArrayOutputStream out = null;
         FileOutputStream fileOutputStream = null;
         try {
-            User userToken;
-            try {
-                userToken = getUserByToken(token);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("用户未登录", ENTITY_NAME, e.getMessage())).body(null);
-            }
             BooleanBuilder builder = new BooleanBuilder(predicate);
             builder.and(QCasePayApply.casePayApply.approveStatus.eq(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue()));
-            Iterable<CasePayApply> iterable = casePayApplyRepository.findAll(builder);
+            Iterator<CasePayApply> iterable = casePayApplyRepository.findAll(builder).iterator();
+            List<CasePayApply> casePayApplies = IteratorUtils.toList(iterable);
             List<ExportPayApplyModel> list = new ArrayList<>();
 
-            for (CasePayApply casePayApply : iterable) {
-                CaseInfo caseInfo = caseInfoRepository.findOne(casePayApply.getCaseId());
-                ExportPayApplyModel exportPayApplyModel = new ExportPayApplyModel();
-                exportPayApplyModel.setApproveStatus(Objects.toString(casePayApply.getApproveStatus()));//审批结果
-                exportPayApplyModel.setApplayDate(Objects.toString(casePayApply.getApplayDate()));//申请日期
-                exportPayApplyModel.setApplayUserName(casePayApply.getApplayUserName());//申请人
-                exportPayApplyModel.setApplyPayAmt(Objects.toString(casePayApply.getApplyPayAmt()));//还款金额
-                exportPayApplyModel.setBatchNumber(casePayApply.getBatchNumber());//批次号
-                exportPayApplyModel.setPayType(Objects.toString(casePayApply.getPayType()));//还款类型
-                exportPayApplyModel.setCaseNumber(casePayApply.getCaseNumber());//案件编号
-                exportPayApplyModel.setPayWay(Objects.toString(casePayApply.getPayWay()));//还款方式
-                exportPayApplyModel.setPersonalPhone(casePayApply.getPersonalPhone());//客户电话
-                exportPayApplyModel.setPrincipalId(casePayApply.getPrincipalId());//委托方
-                exportPayApplyModel.setPersonalName(casePayApply.getPersonalName());//客户姓名
-                exportPayApplyModel.setCaseAmt(Objects.toString(Objects.toString(caseInfo.getOverdueAmount())));//案件金额
-                list.add(exportPayApplyModel);
-            }
+                for (CasePayApply casePayApply : casePayApplies) {
+                    if (Objects.nonNull(casePayApply.getCaseId())){
+                    CaseInfo caseInfo = caseInfoRepository.findOne(casePayApply.getCaseId());
+                    ExportPayApplyModel exportPayApplyModel = new ExportPayApplyModel();
+                    exportPayApplyModel.setApproveStatus(Objects.toString(casePayApply.getApproveStatus()));//审批结果
+                    exportPayApplyModel.setApplayDate(Objects.toString(casePayApply.getApplayDate()));//申请日期
+                    exportPayApplyModel.setApplayUserName(casePayApply.getApplayUserName());//申请人
+                    exportPayApplyModel.setApplyPayAmt(Objects.toString(casePayApply.getApplyPayAmt()));//还款金额
+                    exportPayApplyModel.setBatchNumber(casePayApply.getBatchNumber());//批次号
+                    exportPayApplyModel.setPayType(Objects.toString(casePayApply.getPayType()));//还款类型
+                    exportPayApplyModel.setCaseNumber(casePayApply.getCaseNumber());//案件编号
+                    exportPayApplyModel.setPayWay(Objects.toString(casePayApply.getPayWay()));//还款方式
+                    exportPayApplyModel.setPersonalPhone(casePayApply.getPersonalPhone());//客户电话
+                    exportPayApplyModel.setPrincipalId(casePayApply.getPrincipalId());//委托方
+                    exportPayApplyModel.setPersonalName(casePayApply.getPersonalName());//客户姓名
+                    exportPayApplyModel.setCaseAmt(Objects.toString(Objects.toString(caseInfo.getOverdueAmount())));//案件金额
+                    list.add(exportPayApplyModel);
+                     }
+                 }
+
             if (Objects.isNull(list)) {
                 throw new RuntimeException("无导出数据");
             }
@@ -202,17 +191,13 @@ public class AccDerateController extends BaseController {
      */
     @GetMapping("/handleCasePayApply")
     @ApiOperation(value = "操作审批信息", notes = "操作审批信息")
-    public ResponseEntity handleCasePayApply(@RequestParam(value = "id") @ApiParam("减免审批id") String id) throws URISyntaxException {
+    public ResponseEntity handleCasePayApply(@RequestParam(value = "id") @ApiParam("减免审批id") String id){
         log.debug("REST request to handle AccDerateApply : {}", id);
-
         try {
         List<Map<String, Object>> mapList = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
         //获取客户姓名、身份证号、手机号、合同金额、已还期数、逾期天数加入到mapList
         CasePayApply casePayApply = casePayApplyRepository.findOne(id);
-
-        //判断是否协催前端判断
-
         if (Objects.isNull(casePayApply)) {
             throw new RuntimeException("减免信息不存在");
         }
@@ -232,7 +217,7 @@ public class AccDerateController extends BaseController {
         map.put("overduePeriods", overduePeriods);
         map.put("overdueDays", overdueDays);
         mapList.add(map);
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id)).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id)).body(mapList);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("审批失败", ENTITY_NAME, e.getMessage())).body(null);
@@ -245,30 +230,28 @@ public class AccDerateController extends BaseController {
     @PostMapping("/updateAccDerateApply")
     @ApiOperation(value = "处理审批信息", notes = "处理审批信息")
     public ResponseEntity updateAccDerateApply(@RequestBody @ApiParam("减免审批对象") CasePayApply casePayApply,
-                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的token") String token) throws URISyntaxException {
-        User userToken;
+                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的token") String token){
         try {
-            userToken = getUserByToken(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("用户未登录");
+        User user= getUserByToken(token);
+        if (Objects.isNull(user)){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "用户登陆失败")).body(null);
         }
         CasePayApply payApply = casePayApplyRepository.findOne(casePayApply.getId());
         if (Objects.isNull(payApply)) {
-            throw new RuntimeException("减免信息不存在");
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "减免信息不存在")).body(null);
         }
         CaseInfo caseInfo = caseInfoRepository.findOne(casePayApply.getCaseId());
         if (Objects.isNull(caseInfo)) {
-            throw new RuntimeException("案件信息不存在");
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "案件信息不存在")).body(null);
         }
         if (!Objects.equals(casePayApply.getApproveCostresult(), CasePayApply.ApproveCostresult.TO_AUDIT.getValue())) {
-            throw new RuntimeException("减免审批已经处理");
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "减免审批已经处理")).body(null);
         }
         if (Objects.equals(casePayApply.getApproveCostresult(), CasePayApply.ApproveCostresult.REVOCATION.getValue())) {
-            throw new RuntimeException("减免审批已经撤回");
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "减免审批已经撤回")).body(null);
         }
         if (Objects.equals(caseInfo.getHandUpFlag(), CaseInfo.HandUpFlag.YES_HANG.getValue())) {
-            throw new RuntimeException("挂起案件不允许操作");
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "挂起案件不允许操作")).body(null);
         }
 
         if (Objects.equals(casePayApply.getApproveCostresult(), CasePayApply.ApproveCostresult.AUDIT_AGREE.getValue())) {   //如果费用减免结果为审批同意
@@ -283,11 +266,11 @@ public class AccDerateController extends BaseController {
         }
 
         //处理审批要记录审批人的名称和审批人的id及操作人的ID和姓名
-        casePayApply.setApproveDerateUser(userToken.getId());   //减免审批人
-        casePayApply.setApproveDerateName(userToken.getRealName());     //减免审批人姓名
+        casePayApply.setApproveDerateUser(user.getId());   //减免审批人
+        casePayApply.setApproveDerateName(user.getRealName());     //减免审批人姓名
         casePayApply.setApproveDerateMemo(casePayApply.getApprovePayMemo());    //审批意见
-        casePayApply.setOperatorUserName(userToken.getUserName());  //操作人用户名
-        casePayApply.setOperatorRealName(userToken.getRealName());  //操作人姓名
+        casePayApply.setOperatorUserName(user.getUserName());  //操作人用户名
+        casePayApply.setOperatorRealName(user.getRealName());  //操作人姓名
         casePayApplyRepository.save(casePayApply);
         caseInfoRepository.save(caseInfo);
 
@@ -319,7 +302,11 @@ public class AccDerateController extends BaseController {
 //            log.error("工作台消息推送失败");
 //        }
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("操作失败", ENTITY_NAME, e.getMessage())).body(null);
+        }
     }
 
 
@@ -328,7 +315,7 @@ public class AccDerateController extends BaseController {
      */
     @GetMapping("/handleAccPayApply")
     @ApiOperation(value = "操作审核信息", notes = "操作审核信息")
-    public ResponseEntity handleAccPayApply(@RequestParam(value = "id") @ApiParam(value = "案件ID", required = true) String id) throws URISyntaxException {
+    public ResponseEntity handleAccPayApply(@RequestParam(value = "id") @ApiParam(value = "案件ID", required = true) String id){
         try {
         Map<String, Object> map = new HashMap<>();
         CasePayApply casePayApply = casePayApplyRepository.findOne(id);
@@ -354,7 +341,7 @@ public class AccDerateController extends BaseController {
         map.put("payWay", payWay);
         map.put("payMemo", payMemo);
         map.put(APPLY_DATE, ZWDateUtil.fomratterDate(casePayApply.getApplayDate(), BaseObject.DATE_FORMAT));//申请日期
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id)).build();
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id)).body(map);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("操作审核失败", ENTITY_NAME, e.getMessage())).body(null);
@@ -366,61 +353,46 @@ public class AccDerateController extends BaseController {
      */
     @PostMapping("/updateAccPayApply")
     @ApiOperation(value = "处理审核信息", notes = "处理审核信息")
-    public ResponseEntity updateAccPayApply(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
-                                            @RequestBody CasePayApplys casePayApplys, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
-        User userToken;
+    public ResponseEntity updateAccPayApply(@RequestBody CasePayApplyParams casePayApplyParams, @RequestHeader(value = "X-UserToken") String token){
         try {
-            userToken = getUserByToken(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
-        }
-        BooleanBuilder builder = new BooleanBuilder(predicate);
-        builder.and(QCaseInfo.caseInfo.caseNumber.eq(casePayApplys.getCaseNumber()));
-
-        //Code码
-        //builder.and(QCaseInfo.caseInfo.companyCode.eq(userToken.getCompanyCode()));
-
-        builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //过滤已结案案件
-        Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(builder);     //查找所有过滤已结案的案件
-        if (caseInfos.iterator().hasNext()) {
-            if (Objects.equals(caseInfos.iterator().next().getHandUpFlag(), CaseInfo.HandUpFlag.YES_HANG.getValue())) {
-                throw new RuntimeException("挂起案件不允许操作");
+        User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "用户登陆失败")).body(null);
             }
-        } else {
-            throw new RuntimeException("查无与此关联的案件");
+        CasePayApply casePayApply = casePayApplyRepository.findOne(casePayApplyParams.getCasePayId());
+        CaseInfo caseInfo = caseInfoRepository.findOne(casePayApply.getCaseId());
+        if (Objects.isNull(caseInfo)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "查无与此关联的案件")).body(null);
+        }
+        if (Objects.equals(caseInfo.getHandUpFlag(), CaseInfo.HandUpFlag.YES_HANG.getValue())) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "挂起案件不允许操作")).body(null);
+        }
+        if (Objects.equals(casePayApply.getApproveStatus(), CasePayApply.ApproveStatus.AUDIT_AGREE.getValue())) { //审批状态为通过
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "审批已通过")).body(null);
+        }
+        if (Objects.equals(casePayApply.getApproveStatus(), CasePayApply.ApproveStatus.AUDIT_REJECT.getValue())) { //审批状态为拒绝
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "审批已拒绝")).body(null);
+        }
+        if (Objects.equals(casePayApply.getApproveStatus(), CasePayApply.ApproveStatus.REVOKE.getValue())) { //审批状态为撤回
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "审批已撤回")).body(null);
         }
 
-        CasePayApply payApply = casePayApplyRepository.findOne(casePayApplys.getId());//根据审批ID获得还款审批对象
-        if (Objects.equals(payApply.getApproveStatus(), CasePayApply.ApproveStatus.AUDIT_AGREE.getValue())) { //审批状态为通过
-            throw new RuntimeException("审批已通过");
-        }
-        if (Objects.equals(payApply.getApproveStatus(), CasePayApply.ApproveStatus.AUDIT_REJECT.getValue())) { //审批状态为拒绝
-            throw new RuntimeException("审批已拒绝");
-        }
-        if (Objects.equals(payApply.getApproveStatus(), CasePayApply.ApproveStatus.REVOKE.getValue())) { //审批状态为撤回
-            throw new RuntimeException("审批已撤回");
-        }
-
-        Iterable<CasePayApply> casePayApplies = casePayApplyRepository.findAll(QCasePayApply.casePayApply.id.eq(casePayApplys.getId()));    //查找所有
-        //上面查询所有案件的审批状态为审批标识
-
-
+        Iterable<CasePayApply> casePayApplies = casePayApplyRepository.findAll(QCasePayApply.casePayApply.id.eq(casePayApplyParams.getCasePayId()));
         if (casePayApplies.iterator().hasNext()) {
             //对象不为空
-            CasePayApply casePayApply = casePayApplies.iterator().next();
-            if (Objects.equals(CasePayApply.ApproveCostresult.AUDIT_REJECT.getValue(), casePayApply.getApproveCostresult())) {   //减免结果为审批拒绝
-                throw new RuntimeException("审批已拒绝");
+            CasePayApply casePayApply1 = casePayApplies.iterator().next();
+            if (Objects.equals(CasePayApply.ApproveCostresult.AUDIT_REJECT.getValue(), casePayApply1.getApproveCostresult())) {   //减免结果为审批拒绝
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "审批已拒绝")).body(null);
             }
-            if (Objects.equals(CasePayApply.ApproveCostresult.TO_AUDIT.getValue(), casePayApply.getApproveCostresult())) {   //减免结果为待审批
-                throw new RuntimeException("存在到审批的案件，请先进行减免审批");
+            if (Objects.equals(CasePayApply.ApproveCostresult.TO_AUDIT.getValue(), casePayApply1.getApproveCostresult())) {   //减免结果为待审批
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "存在到审批的案件，请先进行减免审批")).body(null);
             }
-            if (Objects.equals(CasePayApply.ApproveCostresult.AUDIT_AGREE.getValue(), casePayApply.getApproveCostresult())) {   //减免结果为审批同意
-                passCaseinfo(casePayApplys, userToken);
+            if (Objects.equals(CasePayApply.ApproveCostresult.AUDIT_AGREE.getValue(), casePayApply1.getApproveCostresult())) {   //减免结果为审批同意
+                caseInfoService.passCaseinfo(casePayApplyParams, user);
             }
         } else {
             //对象结果为空
-            passCaseinfo(casePayApplys, userToken);
+            caseInfoService.passCaseinfo(casePayApplyParams, user);
         }
 //        try {
 //            CaseInfo info = caseInfoRepository.findOne(payApply.getCaseId());
@@ -452,129 +424,13 @@ public class AccDerateController extends BaseController {
 //            log.error(e.getMessage(), e);
 //        }
         return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "操作失败")).body(null);
+        }
     }
 
-    private void passCaseinfo(CasePayApplys casePayApplys, User userToken) {
-        Iterable<CaseInfo> caseinfoallBycaseover = caseInfoRepository.findAll(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
-        if (Objects.isNull(caseinfoallBycaseover.iterator().next().getEarlyDerateAmt())) {
-            caseinfoallBycaseover.iterator().next().setEarlyDerateAmt(BigDecimal.ZERO);
-        }
-        if (Objects.isNull(caseinfoallBycaseover.iterator().next().getEarlyDerateAmt())) {
-            caseinfoallBycaseover.iterator().next().setEarlyDerateAmt(BigDecimal.ZERO);
-        }
-        //逾期减免金额未写
 
-        CasePayApply casePayApply = casePayApplyRepository.findOne(casePayApplys.getId());//查找减免审批的案件
-        CaseInfo caseInfo = caseInfoRepository.findOne(casePayApplys.getCaseId());//查找案件
-        CaseAssist caseAssist = caseAssistRepository.findOne(casePayApplys.getCaseId());//查找协催案件
-
-        if (Objects.equals(casePayApplys.getApproveResult(), CasePayApply.ApproveResult.REJECT.getValue())) {     //如果审核意见为驳回
-            casePayApply.setApproveStatus(CasePayApply.ApproveStatus.AUDIT_REJECT.getValue());      //审核状态改为：审核拒绝
-            casePayApply.setApproveResult(CasePayApply.ApproveResult.REJECT.getValue());        //审核结果该我：驳回
-            casePayApply.setApprovePayDatetime(ZWDateUtil.getNowDate());   //审批时间为当前时间
-
-            if (caseInfo.getCollectionStatus().equals(CaseInfo.CollectionType.VISIT.getValue()) && caseInfo.getAssistFlag().equals(CaseInfo.AssistFlag.YES_ASSIST.getValue())) {    //是协催案件
-                caseAssist.setAssistStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue());     //协催案件状态变为：催收中
-                caseAssist.setOperatorTime(ZWDateUtil.getNowDate());    //处理日期为当前日期
-                caseAssistRepository.save(caseAssist);
-                //同步更新原来案件
-                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue());       //原案件状态变为：催收中
-                caseInfo.setOperatorTime(ZWDateUtil.getNowDate());      //处理日期为当前日期
-                caseInfoRepository.save(caseInfo);
-            } else {    //不是协催案件
-                //同步更新原来案件
-                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue());       //原案件状态变为：催收中
-                caseInfo.setOperatorTime(ZWDateUtil.getNowDate());      //处理日期为当前日期
-                caseInfoRepository.save(caseInfo);
-
-                //查询是否有协催
-                if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
-                    caseAssist.setAssistStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue());     //协催案件状态变为：催收中
-                    caseAssist.setOperatorTime(ZWDateUtil.getNowDate());    //处理日期为当前日期
-                    caseAssistRepository.save(caseAssist);
-                }
-            }
-        } else {     //审核结果为入账
-            BigDecimal applyDerateAmt = casePayApply.getApplyDerateAmt();//减免金额
-            if (Objects.isNull(applyDerateAmt)) {
-                applyDerateAmt = new BigDecimal(0);
-            }
-            //逾期还款
-            if (Objects.equals(casePayApplys.getPayType(), CasePayApply.PayType.PARTOVERDUE.getValue())) {     //部分逾期还款
-                if (caseInfo.getCollectionStatus().equals(CaseInfo.CollectionType.VISIT.getValue()) && caseInfo.getAssistFlag().equals(CaseInfo.AssistFlag.YES_ASSIST.getValue())) {    //是协催案件
-                    caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount()));  //实际还款金额
-                    caseInfo.setOperatorTime(ZWDateUtil.getNowDate());//处理日期为当前日期
-
-                    int result = caseInfo.getRealPayAmount().compareTo(caseInfo.getOverdueAmount());    //比较实际还款金额与逾期总金额
-                    if (result == -1) {
-                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.PART_REPAID.getValue());       //原案件状态变为：部分已还款
-                    } else {
-                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.OVER_PAYING.getValue());       //原案件状态变为：逾期还款中
-                    }
-                    caseInfoRepository.save(caseInfo);
-                } else {    //不是协催案件
-                    caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount()));  //实际还款金额
-                    caseInfo.setOperatorTime(ZWDateUtil.getNowDate());//处理日期为当前日期
-                    int result = caseInfo.getRealPayAmount().compareTo(caseInfo.getOverdueAmount());    //比较实际还款金额与预期总金额
-                    if (result == -1) {
-                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.PART_REPAID.getValue());       //原案件状态变为：部分已还款
-                    } else {
-                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.OVER_PAYING.getValue());       //原案件状态变为：逾期还款中
-                    }
-                    caseInfoRepository.save(caseInfo);
-
-                }
-            } else if (Objects.equals(casePayApplys.getPayType(), CasePayApply.PayType.ALLOVERDUE.getValue())  //全额逾期还款
-                    || Objects.equals(casePayApplys.getPayType(), CasePayApply.PayType.DERATEOVERDUE)) {   //减免逾期还款
-                if (caseInfo.getCollectionStatus().equals(CaseInfo.CollectionType.VISIT.getValue()) && caseInfo.getAssistFlag().equals(CaseInfo.AssistFlag.YES_ASSIST.getValue())) {    //是协催案件
-                    caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount()));  //实际还款金额
-                    caseInfo.setOperatorTime(ZWDateUtil.getNowDate());//处理日期为当前日期
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.REPAID.getValue());       //原案件状态变为：已还款
-                    caseInfo.setDerateAmt(applyDerateAmt);  //减免金额
-                    caseInfoRepository.save(caseInfo);
-
-                }
-                //提前结清
-            } else if (Objects.equals(casePayApplys.getPayType(), CasePayApply.PayType.PARTADVANCE)) {      //部分提前结清
-                if (caseInfo.getCollectionStatus().equals(CaseInfo.CollectionType.VISIT.getValue()) && caseInfo.getAssistFlag().equals(CaseInfo.AssistFlag.YES_ASSIST.getValue())) {    //是协催案件
-                    caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount()));  //实际还款金额
-                    caseInfo.setOperatorTime(ZWDateUtil.getNowDate());//处理日期为当前日期
-                    int result = caseInfo.getRealPayAmount().compareTo(caseInfo.getOverdueAmount());
-                    if (result == -1) {
-                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.PART_REPAID.getValue());       //原案件状态变为：部分已还款
-                    } else {
-                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.EARLY_PAYING.getValue());       //原案件状态变为：提前结清还款中
-                    }
-                    caseInfoRepository.save(caseInfo);
-                } else {      //不是协催案件
-                    caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount()));  //实际还款金额
-                    caseInfo.setOperatorTime(ZWDateUtil.getNowDate());//处理日期为当前日期
-                    int result = caseInfo.getRealPayAmount().compareTo(caseInfo.getOverdueAmount());    //比较实际还款金额与预期总金额
-                    if (result == -1) {
-                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.PART_REPAID.getValue());       //原案件状态变为：部分已还款
-                    } else {
-                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.EARLY_PAYING.getValue());       //原案件状态变为：提前结清还款中
-                    }
-                    caseInfoRepository.save(caseInfo);
-                }
-            } else if (Objects.equals(casePayApplys.getPayType(), CasePayApply.PayType.ALLADVANCE.getValue())  //全额提前结清
-                    || Objects.equals(casePayApplys.getPayType(), CasePayApply.PayType.DERATEADVANCE)) {    //减免提前结清
-                if (caseInfo.getCollectionStatus().equals(CaseInfo.CollectionType.VISIT.getValue()) && caseInfo.getAssistFlag().equals(CaseInfo.AssistFlag.YES_ASSIST.getValue())) {    //是协催案件
-                    caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount()));  //实际还款金额
-                    caseInfo.setOperatorTime(ZWDateUtil.getNowDate());//处理日期为当前日期
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.REPAID.getValue());       //原案件状态变为：提前结清还款中
-                    caseInfo.setDerateAmt(applyDerateAmt);  //减免金额
-                    caseInfoRepository.save(caseInfo);
-                }
-            }
-            casePayApply.setApproveStatus(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue());   //审核通过
-            casePayApply.setApproveResult(CasePayApply.ApproveResult.AGREE.getValue());     //入账
-            casePayApply.setApprovePayDatetime(ZWDateUtil.getNowDate());    //还款审批时间
-        }
-        casePayApply.setApprovePayName(userToken.getUserName());    //审批人用户名
-        casePayApply.setApprovePayMemo(casePayApplys.getApprovePayMemo());  //审核意见
-        casePayApplyRepository.save(casePayApply);
-    }
 
 
 }

@@ -1,9 +1,7 @@
 package cn.fintecher.pangolin.business.model;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
-import java.math.BigDecimal;
-import java.util.Date;
 
 /**
  * @Author: LvGuoRong
@@ -13,20 +11,10 @@ import java.util.Date;
 
 @Data
 public class CasePayApplyParams {
-    private String personalName;//客户姓名
-    private String personalPhone;//客户手机
-    private String batchNumber;//批次号
-    private BigDecimal applyDerateAmt;//费用减免金额
-    private BigDecimal payaApplyMinAmt; //最早申请日期
-    private BigDecimal payaApplyMaxAmt; //最晚申请日期
-
-    private Integer approveType;//减免类型
-    private Integer approveCostresult;//审批结果
-    private String principalId;//委托方
-    private Integer payType;//还款类型
-    private Integer payWay;//还款方式
-    private Integer approveStatus;//审批状态
-    private String applayUserName;//申请人
-    private Date payaApplyMinDate; //最早申请日期
-    private Date payaApplyMaxDate; //最晚申请日期
+    @ApiModelProperty(notes = "审批案件ID")
+    private String casePayId;
+    @ApiModelProperty(notes = "审核意见")
+    private String approvePayMemo;
+    @ApiModelProperty(notes = "审批结果 入账  驳回")
+    private Integer approveResult;
 }
