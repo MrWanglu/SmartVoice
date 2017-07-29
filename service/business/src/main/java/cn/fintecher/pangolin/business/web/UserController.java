@@ -120,7 +120,7 @@ public class UserController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user password parameters abnormality", "用户密码参数异常")).body(null);
         }
         String hashedPassword;
-        if (Objects.nonNull(sysParamsPassword)) {
+        if (Objects.nonNull(sysParamsPassword)&& Objects.equals(Status.Enable.getValue(), sysParamsNumber.getStatus())) {
             hashedPassword = passwordEncoder.encode(sysParamsPassword.getValue());
         } else {
             //默认密码888888
