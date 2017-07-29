@@ -24,6 +24,7 @@ public interface RoleRepository extends QueryDslPredicateExecutor<Role>, JpaRepo
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
         bindings.bind(root.name).first((path, value) -> path.like(value));
         bindings.bind(root.status).first((path, value) -> path.eq(value));
+        bindings.bind(root.companyCode).first((path, value) -> path.eq(value));
     }
 
     @Query(value = "delete from acc_roleres where role_id=:roleId", nativeQuery = true)
