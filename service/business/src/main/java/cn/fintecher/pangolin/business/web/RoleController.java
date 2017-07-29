@@ -58,7 +58,7 @@ public class RoleController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<Role>> getAllRolePage(@RequestParam String companyCode,
+    public ResponseEntity<Page<Role>> getAllRolePage(@RequestParam(required = false) String companyCode,
                                                      @RequestParam(required = false) String name,
                                                      @RequestParam(required = false) Integer status,
                                                      @RequestParam(required = false) String operator,
