@@ -10,7 +10,7 @@ import javax.persistence.Table;
 import java.util.Date;
 
 @Entity
-@Table(name = "outsource")
+@Table(name = "outsource_pool")
 @Data
 public class OutsourcePool extends BaseEntity {
     @ManyToOne
@@ -18,7 +18,7 @@ public class OutsourcePool extends BaseEntity {
     private CaseInfo caseInfo;
 
     @ManyToOne
-    @JoinColumn(name="outs_id")
+    @JoinColumn(name="out_id")
     private Outsource outsource;
 
     @ApiModelProperty("委外时间")
