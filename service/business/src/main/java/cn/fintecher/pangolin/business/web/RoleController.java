@@ -9,7 +9,6 @@ import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
@@ -17,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -181,11 +179,18 @@ public class RoleController extends BaseController {
      */
     @GetMapping("/getRoleRes")
     @ApiOperation(value = "角色查找资源", notes = "角色查找资源")
-    public ResponseEntity<List<Resource>> getRoleRes(@ApiParam(value = "角色id", required = true) @RequestParam(value = "id") String id,
-                                                     @QuerydslPredicate(root = Role.class) Predicate predicate) {
+    public ResponseEntity<List<Resource>> getRoleRes(@RequestParam String id,
+                                                     @RequestParam String companyCode) {
         try {
             QResource qResource = QResource.resource;
-            Iterator<Resource> resources = resourceRepository.findAll(qResource.roles.any().id.eq(id)).iterator();
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.nonNull(id)) {
+                builder.and(qResource.roles.any().id.eq(id));
+            }
+            if (Objects.nonNull(companyCode)) {
+                builder.and(qResource.roles.any().companyCode.eq(companyCode));
+            }
+            Iterator<Resource> resources = resourceRepository.findAll(builder).iterator();
             List<Resource> resourceList = IteratorUtils.toList(resources);
             return ResponseEntity.ok().body(resourceList);
         } catch (Exception e) {
