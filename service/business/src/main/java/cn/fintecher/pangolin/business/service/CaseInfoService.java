@@ -101,7 +101,7 @@ public class CaseInfoService {
             } else if (Objects.equals(user.getType(), CaseInfo.CollectionType.VISIT.getValue())) { //分配给16-外访
                 if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                     if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                        CaseAssistApply caseAssistApply = getCaseAssistApply(reDistributionParams.getCaseId(), tokenUser, "");
+                        CaseAssistApply caseAssistApply = getCaseAssistApply(reDistributionParams.getCaseId(), tokenUser, "流转强制拒绝");
                         caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                     } else { //有协催案件
                         CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(reDistributionParams.getCaseId()).
@@ -725,7 +725,7 @@ public class CaseInfoService {
     /**
      * @Description 获得协催申请并set值
      */
-    private CaseAssistApply getCaseAssistApply(String caseId, User tokenUser, String memo) {
+    public CaseAssistApply getCaseAssistApply(String caseId, User tokenUser, String memo) {
         List<Integer> list = new ArrayList<>(); //协催审批状态列表
         list.add(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue()); // 32-电催待审批
         list.add(CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue()); // 34-外访待审批
@@ -792,6 +792,7 @@ public class CaseInfoService {
         }
         return uploadFiles;
     }
+
     /**
      * 案件审核处理
      */
@@ -872,7 +873,6 @@ public class CaseInfoService {
         casePayApply.setApprovePayMemo(casePayApply.getApprovePayMemo());  //审核意见
         casePayApply.setOperatorUserName(userToken.getUserName());  //操作人用户名
         casePayApply.setOperatorRealName(userToken.getRealName());  //操作人姓名
-        CasePayApply payApply = casePayApplyRepository.save(casePayApply);
-        return payApply;
+        return casePayApplyRepository.save(casePayApply);
     }
 }
