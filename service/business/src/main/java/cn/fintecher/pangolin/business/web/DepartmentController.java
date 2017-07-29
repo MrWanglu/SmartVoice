@@ -189,7 +189,7 @@ public class DepartmentController extends BaseController {
                 Iterator<Department> departments = departmentRepository.findAll(qDepartment.code.like(department.getCode()).and(qDepartment.companyCode.eq(department.getCompanyCode())).and(qDepartment.id.ne(department.getId()))).iterator();
                 List<Department> departmentList = IteratorUtils.toList(departments);
                 for (Department department1 : departmentList) {
-                    if (Objects.equals(Status.Enable, department1.getStatus())) {
+                    if (Objects.equals(Status.Enable.getValue(), department1.getStatus())) {
                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Setup status to stop using, please modify child institutions", "子机构状态为启用，请先修改子机构状态")).body(null);
                     }
                 }
