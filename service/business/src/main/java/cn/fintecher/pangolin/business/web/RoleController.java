@@ -8,7 +8,7 @@ import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import cn.fintecher.pangolin.web.PaginationUtil;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -59,19 +58,38 @@ public class RoleController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<Role>> getAllRolePage(@QuerydslPredicate(root = Principal.class) Predicate predicate,
-                                                     @ApiIgnore Pageable pageable) throws URISyntaxException {
+    public ResponseEntity<Page<Role>> getAllRolePage(@RequestParam String companyCode,
+                                                     @RequestParam(required = false) String name,
+                                                     @RequestParam(required = false) Integer status,
+                                                     @RequestParam(required = false) String operator,
+                                                     @ApiIgnore Pageable pageable) {
         logger.debug("REST request to get all Role");
-        Page<Role> page = roleRepository.findAll(predicate, pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/roleController/getAllRolePage");
-        return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        QRole qRole = QRole.role;
+        BooleanBuilder builder = new BooleanBuilder();
+        if (Objects.nonNull(companyCode)) {
+            builder.and(qRole.companyCode.eq(companyCode));
+        }
+        if (Objects.nonNull(name)) {
+            builder.and(qRole.name.like(companyCode.concat("%")));
+        }
+        if (Objects.nonNull(status)) {
+            builder.and(qRole.status.eq(status));
+        }
+        if (Objects.nonNull(status)) {
+            builder.and(qRole.status.eq(status));
+        }
+        if (Objects.nonNull(operator)) {
+            builder.and(qRole.operator.like(operator.concat("%")));
+        }
+        Page<Role> page = roleRepository.findAll(builder, pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
 
 
     @PostMapping("/createRole")
     @ApiOperation(value = "增加角色", notes = "增加角色")
     public ResponseEntity<Role> createRole(@Validated @ApiParam("角色对象") @RequestBody Role role,
-                                           @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+                                           @RequestHeader(value = "X-UserToken") String token) {
         logger.debug("REST request to save caseInfo : {}", role);
         if (role.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
@@ -153,7 +171,7 @@ public class RoleController extends BaseController {
     @GetMapping("/getRoleRes")
     @ApiOperation(value = "角色查找资源", notes = "角色查找资源")
     public ResponseEntity<List<Resource>> getRoleRes(@ApiParam(value = "角色id", required = true) @RequestParam(value = "id") String id,
-                                                     @QuerydslPredicate(root = Role.class) Predicate predicate) throws URISyntaxException {
+                                                     @QuerydslPredicate(root = Role.class) Predicate predicate) {
         try {
             QResource qResource = QResource.resource;
             Iterator<Resource> resources = resourceRepository.findAll(qResource.roles.any().id.eq(id)).iterator();
@@ -177,7 +195,7 @@ public class RoleController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<User>> roleFindUsers(@ApiParam(value = "角色id", required = true) @RequestParam String id,
-                                                    @ApiIgnore Pageable pageable) throws URISyntaxException {
+                                                    @ApiIgnore Pageable pageable) {
 
         Role role = roleRepository.findOne(id);
         if (Objects.nonNull(role)) {
@@ -192,7 +210,7 @@ public class RoleController extends BaseController {
     @DeleteMapping("/deleteRole")
     @ApiOperation(value = "删除角色", notes = "删除角色")
     public ResponseEntity<Role> deleteRole(@ApiParam(value = "角色id", required = true) @RequestParam String id,
-                                           @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+                                           @RequestHeader(value = "X-UserToken") String token) {
         logger.debug("REST request to save Role : {}", id);
         User userToken;
         try {
@@ -221,7 +239,7 @@ public class RoleController extends BaseController {
 
     @GetMapping("/findAllRole")
     @ApiOperation(value = "查询所有角色分页", notes = "查询所有角色分页")
-    public ResponseEntity<Page<Role>> getAllRole(@ApiIgnore Pageable pageable) throws URISyntaxException {
+    public ResponseEntity<Page<Role>> getAllRole(@ApiIgnore Pageable pageable) {
         logger.debug("REST request to get all of Role");
         try {
             Page<Role> page = roleRepository.findAll(pageable);
