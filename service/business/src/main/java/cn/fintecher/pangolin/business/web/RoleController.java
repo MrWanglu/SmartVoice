@@ -103,7 +103,7 @@ public class RoleController extends BaseController {
         }
         //增加角色的code需要传入
         QRole qRole = QRole.role;
-        boolean exist = roleRepository.exists(qRole.name.eq(role.getName()).and(qRole.companyCode.eq(user.getCompanyCode())));
+        boolean exist = roleRepository.exists(qRole.name.eq(role.getName()).and(qRole.companyCode.eq(role.getCompanyCode())));
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role name has been occupied", "该角色名已被占用")).body(null);
         } else {
@@ -157,7 +157,7 @@ public class RoleController extends BaseController {
 
     @GetMapping("/getRole")
     @ApiOperation(value = "查找角色通过id", notes = "查找角色通过id")
-    public ResponseEntity<Role> getRole(@ApiParam(value = "角色id", required = true) @RequestParam(value = "id") String id){
+    public ResponseEntity<Role> getRole(@ApiParam(value = "角色id", required = true) @RequestParam(value = "id") String id) {
         try {
             Role role = roleRepository.findOne(id);
             return ResponseEntity.ok().body(role);
