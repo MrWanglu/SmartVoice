@@ -25,6 +25,8 @@ public class CaseAssistApply extends BaseEntity {
     private String caseNumber;
     @ApiModelProperty("客户姓名")
     private String personalName;
+    @ApiModelProperty("客户手机号")
+    private String personalPhone;
     @ApiModelProperty("客户信息ID")
     private String personalId;
     @ApiModelProperty("催收类型(电催、外访、司法、委外、提醒)")
