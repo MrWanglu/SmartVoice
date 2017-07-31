@@ -7,7 +7,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "outsource")
+@Table(name = "outsource_record")
 @Data
 public class OutsourceRecord extends BaseEntity {
     @ManyToOne

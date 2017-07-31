@@ -71,15 +71,27 @@ public class OutsourcePoolController extends BaseController {
                 String ouorBatch = seqResult.getValue();
                 for (String cupoId : caseIds) {
                     CaseInfo caseInfo = caseInfoRepository.findOne(cupoId);
+                    if (Objects.isNull(caseInfo)){
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "案件不存在")).body(null);
+                    }
                     if (CaseInfo.CollectionStatus.CASE_OVER.getValue().equals(caseInfo.getCollectionStatus())) {
                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已结案案件不能再委外")).body(null);
-                    }
-                    if (CaseInfo.CollectionStatus.REPAID.getValue().equals(caseInfo.getCollectionStatus())) {
+                    }else if (CaseInfo.CollectionStatus.CASE_OUT.getValue().equals(caseInfo.getCollectionStatus())) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已委外案件不能再委外")).body(null);
+                    }else if (CaseInfo.CollectionStatus.REPAID.getValue().equals(caseInfo.getCollectionStatus())) {
                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已还款案件不能再委外")).body(null);
                     }
+                    //将原案件改为已结案
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OUT.getValue());//已委外
+                    caseInfo.setEndType(CaseInfo.EndType.OUTSIDE_CLOSED.getValue());//委外结案
+                    caseInfo.setOperator(user);
+                    caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+                    caseInfo.setEndRemark("委外结案");//结案说明
+                    caseInfo = caseInfoRepository.save(caseInfo);
+                    caseInfos.add(caseInfo);
                     Outsource outsource = outsourceRepository.findOne(outsourceInfo.getOutsId());
+                    //委外记录
                     OutsourceRecord outsourceRecord = new OutsourceRecord();
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OUT.getValue());
                     outsourceRecord.setCaseInfo(caseInfo);
                     outsourceRecord.setOutsource(outsource);
                     outsourceRecord.setCreateTime(ZWDateUtil.getNowDateTime());
@@ -87,14 +99,6 @@ public class OutsourcePoolController extends BaseController {
                     outsourceRecord.setFlag(0);//默认正常
                     outsourceRecord.setOuorBatch(ouorBatch);//批次号
                     outsourceRecords.add(outsourceRecord);
-                    //将原案件改为已结案
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue());//已委外
-                    caseInfo.setEndType(CaseInfo.EndType.OUTSIDE_CLOSED.getValue());//委外结案
-                    caseInfo.setOperator(user);
-                    caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
-                    caseInfo.setEndRemark("委外结案");//结案说明
-                    caseInfos.add(caseInfo);
-
                     //保存委外案件
                     OutsourcePool outsourcePool = new OutsourcePool();
                     outsourcePool.setOutsource(outsource);
@@ -106,7 +110,6 @@ public class OutsourcePoolController extends BaseController {
                     outsourcePools.add(outsourcePool);
                 }
                 //批量保存
-                caseInfoRepository.save(caseInfos);
                 outsourcePoolRepository.save(outsourcePools);
                 outsourceRecordRepository.save(outsourceRecords);
                 return ResponseEntity.ok().body(null);
