@@ -28,7 +28,7 @@ import java.util.Set;
  * @Date : 2017/7/31.
  */
 @RestController
-@RequestMapping("/productSeriesController")
+@RequestMapping("/api/productSeriesController")
 @Api(value = "ProductSeriesController", description = "产品系列操作")
 public class ProductSeriesController extends BaseController{
 
