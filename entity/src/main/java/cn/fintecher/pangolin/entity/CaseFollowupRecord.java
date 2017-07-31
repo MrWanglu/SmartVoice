@@ -106,6 +106,21 @@ public class CaseFollowupRecord extends BaseEntity {
     @Transient
     private List fileIds;
 
+    @ApiModelProperty(notes = "公司code码")
+    private String companyCode;
+
+    @ApiModelProperty(notes = "呼叫类型(erpv3 163 中通天鸿 164")
+    private String callType;
+
+    @ApiModelProperty(notes = "呼叫开始时间")
+    private String startTime;
+
+    @ApiModelProperty(notes = "呼叫结束时间")
+    private String endTime;
+
+    @ApiModelProperty(notes = "通话时长默认为秒")
+    private String connSecs;
+
     /**
      * @Description 电话状态枚举类
      */
