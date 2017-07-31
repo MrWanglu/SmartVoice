@@ -83,7 +83,7 @@ public class PaymentService {
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
-        if (Objects.equals(paymentParams.getFlag(), 0)) { //是减免审批
+        if (Objects.equals(paymentParams.getFlag(), 1)) { //是减免审批
             if (Objects.equals(paymentParams.getResult(), 0)) { //减免审批拒绝
                 //更新还款审批信息
                 casePayApply.setApproveStatus(CasePayApply.ApproveStatus.DERATE_AUDIT_REJECT.getValue()); //审批状态 56-减免审批驳回
