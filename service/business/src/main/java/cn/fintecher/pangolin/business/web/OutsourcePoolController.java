@@ -87,7 +87,6 @@ public class OutsourcePoolController extends BaseController {
                     caseInfo.setOperator(user);
                     caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
                     caseInfo.setEndRemark("委外结案");//结案说明
-                    caseInfo = caseInfoRepository.save(caseInfo);
                     caseInfos.add(caseInfo);
                     Outsource outsource = outsourceRepository.findOne(outsourceInfo.getOutsId());
                     //委外记录
@@ -106,10 +105,12 @@ public class OutsourcePoolController extends BaseController {
                     outsourcePool.setOperator(user.getUserName());
                     outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());
                     outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDING.getCode());//委外中
+                    outsourcePool.setOutBatch(ouorBatch);
                     outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
                     outsourcePools.add(outsourcePool);
                 }
                 //批量保存
+                caseInfoRepository.save(caseInfos);
                 outsourcePoolRepository.save(outsourcePools);
                 outsourceRecordRepository.save(outsourceRecords);
                 return ResponseEntity.ok().body(null);
