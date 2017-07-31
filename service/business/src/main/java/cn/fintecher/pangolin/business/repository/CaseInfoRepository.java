@@ -154,4 +154,18 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
                         " on cinfo.depart_id = dept.id " +
                         "where dept.`code` like concat(?1,'%')) amo ", nativeQuery = true)
     BigDecimal getCaseSumAmt (@Param("deptCode") String deptCode);
+
+    /**
+     * 部门下案件已还款总额
+     * @param deptCode
+     * @return
+     */
+    @Query(value = "select sum(cpd.payamt) as payamt from\n" +
+            "(select caseamt.case_id,caseamt.payamt,cade.dcode from \n" +
+            "(select case_id,sum(apply_pay_amt) as payamt from case_pay_apply where approve_status = '58' group by case_id) as caseamt \n" +
+            "left join \n" +
+            "(select case_info.id as cid,department.code as dcode from\n" +
+            "case_info left join department on case_info.depart_id = department.id) as cade\n" +
+            "on cade.cid = caseamt.case_id) as cpd where cpd.dcode like concat(?1,'%')", nativeQuery = true)
+    BigDecimal getRepaySumAmt(@Param("deptCode") String deptCode);
 }

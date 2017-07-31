@@ -1,7 +1,9 @@
 package cn.fintecher.pangolin.business.web;
 
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.model.HomePageResult;
 import cn.fintecher.pangolin.business.service.HomePageService;
+import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -28,27 +30,24 @@ public class HomePageController extends BaseController {
 
     @Inject
     private HomePageService homePageService;
-    @Inject
-    private CaseInfoRepository caseInfoRepository;
 
     @GetMapping(value = "/getHomePageInformation")
     @ApiOperation(value = "统计首页数据",notes = "统计首页数据")
     public ResponseEntity getHomePageInformation(@RequestHeader(value = "X-UserToken") String token){
-//        log.debug("REST request to get getHomePageInformation : {}",token);
-//        User user = null;
-//        try {
-//            user = getUserByToken(token);
-//        } catch (final Exception e) {
-//            log.debug(e.getMessage());
-//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
-//        }
-//        try {
-//            HomePageResult homePageResult = homePageService.getHomePageInformation(user);
-//
-//        }catch (Exception e){
-//            log.error(e.getMessage(),e);
-//
-//        }
-        return ResponseEntity.ok().body(null);
+        log.debug("REST request to get getHomePageInformation : {}",token);
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
+        }
+        try {
+            HomePageResult homePageResult = homePageService.getHomePageInformation(user);
+            return ResponseEntity.ok().body(homePageResult.getData());
+        }catch (Exception e){
+            log.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","系统异常!")).body(null);
+        }
     }
 }

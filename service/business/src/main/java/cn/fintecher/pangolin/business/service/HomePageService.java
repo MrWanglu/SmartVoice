@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @Author : sunyanping
@@ -46,25 +46,35 @@ public class HomePageService {
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
         String code = user.getDepartment().getCode();
 
-        //第一部分
+        List<User> allUser = userService.getAllUser(user.getDepartment().getId(), 0);//获取部门下所有的用户
+
+        //第一部分 案件总金额 人均金额
         BigDecimal caseSumAmt = caseInfoRepository.getCaseSumAmt(code); //案件总金额
-        Integer deptUserSum = userService.getAllUser(user.getDepartment().getId(), 0).size();//获取部门下所有的用户
+        Integer deptUserSum = allUser.size();
         deptUserSum = deptUserSum == 0 ? 1 : deptUserSum;
         BigDecimal personCount = new BigDecimal(deptUserSum);
         adminPage.setCaseSumAmt(Objects.isNull(caseSumAmt) ? new BigDecimal(0.00) : caseSumAmt.setScale(2, BigDecimal.ROUND_HALF_UP));
         adminPage.setCaseSumAmtPerson(adminPage.getCaseSumAmt().divide(personCount, 2, BigDecimal.ROUND_HALF_UP));
-//
-//        // 第二部分
-//
-//        BigDecimal repaySumAmt = adminPageMapper.getRepaySumAmt(degrId);
-//        adminPage.setRepaySumAmt(Objects.isNull(repaySumAmt) ? new BigDecimal(0.00) : repaySumAmt.setScale(2,BigDecimal.ROUND_HALF_UP));
-//        adminPage.setRepaySumAmtPerson(adminPage.getRepaySumAmt().divide(personCount,2,BigDecimal.ROUND_HALF_UP));
-//
-//        // 第三部分
-//
-//        adminPage.setCupoSum(userSum);
-//        adminPage.setCupoOnlineSum(0);
-//        adminPage.setCupoOfflineSum(0);
+
+        // 第二部分 案件已还款总金额 人均金额
+        BigDecimal repaySumAmt = caseInfoRepository.getRepaySumAmt(code);
+        adminPage.setRepaySumAmt(Objects.isNull(repaySumAmt) ? new BigDecimal(0.00) : repaySumAmt.setScale(2, BigDecimal.ROUND_HALF_UP));
+        adminPage.setRepaySumAmtPerson(adminPage.getRepaySumAmt().divide(personCount, 2, BigDecimal.ROUND_HALF_UP));
+
+        // 第三部分 催收员总数 在线人数 离线人数
+        Map<String, Integer> map = new HashMap<>();
+        map.put("online", 0);
+        map.put("offline", 0);
+        for (User u : allUser) {
+            if (u.getStatus() == 0) { //在线
+                map.put("online", map.get("online") + 1);
+            } else { //离线
+                map.put("offline", map.get("offline") + 1);
+            }
+        }
+        adminPage.setCupoSum(deptUserSum);
+        adminPage.setCupoOnlineSum(map.get("online"));
+        adminPage.setCupoOfflineSum(map.get("offline"));
 //
 //
 //        //第四部分
