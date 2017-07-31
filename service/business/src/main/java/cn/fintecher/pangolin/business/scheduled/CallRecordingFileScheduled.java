@@ -10,9 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -102,7 +99,7 @@ public class CallRecordingFileScheduled {
      * @Description : 中通天鸿下载录音调度
      */
 //    CaseFollowupRecordRepository
-    @Scheduled(cron = "1 0/10 * * * ?")
+    @Scheduled(cron = "1 0/1 * * * ?")
     void checkCallRecordFileZtth() throws IOException {
         log.info("定时调度 中通天鸿的录音调度" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
         try {
@@ -111,10 +108,8 @@ public class CallRecordingFileScheduled {
             List<CaseFollowupRecord> caseFollowupRecordList = IteratorUtils.toList(caseFollowupRecords);
             if (Objects.nonNull(caseFollowupRecordList)) {
                 for (CaseFollowupRecord caseFollowupRecord : caseFollowupRecordList) {
-                    Integer callId = caseFollowupRecord.getCallType();
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.setContentType(MediaType.APPLICATION_JSON);
-                    ResponseEntity<String> result = restTemplate.exchange("http://common-service/api/smaResource/getRecordingByCallId+?callId" + callId, HttpMethod.GET, null, String.class);
+                    String callId = caseFollowupRecord.getTaskId();
+                    ResponseEntity<String> result = restTemplate.getForEntity("http://common-service/api/smaResource/getRecordingByCallId?callId=" + callId, String.class);
                     if (Objects.nonNull(result.getBody()) && !Objects.equals("fail", result.getBody())) {
                         caseFollowupRecord.setCallType(null);
                         caseFollowupRecord.setOpUrl(result.getBody());
