@@ -523,4 +523,20 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("下载失败", "uploadFile", e.getMessage())).body(null);
         }
     }
+
+    /**
+     * @Description 分配前判断是否有协催案件或协催标识
+     */
+    @GetMapping("/checkCaseAssist")
+    @ApiOperation(value = "分配前判断是否有协催案件或协催标识", notes = "分配前判断是否有协催案件或协催标识")
+    public ResponseEntity<List<String>> checkCaseAssist(@RequestParam @ApiParam(value = "案件ID数组", required = true) List<String> caseIds) {
+        log.debug("REST request to check assist");
+        try {
+            List<String> list = caseInfoService.checkCaseAssist(caseIds);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("判断协催成功", ENTITY_CASEINFO)).body(list);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "判断协催失败")).body(null);
+        }
+    }
 }

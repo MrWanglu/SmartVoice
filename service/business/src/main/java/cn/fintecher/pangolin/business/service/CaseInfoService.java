@@ -876,4 +876,23 @@ public class CaseInfoService {
         casePayApply.setOperatorRealName(userToken.getRealName());  //操作人姓名
         return casePayApplyRepository.save(casePayApply);
     }
+
+    /**
+     * @Description 分配前判断是否有协催案件或协催标识
+     */
+    public List<String> checkCaseAssist(List<String> caseIds) {
+        List<String> list = new ArrayList<>();
+        String information;
+        for (String caseId : caseIds) {
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId); //遍历每一个案件
+            if (Objects.isNull(caseInfo)) {
+                throw new RuntimeException("所选案件的案件信息未找到");
+            }
+            if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
+                information = "案件编号为" + caseInfo.getCaseNumber() + "的案件已申请协催或存在协催案件";
+                list.add(information);
+            }
+        }
+        return list;
+    }
 }
