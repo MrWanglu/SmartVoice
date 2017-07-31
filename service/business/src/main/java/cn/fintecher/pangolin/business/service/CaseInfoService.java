@@ -880,10 +880,10 @@ public class CaseInfoService {
     /**
      * @Description 分配前判断是否有协催案件或协催标识
      */
-    public List<String> checkCaseAssist(List<String> caseIds) {
+    public List<String> checkCaseAssist(CheckAssistParams checkAssistParams) {
         List<String> list = new ArrayList<>();
         String information;
-        for (String caseId : caseIds) {
+        for (String caseId : checkAssistParams.getList()) {
             CaseInfo caseInfo = caseInfoRepository.findOne(caseId); //遍历每一个案件
             if (Objects.isNull(caseInfo)) {
                 throw new RuntimeException("所选案件的案件信息未找到");

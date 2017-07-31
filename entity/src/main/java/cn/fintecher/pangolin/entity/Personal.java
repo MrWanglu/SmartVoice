@@ -14,7 +14,7 @@ import java.util.Set;
 @Data
 public class Personal extends BaseEntity {
     private String name;
-    private Integer sex;
+    private Integer sex; //0-男 1-女
     private Integer marital;
     private Integer education;
     private String school;
