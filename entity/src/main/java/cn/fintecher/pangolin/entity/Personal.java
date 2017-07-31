@@ -33,9 +33,6 @@ public class Personal extends BaseEntity {
     private String localPhoneNo;
     private String localHomeAddress;
     private String electricityAccount;
-    private String referenceNo;
-    private String referencePwd;
-    private String referenceAuthCode;
     private String electricityPwd;
     private Integer dataSource;
     private String operator;
@@ -69,9 +66,7 @@ public class Personal extends BaseEntity {
     @OneToMany(cascade = CascadeType.REFRESH)
     @JoinColumn(name = "personalId", insertable = false, updatable = false)
     private Set<PersonalProperty> personalProperties; //客户房产信息
-    @OneToOne
-    @JoinColumn(name = "personal_id")
-    private PersonalJob personalJob; //客户工作信息
+
     /**
      * @Description 电话状态
      */

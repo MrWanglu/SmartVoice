@@ -9,6 +9,8 @@ import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -29,7 +31,8 @@ import java.util.Optional;
  * Created by ChenChang on 2017/5/23.
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/caseInfoController")
+@Api(value = "CaseInfoController",description = "案件操作")
 public class CaseInfoController extends BaseController {
 
     private static final String ENTITY_NAME = "caseInfo";
@@ -98,4 +101,22 @@ public class CaseInfoController extends BaseController {
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id)).build();
     }
 
+    @GetMapping("/getAllBatchNumber")
+    @ApiOperation(value = "获取所有批次号",notes = "获取所有批次号")
+    public ResponseEntity<List<String>> getAllBatchNumber(@RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to getAllBatchNumber");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllBatchNumber", e.getMessage())).body(null);
+        }
+        try {
+            return ResponseEntity.ok().body(caseInfoRepository.findDistinctByBatchNumber(user.getCompanyCode()));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllBatchNumber", "系统异常!")).body(null);
+        }
+    }
 }

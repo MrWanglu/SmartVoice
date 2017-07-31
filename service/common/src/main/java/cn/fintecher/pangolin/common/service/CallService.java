@@ -1,7 +1,6 @@
 package cn.fintecher.pangolin.common.service;
 
 import cn.fintecher.pangolin.common.model.AddTaskRecorderRequest;
-import cn.fintecher.pangolin.entity.util.Base64;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -9,8 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
+import java.io.IOException;
 import java.security.MessageDigest;
 
 /**
@@ -27,11 +28,11 @@ public class CallService {
     @Value("${pangolin.call-server.secret}")
     private String secret;
     //中通天鸿系统参数  联系人  师秋艳 QQ 2853152686
+    private static final String timeout = "50";
     @Value("${pangolin.zhongtong-server.enterprise-code}")
     private String enterpriseCode;
     @Value("${pangolin.zhongtong-server.proceedSign}")
     private String proceedSign;
-    private static final String timeout = "50";
     @Value("${pangolin.zhongtong-server.cti}")
     private String cti;
     @Value("${pangolin.zhongtong-server.webCall1800}")
@@ -44,11 +45,17 @@ public class CallService {
         MessageDigest md = MessageDigest.getInstance("SHA-1");
         md.reset();
         String decode = decryptBASE64(nonce) + created + secret;
-        return Base64.encode(decode.getBytes());
+        return new BASE64Encoder().encode(md.digest(decode.getBytes()));
     }
 
     public String decryptBASE64(String key) {
-        return new String(Base64.decode(key));
+        BASE64Decoder decoder = new BASE64Decoder();
+        try {
+            return new String(decoder.decodeBuffer(key));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     public HttpMethod getPostMethod(AddTaskRecorderRequest request) {
