@@ -411,4 +411,25 @@ public class DepartmentController extends BaseController {
         Department department = departmentRepository.save(dept);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(department);
     }
+
+    /**
+     * @Description :查询公司下的电催或者外访机构  1 电催  2 外访
+     */
+    @RequestMapping(value = "/querySubdivision", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    @ApiOperation(value = "查询公司下的电催或者外访机构", notes = "查询公司下的电催或者外访机构")
+    public ResponseEntity<List<Department>> getAllDepartmentPage(@RequestParam String companyCode,
+                                                                 @RequestParam Integer type) {
+        QDepartment qDepartment = QDepartment.department;
+        BooleanBuilder builder = new BooleanBuilder();
+        if (Objects.nonNull(companyCode)) {
+            builder.and(qDepartment.companyCode.eq(companyCode));
+        }
+        if (Objects.nonNull(companyCode)) {
+            builder.and(qDepartment.type.eq(type).or(qDepartment.type.isNull()));
+        }
+        Iterator<Department> departments = departmentRepository.findAll(builder).iterator();
+        List<Department> departmentList = IteratorUtils.toList(departments);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
+    }
 }
