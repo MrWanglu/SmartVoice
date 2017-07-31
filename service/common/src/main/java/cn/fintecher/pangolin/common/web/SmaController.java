@@ -151,7 +151,7 @@ public class SmaController {
                                                                @RequestHeader(value = "X-UserToken") String token) {
         User user = userClient.getUserByToken(token).getBody();
 //        呼叫中心配置
-        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), user.getCompanyCode(), Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), request.getCompanyCode(), Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
         if (Objects.isNull(sysParam)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
         }

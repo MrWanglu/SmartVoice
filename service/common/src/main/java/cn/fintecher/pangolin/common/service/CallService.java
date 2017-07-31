@@ -27,11 +27,11 @@ public class CallService {
     @Value("${pangolin.call-server.secret}")
     private String secret;
     //中通天鸿系统参数  联系人  师秋艳 QQ 2853152686
+    private static final String timeout = "50";
     @Value("${pangolin.zhongtong-server.enterprise-code}")
     private String enterpriseCode;
     @Value("${pangolin.zhongtong-server.proceedSign}")
     private String proceedSign;
-    private static final String timeout = "50";
     @Value("${pangolin.zhongtong-server.cti}")
     private String cti;
     @Value("${pangolin.zhongtong-server.webCall1800}")

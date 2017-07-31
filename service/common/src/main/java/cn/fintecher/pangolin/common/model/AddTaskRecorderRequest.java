@@ -16,4 +16,6 @@ public class AddTaskRecorderRequest {
     private String taskId;
     @ApiModelProperty(notes = "主叫号码")
     private String caller;
+    @ApiModelProperty(notes = "公司的code")
+    private String companyCode;
 }
