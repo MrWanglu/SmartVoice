@@ -418,8 +418,8 @@ public class DepartmentController extends BaseController {
     @RequestMapping(value = "/querySubdivision", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
     @ResponseBody
     @ApiOperation(value = "查询公司下的电催或者外访机构", notes = "查询公司下的电催或者外访机构")
-    public ResponseEntity<List<Department>> getAllDepartmentPage(@RequestParam String companyCode,
-                                                                 @RequestParam Integer type) {
+    public ResponseEntity<List<Department>> querySubdivision(@RequestParam String companyCode,
+                                                             @RequestParam Integer type) {
         QDepartment qDepartment = QDepartment.department;
         BooleanBuilder builder = new BooleanBuilder();
         if (Objects.nonNull(companyCode)) {
