@@ -1,20 +1,24 @@
 package cn.fintecher.pangolin.dataimp.service;
 
 import cn.fintecher.pangolin.dataimp.entity.*;
+import cn.fintecher.pangolin.dataimp.model.DataInfoExcelFileExist;
 import cn.fintecher.pangolin.dataimp.model.UpLoadFileModel;
-import cn.fintecher.pangolin.dataimp.repository.DataImportRecordRepository;
-import cn.fintecher.pangolin.dataimp.repository.DataInfoExcelFileRepository;
-import cn.fintecher.pangolin.dataimp.repository.DataInfoExcelRepository;
-import cn.fintecher.pangolin.dataimp.repository.TemplateDataModelRepository;
+import cn.fintecher.pangolin.dataimp.repository.*;
 import cn.fintecher.pangolin.dataimp.util.ExcelUtil;
+import cn.fintecher.pangolin.entity.CaseInfoFile;
+import cn.fintecher.pangolin.entity.DataInfoExcelModel;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.file.UploadFile;
+import cn.fintecher.pangolin.entity.message.ConfirmDataInfoMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.IdcardUtils;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -26,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -58,6 +63,12 @@ public class DataInfoExcelService {
     @Autowired
     private DataInfoExcelFileRepository dataInfoExcelFileRepository;
 
+    @Autowired
+    RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private DataInfoExcelHisRepository dataInfoExcelHisRepository;
+
     private  final Logger logger=LoggerFactory.getLogger(DataInfoExcelService.class);
     /**
      * Excel数据导入
@@ -69,7 +80,7 @@ public class DataInfoExcelService {
         //获取上传的文件
         ResponseEntity<UploadFile> fileResponseEntity=null;
         try {
-            fileResponseEntity= restTemplate.getForEntity(Constants.FILEID_SERVICE_URL.concat("getUploadFile/").concat(dataImportRecord.getFileId()), UploadFile.class);
+            fileResponseEntity= restTemplate.getForEntity(Constants.FILEID_SERVICE_URL.concat("uploadFile/").concat(dataImportRecord.getFileId()), UploadFile.class);
         }catch (Exception e){
             logger.error(e.getMessage(),e);
             throw new Exception("获取上传文件失败");
@@ -87,17 +98,19 @@ public class DataInfoExcelService {
         int[] startRow = new int[]{0};
         int[] startCol =new int[]{0};
         //通过模板配置解析Excel数据
+        List<TemplateExcelInfo> templateExcelInfoList=null;
         if(StringUtils.isNotBlank(dataImportRecord.getTemplateId())){
             templateDataModel=templateDataModelRepository.findOne(dataImportRecord.getTemplateId());
             if(Objects.nonNull(templateDataModel)){
                 startRow = new int[]{Integer.parseInt(templateDataModel.getDataRowNum())};
                 startCol = new int[]{Integer.parseInt(templateDataModel.getDataColNum())};
+                templateExcelInfoList=templateDataModel.getTemplateExcelInfoList();
             }else{
                 throw new Exception("导入模板配置信息缺失");
             }
         }
         Class<?>[] dataClass = {DataInfoExcel.class};
-        ExcelSheetObj excelSheetObj= ExcelUtil.parseExcelSingle(file,dataClass,startRow,startCol,templateDataModel.getTemplateExcelInfoList());
+        ExcelSheetObj excelSheetObj= ExcelUtil.parseExcelSingle(file,dataClass,startRow,startCol,templateExcelInfoList);
         List<CellError> cellErrorList =null;
         if(Objects.nonNull(excelSheetObj)){
             cellErrorList=excelSheetObj.getCellErrorList();
@@ -118,15 +131,13 @@ public class DataInfoExcelService {
                 for (Object obj : dataList) {
                     DataInfoExcel tempObj = (DataInfoExcel) obj;
                     tempObj.setBatchNumber(batchNumber);
-                    tempObj.setDataSources(Constants.DATA_SOURCE);
+                    tempObj.setDataSources(Constants.DataSource.IMPORT.getValue());
                     tempObj.setPrinCode(dataImportRecord.getPrincipalId());
                     tempObj.setPrinName(dataImportRecord.getPrincipalName());
                     tempObj.setOperator(user.getId());
                     tempObj.setOperatorName(user.getRealName());
                     tempObj.setOperatorTime(ZWDateUtil.getNowDateTime());
                     tempObj.setCompanyCode(user.getCompanyCode());
-                    tempObj.setDepartId(user.getDepartment().getId());
-                    tempObj.setDepartName(user.getDepartment().getName());
                     tempObj.setCaseHandNum(dataImportRecord.getHandNumber());
                     tempObj.setPaymentStatus("M".concat(String.valueOf(tempObj.getOverDuePeriods() == null ? "M0" : tempObj.getOverDuePeriods())));
                     tempObj.setDelegationDate(dataImportRecord.getDelegationDate());
@@ -246,6 +257,63 @@ public class DataInfoExcelService {
         dataInfoExcelFile.setCompanyCode(user.getCompanyCode());
         dataInfoExcelFile.setBatchNumber(batchNumber);
         dataInfoExcelFileRepository.delete(dataInfoExcelFile);
+    }
+
+    /**
+     * 检查附件是否存在
+     * @param user
+     * @return
+     */
+    public List<DataInfoExcelFileExist> checkCasesFile(User user)  {
+        List<DataInfoExcelFileExist> dataInfoExcelFileExistList=new ArrayList<>();
+        QDataInfoExcel qDataInfoExcel=QDataInfoExcel.dataInfoExcel;
+        Iterable<DataInfoExcel> dataInfoExcelIterable=dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getOperator())
+                .and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
+        for(Iterator<DataInfoExcel> it = dataInfoExcelIterable.iterator(); it.hasNext();){
+            DataInfoExcel dataInfoExcel=it.next();
+            QDataInfoExcelFile qDataInfoExcelFile=QDataInfoExcelFile.dataInfoExcelFile;
+            Iterable<DataInfoExcelFile> dataInfoExcelFileIterable= dataInfoExcelFileRepository.findAll(qDataInfoExcelFile.caseId.eq(dataInfoExcel.getId()));
+            if(Objects.isNull(dataInfoExcelFileIterable) || !(dataInfoExcelFileIterable.iterator().hasNext())){
+                DataInfoExcelFileExist obj=new DataInfoExcelFileExist();
+                obj.setCaseId(dataInfoExcel.getId());
+                obj.setCaseNumber(dataInfoExcel.getCaseNumber());
+                obj.setBatchNumber(dataInfoExcel.getBatchNumber());
+                obj.setMsg("缺少附件");
+                dataInfoExcelFileExistList.add(obj);
+            }
+        }
+        return dataInfoExcelFileExistList;
+    }
+
+
+    /**
+     * 案件确认
+     * @param user
+     */
+    public void casesConfirmByBatchNum(User user){
+        //查询该用户下所有未确认的案件
+        QDataInfoExcel qDataInfoExcel=QDataInfoExcel.dataInfoExcel;
+        Iterable<DataInfoExcel> dataInfoExcelIterable= dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId()).and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
+        for (Iterator iterator = dataInfoExcelIterable.iterator(); iterator.hasNext();) {
+            DataInfoExcel dataInfoExcel=(DataInfoExcel) iterator.next();
+            ConfirmDataInfoMessage msg=new ConfirmDataInfoMessage();
+            DataInfoExcelModel dataInfoExcelModel=new DataInfoExcelModel();
+            BeanUtils.copyProperties(dataInfoExcel,dataInfoExcelModel);
+            msg.setDataInfoExcelModel(dataInfoExcelModel);
+            //附件信息
+            QDataInfoExcelFile qDataInfoExcelFile=QDataInfoExcelFile.dataInfoExcelFile;
+            Iterable<DataInfoExcelFile> dataInfoExcelFileIterable=dataInfoExcelFileRepository.findAll(qDataInfoExcelFile.caseId.eq(dataInfoExcel.getId()));
+            List<CaseInfoFile> caseInfoFileList=new ArrayList<>();
+            List<DataInfoExcelFile> dataInfoExcelFileList= IteratorUtils.toList(dataInfoExcelFileIterable.iterator());
+            BeanUtils.copyProperties(dataInfoExcelFileList,caseInfoFileList);
+            msg.setCaseInfoFileList(caseInfoFileList);
+            msg.setUser(user);
+            rabbitTemplate.convertAndSend(Constants.DATAINFO_CONFIRM_QE, msg);
+            DataInfoExcelHis dataInfoExcelHis=new DataInfoExcelHis();
+            BeanUtils.copyProperties(dataInfoExcel,dataInfoExcelHis);
+            dataInfoExcelRepository.delete(dataInfoExcel);
+            dataInfoExcelHisRepository.save(dataInfoExcelHis);
+        }
     }
 
 }

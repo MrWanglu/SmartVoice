@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.file.web;
 
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.message.ImportFileUploadSuccessMessage;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.file.model.UnZipCaseFileRequest;
 import cn.fintecher.pangolin.file.model.User;
 import cn.fintecher.pangolin.file.repository.UploadFileRepository;
@@ -46,7 +47,7 @@ public class FileUploadController {
         if (file.isEmpty()) {
             throw new RuntimeException("MultipartFile是空的");
         }
-        ResponseEntity<User> entity = restTemplate.getForEntity("http://bussines-service/api/userResource/getUserByToken?token=" + token, User.class);
+        ResponseEntity<User> entity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
         if (file.isEmpty()) {
             throw new RuntimeException("请先登录");
         }

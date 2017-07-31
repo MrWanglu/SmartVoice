@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.dataimp.web;
 
 
 import cn.fintecher.pangolin.dataimp.entity.*;
+import cn.fintecher.pangolin.dataimp.model.DataInfoExcelFileExist;
 import cn.fintecher.pangolin.dataimp.model.UpLoadFileModel;
 import cn.fintecher.pangolin.dataimp.repository.DataInfoExcelFileRepository;
 import cn.fintecher.pangolin.dataimp.repository.DataInfoExcelRepository;
@@ -96,6 +97,7 @@ public class DataInfoExcelController {
         try {
            cellErrorList= dataInfoExcelService.importExcelData(dataImportRecord,user);
         }catch (Exception e){
+            e.printStackTrace();
             if(Objects.nonNull(cellErrorList) && !cellErrorList.isEmpty()){
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("模板数据错误","dataTemple Error",ENTITY_NAME)).body(cellErrorList);
             }
@@ -184,6 +186,22 @@ public class DataInfoExcelController {
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("删除案件信息",ENTITY_NAME)).body(null);
     }
 
+    @GetMapping("/checkCasesFile")
+    @ResponseBody
+    @ApiOperation(value = "检查案件附件是否存在", notes = "检查案件附件是否存在")
+    public ResponseEntity<List<DataInfoExcelFileExist>> checkCasesFile(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        ResponseEntity<User> userResponseEntity=null;
+        try {
+            userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+        }catch (Exception e){
+            logger.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
+        }
+        User user = userResponseEntity.getBody();
+        List<DataInfoExcelFileExist> checkStr = dataInfoExcelService.checkCasesFile(user);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("检查附件是否存在",ENTITY_NAME)).body(checkStr);
+    }
+
     @GetMapping("/casesConfirmByBatchNum")
     @ApiOperation(value = "案件确认操作", notes = "案件确认操作")
     public ResponseEntity casesConfirmByBatchNum(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
@@ -195,6 +213,7 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
         User user = userResponseEntity.getBody();
+        dataInfoExcelService.casesConfirmByBatchNum(user);
         return null;
     }
 

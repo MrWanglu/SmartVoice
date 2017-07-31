@@ -58,17 +58,17 @@ public class ExcelUtil {
         ExcelSheetObj excelSheetObj = null;
         InputStream inputStream = null;
         try {
+            HttpHeaders headers = new HttpHeaders();
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<byte[]> response = restTemplate.exchange(file.getLocalUrl(), HttpMethod.GET, new HttpEntity<byte[]>(headers), byte[].class);
+            byte[] result = response.getBody();
+            inputStream = new ByteArrayInputStream(result);
             String fileType = file.getType();
             if (Constants.EXCEL_TYPE_XLS.equals(fileType)) {
                 workbook = new HSSFWorkbook(new POIFSFileSystem(inputStream));//支持低版本的Excel文件
             } else if (Constants.EXCEL_TYPE_XLSX.equals(fileType)) {
                 workbook = new XSSFWorkbook(inputStream);
             }
-            HttpHeaders headers = new HttpHeaders();
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<byte[]> response = restTemplate.exchange(file.getUrl(), HttpMethod.GET, new HttpEntity<byte[]>(headers), byte[].class);
-            byte[] result = response.getBody();
-            inputStream = new ByteArrayInputStream(result);
             LinkedHashMap<String, Sheet> sheetLinkedHashMap = getExcelSheets(workbook);
             Iterator<Map.Entry<String, Sheet>> iterator = sheetLinkedHashMap.entrySet().iterator();
             while (iterator.hasNext()) {
@@ -95,7 +95,8 @@ public class ExcelUtil {
                 }
             }
         }
-        logger.info("线程 {} 结束Excel解析,耗时：{} 毫秒", Thread.currentThread(), watch.getLastTaskTimeMillis());
+        watch.stop();
+        logger.info("线程 {} 结束Excel解析,耗时：{} 毫秒", Thread.currentThread(), watch.getTotalTimeMillis());
         return excelSheetObj;
     }
 
@@ -240,7 +241,9 @@ public class ExcelUtil {
                     //获取该列对应的头部信息中文
                     String titleName = headerMap.get(colIndex);
                     Cell cell = dataRow.getCell(colIndex);
+
                     matchFields(dataClass, dataRow, cellErrors, sheetName, rowIndex, obj, colIndex, titleName, cell);
+
                 }
             }else{
                 //配置模板
@@ -311,6 +314,7 @@ public class ExcelUtil {
                             //实体中变量赋值
                             try {
                                 field.set(obj, getObj(field.getType(), cell));
+                                break;
                             } catch (Exception e) {
                                 String errorMsg = "第[" + dataRow.getRowNum() + "]行，字段:[" + cellName + "]的数据类型不正确";
                                 CellError errorObj = new CellError(sheetName, rowIndex, colIndex, null, titleName, errorMsg, e);

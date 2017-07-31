@@ -27,6 +27,14 @@ spring:
         host: 192.168.1.6
         virtual-host: test
         port: 5672
+    cache:
+        jcache:
+            config: ehcache.xml
+    redis:
+        database: 0
+        host: 192.168.3.10
+        port: 6379
+        expireTime: 3600
 eureka:
   instance:
     hostname: file-service
@@ -43,3 +51,10 @@ cuibei:
   baiduMap:
     webUrl: http://api.map.baidu.com/place/v2/search?region=全国&ak=
     webAk: lHaYCXlRADlhW0fnv8tpIhCfqD85pTSr
+
+threadPool:
+  corePoolSize: 5
+  maxPoolSize: 50
+  keepAliveSeconds : 60
+  queueCapacity: 100
+  threadNamePrefix: pangolin-

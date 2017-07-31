@@ -8,8 +8,8 @@ spring:
 eureka:
   instance:
     hostname: localhost
-    lease-expiration-duration-in-seconds: 30
-    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 60
+    lease-renewal-interval-in-seconds: 60
   client:
     registerWithEureka: false
     fetchRegistry: false

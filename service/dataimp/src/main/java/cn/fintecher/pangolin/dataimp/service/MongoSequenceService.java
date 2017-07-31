@@ -34,7 +34,7 @@ public class MongoSequenceService {
     public String getNextSeq(String name,String companyCode) throws Exception{
         MongoSequence mongoSequence=null;
         synchronized (this){
-             mongoSequence = mongo.findAndModify( query(where("_id").is(name).and("companyCode").is(companyCode)),
+                 mongoSequence = mongo.findAndModify( query(where("_id").is(name).and("companyCode").is(companyCode)),
                     new Update().inc("currentValue", 1),options().upsert(true).returnNew(true),
                     MongoSequence.class);
         }

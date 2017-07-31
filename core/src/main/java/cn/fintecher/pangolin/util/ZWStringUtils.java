@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.util;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * Created by jwdstef on 2017/3/8.
@@ -70,5 +71,18 @@ public class ZWStringUtils {
             }
         }
         return buffer.toString();
+    }
+
+    /**
+     * 将链表集合转为String字符串
+     * @param collection
+     * @param separator
+     * @return
+     */
+    public static String collectionToString(Collection collection,String separator){
+        StringBuilder sb = new StringBuilder();
+        Stream.of(collection).forEach(item -> sb.append(item).append(separator));
+        sb.deleteCharAt(sb.lastIndexOf(separator));
+        return sb.toString();
     }
 }

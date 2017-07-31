@@ -330,4 +330,29 @@ public class CaseInfo extends BaseEntity {
             return remark;
         }
     }
+
+    /**
+     * 案件流转类型
+     */
+    public enum CaseType {
+        DISTRIBUTE(173,"案件分配"),PHNONESMALLTURN(174,"电催小流转"),PHNONEFORCETURN(175,"电催强制流转"),PHNONEFAHEADTURN(176,"电催提前流转"),
+        PHNONELEAVETURN(177,"电催保留流转"), OUTSMALLTURN(178,"外访小流转"), OUTFAHEADTURN(179,"外访提前流转"),OUTFORCETURN(180,"外访强制流"),
+        OUTLEAVETURN(181,"外访保留流转");
+        private Integer value;
+
+        private String remark;
+
+        CaseType(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
 }

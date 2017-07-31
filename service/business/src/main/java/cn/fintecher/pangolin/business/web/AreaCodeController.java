@@ -1,12 +1,15 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.repository.AreaCodeRepository;
+import cn.fintecher.pangolin.business.service.AreaCodeService;
 import cn.fintecher.pangolin.entity.AreaCode;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
 import com.querydsl.core.types.Predicate;
+import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -32,6 +35,9 @@ public class AreaCodeController extends BaseController {
     private final Logger log = LoggerFactory.getLogger(AreaCodeController.class);
     private final AreaCodeRepository areaCodeRepository;
 
+    @Autowired
+    AreaCodeService areaCodeService;
+
     public AreaCodeController(AreaCodeRepository areaCodeRepository) {
         this.areaCodeRepository = areaCodeRepository;
     }
@@ -40,7 +46,8 @@ public class AreaCodeController extends BaseController {
     @GetMapping("/areaCode")
     public List<AreaCode> getAllAreaCode() {
         log.debug("REST request to get all AreaCode");
-        List<AreaCode> areaCodeList = areaCodeRepository.findAll();
+        List<AreaCode> areaCodeList;
+        areaCodeList = IteratorUtils.toList(areaCodeService.queryAllAreaCode().iterator());
         return areaCodeList;
     }
 
@@ -55,7 +62,7 @@ public class AreaCodeController extends BaseController {
     @GetMapping("/areaCode/{id}")
     public ResponseEntity<AreaCode> getAreaCode(@PathVariable Integer id) {
         log.debug("REST request to get areaCode : {}", id);
-        AreaCode areaCode = areaCodeRepository.findOne(id);
+        AreaCode areaCode = areaCodeService.queryAreaCodeById(id);
         return ResponseUtil.wrapOrNotFound(Optional.ofNullable(areaCode));
     }
 

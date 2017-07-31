@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.business.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,12 +16,18 @@ import org.springframework.data.redis.core.RedisTemplate;
 @Configuration
 @EnableCaching
 public class CacheConfig {
+
+    @Value("${spring.redis.expireTime}")
+    private int expireTime;
+
     @Autowired
     private JedisConnectionFactory jedisConnectionFactory;
 
     @Bean
     public RedisCacheManager cacheManager() {
-        return new RedisCacheManager(redisTemplate());
+        RedisCacheManager redisCacheManager=new RedisCacheManager(redisTemplate());
+        redisCacheManager.setDefaultExpiration(expireTime);
+        return redisCacheManager;
     }
 
     @Bean
