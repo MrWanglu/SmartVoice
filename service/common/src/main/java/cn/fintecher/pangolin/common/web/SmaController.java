@@ -106,7 +106,9 @@ public class SmaController {
         }
         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
     }
-
+    /**
+     * @Description : v3系统的话绑定的是座机 163，需要添加中通天鸿 164 和云羿的呼叫系统 165
+     */
     @PostMapping("/bindTaskDataByCallerId")
     @ApiOperation(value = "绑定呼叫ID", notes = "呼叫信息")
     public ResponseEntity<Map<String, String>> bindTaskDataByCallerId(@RequestBody BindCallNumberRequest request, @RequestHeader(value = "X-UserToken") String token) {
@@ -144,7 +146,9 @@ public class SmaController {
         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
 
     }
-
+    /**
+     * @Description : v3系统的话绑定的是座机 163，需要添加中通天鸿 164 和云羿的呼叫系统 165
+     */
     @PostMapping("/addTaskRecorder")
     @ApiOperation(value = "开始电话呼叫", notes = "开始电话呼叫")
     public ResponseEntity<Map<String, String>> addTaskRecorder(@RequestBody AddTaskRecorderRequest request,
@@ -187,15 +191,16 @@ public class SmaController {
             /* getResponseBodyAsStream start */
                 InputStream inputStream = method.getResponseBodyAsStream();
                 BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-                StringBuffer response = new StringBuffer();
-                String read = "";
-                while ((read = br.readLine()) != null) {
-                    response.append(read);
+                String response = null;
+                while ((br.readLine()) != null) {
+                    response = br.readLine();
                 }
-//            System.out.println(response);
+                //解析交给前端，这边比较麻烦
+                Map<String, String> map = new HashMap<>();
+                map.put("response", response);
         /* getResponseBodyAsStream start */
                 method.releaseConnection();
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(map);
             } catch (IOException e) {
                 e.printStackTrace();
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "be defeated", "失败")).body(null);
@@ -204,6 +209,9 @@ public class SmaController {
         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
     }
 
+    /**
+     * @Description : v3系统的话绑定的是座机 163，需要添加中通天鸿 164 和云羿的呼叫系统 165
+     */
     @PostMapping("/addTaskVoiceFileByTaskId")
     @ApiOperation(value = "调用sma接口保存录音文件", notes = "调用sma接口保存录音文件")
     public ResponseEntity<Map<String, String>> addTaskVoiceFileByTaskId(@RequestBody AddTaskVoiceFileMessage request) {
@@ -215,6 +223,9 @@ public class SmaController {
         return smaRequestService.smaRequest("addTaskVoiceFileBytaskId.html", paramMap);
     }
 
+    /**
+     * @Description : v3系统的话绑定的是座机 163，需要添加中通天鸿 164 和云羿的呼叫系统 165
+     */
     @GetMapping("/getVoice")
     @ApiOperation(value = "查询客户id的呼叫所有录音", notes = "呼叫信息")
     public ResponseEntity<Map<String, String>> getVoice(@RequestParam String customerId, Pageable pageable, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
