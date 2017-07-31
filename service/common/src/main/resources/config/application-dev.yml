@@ -63,6 +63,8 @@ pangolin:
   zhongtong-server:
     cti: http://m.icsoc.net/v2/wintelapi/webcall/cti
     webCall1800: http://m.icsoc.net/v2/wintelapi/webcall/webcall800
+    callout: http://m.icsoc.net/v2/wintelapi/detail/callout
+    downloadrRecord: http://m.icsoc.net/v2/wintelapi/record/playrecord
     enterprise-code: 4216052701
     proceedSign: 59715406
     secret: 6b21a1c997dcea6a20c3181677c20744

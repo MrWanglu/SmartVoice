@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.common.service;
 import cn.fintecher.pangolin.common.model.AddTaskRecorderRequest;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.NameValuePair;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,9 @@ public class CallService {
     private String webCall1800;
     @Value("${pangolin.zhongtong-server.secret}")
     private String ztSecret;
+    //中通天鸿下载录音
+    @Value("${pangolin.zhongtong-server.downloadrRecord}")
+    private String downloadrRecord;
 
     //中通天鸿的电话呼叫
     public String encode(String nonce, String created, String secret) throws Exception {
@@ -57,6 +61,10 @@ public class CallService {
         }
         return "";
     }
+
+    /**
+     * @Description : 中通天鸿 164 中通天鸿的打电话接口
+     */
 
     public HttpMethod getPostMethod(AddTaskRecorderRequest request) {
         PostMethod post = new PostMethod(cti);
@@ -78,5 +86,26 @@ public class CallService {
         NameValuePair model5 = new NameValuePair("display_called", proceedSign);
         post.setRequestBody(new NameValuePair[]{model1, model2, model3, model4, model5});
         return post;
+    }
+
+    /**
+     * @Description : 中通天鸿 164 下载保存录音
+     */
+    public HttpMethod downloadRecord(String callId) {
+        String agId = null;
+        String params = "vcc_code=" + enterpriseCode + "&call_id=" + callId + "&result_type=1" + "&ag_id=" + agId;
+
+        GetMethod get = new GetMethod(downloadrRecord + "?" + params);
+        String Nonce = new BASE64Encoder().encode("123456abc".getBytes()); //随机字符串
+        String Created = String.valueOf(System.currentTimeMillis());
+        String PasswordDigest = "";
+        try {
+            PasswordDigest = encode(Nonce, Created, secret);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        String headerValue = "UsernameToken Username=\"" + enterpriseCode + "\",PasswordDigest=\"" + PasswordDigest + "\",Nonce=\"" + Nonce + "\",Created=\"" + Created + "\"";
+        get.setRequestHeader("X-WSSE", headerValue); //http请求头的键名（大小写无关）固定字符串，后面添加一个空格
+        return get;
     }
 }

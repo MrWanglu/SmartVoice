@@ -106,6 +106,21 @@ public class CaseFollowupRecord extends BaseEntity {
     @Transient
     private List fileIds;
 
+    @ApiModelProperty(notes = "公司code码")
+    private String companyCode;
+
+    @ApiModelProperty(notes = "呼叫类型(erpv3 163 中通天鸿 164")
+    private Integer callType;
+
+    @ApiModelProperty(notes = "呼叫开始时间")
+    private String startTime;
+
+    @ApiModelProperty(notes = "呼叫结束时间")
+    private String endTime;
+
+    @ApiModelProperty(notes = "通话时长默认为秒")
+    private String connSecs;
+
     /**
      * @Description 电话状态枚举类
      */
@@ -343,6 +358,34 @@ public class CaseFollowupRecord extends BaseEntity {
         private String remark;
 
         InvalidCollection(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
+    /**
+     * @Description 打电话类型
+     */
+    public enum CallType {
+        //erpv3
+        ERPV3(163, "erpv3"),
+        //中通天鸿
+        TIANHONG(164, "中通天鸿"),
+        //云羿
+        YUNYI(165, "云羿");
+        private Integer value;
+
+        private String remark;
+
+        CallType(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }
