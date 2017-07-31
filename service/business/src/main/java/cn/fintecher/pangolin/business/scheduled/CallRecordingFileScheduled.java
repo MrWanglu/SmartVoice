@@ -114,7 +114,7 @@ public class CallRecordingFileScheduled {
                     Integer callId = caseFollowupRecord.getCallType();
                     HttpHeaders headers = new HttpHeaders();
                     headers.setContentType(MediaType.APPLICATION_JSON);
-                    ResponseEntity<String> result = restTemplate.exchange("http://common-service/api/smaResource/getRecordingByCallId", HttpMethod.GET, null, String.class);
+                    ResponseEntity<String> result = restTemplate.exchange("http://common-service/api/smaResource/getRecordingByCallId+?callId" + callId, HttpMethod.GET, null, String.class);
                     if (Objects.nonNull(result.getBody()) && !Objects.equals("fail", result.getBody())) {
                         caseFollowupRecord.setCallType(null);
                         caseFollowupRecord.setOpUrl(result.getBody());
