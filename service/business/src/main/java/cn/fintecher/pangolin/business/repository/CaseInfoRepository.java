@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by ChenChang on 2017/7/11.
@@ -131,5 +132,13 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
      */
     @Query(value = "select sum(overdue_amount) from case_info where current_collector = :id or assist_collector = :id and collection_status = :collectionStatus", nativeQuery = true)
     BigDecimal getCollectionAmt(@Param("id") String id, @Param("collectionStatus") Integer collectionStatus);
+
+    /**
+     * 获取所有批次号
+     * @param companyCode
+     * @return
+     */
+    @Query(value = "select distinct(batch_number) from case_info where company_code = ?1 and batch_number is not null", nativeQuery = true)
+    List<String> findDistinctByBatchNumber(@Param("companyCode") String companyCode);
 
 }
