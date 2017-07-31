@@ -141,4 +141,17 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
     @Query(value = "select distinct(batch_number) from case_info where company_code = ?1 and batch_number is not null", nativeQuery = true)
     List<String> findDistinctByBatchNumber(@Param("companyCode") String companyCode);
 
+    /**
+     * 部门下案件总金额
+     * @param deptCode
+     * @return
+     */
+    @Query(value = "select sum(amo.overdue_amount) as case_sum " +
+                    "from (select distinct(cinfo.case_number),overdue_amount " +
+                        "from " +
+                        " case_info cinfo " +
+                        "left join department dept " +
+                        " on cinfo.depart_id = dept.id " +
+                        "where dept.`code` like concat(?1,'%')) amo ", nativeQuery = true)
+    BigDecimal getCaseSumAmt (@Param("deptCode") String deptCode);
 }
