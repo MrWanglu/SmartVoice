@@ -124,6 +124,9 @@ public class CasePayApply extends BaseEntity {
     @ApiModelProperty(notes = "委托方名称")
     private String principalName;
 
+    @ApiModelProperty(notes = "案件金额")
+    private BigDecimal caseAmt;
+
     /**
      * @Description 还款类型枚举类
      */
