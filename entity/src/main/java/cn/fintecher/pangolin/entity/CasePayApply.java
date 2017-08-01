@@ -124,12 +124,6 @@ public class CasePayApply extends BaseEntity {
     @ApiModelProperty(notes = "委托方名称")
     private String principalName;
 
-    @ApiModelProperty(notes = "减免类型 0逾期还款  1提前结清")
-    private Integer approveType;
-
-    @ApiModelProperty(notes = "费用减免审批状态 0已撤回 1待审批 2 审批同意 3审批拒绝")
-    private Integer approveCostresult;
-
     /**
      * @Description 还款类型枚举类
      */
@@ -211,9 +205,7 @@ public class CasePayApply extends BaseEntity {
         //审核通过(入账)
         AUDIT_AGREE(58, "审核通过(入账)"),
         //审核拒绝(驳回)
-        AUDIT_REJECT(59, "审核拒绝(驳回)"),
-        //还款审核中
-        PAY_TO_REVIEW(124, "还款审核中");
+        AUDIT_REJECT(59, "审核拒绝(驳回)");
 
         private Integer value;
 
@@ -250,61 +242,6 @@ public class CasePayApply extends BaseEntity {
         private String remark;
 
         ApproveResult(Integer value, String remark) {
-            this.value = value;
-            this.remark = remark;
-        }
-
-        public Integer getValue() {
-            return value;
-        }
-
-        public String getRemark() {
-            return remark;
-        }
-    }
-
-    /**
-     * 费用减免审批个状态的枚举
-     */
-    //费用减免审批各状态枚举
-    public enum ApproveType {
-        OVERDULE_PAY(115, "逾期还款"),
-        EARLY_SETTLE(116, "提前结清");
-
-
-        private Integer value;
-
-        private String remark;
-
-        ApproveType(Integer value, String remark) {
-            this.value = value;
-            this.remark = remark;
-        }
-
-        public Integer getValue() {
-            return value;
-        }
-
-        public String getRemark() {
-            return remark;
-        }
-    }
-
-    /**
-     * 费用减免审批个状态的枚举
-     */
-    //费用减免审批各状态枚举
-    public enum ApproveCostresult {
-        REVOCATION(119, "已撤回"),
-        TO_AUDIT(120, "待审批"),
-        AUDIT_AGREE(121, "审批同意"),
-        AUDIT_REJECT(122, "审批拒绝");
-
-        private Integer value;
-
-        private String remark;
-
-        ApproveCostresult(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }

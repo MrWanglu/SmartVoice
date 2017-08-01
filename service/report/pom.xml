@@ -30,7 +30,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
+            <scope>true</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -76,6 +76,11 @@
             <groupId>com.github.pagehelper</groupId>
             <artifactId>pagehelper-spring-boot-starter</artifactId>
             <version>${com.github.pagehelper}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.fintecher</groupId>
+            <artifactId>pangolin-entity</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
