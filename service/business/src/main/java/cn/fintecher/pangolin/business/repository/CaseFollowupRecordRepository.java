@@ -45,19 +45,22 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
     /**
      @Description 获得周跟催榜
      */
-    @Query(value = "select count(distinct(case_id)) as rank, u.real_name, u.id from case_followup_record c,user u where c.operator = u.id " +
-            "and operator_time <= :endDate and operator_time >= :startDate group by id order by rank desc",nativeQuery = true)
-    List<Object[]> getFlowupCaseList(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    @Query(value = "select count(distinct(case_id)) as rank, u.real_name, u.id, u.photo from case_followup_record c,user u where c.operator = u.id " +
+            "and operator_time <= :endDate and operator_time >= :startDate and u.type = :type group by id order by rank desc",nativeQuery = true)
+    List<Object[]> getFlowupCaseList(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type);
 
     /**
      @Description 获得周催计榜
      */
-    @Query(value = "select count(*) as rank, u.real_name, u.id from case_followup_record c,user u where c.operator = u.id " +
-            "and operator_time <= :endDate and operator_time >= :startDate group by id order by rank desc",nativeQuery = true)
-    List<Object[]> getCollectionList(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    @Query(value = "select count(*) as rank, u.real_name, u.id, u.photo from case_followup_record c,user u where c.operator = u.id " +
+            "and operator_time <= :endDate and operator_time >= :startDate and u.type = :type group by id order by rank desc",nativeQuery = true)
+    List<Object[]> getCollectionList(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type);
     /**
      @Description 获得指定用户催计数
      */
     @Query(value = "select count(*) from case_followup_record where operator = :id and type = :type and operator_time <= :endDate and operator_time >= :startDate",nativeQuery = true)
     Integer getCollectionNum(@Param("id")String id, @Param("type") int type, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
+
+    @Query(value = "select * from case_followup_record where case_id = :id and promise_flag = :flag order by operator_time desc limit 1",nativeQuery = true)
+    CaseFollowupRecord getPayPromise(@Param("id")String id, @Param("flag") Integer flag);
 }
