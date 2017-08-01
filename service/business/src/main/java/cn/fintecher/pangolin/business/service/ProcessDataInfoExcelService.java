@@ -161,9 +161,9 @@ public class ProcessDataInfoExcelService {
         //已有的案件池
 
         Set<String> caseInfoSets=new HashSet<>();
-        for(Iterator<CaseInfo> it=caseInfoIterable.iterator();it.hasNext();){
+       /* for(Iterator<CaseInfo> it=caseInfoIterable.iterator();it.hasNext();){
             caseInfoSets.add(it.next().getId());
-        }
+        }*/
 
         if(!caseInfoDistributedSets.isEmpty() || !caseInfoSets.isEmpty()){
             //进入异常池

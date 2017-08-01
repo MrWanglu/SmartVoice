@@ -3,14 +3,10 @@ package cn.fintecher.pangolin.business.repository;
 
 import cn.fintecher.pangolin.entity.CaseInfoException;
 import cn.fintecher.pangolin.entity.QCaseInfoException;
-import com.querydsl.core.types.dsl.StringPath;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
-
-import java.math.BigDecimal;
-import java.util.Iterator;
 
 /**
  * Created by ChenChang on 2017/7/11.
@@ -19,7 +15,7 @@ public interface CaseInfoExceptionRepository extends QueryDslPredicateExecutor<C
     @Override
     default void customize(final QuerydslBindings bindings, final QCaseInfoException root) {
 
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like(value));
+        /*bindings.bind(String.class).first((StringPath path, String value) -> path.like(value));
         bindings.bind(root.product.prodcutName).first((path,value) -> path.eq(value));
         //机构码搜索
         bindings.bind(root.department.code).first((path, value) -> path.startsWith(value));
@@ -57,7 +53,7 @@ public interface CaseInfoExceptionRepository extends QueryDslPredicateExecutor<C
         //催收类型
         bindings.bind(root.collectionType).first((path, value) -> path.eq(value));
         //产品系列
-        bindings.bind(root.product.productSeries.id).first((path, value) -> path.eq(value));
+        bindings.bind(root.product.productSeries.id).first((path, value) -> path.eq(value));*/
     }
 
 }
