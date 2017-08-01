@@ -23,6 +23,7 @@ import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -218,14 +219,14 @@ public class PaymentService {
     /**
      * @Description 导出还款记录
      */
-    public String exportCasePayApply(List<CasePayApply> casePayApplyList) throws Exception {
+    public String exportCasePayApply(List<CasePayApply> casePayApplyList) {
         if (casePayApplyList.isEmpty()) {
             throw new RuntimeException("没有数据");
         }
-        HSSFWorkbook workbook;
-        File file;
-        ByteArrayOutputStream out;
-        FileOutputStream fileOutputStream;
+        HSSFWorkbook workbook = null;
+        File file = null;
+        ByteArrayOutputStream out = null;
+        FileOutputStream fileOutputStream = null;
 
         Map<String, String> headMap = new HashMap<>(); //excel头
         List<Map<String, Object>> dataList = new ArrayList<>();
@@ -244,37 +245,69 @@ public class PaymentService {
         headMap.put("applayDate", "申请日期");
         headMap.put("applayRealName", "申请人");
 
-        Map<String, Object> map;
-        for (CasePayApply casePayApply : casePayApplyList) {
-            map = new HashMap<>();
-            map.put("caseNumber", casePayApply.getCaseNumber());
-            map.put("batchNumber", casePayApply.getBatchNumber());
-            map.put("principalName", casePayApply.getPrincipalName());
-            map.put("personalName", casePayApply.getPersonalName());
-            map.put("personalPhone", casePayApply.getPersonalPhone());
-            map.put("caseAmt", casePayApply.getCaseAmt());
-            map.put("applyPayAmt", casePayApply.getApplyPayAmt());
-            map.put("payType", casePayApply.getPayType());
-            map.put("payWay", casePayApply.getPayWay());
-            map.put("approveStatus", casePayApply.getApproveStatus());
-            map.put("approveResult", casePayApply.getApproveResult());
-            map.put("applayDate", casePayApply.getApplyDate());
-            map.put("applayRealName", casePayApply.getApplyRealName());
-            dataList.add(map);
-        }
+        try {
+            Map<String, Object> map;
+            for (CasePayApply casePayApply : casePayApplyList) {
+                map = new HashMap<>();
+                map.put("caseNumber", casePayApply.getCaseNumber());
+                map.put("batchNumber", casePayApply.getBatchNumber());
+                map.put("principalName", casePayApply.getPrincipalName());
+                map.put("personalName", casePayApply.getPersonalName());
+                map.put("personalPhone", casePayApply.getPersonalPhone());
+                map.put("caseAmt", casePayApply.getCaseAmt());
+                map.put("applyPayAmt", casePayApply.getApplyPayAmt());
+                map.put("payType", casePayApply.getPayType());
+                map.put("payWay", casePayApply.getPayWay());
+                map.put("approveStatus", casePayApply.getApproveStatus());
+                map.put("approveResult", casePayApply.getApproveResult());
+                map.put("applayDate", casePayApply.getApplyDate());
+                map.put("applayRealName", casePayApply.getApplyRealName());
+                dataList.add(map);
+            }
 
-        workbook = new HSSFWorkbook();
-        HSSFSheet sheet = workbook.createSheet("还款审批记录");
-        ExcelExportHelper.createExcel(workbook, sheet, headMap, dataList, 0, 0);
-        out = new ByteArrayOutputStream();
-        workbook.write(out);
-        String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "客户信息表.xls");
-        file = new File(filePath);
-        fileOutputStream = new FileOutputStream(file);
-        fileOutputStream.write(out.toByteArray());
-        FileSystemResource resource = new FileSystemResource(file);
-        MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
-        param.add("file", resource);
-        return restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class).getBody();
+            workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet("还款审批记录");
+            ExcelExportHelper.createExcel(workbook, sheet, headMap, dataList, 0, 0);
+            out = new ByteArrayOutputStream();
+            workbook.write(out);
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "客户信息表.xls");
+            file = new File(filePath);
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(out.toByteArray());
+            FileSystemResource resource = new FileSystemResource(file);
+            MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+            param.add("file", resource);
+            return restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class).getBody();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return null;
+        } finally {
+            // 关闭流
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    log.error(e.getMessage());
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    log.error(e.getMessage());
+                }
+            }
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    log.error(e.getMessage());
+                }
+            }
+            // 删除文件
+            if (file != null) {
+                file.delete();
+            }
+        }
     }
 }
