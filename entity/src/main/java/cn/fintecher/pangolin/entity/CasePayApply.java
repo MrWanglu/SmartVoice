@@ -62,16 +62,16 @@ public class CasePayApply extends BaseEntity {
     private Integer approveResult;
 
     @ApiModelProperty(notes = "申请人")
-    private String applayUserName;
+    private String applyUserName;
 
     @ApiModelProperty(notes = "申请人姓名")
-    private String applayRealName;
+    private String applyRealName;
 
     @ApiModelProperty(notes = "申请人部门")
-    private String applayDeptName;
+    private String applyDeptName;
 
     @ApiModelProperty(notes = "申请时间")
-    private Date applayDate;
+    private Date applyDate;
 
     @ApiModelProperty(notes = "减免审批人")
     private String approveDerateUser;
