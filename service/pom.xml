@@ -17,6 +17,7 @@
         <module>reminder</module>
         <module>eureka</module>
         <module>zuul</module>
+        <module>report</module>
     </modules>
     <artifactId>pangolin-service</artifactId>
     <properties>

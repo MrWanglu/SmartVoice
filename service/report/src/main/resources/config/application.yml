@@ -1,0 +1,42 @@
+spring:
+    application:
+        name: report-service
+    profiles:
+        active: @spring.profiles.active@
+    jackson:
+        serialization.write_dates_as_timestamps: true
+    mvc:
+        favicon:
+            enabled: false
+
+server:
+    session:
+        cookie:
+            http-only: true
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 60000
+
+    #mybatis
+mybatis:
+    type-aliases-package: cn.fintecher.pangolin.report.entity
+    mapper-locations: classpath:mapper/*.xml
+
+    #通用mapper
+mapper:
+    mappers:
+          - cn.fintecher.pangolin.report.util.MyMapper
+    not-empty: false
+    identity: MYSQL
+
+    #分页插件
+pagehelper:
+    helperDialect: mysql
+    reasonable: true
+    supportMethodsArguments: true
+    params: count=countSql
