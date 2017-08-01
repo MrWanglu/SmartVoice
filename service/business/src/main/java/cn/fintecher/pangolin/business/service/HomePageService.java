@@ -2,7 +2,9 @@ package cn.fintecher.pangolin.business.service;
 
 import cn.fintecher.pangolin.business.model.AdminPage;
 import cn.fintecher.pangolin.business.model.HomePageResult;
+import cn.fintecher.pangolin.business.model.WeekCountResult;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.repository.CasePayApplyRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.entity.QCaseInfo;
 import cn.fintecher.pangolin.entity.User;
@@ -10,7 +12,10 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @Author : sunyanping
@@ -26,6 +31,8 @@ public class HomePageService {
     private CaseInfoRepository caseInfoRepository;
     @Inject
     private UserService userService;
+    @Inject
+    private CasePayApplyRepository casePayApplyRepository;
 
     public HomePageResult getHomePageInformation(User user) {
         // 0-没有(不是管理员)，1-有（是管理员）
@@ -62,47 +69,58 @@ public class HomePageService {
         adminPage.setRepaySumAmtPerson(adminPage.getRepaySumAmt().divide(personCount, 2, BigDecimal.ROUND_HALF_UP));
 
         // 第三部分 催收员总数 在线人数 离线人数
-        Map<String, Integer> map = new HashMap<>();
-        map.put("online", 0);
-        map.put("offline", 0);
-        for (User u : allUser) {
-            if (u.getStatus() == 0) { //在线
-                map.put("online", map.get("online") + 1);
-            } else { //离线
-                map.put("offline", map.get("offline") + 1);
-            }
-        }
         adminPage.setCupoSum(deptUserSum);
-        adminPage.setCupoOnlineSum(map.get("online"));
-        adminPage.setCupoOfflineSum(map.get("offline"));
-//
-//
-//        //第四部分
-//        Integer custSum = adminPageMapper.getCustNum(degrId);
-//        Integer custSumIn = adminPageMapper.getCustNumIN(degrId);
-//        adminPage.setCustSum(Objects.isNull(custSum) ? 0 : custSum);
-//        adminPage.setCustSumIn(Objects.isNull(custSumIn) ? 0 : custSumIn);
-//
-//
-//        //第五部分
-//        List<WeekCountResult> weekRepayList = adminPageMapper.getWeekRepaySumAmt(degrId);
-//        adminPage.setWeekRepayList(addWeekListZero(weekRepayList));
-//
-//        // 第六部分
-//        List<WeekCountResult> weekFollList = adminPageMapper.getWeekFollCount(degrId);
-//        adminPage.setWeekFollList(addWeekListZero(weekFollList));
-//
-//        // 第七部分
-//        List<WeekCountResult> weekCaseEndList = adminPageMapper.getWeekCaseEndCount(degrId);
-//        adminPage.setWeekCaseEndList(addWeekListZero(weekCaseEndList));
-//
-//        // 第八部分
+        adminPage.setCupoOnlineSum(0);
+        adminPage.setCupoOfflineSum(0);
+
+
+        //第四部分 客户总数 在案客户总数
+        Integer custSum = caseInfoRepository.getCustNum(code);
+        Integer custSumIn = caseInfoRepository.getCustNumIN(code);
+        adminPage.setCustSum(Objects.isNull(custSum) ? 0 : custSum);
+        adminPage.setCustSumIn(Objects.isNull(custSumIn) ? 0 : custSumIn);
+
+
+        //第五部分 周回款金额
+        List<Object[]> weekRepaySumAmt = caseInfoRepository.getWeekRepaySumAmt(code);
+        List<WeekCountResult> weekRepayList = new ArrayList<>();
+        for (Object[] obj : weekRepaySumAmt) {
+            WeekCountResult weekCountResult = new WeekCountResult();
+            weekCountResult.setAmount((BigDecimal) obj[0]);
+            weekCountResult.setDayOfWeek((Integer) obj[1]);
+            weekRepayList.add(weekCountResult);
+        }
+        adminPage.setWeekRepayList(addWeekListZero(weekRepayList));
+
+        // 第六部分 周催计数
+        List<Object[]> weekFollCount = caseInfoRepository.getWeekFollCount(code);
+        List<WeekCountResult> weekFollList = new ArrayList<>();
+        for (Object[] obj : weekFollCount) {
+            WeekCountResult weekCountResult = new WeekCountResult();
+            weekCountResult.setNum( Integer.valueOf(obj[0].toString()));
+            weekCountResult.setDayOfWeek((Integer) obj[1]);
+            weekFollList.add(weekCountResult);
+        }
+        adminPage.setWeekFollList(addWeekListZero(weekFollList));
+
+        // 第七部分 周结案数
+        List<Object[]> weekCaseEndCount = caseInfoRepository.getWeekCaseEndCount(code);
+        List<WeekCountResult> weekCaseEndList = new ArrayList<>();
+        for (Object[] obj : weekCaseEndCount) {
+            WeekCountResult weekCountResult = new WeekCountResult();
+            weekCountResult.setNum( Integer.valueOf(obj[0].toString()));
+            weekCountResult.setDayOfWeek((Integer) obj[1]);
+            weekCaseEndList.add(weekCountResult);
+        }
+        adminPage.setWeekCaseEndList(addWeekListZero(weekCaseEndList));
+
+        // 第八部分 催收员排行榜
 //        adminPage.setCupoSortList(adminPageMapper.getCupoSort(degrId));
 //
-//        // 第九部分
+//        // 第九部分 客户排行榜
 //        adminPage.setCustSortList(adminPageMapper.getCustSort(degrId));
 //
-//        // 第十部分
+//        // 第十部分 系统公告
 ///*        List<SysNotice> sysNoticeList = new ArrayList<>();
 //        SysNotice sysNotice = new SysNotice();
 //        sysNotice.setTitle("批量成功");
@@ -111,7 +129,7 @@ public class HomePageService {
 //        adminPage.setSysNotice(sysNoticeList);*/
 //
 //        adminPage.initRate();
-//        homePageResult.setData(adminPage);
+        homePageResult.setData(adminPage);
         return homePageResult;
     }
 
@@ -155,4 +173,28 @@ public class HomePageService {
         return null;
     }
 
+    private List<WeekCountResult> addWeekListZero (List<WeekCountResult> weekCountResults){
+        if(weekCountResults.size() == 7){
+            return weekCountResults;
+        }
+        Integer[] items = {0,1,2,3,4,5,6};
+        List<Integer> addList = new ArrayList<>();
+        for(Integer item : items){
+            addList.add(item);
+        }
+        for(WeekCountResult weekCountResult : weekCountResults){
+            if(addList.contains(weekCountResult.getDayOfWeek())){
+                addList.remove(weekCountResult.getDayOfWeek());
+            }
+        }
+        for(Integer value : addList){
+            WeekCountResult addResult = new WeekCountResult();
+            addResult.setDayOfWeek(value);
+            addResult.setAmount(new BigDecimal(0));
+            addResult.setNum(0);
+            weekCountResults.add(addResult);
+        }
+        weekCountResults.sort(Comparator.comparingInt(WeekCountResult::getDayOfWeek));
+        return weekCountResults;
+    }
 }

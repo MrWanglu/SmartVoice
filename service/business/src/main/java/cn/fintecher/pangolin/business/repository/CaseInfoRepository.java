@@ -168,4 +168,83 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
             "case_info left join department on case_info.depart_id = department.id) as cade\n" +
             "on cade.cid = caseamt.case_id) as cpd where cpd.dcode like concat(?1,'%')", nativeQuery = true)
     BigDecimal getRepaySumAmt(@Param("deptCode") String deptCode);
+
+    /**
+     * 部门下客户总数
+     * @param deptCode
+     * @return
+     */
+    @Query(value =  "select count(distinct(personal_id)) as psum from case_info " +
+            " left join  " +
+            " department " +
+            " on case_info.depart_id = department.id " +
+            " where department.`code` like concat(?1,'%')", nativeQuery = true)
+    Integer getCustNum(@Param("deptCode") String deptCode);
+
+    /**
+     * 部门下客户在案总数
+     * @param deptCode
+     * @return
+     */
+    @Query(value =  "select count(distinct(personal_id)) as psum from case_info " +
+                    " left join  " +
+                        " department " +
+                    " on case_info.depart_id = department.id " +
+                    " where department.`code` like concat(?1,'%') " +
+                    " and case_info.collection_status not in (24,166)", nativeQuery = true)
+    Integer getCustNumIN(@Param("deptCode") String deptCode);
+
+    /**
+     * 周回款统计
+     * @param deptCode
+     * @return
+     */
+    @Query(value = "select sum(wk.apply_pay_amt) as amount,weekday(wk.approve_pay_datetime) as dayOfWeek " +
+                    "from " +
+                        " (select case_id,apply_pay_amt,approve_pay_datetime " +
+                        " from case_pay_apply as apply " +
+                        " left join department on apply.depart_id = department.id " +
+                        " where approve_status = '58' " +
+                        " and department.code like concat(?1,'%') " +
+                        " and yearweek(DATE_FORMAT(apply.approve_pay_datetime,'%Y-%m-%d'),1) = YEARWEEK(NOW(),1)) wk " +
+                    "group by weekday(approve_pay_datetime) " +
+                    "order by dayOfWeek",  nativeQuery = true)
+    List<Object[]> getWeekRepaySumAmt(@Param("deptCode") String deptCode);
+
+    /**
+     * 周催计数
+     * @param deptCode
+     * @return
+     */
+    @Query(value = "select count(*) as num,weekday(wk.operator_time) as dayOfWeek " +
+                    "from ( " +
+                        " select record.case_id,record.operator_time from case_followup_record as record " +
+                        " left join ( " +
+                            " select case_info.id,department.`code` from case_info " +
+                            " join department " +
+                            " on case_info.depart_id = department.id) as cdept " +
+                        " on record.case_id = cdept.id " +
+                        " where yearweek(DATE_FORMAT(record.operator_time,'%Y-%m-%d'),1) = YEARWEEK(NOW(),1) " +
+                        " and cdept.code like concat(?1,'%')) wk " +
+                    "group by weekday(wk.operator_time) " +
+                    "order by dayOfWeek", nativeQuery = true)
+    List<Object[]> getWeekFollCount(@Param("deptCode") String deptCode);
+
+    /**
+     * 周结案数
+     * @param deptCode
+     * @return
+     */
+    @Query(value = "select count(*) as num,weekday(wk.close_date) as dayOfWeek from ( " +
+                        " select case_info.id,case_info.close_date from case_info " +
+                        " join department " +
+                        " on case_info.depart_id = department.id " +
+                        " where yearweek(DATE_FORMAT(case_info.close_date,'%Y-%m-%d'),1) = YEARWEEK(NOW(),1) " +
+                        " and department.code like concat(?1,'%')) as wk " +
+                    "group by weekday(wk.close_date) " +
+                    "order by dayOfWeek", nativeQuery = true)
+    List<Object[]> getWeekCaseEndCount(@Param("deptCode") String deptCode);
+
+    @Query(value = "", nativeQuery = true)
+    List<Object[]> getCupoSort(@Param("deptCode") String deptCode);
 }
