@@ -249,15 +249,16 @@ public class CaseInfoService {
             casePayApply.setApproveStatus(CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue()); //审批状态 57-还款待审核
         }
         casePayApply.setPayMemo(payApplyParams.getPayDescripton()); //还款说明
-        casePayApply.setApplayUserName(tokenUser.getUserName()); //申请人
-        casePayApply.setApplayRealName(tokenUser.getRealName()); //申请人姓名
-        casePayApply.setApplayDeptName(tokenUser.getDepartment().getName()); //申请人部门名称
-        casePayApply.setApplayDate(ZWDateUtil.getNowDateTime()); //申请时间
+        casePayApply.setApplyUserName(tokenUser.getUserName()); //申请人
+        casePayApply.setApplyRealName(tokenUser.getRealName()); //申请人姓名
+        casePayApply.setApplyDeptName(tokenUser.getDepartment().getName()); //申请人部门名称
+        casePayApply.setApplyDate(ZWDateUtil.getNowDateTime()); //申请时间
         casePayApply.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
         casePayApply.setPersonalPhone(caseInfo.getPersonalInfo().getMobileNo()); //客户手机号
         casePayApply.setPrincipalId(caseInfo.getPrincipalId().getId()); //委托方ID
         casePayApply.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
         casePayApply.setBatchNumber(caseInfo.getBatchNumber()); //批次号
+        casePayApply.setCaseAmt(caseInfo.getHasPayAmount()); //案件金额
         casePayApplyRepository.saveAndFlush(casePayApply);
         //保存还款凭证文件id到case_pay_file
         List<String> fileIds = payApplyParams.getFileIds();

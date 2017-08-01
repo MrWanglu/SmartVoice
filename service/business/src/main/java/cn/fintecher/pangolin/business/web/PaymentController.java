@@ -12,6 +12,7 @@ import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
+import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -25,6 +26,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -149,6 +151,34 @@ public class PaymentController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_PAY_APPLY, "casePayApply", "还款审批失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 导出还款记录
+     */
+    @GetMapping("/exportCasePayApply")
+    @ApiOperation(value = "导出还款记录", notes = "导出还款记录")
+    public ResponseEntity<String> exportCasePayApply(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
+                                                     @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to export casePayApply");
+        List<Integer> list = new ArrayList<>();
+        list.add(CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue()); //还款待审核
+        list.add(CasePayApply.ApproveStatus.AUDIT_REJECT.getValue()); //审核拒绝
+        list.add(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue()); //审核通过
+        try {
+            User tokenUser = getUserByToken(token);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(QCasePayApply.casePayApply.companyCode.eq(tokenUser.getCompanyCode())); //只查登陆人公司的记录
+            builder.and(QCasePayApply.casePayApply.approveStatus.in(list)); //只查限定状态的记录
+            builder.and(QCasePayApply.casePayApply.approveStatus.ne(CasePayApply.ApproveStatus.REVOKE.getValue())); //不查撤回的记录
+            Iterator<CasePayApply> casePayApplies = casePayApplyRepository.findAll(builder).iterator();
+            List<CasePayApply> casePayApplyList = IteratorUtils.toList(casePayApplies);
+            String url = paymentService.exportCasePayApply(casePayApplyList);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_CASE_PAY_APPLY)).body(url);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_PAY_APPLY, "casePayApply", "导出失败")).body(null);
         }
     }
 }

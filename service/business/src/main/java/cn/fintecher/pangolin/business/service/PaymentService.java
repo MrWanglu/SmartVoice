@@ -3,17 +3,27 @@ package cn.fintecher.pangolin.business.service;
 import cn.fintecher.pangolin.business.model.PaymentModel;
 import cn.fintecher.pangolin.business.model.PaymentParams;
 import cn.fintecher.pangolin.business.repository.*;
+import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import org.apache.commons.io.FileUtils;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.*;
 
 /**
  * @author : xiaqun
@@ -43,6 +53,9 @@ public class PaymentService {
     @Inject
     CaseTurnRecordRepository caseTurnRecordRepository;
 
+    @Inject
+    RestTemplate restTemplate;
+
     /**
      * @Description 还款信息展示
      */
@@ -67,7 +80,7 @@ public class PaymentService {
         paymentModel.setPaymentRemark(casePayApply.getPayMemo()); //还款备注
         paymentModel.setPayType(casePayApply.getPayType()); //还款类型
         paymentModel.setPayWay(casePayApply.getPayWay()); //还款方式
-        paymentModel.setApplyDate(casePayApply.getApplayDate()); //申请日期
+        paymentModel.setApplyDate(casePayApply.getApplyDate()); //申请日期
         return paymentModel;
     }
 
@@ -200,5 +213,68 @@ public class PaymentService {
             caseInfoRepository.saveAndFlush(caseInfo);
             casePayApplyRepository.saveAndFlush(casePayApply);
         }
+    }
+
+    /**
+     * @Description 导出还款记录
+     */
+    public String exportCasePayApply(List<CasePayApply> casePayApplyList) throws Exception {
+        if (casePayApplyList.isEmpty()) {
+            throw new RuntimeException("没有数据");
+        }
+        HSSFWorkbook workbook = null;
+        File file = null;
+        ByteArrayOutputStream out = null;
+        FileOutputStream fileOutputStream = null;
+
+        Map<String, String> headMap = new HashMap<>(); //excel头
+        List<Map<String, Object>> dataList = new ArrayList<>();
+
+        headMap.put("caseNumber", "案件编号");
+        headMap.put("batchNumber", "批次号");
+        headMap.put("principalName", "委托方");
+        headMap.put("personalName", "客户姓名");
+        headMap.put("personalPhone", "手机号");
+        headMap.put("caseAmt", "案件金额(元)");
+        headMap.put("applyPayAmt", "还款金额(元)");
+        headMap.put("payType", "还款类型");
+        headMap.put("payWay", "还款方式");
+        headMap.put("approveStatus", "审核状态");
+        headMap.put("approveResult", "审核结果");
+        headMap.put("applayDate", "申请日期");
+        headMap.put("applayRealName", "申请人");
+
+        Map<String, Object> map;
+        for (CasePayApply casePayApply : casePayApplyList) {
+            map = new HashMap<>();
+            map.put("caseNumber", casePayApply.getCaseNumber());
+            map.put("batchNumber", casePayApply.getBatchNumber());
+            map.put("principalName", casePayApply.getPrincipalName());
+            map.put("personalName", casePayApply.getPersonalName());
+            map.put("personalPhone", casePayApply.getPersonalPhone());
+            map.put("caseAmt", casePayApply.getCaseAmt());
+            map.put("applyPayAmt", casePayApply.getApplyPayAmt());
+            map.put("payType", casePayApply.getPayType());
+            map.put("payWay", casePayApply.getPayWay());
+            map.put("approveStatus", casePayApply.getApproveStatus());
+            map.put("approveResult", casePayApply.getApproveResult());
+            map.put("applayDate", casePayApply.getApplyDate());
+            map.put("applayRealName", casePayApply.getApplyRealName());
+            dataList.add(map);
+        }
+
+        workbook = new HSSFWorkbook();
+        HSSFSheet sheet = workbook.createSheet("还款审批记录");
+        ExcelExportHelper.createExcel(workbook, sheet, headMap, dataList, 0, 0);
+        out = new ByteArrayOutputStream();
+        workbook.write(out);
+        String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "客户信息表.xls");
+        file = new File(filePath);
+        fileOutputStream = new FileOutputStream(file);
+        fileOutputStream.write(out.toByteArray());
+        FileSystemResource resource = new FileSystemResource(file);
+        MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+        param.add("file", resource);
+        return restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class).getBody();
     }
 }

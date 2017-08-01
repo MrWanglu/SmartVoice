@@ -54,14 +54,14 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
             }
         });
         bindings.bind(root.applayUserName).first(SimpleExpression::eq);//申请人
-
+        bindings.bind(root.batchNumber).first((SimpleExpression::eq)); //批次号
     }
 
     /**
      @Description 获得指定用户的待审核回款金额
      */
     @Query(value = "select sum(applyPayAmt) from CasePayApply where applayUserName = :username and  approveStatus=:approveStatu")
-    public BigDecimal queryApplyAmtByUserName(@Param("username") String username, @Param("approveStatu") Integer approveStatu);
+    BigDecimal queryApplyAmtByUserName(@Param("username") String username, @Param("approveStatu") Integer approveStatu);
 
     /**
      @Description 获得周回款榜
