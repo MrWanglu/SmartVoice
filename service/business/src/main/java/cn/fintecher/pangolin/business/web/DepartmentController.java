@@ -384,7 +384,7 @@ public class DepartmentController extends BaseController {
         }
         //子机构数量
         QDepartment qDepartment = QDepartment.department;
-        int deptNum = (int) departmentRepository.count(qDepartment.code.like(dept.getCode().concat("%")).and(qDepartment.id.ne(dept.getId())).and(qUser.companyCode.eq(dept.getCompanyCode())));
+        int deptNum = (int) departmentRepository.count(qDepartment.code.like(dept.getCode().concat("%")).and(qDepartment.id.ne(dept.getId())).and(qDepartment.companyCode.eq(dept.getCompanyCode())));
         if (deptNum > 0) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department is following agencies cannot be deleted", "该部门下子机构不能移动")).body(null);
         }
