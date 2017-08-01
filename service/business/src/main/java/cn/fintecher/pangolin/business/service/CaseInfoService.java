@@ -257,6 +257,7 @@ public class CaseInfoService {
         casePayApply.setPersonalPhone(caseInfo.getPersonalInfo().getMobileNo()); //客户手机号
         casePayApply.setPrincipalId(caseInfo.getPrincipalId().getId()); //委托方ID
         casePayApply.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
+        casePayApply.setBatchNumber(caseInfo.getBatchNumber()); //批次号
         casePayApplyRepository.saveAndFlush(casePayApply);
         //保存还款凭证文件id到case_pay_file
         List<String> fileIds = payApplyParams.getFileIds();
