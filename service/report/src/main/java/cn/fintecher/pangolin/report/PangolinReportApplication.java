@@ -1,12 +1,12 @@
 package cn.fintecher.pangolin.report;
 
-import cn.fintecher.pangolin.entity.util.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.Queue;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
@@ -24,8 +24,8 @@ import java.net.UnknownHostException;
  */
 @EnableEurekaClient
 @EnableDiscoveryClient
-@SpringBootApplication
 @EntityScan("cn.fintecher.pangolin.entity")
+@SpringBootApplication(exclude={DataSourceAutoConfiguration.class,HibernateJpaAutoConfiguration.class})
 public class PangolinReportApplication {
     private static final Logger log = LoggerFactory.getLogger(PangolinReportApplication.class);
     @Bean
@@ -33,10 +33,7 @@ public class PangolinReportApplication {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
-    @Bean
-    public Queue unReduceSuccessQueue() {
-        return new Queue(Constants.DATAINFO_CONFIRM_QE);
-    }
+
     public static void main(String[] args) throws UnknownHostException {
         SpringApplication app = new SpringApplication(PangolinReportApplication.class);
         Environment env = app.run(args).getEnvironment();
