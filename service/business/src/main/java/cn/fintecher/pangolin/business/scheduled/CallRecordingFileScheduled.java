@@ -100,7 +100,7 @@ public class CallRecordingFileScheduled {
     /**
      * @Description : 中通天鸿下载录音调度
      */
-    @Scheduled(cron = "1 0/1 * * * ?")
+    @Scheduled(cron = "1 0/11 * * * ?")
     void checkCallRecordFileZtth() throws IOException {
         log.info("定时调度 中通天鸿的录音调度" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
         try {
