@@ -105,7 +105,8 @@ public class CallRecordingFileScheduled {
         log.info("定时调度 中通天鸿的录音调度" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
         try {
             QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
-            Iterator<CaseFollowupRecord> caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.callType.eq(CaseFollowupRecord.CallType.TIANHONG.getValue())).iterator();
+            DateTime dateTime = new DateTime();
+            Iterator<CaseFollowupRecord> caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.collectionType.eq(User.Type.TEL.getValue()).and(qCaseFollowupRecord.opUrl.isNull()).or(qCaseFollowupRecord.opUrl.eq("")).and(qCaseFollowupRecord.operatorTime.gt(dateTime.minusWeeks(1).toDate())).and(qCaseFollowupRecord.callType.eq(CaseFollowupRecord.CallType.TIANHONG.getValue()))).iterator();
             List<CaseFollowupRecord> caseFollowupRecordList = IteratorUtils.toList(caseFollowupRecords);
             if (Objects.nonNull(caseFollowupRecordList)) {
                 for (CaseFollowupRecord caseFollowupRecord : caseFollowupRecordList) {
@@ -113,9 +114,7 @@ public class CallRecordingFileScheduled {
                     String callId = caseFollowupRecord.getTaskId();
                     ResponseEntity<String> result = restTemplate.getForEntity("http://common-service/api/smaResource/getRecordingByCallId?callId=" + callId, String.class);
                     if (Objects.nonNull(result.getBody()) && !Objects.equals("fail", result.getBody())) {
-                        caseFollowupRecord.setCallType(null);
                         caseFollowupRecord.setOpUrl(result.getBody());
-                        caseFollowupRecord.setLoadFlag(1);
                         caseFollowupRecordRepository.save(caseFollowupRecord);
                     }
                 }
