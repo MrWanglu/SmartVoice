@@ -370,7 +370,7 @@ public class DepartmentController extends BaseController {
         //如果子部门的类型和父部门一样 直接移动 部门的等级和code码需要变化
         if (Objects.equals(dept.getType(), deptParent.getType())) {
             dept.setLevel(deptParent.getLevel() + 1);
-            dept.setCode(deptParent + "_" + ShortUUID.generateShortUuid());
+            dept.setCode(deptParent.getCode() + "_" + ShortUUID.generateShortUuid());
             dept.setParent(deptParent);
             Department department = departmentRepository.save(dept);
             return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(department);
@@ -406,7 +406,7 @@ public class DepartmentController extends BaseController {
         }
         dept.setType(deptParent.getType());
         dept.setLevel(deptParent.getLevel() + 1);
-        dept.setCode(deptParent + "_" + ShortUUID.generateShortUuid());
+        dept.setCode(deptParent.getCode() + "_" + ShortUUID.generateShortUuid());
         dept.setParent(deptParent);
         Department department = departmentRepository.save(dept);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(department);
