@@ -58,7 +58,7 @@ public class TotalPageAppController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("USER", "user", "用户不存在")).
                     body(null);
         }
-        userStatisAppModel.setApplyPayAmt(casePayApplyRepository.queryApplyAmtByUserName(user.getUserName(), CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue()));
+//        userStatisAppModel.setApplyPayAmt(casePayApplyRepository.queryApplyAmtByUserName(user.getUserName(), CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue()));
         userStatisAppModel.setCollectionAmt(caseInfoRepository.getCollectionAmt(user.getId(), CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()));
         Calendar cal = Calendar.getInstance();
         cal.setTime(ZWDateUtil.getNowDate());
@@ -82,7 +82,7 @@ public class TotalPageAppController extends BaseController {
         userStatisAppModel.setMonthAssistNum(caseFollowupRecordRepository.getCollectionNum(user.getId(), CaseFollowupRecord.Type.ASSIST.getValue(),startDayOfMonth, endDate));
         userStatisAppModel.setWeekCollectionNum(userStatisAppModel.getWeekVisitNum()+userStatisAppModel.getWeekAssistNum());
         userStatisAppModel.setMonthCollectionNum(userStatisAppModel.getMonthAssistNum()+userStatisAppModel.getMonthVisitNum());
-        payList = parseRank(casePayApplyRepository.queryPayList(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDate,endDate),user.getId());
+//        payList = parseRank(casePayApplyRepository.queryPayList(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDate,endDate),user.getId());
         followList = parseRank(caseFollowupRecordRepository.getFlowupCaseList(startDate,endDate),user.getId());
         collList = parseRank(caseFollowupRecordRepository.getCollectionList(startDate,endDate),user.getId());
         userStatisAppModel.setPersonalPayRank(payList.get(0));
