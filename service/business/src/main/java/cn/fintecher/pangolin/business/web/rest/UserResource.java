@@ -35,7 +35,7 @@ public class UserResource {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
         User user = (User) session.getAttribute(Constants.SESSION_USER);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取用户成功",ENTITY_NAME)).body(user);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取用户成功", ENTITY_NAME)).body(user);
     }
 
     @PostMapping("/saveUser")
@@ -43,5 +43,12 @@ public class UserResource {
     public ResponseEntity<User> saveUser(@RequestBody User user) {
         User user1 = userRepository.save(user);
         return ResponseEntity.ok().body(user1);
+    }
+
+    @GetMapping("/findUserById")
+    @ApiOperation(value = "通过id查询用户", notes = "通过id查询用户")
+    public ResponseEntity<User> findUserById(@RequestParam @ApiParam("id") String id) {
+        User user = userRepository.findOne(id);
+        return ResponseEntity.ok().body(user);
     }
 }

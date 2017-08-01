@@ -7,6 +7,7 @@ import cn.fintecher.pangolin.common.model.AddTaskRecorderRequest;
 import cn.fintecher.pangolin.common.model.BindCallNumberRequest;
 import cn.fintecher.pangolin.common.service.CallService;
 import cn.fintecher.pangolin.common.service.SmaRequestService;
+import cn.fintecher.pangolin.entity.CaseFollowupRecord;
 import cn.fintecher.pangolin.entity.DataDict;
 import cn.fintecher.pangolin.entity.SysParam;
 import cn.fintecher.pangolin.entity.User;
@@ -27,11 +28,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URISyntaxException;
+import java.io.*;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,13 +88,13 @@ public class SmaController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "未获取呼叫配置的系统参数", "Did not get call configuration of system parameters")).body(null);
         }
         // 163 erpv3   164  中通天鸿  165  云羿
-        if (Objects.equals("163", sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue(), sysParam.getValue())) {
             Map paramMap = new HashMap();
             paramMap.put("empId", user.getId());
             return smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);
         }
         //164  中通天鸿 对呼绑定 在user中的callPhone 字段
-        if (Objects.equals("164", sysParam.getValue()) || Objects.equals("165", sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue(), sysParam.getValue())) {
             if (Objects.nonNull(user.getCallPhone())) {
                 Map paramMap = new HashMap();
                 paramMap.put("callPhone", user.getCallPhone());
@@ -106,6 +104,7 @@ public class SmaController {
         }
         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
     }
+
     /**
      * @Description : v3系统的话绑定的是座机 163，需要添加中通天鸿 164 和云羿的呼叫系统 165
      */
@@ -121,7 +120,7 @@ public class SmaController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "未获取呼叫配置的系统参数", "Did not get call configuration of system parameters")).body(null);
         }
         // 163 erpv3   164  中通天鸿  165  云羿
-        if (Objects.equals("163", sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue(), sysParam.getValue())) {
             Map paramMap = new HashMap();
             paramMap.put("empId", user.getId());
             paramMap.put("callerid", request.getCallerId());//固定话机ID
@@ -130,7 +129,7 @@ public class SmaController {
             return smaRequestService.smaRequest("bindTaskDataByCallerid.html", paramMap);
         }
         //164  中通天鸿 对呼绑定 在user中的callPhone 字段
-        if (Objects.equals("164", sysParam.getValue()) || Objects.equals("165", sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue(), sysParam.getValue())) {
             if (Objects.nonNull(user.getCallPhone())) {
                 Map paramMap = new HashMap();
                 paramMap.put("callPhone", user.getCallPhone());
@@ -146,6 +145,7 @@ public class SmaController {
         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
 
     }
+
     /**
      * @Description : v3系统的话绑定的是座机 163，需要添加中通天鸿 164 和云羿的呼叫系统 165
      */
@@ -161,7 +161,7 @@ public class SmaController {
         }
 
 //         163 erpv3     165  云羿
-        if (Objects.equals("163", sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue(), sysParam.getValue())) {
             Map paramMap = new HashMap();
             paramMap.put("id", request.getTaskId());//呼叫流程id
             paramMap.put("caller", request.getCaller());//主叫号码
@@ -174,7 +174,7 @@ public class SmaController {
             return smaRequestService.smaRequest("addTaskRecoder.html", paramMap);
         }
 //        164  中通天鸿
-        if (Objects.equals("164", sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue(), sysParam.getValue())) {
             if (Objects.isNull(user.getCallPhone())) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
             }
@@ -206,6 +206,31 @@ public class SmaController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "be defeated", "失败")).body(null);
             }
         }
+        //        165 云羿呼叫中心
+        if (Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue(), sysParam.getValue())) {
+            if (Objects.isNull(user.getCallPhone())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
+            }
+            try {
+                Socket socket = new Socket("116.236.220.211", 12345);
+                socket.setSoTimeout(10000000);
+                BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+
+                //拨打电话
+                String sendData1 = "<request><cmdType>manual_callout</cmdType><agentID>" + user.getCallPhone() + "</agentID><customerNum>" + request.getCallee() + "</customerNum><customerDisplayNum>51300794</customerDisplayNum></request>";
+                String sendDataUtf821 = new String(sendData1.getBytes("UTF-8"), "UTF-8");
+                String head21 = "<<<length=" + sendDataUtf821.getBytes("UTF-8").length + ">>>";
+                sendDataUtf821 = head21 + sendDataUtf821;
+                pw.print(sendDataUtf821);
+                pw.flush();
+                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "be defeated", "失败")).body(null);
+            }
+        }
+
         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
     }
 
@@ -228,12 +253,98 @@ public class SmaController {
      */
     @GetMapping("/getVoice")
     @ApiOperation(value = "查询客户id的呼叫所有录音", notes = "呼叫信息")
-    public ResponseEntity<Map<String, String>> getVoice(@RequestParam String customerId, Pageable pageable, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+    public ResponseEntity<Map<String, String>> getVoice(@RequestParam String customerId, Pageable pageable, @RequestHeader(value = "X-UserToken") String token) {
         Map paramMap = new HashMap();
         paramMap.put("custInfoId", customerId); //客户id
         paramMap.put("pageNo", pageable.getPageNumber());  //分页 页码
         paramMap.put("pageSize", pageable.getPageSize()); //分页 页数
         //验证 当前登陆者 是否绑定了 呼叫流程id
         return smaRequestService.smaRequest("getTaskRecoders.html", paramMap);
+    }
+
+    /**
+     * @Description : v3系统 163，中通天鸿 164 云羿 165   验证呼叫来源
+     */
+    @PostMapping("/checkCall")
+    @ApiOperation(value = "验证呼叫来源", notes = "验证呼叫来源")
+    public ResponseEntity<SysParam> checkCall(@RequestParam String companyCode,
+                                              @RequestHeader(value = "X-UserToken") String token) {
+        User user = userClient.getUserByToken(token).getBody();
+        //        呼叫中心配置
+        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), companyCode, Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        if (Objects.isNull(sysParam)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Is binding", "已经绑定")).body(sysParam);
+    }
+
+    /**
+     * @Description : 云羿 165  打电话需要先签入动作  签入的话  目前是通过前端来限制的
+     */
+    @PostMapping("/signIn")
+    @ApiOperation(value = "签入", notes = "签入")
+    public ResponseEntity<Map<String, String>> signIn(@RequestBody User request,
+                                                      @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = restTemplate.getForEntity("http://business-service/api/userResource/findUserById?id=" + request.getId(), User.class).getBody();
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Check-in user does not exist", "签入用户不存在")).body(null);
+            }
+            Map<String, String> map = callService.signIn(user.getId(), user.getCallPhone());
+            Socket socket = new Socket("116.236.220.211", 12345);
+            socket.setSoTimeout(10000000);
+            BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+            // 签入
+            StringBuilder stringBuilder = new StringBuilder();
+            String response = "<request>\n" +
+                    "<cmdType>signin</cmdType>\n" +
+                    "<agentID>" + user.getCallPhone() + "</agentID>\n" +
+                    "<agentPwd>zhiwang123</agentPwd>\n" +
+                    "<bindExten>yes</bindExten>\n" +
+                    "<agentExten>" + user.getCallPhone() + "</agentExten>\n" +
+                    "<initStatus>0</initStatus>\n" +
+                    "</request>";
+            stringBuilder.append(response);
+            String sendDataUtf8 = new String(stringBuilder.toString().getBytes("UTF-8"), "UTF-8");
+            String head = "<<<length=" + sendDataUtf8.getBytes("UTF-8").length + ">>>";
+            sendDataUtf8 = head + sendDataUtf8;
+            System.out.println("签入成功：" + sendDataUtf8);
+            pw.print(sendDataUtf8);
+            pw.flush();
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Checkin success", "签入成功")).body(map);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Checkin failure", "签入失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description : 云羿 165  打完电话需要签出动作  签出 目前是通过前端来限制的
+     */
+    @PostMapping("/signOut")
+    @ApiOperation(value = "签出", notes = "签出")
+    public ResponseEntity<Map<String, String>> signOut(@RequestBody User request,
+                                                       @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = restTemplate.getForEntity("http://business-service/api/userResource/findUserById?id=" + request.getId(), User.class).getBody();
+            Map<String, String> map = callService.signOut(user.getId(), user.getCallPhone());
+            Socket socket = new Socket("116.236.220.211", 12345);
+            socket.setSoTimeout(10000000);
+            BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+            // 签入
+            String sendData = "<request><cmdType>signout</cmdType><agentID>" + user.getCallPhone() + "</agentID><reason></reason></request>";
+            String sendDataUtf8 = new String(sendData.getBytes("UTF-8"), "UTF-8");
+            String head = "<<<length=" + sendDataUtf8.getBytes("UTF-8").length + ">>>";
+            sendDataUtf8 = head + sendDataUtf8;
+            System.out.println("签出成功：" + sendDataUtf8);
+            pw.print(sendDataUtf8);
+            pw.flush();
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Check out the success", "签出成功")).body(map);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Checkin failure", "签入失败")).body(null);
+        }
     }
 }

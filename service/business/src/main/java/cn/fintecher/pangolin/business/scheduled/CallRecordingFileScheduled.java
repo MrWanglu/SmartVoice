@@ -4,6 +4,7 @@ package cn.fintecher.pangolin.business.scheduled;
 import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
 import cn.fintecher.pangolin.entity.CaseFollowupRecord;
 import cn.fintecher.pangolin.entity.QCaseFollowupRecord;
+import cn.fintecher.pangolin.entity.util.Constants;
 import org.apache.commons.collections4.IteratorUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -16,9 +17,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
+import java.io.*;
+import java.net.Socket;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -98,7 +101,6 @@ public class CallRecordingFileScheduled {
     /**
      * @Description : 中通天鸿下载录音调度
      */
-//    CaseFollowupRecordRepository
     @Scheduled(cron = "1 0/1 * * * ?")
     void checkCallRecordFileZtth() throws IOException {
         log.info("定时调度 中通天鸿的录音调度" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
@@ -120,6 +122,33 @@ public class CallRecordingFileScheduled {
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * @Description : 云羿呼叫中心的定时心跳
+     */
+    @Scheduled(cron = "0/60 * * * * ?")
+    void callHeartBeat() throws IOException {
+        log.info("云羿呼叫中心的定时心跳" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
+        try {
+            Map<String, String> map = Constants.map;
+            for (String value : map.values()) {
+                Socket socket = new Socket("116.236.220.211", 12345);
+                socket.setSoTimeout(10000000);
+                BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+                String sendData = "<request><cmdType>heartbeat</cmdType><agentID>" + value + "</agentID></request>";
+                String sendDataUtf82 = new String(sendData.getBytes("UTF-8"), "UTF-8");
+                String head2 = "<<<length=" + sendDataUtf82.getBytes("UTF-8").length + ">>>";
+                sendDataUtf82 = head2 + sendDataUtf82;
+                System.out.println("心跳：" + sendDataUtf82);
+                pw.print(sendDataUtf82);
+                pw.flush();
+            }
+
+        } catch (Exception e1) {
+            e1.printStackTrace();
         }
     }
 

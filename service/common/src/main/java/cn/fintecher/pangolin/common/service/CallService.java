@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.common.service;
 
 import cn.fintecher.pangolin.common.model.AddTaskRecorderRequest;
+import cn.fintecher.pangolin.entity.util.Constants;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -14,6 +15,7 @@ import sun.misc.BASE64Encoder;
 
 import java.io.IOException;
 import java.security.MessageDigest;
+import java.util.Map;
 
 /**
  * Created by  hukaijia.
@@ -107,5 +109,23 @@ public class CallService {
         String headerValue = "UsernameToken Username=\"" + enterpriseCode + "\",PasswordDigest=\"" + PasswordDigest + "\",Nonce=\"" + Nonce + "\",Created=\"" + Created + "\"";
         get.setRequestHeader("X-WSSE", headerValue); //http请求头的键名（大小写无关）固定字符串，后面添加一个空格
         return get;
+    }
+
+    /**
+     * @Description : 云羿 165 打电话的签入动作
+     */
+    public Map<String, String> signIn(String key, String value) {
+        Map<String, String> map = Constants.map;
+        map.put(key, value);
+        return map;
+    }
+
+    /**
+     * @Description : 云羿 165 打电话的签出动作
+     */
+    public Map<String, String> signOut(String key, String value) {
+        Map<String, String> map = Constants.map;
+        map.remove(key);
+        return map;
     }
 }
