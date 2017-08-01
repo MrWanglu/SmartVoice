@@ -361,6 +361,9 @@ public class DepartmentController extends BaseController {
         Department dept = departmentRepository.findOne(deptId);
         //移动后的父机构
         Department deptParent = departmentRepository.findOne(parentDeptId);
+        if (!Objects.equals(dept.getCompanyCode(), deptParent.getCompanyCode())) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The company of the department is different, cannot move", "部门所属公司不同，不能移动")).body(null);
+        }
         if (Objects.isNull(deptParent)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "There is no parent", "父机构不存在")).body(null);
         }
