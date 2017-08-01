@@ -5,13 +5,15 @@ import cn.fintecher.pangolin.entity.QCasePayApply;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
-
+import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author : xiaqun
@@ -54,4 +56,17 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
         bindings.bind(root.applayUserName).first(SimpleExpression::eq);//申请人
 
     }
+
+    /**
+     @Description 获得指定用户的待审核回款金额
+     */
+    @Query(value = "select sum(applyPayAmt) from CasePayApply where applayUserName = :username and  approveStatus=:approveStatu")
+    public BigDecimal queryApplyAmtByUserName(@Param("username") String username, @Param("approveStatu") Integer approveStatu);
+
+    /**
+     @Description 获得周回款榜
+     */
+    @Query(value = "select sum(apply_pay_amt) as amt, applay_real_name, u.id, u.photo from case_pay_apply c,user u where c.applay_user_name = u.user_name and applay_date >= :startDate and applay_date <= :endDate " +
+            "and approve_status=:approveStatu and u.type = :type  group by id, applay_real_name order by amt desc",nativeQuery = true)
+    List<Object[]> queryPayList(@Param("approveStatu") Integer approveStatu, @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type);
 }

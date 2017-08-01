@@ -27,7 +27,7 @@ import java.util.*;
  * @Date : 16:01 2017/7/24
  */
 @RestController
-@RequestMapping(value = "/api/TotalPageAppController")
+@RequestMapping(value = "/api/totalPageAppController")
 @Api(value = "APP首页信息展示", description = "APP首页信息展示")
 public class TotalPageAppController extends BaseController {
 
@@ -58,7 +58,7 @@ public class TotalPageAppController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("USER", "user", "用户不存在")).
                     body(null);
         }
-//        userStatisAppModel.setApplyPayAmt(casePayApplyRepository.queryApplyAmtByUserName(user.getUserName(), CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue()));
+        userStatisAppModel.setApplyPayAmt(casePayApplyRepository.queryApplyAmtByUserName(user.getUserName(), CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue()));
         userStatisAppModel.setCollectionAmt(caseInfoRepository.getCollectionAmt(user.getId(), CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()));
         Calendar cal = Calendar.getInstance();
         cal.setTime(ZWDateUtil.getNowDate());
@@ -82,15 +82,21 @@ public class TotalPageAppController extends BaseController {
         userStatisAppModel.setMonthAssistNum(caseFollowupRecordRepository.getCollectionNum(user.getId(), CaseFollowupRecord.Type.ASSIST.getValue(),startDayOfMonth, endDate));
         userStatisAppModel.setWeekCollectionNum(userStatisAppModel.getWeekVisitNum()+userStatisAppModel.getWeekAssistNum());
         userStatisAppModel.setMonthCollectionNum(userStatisAppModel.getMonthAssistNum()+userStatisAppModel.getMonthVisitNum());
-//        payList = parseRank(casePayApplyRepository.queryPayList(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDate,endDate),user.getId());
-        followList = parseRank(caseFollowupRecordRepository.getFlowupCaseList(startDate,endDate),user.getId());
-        collList = parseRank(caseFollowupRecordRepository.getCollectionList(startDate,endDate),user.getId());
-        userStatisAppModel.setPersonalPayRank(payList.get(0));
-        userStatisAppModel.setPersonalFollowRank(followList.get(0));
-        userStatisAppModel.setPersonalCollectionRank(collList.get(0));
-        userStatisAppModel.setPayList(payList.subList(1,payList.size()));
-        userStatisAppModel.setFollowList(followList.subList(1,followList.size()));
-        userStatisAppModel.setCollectionList(collList.subList(1,collList.size()));
+        payList = parseRank(casePayApplyRepository.queryPayList(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDate,endDate,User.Type.VISIT.getValue()),user.getId());
+        followList = parseRank(caseFollowupRecordRepository.getFlowupCaseList(startDate,endDate,User.Type.VISIT.getValue()),user.getId());
+        collList = parseRank(caseFollowupRecordRepository.getCollectionList(startDate,endDate,User.Type.VISIT.getValue()),user.getId());
+        if(payList.size() > 0){
+            userStatisAppModel.setPersonalPayRank(payList.get(0));
+            userStatisAppModel.setPayList(payList.subList(1,payList.size()));
+        }
+        if(followList.size() > 0){
+            userStatisAppModel.setPersonalFollowRank(followList.get(0));
+            userStatisAppModel.setFollowList(followList.subList(1,followList.size()));
+        }
+        if(collList.size() > 0){
+            userStatisAppModel.setPersonalCollectionRank(collList.get(0));
+            userStatisAppModel.setCollectionList(collList.subList(1,collList.size()));
+        }
         return new ResponseEntity<>(userStatisAppModel, HttpStatus.OK);
     }
 
@@ -100,9 +106,18 @@ public class TotalPageAppController extends BaseController {
         for(Object[] object : list){
             RankModel rankModel = new RankModel();
             rankModel.setRank(rank++);
-            rankModel.setScore(object[0].toString());
-            rankModel.setUserName(object[1].toString());
-            rankModel.setUserId(object[2].toString());
+            if(Objects.nonNull(object[0])){
+                rankModel.setScore(object[0].toString());
+            }
+            if(Objects.nonNull(object[1])) {
+                rankModel.setUserName(object[1].toString());
+            }
+            if(Objects.nonNull(object[2])) {
+                rankModel.setUserId(object[2].toString());
+            }
+            if(Objects.nonNull(object[3])) {
+                rankModel.setPhoto(object[3].toString());
+            }
             rankModelList.add(rankModel);
             if(id.equals(rankModel.getUserId())){
                 rankModelList.add(0,rankModel);
