@@ -18,6 +18,9 @@ public class ZWMathUtil {
      * @return
      */
     public static BigDecimal DoubleToBigDecimal(Double value ,Integer scale, Integer roundingMode){
+        if(Objects.isNull(value)){
+            value=new Double(0);
+        }
         if(Objects.nonNull(scale) && Objects.nonNull(roundingMode)){
             return new BigDecimal(value).setScale(scale,roundingMode);
         }else if(Objects.nonNull(scale) && Objects.isNull(roundingMode)){

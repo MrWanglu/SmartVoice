@@ -118,7 +118,7 @@ public class LoginController extends BaseController {
                 }
             }
             SessionStore.getInstance().addUser(session.getId(), session);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "login successfully", "登录成功")).body(response);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功",ENTITY_NAME)).body(response);
         } else {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "wrong password", "密码错误")).body(null);
         }
