@@ -30,14 +30,14 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
         bindings.bind(root.payType).first(SimpleExpression::eq); //还款类型
         bindings.bind(root.payWay).first(SimpleExpression::eq); //还款方式
         bindings.bind(root.approveStatus).first(SimpleExpression::eq); //还款审批状态
-        bindings.bind(root.applayDate).all((path, value) -> { //申请时间
+        bindings.bind(root.applyDate).all((path, value) -> { //申请时间
             Iterator<? extends Date> it = value.iterator();
-            Date applayMinDate = it.next();
+            Date applyMinDate = it.next();
             if (it.hasNext()) {
-                Date applayMaxDate = it.next();
-                return path.between(applayMinDate, applayMaxDate);
+                Date applyMaxDate = it.next();
+                return path.between(applyMinDate, applyMaxDate);
             } else {
-                return path.goe(applayMinDate);
+                return path.goe(applyMinDate);
             }
         });
         bindings.bind(root.approveResult).first(SimpleExpression::eq); //审核结果
@@ -53,20 +53,20 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
                 return path.goe(applyDerateMinAmt);
             }
         });
-        bindings.bind(root.applayUserName).first(SimpleExpression::eq);//申请人
+        bindings.bind(root.applyUserName).first(SimpleExpression::eq);//申请人
         bindings.bind(root.batchNumber).first((SimpleExpression::eq)); //批次号
     }
 
     /**
      @Description 获得指定用户的待审核回款金额
      */
-    @Query(value = "select sum(applyPayAmt) from CasePayApply where applayUserName = :username and  approveStatus=:approveStatu")
+    @Query(value = "select sum(applyPayAmt) from CasePayApply where applyUserName = :username and  approveStatus=:approveStatu")
     BigDecimal queryApplyAmtByUserName(@Param("username") String username, @Param("approveStatu") Integer approveStatu);
 
     /**
      @Description 获得周回款榜
      */
-    @Query(value = "select sum(apply_pay_amt) as amt, applay_real_name, u.id, u.photo from case_pay_apply c,user u where c.applay_user_name = u.user_name and applay_date >= :startDate and applay_date <= :endDate " +
-            "and approve_status=:approveStatu and u.type = :type  group by id, applay_real_name order by amt desc",nativeQuery = true)
+    @Query(value = "select sum(apply_pay_amt) as amt, apply_real_name, u.id, u.photo from case_pay_apply c,user u where c.apply_user_name = u.user_name and apply_date >= :startDate and apply_date <= :endDate " +
+            "and approve_status=:approveStatu and u.type = :type  group by id, apply_real_name order by amt desc",nativeQuery = true)
     List<Object[]> queryPayList(@Param("approveStatu") Integer approveStatu, @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type);
 }
