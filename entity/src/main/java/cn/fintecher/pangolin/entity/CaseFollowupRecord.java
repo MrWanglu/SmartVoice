@@ -31,6 +31,9 @@ public class CaseFollowupRecord extends BaseEntity {
     @ApiModelProperty(notes = "跟进对象")
     private Integer target;
 
+    @ApiModelProperty(notes = "跟进对象姓名")
+    private String targetName;
+
     @ApiModelProperty(notes = "跟进方式")
     private Integer type;
 
