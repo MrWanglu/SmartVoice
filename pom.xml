@@ -28,6 +28,10 @@
         <hikaricp.version>2.6.2</hikaricp.version>
         <fastdfs.client.version>1.25.2-RELEASE</fastdfs.client.version>
         <apache.poi.version>3.15</apache.poi.version>
+        <org.mybatis.spring.boot>1.1.1</org.mybatis.spring.boot>
+        <tk.mybatis>1.1.1</tk.mybatis>
+        <com.github.pagehelper>1.1.1</com.github.pagehelper>
+        <mybatis.spring.version>1.2.4</mybatis.spring.version>
     </properties>
 
     <modules>
