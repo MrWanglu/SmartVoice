@@ -222,10 +222,10 @@ public class PaymentService {
         if (casePayApplyList.isEmpty()) {
             throw new RuntimeException("没有数据");
         }
-        HSSFWorkbook workbook = null;
-        File file = null;
-        ByteArrayOutputStream out = null;
-        FileOutputStream fileOutputStream = null;
+        HSSFWorkbook workbook;
+        File file;
+        ByteArrayOutputStream out;
+        FileOutputStream fileOutputStream;
 
         Map<String, String> headMap = new HashMap<>(); //excel头
         List<Map<String, Object>> dataList = new ArrayList<>();
