@@ -8,6 +8,7 @@ import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.IdcardUtils;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.util.ZWStringUtils;
+import com.querydsl.core.BooleanBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,11 +83,16 @@ public class ProcessDataInfoExcelService {
         User user=confirmDataInfoMessage.getUser();
         Personal personal=createPersonal(dataInfoExcelModel, user);
         //检测客户信息是否已存在（客户姓名、身份证号、公司编码）
+        Iterable<Personal> personalIterable=null;
         QPersonal qPersonal=QPersonal.personal;
-        Iterable<Personal> personalIterable=personalRepository.findAll(qPersonal.name.eq(personal.getName())
-                                    .and(qPersonal.idCard.eq(personal.getIdCard()))
-                                    .and(qPersonal.companyCode.eq(personal.getCompanyCode())));
-        if(personalIterable.iterator().hasNext()){
+        BooleanBuilder builder = new BooleanBuilder();
+        if(Objects.nonNull(personal.getName()) && Objects.nonNull(personal.getIdCard())){
+            builder.and(qPersonal.name.eq(personal.getName()))
+                    .and(qPersonal.idCard.eq(personal.getIdCard()))
+                    .and(qPersonal.companyCode.eq(personal.getCompanyCode()));
+            personalIterable=personalRepository.findAll(builder);
+        }
+        if(Objects.nonNull(personalIterable) && personalIterable.iterator().hasNext()){
             //更新操作
             for(Iterator<Personal> it = personalIterable.iterator(); it.hasNext();){
                 Personal obj=it.next();
@@ -118,27 +124,42 @@ public class ProcessDataInfoExcelService {
             //产品系列
             product=addOrUpdateProducts(dataInfoExcelModel, user);
         }
-        //案件信息
-        //首先检查案件信息在待分配表中是否已存在(客户姓名、身份证号、委托方ID、产品名称、公司码)
+
+        /**
+         * 首先检查待分配案件是否有该案件，有的话直接进入数据异常表
+         */
         QCaseInfoDistributed qCaseInfoDistributed=QCaseInfoDistributed.caseInfoDistributed;
-        //案件待分配池
         Iterable<CaseInfoDistributed> caseInfoDistributedIterable=caseInfoDistributedRepository.findAll(qCaseInfoDistributed.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
                                               .and(qCaseInfoDistributed.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
                                               .and(qCaseInfoDistributed.principalId.id.eq(dataInfoExcelModel.getPrinCode()))
                                               .and(qCaseInfoDistributed.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
                                               .and(qCaseInfoDistributed.companyCode.eq(dataInfoExcelModel.getCompanyCode())));
+        if(caseInfoDistributedIterable.iterator().hasNext()){
+            //直接进入数据异常表
+        }else{
+            /**
+             * 检查已有案件是否存在，存在的话直接进入案件异常表，异常表的数据结构与接收数据的DataInfoExcel相同,关联信息信息不做处理
+             * (客户姓名、身份证号、委托方ID、产品名称、公司码)
+             */
+            QCaseInfo qCaseInfo=QCaseInfo.caseInfo;
+            Iterable<CaseInfo> caseInfoIterable= caseInfoRepository.findAll(qCaseInfo.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
+                    .and(qCaseInfo.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
+                    .and(qCaseInfo.principalId.id.eq(dataInfoExcelModel.getPrinCode()))
+                    .and(qCaseInfo.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
+                    .and(qCaseInfo.companyCode.eq(dataInfoExcelModel.getCompanyCode()))
+                    .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())));
+            if(caseInfoIterable.iterator().hasNext()){
+                //直接进入数据异常表
+            }else{
+                //进入数据待分配表
+            }
+        }
         Set<String> caseInfoDistributedSets=new HashSet<>();
            for(Iterator<CaseInfoDistributed> it=caseInfoDistributedIterable.iterator();it.hasNext();){
                caseInfoDistributedSets.add(it.next().getId());
            }
         //已有的案件池
-        QCaseInfo qCaseInfo=QCaseInfo.caseInfo;
-        Iterable<CaseInfo> caseInfoIterable= caseInfoRepository.findAll(qCaseInfo.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
-                .and(qCaseInfo.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
-                .and(qCaseInfo.principalId.id.eq(dataInfoExcelModel.getPrinCode()))
-                .and(qCaseInfo.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
-                .and(qCaseInfo.companyCode.eq(dataInfoExcelModel.getCompanyCode()))
-                .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())));
+
         Set<String> caseInfoSets=new HashSet<>();
         for(Iterator<CaseInfo> it=caseInfoIterable.iterator();it.hasNext();){
             caseInfoSets.add(it.next().getId());
@@ -690,9 +711,14 @@ public class ProcessDataInfoExcelService {
      */
     public boolean checkPersonalContactExist(Personal personal, PersonalContact personalContact){
         QPersonalContact qPersonalContact=QPersonalContact.personalContact;
-        Iterable<PersonalContact> personalContactIterable=personalContactRepository.findAll(qPersonalContact.personalId.eq(personal.getId())
-                .and(qPersonalContact.name.eq(personalContact.getName()))
-                .and(qPersonalContact.relation.eq(personalContact.getRelation())));
+        Iterable<PersonalContact> personalContactIterable=null;
+        if(Objects.nonNull(personalContact.getName()) && Objects.nonNull(personalContact.getRelation())){
+            personalContactIterable=personalContactRepository.findAll(qPersonalContact.personalId.eq(personal.getId())
+                    .and(qPersonalContact.name.eq(personalContact.getName()))
+                    .and(qPersonalContact.relation.eq(personalContact.getRelation())));
+        }else{
+            return false;
+        }
         //如果库中已有了客户信息则不再做更新操作
         if(personalContactIterable.iterator().hasNext()){
             return true;
@@ -708,10 +734,16 @@ public class ProcessDataInfoExcelService {
      */
     public boolean checkPersonalAddr(Personal personal,PersonalAddress personalAddress){
         QPersonalAddress qPersonalAddress=QPersonalAddress.personalAddress;
-        Iterable<PersonalAddress> personalAddressIterable= persosnalAddressRepository.findAll(qPersonalAddress.personalId.eq(personal.getId())
-                                            .and(qPersonalAddress.relation.eq(personalAddress.getRelation()))
-                                            .and(qPersonalAddress.name.eq(personalAddress.getName()))
-                                            .and(qPersonalAddress.type.eq(personalAddress.getType())));
+        Iterable<PersonalAddress> personalAddressIterable=null;
+        BooleanBuilder builder=new BooleanBuilder();
+        if(Objects.nonNull(personalAddress.getRelation()) && Objects.nonNull(personalAddress.getName()) && Objects.nonNull(personalAddress.getType())){
+            personalAddressIterable= persosnalAddressRepository.findAll(qPersonalAddress.personalId.eq(personal.getId())
+                    .and(qPersonalAddress.relation.eq(personalAddress.getRelation()))
+                    .and(qPersonalAddress.name.eq(personalAddress.getName()))
+                    .and(qPersonalAddress.type.eq(personalAddress.getType())));
+        }else{
+            return false;
+        }
         if(personalAddressIterable.iterator().hasNext()){
             return true;
         }

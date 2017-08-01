@@ -54,7 +54,7 @@ public final class Constants {
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
     //案件确认数据发送队列
-    public static  final String DATAINFO_CONFIRM_QE="mr.cui.dataInfoExcel.confirm.progress";
+    public static  final String DATAINFO_CONFIRM_QE="dataInfoExcel.confirm.progress.dev";
 
     /**
      * 数据来源
