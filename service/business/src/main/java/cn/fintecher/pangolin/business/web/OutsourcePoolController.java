@@ -1,11 +1,8 @@
 package cn.fintecher.pangolin.business.web;
 
-import cn.fintecher.pangolin.business.model.AccOutsideFinExportModel;
-import cn.fintecher.pangolin.business.model.FienCasenums;
+import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.service.AccFinanceEntryService;
 import cn.fintecher.pangolin.entity.AccFinanceDataExcel;
-import cn.fintecher.pangolin.business.model.OutCaseIdList;
-import cn.fintecher.pangolin.business.model.OutsourceInfo;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.entity.*;
@@ -255,6 +252,152 @@ public class OutsourcePoolController extends BaseController {
         }catch (Exception e){
             log.error(e.getMessage(),e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("委外退案失败", ENTITY_NAME1, e.getMessage())).body(null);
+        }
+    }
+
+    @RequestMapping(value = "/exportAccOutsourcePool", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    @ApiOperation(value = "委外案件导出", notes = "委外案件导出")
+    //多条件查询领取案件
+    public ResponseEntity getAccRecevicePoolByToken(
+            @RequestParam(required = false) @ApiParam(value = "最小逾期天数") Integer overDayMin,
+            @RequestParam(required = false) @ApiParam(value = "最大逾期天数") Integer overDayMax,
+            @RequestParam(required = false) @ApiParam(value = "委外方") String outsName,
+            @RequestParam(required = false) @ApiParam(value = "催收状态") Integer oupoStatus,
+            @RequestParam(required = false) @ApiParam(value = "最小案件金额") BigDecimal oupoAmtMin,
+            @RequestParam(required = false) @ApiParam(value = "最大案件金额") BigDecimal oupoAmtMax,
+            @RequestParam(required = false) @ApiParam(value = "还款状态") String payStatus,
+            @RequestParam(required = false) @ApiParam(value = "最小还款金额") BigDecimal oupoPaynumMin,
+            @RequestParam(required = false) @ApiParam(value = "最大还款金额") BigDecimal oupoPaynumMax,
+            @RequestParam(required = false) @ApiParam(value = "批次号") String outbatch,
+            @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+        HSSFWorkbook workbook = null;
+        File file = null;
+        ByteArrayOutputStream out = null;
+        FileOutputStream fileOutputStream = null;
+        try {
+            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.nonNull(overDayMin)) {
+                builder.and(qOutsourcePool.caseInfo.overdueDays.gt(overDayMin));
+            }
+            if (Objects.nonNull(overDayMax)) {
+                builder.and(qOutsourcePool.caseInfo.overdueDays.lt(overDayMax));
+            }
+            if (Objects.nonNull(outsName)) {
+                builder.and(qOutsourcePool.outsource.outsName.like("%"+outsName+"%"));
+            }
+            if (Objects.nonNull(oupoStatus)) {
+                builder.and(qOutsourcePool.caseInfo.collectionStatus.eq(oupoStatus));
+            }
+            if (Objects.nonNull(oupoAmtMin)) {
+                builder.and(qOutsourcePool.caseInfo.overdueAmount.gt(oupoAmtMin));
+            }
+            if (Objects.nonNull(oupoAmtMax)) {
+                builder.and(qOutsourcePool.caseInfo.overdueAmount.lt(oupoAmtMax));
+            }
+            if (Objects.nonNull(payStatus)) {
+                builder.and(qOutsourcePool.caseInfo.payStatus.eq(payStatus));
+            }
+            if (Objects.nonNull(oupoPaynumMin)) {
+                builder.and(qOutsourcePool.caseInfo.hasPayAmount.gt(oupoPaynumMin));
+            }
+            if (Objects.nonNull(oupoPaynumMax)) {
+                builder.and(qOutsourcePool.caseInfo.hasPayAmount.lt(oupoPaynumMax));
+            }
+            if (Objects.nonNull(outbatch)) {
+                builder.and(qOutsourcePool.outBatch.eq(outbatch));
+            }
+            List<OutsourcePool> outsourcePools = (List<OutsourcePool>)outsourcePoolRepository.findAll(builder);
+            List<AccOutsourcePoolModel> accOutsourcePoolModels = new ArrayList<>();
+            for (OutsourcePool outsourcePool:outsourcePools){
+                AccOutsourcePoolModel accOutsourcePoolModel = new AccOutsourcePoolModel();
+                CaseInfo caseInfo = outsourcePool.getCaseInfo();
+                accOutsourcePoolModel.setCaseCode(caseInfo.getCaseNumber());
+                accOutsourcePoolModel.setCommissionRate(caseInfo.getCommissionRate().toString());
+                accOutsourcePoolModel.setContractAmount(caseInfo.getContractAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
+                accOutsourcePoolModel.setCurrentAmount(caseInfo.getPerPayAmount().toString());//每期还款金额
+                accOutsourcePoolModel.setCurrentPayDate(ZWDateUtil.fomratterDate(caseInfo.getPerDueDate(),"yyyy-MM-dd"));//每期还款日
+                accOutsourcePoolModel.setCustName(caseInfo.getPersonalInfo().getName());
+                PersonalJob personalJob = caseInfo.getPersonalInfo().getPersonalJobs().iterator().next();
+                if (Objects.nonNull(personalJob)){
+                    accOutsourcePoolModel.setEmployerAddress(personalJob.getAddress());
+                    accOutsourcePoolModel.setEmployerName(personalJob.getCompanyName());
+                    accOutsourcePoolModel.setEmployerPhone(personalJob.getPhone());
+                }
+                accOutsourcePoolModel.setHasPayAmount(caseInfo.getHasPayAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
+                accOutsourcePoolModel.setHasPayPeriods(caseInfo.getHasPayPeriods().toString());
+                accOutsourcePoolModel.setHomeAddress(caseInfo.getPersonalInfo().getLocalHomeAddress());
+                accOutsourcePoolModel.setIdCardNumber(caseInfo.getPersonalInfo().getIdCard());
+                accOutsourcePoolModel.setLastPayAmount(caseInfo.getLatelyPayAmount().toString());//最近还款金额
+                accOutsourcePoolModel.setLastPayDate(ZWDateUtil.fomratterDate(caseInfo.getLatelyPayDate(),"yyyy-MM-dd"));//最近还款日期
+                accOutsourcePoolModel.setOverDueAmount(caseInfo.getOverdueAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
+                accOutsourcePoolModel.setOverDueCapital(caseInfo.getOverdueCapital().toString());//逾期本金
+                accOutsourcePoolModel.setOverDueDays(caseInfo.getOverdueDays().toString());
+                accOutsourcePoolModel.setOverDueDisincentive(caseInfo.getOverdueFine().toString());//逾期罚息
+                accOutsourcePoolModel.setOverDueFine(caseInfo.getOverdueDelayFine().toString());//逾期滞纳金
+                accOutsourcePoolModel.setOverDueInterest(caseInfo.getOverdueInterest().toString());//逾期利息
+                accOutsourcePoolModel.setOverDuePeriods(caseInfo.getOverduePeriods().toString());//逾期期数
+                accOutsourcePoolModel.setPhoneNumber(caseInfo.getPersonalInfo().getMobileNo());
+                accOutsourcePoolModel.setProductSeries(caseInfo.getProduct().getProductSeries().getSeriesName());
+                accOutsourcePoolModel.setProductName(caseInfo.getProduct().getProdcutName());
+                accOutsourcePoolModel.setPayPeriods(caseInfo.getPeriods().toString());//还款总期数
+                accOutsourcePoolModels.add(accOutsourcePoolModel);
+            }
+            if (null == accOutsourcePoolModels || accOutsourcePoolModels.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("没有委外数据", "", "没有委外数据")).body(null);
+            }
+
+            String[] titleList = {"案件编号", "客户姓名", "身份证号", "手机号码", "产品系列", "产品名称", "合同金额（元）", "逾期总金额（元）", "逾期本金（元）", "逾期利息（元）", "逾期罚息（元）", "逾期滞纳金（元）", "还款期数","逾期期数","逾期天数","已还款金额（元）","已还款期数","最近还款日期","最近还款金额（元）","家庭住址","工作单位名称","工作单位地址","工作单位电话","佣金比例（%）","每期还款日","每期还款金额（元）"};
+            String[] proNames = {"caseCode", "custName", "idCardNumber", "phoneNumber", "productSeries", "productName", "contractAmount", "overDueAmount", "overDueCapital", "overDueInterest", "overDueDisincentive", "overDueFine", "payPeriods","overDuePeriods","overDueDays","hasPayAmount","hasPayPeriods","lastPayDate","lastPayAmount","homeAddress","employerName","employerAddress","employerPhone","commissionRate","currentPayDate","currentAmount"};
+            workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet("sheet1");
+            ExcelUtil.createExcel(workbook, sheet, accOutsourcePoolModels, titleList, proNames, 0, 0);
+            out = new ByteArrayOutputStream();
+            workbook.write(out);
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "催收员业绩报表.xls");
+            file = new File(filePath);
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(out.toByteArray());
+            FileSystemResource resource = new FileSystemResource(file);
+            MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+            param.add("file", resource);
+            ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
+            if (url == null) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("上传服务器失败", "", "上传服务器失败")).body(null);
+            } else {
+                return ResponseEntity.ok().body(url.getBody());
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("导出失败", ENTITY_NAME1, e.getMessage())).body(null);
+        } finally {
+            // 关闭流
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            // 删除文件
+            if (file != null) {
+                file.deleteOnExit();
+            }
         }
     }
 
