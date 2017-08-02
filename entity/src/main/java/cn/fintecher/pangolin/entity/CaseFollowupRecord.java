@@ -102,6 +102,9 @@ public class CaseFollowupRecord extends BaseEntity {
     @ApiModelProperty(notes = "催记方式 0-自动 1-手动")
     private Integer collectionWay;
 
+    @ApiModelProperty(notes = "详细地址")
+    private String detail;
+
     @ApiModelProperty(notes = "定位地址")
     private String collectionLocation;
 
