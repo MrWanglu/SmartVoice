@@ -328,20 +328,24 @@ public class SmaController {
                                                        @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = restTemplate.getForEntity("http://business-service/api/userResource/findUserById?id=" + request.getId(), User.class).getBody();
-            Map<String, String> map = callService.signOut(user.getId(), user.getCallPhone());
-            Socket socket = new Socket("116.236.220.211", 12345);
-            socket.setSoTimeout(10000000);
-            BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-            // 签入
-            String sendData = "<request><cmdType>signout</cmdType><agentID>" + user.getCallPhone() + "</agentID><reason></reason></request>";
-            String sendDataUtf8 = new String(sendData.getBytes("UTF-8"), "UTF-8");
-            String head = "<<<length=" + sendDataUtf8.getBytes("UTF-8").length + ">>>";
-            sendDataUtf8 = head + sendDataUtf8;
-            System.out.println("签出成功：" + sendDataUtf8);
-            pw.print(sendDataUtf8);
-            pw.flush();
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Check out the success", "签出成功")).body(map);
+            Map<String, String> map1 = Constants.map;
+            if (map1.containsKey(user.getId())) {
+                Map<String, String> map = callService.signOut(user.getId(), user.getCallPhone());
+                Socket socket = new Socket("116.236.220.211", 12345);
+                socket.setSoTimeout(10000000);
+                BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+                // 签入
+                String sendData = "<request><cmdType>signout</cmdType><agentID>" + user.getCallPhone() + "</agentID><reason></reason></request>";
+                String sendDataUtf8 = new String(sendData.getBytes("UTF-8"), "UTF-8");
+                String head = "<<<length=" + sendDataUtf8.getBytes("UTF-8").length + ">>>";
+                sendDataUtf8 = head + sendDataUtf8;
+                System.out.println("签出成功：" + sendDataUtf8);
+                pw.print(sendDataUtf8);
+                pw.flush();
+                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Check out the success", "签出成功")).body(map);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " success", "成功")).body(null);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Checkin failure", "签入失败")).body(null);
