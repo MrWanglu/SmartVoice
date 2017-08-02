@@ -247,4 +247,11 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
 
     @Query(value = "", nativeQuery = true)
     List<Object[]> getCupoSort(@Param("deptCode") String deptCode);
+
+    /**
+     * 根据案件编号查询案件
+     * @param caseNumber
+     * @return
+     */
+    List<CaseInfo> findByCaseNumber(String caseNumber);
 }

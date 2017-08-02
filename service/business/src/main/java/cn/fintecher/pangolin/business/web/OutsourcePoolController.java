@@ -1,29 +1,50 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.AccOutsideFinExportModel;
+import cn.fintecher.pangolin.business.model.FienCasenums;
+import cn.fintecher.pangolin.business.service.AccFinanceEntryService;
+import cn.fintecher.pangolin.entity.AccFinanceDataExcel;
 import cn.fintecher.pangolin.business.model.OutCaseIdList;
 import cn.fintecher.pangolin.business.model.OutsourceInfo;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.file.UploadFile;
+import cn.fintecher.pangolin.entity.util.CellError;
+import cn.fintecher.pangolin.entity.util.ExcelUtil;
 import cn.fintecher.pangolin.entity.util.LabelValue;
+import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -52,6 +73,13 @@ public class OutsourcePoolController extends BaseController {
     private OutsourcePoolRepository outsourcePoolRepository;
     @Autowired
     private OutsourceRecordRepository outsourceRecordRepository;
+    @Autowired
+    RestTemplate restTemplate;
+    @Autowired
+    AccFinanceEntryService accFinanceEntryService;
+    @Autowired
+    AccFinanceEntryRepository accFinanceEntryRepository;
+    public static final String FINANCEEXCEL_URL = "http://117.36.75.166:8883/group1/M00/01/12/wKgBCFk4wJ6ACoknAAAnUAVwvzk14.xlsx";
     private static final String ENTITY_NAME = "OutSource";
     private static final String ENTITY_NAME1 = "OutSourcePool";
 
@@ -65,7 +93,7 @@ public class OutsourcePoolController extends BaseController {
                 List<OutsourcePool> outsourcePools = new ArrayList<>();//待保存的流转记录集合
                 User user = getUserByToken(token);
                 if (Objects.isNull(user)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "获取不到登录人信息")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
                 }
                 LabelValue seqResult = batchSeqService.nextSeq(CASE_SEQ, 5);
                 String ouorBatch = seqResult.getValue();
@@ -155,7 +183,7 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qOutsourcePool.caseInfo.overdueDays.lt(overDayMax));
             }
             if (Objects.nonNull(outsName)) {
-                builder.and(qOutsourcePool.outsource.outsName.eq(outsName));
+                builder.and(qOutsourcePool.outsource.outsName.like("%"+outsName+"%"));
             }
             if (Objects.nonNull(oupoStatus)) {
                 builder.and(qOutsourcePool.caseInfo.collectionStatus.eq(oupoStatus));
@@ -266,6 +294,283 @@ public class OutsourcePoolController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    @GetMapping("/loadTemplate")
+    @ResponseBody
+    @ApiOperation(value = "下载模板", notes = "下载模板")
+    public ResponseEntity<String> loadTemplate(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        try {
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
+            return ResponseEntity.ok().body(FINANCEEXCEL_URL);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("下载失败", "", e.getMessage())).body(null);
+        }
+    }
+
+    @PostMapping("/importFinancData")
+    @ResponseBody
+    @ApiOperation(value = "账目导入", notes = "账目导入")
+    public ResponseEntity<List> importExcelData(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token, @RequestBody AccFinanceEntry accFinanceEntry) {
+        try {
+            int[] startRow = {0};
+            int[] startCol = {0};
+            Class<?>[] dataClass = {AccFinanceDataExcel.class};
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
+            accFinanceEntry.setCreateTime(ZWDateUtil.getNowDateTime());
+            accFinanceEntry.setCreator(user.getUserName());
+            //查找上传文件
+            ResponseEntity<UploadFile> uploadFileResult = null;
+            UploadFile uploadFile = null;
+            try {
+                uploadFileResult = restTemplate.getForEntity("http://file-service/api/uploadFile/" + accFinanceEntry.getFileId(), UploadFile.class);
+                if (!uploadFileResult.hasBody()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取上传文件失败", "", "获取上传文件失败")).body(null);
+                } else {
+                    uploadFile = uploadFileResult.getBody();
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取上传文件失败", "", e.getMessage())).body(null);
+            }
+            //解析Excel并保存到临时表中
+            List<CellError> errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry);
+            if (errorList.isEmpty()) {
+                return ResponseEntity.ok().body(null);
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Excel数据有误", "", "Excel数据有误")).body(errorList);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("导入失败", "", e.getMessage())).body(null);
+        }
+    }
+
+    @PostMapping("/affirmReconciliation")
+    @ResponseBody
+    @ApiOperation(value = "财务数据确认操作", notes = "财务数据确认操作")
+    public ResponseEntity<List> affirmReconciliation(@RequestBody FienCasenums fienCasenums) {
+        try {
+            if (fienCasenums.getIdList().isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("没有可确认的数据", "", "没有可确认的数据")).body(null);
+            }
+            List<AccFinanceEntry> accFinanceEntryList = new ArrayList<>();
+            List<CaseInfo> caseInfoList = new ArrayList<>();  //在委外池中能匹配上的委外案件
+            List<AccFinanceEntry> unableMatchList = new ArrayList<>();  //在委外池中没有匹配的财务数据
+            List<AccFinanceEntry> accFinanceEntrieAll = accFinanceEntryRepository.findAll(fienCasenums.getIdList());
+            for (AccFinanceEntry financeEntryCase : accFinanceEntrieAll) {
+                String caseNum = financeEntryCase.getFienCasenum();
+                List<CaseInfo> caseInfos = caseInfoRepository.findByCaseNumber(caseNum);
+                if (Objects.nonNull(caseInfos) && !caseInfos.isEmpty()) {
+                    //对委外客户池已还款金额做累加
+                    for (CaseInfo caseInfo:caseInfos){
+                        if (Objects.isNull(caseInfo.getHasPayAmount())) {
+                            caseInfo.setHasPayAmount(new BigDecimal(0));
+                        }
+                        caseInfo.setHasPayAmount(caseInfo.getHasPayAmount().add(financeEntryCase.getFienPayback()));
+                        caseInfoList.add(caseInfo);
+                    }
+
+                }else {
+                    unableMatchList.add(financeEntryCase);   //未有匹配委外案件
+                }
+                //临时表中的数据状态为已确认。
+                financeEntryCase.setFienStatus(Status.Disable.getValue());
+                accFinanceEntryList.add(financeEntryCase);
+            }
+            //同步更新临时表中的数据状态为已确认
+            accFinanceEntryRepository.save(accFinanceEntryList);
+            //更新原有的案件案件金额
+            caseInfoRepository.save(caseInfoList);
+            return ResponseEntity.ok().body(unableMatchList);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("确认失败", "", e.getMessage())).body(null);
+        }
+    }
+
+    @GetMapping("/findFinanceData")
+    @ResponseBody
+    @ApiOperation(value = "查询未确认的数据", notes = "查询未确认的数据")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<AccFinanceEntry>> findFinanceData(@ApiIgnore Pageable pageable) {
+        try {
+            AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
+            accFinanceEntry.setFienStatus(Status.Enable.getValue());
+            accFinanceEntry.setFienCount(null);
+            accFinanceEntry.setFienPayback(null);
+            ExampleMatcher matcher = ExampleMatcher.matching();
+            org.springframework.data.domain.Example<AccFinanceEntry> example = org.springframework.data.domain.Example.of(accFinanceEntry, matcher);
+            Page<AccFinanceEntry> page = accFinanceEntryRepository.findAll(example, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "", e.getMessage())).body(null);
+        }
+    }
+
+
+    @PostMapping("/deleteFinanceData")
+    @ResponseBody
+    @ApiOperation(value = "财务数据删除操作", notes = "财务数据删除操作")
+    public ResponseEntity deleteFinanceData(@RequestBody FienCasenums fienCasenums) {
+        try {
+            if(fienCasenums.getIdList().isEmpty()){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("没有可删除的数据", "", "没有可删除的数据")).body(null);
+            }
+            for(String id : fienCasenums.getIdList()){
+                accFinanceEntryRepository.delete(id);
+            }
+            return ResponseEntity.ok().body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("删除失败", "", e.getMessage())).body(null);
+        }
+    }
+
+
+    @RequestMapping(value = "/exportOutsideFinanceData", method = RequestMethod.GET)
+    @ResponseBody
+    @ApiOperation(value = "导出委外财务对账数据", notes = "导出委外财务对账数据")
+    public ResponseEntity<String> exportOutsideFinanceData(@RequestParam(value = "oupoOutbatch", required = false) @ApiParam("批次号") String oupoOutbatch,
+                                           @RequestParam(value = "outsName", required = false) @ApiParam("委外方") String outsName) {
+        HSSFWorkbook workbook = null;
+        File file = null;
+        ByteArrayOutputStream out = null;
+        FileOutputStream fileOutputStream = null;
+
+        try {
+            List<OutsourcePool> accOutsourcePoolList = new ArrayList<>();
+            try {
+                QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+                BooleanBuilder builder = new BooleanBuilder();
+                if (Objects.nonNull(oupoOutbatch)) {
+                    builder.and(qOutsourcePool.outBatch.gt(oupoOutbatch));
+                }
+                if (Objects.nonNull(outsName)) {
+                    builder.and(qOutsourcePool.outsource.outsName.like("%"+outsName+"%"));
+                }
+                accOutsourcePoolList = (List<OutsourcePool>)outsourcePoolRepository.findAll(builder);
+            } catch (Exception e) {
+                e.getStackTrace();
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询委外案件失败", "", e.getMessage())).body(null);
+            }
+            // 按照条件得到的财务数据为空时不允许导出
+            if (accOutsourcePoolList.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("要导出的财务数据为空", "", "要导出的财务数据为空")).body(null);
+            }
+            // 将需要的数据获取到按照导出的模板存放在List中
+            List<AccOutsideFinExportModel> accOutsideList = new ArrayList<>();
+            for (int i = 0; i < accOutsourcePoolList.size(); i++) {
+                OutsourcePool aop = accOutsourcePoolList.get(i);
+                AccOutsideFinExportModel expm = new AccOutsideFinExportModel();
+                expm.setOupoOutbatch(checkValueIsNull(aop.getOutBatch())); // 委外批次号
+                expm.setOupoCasenum(checkValueIsNull(aop.getCaseInfo().getCaseNumber())); // 案件编号
+                expm.setCustName(checkValueIsNull(aop.getCaseInfo().getPersonalInfo().getName()));  // 客户名称
+                expm.setOupoIdcard(checkValueIsNull(aop.getCaseInfo().getPersonalInfo().getIdCard()));  // 身份证号
+                expm.setOupoStatus(checkOupoStatus(aop.getOutStatus())); // 委外状态
+                expm.setOupoAmt(checkValueIsNull(aop.getCaseInfo().getOverdueAmount()));  // 案件金额
+                expm.setOupoPaynum(checkValueIsNull(aop.getCaseInfo().getHasPayAmount())); // 已还款金额
+                expm.setOutsName(aop.getOutsource().getOutsName());  // 委外方名称
+                accOutsideList.add(expm);
+            }
+
+            // 将存放的数据写入Excel
+            String[] titleList = {"案件编号", "客户姓名", "客户身份证号", "委外状态", "委外方", "案件金额", "已还款金额"};
+            String[] proNames = {"oupoCasenum", "custName", "oupoIdcard", "oupoStatus", "outsName", "oupoAmt", "oupoPaynum"};
+            workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet("sheet1");
+            out = new ByteArrayOutputStream();
+            ExcelUtil.createExcel(workbook, sheet, accOutsideList, titleList, proNames, 0, 0);
+            workbook.write(out);
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "财务数据对账.xls");
+            file = new File(filePath);
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(out.toByteArray());
+            FileSystemResource resource = new FileSystemResource(file);
+            MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+            param.add("file", resource);
+            ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
+            if (url == null) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("上传文件服务器失败", "", "上传文件服务器失败")).body(null);
+            } else {
+                return ResponseEntity.ok().body(url.getBody());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("上传文件服务器失败", "", e.getMessage())).body(null);
+        } finally {
+            // 关闭流
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            // 删除文件
+            if (file != null) {
+                file.delete();
+            }
+        }
+    }
+
+    /**
+     * 检查值，为空时转为空字符串，不为空统一转为字符串
+     */
+    private String checkValueIsNull(Object obj) {
+        if (Objects.nonNull(obj)) {
+            return String.valueOf(obj.equals("null") ? "" : obj);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * 将接受到的数字转换成相应的字符串
+     */
+    private String checkOupoStatus(Object obj) {
+        if (Objects.nonNull(obj)) {
+            if (Objects.equals(OutsourcePool.OutStatus.TO_OUTSIDE.getCode(), obj)) {
+                return "待委外";
+            } else if (Objects.equals(OutsourcePool.OutStatus.OUTSIDING.getCode(), obj)) {
+                return "委外中";
+            } else if (Objects.equals(OutsourcePool.OutStatus.OUTSIDE_EXPIRE.getCode(), obj)) {
+                return "委外到期";
+            } else {
+                return "委外结束";
+            }
+        } else {
+            return null;
         }
     }
 }
