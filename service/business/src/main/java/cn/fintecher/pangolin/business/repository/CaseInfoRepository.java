@@ -245,8 +245,8 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
                     "order by dayOfWeek", nativeQuery = true)
     List<Object[]> getWeekCaseEndCount(@Param("deptCode") String deptCode);
 
-    @Query(value = "", nativeQuery = true)
-    List<Object[]> getCupoSort(@Param("deptCode") String deptCode);
+//    @Query(value = "", nativeQuery = true)
+//    List<Object[]> getCupoSort(@Param("deptCode") String deptCode);
 
     /**
      * 根据案件编号查询案件

@@ -12,7 +12,7 @@ import lombok.Data;
  */
 @Data
 @ApiModel("Excel数据导入实体类")
-public class AccFinanceDataExcel {
+public class AccFinanceDataExcel extends BaseEntity{
     @ApiModelProperty(notes = "序号")
     @ExcelAnno(cellName = "序号")
     private String index;

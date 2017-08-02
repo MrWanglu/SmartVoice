@@ -13,7 +13,7 @@ import java.util.Date;
 @Entity
 @Table(name = "acc_finance_entry")
 @ApiModel(value = "AccFinanceEntry", description = "财务数据信息")
-public class AccFinanceEntry {
+public class AccFinanceEntry extends BaseEntity{
 
   @ApiModelProperty(notes = "外键:文件ID")
   private String fileId;
