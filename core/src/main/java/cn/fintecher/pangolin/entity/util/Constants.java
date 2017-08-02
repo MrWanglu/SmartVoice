@@ -33,6 +33,10 @@ public final class Constants {
     public static final String PHONE_CALL_CODE = "SysParam.phone.call";
     public static final String PHONE_CALL_TYPE = "0005";
     public static final Map<String, String> map = new HashMap<String, String>();
+    //阅读回款目前excel模板url
+    public static final String BACK_CASH_PLAN_EXCEL_URL_CODE = "SysParam.backcashplanexcelurl";
+    public static final String BACK_CASH_PLAN_EXCEL_URL_TYPE = "0006";
+
     //导入批次号最大999(3位)
     public final static String ORDER_SEQ = "orderSeq";
     //案件编号最大99999（5位）
