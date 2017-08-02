@@ -33,4 +33,6 @@ public class UserBackcashPlan extends BaseEntity {
     private String operator;
     @ApiModelProperty("创建时间")
     private Date operateTime;
+    @ApiModelProperty("特定公司的标识")
+    private String companyCode;
 }
