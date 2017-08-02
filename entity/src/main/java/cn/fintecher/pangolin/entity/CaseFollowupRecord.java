@@ -1,6 +1,5 @@
 package cn.fintecher.pangolin.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -8,7 +7,6 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author : xiaqun
@@ -110,10 +108,9 @@ public class CaseFollowupRecord extends BaseEntity {
     @ApiModelProperty(notes = "定位地址")
     private String collectionLocation;
 
-    @ApiModelProperty(notes = "外访资料集合")
-    @OneToMany(cascade = CascadeType.REFRESH)
-    @JoinColumn(name = "followupId", insertable = false, updatable = false)
-    private Set<CaseFlowupFile> caseFlowupFiles;
+    @ApiModelProperty(notes = "外访资料id集合")
+    @Transient
+    private List fileIds;
 
     @ApiModelProperty(notes = "公司code码")
     private String companyCode;

@@ -201,7 +201,7 @@ public class AccVisitPoolController extends BaseController {
         List<UploadFile> uploadFiles = new ArrayList<>();//文件对象集合
         try {
             QCaseFlowupFile qCaseFlowupFile = QCaseFlowupFile.caseFlowupFile;
-            Iterable<CaseFlowupFile> caseFlowupFiles = caseFlowupFileRepository.findAll(qCaseFlowupFile.followupId.eq(follId));
+            Iterable<CaseFlowupFile> caseFlowupFiles = caseFlowupFileRepository.findAll(qCaseFlowupFile.followupId.id.eq(follId));
             Iterator<CaseFlowupFile> it = caseFlowupFiles.iterator();
             while (it.hasNext()) {
                 CaseFlowupFile caseFlowupFile = it.next();
