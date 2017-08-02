@@ -27,11 +27,11 @@ public class CaseInfo extends BaseEntity {
     private BigDecimal overdueFine;
     private BigDecimal overdueDelayFine;
     private Integer periods;
-    private Date perDueDate;
+    private Date perDueDate; //逾期日期
     private BigDecimal perPayAmount;
     private Integer overduePeriods;
     private Integer overdueDays;
-    private Date overdueDate;
+    private Date overDueDate;
     private BigDecimal hasPayAmount = new BigDecimal(0); //逾期已还款金额
     private Integer hasPayPeriods;
     private Date latelyPayDate;
