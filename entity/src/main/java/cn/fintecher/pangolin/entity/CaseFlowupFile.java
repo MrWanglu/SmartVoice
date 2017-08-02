@@ -1,20 +1,16 @@
 package cn.fintecher.pangolin.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
 
 @Entity
 @Table(name = "case_flowup_file")
 @Data
 public class CaseFlowupFile extends BaseEntity {
-    @ManyToOne
-    @JoinColumn(name = "followup_id")
-    private CaseFollowupRecord followupId;
+    private String followupId;
     private String caseNumber;
     private String fileid;
     private String filetype;
