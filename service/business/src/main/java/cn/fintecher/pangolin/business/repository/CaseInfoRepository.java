@@ -110,15 +110,15 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
         //产品系列
         bindings.bind(root.product.productSeries.id).first((path, value) -> path.eq(value));
         //客户姓名
-        bindings.bind(root.personalInfo.name).first((path, value) -> path.eq(value));
+        bindings.bind(root.personalInfo.name).first((path, value) -> path.contains(value));
         //客户手机号
         bindings.bind(root.personalInfo.mobileNo).first((path, value) -> path.eq(value));
         //批次号
         bindings.bind(root.batchNumber).first((path, value) -> path.eq(value));
         //申请省份
-        bindings.bind(root.area.id).first((path, value) -> path.eq(value));
+        bindings.bind(root.area.parent.id).first((path, value) -> path.eq(value));
         //申请城市
-        bindings.bind(root.area.areaName).first((path, value) -> path.eq(value));
+        bindings.bind(root.area.id).first((path, value) -> path.eq(value));
     }
 
     /**

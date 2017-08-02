@@ -299,7 +299,7 @@ public class PersonalController extends BaseController {
     }
 
     /**
-     * @Description 费用减免审批页面多条件查询减免记录
+     * @Description 客户查询
      */
     @GetMapping("/getPersonalCaseInfo")
     @ApiOperation(value = "客户查询", notes = "客户查询（分页、条件）")
@@ -311,7 +311,7 @@ public class PersonalController extends BaseController {
     public ResponseEntity<Page<CaseInfo>> getPersonalCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                               @ApiIgnore Pageable pageable) throws URISyntaxException {
         try {
-        Page<CaseInfo> page = caseInfoRepository.findAll(pageable);
+        Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/PersonalController/getPersonalCaseInfo");
         return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
