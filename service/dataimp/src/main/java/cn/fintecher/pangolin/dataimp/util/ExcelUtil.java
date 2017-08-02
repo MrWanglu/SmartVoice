@@ -118,35 +118,8 @@ public class ExcelUtil {
     }
 
     /**
-     * 创建WorkBook实例，支持.xla和xlsx
-     *
-     * @param filePath:完整文件路径
-     * @return
-     */
-    public static Workbook newWKInstance(String filePath) throws Exception {
-        InputStream inputStream;
-        String fileType = filePath.substring(filePath.lastIndexOf('.') + 1);
-        HttpHeaders headers = new HttpHeaders();
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<byte[]> response = restTemplate.exchange(filePath,
-                HttpMethod.GET, new HttpEntity<byte[]>(headers),
-                byte[].class);
-
-        byte[] result = response.getBody();
-        inputStream = new ByteArrayInputStream(result);
-        if ("xls".equals(fileType)) {
-            return new HSSFWorkbook(new POIFSFileSystem(inputStream));//支持低版本的Excel文件
-        } else if ("xlsx".equals(fileType)) {
-            return new XSSFWorkbook(inputStream);
-        } else {
-            throw new Exception("不是Excel文件不能解析");
-        }
-
-    }
-
-    /**
      * 获取Excel中的每个sheet页，
-     *
+     *直接解析第一个sheet也页数据
      * @param workbook
      * @return 返回按Excel实际顺序的sheet对象
      */
@@ -156,6 +129,7 @@ public class ExcelUtil {
             String sheetName = workbook.getSheetName(sheetIndex);
             Sheet sheet = workbook.getSheetAt(sheetIndex);
             excelSheets.put(sheetName, sheet);
+            break;
         }
         if (excelSheets.isEmpty()) {
             excelSheets = null;

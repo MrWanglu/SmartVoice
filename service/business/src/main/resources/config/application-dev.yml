@@ -60,6 +60,7 @@ threadPool:
   maxPoolSize: 200
   keepAliveSeconds : 60
   queueCapacity: 500
+  allowCoreThreadTimeout : false
   threadNamePrefix: pangolin-
 
 

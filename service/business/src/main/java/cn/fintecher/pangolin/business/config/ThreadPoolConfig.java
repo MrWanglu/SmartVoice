@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @Author: PeiShouWen
@@ -33,6 +34,9 @@ public class ThreadPoolConfig implements AsyncConfigurer {
     @Value("${threadPool.threadNamePrefix}")
     private String threadNamePrefix;
 
+    @Value("${threadPool.allowCoreThreadTimeout}")
+    private Boolean allowCoreThreadTimeout;
+
     @Override
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
@@ -46,6 +50,11 @@ public class ThreadPoolConfig implements AsyncConfigurer {
         taskExecutor.setQueueCapacity(queueCapacity);
         //线程名称前缀
         taskExecutor.setThreadNamePrefix(threadNamePrefix);
+        //超过等待时间线程退出
+        taskExecutor.setAllowCoreThreadTimeOut(allowCoreThreadTimeout);
+        // rejection-policy：当pool已经达到max size的时候，如何处理新任务
+        // CALLER_RUNS：不在新线程中执行任务，而是由调用者所在的线程来执行
+        taskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         taskExecutor.initialize();
         return taskExecutor;
     }

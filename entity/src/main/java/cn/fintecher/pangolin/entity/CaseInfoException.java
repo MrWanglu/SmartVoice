@@ -3,8 +3,6 @@ package cn.fintecher.pangolin.entity;
 import lombok.Data;
 
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -16,87 +14,86 @@ import java.util.Date;
 @Table(name = "case_info_exception")
 @Data
 public class CaseInfoException extends BaseEntity {
-    private String batchNumber;
-    private String caseNumber;
-    private Integer collectionType;
+    private String personalName;
+    private String idCard;
+    private String mobileNo;
+    private String productSeriesName;
+    private String productName;
     private String contractNumber;
-    private BigDecimal contractAmount;
-    private BigDecimal overdueAmount;
-    private BigDecimal overdueCapital;
-    private BigDecimal overdueInterest;
-    private BigDecimal overdueFine;
-    private BigDecimal overdueDelayFine;
+    private Date loanDate;
     private Integer periods;
     private Date perDueDate;
     private BigDecimal perPayAmount;
-    private Integer overduePeriods;
-    private Integer overdueDays;
+    private BigDecimal contractAmount;
+    private BigDecimal leftCapital;
+    private BigDecimal leftInterest;
+    private BigDecimal overdueAmount;
+    private BigDecimal overdueCapital;
+    private BigDecimal overDueInterest;
+    private BigDecimal overdueFine;
+    private BigDecimal overdueDelayFine;
+    private BigDecimal otherAmt;
+    private Date overDueDate;
+    private Integer overDuePeriods;
+    private Integer overDueDays;
     private BigDecimal hasPayAmount;
     private Integer hasPayPeriods;
     private Date latelyPayDate;
     private BigDecimal latelyPayAmount;
-    private Integer assistFlag;
-    private Integer assistStatus;
-    private Integer assistWay;
-    private Integer holdDays;
-    private Integer leftDays;
-    private Integer caseType;
-    private Integer leaveCaseFlag;
-    private Date leaveDate;
-    private Integer hasLeaveDays;
-    private Integer followUpNum;
-    private Date caseFollowInTime;
-    private String payStatus;
-    private String orderId;
-    private Integer collectionStatus;
+    private String depositBank;
+    private String cardNumber;
+    private String province;
+    private String city;
+    private String homeAddress;
+    private String homePhone;
+    private String idCardAddress;
+    private String companyName;
+    private String companyAddr;
+    private String companyPhone;
+    private String contactName1;
+    private String contactRelation1;
+    private String contactWorkUnit1;
+    private String contactUnitPhone1;
+    private String contactPhone1;
+    private String contactHomePhone1;
+    private String contactCurrAddress1;
+    private String contactName2;
+    private String contactRelation2;
+    private String contactWorkUnit2;
+    private String contactUnitPhone2;
+    private String contactPhone2;
+    private String contactHomePhone2;
+    private String contactName3;
+    private String contactRelation3;
+    private String contactWorkUnit3;
+    private String contactUnitPhone3;
+    private String contactPhone3;
+    private String contactHomePhone3;
+    private String contactName4;
+    private String contactRelation4;
+    private String contactWorkUnit4;
+    private String contactUnitPhone4;
+    private String contactPhone4;
+    private String contactHomePhone4;
+    private String memo;
+    private BigDecimal commissionRate;
+    private BigDecimal overdueManageFee;
+    private String paymentStatus;
+    private String batchNumber;
+    private String prinCode;
+    private String prinName;
     private Date delegationDate;
     private Date closeDate;
-    private BigDecimal commissionRate;
-    private Integer handNumber;
-    private Date loanDate;
-    private BigDecimal overdueManageFee;
-    private Integer handUpFlag;
-    private BigDecimal derateAmt;
-    private BigDecimal realPayAmount;
-    private BigDecimal earlySettleAmt;
-    private BigDecimal earlyRealSettleAmt;
-    private BigDecimal earlyDerateAmt;
-    private BigDecimal otherAmt;
-    private BigDecimal score;
-    private String companyCode;
-    private BigDecimal leftCapital; //剩余本金
-    private BigDecimal leftInterest; //剩余利息
-    private String endRemark; //结案说明
-
+    private String operator;
     private Date operatorTime;
-    private Integer caseMark;
-
+    private String operatorName;
+    private Integer dataSources;
+    private Integer caseHandNum;
+    private String companyCode;
+    private String caseNumber;
     private String distributeRepeat;
     private String assignedRepeat;
     private Integer repeatStatus;
-
-
-    @ManyToOne
-    @JoinColumn(name = "personal_id")
-    private Personal personalInfo;
-
-    @ManyToOne
-    @JoinColumn(name = "depart_id")
-    private Department department;
-    @ManyToOne
-    @JoinColumn(name = "area_id")
-    private AreaCode area;
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    private Product product;
-
-    @ManyToOne
-    @JoinColumn(name = "principal_id")
-    private Principal principalId;
-
-    @ManyToOne
-    @JoinColumn(name = "operator")
-    private User operator;
 
     /**
      * 异常数据处理类型
