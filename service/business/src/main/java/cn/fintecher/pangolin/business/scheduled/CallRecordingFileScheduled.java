@@ -6,7 +6,6 @@ import cn.fintecher.pangolin.entity.CaseFollowupRecord;
 import cn.fintecher.pangolin.entity.QCaseFollowupRecord;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.message.AddTaskVoiceFileMessage;
-import cn.fintecher.pangolin.entity.util.Constants;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -24,11 +23,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.*;
-import java.net.Socket;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -124,32 +123,32 @@ public class CallRecordingFileScheduled {
         }
     }
 
-    /**
-     * @Description : 云羿呼叫中心的定时心跳
-     */
-    @Scheduled(cron = "0/60 * * * * ?")
-    void callHeartBeat() throws IOException {
-        log.info("云羿呼叫中心的定时心跳" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
-        try {
-            Map<String, String> map = Constants.map;
-            for (String value : map.values()) {
-                log.info("云羿呼叫中心的定时心跳", value);
-                Socket socket = new Socket("116.236.220.211", 12345);
-                socket.setSoTimeout(10000000);
-                BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
-                String sendData = "<request><cmdType>heartbeat</cmdType><agentID>" + value + "</agentID></request>";
-                String sendDataUtf82 = new String(sendData.getBytes("UTF-8"), "UTF-8");
-                String head2 = "<<<length=" + sendDataUtf82.getBytes("UTF-8").length + ">>>";
-                sendDataUtf82 = head2 + sendDataUtf82;
-                System.out.println("心跳：" + sendDataUtf82);
-                pw.print(sendDataUtf82);
-                pw.flush();
-            }
-
-        } catch (Exception e1) {
-            e1.printStackTrace();
-        }
-    }
+//    /**
+//     * @Description : 云羿呼叫中心的定时心跳
+//     */
+//    @Scheduled(cron = "0/60 * * * * ?")
+//    void callHeartBeat() throws IOException {
+//        log.info("云羿呼叫中心的定时心跳" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
+//        try {
+//            Map<String, String> map = Constants.map;
+//            for (String value : map.values()) {
+//                log.info("云羿呼叫中心的定时心跳", value);
+//                Socket socket = new Socket("116.236.220.211", 12345);
+//                socket.setSoTimeout(10000000);
+//                BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//                PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+//                String sendData = "<request><cmdType>heartbeat</cmdType><agentID>" + value + "</agentID></request>";
+//                String sendDataUtf82 = new String(sendData.getBytes("UTF-8"), "UTF-8");
+//                String head2 = "<<<length=" + sendDataUtf82.getBytes("UTF-8").length + ">>>";
+//                sendDataUtf82 = head2 + sendDataUtf82;
+//                System.out.println("心跳：" + sendDataUtf82);
+//                pw.print(sendDataUtf82);
+//                pw.flush();
+//            }
+//
+//        } catch (Exception e1) {
+//            e1.printStackTrace();
+//        }
+//    }
 
 }
