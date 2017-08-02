@@ -38,10 +38,10 @@ public class CasePayApply extends BaseEntity {
     private String departId;
 
     @ApiModelProperty(notes = "申请还款金额")
-    private BigDecimal applyPayAmt;
+    private BigDecimal applyPayAmt = new BigDecimal(0);
 
     @ApiModelProperty(notes = "申请减免金额")
-    private BigDecimal applyDerateAmt;
+    private BigDecimal applyDerateAmt = new BigDecimal(0);
 
     @ApiModelProperty(notes = "还款类型")
     private Integer payType;
