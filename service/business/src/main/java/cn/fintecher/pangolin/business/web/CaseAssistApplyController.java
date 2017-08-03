@@ -171,7 +171,6 @@ public class CaseAssistApplyController extends BaseController {
                 caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue()); //协催状态（协催待分配）
                 caseAssist.setCaseFlowinTime(new Date()); //流入时间
                 caseAssist.setOperatorTime(new Date()); // 操作时间
-                caseAssist.setLatelyCollector(caseInfo.getLatelyAssist()); //上一个协催员
                 caseAssist.setCurrentCollector(caseInfo.getCurrentCollector()); //当前催收员
                 caseAssist.setOperator(user); // 操作员
                 //修该案件中的案件协催状态为协催待分配
