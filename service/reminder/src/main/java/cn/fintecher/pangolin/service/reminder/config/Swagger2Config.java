@@ -21,7 +21,7 @@ public class Swagger2Config {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("cn.fintecher.pangolin.business"))
+                .apis(RequestHandlerSelectors.basePackage("cn.fintecher.pangolin.service.reminder"))
                 .paths(PathSelectors.any())
                 .build();
     }
