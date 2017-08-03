@@ -1,8 +1,7 @@
 package cn.fintecher.pangolin.business.service;
 
 import cn.fintecher.pangolin.business.model.*;
-import cn.fintecher.pangolin.business.repository.AdminPageRepository;
-import cn.fintecher.pangolin.business.repository.CupoPageRepository;
+import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.User;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +26,12 @@ public class HomePageService {
     private CupoPageRepository cupoPageRepository;
     @Inject
     private UserService userService;
+    @Inject
+    private UserRepository userRepository;
+    @Inject
+    private CaseInfoRepository caseInfoRepository;
+    @Inject
+    private CaseAssistRepository caseAssistRepository;
 
     public HomePageResult getHomePageInformation(User user) {
         // 0-没有(不是管理员)，1-有（是管理员）
@@ -47,7 +52,7 @@ public class HomePageService {
         String code = user.getDepartment().getCode();
 
         List<User> allUser = userService.getAllUser(user.getDepartment().getId(), 0);//获取部门下所有的用户
-
+        List<User> users = userRepository.findAll(); //该系统中所有的用户数
         //第一部分 案件总金额 人均金额
         BigDecimal caseSumAmt = adminPageRepository.getCaseSumAmt(code); //案件总金额
         Integer deptUserSum = allUser.size();
@@ -62,7 +67,7 @@ public class HomePageService {
         adminPage.setRepaySumAmtPerson(adminPage.getRepaySumAmt().divide(personCount, 2, BigDecimal.ROUND_HALF_UP));
 
         // 第三部分 催收员总数 在线人数 离线人数
-        adminPage.setCupoSum(deptUserSum);
+        adminPage.setCupoSum(users.size());
         adminPage.setCupoOnlineSum(0);
         adminPage.setCupoOfflineSum(0);
 
@@ -151,6 +156,8 @@ public class HomePageService {
         homePageResult.setType(user.getManager());
         CupoPage cupoPage = new CupoPage();
 
+        CollectorCaseResult collectorCaseResult = getCollectorCaseResult(user);
+
         // 第一部分 本月完成度
         Double taskFinished = cupoPageRepository.getTodyTashFinished(user.getUserName());
         taskFinished = Objects.isNull(taskFinished) ? 0D : taskFinished >1D ? 1D : taskFinished;
@@ -166,9 +173,10 @@ public class HomePageService {
             caseCountResultList.add(c);
         }
         cupoPage.setCaseCountResultList(addCaseCountZero(caseCountResultList));
-//        cupoPage.setFlowInCaseToday(operatorPlatformResult.getFlowInCaseToday());
-//        cupoPage.setFinishCaseToday(operatorPlatformResult.getFinishCaseToday());
-//        cupoPage.setFlowOutCaseToday(operatorPlatformResult.getFlowOutCaseToday());
+        //第二部分 每日案件情况（流入、结清、流出）
+        cupoPage.setFlowInCaseToday(collectorCaseResult.getFlowInCaseToday());
+        cupoPage.setFinishCaseToday(collectorCaseResult.getFinishCaseToday());
+        cupoPage.setFlowOutCaseToday(collectorCaseResult.getFlowOutCaseToday());
 //
         // 第三部分
 ////        CaseAmtResult caseAmtResult = cupoPageMapper.getCaseSumAmount(user.getUserName());
@@ -178,12 +186,13 @@ public class HomePageService {
 ////            caseAmtResult.setWaitCupo(new BigDecimal(0.00));
 ////        }
 ////        cupoPage.setCaseAmtResult(caseAmtResult);
-//        cupoPage.setMoneySumResult(operatorPlatformResult.getMoneySumResult());
-//        cupoPage.setMonthMoneyResult(operatorPlatformResult.getMonthMoneyResult());
-//        cupoPage.setDayMoneyResult(operatorPlatformResult.getDayMoneyResult());
-        // 第四部分
-//        cupoPage.setDayFollowCount(operatorPlatformResult.getDayFollowCount());
-//        cupoPage.setMonthFollowCount(operatorPlatformResult.getMonthFollowCount());
+        // 第三部分 案件金额（回款总额、本月回款、今日回款）
+        cupoPage.setMoneySumResult(collectorCaseResult.getMoneySumResult());
+        cupoPage.setMonthMoneyResult(collectorCaseResult.getMonthMoneyResult());
+        cupoPage.setDayMoneyResult(collectorCaseResult.getDayMoneyResult());
+        // 第四部分 今日在线（今日累计催收、本月累计催收）
+        cupoPage.setDayFollowCount(collectorCaseResult.getDayFollowCount());
+        cupoPage.setMonthFollowCount(collectorCaseResult.getMonthFollowCount());
         // 第五部分 周回款统计
         List<Object[]> repayWeek = cupoPageRepository.getRepayWeek(user.getUserName());
         List<WeekCountResult> weekCountResults = new ArrayList<>();
@@ -206,7 +215,7 @@ public class HomePageService {
         }
         cupoPage.setWeekFollCount(addWeekListZero(weekCountResultList));
 
-        // 第七部分
+        // 第七部分 本周结案数统计
         List<Object[]> caseEndWeek = cupoPageRepository.getCaseEndWeek(user.getId());
         List<WeekCountResult> weekCountResultLists = new ArrayList<>();
         for (Object[] obj : caseEndWeek) {
@@ -268,4 +277,31 @@ public class HomePageService {
         caseCountResultList.sort(Comparator.comparingInt(CaseCountResult::getStatus));
         return caseCountResultList;
     }
+
+    /**
+     * 催收员案件情况
+     * @param user
+     * @return
+     */
+    private CollectorCaseResult getCollectorCaseResult(User user) {
+        CollectorCaseResult collectorCaseResult = new CollectorCaseResult();
+        Integer flowInCaseToday = cupoPageRepository.getFlowInCaseToday(user.getId()); //今日流入案件数
+        Integer finishCaseToday = cupoPageRepository.getFinishCaseToday(user.getId()); //今日结案数
+        Integer flowOutCaseToday = cupoPageRepository.getFlowOutCaseToday(user.getId()); //今日流出案件数
+        BigDecimal moneySumResult = cupoPageRepository.getMoneySumResult(user.getUserName()); //回款总金额
+        BigDecimal monthMoneyResult = cupoPageRepository.getMonthMoneyResult(user.getUserName()); // 本月回款金额
+        BigDecimal dayMoneyResult = cupoPageRepository.getDayMoneyResult(user.getUserName()); // 本天回款金额
+        Integer dayFollowCount = cupoPageRepository.getDayFollowCount(user.getId());//今日累计催收次数
+        Integer monthFollowCount = cupoPageRepository.getMonthFollowCount(user.getId());// 本月累计催收次数
+        collectorCaseResult.setFlowInCaseToday(flowInCaseToday);
+        collectorCaseResult.setFinishCaseToday(finishCaseToday);
+        collectorCaseResult.setFlowOutCaseToday(flowOutCaseToday);
+        collectorCaseResult.setMoneySumResult(moneySumResult);
+        collectorCaseResult.setDayMoneyResult(dayMoneyResult);
+        collectorCaseResult.setMonthMoneyResult(monthMoneyResult);
+        collectorCaseResult.setDayFollowCount(dayFollowCount);
+        collectorCaseResult.setMonthFollowCount(monthFollowCount);
+        return collectorCaseResult;
+    }
+
 }
