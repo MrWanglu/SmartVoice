@@ -109,7 +109,7 @@ public class SysParamController extends BaseController {
         }
         if (Objects.isNull(sysParam.getCompanyCode())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                    "Organization code does not exist", "机构码不存在")).body(null);
+                    "companyCode code does not exist", "公司码为空")).body(null);
         }
         SysParam sysParam1 = sysParamRepository.save(sysParam);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(sysParam1);
