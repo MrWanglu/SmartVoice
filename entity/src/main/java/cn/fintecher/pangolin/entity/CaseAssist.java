@@ -51,8 +51,6 @@ public class CaseAssist extends BaseEntity {
     private Date caseFlowinTime;
     @ApiModelProperty("操作时间")
     private Date operatorTime;
-    @ApiModelProperty("协催案件流转时间")
-    private Date turnTime;
     @ApiModelProperty("上一个协催员")
     @ManyToOne
     @JoinColumn(name = "lately_collector")

@@ -36,6 +36,7 @@ public class CaseInfo extends BaseEntity {
     private Integer hasPayPeriods;
     private Date latelyPayDate;
     private BigDecimal latelyPayAmount;
+    @ApiModelProperty("协催标识：0-未协催，1-协催")
     private Integer assistFlag;
     private Integer assistStatus;
     private Integer assistWay;
@@ -77,8 +78,6 @@ public class CaseInfo extends BaseEntity {
 
     private Date operatorTime;
     private Integer caseMark;
-    @ApiModelProperty("案件流转时间")
-    private Date turnTime;
 
     @JsonIgnore
     @OneToMany(mappedBy = "caseId", targetEntity = CaseAssist.class)
@@ -114,11 +113,6 @@ public class CaseInfo extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "operator")
     private User operator;
-
-    @ApiModelProperty("上一个协催员")
-    @ManyToOne
-    @JoinColumn(name = "lately_assist")
-    private User latelyAssist;
 
     /**
      * @Description 催收类型枚举类
