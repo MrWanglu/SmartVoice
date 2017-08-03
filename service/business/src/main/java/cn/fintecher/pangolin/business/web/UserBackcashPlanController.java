@@ -1,13 +1,21 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.BackPlanImportParams;
 import cn.fintecher.pangolin.business.model.ManyUserBackcashPlanId;
+import cn.fintecher.pangolin.business.model.UploadUserBackcashPlanExcelInfo;
+import cn.fintecher.pangolin.business.model.UploadUserBackcashPlanExcelModel;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.repository.UserBackcashPlanRepository;
+import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.service.UserBackcashPlanExcelImportService;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.file.UploadFile;
+import cn.fintecher.pangolin.entity.util.CellError;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.*;
+import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +24,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -34,7 +46,13 @@ public class UserBackcashPlanController extends BaseController {
     @Autowired
     private UserBackcashPlanRepository userBackcashPlanRepository;
     @Autowired
+    private UserRepository userRepository;
+    @Autowired
     private SysParamRepository sysParamRepository;
+    @Autowired
+    private RestTemplate restTemplate;
+    @Autowired
+    private UserBackcashPlanExcelImportService userBackcashPlanExcelImportService;
 
     /**
      * @Description : 查询用户计划回款金额
@@ -184,6 +202,13 @@ public class UserBackcashPlanController extends BaseController {
     @ApiOperation(value = "下载月度回款目标Excel模板", notes = "下载月度回款目标Excel模板")
     public ResponseEntity<String> downloadPaybackExcelTemplate(@RequestParam String companyCode,
                                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
         //登录的密码设定的时间限制
         QSysParam qSysParam = QSysParam.sysParam;
         SysParam sysParams = sysParamRepository.findOne(qSysParam.code.eq(Constants.BACK_CASH_PLAN_EXCEL_URL_CODE).and(qSysParam.type.eq(Constants.BACK_CASH_PLAN_EXCEL_URL_TYPE)).and(qSysParam.companyCode.eq(companyCode)));
@@ -193,5 +218,90 @@ public class UserBackcashPlanController extends BaseController {
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(sysParams.getValue());
     }
 
+    /**
+     * @Description : 导入月度回款Excel数据
+     */
+    @PostMapping(value = "/importUserBackcashPlanExcelTemplate")
+    @ApiOperation(value = "导入月度回款Excel数据", notes = "导入月度回款Excel数据")
+    public ResponseEntity<String> backAmtGoalExcel(@RequestBody UploadUserBackcashPlanExcelInfo request,
+                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        logger.debug("REST request to import UploadUserBackcashPlanExcelInfo");
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        //excel解析
+        int[] startRow = {0};
+        int[] startCol = {0};
+        Class<?>[] dataClass = {UploadUserBackcashPlanExcelModel.class};
+        UploadFile uploadFile = null;
+        try {
+            // 根据ID查找到上传服务器的文件
+            uploadFile = restTemplate.getForEntity("http://file-service/api/uploadFile?id=" + request.getFileId(), UploadFile.class).getBody();
+            if (Objects.isNull(uploadFile)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to obtain upload file", "获取上传文件失败")).body(null);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to obtain upload file", "获取上传文件失败")).body(null);
+        }
+        // 获取系统中所有用户
+        List<User> allUser = null;
+        List<String> usernameList = new ArrayList<>();
+        try {
+            QUser qUser = QUser.user;
+            Iterator<User> userIterator = userRepository.findAll(qUser.companyCode.eq(request.getCompanyCode())).iterator();
+            allUser = IteratorUtils.toList(userIterator);
+            if (Objects.isNull(allUser)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to get the imported user", "获取导入的用户失败")).body(null);
+            }
+            for (User user1 : allUser) {
+                usernameList.add(user1.getUserName());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to get the  user", "获取用户失败")).body(null);
+        }
 
+
+        // 获取到已经导入的用户
+        List<UserBackcashPlan> userPlan = new ArrayList<>();
+        try {
+            List<UserBackcashPlan> all = userBackcashPlanRepository.findAll();
+            for (UserBackcashPlan accPaybackPlan : all) {
+                userPlan.add(accPaybackPlan);
+            }
+        } catch (
+                Exception e)
+
+        {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to get the imported user", "获取导入的用户失败")).body(null);
+        }
+
+        // 将要传递的参数进行封装
+        BackPlanImportParams backPlanImportParams = new BackPlanImportParams();
+        backPlanImportParams.setLocalUrl(uploadFile.getLocalUrl());
+        backPlanImportParams.setToken(user.getUserName());
+        backPlanImportParams.setUsernameList(usernameList);
+        backPlanImportParams.setUserPlan(userPlan);
+        backPlanImportParams.setStartRow(startRow);
+        backPlanImportParams.setStartCol(startCol);
+        backPlanImportParams.setDataClass(dataClass);
+        //解析Excel并保存到数据库中
+        List<CellError> cellErrorList = new ArrayList<>();
+        try {
+            cellErrorList = userBackcashPlanExcelImportService.importExcelDataInfo(backPlanImportParams);
+            if (Objects.nonNull(cellErrorList)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败")).body(cellErrorList.get(0).getErrorMsg());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败")).body(null);
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+    }
 }
