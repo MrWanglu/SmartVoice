@@ -56,6 +56,7 @@ public class SysParamController extends BaseController {
                                                            @RequestParam(required = false) String type,
                                                            @RequestParam(required = false) String value,
                                                            @RequestParam(required = false) Integer sign,
+                                                           @RequestParam(required = false) String companyCode,
                                                            @ApiIgnore Pageable pageable,
                                                            @RequestHeader(value = "X-UserToken") String token) {
         User user;
@@ -85,10 +86,10 @@ public class SysParamController extends BaseController {
         if (Objects.nonNull(sign)) {
             builder.and(qSysParam.sign.eq(sign));
         }
-        if (Objects.nonNull(user.getCompanyCode())) {
-            builder.and(qSysParam.companyCode.eq(user.getCompanyCode()));
+        if (Objects.nonNull(companyCode)) {
+            builder.and(qSysParam.companyCode.eq(companyCode));
         }
-        Page<SysParam> page = sysParamRepository.findAll(pageable);
+        Page<SysParam> page = sysParamRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
 
@@ -96,7 +97,7 @@ public class SysParamController extends BaseController {
      * @Description : 新增系统参数
      */
     @PostMapping("/createSysParam")
-    @ApiOperation(value = "新增系统参数", notes = "新增系统参数")
+    @ApiOperation(value = "新增/修改系统参数", notes = "新增系统参数")
     public ResponseEntity<SysParam> createSysParam(@Validated @RequestBody SysParam sysParam,
                                                    @RequestHeader(value = "X-UserToken") String token) {
         User user;
@@ -106,13 +107,9 @@ public class SysParamController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
-        if (sysParam.getId() != null) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                    "idexists", "新增不应该含有ID")).body(null);
-        }
         if (Objects.isNull(sysParam.getCompanyCode())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                    "Organization code does not exist", "机构码不存在")).body(null);
+                    "companyCode code does not exist", "公司码为空")).body(null);
         }
         SysParam sysParam1 = sysParamRepository.save(sysParam);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(sysParam1);
