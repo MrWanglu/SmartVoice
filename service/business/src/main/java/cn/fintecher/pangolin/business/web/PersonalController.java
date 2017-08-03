@@ -82,8 +82,8 @@ public class PersonalController extends BaseController {
 
         try {
             QCaseInfo qCaseInfo = caseInfo;
-            Map<String, String> headMap = new HashMap<>(); //存储头信息
-            List<Map<String, Object>> dataList = new ArrayList<>(); //存储数据信息
+            Map<String, String> headMap; //存储头信息
+            List<Map<String, Object>> dataList; //存储数据信息
             List<CaseInfo> caseInfos = new ArrayList<>(); //数据
             List<List<String>> list = new ArrayList<>(); //选项
             Integer maxNum = null; //最大联系人数
@@ -175,11 +175,15 @@ public class PersonalController extends BaseController {
 
             // 案件状态
             if (Objects.equals(exportType, 3)) {
-                List<Integer> stList = (List) dataFilter.get("caseInfoStatus");
+                List<Object> stList = (List) dataFilter.get("caseInfoStatus");
                 if (Objects.isNull(stList) || stList.isEmpty()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "数据筛选产品名称为空!")).body(null);
                 }
-                BooleanExpression exp = qCaseInfo.collectionStatus.in(stList);
+                List<Integer> sl = new ArrayList<>();
+                for (Object o : stList) {
+                    sl.add(Integer.valueOf(o.toString()));
+                }
+                BooleanExpression exp = qCaseInfo.collectionStatus.in(sl);
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
                 caseInfos = IterableUtils.toList(all);
                 if (caseInfos.isEmpty()) {
