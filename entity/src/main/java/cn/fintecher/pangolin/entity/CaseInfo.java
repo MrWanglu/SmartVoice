@@ -77,6 +77,8 @@ public class CaseInfo extends BaseEntity {
 
     private Date operatorTime;
     private Integer caseMark;
+    @ApiModelProperty("案件流转时间")
+    private Date turnTime;
 
     @JsonIgnore
     @OneToMany(mappedBy = "caseId", targetEntity = CaseAssist.class)
