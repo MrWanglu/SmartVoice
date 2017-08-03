@@ -56,7 +56,7 @@ public class SysParamController extends BaseController {
                                                            @RequestParam(required = false) String type,
                                                            @RequestParam(required = false) String value,
                                                            @RequestParam(required = false) Integer sign,
-                                                           @RequestParam(required = false) String companyCode,
+                                                           @RequestParam String companyCode,
                                                            @ApiIgnore Pageable pageable,
                                                            @RequestHeader(value = "X-UserToken") String token) {
         User user;
@@ -89,7 +89,7 @@ public class SysParamController extends BaseController {
         if (Objects.nonNull(companyCode)) {
             builder.and(qSysParam.companyCode.eq(companyCode));
         }
-        Page<SysParam> page = sysParamRepository.findAll(pageable);
+        Page<SysParam> page = sysParamRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
 
