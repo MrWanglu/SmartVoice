@@ -1,5 +1,7 @@
 package cn.fintecher.pangolin.business.model;
 
+import lombok.Data;
+
 import java.util.Date;
 
 /**
@@ -7,6 +9,7 @@ import java.util.Date;
  * @Description :
  * @Date : 2017/7/31.
  */
+@Data
 public class SysNotice {
 
     private String id;

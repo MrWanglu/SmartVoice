@@ -68,4 +68,9 @@ public class AdminPage {
     // 第十部分
     @ApiModelProperty(notes = "系统公告")
     private List<SysNotice> sysNotice;
+
+    public void initRate(){
+        this.custSortList.forEach(PageSortResult::initRate);
+        this.cupoSortList.forEach(PageSortResult::initRate);
+    }
 }

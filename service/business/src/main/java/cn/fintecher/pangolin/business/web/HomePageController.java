@@ -8,27 +8,27 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.inject.Inject;
 
 /**
  * @Author : sunyanping
- * @Description : 管理员/催收员首页
+ * @Description : 首页
  * @Date : 2017/7/31.
  */
 @RestController
 @RequestMapping("/api/homePageController")
-@Api(value = "HomePageController", description = "管理员首页")
+@Api(value = "HomePageController", description = "首页")
 public class HomePageController extends BaseController {
 
     private final Logger log = LoggerFactory.getLogger(HomePageController.class);
 
-    @Inject
+    @Autowired
     private HomePageService homePageService;
 
     @GetMapping(value = "/getHomePageInformation")
