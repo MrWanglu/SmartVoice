@@ -56,7 +56,7 @@ public class SysParamController extends BaseController {
                                                            @RequestParam(required = false) String type,
                                                            @RequestParam(required = false) String value,
                                                            @RequestParam(required = false) Integer sign,
-                                                           @RequestParam String companyCode,
+                                                           @RequestParam(required = false) String companyCode,
                                                            @ApiIgnore Pageable pageable,
                                                            @RequestHeader(value = "X-UserToken") String token) {
         User user;
