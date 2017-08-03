@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
 public class DataInfoExcelReceiveMsg {
 
     private final Logger logger= LoggerFactory.getLogger(DataInfoExcelReceiveMsg.class);
-
     @Autowired
     ProcessDataInfoExcelService processDataInfoExcelService;
     /**
@@ -28,7 +27,7 @@ public class DataInfoExcelReceiveMsg {
      */
     @RabbitHandler
     public void receiveMsg(ConfirmDataInfoMessage confirmDataInfoMessage){
-        logger.info("收到附件上传成功消息 {}", confirmDataInfoMessage);
+        logger.info("收到案件确认消息 {}", confirmDataInfoMessage);
         processDataInfoExcelService.doTask(confirmDataInfoMessage);
     }
 }

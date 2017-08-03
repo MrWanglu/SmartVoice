@@ -294,7 +294,9 @@ public class DataInfoExcelService {
         //查询该用户下所有未确认的案件
         QDataInfoExcel qDataInfoExcel=QDataInfoExcel.dataInfoExcel;
         Iterable<DataInfoExcel> dataInfoExcelIterable= dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId()).and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
+        int dataTotal=0;
         for (Iterator iterator = dataInfoExcelIterable.iterator(); iterator.hasNext();) {
+            dataTotal=dataTotal+1;
             DataInfoExcel dataInfoExcel=(DataInfoExcel) iterator.next();
             ConfirmDataInfoMessage msg=new ConfirmDataInfoMessage();
             DataInfoExcelModel dataInfoExcelModel=new DataInfoExcelModel();
@@ -309,6 +311,7 @@ public class DataInfoExcelService {
             msg.setCaseInfoFileList(caseInfoFileList);
             msg.setUser(user);
             rabbitTemplate.convertAndSend(Constants.DATAINFO_CONFIRM_QE, msg);
+            logger.info("发送数据第 {} 条数据",dataTotal);
             DataInfoExcelHis dataInfoExcelHis=new DataInfoExcelHis();
             BeanUtils.copyProperties(dataInfoExcel,dataInfoExcelHis);
             dataInfoExcelRepository.delete(dataInfoExcel);

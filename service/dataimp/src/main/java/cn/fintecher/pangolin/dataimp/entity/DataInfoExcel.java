@@ -83,14 +83,15 @@ public class DataInfoExcel implements Serializable {
     private Double overdueAmount = new Double(0);
 
     @ApiModelProperty("逾期本金(元)")
+    @ExcelAnno(cellName = "逾期本金(元)")
     private Double overdueCapital = new Double(0);
 
     @ApiModelProperty("逾期利息(元)")
-    @ExcelAnno(cellName = "逾期本金(元)")
+    @ExcelAnno(cellName = "逾期利息(元)")
     private Double overDueInterest = new Double(0);
 
     @ApiModelProperty("逾期罚息(元)")
-    @ExcelAnno(cellName = "逾期利息(元)")
+    @ExcelAnno(cellName = "逾期罚息(元)")
     private Double overdueFine = new Double(0);
 
     @ApiModelProperty("逾期滞纳金(元)")

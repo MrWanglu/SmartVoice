@@ -56,10 +56,11 @@ cuibei:
     webAk: lHaYCXlRADlhW0fnv8tpIhCfqD85pTSr
 
 threadPool:
-  corePoolSize: 50
+  corePoolSize: 10
   maxPoolSize: 200
   keepAliveSeconds : 60
   queueCapacity: 500
+  allowCoreThreadTimeout : false
   threadNamePrefix: pangolin-
 
 
