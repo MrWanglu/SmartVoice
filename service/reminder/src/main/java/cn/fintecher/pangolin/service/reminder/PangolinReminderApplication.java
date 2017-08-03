@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.service.reminder;
 
 import cn.fintecher.pangolin.service.reminder.service.MessageWebSocketEndpoint;
+import cn.fintecher.pangolin.service.reminder.util.SpringContextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Queue;
@@ -14,6 +15,7 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.netflix.feign.EnableFeignClients;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.Environment;
@@ -50,7 +52,9 @@ public class PangolinReminderApplication extends SpringBootServletInitializer {
 
     public static void main(String[] args) throws UnknownHostException {
         SpringApplication app = new SpringApplication(PangolinReminderApplication.class);
-        Environment env = app.run(args).getEnvironment();
+        ApplicationContext applicationContext =app.run(args);
+        Environment env = applicationContext.getEnvironment();
+        SpringContextUtil.setApplicationContext(applicationContext);
         log.info("\n----------------------------------------------------------\n\t" +
                         "Application '{}' is running! Access URLs:\n\t" +
                         "Local: \t\thttp://localhost:{}\n\t" +
