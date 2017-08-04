@@ -107,7 +107,7 @@ public class HomePageService {
         for (Object[] obj : weekCaseEndCount) {
             WeekCountResult weekCountResult = new WeekCountResult();
             weekCountResult.setNum( Integer.valueOf(obj[0].toString()));
-            weekCountResult.setDayOfWeek((Integer) obj[1]);
+            weekCountResult.setDayOfWeek(Integer.valueOf(obj[1].toString()));
             weekCaseEndList.add(weekCountResult);
         }
         adminPage.setWeekCaseEndList(addWeekListZero(weekCaseEndList));
@@ -142,7 +142,7 @@ public class HomePageService {
         List<SysNotice> sysNoticeList = new ArrayList<>();
         SysNotice sysNotice = new SysNotice();
         sysNotice.setTitle("批量成功");
-        sysNotice.setContent("您于2017-05-25 12:21:35完成批量");
+        sysNotice.setContent("您于2017-08-02 12:21:35完成批量");
         sysNoticeList.add(sysNotice);
         adminPage.setSysNotice(sysNoticeList);
 

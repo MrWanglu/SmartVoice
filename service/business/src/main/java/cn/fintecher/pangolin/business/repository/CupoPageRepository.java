@@ -110,7 +110,7 @@ public interface CupoPageRepository extends JpaRepository<CaseInfo, String> {
     @Query(value = "SELECT COUNT(*) AS num FROM case_info " +
             "WHERE collection_status = 24 " +
             "AND to_days(operator_time) = to_days(now()) " +
-            "AND (current_collector = :userId OR lately_assist = :userId)", nativeQuery = true)
+            "AND (current_collector = :userId OR assist_collector = :userId)", nativeQuery = true)
     Integer getFinishCaseToday(@Param("userId")String userId);
 
     /**
@@ -122,8 +122,8 @@ public interface CupoPageRepository extends JpaRepository<CaseInfo, String> {
             "LEFT JOIN case_info " +
             "ON case_turn_record.case_id = case_info.id " +
             "WHERE to_days(case_turn_record.operator_time) = to_days(now()) " +
-            "AND (case_info.current_collector != :userId) " +
-            "OR (case_info.assist_collector != :userId))", nativeQuery = true)
+            "AND (case_info.current_collector != :userId " +
+            "OR case_info.assist_collector != :userId)", nativeQuery = true)
     Integer getFlowOutCaseToday(@Param("userId")String userId);
 
     /**

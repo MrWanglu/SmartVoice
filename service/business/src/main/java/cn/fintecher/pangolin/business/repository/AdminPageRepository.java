@@ -19,13 +19,10 @@ public interface AdminPageRepository extends JpaRepository<CaseInfo, String> {
      * @param deptCode
      * @return
      */
-    @Query(value = "select sum(amo.overdue_amount) as case_sum " +
-            "from (select distinct(cinfo.case_number),overdue_amount " +
-            "from " +
-            " case_info cinfo " +
-            "left join department dept " +
-            " on cinfo.depart_id = dept.id " +
-            "where dept.`code` like concat(?1,'%')) amo ", nativeQuery = true)
+    @Query(value = "SELECT SUM(case_info.overdue_amount) AS amt FROM case_info " +
+                    "LEFT JOIN department " +
+                    "ON case_info.depart_id = department.id " +
+                    "WHERE department.`code` LIKE concat(?1,'%')", nativeQuery = true)
     BigDecimal getCaseSumAmt (@Param("deptCode") String deptCode);
 
     /**
@@ -33,13 +30,11 @@ public interface AdminPageRepository extends JpaRepository<CaseInfo, String> {
      * @param deptCode
      * @return
      */
-    @Query(value = "select sum(cpd.payamt) as payamt from " +
-            "(select caseamt.case_id,caseamt.payamt,cade.dcode from " +
-            "(select case_id,sum(apply_pay_amt) as payamt from case_pay_apply where approve_status = '58' group by case_id) as caseamt " +
-            "left join " +
-            "(select case_info.id as cid,department.code as dcode from " +
-            "case_info left join department on case_info.depart_id = department.id) as cade " +
-            "on cade.cid = caseamt.case_id) as cpd where cpd.dcode like concat(?1,'%')", nativeQuery = true)
+    @Query(value = "SELECT SUM(case_pay_apply.apply_pay_amt) AS amt FROM case_pay_apply " +
+                    "LEFT JOIN department " +
+                    "ON case_pay_apply.depart_id = department.id " +
+                    "WHERE department.`code` LIKE concat(?1,'%') " +
+                    "AND case_pay_apply.approve_result = 179", nativeQuery = true)
     BigDecimal getRepaySumAmt(@Param("deptCode") String deptCode);
 
     /**
@@ -47,11 +42,10 @@ public interface AdminPageRepository extends JpaRepository<CaseInfo, String> {
      * @param deptCode
      * @return
      */
-    @Query(value =  "select count(distinct(personal_id)) as psum from case_info " +
-            " left join  " +
-            " department " +
-            " on case_info.depart_id = department.id " +
-            " where department.`code` like concat(?1,'%')", nativeQuery = true)
+    @Query(value =  "SELECT COUNT(DISTINCT(personal_id)) FROM case_info " +
+            "LEFT JOIN department " +
+            "ON case_info.depart_id = department.id " +
+            "WHERE department.`code` LIKE concat(?1,'%')", nativeQuery = true)
     Integer getCustNum(@Param("deptCode") String deptCode);
 
     /**
@@ -59,12 +53,11 @@ public interface AdminPageRepository extends JpaRepository<CaseInfo, String> {
      * @param deptCode
      * @return
      */
-    @Query(value =  "select count(distinct(personal_id)) as psum from case_info " +
-            " left join  " +
-            " department " +
-            " on case_info.depart_id = department.id " +
-            " where department.`code` like concat(?1,'%') " +
-            " and case_info.collection_status not in (24,166)", nativeQuery = true)
+    @Query(value =  "SELECT COUNT(DISTINCT(personal_id)) FROM case_info " +
+                    "LEFT JOIN department " +
+                    "ON case_info.depart_id = department.id " +
+                    "WHERE department.`code` LIKE concat(?1,'%') " +
+                    "AND case_info.collection_status NOT IN (24,166)", nativeQuery = true)
     Integer getCustNumIN(@Param("deptCode") String deptCode);
 
     /**
@@ -72,16 +65,13 @@ public interface AdminPageRepository extends JpaRepository<CaseInfo, String> {
      * @param deptCode
      * @return
      */
-    @Query(value = "select sum(wk.apply_pay_amt) as amount,weekday(wk.approve_pay_datetime) as dayOfWeek " +
-            "from " +
-            " (select case_id,apply_pay_amt,approve_pay_datetime " +
-            " from case_pay_apply as apply " +
-            " left join department on apply.depart_id = department.id " +
-            " where approve_status = '58' " +
-            " and department.code like concat(?1,'%') " +
-            " and yearweek(DATE_FORMAT(apply.approve_pay_datetime,'%Y-%m-%d'),1) = YEARWEEK(NOW(),1)) wk " +
-            "group by weekday(approve_pay_datetime) " +
-            "order by dayOfWeek",  nativeQuery = true)
+    @Query(value = "SELECT SUM(apply_pay_amt) AS amt,WEEKDAY(approve_pay_datetime) AS dayOfWeek FROM case_pay_apply " +
+                    "LEFT JOIN department " +
+                    "ON case_pay_apply.depart_id = department.id " +
+                    "WHERE department.`code` LIKE concat(?1,'%') " +
+                    "AND YEARWEEK(DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d'),1) = YEARWEEK(now(),1) " +
+                    "GROUP BY WEEKDAY(approve_pay_datetime) " +
+                    "ORDER BY dayOfWeek ",  nativeQuery = true)
     List<Object[]> getWeekRepaySumAmt(@Param("deptCode") String deptCode);
 
     /**
@@ -89,18 +79,15 @@ public interface AdminPageRepository extends JpaRepository<CaseInfo, String> {
      * @param deptCode
      * @return
      */
-    @Query(value = "select count(*) as num,weekday(wk.operator_time) as dayOfWeek " +
-            "from ( " +
-            " select record.case_id,record.operator_time from case_followup_record as record " +
-            " left join ( " +
-            " select case_info.id,department.`code` from case_info " +
-            " join department " +
-            " on case_info.depart_id = department.id) as cdept " +
-            " on record.case_id = cdept.id " +
-            " where yearweek(DATE_FORMAT(record.operator_time,'%Y-%m-%d'),1) = YEARWEEK(NOW(),1) " +
-            " and cdept.code like concat(?1,'%')) wk " +
-            "group by weekday(wk.operator_time) " +
-            "order by dayOfWeek", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS dayOfWeek FROM case_followup_record " +
+            "LEFT JOIN `user` " +
+            "ON case_followup_record.operator = `user`.id " +
+            "LEFT JOIN department " +
+            "ON `user`.dept_id = department.id " +
+            "WHERE department.`code` LIKE concat(?1,'%') " +
+            "AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1) " +
+            "GROUP BY WEEKDAY(operator_time) " +
+            "ORDER BY dayOfWeek", nativeQuery = true)
     List<Object[]> getWeekFollCount(@Param("deptCode") String deptCode);
 
     /**
@@ -108,14 +95,27 @@ public interface AdminPageRepository extends JpaRepository<CaseInfo, String> {
      * @param deptCode
      * @return
      */
-    @Query(value = "select count(*) as num,weekday(wk.close_date) as dayOfWeek from ( " +
-            " select case_info.id,case_info.close_date from case_info " +
-            " join department " +
-            " on case_info.depart_id = department.id " +
-            " where yearweek(DATE_FORMAT(case_info.close_date,'%Y-%m-%d'),1) = YEARWEEK(NOW(),1) " +
-            " and department.code like concat(?1,'%')) as wk " +
-            "group by weekday(wk.close_date) " +
-            "order by dayOfWeek", nativeQuery = true)
+    @Query(value = "SELECT SUM(m.num),m.closeDate AS dayOfWeek FROM ( " +
+            "SELECT COUNT(*) AS num,WEEKDAY(close_date) AS closeDate FROM case_info " +
+            "LEFT JOIN department " +
+            "ON case_info.depart_id = department.id " +
+            "WHERE department.`code` LIKE concat(:deptCode,'%') " +
+            "AND case_info.collection_status = 24 " +
+            "AND YEARWEEK(DATE_FORMAT(close_date,'%Y-%m-%d'),1) = YEARWEEK(now(),1) " +
+            "GROUP BY WEEKDAY(close_date) " +
+            "UNION ALL " +
+            "SELECT COUNT(*) AS num,WEEKDAY(close_date) AS closeDate FROM case_info " +
+            "LEFT JOIN `user` " +
+            "ON `user`.id = case_info.assist_collector " +
+            "LEFT JOIN department " +
+            "ON `user`.dept_id = department.id " +
+            "WHERE department.`code` LIKE concat(:deptCode,'%') " +
+            "AND case_info.collection_status = 24 " +
+            "AND YEARWEEK(DATE_FORMAT(close_date,'%Y-%m-%d'),1) = YEARWEEK(now(),1) " +
+            "GROUP BY WEEKDAY(close_date) " +
+            ") AS m " +
+            "GROUP BY m.closeDate " +
+            "ORDER BY dayOfWeek", nativeQuery = true)
     List<Object[]> getWeekCaseEndCount(@Param("deptCode") String deptCode);
 
     /**
