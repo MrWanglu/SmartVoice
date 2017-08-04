@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.common.service;
 
 import cn.fintecher.pangolin.common.model.AddTaskRecorderRequest;
+import cn.fintecher.pangolin.entity.util.Base64;
 import cn.fintecher.pangolin.entity.util.Constants;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.NameValuePair;
@@ -10,10 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
-import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.Map;
 
@@ -51,14 +49,13 @@ public class CallService {
         MessageDigest md = MessageDigest.getInstance("SHA-1");
         md.reset();
         String decode = decryptBASE64(nonce) + created + secret;
-        return new BASE64Encoder().encode(md.digest(decode.getBytes()));
+        return Base64.encode(md.digest(decode.getBytes()));
     }
 
     public String decryptBASE64(String key) {
-        BASE64Decoder decoder = new BASE64Decoder();
         try {
-            return new String(decoder.decodeBuffer(key));
-        } catch (IOException e) {
+            return new String(Base64.decode(key));
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return "";
@@ -70,7 +67,7 @@ public class CallService {
 
     public HttpMethod getPostMethod(AddTaskRecorderRequest request) {
         PostMethod post = new PostMethod(cti);
-        String Nonce = new BASE64Encoder().encode("123456abc".getBytes()); //随机字符串
+        String Nonce = Base64.encode("123456abc".getBytes()); //随机字符串
         String Created = String.valueOf(System.currentTimeMillis());
         String PasswordDigest = "";
         try {
@@ -98,7 +95,7 @@ public class CallService {
         String params = "vcc_code=" + enterpriseCode + "&call_id=" + callId + "&result_type=1" + "&ag_id=" + agId;
 
         GetMethod get = new GetMethod(downloadrRecord + "?" + params);
-        String Nonce = new BASE64Encoder().encode("123456abc".getBytes()); //随机字符串
+        String Nonce = Base64.encode("123456abc".getBytes()); //随机字符串
         String Created = String.valueOf(System.currentTimeMillis());
         String PasswordDigest = "";
         try {
