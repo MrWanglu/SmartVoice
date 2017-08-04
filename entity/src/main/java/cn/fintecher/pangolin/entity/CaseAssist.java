@@ -43,7 +43,7 @@ public class CaseAssist extends BaseEntity {
     private Integer assistWay;
     @ApiModelProperty("协催案件状态")
     private Integer assistStatus;
-    @ApiModelProperty("协催结束标识（手动结束，自动结束）")
+    @ApiModelProperty("协催结束标识（0-手动结束，1-自动结束）")
     private Integer assistCloseFlag;
     @ApiModelProperty("留案操作日期")
     private Date leaveDate;

@@ -64,6 +64,42 @@ public class CaseAssistController extends BaseController {
     @Inject
     private UserService userService;
 
+    @GetMapping("/closeCaseAssist")
+    @ApiOperation(value = "结束协催",notes = "结束协催")
+    public ResponseEntity closeCaseAssist(@RequestParam @ApiParam("协催案件ID") String assistId,
+                                          @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to closeCaseAssist");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "closeCaseAssist", e.getMessage())).body(null);
+        }
+        try {
+            CaseAssist caseAssist = caseAssistRepository.findOne(assistId);
+            CaseInfo caseInfo = caseAssist.getCaseId();
+
+            // 协催案件
+            caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态
+            caseAssist.setAssistCloseFlag(0); //手动结束
+            caseAssist.setOperatorTime(new Date()); //操作时间
+            caseAssist.setOperator(user); //操作员
+            //原案件
+            caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态
+            caseInfo.setAssistCollector(null); //协催员
+            caseInfo.setAssistWay(null); //协催方式
+            caseInfo.setAssistFlag(0); //协催标识
+
+            caseAssist.setCaseId(caseInfo);
+            CaseAssist save = caseAssistRepository.save(caseAssist);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功!","")).body(save);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "closeCaseAssist", "系统异常!")).body(null);
+        }
+    }
+
     @GetMapping("/findCaseInfoAssistRecord")
     @ApiOperation(value = "查询案件协催记录",notes = "查询案件协催记录")
     @ApiImplicitParams({
