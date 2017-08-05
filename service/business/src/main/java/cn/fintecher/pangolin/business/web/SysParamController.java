@@ -40,7 +40,7 @@ public class SysParamController extends BaseController {
     /**
      * @Description : 系统参数带条件的分页查询
      */
-    @PostMapping("/query")
+    @GetMapping("/query")
     @ApiOperation(value = "系统参数带条件的分页查询", notes = "系统参数带条件的分页查询")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
