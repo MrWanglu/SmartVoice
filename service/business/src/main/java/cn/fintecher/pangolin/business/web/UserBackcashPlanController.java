@@ -58,7 +58,7 @@ public class UserBackcashPlanController extends BaseController {
      * @Description : 查询用户计划回款金额
      */
 
-    @PostMapping("/query")
+    @GetMapping("/query")
     @ApiOperation(value = "查询用户计划回款金额", notes = "查询用户计划回款金额")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
