@@ -161,24 +161,21 @@ public interface AdminPageRepository extends JpaRepository<CaseInfo, String> {
      * @param deptCode
      * @return
      */
-    @Query(value = "select m.pid,m.pname,n.amt,m.pamt,m.pamt/n.amt as rate from " +
-            "( " +
-            " select apply.personal_id as pid,apply.personal_name as pname,sum(apply.apply_pay_amt) as pamt from case_pay_apply as apply " +
-            " left join department " +
-            " on apply.depart_id = department.id " +
-            " where apply.approve_status = '58' " +
-            " and department.`code` like concat(?1,'%') " +
-            " and year(apply.approve_pay_datetime) = year(NOW()) " +
-            " and month(apply.approve_pay_datetime) = month(NOW()) " +
-            " group by apply.personal_id,apply.personal_name " +
-            ") as m " +
-            "left join " +
-            "( " +
-            " select sum(case_info.overdue_amount) as amt,case_info.personal_id as pid from case_info " +
-            " group by case_info.personal_id " +
-            ") as n " +
-            "on m.pid = n.pid " +
-            "order by rate desc,amt desc,pamt desc " +
-            "limit 0,3", nativeQuery = true)
+    @Query(value = "SELECT pname,amt,pamt,pamt/amt as rate FROM ( " +
+            "SELECT SUM(apply_pay_amt) AS pamt,case_pay_apply.personal_name AS pname,case_pay_apply.personal_id AS pid FROM case_pay_apply  " +
+            "LEFT JOIN department " +
+            "ON case_pay_apply.depart_id = department.id " +
+            "WHERE approve_result = 179 " +
+            "AND department.`code` LIKE concat(?1,'%') " +
+            "AND DATE_FORMAT(approve_pay_datetime, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m') " +
+            "GROUP BY case_pay_apply.personal_id,case_pay_apply.personal_name " +
+            ") AS m " +
+            "LEFT JOIN ( " +
+            "SELECT SUM(overdue_amount) AS amt,personal_id AS pid FROM case_info " +
+            "GROUP BY personal_id " +
+            ") AS n " +
+            "ON m.pid = n.pid " +
+            "ORDER BY rate DESC " +
+            "LIMIT 0,3", nativeQuery = true)
     List<Object[]> getCustSort(@Param("deptCode") String deptCode);
 }

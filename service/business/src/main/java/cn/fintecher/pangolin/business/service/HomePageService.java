@@ -120,7 +120,7 @@ public class HomePageService {
             pageSortResult.setName((String) obj[1]);
             pageSortResult.setAmount((BigDecimal) obj[2]);
             pageSortResult.setPayed((BigDecimal) obj[3]);
-            pageSortResult.setRate((Double) obj[4]);
+            pageSortResult.setRate( Objects.isNull(obj[4]) ? 0.00 : Double.valueOf(obj[4].toString()));
             cupoSortList.add(pageSortResult);
         }
         adminPage.setCupoSortList(cupoSortList);
@@ -130,10 +130,10 @@ public class HomePageService {
         List<PageSortResult> custSortList = new ArrayList<>();
         for (Object[] obj : custSort) {
             PageSortResult pageSortResult = new PageSortResult();
-            pageSortResult.setName((String) obj[1]);
-            pageSortResult.setAmount((BigDecimal) obj[2]);
-            pageSortResult.setPayed((BigDecimal) obj[3]);
-            pageSortResult.setRate((Double) obj[4]);
+            pageSortResult.setName((String) obj[0]);
+            pageSortResult.setAmount((BigDecimal) obj[1]);
+            pageSortResult.setPayed((BigDecimal) obj[2]);
+            pageSortResult.setRate(Objects.isNull(obj[3])? 0.00 : Double.valueOf(obj[3].toString()));
             custSortList.add(pageSortResult);
         }
         adminPage.setCustSortList(custSortList);
