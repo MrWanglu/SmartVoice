@@ -683,6 +683,7 @@ public class CaseInfoService {
         caseInfo.setCaseMark(caseMarkParams.getColorNum()); //打标
         caseInfo.setOperator(tokenUser); //操作人
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        caseInfoRepository.saveAndFlush(caseInfo);
         return caseInfo;
     }
 
@@ -697,6 +698,7 @@ public class CaseInfoService {
         personalContact.setPhoneStatus(phoneStatusParams.getPhoneStatus()); //电话状态
         personalContact.setOperator(tokenUser.getUserName()); //操作人
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        personalContactRepository.saveAndFlush(personalContact);
         return personalContact;
     }
 

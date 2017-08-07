@@ -63,6 +63,17 @@ public final class Constants {
     //案件确认数据发送队列
     public static final String DATAINFO_CONFIRM_QE = "dataInfoExcel.confirm.progress.dev";
 
+    //获取催收员回款报表excel模版url
+    public static final String BACK_MONEY_REPORT_EXCEL_URL_CODE = "SysParam.backmoneyreportexcelurl";
+    public static final String BACK_MONEY_REPORT_EXCEL_URL_TYPE = "0011";
+
+    //获取催收员业绩进展报表excel报表url
+    private static final String PERFORMANCE_REPORT_EXCEL_URL_CODE = "SysParam.performancereportexcelurl";
+    private static final String PERFORMANCE_REPORT_EXCEL_URL_TYPE = "0012";
+
+    //系统参数请求
+    public static final String SYSPARAM_URL = "http://business-service/api/sysParamResource/";
+
     /**
      * 数据来源
      */
