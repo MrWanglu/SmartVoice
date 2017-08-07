@@ -26,6 +26,7 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author : xiaqun
@@ -269,7 +270,11 @@ public class AccTelPoolController extends BaseController {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
             builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
-            builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            if (Objects.equals(tokenUser.getManager(), 1)) {
+                builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            } else {
+                builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(tokenUser.getId()));
+            }
             builder.and(QCaseInfo.caseInfo.collectionStatus.in(list)); //不查询已结案案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())); //只查询电催案件
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
@@ -302,7 +307,11 @@ public class AccTelPoolController extends BaseController {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
             builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
-            builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            if (Objects.equals(tokenUser.getManager(), 1)) {
+                builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            } else {
+                builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(tokenUser.getId()));
+            }
             builder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //只查询已结案案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())); //只查询电催案件
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
