@@ -710,7 +710,7 @@ public class CaseInfoService {
         caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1); //流转次数加一
         caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态 20-待催收
-        if (Objects.equals(user.getType(), User.Type.TEL)) {
+        if (Objects.equals(user.getType(), User.Type.TEL.getValue())) {
             caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
         } else if (Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
             caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
