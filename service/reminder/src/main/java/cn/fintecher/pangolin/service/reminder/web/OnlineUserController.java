@@ -5,6 +5,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,4 +30,13 @@ public class OnlineUserController {
         return ResponseEntity.ok(resultMap);
     }
 
+    @RequestMapping(value = "/getOnlineUsersOnCompany", method = RequestMethod.GET)
+    @ApiOperation(value = "获取当前登陆用户数(公司下)", notes = "获取当前登陆用户数(公司下)")
+    public ResponseEntity<Map<String, Object>> getOnlineUsersOnCompany(@RequestHeader(value = "X-UserToken") String token) {
+
+        Map<String, Object> resultMap = new HashMap<>();
+        resultMap.put("onlineUsers", userService.getOnlineUsersOnCompany(token));
+        resultMap.put("currentTimeMillis", System.currentTimeMillis());
+        return ResponseEntity.ok(resultMap);
+    }
 }

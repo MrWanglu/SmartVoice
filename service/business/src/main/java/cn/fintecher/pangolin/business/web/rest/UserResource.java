@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by  hukaijia.
@@ -50,5 +52,20 @@ public class UserResource {
     public ResponseEntity<User> findUserById(@RequestParam @ApiParam("id") String id) {
         User user = userRepository.findOne(id);
         return ResponseEntity.ok().body(user);
+    }
+
+    @GetMapping("/getUsersOnCompany")
+    @ApiOperation(value = "统计公司下用户数", notes = "统计公司下用户数")
+    public ResponseEntity<Integer> getUsersOnCompany(@RequestParam @ApiParam("ids") List<String> ids,
+                                                     @RequestParam @ApiParam("token")String token) {
+        ResponseEntity<User> userBody = getUserByToken(token);
+        User user = userBody.getBody();
+        int num = 0;
+        for (String userId : ids) {
+            if (Objects.equals(userRepository.findOne(userId).getCompanyCode(), user.getCompanyCode())) {
+                num += 1;
+            }
+        }
+        return ResponseEntity.ok().body(num);
     }
 }
