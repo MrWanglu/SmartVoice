@@ -91,15 +91,9 @@ public interface CupoPageRepository extends JpaRepository<CaseInfo, String> {
      * @param userId
      * @return
      */
-    @Query(value = "SELECT SUM(m.sum) FROM ( " +
-            "SELECT COUNT(id) AS sum,current_collector AS coll FROM case_info " +
-            "WHERE to_days(case_follow_in_time) = to_days(now()) " +
-            "AND current_collector = :userId " +
-            "UNION ALL " +
-            "SELECT COUNT(id) AS sum,assist_collector AS coll FROM case_assist " +
-            "WHERE to_days(case_flowin_time) = to_days(now()) " +
-            "AND assist_collector = :userId " +
-            ") AS m ", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM case_turn_record " +
+            "WHERE receive_userid = :userId " +
+            "AND to_days(operator_time) = to_days(now()) ", nativeQuery = true)
     Integer getFlowInCaseToday(@Param("userId")String userId);
 
     /**
@@ -107,10 +101,17 @@ public interface CupoPageRepository extends JpaRepository<CaseInfo, String> {
      * @param userId
      * @return
      */
-    @Query(value = "SELECT COUNT(*) AS num FROM case_info " +
-            "WHERE collection_status = 24 " +
+    @Query(value = "SELECT COUNT(*) FROM ( " +
+            "SELECT case_info.id FROM case_info " +
+            "WHERE current_collector = :userId " +
+            "AND collection_status = 24 " +
+            "AND to_days(close_date) = to_days(now()) " +
+            "UNION ALL " +
+            "SELECT case_assist.id AS num FROM case_assist " +
+            "WHERE assist_collector = :userId " +
+            "AND assist_status = 29 " +
             "AND to_days(operator_time) = to_days(now()) " +
-            "AND (current_collector = :userId OR assist_collector = :userId)", nativeQuery = true)
+            ") AS m ", nativeQuery = true)
     Integer getFinishCaseToday(@Param("userId")String userId);
 
     /**
@@ -177,4 +178,27 @@ public interface CupoPageRepository extends JpaRepository<CaseInfo, String> {
             "WHERE DATE_FORMAT(operator_time, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m') " +
             "AND operator = :userId", nativeQuery = true)
     Integer getMonthFollowCount(@Param("userId")String userId);
+
+    /**
+     * 催收员当前催收案件数
+     * @param userId
+     * @return
+     */
+    @Query(value = "SELECT COUNT(*) FROM case_info " +
+            "WHERE collection_status NOT IN (24,25,166) " +
+            "AND (current_collector = :userId OR assist_collector = :userId)", nativeQuery = true)
+    Integer getCaseInfoCount(@Param("userId")String userId);
+
+    /**
+     * 催收员案件总数（包含已结案的）
+     * @return
+     */
+    @Query(value = "SELECT COUNT(*) FROM ( " +
+            "SELECT case_info.id FROM case_info " +
+            "WHERE current_collector = :userId " +
+            "UNION ALL " +
+            "SELECT case_assist.id FROM case_assist " +
+            "WHERE assist_collector = :userId " +
+            ") AS m", nativeQuery = true)
+    Integer getCaseInfoAllCount(@Param("userId")String userId);
 }
