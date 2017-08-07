@@ -710,6 +710,17 @@ public class CaseInfoService {
         caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1); //流转次数加一
         caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态 20-待催收
+        if (Objects.equals(user.getType(), User.Type.TEL)) {
+            caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
+        } else if (Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
+            caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
+        } else if (Objects.equals(user.getType(), User.Type.JUD.getValue())) {
+            caseInfo.setCollectionType(CaseInfo.CollectionType.JUDICIAL.getValue());
+        } else if (Objects.equals(user.getType(), User.Type.OUT.getValue())) {
+            caseInfo.setCollectionType(CaseInfo.CollectionType.outside.getValue());
+        } else if (Objects.equals(user.getType(), User.Type.OUT.getValue())) {
+            caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
+        }
         caseInfo.setOperator(tokenUser); //操作员
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         return caseInfo;
