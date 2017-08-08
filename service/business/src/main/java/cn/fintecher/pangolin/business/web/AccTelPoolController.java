@@ -14,6 +14,7 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -422,13 +423,15 @@ public class AccTelPoolController extends BaseController {
             if (Objects.isNull(personalContact)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONAL_CONTACT, "personalContact", "客户关系人未找到")).body(null);
             }
-            personalContact.setId(null); //主键置空
-            personalContact.setPhone(addPhoneOrMailParams.getPhone());
-            personalContact.setMail(addPhoneOrMailParams.getEmail());
-            personalContact.setOperator(tokenUser.getUserName()); //操作人
-            personalContact.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-            personalContactRepository.saveAndFlush(personalContact);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("新增成功", ENTITY_PERSONAL_CONTACT)).body(personalContact);
+            PersonalContact result = new PersonalContact();
+            BeanUtils.copyProperties(personalContact, result);
+            result.setId(null);
+            result.setPhone(addPhoneOrMailParams.getPhone());
+            result.setMail(addPhoneOrMailParams.getEmail());
+            result.setOperator(tokenUser.getUserName()); //操作人
+            result.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+            personalContactRepository.saveAndFlush(result);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("新增成功", ENTITY_PERSONAL_CONTACT)).body(result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONAL_CONTACT, "personalContact", "新增联系人信息失败")).body(null);
