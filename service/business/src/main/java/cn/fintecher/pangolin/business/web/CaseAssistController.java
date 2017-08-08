@@ -100,7 +100,7 @@ public class CaseAssistController extends BaseController {
         }
     }
 
-    @GetMapping("/findCaseInfoAssistRecord/{caseId}")
+    @GetMapping("/findCaseInfoAssistRecord")
     @ApiOperation(value = "查询案件协催记录", notes = "查询案件协催记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -111,7 +111,7 @@ public class CaseAssistController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseAssist>> findCaseInfoAssistRecord(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
-                                                                     @PathVariable @ApiParam("案件ID") String caseId,
+                                                                     @RequestParam @ApiParam("案件ID") String caseId,
                                                                      @ApiIgnore Pageable pageable,
                                                                      @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to findCaseInfoAssistRecord");
@@ -135,10 +135,10 @@ public class CaseAssistController extends BaseController {
         }
     }
 
-    @GetMapping("/findAssistCasePayRecord/{assistId}")
+    @GetMapping("/findAssistCasePayRecord")
     @ApiOperation(value = "查询还款申请/记录", notes = "查询还款申请/记录")
     public ResponseEntity<Page<CasePayApply>> findAssistCasePayRecord(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
-                                                                      @PathVariable @ApiParam("协催案件ID") String assistId,
+                                                                      @RequestParam @ApiParam("协催案件ID") String assistId,
                                                                       @ApiIgnore Pageable pageable,
                                                                       @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to findAssistCasePayRecord");
@@ -608,10 +608,10 @@ public class CaseAssistController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "receiveCaseAssist", "该协催案件不存在!")).body(null);
             }
             // 若案件状态为 协催待分配 则可以抢单
-            if (Objects.equals(caseAssist.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN)) {
+            if (Objects.equals(caseAssist.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue())) {
                 synchronized (this) {
                     CaseAssist caseAssist1 = caseAssistRepository.findOne(id);
-                    if (Objects.equals(caseAssist1.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN)) {
+                    if (Objects.equals(caseAssist1.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue())) {
                         //更改协催案件信息
                         caseAssist.setDepartId(user.getDepartment().getId()); //协催部门ID
                         caseAssist.setCompanyCode(user.getCompanyCode()); //协催公司码

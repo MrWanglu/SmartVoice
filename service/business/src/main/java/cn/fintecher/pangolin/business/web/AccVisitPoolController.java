@@ -302,7 +302,7 @@ public class AccVisitPoolController extends BaseController {
     /**
      * @Description 外访页面多条件查询还款记录
      */
-    @GetMapping("/getPaymentRecord/{caseId}")
+    @GetMapping("/getPaymentRecord")
     @ApiOperation(value = "外访页面多条件查询还款记录", notes = "外访页面多条件查询还款记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -312,7 +312,7 @@ public class AccVisitPoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CasePayApply>> getPaymentRecord(@PathVariable @ApiParam(value = "案件ID", required = true) String caseId,
+    public ResponseEntity<Page<CasePayApply>> getPaymentRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
                                                                @QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
                                                                @ApiIgnore Pageable pageable) throws URISyntaxException {
         log.debug("REST request to get payment records by {caseId}", caseId);
@@ -367,7 +367,7 @@ public class AccVisitPoolController extends BaseController {
     /**
      * @Description 外访页面多条件查询协催记录
      */
-    @GetMapping("/getAllAssistApplyRecord/{caseId}")
+    @GetMapping("/getAllAssistApplyRecord")
     @ApiOperation(value = "外访页面多条件查询协催记录", notes = "外访页面多条件查询协催记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -379,7 +379,7 @@ public class AccVisitPoolController extends BaseController {
     })
     public ResponseEntity<Page<CaseAssistApply>> getAllAssistApplyRecord(@QuerydslPredicate(root = CaseAssistApply.class) Predicate predicate,
                                                                          @ApiIgnore Pageable pageable,
-                                                                         @PathVariable @ApiParam(value = "案件ID", required = true) String caseId) throws URISyntaxException {
+                                                                         @RequestParam @ApiParam(value = "案件ID", required = true) String caseId) throws URISyntaxException {
         log.debug("REST request to get all assist apply record by {caseId}", caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
