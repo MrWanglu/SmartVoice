@@ -289,7 +289,7 @@ public class AccTelPoolController extends BaseController {
     /**
      * @Description 多条件查询电催已处理记录
      */
-    @GetMapping("/getAllHandleTelCase/")
+    @GetMapping("/getAllHandleTelCase")
     @ApiOperation(value = "多条件查询电催已处理记录", notes = "多条件查询电催已处理记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
