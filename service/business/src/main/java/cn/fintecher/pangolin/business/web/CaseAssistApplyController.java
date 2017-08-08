@@ -149,8 +149,11 @@ public class CaseAssistApplyController extends BaseController {
             List<String> userIds = new ArrayList<>();
             // 审批拒绝
             if (approveResult == CaseAssistApply.ApproveResult.VISIT_REJECT.getValue()) {
-                //修该案件中的案件协催状态为协催拒绝
-                caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_REFUSED.getValue());
+                //修该原案件
+                caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_REFUSED.getValue()); //协催状态
+                caseInfo.setAssistFlag(0); //协催标识
+                caseInfo.setAssistWay(null); //协催方式
+                //提醒
                 title = "协催申请审批未通过!";
                 content = "案件["+apply.getCaseNumber()+"]申请的协催被外访拒绝!";
                 String applyUserId = userRepository.findByUserName(apply.getApplyUserName()).getId();
@@ -245,8 +248,10 @@ public class CaseAssistApplyController extends BaseController {
             List<String> userIds = new ArrayList<>();
             // 审批拒绝
             if (approveResult == CaseAssistApply.ApproveResult.TEL_REJECT.getValue()) {
-                //修该案件中的案件协催状态为协催拒绝
-                caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_REFUSED.getValue());
+                //修该原案件
+                caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_REFUSED.getValue()); //协催状态
+                caseInfo.setAssistFlag(0); //协催标识
+                caseInfo.setAssistWay(null); //协催方式
                 // 提醒申请人
                 title = "协催申请被拒绝!";
                 content = "你于["+apply.getApplyDate()+"]申请协催案件["+apply.getCaseNumber()+"]被电催主管["+user.getRealName()+"]拒绝!";
