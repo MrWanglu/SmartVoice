@@ -333,7 +333,7 @@ public class CaseInfoService {
         caseFollowupRecordRepository.saveAndFlush(caseFollowupRecord);
 
         //同步更新案件
-        CaseInfo caseInfo = caseInfoRepository.findOne(caseFollowupRecord.getCaseId().getId()); //获取案件信息
+        CaseInfo caseInfo = caseInfoRepository.findOne(caseFollowupParams.getCaseId()); //获取案件信息
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
