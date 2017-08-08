@@ -413,12 +413,18 @@ public class AccTelPoolController extends BaseController {
      */
     @PostMapping("/savePersonalContactPhone")
     @ApiOperation(value = "电催页面新增联系人电话或邮箱地址", notes = "电催页面新增联系人电话或邮箱地址")
-    public ResponseEntity<PersonalContact> savePersonalContactPhone(@RequestBody PersonalContact personalContact,
+    public ResponseEntity<PersonalContact> savePersonalContactPhone(@RequestBody AddPhoneOrMailParams addPhoneOrMailParams,
                                                                     @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save new phone number");
         try {
             User tokenUser = getUserByToken(token);
+            PersonalContact personalContact = personalContactRepository.findOne(addPhoneOrMailParams.getId());
+            if (Objects.isNull(personalContact)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONAL_CONTACT, "personalContact", "客户关系人未找到")).body(null);
+            }
             personalContact.setId(null); //主键置空
+            personalContact.setPhone(addPhoneOrMailParams.getPhone());
+            personalContact.setMail(addPhoneOrMailParams.getEmail());
             personalContact.setOperator(tokenUser.getUserName()); //操作人
             personalContact.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             personalContactRepository.saveAndFlush(personalContact);
