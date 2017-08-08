@@ -538,7 +538,7 @@ public class AccTelPoolController extends BaseController {
      */
     @GetMapping("/checkCaseAssist")
     @ApiOperation(value = "分配前判断是否有协催案件或协催标识", notes = "分配前判断是否有协催案件或协催标识")
-    public ResponseEntity<List<String>> checkCaseAssist(@RequestParam @ApiParam(value = "案件ID数组", required = true) CheckAssistParams checkAssistParams) {
+    public ResponseEntity<List<String>> checkCaseAssist(CheckAssistParams checkAssistParams) {
         log.debug("REST request to check assist");
         try {
             List<String> list = caseInfoService.checkCaseAssist(checkAssistParams);
