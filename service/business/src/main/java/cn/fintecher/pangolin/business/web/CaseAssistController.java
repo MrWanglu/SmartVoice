@@ -191,10 +191,10 @@ public class CaseAssistController extends BaseController {
         }
     }
 
-    @PutMapping("/assistCaseMarkColor")
+    @PostMapping("/assistCaseMarkColor")
     @ApiOperation(value = "协催案件颜色打标", notes = "协催案件颜色打标")
-    public ResponseEntity<CaseAssist> assistCaseMarkColor(@RequestBody AssistCaseMarkParams caseMarkParams,
-                                                          @RequestHeader(value = "X-UserToken") String token) throws Exception {
+    public ResponseEntity<Void> assistCaseMarkColor(@RequestBody AssistCaseMarkParams caseMarkParams,
+                                                          @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to mark color");
         User user = null;
         try {
@@ -204,14 +204,18 @@ public class CaseAssistController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistCaseMarkColor", e.getMessage())).body(null);
         }
         try {
-            CaseAssist caseAssist = caseAssistRepository.findOne(caseMarkParams.getAssistId());
-            if (Objects.isNull(caseAssist)) {
+            List<CaseAssist> all = caseAssistRepository.findAll(caseMarkParams.getAssistIds());
+            if (all.isEmpty()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistCaseMarkColor", "协催案件未找到")).body(null);
             }
-            caseAssist.setMarkId(caseMarkParams.getMarkId()); //打标
-            caseAssist.setOperator(user); //操作人
-            caseAssist.setOperatorTime(new Date()); //操作时间
-            caseAssistRepository.save(caseAssist);
+            List<CaseAssist> saveList = new ArrayList<>();
+            for (CaseAssist caseAssist : all) {
+                caseAssist.setMarkId(caseMarkParams.getMarkId()); //打标
+                caseAssist.setOperator(user); //操作人
+                caseAssist.setOperatorTime(new Date()); //操作时间
+                saveList.add(caseAssist);
+            }
+            caseAssistRepository.save(saveList);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("打标成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -222,7 +226,7 @@ public class CaseAssistController extends BaseController {
     @GetMapping("/assistWithdraw")
     @ApiOperation(value = "协催页面还款撤回", notes = "协催页面还款撤回")
     public ResponseEntity<Void> assistWithdraw(@RequestParam @ApiParam(value = "还款审批ID", required = true) String payApplyId,
-                                               @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                               @RequestHeader(value = "X-UserToken") String token ) {
         log.debug("REST request to withdraw by {}", payApplyId);
         User user = null;
         try {
@@ -248,7 +252,7 @@ public class CaseAssistController extends BaseController {
     @PostMapping("/doAssistPay")
     @ApiOperation(value = "协催页面还款操作", notes = "协催页面还款操作")
     public ResponseEntity<Void> doTelPay(@RequestBody PayApplyParams payApplyParams,
-                                         @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                         @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to apply payment");
         User user = null;
         try {
@@ -300,7 +304,7 @@ public class CaseAssistController extends BaseController {
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
             QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
-            builder.and(qCaseFollowupRecord.caseId.eq(caseId));
+            builder.and(qCaseFollowupRecord.caseId.id.eq(caseId));
             Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseAssistController/getFollowupRecord");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
@@ -313,7 +317,7 @@ public class CaseAssistController extends BaseController {
     @PostMapping("/saveFollowupRecord")
     @ApiOperation(value = "协催案件页面添加跟进记录", notes = "协催案件页面添加跟进记录")
     public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@RequestBody CaseFollowupParams caseFollowupParams,
-                                                                 @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                                 @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save {}", caseFollowupParams);
         User user = null;
         try {
