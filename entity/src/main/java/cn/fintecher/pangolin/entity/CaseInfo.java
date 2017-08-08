@@ -1,13 +1,14 @@
 package cn.fintecher.pangolin.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Set;
 
 /**
  * Created by ChenChang on 2017/7/10.
@@ -78,10 +79,6 @@ public class CaseInfo extends BaseEntity {
 
     private Date operatorTime;
     private Integer caseMark;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "caseId", targetEntity = CaseAssist.class)
-    private Set<CaseAssist> assistSet;
 
     @ManyToOne
     @JoinColumn(name = "personal_id")
