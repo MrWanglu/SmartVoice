@@ -94,7 +94,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", ENTITY_CASEINFO)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "user", "重新分配失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "user", e.getMessage())).body(null);
         }
     }
 
@@ -144,7 +144,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款操作成功", ENTITY_CASE_PAY_APPLY)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_PAY_APPLY, "casePayApply", "申请还款失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_PAY_APPLY, "casePayApply", e.getMessage())).body(null);
         }
     }
 
@@ -162,7 +162,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款撤回成功", ENTITY_CASE_PAY_APPLY)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_PAY_APPLY, "casePayApply", "撤回失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_PAY_APPLY, "casePayApply", e.getMessage())).body(null);
         }
     }
 
@@ -209,7 +209,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("跟进记录添加成功", ENTITY_CASE_FOLLOWUP_RECORD)).body(result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_FOLLOWUP_RECORD, "caseFollowupRecord", "添加跟进记录失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_FOLLOWUP_RECORD, "caseFollowupRecord", e.getMessage())).body(null);
         }
     }
 
@@ -336,7 +336,7 @@ public class AccTelPoolController extends BaseController {
             caseInfoService.endCase(endCaseParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("结案成功", ENTITY_CASEINFO)).body(null);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "结案失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", e.getMessage())).body(null);
         }
     }
 
@@ -354,7 +354,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("协催申请成功", ENTITY_CASE_ASSIST_APPLY)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_ASSIST_APPLY, "caseAssistApply", "协催申请失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_ASSIST_APPLY, "caseAssistApply", e.getMessage())).body(null);
         }
     }
 
@@ -545,7 +545,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("判断协催成功", ENTITY_CASEINFO)).body(list);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "判断协催失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", e.getMessage())).body(null);
         }
     }
 }
