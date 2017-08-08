@@ -355,7 +355,8 @@ public class CaseInfoService {
         BeanUtils.copyProperties(caseFollowupParams, caseFollowupRecord);
         caseFollowupRecord.setCaseId(caseInfo);
         caseFollowupRecord.setPersonalId(personal);
-        caseFollowupRecord.setOperator(tokenUser); //操作员
+        caseFollowupRecord.setOperator(tokenUser.getUserName()); //操作人
+        caseFollowupRecord.setOperatorName(tokenUser.getRealName()); //操作人姓名
         caseFollowupRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         caseFollowupRecordRepository.saveAndFlush(caseFollowupRecord);
 
@@ -364,6 +365,8 @@ public class CaseInfoService {
         caseInfo.setFollowupBack(caseFollowupRecord.getCollectionFeedback()); //催收反馈
         caseInfo.setPromiseAmt(caseFollowupRecord.getPromiseAmt()); //承诺还款金额
         caseInfo.setPromiseTime(caseFollowupRecord.getPromiseDate()); //承诺还款日期
+        caseInfo.setOperator(tokenUser); //操作人
+        caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         caseInfoRepository.saveAndFlush(caseInfo);
         return caseFollowupRecord;
     }

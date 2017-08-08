@@ -18,14 +18,10 @@ import java.util.List;
 @Table(name = "case_followup_record")
 @Data
 public class CaseFollowupRecord extends BaseEntity {
-    @ManyToOne
-    @JoinColumn(name = "personal_id")
-    @ApiModelProperty(notes = "客户信息")
+    @ApiModelProperty(notes = "客户信息ID")
     private Personal personalId;
 
-    @ManyToOne
-    @JoinColumn(name = "case_id")
-    @ApiModelProperty(notes = "案件信息")
+    @ApiModelProperty(notes = "案件信息ID")
     private CaseInfo caseId;
 
     @ApiModelProperty(notes = "跟进对象")
@@ -55,10 +51,11 @@ public class CaseFollowupRecord extends BaseEntity {
     @ApiModelProperty(notes = "数据来源")
     private Integer source;
 
-    @ManyToOne
-    @JoinColumn(name = "operator")
-    @ApiModelProperty(notes = "操作员")
-    private User operator;
+    @ApiModelProperty(notes = "操作人")
+    private String operator;
+
+    @ApiModelProperty(notes = "操作人姓名")
+    private String operatorName;
 
     @ApiModelProperty(notes = "操作时间")
     private Date operatorTime;
