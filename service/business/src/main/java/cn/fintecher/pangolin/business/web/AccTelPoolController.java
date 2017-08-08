@@ -169,7 +169,7 @@ public class AccTelPoolController extends BaseController {
     /**
      * @Description 电催页面多条件查询还款记录
      */
-    @GetMapping("/getPaymentRecord")
+    @GetMapping("/getPaymentRecord/{caseId}")
     @ApiOperation(value = "电催页面多条件查询还款记录", notes = "电催页面多条件查询还款记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -179,7 +179,7 @@ public class AccTelPoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CasePayApply>> getPaymentRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+    public ResponseEntity<Page<CasePayApply>> getPaymentRecord(@PathVariable @ApiParam(value = "案件ID", required = true) String caseId,
                                                                @QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
                                                                @ApiIgnore Pageable pageable) {
         log.debug("REST request to get payment records by {caseId}", caseId);
@@ -216,7 +216,7 @@ public class AccTelPoolController extends BaseController {
     /**
      * @Description 电催页面多条件查询跟进记录
      */
-    @GetMapping("/getFollowupRecord")
+    @GetMapping("/getFollowupRecord/{caseId}")
     @ApiOperation(value = "电催页面多条件查询跟进记录", notes = "电催页面多条件查询跟进记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -226,7 +226,7 @@ public class AccTelPoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+    public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@PathVariable @ApiParam(value = "案件ID", required = true) String caseId,
                                                                       @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
                                                                       @ApiIgnore Pageable pageable) {
         log.debug("REST request to get case followup records by {caseId}", caseId);
@@ -289,7 +289,7 @@ public class AccTelPoolController extends BaseController {
     /**
      * @Description 多条件查询电催已处理记录
      */
-    @GetMapping("/getAllHandleTelCase")
+    @GetMapping("/getAllHandleTelCase/")
     @ApiOperation(value = "多条件查询电催已处理记录", notes = "多条件查询电催已处理记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -361,7 +361,7 @@ public class AccTelPoolController extends BaseController {
     /**
      * @Description 电催页面多条件查询协催记录
      */
-    @GetMapping("/getAllAssistApplyRecord")
+    @GetMapping("/getAllAssistApplyRecord/{caseId}")
     @ApiOperation(value = "电催页面多条件查询协催记录", notes = "电催页面多条件查询协催记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -373,7 +373,7 @@ public class AccTelPoolController extends BaseController {
     })
     public ResponseEntity<Page<CaseAssistApply>> getAllAssistApplyRecord(@QuerydslPredicate(root = CaseAssistApply.class) Predicate predicate,
                                                                          @ApiIgnore Pageable pageable,
-                                                                         @RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+                                                                         @PathVariable @ApiParam(value = "案件ID", required = true) String caseId) {
         log.debug("REST request to get all assist apply record by {caseId}", caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);

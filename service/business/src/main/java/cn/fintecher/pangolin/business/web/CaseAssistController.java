@@ -100,7 +100,7 @@ public class CaseAssistController extends BaseController {
         }
     }
 
-    @GetMapping("/findCaseInfoAssistRecord")
+    @GetMapping("/findCaseInfoAssistRecord/{caseId}")
     @ApiOperation(value = "查询案件协催记录", notes = "查询案件协催记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -111,7 +111,7 @@ public class CaseAssistController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseAssist>> findCaseInfoAssistRecord(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
-                                                                     @RequestParam(value = "caseId", required = true) @ApiParam("案件ID") String caseId,
+                                                                     @PathVariable @ApiParam("案件ID") String caseId,
                                                                      @ApiIgnore Pageable pageable,
                                                                      @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to findCaseInfoAssistRecord");
@@ -135,10 +135,10 @@ public class CaseAssistController extends BaseController {
         }
     }
 
-    @GetMapping("/findAssistCasePayRecord")
+    @GetMapping("/findAssistCasePayRecord/{assistId}")
     @ApiOperation(value = "查询还款申请/记录", notes = "查询还款申请/记录")
     public ResponseEntity<Page<CasePayApply>> findAssistCasePayRecord(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
-                                                                      @RequestParam @ApiParam("协催案件ID") String assistId,
+                                                                      @PathVariable @ApiParam("协催案件ID") String assistId,
                                                                       @ApiIgnore Pageable pageable,
                                                                       @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to findAssistCasePayRecord");
@@ -283,7 +283,7 @@ public class CaseAssistController extends BaseController {
         return accVisitPoolController.getVisitFiles(follId);
     }
 
-    @GetMapping("/getFollowupRecord")
+    @GetMapping("/getFollowupRecord/{caseId}")
     @ApiOperation(value = "协催页面多条件查询跟进记录", notes = "协催页面多条件查询跟进记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -294,7 +294,7 @@ public class CaseAssistController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
-                                                                      @RequestParam(value = "caseId") @ApiParam(value = "案件ID", required = true) String caseId,
+                                                                      @PathVariable @ApiParam(value = "案件ID", required = true) String caseId,
                                                                       @ApiIgnore Pageable pageable) {
         log.debug("REST request to get case followup records by {caseId}", caseId);
         try {

@@ -28,5 +28,6 @@ public class CaseFollowupParams {
     private Integer target; //跟进对象
     private String targetName; //跟进对象名称
     private Integer type; //跟进方式
+    private Integer collectionWay; //催记方式 0-自动 1-手动
     private String companyCode; //公司code码
 }
