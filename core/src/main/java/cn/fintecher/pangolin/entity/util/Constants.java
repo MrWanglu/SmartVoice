@@ -67,9 +67,17 @@ public final class Constants {
     public static final String BACK_MONEY_REPORT_EXCEL_URL_CODE = "SysParam.backmoneyreportexcelurl";
     public static final String BACK_MONEY_REPORT_EXCEL_URL_TYPE = "0011";
 
-    //获取催收员业绩进展报表excel报表url
-    private static final String PERFORMANCE_REPORT_EXCEL_URL_CODE = "SysParam.performancereportexcelurl";
-    private static final String PERFORMANCE_REPORT_EXCEL_URL_TYPE = "0012";
+    //获取催收员业绩进展报表excel模版url
+    public static final String PERFORMANCE_REPORT_EXCEL_URL_CODE = "SysParam.performancereportexcelurl";
+    public static final String PERFORMANCE_REPORT_EXCEL_URL_TYPE = "0012";
+
+    //获取催收员每日催收过程报表excel模版url
+    public static final String DAILY_PROCESS_REPORT_EXCEL_URL_CODE = "SysParam.dailyprocessreportexcelurl";
+    public static final String DAILY_PROCESS_REPORT_EXCEL_URL_TYPE = "0013";
+
+    //获取催收员每日催收结果报表excel模版url
+    public static final String DAILY_RESULT_REPORT_EXCEL_URL_CODE = "SysParam.dailyresultreportexcelurl";
+    public static final String DAILY_RESULT_REPORT_EXCEL_URL_TYPE = "0014";
 
     //系统参数请求
     public static final String SYSPARAM_URL = "http://business-service/api/sysParamResource/";

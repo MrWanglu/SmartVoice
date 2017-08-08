@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.fintecher.pangolin.report.mapper.PerformanceReportMapper">
+    <!-- 查询催收员业绩进展实时报表 -->
+    <select id="getPerformanceReport" parameterType="cn.fintecher.pangolin.report.model.PerformanceParams"
+            resultType="cn.fintecher.pangolin.report.model.PerformanceBasisModel">
+        SELECT
+        b.companyCode,b.deptCode,b.deptName,b.parentDeptCode,b.parentDeptName,b.userName,b.realName,a.waitCollectNum,a.waitCollectAmt,a.collectingNum,
+        a.collectingAmt,a.overdueNum,a.advanceNum,a.advanceAmt,a.overdueAmt,a.promiseNum,a.promiseAmt,a.endNum,a.endAmt
+        from (
+        SELECT current_collector,
+        count(case when collection_status = 20 then id end) as waitCollectNum,
+        sum(case when collection_status = 20 then ((case when overdue_amount is null then 0 else overdue_amount end) +
+        (case when early_settle_amt is null then 0 else early_settle_amt end)) else 0 end) as waitCollectAmt,
+        count(case when collection_status = 21 then id end) as collectingNum,
+        sum(case when collection_status = 21 then ((case when overdue_amount is null then 0 else overdue_amount end) +
+        (case when early_settle_amt is null then 0 else early_settle_amt end)) else 0 end) as collectingAmt,
+        count(case when collection_status = 22 then id end) as overdueNum,
+        sum(case when collection_status = 22 then (case when overdue_amount is null then 0 else overdue_amount end) else
+        0 end) as overdueAmt,
+        count(case when collection_status = 23 then id end) as advanceNum,
+        sum(case when collection_status = 23 then (case when early_settle_amt is null then 0 else early_settle_amt end)
+        else 0 end) as advanceAmt,
+        count(case when followup_back = 90 then id end) as promiseNum,
+        sum(case when followup_back = 90 then ((case when overdue_amount is null then 0 else overdue_amount end) + (case
+        when early_settle_amt is null then 0 else early_settle_amt end)) else 0 end) as promiseAmt,
+        count(case when collection_status = 24 then id end) as endNum,
+        sum(case when collection_status = 24 then ((case when overdue_amount is null then 0 else overdue_amount end) +
+        (case when early_settle_amt is null then 0 else early_settle_amt end)) else 0 end) as endAmt
+        from case_info where current_collector is not null GROUP BY current_collector) a
+        left join
+        (SELECT m.id,m.userName,m.realName,n.deptCode,n.deptName,n.parentDeptCode,n.parentDeptName,m.companyCode from
+        (SELECT id,user_name as userName,real_name as realName,dept_id as deptId,company_code as companyCode from user)
+        m
+        LEFT JOIN
+        (SELECT z.id,z.deptCode,z.deptName,z.pid,x.parentDeptCode,x.parentDeptName from
+        (SELECT code as deptCode, `name` as deptName,id,pid from department) z
+        LEFT JOIN
+        (SELECT id,code as parentDeptCode,`name` as parentDeptName from department) x on z.pid = x.id) n on m.deptId =
+        n.id
+        ) b on a.current_collector = b.id
+        where b.deptCode LIKE CONCAT(#{deptCode}, '%') AND b.companyCode = #{companyCode}
+        <if test="code != null">
+            AND b.deptCode LIKE concat(#{code},'%')
+        </if>
+        <if test="realName != null">
+            AND b.realName LIKE concat('%',#{realName},'%')
+        </if>
+        group by
+        b.deptCode,b.deptName,b.parentDeptCode,b.parentDeptName,b.userName,b.realName,a.waitCollectNum,a.waitCollectAmt,
+        a.collectingNum,a.collectingAmt,a.overdueNum,a.advanceNum,a.advanceAmt,a.overdueAmt,a.promiseNum,a.promiseAmt,a.endNum,a.endAmt
+    </select>
+</mapper>
