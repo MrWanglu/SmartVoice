@@ -79,6 +79,9 @@ public class CaseInfoService {
     @Inject
     PersonalIncomeExpRepository personalIncomeExpRepository;
 
+    @Inject
+    PersonalRepository personalRepository;
+
     /**
      * @Description 重新分配
      */
@@ -326,17 +329,23 @@ public class CaseInfoService {
      * @Description 添加跟进记录
      */
     public CaseFollowupRecord saveFollowupRecord(CaseFollowupParams caseFollowupParams, User tokenUser) {
+        CaseInfo caseInfo = caseInfoRepository.findOne(caseFollowupParams.getCaseId()); //获取案件信息
+        if (Objects.isNull(caseInfo)) {
+            throw new RuntimeException("该案件未找到");
+        }
+        Personal personal = personalRepository.findOne(caseFollowupParams.getPersonalId());
+        if (Objects.isNull(personal)) {
+            throw new RuntimeException("客户信息未找到");
+        }
         CaseFollowupRecord caseFollowupRecord = new CaseFollowupRecord();
         BeanUtils.copyProperties(caseFollowupParams, caseFollowupRecord);
+        caseFollowupRecord.setCaseId(caseInfo);
+        caseFollowupRecord.setPersonalId(personal);
         caseFollowupRecord.setOperator(tokenUser); //操作员
         caseFollowupRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         caseFollowupRecordRepository.saveAndFlush(caseFollowupRecord);
 
         //同步更新案件
-        CaseInfo caseInfo = caseInfoRepository.findOne(caseFollowupParams.getCaseId()); //获取案件信息
-        if (Objects.isNull(caseInfo)) {
-            throw new RuntimeException("该案件未找到");
-        }
         caseInfo.setFollowupTime(caseFollowupRecord.getOperatorTime()); //最新跟进时间
         caseInfo.setFollowupBack(caseFollowupRecord.getCollectionFeedback()); //催收反馈
         caseInfo.setPromiseAmt(caseFollowupRecord.getPromiseAmt()); //承诺还款金额
