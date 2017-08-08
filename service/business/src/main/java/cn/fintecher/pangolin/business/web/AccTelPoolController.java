@@ -431,7 +431,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("新增成功", ENTITY_PERSONAL_CONTACT)).body(personalContact);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("新增联系人信息失败", "personalContact", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONAL_CONTACT, "personalContact", "新增联系人信息失败")).body(null);
         }
     }
 
