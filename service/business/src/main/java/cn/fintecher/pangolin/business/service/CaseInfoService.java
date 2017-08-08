@@ -325,7 +325,9 @@ public class CaseInfoService {
     /**
      * @Description 添加跟进记录
      */
-    public CaseFollowupRecord saveFollowupRecord(CaseFollowupRecord caseFollowupRecord, User tokenUser) {
+    public CaseFollowupRecord saveFollowupRecord(CaseFollowupParams caseFollowupParams, User tokenUser) {
+        CaseFollowupRecord caseFollowupRecord = new CaseFollowupRecord();
+        BeanUtils.copyProperties(caseFollowupParams, caseFollowupRecord);
         caseFollowupRecord.setOperator(tokenUser); //操作员
         caseFollowupRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         caseFollowupRecordRepository.saveAndFlush(caseFollowupRecord);

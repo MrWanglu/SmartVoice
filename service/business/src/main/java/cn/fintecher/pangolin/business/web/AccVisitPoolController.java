@@ -159,12 +159,12 @@ public class AccVisitPoolController extends BaseController {
      */
     @PostMapping("/saveFollowupRecord")
     @ApiOperation(value = "外访页面添加跟进记录", notes = "外访页面添加跟进记录")
-    public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@RequestBody CaseFollowupRecord caseFollowupRecord,
+    public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@RequestBody CaseFollowupParams caseFollowupParams,
                                                                  @RequestHeader(value = "X-UserToken") String token) throws Exception {
-        log.debug("REST request to save {caseFollowupRecord}", caseFollowupRecord);
+        log.debug("REST request to save {caseFollowupRecord}", caseFollowupParams);
         try {
             User tokenUser = getUserByToken(token);
-            CaseFollowupRecord result = caseInfoService.saveFollowupRecord(caseFollowupRecord, tokenUser);
+            CaseFollowupRecord result = caseInfoService.saveFollowupRecord(caseFollowupParams, tokenUser);
             return ResponseEntity.ok().body(result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

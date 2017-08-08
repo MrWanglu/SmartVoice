@@ -65,7 +65,7 @@ public class CaseAssistController extends BaseController {
     private UserService userService;
 
     @GetMapping("/closeCaseAssist")
-    @ApiOperation(value = "结束协催",notes = "结束协催")
+    @ApiOperation(value = "结束协催", notes = "结束协催")
     public ResponseEntity closeCaseAssist(@RequestParam @ApiParam("协催案件ID") String assistId,
                                           @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to closeCaseAssist");
@@ -93,7 +93,7 @@ public class CaseAssistController extends BaseController {
 
             caseAssist.setCaseId(caseInfo);
             CaseAssist save = caseAssistRepository.save(caseAssist);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功!","")).body(save);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功!", "")).body(save);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "closeCaseAssist", "系统异常!")).body(null);
@@ -101,7 +101,7 @@ public class CaseAssistController extends BaseController {
     }
 
     @GetMapping("/findCaseInfoAssistRecord")
-    @ApiOperation(value = "查询案件协催记录",notes = "查询案件协催记录")
+    @ApiOperation(value = "查询案件协催记录", notes = "查询案件协催记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
                     value = "页数 (0..N)"),
@@ -111,7 +111,7 @@ public class CaseAssistController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseAssist>> findCaseInfoAssistRecord(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
-                                                                     @RequestParam(value = "caseId",required = true) @ApiParam("案件ID") String caseId,
+                                                                     @RequestParam(value = "caseId", required = true) @ApiParam("案件ID") String caseId,
                                                                      @ApiIgnore Pageable pageable,
                                                                      @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to findCaseInfoAssistRecord");
@@ -136,7 +136,7 @@ public class CaseAssistController extends BaseController {
     }
 
     @GetMapping("/findAssistCasePayRecord")
-    @ApiOperation(value = "查询还款申请/记录",notes = "查询还款申请/记录")
+    @ApiOperation(value = "查询还款申请/记录", notes = "查询还款申请/记录")
     public ResponseEntity<Page<CasePayApply>> findAssistCasePayRecord(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
                                                                       @RequestParam @ApiParam("协催案件ID") String assistId,
                                                                       @ApiIgnore Pageable pageable,
@@ -165,7 +165,7 @@ public class CaseAssistController extends BaseController {
     }
 
     @GetMapping("/findAssistCaseMessageRecord")
-    @ApiOperation(value = "协催案件查询短信记录",notes = "协催案件查询短信记录")
+    @ApiOperation(value = "协催案件查询短信记录", notes = "协催案件查询短信记录")
     public ResponseEntity<Page<SendMessageRecord>> findAssistCaseMessageRecord(@QuerydslPredicate(root = SendMessageRecord.class) Predicate predicate,
                                                                                @ApiIgnore Pageable pageable,
                                                                                @RequestParam @ApiParam("案件ID") String caseId,
@@ -212,7 +212,7 @@ public class CaseAssistController extends BaseController {
             caseAssist.setOperator(user); //操作人
             caseAssist.setOperatorTime(new Date()); //操作时间
             caseAssistRepository.save(caseAssist);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("打标成功","")).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("打标成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistCaseMarkColor", "系统异常!")).body(null);
@@ -238,7 +238,7 @@ public class CaseAssistController extends BaseController {
                 log.debug(e.getMessage());
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistWithdraw", e.getMessage())).body(null);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款成功","")).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistWithdraw", "系统异常!")).body(null);
@@ -264,7 +264,7 @@ public class CaseAssistController extends BaseController {
                 log.debug(e.getMessage());
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "doTelPay", e.getMessage())).body(null);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款成功!","")).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款成功!", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "doTelPay", "系统异常!")).body(null);
@@ -284,7 +284,7 @@ public class CaseAssistController extends BaseController {
     }
 
     @GetMapping("/getFollowupRecord")
-    @ApiOperation(value = "协催页面多条件查询跟进记录",notes = "协催页面多条件查询跟进记录")
+    @ApiOperation(value = "协催页面多条件查询跟进记录", notes = "协催页面多条件查询跟进记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
                     value = "页数 (0..N)"),
@@ -296,7 +296,7 @@ public class CaseAssistController extends BaseController {
     public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
                                                                       @RequestParam(value = "caseId") @ApiParam(value = "案件ID", required = true) String caseId,
                                                                       @ApiIgnore Pageable pageable) {
-        log.debug("REST request to get case followup records by {caseId}",caseId);
+        log.debug("REST request to get case followup records by {caseId}", caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
             QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
@@ -312,9 +312,9 @@ public class CaseAssistController extends BaseController {
 
     @PostMapping("/saveFollowupRecord")
     @ApiOperation(value = "协催案件页面添加跟进记录", notes = "协催案件页面添加跟进记录")
-    public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@RequestBody CaseFollowupRecord caseFollowupRecord,
+    public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@RequestBody CaseFollowupParams caseFollowupParams,
                                                                  @RequestHeader(value = "X-UserToken") String token) throws Exception {
-        log.debug("REST request to save {}", caseFollowupRecord);
+        log.debug("REST request to save {}", caseFollowupParams);
         User user = null;
         try {
             user = getUserByToken(token);
@@ -325,7 +325,7 @@ public class CaseAssistController extends BaseController {
         try {
             CaseFollowupRecord result = null;
             try {
-                result = caseInfoService.saveFollowupRecord(caseFollowupRecord, user);
+                result = caseInfoService.saveFollowupRecord(caseFollowupParams, user);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "saveFollowupRecord", e.getMessage())).body(null);
@@ -346,7 +346,7 @@ public class CaseAssistController extends BaseController {
         try {
             CaseAssist one = caseAssistRepository.findOne(id);
             if (Objects.isNull(one)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createEntityCreationAlert("协催案件不存在","CaseAssistController")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createEntityCreationAlert("协催案件不存在", "CaseAssistController")).body(null);
             }
             CaseInfo caseInfo = one.getCaseId();
             if (Objects.equals(1, cupoPause)) {//挂起请求
@@ -361,13 +361,13 @@ public class CaseAssistController extends BaseController {
                 caseInfo.setHandUpFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());
                 one.setCaseId(caseInfo);
             } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createEntityCreationAlert("请求异常","CaseAssistController")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createEntityCreationAlert("请求异常", "CaseAssistController")).body(null);
             }
             CaseAssist save = caseAssistRepository.save(one);
             return new ResponseEntity<>(save, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createEntityCreationAlert("设置挂起失败","CaseAssistController")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createEntityCreationAlert("设置挂起失败", "CaseAssistController")).body(null);
         }
     }
 
@@ -423,7 +423,7 @@ public class CaseAssistController extends BaseController {
         try {
             List<User> allUser = new ArrayList<>();
             // 如果登录人是属于外访部门
-            if (Objects.equals(user.getType(),User.Type.VISIT.getValue())) {
+            if (Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
                 allUser = userService.getAllUser(user.getDepartment().getId(), 0);//0-表示启用的用户
             } else {
                 allUser = userService.getAllUser(user.getCompanyCode(), User.Type.VISIT.getValue(), 0, null);

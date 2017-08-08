@@ -200,12 +200,12 @@ public class AccTelPoolController extends BaseController {
      */
     @PostMapping("/saveFollowupRecord")
     @ApiOperation(value = "电催页面添加跟进记录", notes = "电催页面添加跟进记录")
-    public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@RequestBody CaseFollowupRecord caseFollowupRecord,
+    public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@RequestBody CaseFollowupParams caseFollowupParams,
                                                                  @RequestHeader(value = "X-UserToken") String token) {
-        log.debug("REST request to save {caseFollowupRecord}", caseFollowupRecord);
+        log.debug("REST request to save {caseFollowupRecord}", caseFollowupParams);
         try {
             User tokenUser = getUserByToken(token);
-            CaseFollowupRecord result = caseInfoService.saveFollowupRecord(caseFollowupRecord, tokenUser);
+            CaseFollowupRecord result = caseInfoService.saveFollowupRecord(caseFollowupParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("跟进记录添加成功", ENTITY_CASE_FOLLOWUP_RECORD)).body(result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
