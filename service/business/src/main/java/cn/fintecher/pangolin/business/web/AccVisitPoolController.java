@@ -433,13 +433,13 @@ public class AccVisitPoolController extends BaseController {
      */
     @PutMapping("/visitCaseMarkColor")
     @ApiOperation(value = "外访案件颜色打标", notes = "外访案件颜色打标")
-    public ResponseEntity<CaseInfo> visitCaseMarkColor(@RequestBody CaseMarkParams caseMarkParams,
+    public ResponseEntity<Void> visitCaseMarkColor(@RequestBody CaseMarkParams caseMarkParams,
                                                        @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("REST request to mark color");
         try {
             User tokenUser = getUserByToken(token);
-            CaseInfo caseInfo = caseInfoService.caseMarkColor(caseMarkParams, tokenUser);
-            return ResponseEntity.ok().body(caseInfo);
+            caseInfoService.caseMarkColor(caseMarkParams, tokenUser);
+            return ResponseEntity.ok().body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("打标失败", ENTITY_NAME, e.getMessage())).body(null);

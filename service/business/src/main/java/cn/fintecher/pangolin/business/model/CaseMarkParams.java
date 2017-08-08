@@ -2,6 +2,8 @@ package cn.fintecher.pangolin.business.model;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @author : xiaqun
  * @Description : 案件打标参数
@@ -10,6 +12,6 @@ import lombok.Data;
 
 @Data
 public class CaseMarkParams {
-    private String caseId; //案件ID
+    private List<String> caseIds; //案件ID集合
     private Integer colorNum; //打标颜色
 }

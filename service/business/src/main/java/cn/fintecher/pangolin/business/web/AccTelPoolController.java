@@ -478,13 +478,13 @@ public class AccTelPoolController extends BaseController {
      */
     @PutMapping("/telCaseMarkColor")
     @ApiOperation(value = "电催案件颜色打标", notes = "电催案件颜色打标")
-    public ResponseEntity<CaseInfo> telCaseMarkColor(@RequestBody CaseMarkParams caseMarkParams,
+    public ResponseEntity<Void> telCaseMarkColor(@RequestBody CaseMarkParams caseMarkParams,
                                                      @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to mark color");
         try {
             User tokenUser = getUserByToken(token);
-            CaseInfo caseInfo = caseInfoService.caseMarkColor(caseMarkParams, tokenUser);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("案件颜色打标成功", ENTITY_CASEINFO)).body(caseInfo);
+            caseInfoService.caseMarkColor(caseMarkParams, tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("案件颜色打标成功", ENTITY_CASEINFO)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("案件颜色打标失败", "caseInfo", e.getMessage())).body(null);

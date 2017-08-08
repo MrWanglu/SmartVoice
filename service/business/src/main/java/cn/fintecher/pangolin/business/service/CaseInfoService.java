@@ -699,16 +699,18 @@ public class CaseInfoService {
      * @Description 案件颜色打标
      */
 
-    public CaseInfo caseMarkColor(CaseMarkParams caseMarkParams, User tokenUser) {
-        CaseInfo caseInfo = caseInfoRepository.findOne(caseMarkParams.getCaseId());
-        if (Objects.isNull(caseInfo)) {
-            throw new RuntimeException("该案件未找到");
+    public void caseMarkColor(CaseMarkParams caseMarkParams, User tokenUser) {
+        List<String> caseIds = caseMarkParams.getCaseIds();
+        for (String caseId : caseIds) {
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+            if (Objects.isNull(caseInfo)) {
+                throw new RuntimeException("案件未找到");
+            }
+            caseInfo.setCaseMark(caseMarkParams.getColorNum()); //打标
+            caseInfo.setOperator(tokenUser); //操作人
+            caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+            caseInfoRepository.saveAndFlush(caseInfo);
         }
-        caseInfo.setCaseMark(caseMarkParams.getColorNum()); //打标
-        caseInfo.setOperator(tokenUser); //操作人
-        caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-        caseInfoRepository.saveAndFlush(caseInfo);
-        return caseInfo;
     }
 
     /**
