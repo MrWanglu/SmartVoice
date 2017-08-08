@@ -6,6 +6,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -171,4 +172,21 @@ public class ZWDateUtil {
     public static String getFormatNowDate(String format) throws Exception {
         return fomratterDate(getNowDate(), format);
     }
+
+    /**
+     * 获取两个日期相差的天数、月数(可以时负数或正数)
+     *
+     * @param startDate
+     * @param endDate
+     * @param type :ChronoUnit.DAYS ChronoUnit.MONTHS
+     * @return
+     */
+    public static Integer getBetween(Date startDate,Date endDate,ChronoUnit type){
+        LocalDateTime localDateTime1 = LocalDateTime.ofInstant(startDate.toInstant(), ZoneId.systemDefault());
+        LocalDateTime localDateTime2=LocalDateTime.ofInstant(endDate.toInstant(), ZoneId.systemDefault());
+        String difValue= String.valueOf(localDateTime2.until(localDateTime1, type));
+        return  Integer.parseInt(difValue);
+    }
+
+
 }

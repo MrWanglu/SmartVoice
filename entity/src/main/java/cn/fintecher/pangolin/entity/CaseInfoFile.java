@@ -17,8 +17,8 @@ import java.util.Date;
 @Table(name = "case_file")
 public class CaseInfoFile extends BaseEntity {
 
-    @ApiModelProperty(notes = "批次号")
-    private String batchNumber;
+    @ApiModelProperty(notes = "案件ID")
+    private String caseId;
 
     @ApiModelProperty(notes = "案件编号")
     private String caseNumber;
@@ -40,9 +40,6 @@ public class CaseInfoFile extends BaseEntity {
 
     @ApiModelProperty("操作人员")
     private String operator;
-
-    @ApiModelProperty("操作人姓名")
-    private String operatorName;
 
     @ApiModelProperty("公司码")
     private String companyCode;

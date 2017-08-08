@@ -115,11 +115,17 @@ public class ProcessDataInfoExcelService {
                 //产品系列
                 product=addProducts(dataInfoExcelModel, user);
                 CaseInfoDistributed caseInfoDistributed=addCaseInfoDistributed(dataInfoExcelModel, product, user, personal);
-                caseInfoDistributedRepository.save(caseInfoDistributed);
-
+                caseInfoDistributed=caseInfoDistributedRepository.save(caseInfoDistributed);
+                //附件信息
+                for(CaseInfoFile obj:caseInfoFileList){
+                    obj.setCaseId(caseInfoDistributed.getId());
+                    obj.setCaseNumber(caseInfoDistributed.getCaseNumber());
+                }
+                caseInfoFileRepository.save(caseInfoFileList);
             }else{
                 //异常池
                 caseInfoExceptionRepository.save(addCaseInfoException(dataInfoExcelModel,user,null,caseInfoSets));
+                caseInfoFileRepository.save(caseInfoFileList);
             }
         }
         logger.info("{}  处理案件信息结束.",Thread.currentThread());

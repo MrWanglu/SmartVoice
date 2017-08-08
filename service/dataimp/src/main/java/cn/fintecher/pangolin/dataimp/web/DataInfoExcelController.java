@@ -214,7 +214,7 @@ public class DataInfoExcelController {
         }
         User user = userResponseEntity.getBody();
         dataInfoExcelService.casesConfirmByBatchNum(user);
-        return null;
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功",ENTITY_NAME)).body(null);
     }
 
 
