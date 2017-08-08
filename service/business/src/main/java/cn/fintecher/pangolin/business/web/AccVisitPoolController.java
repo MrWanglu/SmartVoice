@@ -183,7 +183,7 @@ public class AccVisitPoolController extends BaseController {
         log.debug("REST request to get case followup records by {caseId}", caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseId.id.eq(caseId));
+            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseId.eq(caseId));
             Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/accVisitPoolController/getFollowupRecord");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);

@@ -62,7 +62,7 @@ public class CaseFollowupAppController extends BaseController {
             Date minTime = ZWDateUtil.getUtilDate(follUpMinTime, "yyyy-MM-dd HH:mm:ss");
             Date maxTime = ZWDateUtil.getUtilDate(follUpMaxTime, "yyyy-MM-dd HH:mm:ss");
             BooleanBuilder builder = new BooleanBuilder();
-            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseId.id.eq(caseId));
+            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseId.eq(caseId));
             if (Objects.nonNull(maxTime)) {
                 builder.and(QCaseFollowupRecord.caseFollowupRecord.operatorTime.before(maxTime));
             }
