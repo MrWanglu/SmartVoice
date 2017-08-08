@@ -19,10 +19,10 @@ import java.util.List;
 @Data
 public class CaseFollowupRecord extends BaseEntity {
     @ApiModelProperty(notes = "客户信息ID")
-    private Personal personalId;
+    private String personalId;
 
     @ApiModelProperty(notes = "案件信息ID")
-    private CaseInfo caseId;
+    private String caseId;
 
     @ApiModelProperty(notes = "跟进对象")
     private Integer target;
