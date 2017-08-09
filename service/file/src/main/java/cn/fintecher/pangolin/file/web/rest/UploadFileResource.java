@@ -64,9 +64,9 @@ public class UploadFileResource {
         return new ResponseEntity<>(allList, HttpStatus.OK);
     }
 
-    @GetMapping("/getAllUploadFileByIds")
+    @GetMapping("/getAllUploadFileByIds/{ids}")
     @ApiOperation(value = "查询文件信息", notes = "查询文件信息")
-    public ResponseEntity<List<UploadFile>> getAllUploadFileByIds(String ids)
+    public ResponseEntity<List<UploadFile>> getAllUploadFileByIds(@PathVariable("ids") String ids)
             throws URISyntaxException {
         log.debug("REST request to get all of UploadFile");
         String[] fileids = ids.split(",");

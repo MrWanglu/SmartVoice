@@ -34,7 +34,7 @@ import java.util.Objects;
  * @Date 14:44 2017/7/18
  */
 @RestController
-@RequestMapping("/api/accImportExcelDataController")
+@RequestMapping("/api/dataInfoExcelController")
 @Api(description = "案件导入")
 public class DataInfoExcelController {
     @Autowired

@@ -86,7 +86,7 @@ public class ProcessDataInfoExcelService {
         QCaseInfoDistributed qCaseInfoDistributed=QCaseInfoDistributed.caseInfoDistributed;
         Iterable<CaseInfoDistributed> caseInfoDistributedIterable=caseInfoDistributedRepository.findAll(qCaseInfoDistributed.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
                                               .and(qCaseInfoDistributed.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
-                                              .and(qCaseInfoDistributed.principalId.id.eq(dataInfoExcelModel.getPrinCode()))
+                                              .and(qCaseInfoDistributed.principalId.code.eq(dataInfoExcelModel.getPrinCode()))
                                               .and(qCaseInfoDistributed.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
                                               .and(qCaseInfoDistributed.companyCode.eq(dataInfoExcelModel.getCompanyCode())));
         if(caseInfoDistributedIterable.iterator().hasNext()){
@@ -549,10 +549,14 @@ public class ProcessDataInfoExcelService {
         String province=null;
         if(Objects.isNull(dataInfoExcelModel.getProvince())){
             province="";
+        } else {
+            province = dataInfoExcelModel.getProvince();
         }
         String city=null;
         if(Objects.isNull(dataInfoExcelModel.getCity())){
             city="";
+        } else {
+            city =dataInfoExcelModel.getProvince();
         }
         //现居住地地址
         if(addr.startsWith(province)){
