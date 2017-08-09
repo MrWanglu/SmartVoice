@@ -11,7 +11,7 @@ spring:
         serialization.write_dates_as_timestamps: true
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        url: jdbc:mysql://192.168.3.5:3306/pangolin_business_test?useUnicode=true&characterEncoding=utf8&useSSL=false
+        url: jdbc:mysql://192.168.3.8:3306/pangolin_business_test?useUnicode=true&characterEncoding=utf8&useSSL=false
         name:
         username: mysql
         password: mysql

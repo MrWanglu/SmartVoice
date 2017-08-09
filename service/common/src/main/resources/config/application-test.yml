@@ -11,7 +11,7 @@ spring:
         serialization.indent_output: true
     data:
         mongodb:
-            uri: mongodb://192.168.3.5:27017
+            uri: mongodb://192.168.3.8:27017
             database: pangolin_common_db_test
     rabbitmq:
         username: test
