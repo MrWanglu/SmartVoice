@@ -1,7 +1,7 @@
-package cn.fintecher.pangolin.business.web;
+package cn.fintecher.pangolin.report.web;
 
-import cn.fintecher.pangolin.business.repository.CupoPageRepository;
 import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.report.mapper.CupoPageMapper;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,7 +32,7 @@ public class OperatorPlatformController extends BaseController{
     private final Logger log = LoggerFactory.getLogger(HomePageController.class);
 
     @Inject
-    private CupoPageRepository cupoPageRepository;
+    private CupoPageMapper cupoPageMapper;
 
     @GetMapping(value = "/getOperatorPlatformMessage")
     @ApiOperation(value = "查询工作台信息", notes = "任务一览表与数据统计的数据")
@@ -45,31 +45,30 @@ public class OperatorPlatformController extends BaseController{
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OperatorPlatformController", "getOperatorPlatformMessage", e.getMessage())).body(null);
         }
-
         try {
             //当前催收总案件数
-            Integer caseInfoCount = cupoPageRepository.getCaseInfoCount(user.getId());
+            Integer caseInfoCount = cupoPageMapper.getCaseInfoCount(user.getId());
             //今日流入案件数
-            Integer caseInputCount = cupoPageRepository.getFlowInCaseToday(user.getId());
+            Integer caseInputCount = cupoPageMapper.getFlowInCaseToday(user.getId());
             //今日结清案件数
-            Integer finishCaseToday = cupoPageRepository.getFinishCaseToday(user.getId());
+            Integer finishCaseToday = cupoPageMapper.getFinishCaseToday(user.getId());
             //今日流出案件数
-            Integer flowOutCaseToday = cupoPageRepository.getFlowOutCaseToday(user.getId());
+            Integer flowOutCaseToday = cupoPageMapper.getFlowOutCaseToday(user.getId());
             //催收员案件总数
-            Integer caseInfoAllCount = cupoPageRepository.getCaseInfoAllCount(user.getId());
+            Integer caseInfoAllCount = cupoPageMapper.getCaseInfoAllCount(user.getId());
             //催收员回款总额
-            BigDecimal moneySumResult1 = cupoPageRepository.getMoneySumResult(user.getUserName());
+            BigDecimal moneySumResult1 = cupoPageMapper.getMoneySumResult(user.getUserName());
             BigDecimal moneySumResult = Objects.isNull(moneySumResult1) ? new BigDecimal("0.00") : moneySumResult1;
             //催收员本月累计回款
-            BigDecimal monthMoneyResult1 = cupoPageRepository.getMonthMoneyResult(user.getUserName());
+            BigDecimal monthMoneyResult1 = cupoPageMapper.getMonthMoneyResult(user.getUserName());
             BigDecimal monthMoneyResult = Objects.isNull(monthMoneyResult1) ? new BigDecimal("0.00") : monthMoneyResult1;
             //催收员今日累计回款
-            BigDecimal dayMoneyResult1 = cupoPageRepository.getDayMoneyResult(user.getUserName());
+            BigDecimal dayMoneyResult1 = cupoPageMapper.getDayMoneyResult(user.getUserName());
             BigDecimal dayMoneyResult = Objects.isNull(dayMoneyResult1) ? new BigDecimal("0.00") : dayMoneyResult1;
             //催收员本月累计催收次数
-            Integer monthFollowCount = cupoPageRepository.getMonthFollowCount(user.getId());
+            Integer monthFollowCount = cupoPageMapper.getMonthFollowCount(user.getId());
             //催收员今日累计催收次数
-            Integer dayFollowCount = cupoPageRepository.getDayFollowCount(user.getId());
+            Integer dayFollowCount = cupoPageMapper.getDayFollowCount(user.getId());
             //金额余两位小数处理
             moneySumResult = moneySumResult.setScale(2, BigDecimal.ROUND_HALF_UP);
             monthMoneyResult = monthMoneyResult.setScale(2, BigDecimal.ROUND_HALF_UP);

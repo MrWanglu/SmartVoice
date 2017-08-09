@@ -76,7 +76,6 @@ public class ProcessDataInfoExcelService {
         DataInfoExcelModel dataInfoExcelModel=confirmDataInfoMessage.getDataInfoExcelModel();
         //案件附件信息
         List<CaseInfoFile> caseInfoFileList=confirmDataInfoMessage.getCaseInfoFileList();
-        caseInfoFileRepository.save(caseInfoFileList);
         //产品信息
         Product product=null;
         //用户数据

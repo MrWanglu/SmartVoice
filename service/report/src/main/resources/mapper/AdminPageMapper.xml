@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.fintecher.pangolin.report.mapper.AdminPageMapper">
+
+    <!--获取部门下所有用户-->
+    <select id="getAllUserOnDepartment" parameterType="string" resultType="cn.fintecher.pangolin.entity.User">
+        SELECT `user`.* FROM `user`
+        LEFT JOIN department ON `user`.dept_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+        AND `user`.`status` = 0
+    </select>
+
+    <!--部门下案件总金额-->
+    <select id="getCaseSumAmt" parameterType="string" resultType="java.math.BigDecimal">
+        SELECT SUM(case_info.overdue_amount) AS amt
+        FROM case_info
+        LEFT JOIN department ON case_info.depart_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+    </select>
+
+    <!--部门下案件已还款总额-->
+    <select id="getRepaySumAmt" parameterType="string" resultType="java.math.BigDecimal">
+        SELECT SUM(case_pay_apply.apply_pay_amt) AS amt
+        FROM case_pay_apply
+        LEFT JOIN department ON case_pay_apply.depart_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+        AND case_pay_apply.approve_result = 179
+    </select>
+
+    <!--部门下客户总数-->
+    <select id="getCustNum" parameterType="string" resultType="integer">
+        SELECT COUNT(DISTINCT(personal_id)) FROM case_info
+        LEFT JOIN department ON case_info.depart_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+    </select>
+
+    <!--部门下客户在案总数-->
+    <select id="getCustNumIN" parameterType="string" resultType="integer">
+        SELECT COUNT(DISTINCT(personal_id)) FROM case_info
+        LEFT JOIN department ON case_info.depart_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+        AND case_info.collection_status NOT IN (24,166)
+    </select>
+
+    <!--周回款统计-->
+    <select id="getWeekRepaySumAmt" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
+        SELECT SUM(apply_pay_amt) AS amount,WEEKDAY(approve_pay_datetime) AS dayOfWeek FROM case_pay_apply
+        LEFT JOIN department
+        ON case_pay_apply.depart_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+        AND YEARWEEK(DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        GROUP BY WEEKDAY(approve_pay_datetime)
+        ORDER BY dayOfWeek
+    </select>
+
+    <!--周催计数-->
+    <select id="getWeekFollCount" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
+        SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS dayOfWeek FROM case_followup_record
+        LEFT JOIN `user`
+        ON case_followup_record.operator = `user`.id
+        LEFT JOIN department
+        ON `user`.dept_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+        AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        GROUP BY WEEKDAY(operator_time)
+        ORDER BY dayOfWeek
+    </select>
+
+    <!--周结案数-->
+    <select id="getWeekCaseEndCount" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
+        SELECT SUM(m.num) AS num,m.closeDate AS dayOfWeek FROM (
+        SELECT COUNT(*) AS num,WEEKDAY(close_date) AS closeDate FROM case_info
+        LEFT JOIN department
+        ON case_info.depart_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+        AND case_info.collection_status = 24
+        AND YEARWEEK(DATE_FORMAT(close_date,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        GROUP BY WEEKDAY(close_date)
+        UNION ALL
+        SELECT COUNT(*) AS num,WEEKDAY(close_date) AS closeDate FROM case_info
+        LEFT JOIN `user`
+        ON `user`.id = case_info.assist_collector
+        LEFT JOIN department
+        ON `user`.dept_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+        AND case_info.collection_status = 24
+        AND YEARWEEK(DATE_FORMAT(close_date,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        GROUP BY WEEKDAY(close_date)
+        ) AS m
+        GROUP BY m.closeDate
+        ORDER BY dayOfWeek
+    </select>
+
+    <!--催收员排名-->
+    <select id="getCupoSort" parameterType="string" resultType="cn.fintecher.pangolin.report.model.PageSortResult">
+        select n.uname as uname,n.rname as name,m.amt as amount,n.pamt as payed,pamt/amt as rate from
+        (select apply.apply_user_name as uname,apply.apply_real_name as rname,sum(apply.apply_pay_amt) as pamt from case_pay_apply as apply
+        left join department
+        on apply.depart_id = department.id
+        where apply.approve_status = 58
+        and department.code like concat(#{deptCode},'%')
+        and year(apply.approve_pay_datetime) = year(NOW())
+        and month(apply.approve_pay_datetime) = month(NOW())
+        group by apply.apply_user_name,apply.apply_real_name) as n
+        left join
+            (
+                select sum(amt) as amt,coll from (
+                    (
+                        select sum(case_info.overdue_amount) as amt,`user`.user_name as coll from case_info
+                        left join `user`
+                        on `user`.id = case_info.current_collector
+                        group by case_info.current_collector
+                    )
+                    union all
+                    (
+                        select sum(case_info.overdue_amount) as amt,`user`.user_name as coll from case_info
+                        left join `user`
+                        on `user`.id = case_info.assist_collector
+                        group by case_info.assist_collector
+                    )
+                ) as c
+                group by c.coll
+            ) as m
+        on n.uname = m.coll
+        order by rate desc,amt desc,pamt desc
+        limit 0,3
+    </select>
+
+    <!--客户排名-->
+    <select id="getCustSort" parameterType="string" resultType="cn.fintecher.pangolin.report.model.PageSortResult">
+        SELECT name,amount,payed,pamt/amount as rate FROM (
+        SELECT SUM(apply_pay_amt) AS payed,case_pay_apply.personal_name AS name,case_pay_apply.personal_id AS pid FROM case_pay_apply
+        LEFT JOIN department
+        ON case_pay_apply.depart_id = department.id
+        WHERE approve_result = 179
+        AND department.`code` LIKE concat(#{deptCode},'%')
+        AND DATE_FORMAT(approve_pay_datetime, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m')
+        GROUP BY case_pay_apply.personal_id,case_pay_apply.personal_name
+        ) AS m
+        LEFT JOIN (
+        SELECT SUM(overdue_amount) AS amount,personal_id AS pid FROM case_info
+        GROUP BY personal_id
+        ) AS n
+        ON m.pid = n.pid
+        ORDER BY rate DESC
+        LIMIT 0,3
+    </select>
+</mapper>

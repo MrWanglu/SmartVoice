@@ -1,9 +1,7 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.DurationResult;
-import cn.fintecher.pangolin.business.model.HomePageResult;
 import cn.fintecher.pangolin.business.repository.UserLoginLogRepository;
-import cn.fintecher.pangolin.business.service.HomePageService;
 import cn.fintecher.pangolin.entity.QUserLoginLog;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.UserLoginLog;
@@ -25,43 +23,20 @@ import javax.inject.Inject;
 import java.util.Date;
 import java.util.List;
 
-
 /**
  * @Author : sunyanping
- * @Description : 首页
- * @Date : 2017/7/31.
+ * @Description : 用户登录日志
+ * @Date : 2017/8/9.
  */
 @RestController
-@RequestMapping("/api/homePageController")
-@Api(value = "HomePageController", description = "首页")
-public class HomePageController extends BaseController {
+@RequestMapping("/api/userLoginLogController")
+@Api(value = "UserLoginLogController", description = "用户登录日志")
+public class UserLoginLogController extends BaseController{
 
-    private final Logger log = LoggerFactory.getLogger(HomePageController.class);
+    private final Logger log = LoggerFactory.getLogger(UserController.class);
 
-    @Inject
-    private HomePageService homePageService;
     @Inject
     private UserLoginLogRepository userLoginLogRepository;
-
-    @GetMapping(value = "/getHomePageInformation")
-    @ApiOperation(value = "统计首页数据",notes = "统计首页数据")
-    public ResponseEntity getHomePageInformation(@RequestHeader(value = "X-UserToken") String token){
-        log.debug("REST request to get getHomePageInformation : {}",token);
-        User user = null;
-        try {
-            user = getUserByToken(token);
-        } catch (final Exception e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
-        }
-        try {
-            HomePageResult homePageResult = homePageService.getHomePageInformation(user);
-            return ResponseEntity.ok().body(homePageResult.getData());
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","系统异常!")).body(null);
-        }
-    }
 
     @GetMapping(value = "/getOnlineUserDurationTimeDay")
     @ApiOperation(value = "获取用户今日登陆总时长(秒)", notes = "获取用户今日登陆总时长")
@@ -72,7 +47,7 @@ public class HomePageController extends BaseController {
             user = getUserByToken(token);
         } catch (final Exception e) {
             log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getOnlineUserDurationTimeDay", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("UserLoginLogController", "getOnlineUserDurationTimeDay", e.getMessage())).body(null);
         }
         Long totalTime = 0L;
         Date startDay = ZWDateUtil.getNightTime(-1);
@@ -110,7 +85,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(durationResult);
         } catch (Exception e) {
             log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getOnlineUserDurationTimeDay", "系统异常!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("UserLoginLogController", "getOnlineUserDurationTimeDay", "系统异常!")).body(null);
         }
     }
 

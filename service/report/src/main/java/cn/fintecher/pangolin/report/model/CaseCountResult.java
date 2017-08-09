@@ -1,4 +1,4 @@
-package cn.fintecher.pangolin.business.model;
+package cn.fintecher.pangolin.report.model;
 
 import lombok.Data;
 

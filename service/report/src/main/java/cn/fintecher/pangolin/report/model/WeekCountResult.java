@@ -1,4 +1,4 @@
-package cn.fintecher.pangolin.business.model;
+package cn.fintecher.pangolin.report.model;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -18,6 +18,6 @@ public class WeekCountResult {
     private BigDecimal amount;
     @ApiModelProperty("周催计数/结案数")
     private Integer num;
-    @ApiModelProperty("天回款金额")
+    @ApiModelProperty("周几")
     private Integer dayOfWeek;
 }
