@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import com.querydsl.core.BooleanBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
@@ -95,6 +95,9 @@ public class CaseInfoService {
 
     @Inject
     PersonalRepository personalRepository;
+
+    @Inject
+    DepartmentRepository departmentRepository;
 
     /**
      * @Description 重新分配
@@ -962,5 +965,158 @@ public class CaseInfoService {
         }
     }
 
+    @Transactional
+    public void distributeRepairCase(AccCaseInfoDisModel accCaseInfoDisModel, User user) throws Exception {
+        if(!Objects.equals(user.getType(),User.Type.TEL.getValue()) && !Objects.equals(user.getType(),User.Type.VISIT.getValue())){
+            throw new Exception("非电催或外访人员不能进行案件分配");
+        }
+        //案件列表
+        List<CaseInfo> caseInfoObjList = new ArrayList<>();
+        //流转记录列表
+        List<CaseTurnRecord> caseTurnRecordList = new ArrayList<>();
+        List<CaseRepair> caseRepairList = new ArrayList<>();
+        //选择的案件ID列表
+        List<String> caseInfoList = accCaseInfoDisModel.getCaseIdList();
+        //每个机构或人分配的数量
+        List<Integer> disNumList = accCaseInfoDisModel.getCaseNumList();
+        //已经分配的案件数量
+        int alreadyCaseNum = 0;
+        //接收案件列表信息
+        List<String> deptOrUserList = null;
+        //机构分配
+        if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
+            //所要分配 机构id
+            deptOrUserList = accCaseInfoDisModel.getDepIdList();
+        } else if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.USER_WAY.getValue())) {
+            //得到所有用户ID
+            deptOrUserList = accCaseInfoDisModel.getUserIdList();
+        }
+        for (int i = 0; i < (deptOrUserList != null ? deptOrUserList.size() : 0); i++) {
+            //如果按机构分配则是机构的ID，如果是按用户分配则是用户ID
+            String deptOrUserid = deptOrUserList.get(i);
+            Department department = null;
+            User targetUser = null;
+            if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
+                department = departmentRepository.findOne(deptOrUserid);
+            } else if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.USER_WAY.getValue())) {
+                targetUser = userRepository.findOne(deptOrUserid);
+            }
+            //需要分配的案件数据
+            Integer disNum = disNumList.get(i);
+            for (int j = 0; j < disNum; j++) {
+                //检查输入的案件数量是否和选择的案件数量一致
+                if (alreadyCaseNum > caseInfoList.size()) {
+                    throw new Exception("选择的案件总量与实际输入的案件数量不匹配");
+                }
+                String caseId = caseInfoList.get(alreadyCaseNum);
+                CaseRepair caseRepair = caseRepairRepository.findOne(caseId);
 
+                if(Objects.equals(user.getType(),User.Type.TEL.getValue())) {
+                    if (!Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.TEL.getValue())) {
+                        throw new Exception("电催不能分配电催以外案件");
+                    }
+                    if(Objects.nonNull(department) && !Objects.equals(department.getType(),Department.Type.TELEPHONE_COLLECTION.getValue())){
+                        throw new Exception("电催案件不能分配给电催以外机构");
+                    }
+                    if(Objects.nonNull(targetUser) && !Objects.equals(targetUser.getType(),User.Type.TEL.getValue())){
+                        throw new Exception("电催案件不能分配给电催以外人员");
+                    }
+                }
+                if(Objects.equals(user.getType(),User.Type.VISIT.getValue())){
+                    if(!Objects.equals(caseRepair.getCaseId().getCollectionType(),CaseInfo.CollectionType.VISIT.getValue())) {
+                        throw new Exception("外访不能分配外访以外案件");
+                    }
+                    if(Objects.nonNull(department) && !Objects.equals(department.getType(),Department.Type.OUTBOUND_COLLECTION.getValue())){
+                        throw new Exception("外访案件不能分配给外访以外机构");
+                    }
+                    if(Objects.nonNull(targetUser) && !Objects.equals(targetUser.getType(),User.Type.VISIT.getValue())){
+                        throw new Exception("外访案件不能分配给外访以外人员");
+                    }
+                }
+                if (Objects.nonNull(caseRepair)) {
+                    CaseInfo caseInfo = new CaseInfo();
+                    BeanUtils.copyProperties(caseRepair.getCaseId(), caseInfo);
+                    if (Objects.nonNull(department)) {
+                        caseInfo.setDepartment(department);
+                        caseInfo.setCaseFollowInTime(null);
+                    }
+                    if (Objects.nonNull(targetUser)) {
+                        caseInfo.setDepartment(targetUser.getDepartment());
+                        caseInfo.setCurrentCollector(targetUser);
+                        caseInfo.setCollectionType(targetUser.getType());
+                        caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());
+                    }
+                    caseInfo.setOperator(user);
+                    caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+                    //案件列表
+                    caseInfoObjList.add(caseInfo);
+                    //案件流转记录
+                    CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+                    BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
+                    caseTurnRecord.setId(null); //主键置空
+                    caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
+                    caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
+                    caseTurnRecord.setReceiveUserid(caseInfo.getCurrentCollector()); //接受人
+                    if (Objects.nonNull(caseInfo.getCurrentCollector())) {
+                        caseTurnRecord.setReceiveDeptid(caseInfo.getCurrentCollector().getDepartment()); //接收部门
+                    } else {
+                        caseTurnRecord.setReceiveDeptid(caseInfo.getDepartment());
+                    }
+                    caseTurnRecord.setOperator(user); //操作员
+                    caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                    caseTurnRecordList.add(caseTurnRecord);
+                    //更新修复池
+                    caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.DISTRIBUTE.getValue());
+                    caseRepair.setOperatorTime(ZWDateUtil.getNowDateTime());
+                    caseRepair.setOperator(user);
+                    caseRepairList.add(caseRepair);
+                }
+                alreadyCaseNum = alreadyCaseNum + 1;
+            }
+        }
+        //保存流转记录
+        caseTurnRecordRepository.save(caseTurnRecordList);
+        //保存修复信息
+        caseRepairRepository.save(caseRepairList);
+        //保存案件信息
+        caseInfoRepository.save(caseInfoObjList);
+    }
+
+    /**
+     * @Description 获取特定用户案件分配信息
+     */
+    public BatchDistributeModel getAttachBatchDistribution(List<String> userIds) {
+        Iterator<String> it = userIds.iterator();
+        Integer avgCaseNum = 0; //人均案件数
+        Integer userNum = 0; //登录用户部门下的所有启用用户总数
+        Integer caseNum = 0; //登录用户部门下的所有启用用户持有未结案案件总数
+        List<BatchInfoModel> batchInfoModels = new ArrayList<>();
+        while (it.hasNext()) {
+            BatchInfoModel batchInfoModel = new BatchInfoModel();
+            String userId = it.next();
+            Integer caseCount = caseInfoRepository.getCaseCount(userId);
+            batchInfoModel.setCaseCount(caseCount); //持有案件数
+            batchInfoModel.setCollectionUser(userRepository.findOne(userId)); //催收人
+            batchInfoModels.add(batchInfoModel);
+            userNum++;
+            caseNum = caseNum + caseCount;
+        }
+        if (userNum != 0) {
+            avgCaseNum = (caseNum % userNum == 0) ? caseNum / userNum : (caseNum / userNum + 1);
+        }
+        BatchDistributeModel batchDistributeModel = new BatchDistributeModel();
+        batchDistributeModel.setAverageNum(avgCaseNum);
+        batchDistributeModel.setBatchInfoModelList(batchInfoModels);
+        return batchDistributeModel;
+    }
+
+    /**
+     * @Description 获取特定机构案件分配信息
+     */
+    public Long getDeptBatchDistribution(String deptId) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(QCaseInfo.caseInfo.department.id.eq(deptId));
+        builder.and(QCaseInfo.caseInfo.collectionStatus.in(20,21,22,23,25));
+        return caseInfoRepository.count(builder);
+    }
 }
