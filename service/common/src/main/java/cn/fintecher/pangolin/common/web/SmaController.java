@@ -88,13 +88,13 @@ public class SmaController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "未获取呼叫配置的系统参数", "Did not get call configuration of system parameters")).body(null);
         }
         // 163 erpv3   164  中通天鸿  165  云羿
-        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
             Map paramMap = new HashMap();
             paramMap.put("empId", user.getId());
             return smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);
         }
         //164  中通天鸿 对呼绑定 在user中的callPhone 字段
-        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
             if (Objects.nonNull(user.getCallPhone())) {
                 Map paramMap = new HashMap();
                 paramMap.put("callPhone", user.getCallPhone());
@@ -120,7 +120,7 @@ public class SmaController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "未获取呼叫配置的系统参数", "Did not get call configuration of system parameters")).body(null);
         }
         // 163 erpv3   164  中通天鸿  165  云羿
-        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
             Map paramMap = new HashMap();
             paramMap.put("empId", user.getId());
             paramMap.put("callerid", request.getCallerId());//固定话机ID
@@ -129,7 +129,7 @@ public class SmaController {
             return smaRequestService.smaRequest("bindTaskDataByCallerid.html", paramMap);
         }
         //164  中通天鸿 对呼绑定 在user中的callPhone 字段
-        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
             if (Objects.nonNull(user.getCallPhone())) {
                 Map paramMap = new HashMap();
                 paramMap.put("callPhone", user.getCallPhone());
@@ -161,7 +161,7 @@ public class SmaController {
         }
 
 //         163 erpv3     165  云羿
-        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
             Map paramMap = new HashMap();
             paramMap.put("id", request.getTaskId());//呼叫流程id
             paramMap.put("caller", request.getCaller());//主叫号码
@@ -174,7 +174,7 @@ public class SmaController {
             return smaRequestService.smaRequest("addTaskRecoder.html", paramMap);
         }
 //        164  中通天鸿
-        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue())) {
             if (Objects.isNull(user.getCallPhone())) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
             }
@@ -207,7 +207,7 @@ public class SmaController {
             }
         }
         //        165 云羿呼叫中心
-        if (Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
             if (Objects.isNull(user.getCallPhone())) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
             }
