@@ -40,7 +40,7 @@ public class SystemLogAop {
     private SystemLogRepository systemLogRepository;
 
     // 切入点*Controller
-    @Pointcut("execution(public * cn.fintecher.cuibei.service.*.web.*Controller.*(..))")
+    @Pointcut("execution(public * cn.fintecher.pangolin.*.web.*Controller.*(..))")
     public void systemLogAop() {
     }
 
