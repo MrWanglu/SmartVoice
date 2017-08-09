@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.PersonalInfoExportModel;
+import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
 import cn.fintecher.pangolin.business.repository.PersonalRepository;
@@ -11,6 +12,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import io.swagger.annotations.*;
@@ -35,6 +37,7 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -55,6 +58,7 @@ public class PersonalController extends BaseController {
 
     private static final String ENTITY_NAME = "personal";
     private static final String ENTITY_CASE_TURN_RECORD = "CaseTurnRecord";
+    private static final String ENTITY_CASE_FOLLOWUP_RECORD = "CaseFollowupRecord";
     private final Logger log = LoggerFactory.getLogger(PersonalController.class);
 
     @Inject
@@ -67,6 +71,10 @@ public class PersonalController extends BaseController {
     private PersonalInfoExportService personalInfoExportService;
     @Inject
     private CaseTurnRecordRepository caseTurnRecordRepository;
+    @Inject
+    private CaseFollowupRecordRepository caseFollowupRecordRepository;
+    @Inject
+    EntityManager em;
 
     @PostMapping("/personalInfoExport")
     @ApiOperation(value = "客户信息导出", notes = "客户信息导出")
@@ -340,8 +348,10 @@ public class PersonalController extends BaseController {
         log.debug("REST request to get case turn record by {caseId}", caseId);
         try {
             User tokenUser = getUserByToken(token);
+            OrderSpecifier<Date> sortOrder1 = QCaseTurnRecord.caseTurnRecord.operatorTime.asc();
             QCaseTurnRecord qCaseTurnRecord = QCaseTurnRecord.caseTurnRecord;
-            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseId.eq(caseId).and(qCaseTurnRecord.companyCode.eq(tokenUser.getCompanyCode())));
+            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseId.eq(caseId)
+                    .and(qCaseTurnRecord.companyCode.eq(tokenUser.getCompanyCode())), sortOrder1);
             List<CaseTurnRecord> caseTurnRecordList = IterableUtils.toList(caseTurnRecords);
             if (caseTurnRecordList.isEmpty()) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("该案件跟进记录为空", ENTITY_CASE_TURN_RECORD)).body(null);
