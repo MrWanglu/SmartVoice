@@ -343,7 +343,11 @@ public class PersonalController extends BaseController {
             QCaseTurnRecord qCaseTurnRecord = QCaseTurnRecord.caseTurnRecord;
             Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseId.eq(caseId).and(qCaseTurnRecord.companyCode.eq(tokenUser.getCompanyCode())));
             List<CaseTurnRecord> caseTurnRecordList = IterableUtils.toList(caseTurnRecords);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASE_TURN_RECORD)).body(caseTurnRecordList);
+            if (caseTurnRecordList.isEmpty()) {
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("该案件跟进记录为空", ENTITY_CASE_TURN_RECORD)).body(null);
+            } else {
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASE_TURN_RECORD)).body(caseTurnRecordList);
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_TURN_RECORD, "caseTurnRecord", "查询失败")).body(null);
