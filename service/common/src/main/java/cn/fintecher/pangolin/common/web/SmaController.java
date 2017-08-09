@@ -265,7 +265,7 @@ public class SmaController {
     /**
      * @Description : v3系统 163，中通天鸿 164 云羿 165   验证呼叫来源
      */
-    @PostMapping("/checkCall")
+    @GetMapping("/checkCall")
     @ApiOperation(value = "验证呼叫来源", notes = "验证呼叫来源")
     public ResponseEntity<SysParam> checkCall(@RequestParam String companyCode,
                                               @RequestHeader(value = "X-UserToken") String token) {
