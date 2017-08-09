@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -15,6 +16,7 @@ import java.util.Set;
 @Table(name = "user")
 @Data
 @ApiModel(value = "user",description = "用户信息管理")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User extends BaseEntity {
     @ApiModelProperty("特定公司的标识")
     private String companyCode;
@@ -69,6 +71,12 @@ public class User extends BaseEntity {
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @ApiModelProperty("用户所拥有的角色")
     private Set<Role> roles;
+
+    @OneToMany
+    @JoinColumn(name = "user_id")
+    @ApiModelProperty("用户的登陆设备")
+    private Set<UserDevice> userDevices;
+
 
     /**
      * 是否有数据权限

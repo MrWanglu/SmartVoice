@@ -175,7 +175,7 @@ public class AccVisitPoolController extends BaseController {
     /**
      * @Description 外访页面多条件查询跟进记录
      */
-    @GetMapping("/getFollowupRecord/{CaseId}")
+    @GetMapping("/getFollowupRecord/{caseId}")
     @ApiOperation(value = "外访页面多条件查询跟进记录", notes = "外访页面多条件查询跟进记录")
     public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@PathVariable @ApiParam(value = "案件ID", required = true) String caseId,
                                                                       @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,

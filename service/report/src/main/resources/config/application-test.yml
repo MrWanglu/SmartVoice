@@ -1,14 +1,14 @@
 spring:
     profiles:
-        active: test
+        active: dev
+        include: swagger
     devtools:
         restart:
-            enabled: false
+            enabled: true
         livereload:
             enabled: false # we use gulp + BrowserSync for livereload
     jackson:
         serialization.indent_output: true
-        serialization.write_dates_as_timestamps: true
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
         url: jdbc:mysql://192.168.3.8:3306/pangolin_business_test?useUnicode=true&characterEncoding=utf8&useSSL=false
@@ -27,6 +27,7 @@ spring:
         host: 192.168.3.15
         virtual-host: test
         port: 5672
+
     cache:
         jcache:
             config: ehcache.xml
@@ -37,25 +38,18 @@ spring:
         expireTime: 3600
 eureka:
   instance:
-    hostname: business-service
+    hostname: report-service
     prefer-ip-address: true
   client:
     registerWithEureka: true
     fetchRegistry: true
     serviceUrl:
             defaultZone: http://localhost:8761/eureka/
+
 server:
-    port: 9001
+    port: 9006
 
 cuibei:
   baiduMap:
     webUrl: http://api.map.baidu.com/place/v2/search?region=全国&ak=
     webAk: lHaYCXlRADlhW0fnv8tpIhCfqD85pTSr
-
-threadPool:
-  corePoolSize: 10
-  maxPoolSize: 200
-  keepAliveSeconds : 60
-  queueCapacity: 500
-  allowCoreThreadTimeout : false
-  threadNamePrefix: pangolin-

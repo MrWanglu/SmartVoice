@@ -1,16 +1,18 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.PersonalInfoExportModel;
+import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
 import cn.fintecher.pangolin.business.repository.PersonalRepository;
 import cn.fintecher.pangolin.business.service.PersonalInfoExportService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
-import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.Personal;
-import cn.fintecher.pangolin.entity.QCaseInfo;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import io.swagger.annotations.*;
@@ -35,6 +37,7 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -54,6 +57,8 @@ import static cn.fintecher.pangolin.entity.QCaseInfo.caseInfo;
 public class PersonalController extends BaseController {
 
     private static final String ENTITY_NAME = "personal";
+    private static final String ENTITY_CASE_TURN_RECORD = "CaseTurnRecord";
+    private static final String ENTITY_CASE_FOLLOWUP_RECORD = "CaseFollowupRecord";
     private final Logger log = LoggerFactory.getLogger(PersonalController.class);
 
     @Inject
@@ -64,6 +69,12 @@ public class PersonalController extends BaseController {
     private RestTemplate restTemplate;
     @Inject
     private PersonalInfoExportService personalInfoExportService;
+    @Inject
+    private CaseTurnRecordRepository caseTurnRecordRepository;
+    @Inject
+    private CaseFollowupRecordRepository caseFollowupRecordRepository;
+    @Inject
+    EntityManager em;
 
     @PostMapping("/personalInfoExport")
     @ApiOperation(value = "客户信息导出", notes = "客户信息导出")
@@ -72,7 +83,6 @@ public class PersonalController extends BaseController {
         // 数据过滤
         Map<String, List<Object>> dataFilter = model.getDataFilter();
         Map<String, List<String>> dataInfo = model.getDataInfo(); //数据项
-
 
 
         HSSFWorkbook workbook = null;
@@ -313,16 +323,44 @@ public class PersonalController extends BaseController {
             @ApiImplicitParam(name = "sort", dataType = "string", paramType = "query", value = "依据什么排序: 属性名(,asc|desc). ", allowMultiple = true)
     })
     public ResponseEntity<Page<CaseInfo>> getPersonalCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
-                                                              @ApiIgnore Pageable pageable) throws URISyntaxException {
+                                                              @ApiIgnore Pageable pageable,
+                                                              @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
         try {
-        Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/PersonalController/getPersonalCaseInfo");
-        return new ResponseEntity<>(page, headers, HttpStatus.OK);
+            User tokenUser = getUserByToken(token);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
+            Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/PersonalController/getPersonalCaseInfo");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", ENTITY_NAME, e.getMessage())).body(null);
         }
     }
 
-
+    /**
+     * @Description 查询案件流转记录
+     */
+    @GetMapping("/getCaseTurnRecord")
+    @ApiOperation(value = "查询案件流转记录", notes = "查询案件流转记录")
+    public ResponseEntity<List<CaseTurnRecord>> getCaseTurnRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+                                                                  @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get case turn record by {caseId}", caseId);
+        try {
+            User tokenUser = getUserByToken(token);
+            OrderSpecifier<Integer> sortOrder = QCaseTurnRecord.caseTurnRecord.id.asc();
+            QCaseTurnRecord qCaseTurnRecord = QCaseTurnRecord.caseTurnRecord;
+            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseId.eq(caseId)
+                    .and(qCaseTurnRecord.companyCode.eq(tokenUser.getCompanyCode())), sortOrder);
+            List<CaseTurnRecord> caseTurnRecordList = IterableUtils.toList(caseTurnRecords);
+            if (caseTurnRecordList.isEmpty()) {
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("该案件跟进记录为空", ENTITY_CASE_TURN_RECORD)).body(null);
+            } else {
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASE_TURN_RECORD)).body(caseTurnRecordList);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_TURN_RECORD, "caseTurnRecord", "查询失败")).body(null);
+        }
+    }
 }

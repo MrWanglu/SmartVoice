@@ -33,10 +33,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.inject.Inject;
 import java.io.*;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author : xiaqun
@@ -606,8 +603,8 @@ public class ReportService {
 
         //下载催收员回款报表模版
         //拼接请求地址
-        String requestUrl = Constants.SYSPARAM_URL.concat("getSysParamByCodeAndType?").concat("userId").concat("=").concat(tokenUser.getId().
-                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("code").concat("=").concat(Constants.BACK_MONEY_REPORT_EXCEL_URL_CODE).
+        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.BACK_MONEY_REPORT_EXCEL_URL_CODE).
                 concat("&").concat("type").concat("=").concat(Constants.BACK_MONEY_REPORT_EXCEL_URL_TYPE));
         log.debug(requestUrl);
         //下载模版
@@ -720,8 +717,8 @@ public class ReportService {
 
         //下载催收员回款报表模版
         //拼接请求地址
-        String requestUrl = Constants.SYSPARAM_URL.concat("getSysParamByCodeAndType?").concat("userId").concat("=").concat(tokenUser.getId().
-                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("code").concat("=").concat(Constants.PERFORMANCE_REPORT_EXCEL_URL_CODE).
+        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_REPORT_EXCEL_URL_CODE).
                 concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_REPORT_EXCEL_URL_TYPE));
         log.debug(requestUrl);
         //下载模版
@@ -952,8 +949,8 @@ public class ReportService {
 
         //下载催收员回款报表模版
         //拼接请求地址
-        String requestUrl = Constants.SYSPARAM_URL.concat("getSysParamByCodeAndType?").concat("userId").concat("=").concat(tokenUser.getId().
-                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("code").concat("=").concat(Constants.DAILY_PROCESS_REPORT_EXCEL_URL_CODE).
+        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.DAILY_PROCESS_REPORT_EXCEL_URL_CODE).
                 concat("&").concat("type").concat("=").concat(Constants.DAILY_PROCESS_REPORT_EXCEL_URL_TYPE));
         log.debug(requestUrl);
         //下载模版
@@ -1188,8 +1185,8 @@ public class ReportService {
 
         //下载催收员回款报表模版
         //拼接请求地址
-        String requestUrl = Constants.SYSPARAM_URL.concat("getSysParamByCodeAndType?").concat("userId").concat("=").concat(tokenUser.getId().
-                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("code").concat("=").concat(Constants.DAILY_RESULT_REPORT_EXCEL_URL_CODE).
+        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.DAILY_RESULT_REPORT_EXCEL_URL_CODE).
                 concat("&").concat("type").concat("=").concat(Constants.DAILY_RESULT_REPORT_EXCEL_URL_TYPE));
         log.debug(requestUrl);
         //下载模版
@@ -1447,11 +1444,10 @@ public class ReportService {
      * @Description 下载报表模版
      */
     private HSSFWorkbook downloadTemplate(String requestUrl) throws IOException {
-//        ResponseEntity<SysParam> sysParamResponseEntity = restTemplate.getForEntity(requestUrl, SysParam.class); //获取系统参数对象
-//        if (sysParamResponseEntity.hasBody()) {
-//            throw new RuntimeException("报表模版系统参数未找到");
-//        }
         ResponseEntity<SysParam> responseEntity = restTemplate.getForEntity(requestUrl, SysParam.class);
+        if (!responseEntity.hasBody()) {
+            throw new RuntimeException("报表模版系统参数未找到");
+        }
         //获得催收员回款报表模型地址
         String url = responseEntity.getBody().getValue();
 
