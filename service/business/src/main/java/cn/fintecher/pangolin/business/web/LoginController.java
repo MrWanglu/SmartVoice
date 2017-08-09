@@ -19,11 +19,14 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.Calendar;
@@ -42,6 +45,7 @@ import static cn.fintecher.pangolin.entity.util.Constants.ADMIN_ROLE_ID;
 @RequestMapping("/api/login")
 @Api(value = "登录相关", description = "登陆相关")
 public class LoginController extends BaseController {
+    private final Logger logger = LoggerFactory.getLogger(UserController.class);
     private static final String ENTITY_NAME = "login";
     @Autowired
     UserRepository userRepository;
@@ -54,6 +58,25 @@ public class LoginController extends BaseController {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    /**
+     * 无MD5加密用户登录 开发使用
+     */
+    @GetMapping("/getUserByToken")
+    @ApiOperation(value = "通过token获取用户信息", notes = "通过token获取用户信息")
+    public ResponseEntity<User> getUserToken(@RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = super.getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "该用户不存在")).body(null);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(user);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "该用户不存在")).body(null);
+        }
+    }
 
     /**
      * 无MD5加密用户登录 开发使用
@@ -72,7 +95,7 @@ public class LoginController extends BaseController {
     @ApiOperation(value = "用户登陆", notes = "用户登陆")
     public ResponseEntity login(@RequestBody UserLoginRequest loginRequest, HttpServletRequest request) {
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-         User user = userRepository.findByUserName(loginRequest.getUsername());
+        User user = userRepository.findByUserName(loginRequest.getUsername());
         if (Objects.isNull(user)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "该用户不存在")).body(null);
         }
@@ -102,7 +125,7 @@ public class LoginController extends BaseController {
                                 userDevice.setCode(ip);
                             } else {
                                 if (Objects.equals(ip, userDevice.getCode())) {
-                                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功",ENTITY_NAME)).body(response);
+                                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(response);
                                 } else {
                                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "login failure", "登录失败")).body(null);
                                 }
@@ -112,7 +135,7 @@ public class LoginController extends BaseController {
                                 userDevice.setCode(loginRequest.getUsdeCode());
                             } else {
                                 if (Objects.equals(loginRequest.getUsdeCode(), userDevice.getCode())) {
-                                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功",ENTITY_NAME)).body(response);
+                                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(response);
                                 } else {
                                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "login failure", "登录失败")).body(null);
                                 }
@@ -163,7 +186,7 @@ public class LoginController extends BaseController {
                 }
             }
             SessionStore.getInstance().addUser(session.getId(), session);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功",ENTITY_NAME)).body(response);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(response);
         } else {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "wrong password", "密码错误")).body(null);
         }
@@ -251,7 +274,7 @@ public class LoginController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "用户未登录")).body(null);
         }
         if (Objects.isNull(user)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"User not login","请登录后再修改")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
         }
         if (!user.getRoles().contains(roleRepository.findOne(ADMIN_ROLE_ID))) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "only administrator", "只有超级管理员用户可以修改设备状态")).body(null);
@@ -275,7 +298,7 @@ public class LoginController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "用户未登录")).body(null);
         }
         if (Objects.isNull(user)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"User not login","请登录后再修改")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
         }
         if (!user.getRoles().contains(roleRepository.findOne(ADMIN_ROLE_ID))) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "only administrator", "只有超级管理员用户可以修改设备状态")).body(null);
@@ -283,7 +306,6 @@ public class LoginController extends BaseController {
         userService.resetDeviceValidate(request);
         return ResponseEntity.ok().body(user);
     }
-
 
 
     /**
@@ -301,7 +323,7 @@ public class LoginController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "用户未登录")).body(null);
         }
         if (Objects.isNull(user)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"User not login","请登录后再修改")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
         }
         if (!user.getRoles().contains(roleRepository.findOne(ADMIN_ROLE_ID))) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "only administrator", "只有超级管理员用户可以修改设备状态")).body(null);
