@@ -41,10 +41,7 @@ public class CaseRepairController extends BaseController{
     private CaseRepairRecordRepository caseRepairRecordRepository;
 
     @Autowired
-    private CaseInfoRepository caseInfoRepository;
-
-    @Autowired
-    CaseInfoService caseInfoService;
+    private CaseInfoService caseInfoService;
 
     /**
      * @Description : 修改案件状态到修复完成
@@ -151,4 +148,21 @@ public class CaseRepairController extends BaseController{
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取分配信息失败", "caseInfo", e.getMessage())).body(null);
         }
     }
+
+    /**
+     * @Description ：查看已修复案件信息
+     */
+    @GetMapping("/ViewCaseRepair")
+    @ApiOperation(value = "查看已修复案件信息",notes = "查看已修复案件信息")
+    public ResponseEntity ViewCaseRepair(String id) {
+        try{
+            CaseRepair caseRepair = caseRepairRepository.findOne(id);
+            CaseInfo caseInfo = caseRepair.getCaseId();
+            return ResponseEntity.ok().body(caseInfo);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","exception","系统异常")).body(null);
+        }
+    }
+
 }
