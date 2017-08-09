@@ -83,7 +83,9 @@ public class SystemLogAop {
                 userName = body.getUserName();
             }
             SystemLog systemLogs = new SystemLog();
-            systemLogs.setCompanyCode(body.getCompanyCode());
+            if (Objects.nonNull(body.getCompanyCode())) {
+                systemLogs.setCompanyCode(body.getCompanyCode());
+            }
             systemLogs.setClientIp((String) map.get("reqIp"));
             systemLogs.setOperator(body.getUserName());
             systemLogs.setOperateTime((Date) map.get("creatTime"));
