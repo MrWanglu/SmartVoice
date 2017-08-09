@@ -6,6 +6,7 @@ import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.persistence.Id;
+import java.io.Serializable;
 import java.util.Date;
 
 
@@ -17,7 +18,7 @@ import java.util.Date;
         description = "上传文件信息")
 @Data
 @Document
-public class UploadFile {
+public class UploadFile implements Serializable{
     @Id
     private String id;
     @ApiModelProperty(notes = "文件名称")
