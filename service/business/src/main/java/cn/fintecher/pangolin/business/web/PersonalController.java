@@ -346,7 +346,7 @@ public class PersonalController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASE_TURN_RECORD)).body(caseTurnRecordList);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_TURN_RECORD, "caseTurnRecord", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_TURN_RECORD, "caseTurnRecord", "查询失败")).body(null);
         }
     }
 }
