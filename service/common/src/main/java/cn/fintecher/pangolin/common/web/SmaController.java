@@ -83,7 +83,7 @@ public class SmaController {
     public ResponseEntity<Map<String, String>> validateTaskIdInEmpId(@RequestHeader(value = "X-UserToken") String token) {
         User user = userClient.getUserByToken(token).getBody();
         //呼叫中心配置
-        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), user.getCompanyCode(), Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + user.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
         if (Objects.isNull(sysParam)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "未获取呼叫配置的系统参数", "Did not get call configuration of system parameters")).body(null);
         }
@@ -113,9 +113,8 @@ public class SmaController {
     public ResponseEntity<Map<String, String>> bindTaskDataByCallerId(@RequestBody BindCallNumberRequest request, @RequestHeader(value = "X-UserToken") String token) {
         // 是否登录
         User user = userClient.getUserByToken(token).getBody();
-
         //呼叫中心配置
-        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), user.getCompanyCode(), Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + user.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
         if (Objects.isNull(sysParam)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "未获取呼叫配置的系统参数", "Did not get call configuration of system parameters")).body(null);
         }
@@ -155,7 +154,7 @@ public class SmaController {
                                                                @RequestHeader(value = "X-UserToken") String token) {
         User user = userClient.getUserByToken(token).getBody();
 //        呼叫中心配置
-        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), request.getCompanyCode(), Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + request.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
         if (Objects.isNull(sysParam)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
         }
@@ -271,7 +270,7 @@ public class SmaController {
                                               @RequestHeader(value = "X-UserToken") String token) {
         User user = userClient.getUserByToken(token).getBody();
         //        呼叫中心配置
-        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), companyCode, Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + companyCode + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
         if (Objects.isNull(sysParam)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
         }
