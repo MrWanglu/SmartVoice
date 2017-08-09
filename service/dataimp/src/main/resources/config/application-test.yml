@@ -10,14 +10,14 @@ spring:
         serialization.indent_output: true
     data:
         mongodb:
-            uri: mongodb://192.168.1.5:27017
-            database: dataimp_db_test
+            uri: mongodb://192.168.3.5:27017
+            database: pangolin_dataimp_db_test
     jmx:
       enabled: false
     rabbitmq:
         username: test
         password: test
-        host: 192.168.1.6
+        host: 192.168.3.15
         virtual-host: test
         port: 5672
 eureka:

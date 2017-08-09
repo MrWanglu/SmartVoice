@@ -10,12 +10,12 @@ spring:
         serialization.indent_output: true
     data:
         mongodb:
-            uri: mongodb://192.168.1.5:27017
+            uri: mongodb://192.168.3.5:27017
             database: reminder_db_test
     rabbitmq:
         username: test
         password: test
-        host: 192.168.1.6
+        host: 192.168.3.15
         virtual-host: test
         port: 5672
 eureka:
