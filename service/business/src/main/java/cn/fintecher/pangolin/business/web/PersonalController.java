@@ -348,10 +348,10 @@ public class PersonalController extends BaseController {
         log.debug("REST request to get case turn record by {caseId}", caseId);
         try {
             User tokenUser = getUserByToken(token);
-            OrderSpecifier<Date> sortOrder1 = QCaseTurnRecord.caseTurnRecord.operatorTime.asc();
+            OrderSpecifier<Integer> sortOrder = QCaseTurnRecord.caseTurnRecord.id.asc();
             QCaseTurnRecord qCaseTurnRecord = QCaseTurnRecord.caseTurnRecord;
             Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseId.eq(caseId)
-                    .and(qCaseTurnRecord.companyCode.eq(tokenUser.getCompanyCode())), sortOrder1);
+                    .and(qCaseTurnRecord.companyCode.eq(tokenUser.getCompanyCode())), sortOrder);
             List<CaseTurnRecord> caseTurnRecordList = IterableUtils.toList(caseTurnRecords);
             if (caseTurnRecordList.isEmpty()) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("该案件跟进记录为空", ENTITY_CASE_TURN_RECORD)).body(null);
