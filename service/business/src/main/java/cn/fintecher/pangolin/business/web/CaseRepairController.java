@@ -1,19 +1,18 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
+import cn.fintecher.pangolin.business.model.BatchDistributeModel;
 import cn.fintecher.pangolin.business.model.CaseRepairRequest;
-import cn.fintecher.pangolin.business.model.QueryRequest;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CaseRepairRecordRepository;
 import cn.fintecher.pangolin.business.repository.CaseRepairRepository;
+import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +23,6 @@ import springfox.documentation.annotations.ApiIgnore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import static org.hibernate.id.IdentifierGenerator.ENTITY_NAME;
 
 /**
  * Created by yuanyanting on 2017/8/8.
@@ -45,45 +43,8 @@ public class CaseRepairController extends BaseController{
     @Autowired
     private CaseInfoRepository caseInfoRepository;
 
-    /**
-     * @Description : 分页,多条件查询状态为未修复或已修复的案件信息
-     */
-    @GetMapping("/queryCaseRepair")
-    @ApiOperation(value = "查询状态为未修复或已修复的案件信息",notes = "查询未修复状态的案件")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
-                    value = "页数 (0..N)"),
-            @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
-                    value = "每页大小."),
-            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
-                    value = "依据什么排序: 属性名(,asc|desc). ")
-    })
-    public ResponseEntity<Page<CaseRepair>> queryCaseRepair(@QuerydslPredicate(root = CaseRepair.class) Predicate predicate,
-                                                            @ApiIgnore Pageable pageable,
-                                                            @RequestHeader(value = "X-UserToken") String token,
-                                                            QueryRequest request){
-        User user;
-        try {
-            user = getUserByToken(token);
-        }catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"The user not login","用户未登陆")).body(null);
-        }
-        try {
-            BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-            if (Objects.nonNull(request.getStatus())) {
-                booleanBuilder.and(QCaseRepair.caseRepair.repairStatus.eq(request.getStatus()));
-            }
-            if (Objects.nonNull(user.getCompanyCode())) {
-                booleanBuilder.and(QCaseRepair.caseRepair.companyCode.eq(user.getCompanyCode()));
-            }
-            Page<CaseRepair> page = caseRepairRepository.findAll(booleanBuilder, pageable);
-            return ResponseEntity.ok().body(page);
-        }catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","exception","系统异常")).body(null);
-        }
-    }
+    @Autowired
+    CaseInfoService caseInfoService;
 
     /**
      * @Description : 修改案件状态到修复完成
@@ -116,6 +77,78 @@ public class CaseRepairController extends BaseController{
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","exception","系统异常")).body(null);
+        }
+    }
+
+    @RequestMapping(value = "/distributeRepairCase", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    @ApiOperation(value = "修复分配", notes = "修复分配")
+    public ResponseEntity distributeRepairCase(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
+                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        try {
+            User user = getUserByToken(token);
+            caseInfoService.distributeRepairCase(accCaseInfoDisModel, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "RepairCaseDistributeController")).body(null);
+        } catch (Exception e) {
+            String msg = Objects.isNull(e.getMessage()) ? "系统异常" : e.getMessage();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("RepairCaseDistributeController", "error", msg)).body(null);
+        }
+    }
+    /**
+     * @Description 修复案件查询
+     */
+    @GetMapping("/getAllRepairedCase")
+    @ApiOperation(value = "修复案件查询", notes = "修复案件查询")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseRepair>> getAllTelCase(@QuerydslPredicate(root = CaseRepair.class) Predicate predicate,
+                                                          @ApiIgnore Pageable pageable,
+                                                          @RequestHeader(value = "X-UserToken") String token) {
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+        }
+        BooleanBuilder builder = new BooleanBuilder(predicate);
+        builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(user.getCompanyCode()));
+        Page<CaseRepair> page = caseRepairRepository.findAll(builder,pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "RepairCaseDistributeController")).body(page);
+    }
+
+    /**
+     * @Description 修复页面获取专员分配信息
+     */
+    @GetMapping("/getAttachBatchInfo")
+    @ApiOperation(value = "修复页面获取专员分配信息", notes = "修复页面获取分配信息")
+    public ResponseEntity<BatchDistributeModel> getAttachBatchInfo(@RequestHeader(value = "X-UserToken") String token,
+                                                                   @ApiParam("催收员ID集合")@RequestParam(required = false) List<String> userIds) {
+        try {
+            BatchDistributeModel batchDistributeModel = caseInfoService.getAttachBatchDistribution(userIds);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取分配信息成功", "RepairCaseDistributeController")).body(batchDistributeModel);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取分配信息失败", "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 修复页面获取机构分配信息
+     */
+    @GetMapping("/getDeptBatchInfo")
+    @ApiOperation(value = "修复页面获取机构分配信息", notes = "修复页面获取机构分配信息")
+    public ResponseEntity<Long> getDeptBatchInfo(@RequestHeader(value = "X-UserToken") String token,
+                                                 @ApiParam("机构ID")@RequestParam(required = false) String deptId) {
+        try {
+            Long count = caseInfoService.getDeptBatchDistribution(deptId);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取分配信息成功", "RepairCaseDistributeController")).body(count);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取分配信息失败", "caseInfo", e.getMessage())).body(null);
         }
     }
 }
