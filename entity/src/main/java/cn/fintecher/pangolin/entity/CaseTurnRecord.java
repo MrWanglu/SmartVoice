@@ -18,6 +18,7 @@ import java.util.Date;
 @Data
 public class CaseTurnRecord {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @ApiModelProperty(notes = "主键ID")
     private Integer id;
 
