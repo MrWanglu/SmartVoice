@@ -276,13 +276,13 @@ public class CaseInfo extends BaseEntity {
      */
     public enum Color {
         //无色
-        no_color(126, "无色"),
+        NO_COLOR(126, "无色"),
         //红色
-        red(127, "红色"),
+        RED(127, "红色"),
         //蓝色
-        blue(128, "蓝色"),
-        //黄色
-        yellow(129, "黄色");
+        BLUE(128, "蓝色"),
+        //绿色
+        GREEN(129, "绿色");
 
         private Integer value;
 
