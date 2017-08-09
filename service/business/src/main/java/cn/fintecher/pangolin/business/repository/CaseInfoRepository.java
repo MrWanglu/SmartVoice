@@ -119,6 +119,8 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
         bindings.bind(root.area.parent.id).first((path, value) -> path.eq(value));
         //申请城市
         bindings.bind(root.area.id).first((path, value) -> path.eq(value));
+        //标记颜色
+        bindings.bind(root.caseMark).first((path, value) -> path.eq(value));
     }
 
     /**
@@ -135,6 +137,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
 
     /**
      * 获取所有批次号
+     *
      * @param companyCode
      * @return
      */
@@ -143,6 +146,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
 
     /**
      * 根据案件编号查询案件
+     *
      * @param caseNumber
      * @return
      */
