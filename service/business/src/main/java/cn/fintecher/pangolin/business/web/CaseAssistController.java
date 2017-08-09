@@ -204,12 +204,13 @@ public class CaseAssistController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistCaseMarkColor", e.getMessage())).body(null);
         }
         try {
-            List<CaseAssist> all = caseAssistRepository.findAll(caseMarkParams.getAssistIds());
-            if (all.isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistCaseMarkColor", "协催案件未找到")).body(null);
+            List<String> assistIds = caseMarkParams.getAssistIds();
+            if (assistIds.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistCaseMarkColor", "请选择要打标的案件!")).body(null);
             }
             List<CaseAssist> saveList = new ArrayList<>();
-            for (CaseAssist caseAssist : all) {
+            for (String id : assistIds) {
+                CaseAssist caseAssist = caseAssistRepository.findOne(id);
                 caseAssist.setMarkId(caseMarkParams.getMarkId()); //打标
                 caseAssist.setOperator(user); //操作人
                 caseAssist.setOperatorTime(new Date()); //操作时间
