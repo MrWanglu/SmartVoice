@@ -53,10 +53,10 @@ public class RepairCaseDistributeController extends BaseController{
         }
     }
     /**
-     * @Description 电催主页面多条件查询电催案件
+     * @Description 修复案件查询
      */
     @GetMapping("/getAllRepairedCase")
-    @ApiOperation(value = "已修复案件查询", notes = "已修复案件查询")
+    @ApiOperation(value = "修复案件查询", notes = "修复案件查询")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
                     value = "页数 (0..N)"),
@@ -76,7 +76,6 @@ public class RepairCaseDistributeController extends BaseController{
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(user.getCompanyCode()));
-        builder.and(QCaseRepair.caseRepair.repairStatus.eq(CaseRepair.CaseRepairStatus.REPAIRED.getValue()));
         Page<CaseRepair> page = caseRepairRepository.findAll(builder,pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "RepairCaseDistributeController")).body(page);
     }
