@@ -147,7 +147,7 @@ public class ResourceController extends BaseController {
         String code = String.valueOf(list.hashCode());
         Map<String, String> map = new HashMap<String, String>();
         map.put("resourceHashCode", code);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功",ENTITY_NAME)).body(map);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(map);
     }
 
     /**

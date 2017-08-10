@@ -92,7 +92,7 @@ public class SystemLogAop {
             systemLogs.setRemark((String) map.get("remark"));
             systemLogs.setExeTime(String.valueOf(map.get("exeTime")));
             systemLogs.setExeMethod((String) map.get("methods"));
-            systemLogs.setExeParams((String) map.get("params"));
+//            systemLogs.setExeParams((String) map.get("params"));
             systemLogs.setExeType((String) map.get("type"));
             systemLogRepository.save(systemLogs);
         } catch (Exception e1) {
