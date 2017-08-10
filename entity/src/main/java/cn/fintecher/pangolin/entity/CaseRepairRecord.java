@@ -42,9 +42,8 @@ public class CaseRepairRecord extends BaseEntity{
     @ApiModelProperty("操作时间")
     private Date operatorTime;
 
-   /* @ManyToOne
-    @JoinColumn(name = "case_id")
-    private CaseInfo caseInfo;*/
+
+    private String caseId;
 
 
 }

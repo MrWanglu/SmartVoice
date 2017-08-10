@@ -55,21 +55,23 @@ public class CaseRepairController extends BaseController{
             // 案件修复表的id
             CaseRepair caseRepair = caseRepairRepository.findOne(request.getId());
             // 待修复上传的文件集合
-            List<CaseRepairRecord> caseRepairRecords = new ArrayList<>();
-
+            List<CaseRepairRecord> caseRepairRecordList = new ArrayList<>();
             for(String fileId : fileIds) {
-                // 根据文件id查询附件
-                CaseRepairRecord caseRepairRecord = caseRepairRecordRepository.findOne(fileId);
-                // 修改状态为已修复
-                caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRED.getValue());
-                CaseInfo caseInfo = caseRepair.getCaseId();
-                // 设置操作时间为现在时间
-                caseRepair.setOperatorTime(ZWDateUtil.getNowDateTime());
-                caseRepair.setCaseId(caseInfo);
-                caseRepairRecords.add(caseRepairRecord);
-                caseInfo.setCaseRepairRecordList(caseRepairRecords);
-                caseRepairRepository.save(caseRepair);
+                CaseRepairRecord caseRepairRecord = new CaseRepairRecord();
+                caseRepairRecord.setCaseId(caseRepair.getCaseId().getId());
+                caseRepairRecord.setFileId(fileId);
+                caseRepairRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
+                caseRepairRecord.setRepairMemo(request.getRepairMemo());
+                caseRepairRecordList.add(caseRepairRecordRepository.saveAndFlush(caseRepairRecord));
             }
+            // 修改状态为已修复
+            caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRED.getValue());
+            CaseInfo caseInfo = caseRepair.getCaseId();
+            // 设置操作时间为现在时间
+            caseRepair.setOperatorTime(ZWDateUtil.getNowDateTime());
+            caseRepair.setCaseId(caseInfo);
+            caseInfo.setCaseRepairRecordList(caseRepairRecordList);
+            caseRepairRepository.save(caseRepair);
             return ResponseEntity.ok().body(request);
         }catch (Exception e) {
             e.printStackTrace();

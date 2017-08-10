@@ -111,7 +111,7 @@ public class CaseInfo extends BaseEntity {
     private User operator;
 
     @OneToMany
-    @JoinColumn(name = "case_id")
+    @JoinColumn(name = "caseId")
     private List<CaseRepairRecord> caseRepairRecordList;
 
     /**
