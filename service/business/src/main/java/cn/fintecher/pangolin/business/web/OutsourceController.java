@@ -96,8 +96,8 @@ public class OutsourceController extends BaseController {
             outsource.setFlag(Outsource.deleteStatus.START.getDeleteCode());
             outsource.setCreateTime(ZWDateUtil.getNowDateTime()); //创建时间
             outsource.setCreator(user.getId());
-            outsource = outsourceRepository.save(outsource);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(outsource);
+            Outsource outsourceReturn = outsourceRepository.save(outsource);
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(outsourceReturn);
         } else {
             Outsource outsource1 = outsourceRepository.findOne(outsource.getId());
             //验证委外方是否重名
