@@ -13,6 +13,7 @@ import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.MD5;
 import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -120,8 +121,8 @@ public class UserController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user password parameters abnormality", "用户密码参数异常")).body(null);
         }
         String hashedPassword;
-        if (Objects.nonNull(sysParamsPassword)&& Objects.equals(Status.Enable.getValue(), sysParamsNumber.getStatus())) {
-            hashedPassword = passwordEncoder.encode(sysParamsPassword.getValue());
+        if (Objects.nonNull(sysParamsPassword) && Objects.equals(Status.Enable.getValue(), sysParamsNumber.getStatus())) {
+            hashedPassword = passwordEncoder.encode(MD5.MD5Encode(sysParamsPassword.getValue()));
         } else {
             //默认密码888888
             hashedPassword = passwordEncoder.encode(Constants.RET_PASSWORD);

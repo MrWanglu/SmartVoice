@@ -250,7 +250,7 @@ public class LoginController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "To reset the password parameter abnormalities", "重置密码参数异常")).body(null);
         }
         if (Objects.nonNull(sysParamsPassword) && Objects.equals(Status.Enable.getValue(), sysParamsPassword.getStatus())) {
-            user.setPassword(passwordEncoder.encode(sysParamsPassword.getValue()));
+            user.setPassword(passwordEncoder.encode(MD5.MD5Encode(sysParamsPassword.getValue())));
         } else {
             userOld.setPassword(passwordEncoder.encode(Constants.LOGIN_RET_PASSWORD));
         }
