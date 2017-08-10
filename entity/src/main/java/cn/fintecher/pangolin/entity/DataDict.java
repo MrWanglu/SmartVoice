@@ -3,8 +3,7 @@ package cn.fintecher.pangolin.entity;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 /**
  * Created by  hukaijia.
@@ -15,8 +14,11 @@ import javax.persistence.Table;
 @Table(name = "data_dict")
 @Data
 @ApiModel(value = "dataDict", description = "data_dict")
-public class DataDict extends BaseEntity {
+public class DataDict {
     private static final long serialVersionUID = -5643850075856127202L;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
     private String typeCode;
     private String code;
     private String name;
