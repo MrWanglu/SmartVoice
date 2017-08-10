@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
@@ -610,6 +611,9 @@ public class CaseInfoService {
         QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
         for (BatchInfoModel batchInfoModel : batchInfoModels) {
             Integer caseCount = batchInfoModel.getDistributionCount(); //分配案件数
+            if (0 == caseCount) {
+                continue;
+            }
             if (!Objects.equals(tokenUser.getType(), User.Type.VISIT.getValue())) { //分配给外访以外
                 for (int i = 0; i < caseCount; i++) {
                     CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(i)); //获得案件信息
@@ -633,7 +637,6 @@ public class CaseInfoService {
                     caseTurnRecord.setOperator(tokenUser); //操作员
                     caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                     caseTurnRecords.add(caseTurnRecord);
-                    caseIds.remove(0);
                 }
             } else { //分配给外访
                 for (int i = 0; i < caseCount; i++) {
@@ -962,16 +965,16 @@ public class CaseInfoService {
                 }
             }
             //保存案件信息
-            for (CaseInfo caseInfo1: caseInfoObjList) {
+            for (CaseInfo caseInfo1 : caseInfoObjList) {
                 caseInfoRepository.save(caseInfo1);
             }
             //保存流转记录
-            for (CaseTurnRecord caseTurnRecord: caseTurnRecordList) {
+            for (CaseTurnRecord caseTurnRecord : caseTurnRecordList) {
                 caseTurnRecordRepository.save(caseTurnRecord);
             }
 //            caseTurnRecordRepository.save(caseTurnRecordList);
             //保存修复信息
-            for (CaseRepair caseRepair: caseRepairList) {
+            for (CaseRepair caseRepair : caseRepairList) {
                 caseRepairRepository.save(caseRepair);
             }
 //            caseRepairRepository.save(caseRepairList);
@@ -1024,25 +1027,25 @@ public class CaseInfoService {
                 }
                 String caseId = caseInfoList.get(alreadyCaseNum);
                 CaseRepair caseRepair = caseRepairRepository.findOne(caseId);
-                if(Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.TEL.getValue())){
-                    if(Objects.nonNull(user.getType()) && !Objects.equals(user.getType(),User.Type.TEL.getValue())){
+                if (Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.TEL.getValue())) {
+                    if (Objects.nonNull(user.getType()) && !Objects.equals(user.getType(), User.Type.TEL.getValue())) {
                         throw new Exception("当前用户不可以分配电催案件");
                     }
-                    if(Objects.nonNull(department) && !Objects.equals(department.getType(),Department.Type.TELEPHONE_COLLECTION.getValue())){
+                    if (Objects.nonNull(department) && !Objects.equals(department.getType(), Department.Type.TELEPHONE_COLLECTION.getValue())) {
                         throw new Exception("电催案件不能分配给电催以外机构");
                     }
-                    if(Objects.nonNull(targetUser) && !Objects.equals(targetUser.getType(),User.Type.TEL.getValue())){
+                    if (Objects.nonNull(targetUser) && !Objects.equals(targetUser.getType(), User.Type.TEL.getValue())) {
                         throw new Exception("电催案件不能分配给电催以外人员");
                     }
                 }
-                if(Objects.equals(caseRepair.getCaseId().getCollectionType(),CaseInfo.CollectionType.VISIT.getValue())){
-                    if(Objects.nonNull(user.getType()) && !Objects.equals(user.getType(),User.Type.VISIT.getValue())){
+                if (Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.VISIT.getValue())) {
+                    if (Objects.nonNull(user.getType()) && !Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
                         throw new Exception("当前用户不可以分配外访案件");
                     }
-                    if(Objects.nonNull(department) && !Objects.equals(department.getType(),Department.Type.OUTBOUND_COLLECTION.getValue())){
+                    if (Objects.nonNull(department) && !Objects.equals(department.getType(), Department.Type.OUTBOUND_COLLECTION.getValue())) {
                         throw new Exception("外访案件不能分配给外访以外机构");
                     }
-                    if(Objects.nonNull(targetUser) && !Objects.equals(targetUser.getType(),User.Type.VISIT.getValue())){
+                    if (Objects.nonNull(targetUser) && !Objects.equals(targetUser.getType(), User.Type.VISIT.getValue())) {
                         throw new Exception("外访案件不能分配给外访以外人员");
                     }
                 }
@@ -1129,7 +1132,7 @@ public class CaseInfoService {
     public Long getDeptBatchDistribution(String deptId) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(QCaseInfo.caseInfo.department.id.eq(deptId));
-        builder.and(QCaseInfo.caseInfo.collectionStatus.in(20,21,22,23,25));
+        builder.and(QCaseInfo.caseInfo.collectionStatus.in(20, 21, 22, 23, 25));
         return caseInfoRepository.count(builder);
     }
 }
