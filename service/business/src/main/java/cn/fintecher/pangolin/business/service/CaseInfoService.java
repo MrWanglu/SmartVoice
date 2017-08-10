@@ -891,7 +891,7 @@ public class CaseInfoService {
                 Department department = null;
                 User targetUser = null;
                 if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
-                    department.setId(deptOrUserid);
+                    department = departmentRepository.findOne(deptOrUserid);
                 } else if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.USER_WAY.getValue())) {
                     targetUser = userRepository.findOne(deptOrUserid);
                 }
@@ -909,6 +909,17 @@ public class CaseInfoService {
                         BeanUtils.copyProperties(caseInfoDistributed, caseInfo);
                         if (Objects.nonNull(department)) {
                             caseInfo.setDepartment(department);
+                            if (Objects.equals(department.getType(), Department.Type.TELEPHONE_COLLECTION.getValue())) {
+                                caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
+                            } else if (Objects.equals(department.getType(), Department.Type.OUTBOUND_COLLECTION.getValue())) {
+                                caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
+                            } else if (Objects.equals(department.getType(), Department.Type.JUDICIAL_COLLECTION.getValue())) {
+                                caseInfo.setCollectionType(CaseInfo.CollectionType.JUDICIAL.getValue());
+                            } else if (Objects.equals(department.getType(), Department.Type.OUTSOURCING_COLLECTION.getValue())) {
+                                caseInfo.setCollectionType(CaseInfo.CollectionType.outside.getValue());
+                            } else if (Objects.equals(department.getType(), Department.Type.REMIND_COLLECTION.getValue())) {
+                                caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
+                            }
                             caseInfo.setCaseFollowInTime(null);
                         }
                         if (Objects.nonNull(targetUser)) {
@@ -922,7 +933,7 @@ public class CaseInfoService {
                                 caseInfo.setCollectionType(CaseInfo.CollectionType.JUDICIAL.getValue());
                             } else if (Objects.equals(user.getType(), User.Type.OUT.getValue())) {
                                 caseInfo.setCollectionType(CaseInfo.CollectionType.outside.getValue());
-                            } else if (Objects.equals(user.getType(), User.Type.OUT.getValue())) {
+                            } else if (Objects.equals(user.getType(), User.Type.REMINDER.getValue())) {
                                 caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
                             }
                             caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());

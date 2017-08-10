@@ -6,9 +6,7 @@ import cn.fintecher.pangolin.business.repository.CaseInfoDistributedRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
-import cn.fintecher.pangolin.entity.CaseInfoDistributed;
-import cn.fintecher.pangolin.entity.QCaseInfoDistributed;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
@@ -125,6 +123,35 @@ public class CaseInfoDistributeController extends BaseController {
             logger.debug(e.getMessage());
             return ResponseEntity.badRequest()
                     .headers(HeaderUtil.createFailureAlert("CaseInfoDistributeController", "getAccReceivePoolByUserId", "系统异常!"))
+                    .body(null);
+        }
+    }
+
+    @GetMapping("/getCaseCountOnDept")
+    @ApiOperation(value = "查找部门下的案件数", notes = "查找部门下的案件数")
+    public ResponseEntity getCaseCountOnDept(@RequestParam("deptCode") @ApiParam("部门Code") String deptCode,
+                                             @RequestHeader(value = "X-UserToken") String token) {
+        logger.debug("REST request to getCaseCountOnDept");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest()
+                    .headers(HeaderUtil.createFailureAlert("CaseInfoDistributeController", "getCaseCountOnDept", e.getMessage()))
+                    .body(null);
+        }
+        try {
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+            builder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
+            Long count = caseInfoRepository.count(builder);
+            return ResponseEntity.ok().body(count);
+        } catch (Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest()
+                    .headers(HeaderUtil.createFailureAlert("CaseInfoDistributeController", "getCaseCountOnDept", "系统异常!"))
                     .body(null);
         }
     }
