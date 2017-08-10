@@ -260,9 +260,9 @@ public class DepartmentController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<Department>> queryCaseInfo(@QuerydslPredicate(root = Department.class) Predicate predicate,
-                                                          @ApiIgnore Pageable pageable,
-                                                          @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<Page<Department>> queryDepartment(@QuerydslPredicate(root = Department.class) Predicate predicate,
+                                                            @ApiIgnore Pageable pageable,
+                                                            @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
@@ -283,8 +283,8 @@ public class DepartmentController extends BaseController {
      */
     @GetMapping("/queryDepartmentList")
     @ApiOperation(value = "查询用户所在的子部门", notes = "查询用户所在的子部门")
-    public ResponseEntity<List<Department>> queryCaseInfo(@QuerydslPredicate(root = Department.class) Predicate predicate,
-                                                          @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<List<Department>> queryDepartmentList(@QuerydslPredicate(root = Department.class) Predicate predicate,
+                                                                @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
