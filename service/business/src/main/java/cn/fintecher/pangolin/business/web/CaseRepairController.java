@@ -3,23 +3,28 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
 import cn.fintecher.pangolin.business.model.BatchDistributeModel;
 import cn.fintecher.pangolin.business.model.CaseRepairRequest;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CaseRepairRecordRepository;
 import cn.fintecher.pangolin.business.repository.CaseRepairRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.file.UploadFile;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +47,9 @@ public class CaseRepairController extends BaseController{
 
     @Autowired
     private CaseInfoService caseInfoService;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     /**
      * @Description : 修改案件状态到修复完成
@@ -93,6 +101,7 @@ public class CaseRepairController extends BaseController{
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("RepairCaseDistributeController", "error", msg)).body(null);
         }
     }
+
     /**
      * @Description 修复案件查询
      */
@@ -156,11 +165,22 @@ public class CaseRepairController extends BaseController{
      */
     @GetMapping("/ViewCaseRepair")
     @ApiOperation(value = "查看已修复案件信息",notes = "查看已修复案件信息")
-    public ResponseEntity ViewCaseRepair(String id) {
+    public ResponseEntity<List<UploadFile>> ViewCaseRepair(String id) {
         try{
+            List<UploadFile> uploadFiles = null;
+            StringBuilder fileIds = new StringBuilder();
             CaseRepair caseRepair = caseRepairRepository.findOne(id);
             CaseInfo caseInfo = caseRepair.getCaseId();
-            return ResponseEntity.ok().body(caseInfo);
+            List<CaseRepairRecord> caseRepairRecordList = caseInfo.getCaseRepairRecordList();
+            for(CaseRepairRecord caseRepairRecord : caseRepairRecordList) {
+                String fileId = caseRepairRecord.getFileId();
+                fileIds.append(fileId).append(",");
+            }
+            ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>(){};
+            ResponseEntity<List<UploadFile>> resp = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(fileIds.toString()),
+                    HttpMethod.GET, null, responseType);
+            uploadFiles = resp.getBody();
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查看信息成功","CaseRepairController")).body(uploadFiles);
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","exception","系统异常")).body(null);
