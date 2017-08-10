@@ -7,20 +7,17 @@ import cn.fintecher.pangolin.business.session.SessionStore;
 import cn.fintecher.pangolin.entity.Department;
 import cn.fintecher.pangolin.entity.QUser;
 import cn.fintecher.pangolin.entity.User;
-import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.UserDevice;
+import cn.fintecher.pangolin.entity.util.Constants;
 import com.querydsl.core.BooleanBuilder;
 import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
 import java.util.*;
 
 /**
@@ -78,6 +75,7 @@ public class UserService {
         List<User> userReturn = IteratorUtils.toList(userList);
         return userReturn;
     }
+
     /**
      * @Description : 通过token查询用户
      */
@@ -92,6 +90,7 @@ public class UserService {
 
     /**
      * 禁用设备
+     *
      * @param request
      */
     public void resetDeviceStatus(UserDeviceReset request) {
@@ -101,7 +100,7 @@ public class UserService {
             Set<UserDevice> userDevices = new HashSet<>();
             userDevices.addAll(user.getUserDevices());
             for (UserDevice ud : userDevices) {
-                if (Objects.equals(ud.getType(),request.getUsdeType())) {
+                if (Objects.equals(ud.getType(), request.getUsdeType())) {
                     ud.setStatus(request.getUsdeStatus());
                 }
             }
@@ -115,6 +114,7 @@ public class UserService {
 
     /**
      * 启动设备锁
+     *
      * @param request
      */
     public void resetDeviceValidate(UserDeviceReset request) {
@@ -125,7 +125,7 @@ public class UserService {
             userDevices.addAll(user.getUserDevices());
             if (!userDevices.isEmpty()) {
                 for (UserDevice ud : userDevices) {
-                    if (Objects.equals(ud.getType(),request.getUsdeType())) {
+                    if (Objects.equals(ud.getType(), request.getUsdeType())) {
                         ud.setValidate(request.getValidate());
                     }
                 }
@@ -140,6 +140,7 @@ public class UserService {
 
     /**
      * 重置设备
+     *
      * @param request
      */
     public void resetDeviceCode(UserDeviceReset request) {
@@ -152,7 +153,7 @@ public class UserService {
                 Iterator<UserDevice> iterator = userDevices.iterator();
                 while (iterator.hasNext()) {
                     UserDevice ud = iterator.next();
-                    if (Objects.equals(ud.getType(),request.getUsdeType())) {
+                    if (Objects.equals(ud.getType(), request.getUsdeType())) {
                         ud.setCode(null);
                     }
                 }
@@ -163,5 +164,15 @@ public class UserService {
         }
         userRepository.save(users);
         userRepository.flush();
+    }
+
+    @CacheEvict(value = "userCache", key = "'petstore:user:'+#user.userName")
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
+    @CacheEvict(value = "userCache", allEntries = true)
+    public Iterable<User> save(Iterable<User> users) {
+        return userRepository.save(users);
     }
 }
