@@ -114,10 +114,10 @@ public class OutsourceController extends BaseController {
     }
 
     /**
-     * @Description : 查询委托方
+     * @Description : 查询委外方
      */
     @GetMapping("/query")
-    @ApiOperation(value = "查询委托方", notes = "查询委托方")
+    @ApiOperation(value = "查询委外方", notes = "查询委外方")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
                     value = "页数 (0..N)"),
@@ -190,10 +190,10 @@ public class OutsourceController extends BaseController {
     }
 
     /**
-     * @Description : 删除委托方
+     * @Description : 删除委外方
      */
     @DeleteMapping("/deleteOutsource")
-    @ApiOperation(value = "删除委托方", notes = "删除委托方")
+    @ApiOperation(value = "删除委外方", notes = "删除委外方")
     public ResponseEntity<Outsource> deleteOutsource(@RequestParam String id,
                                                      @RequestHeader(value = "X-UserToken") String token) {
         User user;
@@ -208,10 +208,10 @@ public class OutsourceController extends BaseController {
     }
 
     /**
-     * @Description : 查询所有委托方
+     * @Description : 查询所有委外方
      */
     @GetMapping("/getAllOutsource")
-    @ApiOperation(value = "查询所有委托方", notes = "查询所有委托方")
+    @ApiOperation(value = "查询所有委外方", notes = "查询所有委外方")
     public ResponseEntity<List<Outsource>> getAllOutsource(@RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
