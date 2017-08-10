@@ -20,21 +20,21 @@ public class CaseInfoDistributed extends BaseEntity {
     private String caseNumber;
     private Integer collectionType;
     private String contractNumber;
-    private BigDecimal contractAmount;
-    private BigDecimal overdueAmount;
-    private BigDecimal overdueCapital;
-    private BigDecimal overdueInterest;
-    private BigDecimal overdueFine;
-    private BigDecimal overdueDelayFine;
+    private BigDecimal contractAmount = new BigDecimal(0);
+    private BigDecimal overdueAmount = new BigDecimal(0);
+    private BigDecimal overdueCapital = new BigDecimal(0);
+    private BigDecimal overdueInterest = new BigDecimal(0);
+    private BigDecimal overdueFine = new BigDecimal(0);
+    private BigDecimal overdueDelayFine = new BigDecimal(0);
     private Integer periods;
     private Date perDueDate;
-    private BigDecimal perPayAmount;
+    private BigDecimal perPayAmount = new BigDecimal(0);
     private Integer overduePeriods;
     private Integer overdueDays;
-    private BigDecimal hasPayAmount;
+    private BigDecimal hasPayAmount = new BigDecimal(0);
     private Integer hasPayPeriods;
     private Date latelyPayDate;
-    private BigDecimal latelyPayAmount;
+    private BigDecimal latelyPayAmount = new BigDecimal(0);
     private Integer assistFlag;
     private Integer assistStatus;
     private Integer assistWay;
@@ -51,26 +51,25 @@ public class CaseInfoDistributed extends BaseEntity {
     private Integer collectionStatus;
     private Date delegationDate;
     private Date closeDate;
-    private BigDecimal commissionRate;
+    private BigDecimal commissionRate = new BigDecimal(0);
     private Integer handNumber;
     private Date loanDate;
-    private BigDecimal overdueManageFee;
+    private BigDecimal overdueManageFee = new BigDecimal(0);
     private Integer handUpFlag;
-    private BigDecimal derateAmt;
-    private BigDecimal realPayAmount;
-    private BigDecimal earlySettleAmt;
-    private BigDecimal earlyRealSettleAmt;
-    private BigDecimal earlyDerateAmt;
-    private BigDecimal otherAmt;
-    private BigDecimal score;
+    private BigDecimal derateAmt = new BigDecimal(0);
+    private BigDecimal realPayAmount = new BigDecimal(0);
+    private BigDecimal earlySettleAmt = new BigDecimal(0);
+    private BigDecimal earlyRealSettleAmt = new BigDecimal(0);
+    private BigDecimal earlyDerateAmt = new BigDecimal(0);
+    private BigDecimal otherAmt = new BigDecimal(0);
+    private BigDecimal score = new BigDecimal(0);
     private String companyCode;
-    private BigDecimal leftCapital; //剩余本金
-    private BigDecimal leftInterest; //剩余利息
+    private BigDecimal leftCapital = new BigDecimal(0); //剩余本金
+    private BigDecimal leftInterest = new BigDecimal(0); //剩余利息
     private String endRemark; //结案说明
 
     private Date operatorTime;
     private Integer caseMark;
-
 
 
     @ManyToOne
@@ -94,7 +93,6 @@ public class CaseInfoDistributed extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "operator")
     private User operator;
-
 
 
 }
