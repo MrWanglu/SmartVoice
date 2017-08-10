@@ -1,7 +1,10 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
+import cn.fintecher.pangolin.business.model.UserInfoModel;
 import cn.fintecher.pangolin.business.repository.CaseInfoDistributedRepository;
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.CaseInfoDistributed;
 import cn.fintecher.pangolin.entity.QCaseInfoDistributed;
@@ -21,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -33,13 +38,17 @@ import java.util.Objects;
 @Api(value = "案件分配", description = "案件分配")
 public class CaseInfoDistributeController extends BaseController {
 
-    private static final String ENTITY_NAME = "aseInfoDistributeController";
+    private static final String ENTITY_NAME = "caseInfoDistributeController";
     Logger logger=LoggerFactory.getLogger(CaseInfoDistributeController.class);
 
     @Autowired
     CaseInfoService caseInfoService;
     @Inject
     CaseInfoDistributedRepository caseInfoDistributedRepository;
+    @Inject
+    UserRepository userRepository;
+    @Inject
+    CaseInfoRepository caseInfoRepository;
 
     @RequestMapping(value = "/distributeCeaseInfo", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
@@ -95,6 +104,28 @@ public class CaseInfoDistributeController extends BaseController {
         }
     }
 
-
-
+    @PostMapping("/getUserInfoByUserId")
+    @ApiOperation(value = "查找用户的案件数", notes = "查找用户的案件数")
+    public ResponseEntity getAccReceivePoolByUserId(@ApiParam(value = "用户userId组", required = true) @RequestBody UserInfoModel userIds) {
+        try {
+            List<UserInfoModel> list = new ArrayList<>();
+            List<String> userIds1 = userIds.getUserIds();
+            for (String userId : userIds1) {
+                UserInfoModel userInfo = new UserInfoModel();
+                User user = userRepository.findOne(userId);
+                userInfo.setUserId(user.getId());
+                userInfo.setUserName(user.getUserName());
+                userInfo.setCollector(user.getRealName());
+                Integer caseCountOnUser = caseInfoDistributedRepository.getCaseCountOnUser(user.getId());
+                userInfo.setCaseCount(caseCountOnUser);
+                list.add(userInfo);
+            }
+            return ResponseEntity.ok().body(list);
+        } catch (Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest()
+                    .headers(HeaderUtil.createFailureAlert("CaseInfoDistributeController", "getAccReceivePoolByUserId", "系统异常!"))
+                    .body(null);
+        }
+    }
 }

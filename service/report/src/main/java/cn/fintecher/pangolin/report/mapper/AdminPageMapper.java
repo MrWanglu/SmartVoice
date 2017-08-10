@@ -22,6 +22,13 @@ public interface AdminPageMapper {
     List<User> getAllUserOnDepartment(String deptCode);
 
     /**
+     * 获取公司下所有用户
+     * @param companyCode
+     * @return
+     */
+    List<User> getAllUserOnCompany(String companyCode);
+
+    /**
      * 部门下案件总金额
      * @param deptCode
      * @return

@@ -911,7 +911,17 @@ public class CaseInfoService {
                         if (Objects.nonNull(targetUser)) {
                             caseInfo.setDepartment(targetUser.getDepartment());
                             caseInfo.setCurrentCollector(targetUser);
-                            caseInfo.setCollectionType(targetUser.getType());
+                            if (Objects.equals(user.getType(), User.Type.TEL.getValue())) {
+                                caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
+                            } else if (Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
+                                caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
+                            } else if (Objects.equals(user.getType(), User.Type.JUD.getValue())) {
+                                caseInfo.setCollectionType(CaseInfo.CollectionType.JUDICIAL.getValue());
+                            } else if (Objects.equals(user.getType(), User.Type.OUT.getValue())) {
+                                caseInfo.setCollectionType(CaseInfo.CollectionType.outside.getValue());
+                            } else if (Objects.equals(user.getType(), User.Type.OUT.getValue())) {
+                                caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
+                            }
                             caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());
                         }
                         caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
@@ -921,8 +931,6 @@ public class CaseInfoService {
                         caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());
                         caseInfo.setOperator(user);
                         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
-                        //案件列表
-                        caseInfoObjList.add(caseInfo);
                         //案件流转记录
                         CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
                         BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
@@ -938,30 +946,39 @@ public class CaseInfoService {
                         caseTurnRecord.setOperator(user); //操作员
                         caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                         caseTurnRecordList.add(caseTurnRecord);
+
                         //进入案件修复池
                         CaseRepair caseRepair = new CaseRepair();
+                        caseRepair.setCaseId(caseInfo);
                         caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRING.getValue());
                         caseRepair.setOperatorTime(ZWDateUtil.getNowDateTime());
                         caseRepair.setCompanyCode(user.getCompanyCode());
                         caseRepairList.add(caseRepair);
+                        caseInfo.setId(null);
+                        //案件列表
+                        caseInfoObjList.add(caseInfo);
                     }
                     alreadyCaseNum = alreadyCaseNum + 1;
                 }
             }
             //保存案件信息
-            caseInfoRepository.save(caseInfoObjList);
-            //保存流转记录
-            caseTurnRecordRepository.save(caseTurnRecordList);
-            //保存修复信息
-            caseRepairRepository.save(caseRepairList);
-            //删除待分配案件
-            List<CaseInfoDistributed> caseInfoDistributedList = new ArrayList<>();
-            for (String id : caseInfoList) {
-                CaseInfoDistributed caseInfoDistributed = new CaseInfoDistributed();
-                caseInfoDistributed.setId(id);
-                caseInfoDistributedList.add(caseInfoDistributed);
+            for (CaseInfo caseInfo1: caseInfoObjList) {
+                caseInfoRepository.save(caseInfo1);
             }
-            caseInfoDistributedRepository.deleteInBatch(caseInfoDistributedList);
+            //保存流转记录
+            for (CaseTurnRecord caseTurnRecord: caseTurnRecordList) {
+                caseTurnRecordRepository.save(caseTurnRecord);
+            }
+//            caseTurnRecordRepository.save(caseTurnRecordList);
+            //保存修复信息
+            for (CaseRepair caseRepair: caseRepairList) {
+                caseRepairRepository.save(caseRepair);
+            }
+//            caseRepairRepository.save(caseRepairList);
+            //删除待分配案件
+            for (String id : caseInfoList) {
+                caseInfoDistributedRepository.delete(id);
+            }
         }
     }
 

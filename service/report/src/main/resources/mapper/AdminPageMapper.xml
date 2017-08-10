@@ -10,6 +10,10 @@
         AND `user`.`status` = 0
     </select>
 
+    <select id="getAllUserOnCompany" parameterType="string" resultType="cn.fintecher.pangolin.entity.User">
+        SELECT `user`.* FROM `user` WHERE `user`.`company_code` = #{companyCode}
+    </select>
+
     <!--部门下案件总金额-->
     <select id="getCaseSumAmt" parameterType="string" resultType="java.math.BigDecimal">
         SELECT SUM(case_info.overdue_amount) AS amt
