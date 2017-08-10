@@ -530,7 +530,8 @@ public class CaseAssistController extends BaseController {
     @ApiOperation(value = "多条件查询协催已处理记录", notes = "多条件查询协催已处理记录")
     public ResponseEntity<Page<CaseAssist>> getAllRecordAssistCase(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
                                                                    @ApiIgnore Pageable pageable,
-                                                                   @RequestHeader(value = "X-UserToken") String token) {
+                                                                   @RequestHeader(value = "X-UserToken") String token,
+                                                                   @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         log.debug("REST request to getAllRecordAssistCase");
         User user = null;
         try {
@@ -543,7 +544,12 @@ public class CaseAssistController extends BaseController {
             List<Department> departments = departmentService.querySonDepartment(user); //是否有子部门
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
-            exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
+            // 超级管理员 权限
+            if (Objects.equals(user.getUserName(), "administrator")) {
+                exp.and(qCaseAssist.companyCode.eq(companyCode));
+            } else {
+                exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
+            }
             Page<CaseAssist> page = null;
             if (departments.isEmpty()) {
                 exp.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
@@ -577,11 +583,15 @@ public class CaseAssistController extends BaseController {
         }
         try {
 
-
             List<Department> departments = departmentService.querySonDepartment(user); //是否有子部门
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
-            exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
+            // 超级管理员 权限
+            if (Objects.equals(user.getUserName(), "administrator")) {
+                exp.and(qCaseAssist.companyCode.eq(companyCode));
+            } else {
+                exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
+            }
             Page<CaseAssist> page = null;
             if (departments.isEmpty()) {
                 // 过滤掉协催结束的协催案件
