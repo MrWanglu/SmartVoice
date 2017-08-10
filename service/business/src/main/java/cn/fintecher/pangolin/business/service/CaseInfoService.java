@@ -967,9 +967,6 @@ public class CaseInfoService {
 
     @Transactional
     public void distributeRepairCase(AccCaseInfoDisModel accCaseInfoDisModel, User user) throws Exception {
-        if(!Objects.equals(user.getType(),User.Type.TEL.getValue()) && !Objects.equals(user.getType(),User.Type.VISIT.getValue())){
-            throw new Exception("非电催或外访人员不能进行案件分配");
-        }
         //案件列表
         List<CaseInfo> caseInfoObjList = new ArrayList<>();
         //流转记录列表
@@ -1010,10 +1007,9 @@ public class CaseInfoService {
                 }
                 String caseId = caseInfoList.get(alreadyCaseNum);
                 CaseRepair caseRepair = caseRepairRepository.findOne(caseId);
-
-                if(Objects.equals(user.getType(),User.Type.TEL.getValue())) {
-                    if (!Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.TEL.getValue())) {
-                        throw new Exception("电催不能分配电催以外案件");
+                if(Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.TEL.getValue())){
+                    if(Objects.nonNull(user.getType()) && !Objects.equals(user.getType(),User.Type.TEL.getValue())){
+                        throw new Exception("当前用户不可以分配电催案件");
                     }
                     if(Objects.nonNull(department) && !Objects.equals(department.getType(),Department.Type.TELEPHONE_COLLECTION.getValue())){
                         throw new Exception("电催案件不能分配给电催以外机构");
@@ -1022,9 +1018,9 @@ public class CaseInfoService {
                         throw new Exception("电催案件不能分配给电催以外人员");
                     }
                 }
-                if(Objects.equals(user.getType(),User.Type.VISIT.getValue())){
-                    if(!Objects.equals(caseRepair.getCaseId().getCollectionType(),CaseInfo.CollectionType.VISIT.getValue())) {
-                        throw new Exception("外访不能分配外访以外案件");
+                if(Objects.equals(caseRepair.getCaseId().getCollectionType(),CaseInfo.CollectionType.VISIT.getValue())){
+                    if(Objects.nonNull(user.getType()) && !Objects.equals(user.getType(),User.Type.VISIT.getValue())){
+                        throw new Exception("当前用户不可以分配外访案件");
                     }
                     if(Objects.nonNull(department) && !Objects.equals(department.getType(),Department.Type.OUTBOUND_COLLECTION.getValue())){
                         throw new Exception("外访案件不能分配给外访以外机构");
@@ -1033,6 +1029,7 @@ public class CaseInfoService {
                         throw new Exception("外访案件不能分配给外访以外人员");
                     }
                 }
+
                 if (Objects.nonNull(caseRepair)) {
                     CaseInfo caseInfo = new CaseInfo();
                     BeanUtils.copyProperties(caseRepair.getCaseId(), caseInfo);
@@ -1043,7 +1040,6 @@ public class CaseInfoService {
                     if (Objects.nonNull(targetUser)) {
                         caseInfo.setDepartment(targetUser.getDepartment());
                         caseInfo.setCurrentCollector(targetUser);
-                        caseInfo.setCollectionType(targetUser.getType());
                         caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());
                     }
                     caseInfo.setOperator(user);
