@@ -54,9 +54,9 @@ public class CaseRepairController extends BaseController{
     /**
      * @Description : 修改案件状态到修复完成
      */
-    @PostMapping("/ToRepair")
+    @PostMapping("/toRepair")
     @ApiOperation(value = "修改案件状态",notes = "修改案件状态")
-    public ResponseEntity ToRepair(@RequestBody CaseRepairRequest request){
+    public ResponseEntity toRepair(@RequestBody CaseRepairRequest request){
         try {
             // 获取文件的id集合
             List<String> fileIds = request.getFileIds();
@@ -163,9 +163,9 @@ public class CaseRepairController extends BaseController{
     /**
      * @Description ：查看已修复案件信息
      */
-    @GetMapping("/ViewCaseRepair")
+    @GetMapping("/viewCaseRepair")
     @ApiOperation(value = "查看已修复案件信息",notes = "查看已修复案件信息")
-    public ResponseEntity<List<UploadFile>> ViewCaseRepair(String id) {
+    public ResponseEntity<List<UploadFile>> viewCaseRepair(String id) {
         try{
             List<UploadFile> uploadFiles = null;
             StringBuilder fileIds = new StringBuilder();
