@@ -38,13 +38,13 @@ public class CaseInfoDistributed extends BaseEntity {
     private Integer assistFlag;
     private Integer assistStatus;
     private Integer assistWay;
-    private Integer holdDays;
+    private Integer holdDays = 0;
     private Integer leftDays;
     private Integer caseType;
     private Integer leaveCaseFlag;
     private Date leaveDate;
     private Integer hasLeaveDays;
-    private Integer followUpNum;
+    private Integer followUpNum = 0;
     private Date caseFollowInTime;
     private String payStatus;
     private String orderId;

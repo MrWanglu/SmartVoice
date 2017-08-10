@@ -7,7 +7,6 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by ChenChang on 2017/7/10.
@@ -46,7 +45,7 @@ public class CaseInfo extends BaseEntity {
     private Integer leaveCaseFlag;
     private Date leaveDate;
     private Integer hasLeaveDays;
-    private Integer followUpNum;
+    private Integer followUpNum = 0;
     private Date caseFollowInTime;
     private String payStatus;
     private String orderId;
