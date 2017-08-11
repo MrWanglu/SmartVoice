@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-
 import javax.servlet.http.HttpSession;
 import java.util.*;
 
@@ -89,7 +88,7 @@ public class UserService {
     }
 
     /**
-     * 禁用设备
+     * 启用/禁用设备
      *
      * @param request
      */
@@ -113,7 +112,7 @@ public class UserService {
     }
 
     /**
-     * 启动设备锁
+     * 启动/停用设备锁
      *
      * @param request
      */

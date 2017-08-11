@@ -117,38 +117,40 @@ public class LoginController extends BaseController {
                 if (Objects.equals(userDevice.getValidate(), Status.Enable.getValue())) {
                     // 是否启用设备锁
                     if (Objects.equals(userDevice.getStatus(), Status.Enable.getValue())) {
-                        if (Objects.equals(loginRequest.getUsdeType(), Status.Enable.getValue())) {
-                            String ip = GetClientIp.getIp(request);
-                            if (ZWStringUtils.isEmpty(userDevice.getCode())) {
-                                // 判断用户请求的设备状态(PC端：0，移动端：1)
-                                loginRequest.setUsdeCode(ip);
-                                userDevice.setCode(ip);
-                            } else {
-                                if (Objects.equals(ip, userDevice.getCode())) {
-                                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("设备锁验证正确", ENTITY_NAME)).body(response);
+                        if (Objects.equals(loginRequest.getUsdeType(),userDevice.getType())) {
+                            if (Objects.equals(loginRequest.getUsdeType(), Status.Enable.getValue())) {
+                                String ip = GetClientIp.getIp(request);
+                                if (ZWStringUtils.isEmpty(userDevice.getCode())) {
+                                    // 判断用户请求的设备状态(PC端：0，移动端：1)
+                                    loginRequest.setUsdeCode(ip);
+                                    userDevice.setCode(ip);
                                 } else {
-                                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "deviceKey error", "本次登录和上次登录的地址不一致！")).body(null);
+                                    if (Objects.equals(ip, userDevice.getCode())) {
+                                        return ResponseEntity.ok().headers(HeaderUtil.createAlert("设备锁验证正确", ENTITY_NAME)).body(response);
+                                    } else {
+                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "deviceKey failure", "本次登录和上次登录地址不一致！")).body(null);
+                                    }
                                 }
-                            }
-                        } else {
-                            if (ZWStringUtils.isEmpty(userDevice.getCode())) {
-                                userDevice.setCode(loginRequest.getUsdeCode());
                             } else {
-                                if (Objects.equals(loginRequest.getUsdeCode(), userDevice.getCode())) {
-                                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("设备锁验证正确", ENTITY_NAME)).body(response);
+                                if (ZWStringUtils.isEmpty(userDevice.getCode())) {
+                                    userDevice.setCode(loginRequest.getUsdeCode());
                                 } else {
-                                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "deviceKey error", "本次登录和上次登录的地址不一致！")).body(null);
+                                    if (Objects.equals(loginRequest.getUsdeCode(), userDevice.getCode())) {
+                                        return ResponseEntity.ok().headers(HeaderUtil.createAlert("设备锁验证正确", ENTITY_NAME)).body(response);
+                                    } else {
+                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "deviceKey failure", "本次登录和上次登录地址不一致！")).body(null);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            userRepository.save(user);
+            userService.save(user);
             //用户设定修改密码的时间限制
             if (Objects.isNull(user.getPasswordInvalidTime())) {
                 user.setPasswordInvalidTime(ZWDateUtil.getNowDateTime());
-                userRepository.save(user);
+                userService.save(user);
                 response.setReset(false);
             } else {
                 //登录的密码设定的时间限制
@@ -260,11 +262,11 @@ public class LoginController extends BaseController {
     }
 
     /**
-     * @Description : 禁用设备
+     * @Description :启用/禁用设备
      */
     @RequestMapping(value = "/disableDevice", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    @ApiOperation(value = "禁用设备", notes = "禁用设备")
-    public ResponseEntity<User> disableDevice(@Validated @RequestBody @ApiParam("禁用设备") UserDeviceReset request,
+    @ApiOperation(value = "启用/禁用设备", notes = "启用/禁用设备")
+    public ResponseEntity<User> disableDevice(@Validated @RequestBody @ApiParam("启用/禁用设备") UserDeviceReset request,
                                               @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
@@ -276,19 +278,16 @@ public class LoginController extends BaseController {
         if (Objects.isNull(user)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
         }
-        if (!user.getRoles().contains(roleRepository.findOne(ADMIN_ROLE_ID))) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "only administrator", "只有超级管理员用户可以修改设备状态")).body(null);
-        }
         userService.resetDeviceStatus(request);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("禁用设备操作成功","operator successfully")).body(user);
     }
 
     /**
-     * @Description : 启用设备锁
+     * @Description : 启用/停用设备锁
      */
     @RequestMapping(value = "/enableDeviceKey", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    @ApiOperation(value = "启用设备锁", notes = "启用设备锁")
-    public ResponseEntity<User> enableDeviceKey(@Validated @RequestBody @ApiParam("启用设备锁") UserDeviceReset request,
+    @ApiOperation(value = "启用/停用设备锁", notes = "启用/停用设备锁")
+    public ResponseEntity<User> enableDeviceKey(@Validated @RequestBody @ApiParam("启用/停用设备锁") UserDeviceReset request,
                                                 @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
@@ -299,9 +298,6 @@ public class LoginController extends BaseController {
         }
         if (Objects.isNull(user)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
-        }
-        if (!user.getRoles().contains(roleRepository.findOne(ADMIN_ROLE_ID))) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "only administrator", "只有超级管理员用户可以修改设备锁状态")).body(null);
         }
         userService.resetDeviceValidate(request);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("启用设备锁操作成功","operator successfully")).body(user);
@@ -324,9 +320,6 @@ public class LoginController extends BaseController {
         }
         if (Objects.isNull(user)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
-        }
-        if (!user.getRoles().contains(roleRepository.findOne(ADMIN_ROLE_ID))) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "only administrator", "只有超级管理员用户可以修改设备状态")).body(null);
         }
         userService.resetDeviceCode(request);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("重置设备操作成功","operator successfully")).body(user);
