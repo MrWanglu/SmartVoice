@@ -56,6 +56,9 @@ public class OutsourceController extends BaseController {
         if (outsource.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "新增委外方不应该含有ID")).body(null);
         }
+        if (Objects.isNull(outsource.getCompanyCode())) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The company logo cannot be empty", "公司标识不能为空")).body(null);
+        }
         User user;
         try {
             user = getUserByToken(token);
@@ -66,7 +69,7 @@ public class OutsourceController extends BaseController {
         if (Objects.isNull(outsource.getId())) {
             //验证委外方是否重名
             QOutsource qOutsource = QOutsource.outsource;
-            Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(qOutsource.outsName.eq(outsource.getOutsName()).and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode()))).iterator();
+            Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(qOutsource.outsName.eq(outsource.getOutsName()).and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode())).and(qOutsource.companyCode.eq(outsource.getCompanyCode()))).iterator();
             if (outsourceIterator.hasNext()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "The outsourcename is not allowed to be used", "该名字不允许被使用")).body(null);
@@ -105,7 +108,7 @@ public class OutsourceController extends BaseController {
             Outsource outsource1 = outsourceRepository.findOne(outsource.getId());
             //验证委外方是否重名
             QOutsource qOutsource = QOutsource.outsource;
-            Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(qOutsource.outsName.eq(outsource.getOutsName()).and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode())).and(qOutsource.id.ne(outsource.getId()))).iterator();
+            Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(qOutsource.outsName.eq(outsource.getOutsName()).and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode())).and(qOutsource.id.ne(outsource.getId())).and(qOutsource.companyCode.eq(outsource.getCompanyCode()))).iterator();
             if (outsourceIterator.hasNext()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "The outsourcename is not allowed to be used", "该名字不允许被使用")).body(null);
@@ -129,11 +132,9 @@ public class OutsourceController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<Outsource>> query(@RequestParam(required = false) String outsCode,
+    public ResponseEntity<Page<Outsource>> query(@RequestParam String companyCode,
+                                                 @RequestParam(required = false) String outsCode,
                                                  @RequestParam(required = false) String outsName,
-                                                 @RequestParam(required = false) String outsProvinces,
-                                                 @RequestParam(required = false) String outsCity,
-                                                 @RequestParam(required = false) String outsCounty,
                                                  @RequestParam(required = false) String outsAddress,
                                                  @RequestParam(required = false) String outsContacts,
                                                  @RequestParam(required = false) String outsPhone,
@@ -152,6 +153,9 @@ public class OutsourceController extends BaseController {
         }
         QOutsource qOutsource = QOutsource.outsource;
         BooleanBuilder builder = new BooleanBuilder();
+        if (Objects.nonNull(companyCode)) {
+            builder.and(qOutsource.companyCode.eq(companyCode));
+        }
         if (Objects.nonNull(outsCode)) {
             builder.and(qOutsource.outsCode.like(outsCode.concat("%")));
         }
@@ -206,7 +210,8 @@ public class OutsourceController extends BaseController {
      */
     @GetMapping("/getAllOutsource")
     @ApiOperation(value = "查询所有委外方", notes = "查询所有委外方")
-    public ResponseEntity<List<Outsource>> getAllOutsource(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<List<Outsource>> getAllOutsource(@RequestParam String companyCode,
+                                                           @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
@@ -215,8 +220,12 @@ public class OutsourceController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
         QOutsource qOutsource = QOutsource.outsource;
+        BooleanBuilder builder = new BooleanBuilder();
+        if (Objects.nonNull(companyCode)) {
+            builder.and(qOutsource.companyCode.eq(companyCode));
+        }
         List<Outsource> outsourceList = new ArrayList<>();
-        Iterator<Outsource> outsourceIterator = outsourceRepository.findAll().iterator();
+        Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(builder).iterator();
         if (outsourceIterator.hasNext()) {
             outsourceList.add(outsourceIterator.next());
         }

@@ -14,6 +14,8 @@ import java.util.Date;
 @Table(name = "outsource")
 @Data
 public class Outsource extends BaseEntity {
+    @ApiModelProperty("特定公司的标识")
+    private String companyCode;
 
     @ApiModelProperty("委外方编码")
     private String outsCode;
