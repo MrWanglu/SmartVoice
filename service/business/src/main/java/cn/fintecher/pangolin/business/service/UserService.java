@@ -14,7 +14,7 @@ import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
@@ -166,13 +166,13 @@ public class UserService {
         userRepository.flush();
     }
 
-    @CacheEvict(value = "userCache", key = "'petstore:user:'+#user.userName")
+    @Cacheable(value = "userCache", key = "'petstore:user:'+#user.userName", unless = "#result==null")
     public User save(User user) {
         return userRepository.save(user);
     }
 
-    @CacheEvict(value = "userCache", allEntries = true)
-    public Iterable<User> save(Iterable<User> users) {
-        return userRepository.save(users);
+    @Cacheable(value = "userCache", key = "'petstore:user:all'", unless = "#result==null")
+    public Iterable<User> findAll() {
+        return userRepository.findAll();
     }
 }
