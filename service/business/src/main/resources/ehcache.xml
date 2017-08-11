@@ -9,5 +9,6 @@
         </expiry>
         <heap>100</heap>
     </cache-template>
-    <cache alias="cn.fintecher.pangolin.entity.*" uses-template="simple"/>
+    <cache alias="cn.fintecher.pangolin.entity.User" uses-template="simple"/>
+    <cache alias="cn.fintecher.pangolin.entity.Resource" uses-template="simple"/>
 </config>
