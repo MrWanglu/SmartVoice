@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Created by  hukaijia.
  * Description:
@@ -20,7 +22,7 @@ public class ResourceService {
     private ResourceRepository resourceRepository;
 
     @Cacheable(value = "resourceCache", key = "'petstore:resource:all'", unless = "#result==null")
-    public Iterable<Resource> findAll() {
+    public List<Resource> findAll() {
         return resourceRepository.findAll();
     }
 

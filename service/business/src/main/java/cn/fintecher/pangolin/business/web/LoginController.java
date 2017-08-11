@@ -219,7 +219,7 @@ public class LoginController extends BaseController {
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setPasswordInvalidTime(ZWDateUtil.getNowDateTime());
-        User user1 = userRepository.save(user);
+        User user1 = userService.save(user);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Change the password successfully", "修改密码成功")).body(user1);
 
     }
@@ -255,7 +255,7 @@ public class LoginController extends BaseController {
             userOld.setPassword(passwordEncoder.encode(Constants.LOGIN_RET_PASSWORD));
         }
         userOld.setPasswordInvalidTime(ZWDateUtil.getNowDateTime());
-        User userReturn = userRepository.save(userOld);
+        User userReturn = userService.save(userOld);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Password reset successfully", "重置密码成功")).body(userReturn);
     }
 
