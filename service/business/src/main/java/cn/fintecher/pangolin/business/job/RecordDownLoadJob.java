@@ -25,7 +25,7 @@ import java.util.Objects;
  * @Description: 录音下载批量
  * @Date 13:55 2017/8/11
  */
-@Service("rcordDownJob")
+@Service("recordDownLoadJob")
 @DisallowConcurrentExecution
 public class RecordDownLoadJob implements Job{
 
@@ -62,7 +62,7 @@ public class RecordDownLoadJob implements Job{
                                 Constants.RECORD_JOB_DESC.concat("_").concat(company.getChinaName()));
                         JobDataMap jobDataMap=new JobDataMap();
                         jobDataMap.put("companyCode",company.getCode());
-                        jobDataMap.put("sysParamCode",Constants.SYSPARAM_OVERNIGHT);
+                        jobDataMap.put("sysParamCode",Constants.SYSPARAM_RECORD);
                         CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.RECORD_TRIGGER_GROUP,
                                 Constants.RECORD_TRIGGER_NAME.concat("_").concat(company.getCode()),
                                 "RecordDownLoadJobBean".concat("_").concat(company.getCode()),
