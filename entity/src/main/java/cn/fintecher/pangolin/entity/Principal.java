@@ -18,6 +18,8 @@ import java.util.Date;
         description = "委托方信息",
         parent = BaseEntity.class)
 public class Principal extends BaseEntity {
+    @ApiModelProperty("特定公司的标识")
+    private String companyCode;
     @ApiModelProperty("委托方编码")
     private String code;
     @ApiModelProperty("委托方")
