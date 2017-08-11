@@ -76,7 +76,7 @@ public class CaseInfo extends BaseEntity {
     private BigDecimal creditAmount; //授信金额
 
     private Date operatorTime;
-    private Integer caseMark;
+    private Integer caseMark = 126;
 
     @ManyToOne
     @JoinColumn(name = "personal_id")
