@@ -211,7 +211,7 @@ public class ProcessDataInfoExcelService {
         caseInfoDistributed.setLatelyPayAmount(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getLatelyPayAmount(),null,null));
         caseInfoDistributed.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());
         caseInfoDistributed.setPayStatus(dataInfoExcelModel.getPaymentStatus());
-        caseInfoDistributed.setPrincipalId(principalRepository.findOne(dataInfoExcelModel.getPrinCode()));
+        caseInfoDistributed.setPrincipalId(principalRepository.findByCode(dataInfoExcelModel.getPrinCode()));
         caseInfoDistributed.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue());
         caseInfoDistributed.setDelegationDate(dataInfoExcelModel.getDelegationDate());
         caseInfoDistributed.setCloseDate(dataInfoExcelModel.getCloseDate());
@@ -224,6 +224,7 @@ public class ProcessDataInfoExcelService {
         caseInfoDistributed.setOperator(user);
         caseInfoDistributed.setOperatorTime(ZWDateUtil.getNowDateTime());
         caseInfoDistributed.setCompanyCode(dataInfoExcelModel.getCompanyCode());
+        caseInfoDistributed.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件颜色标记
         return caseInfoDistributed;
     }
 

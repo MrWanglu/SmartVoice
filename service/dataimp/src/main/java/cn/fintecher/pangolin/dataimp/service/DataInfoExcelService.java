@@ -35,6 +35,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+import static cn.fintecher.pangolin.dataimp.entity.QDataInfoExcel.dataInfoExcel;
+
 /**
  * @Author: PeiShouWen
  * @Description:
@@ -251,15 +253,11 @@ public class DataInfoExcelService {
      */
     public void deleteCasesByBatchNum(String batchNumber, User user)  {
         //删除案件信息
-        DataInfoExcel dataInfoExcel = new DataInfoExcel();
-        dataInfoExcel.setBatchNumber(batchNumber);
-        dataInfoExcel.setCompanyCode(user.getCompanyCode());
-        dataInfoExcelRepository.delete(dataInfoExcel);
+        List<DataInfoExcel> dataInfoExcels = dataInfoExcelRepository.findByBatchNumberAndCompanyCode(batchNumber, user.getCompanyCode());
+        dataInfoExcelRepository.delete(dataInfoExcels);
         //删除附件信息
-        DataInfoExcelFile dataInfoExcelFile=new DataInfoExcelFile();
-        dataInfoExcelFile.setCompanyCode(user.getCompanyCode());
-        dataInfoExcelFile.setBatchNumber(batchNumber);
-        dataInfoExcelFileRepository.delete(dataInfoExcelFile);
+        List<DataInfoExcelFile> dataInfoExcelFiles = dataInfoExcelFileRepository.findByBatchNumberAndCompanyCode(batchNumber, user.getCompanyCode());
+        dataInfoExcelFileRepository.delete(dataInfoExcelFiles);
     }
 
     /**
@@ -269,7 +267,7 @@ public class DataInfoExcelService {
      */
     public List<DataInfoExcelFileExist> checkCasesFile(User user)  {
         List<DataInfoExcelFileExist> dataInfoExcelFileExistList=new ArrayList<>();
-        QDataInfoExcel qDataInfoExcel=QDataInfoExcel.dataInfoExcel;
+        QDataInfoExcel qDataInfoExcel= dataInfoExcel;
         Iterable<DataInfoExcel> dataInfoExcelIterable=dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId())
                 .and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
         for(Iterator<DataInfoExcel> it = dataInfoExcelIterable.iterator(); it.hasNext();){
@@ -295,7 +293,7 @@ public class DataInfoExcelService {
      */
     public void casesConfirmByBatchNum(User user){
         //查询该用户下所有未确认的案件
-        QDataInfoExcel qDataInfoExcel=QDataInfoExcel.dataInfoExcel;
+        QDataInfoExcel qDataInfoExcel= dataInfoExcel;
         Iterable<DataInfoExcel> dataInfoExcelIterable= dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId()).and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
         int dataTotal=0;
         for (Iterator iterator = dataInfoExcelIterable.iterator(); iterator.hasNext();) {

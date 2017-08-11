@@ -1,6 +1,8 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.QCaseInfo;
 import cn.fintecher.pangolin.entity.User;
@@ -9,10 +11,7 @@ import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -24,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -41,6 +41,9 @@ public class CaseInfoController extends BaseController {
     private static final String ENTITY_NAME = "caseInfo";
     private final Logger log = LoggerFactory.getLogger(CaseInfoController.class);
     private final CaseInfoRepository caseInfoRepository;
+
+    @Inject
+    private CaseInfoService caseInfoService;
 
     public CaseInfoController(CaseInfoRepository caseInfoRepository) {
         this.caseInfoRepository = caseInfoRepository;
@@ -162,5 +165,27 @@ public class CaseInfoController extends BaseController {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllCaseInfo", "系统异常!")).body(null);
         }
+    }
+
+    @PostMapping(value = "/distributeCeaseInfoAgain")
+    @ApiOperation(value = "案件重新分配", notes = "案件重新分配")
+    public ResponseEntity distributeCeaseInfoAgain(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
+                                                    @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        log.debug("REST request to distributeCeaseInfoAgain");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "distributeCeaseInfoAgain", e.getMessage())).body(null);
+        }
+        try {
+            caseInfoService.distributeCeaseInfoAgain(accCaseInfoDisModel, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功",ENTITY_NAME)).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController","distributeCeaseInfoAgain","系统错误!")).body(null);
+        }
+
     }
 }
