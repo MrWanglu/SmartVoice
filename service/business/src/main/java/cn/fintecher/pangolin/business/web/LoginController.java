@@ -125,9 +125,9 @@ public class LoginController extends BaseController {
                                 userDevice.setCode(ip);
                             } else {
                                 if (Objects.equals(ip, userDevice.getCode())) {
-                                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(response);
+                                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("设备锁验证正确", ENTITY_NAME)).body(response);
                                 } else {
-                                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "login failure", "登录失败")).body(null);
+                                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "deviceKey error", "本次登录和上次登录的地址不一致！")).body(null);
                                 }
                             }
                         } else {
@@ -135,9 +135,9 @@ public class LoginController extends BaseController {
                                 userDevice.setCode(loginRequest.getUsdeCode());
                             } else {
                                 if (Objects.equals(loginRequest.getUsdeCode(), userDevice.getCode())) {
-                                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(response);
+                                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("设备锁验证正确", ENTITY_NAME)).body(response);
                                 } else {
-                                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "login failure", "登录失败")).body(null);
+                                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "deviceKey error", "本次登录和上次登录的地址不一致！")).body(null);
                                 }
                             }
                         }
@@ -280,7 +280,7 @@ public class LoginController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "only administrator", "只有超级管理员用户可以修改设备状态")).body(null);
         }
         userService.resetDeviceStatus(request);
-        return ResponseEntity.ok().body(user);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("禁用设备操作成功","operator successfully")).body(user);
     }
 
     /**
@@ -301,10 +301,10 @@ public class LoginController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
         }
         if (!user.getRoles().contains(roleRepository.findOne(ADMIN_ROLE_ID))) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "only administrator", "只有超级管理员用户可以修改设备状态")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "only administrator", "只有超级管理员用户可以修改设备锁状态")).body(null);
         }
         userService.resetDeviceValidate(request);
-        return ResponseEntity.ok().body(user);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("启用设备锁操作成功","operator successfully")).body(user);
     }
 
 
@@ -329,6 +329,6 @@ public class LoginController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "only administrator", "只有超级管理员用户可以修改设备状态")).body(null);
         }
         userService.resetDeviceCode(request);
-        return ResponseEntity.ok().body(user);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("重置设备操作成功","operator successfully")).body(user);
     }
 }

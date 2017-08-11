@@ -23,7 +23,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -79,7 +78,7 @@ public class CaseRepairController extends BaseController{
             caseRepair.setCaseId(caseInfo);
             caseInfo.setCaseRepairRecordList(caseRepairRecordList);
             caseRepairRepository.save(caseRepair);
-            return ResponseEntity.ok().body(request);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("修改状态成功","toRepair")).body(null);
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","exception","系统异常")).body(null);
