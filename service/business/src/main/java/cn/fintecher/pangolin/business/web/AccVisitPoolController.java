@@ -102,7 +102,11 @@ public class AccVisitPoolController extends BaseController {
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
-            builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            if (Objects.equals(tokenUser.getManager(), 1)) {
+                builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            } else {
+                builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(tokenUser.getId()));
+            }
             builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //不查询已结案案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); //只查询外访案件
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
@@ -132,7 +136,11 @@ public class AccVisitPoolController extends BaseController {
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
-            builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            if (Objects.equals(tokenUser.getManager(), 1)) {
+                builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            } else {
+                builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(tokenUser.getId()));
+            }
             builder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //只查询已结案案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); //只查询外访案件
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
