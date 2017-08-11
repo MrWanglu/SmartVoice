@@ -98,7 +98,7 @@ public class CaseInfoException extends BaseEntity {
     /**
      * 异常数据处理类型
      */
-    public enum RepeatStatusEnum{ 
+    public enum RepeatStatusEnum{
         PENDING(182,"待处理"),UPDATE(183,"更新"),DELETE(184,"删除"),ADD(185,"新增");
         private Integer value;
         private String remark;
