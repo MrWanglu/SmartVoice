@@ -2,7 +2,10 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.repository.OutsourceRepository;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
-import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.Outsource;
+import cn.fintecher.pangolin.entity.QOutsource;
+import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -68,7 +71,7 @@ public class OutsourceController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "The outsourcename is not allowed to be used", "该名字不允许被使用")).body(null);
             }
-            LabelValue labelValue = batchSeqService.nextSeq(Outsource.OUT_PRIN_SEQ, Outsource.principalStatus.PRINCODE_DIGIT.getPrincipalCode());
+            LabelValue labelValue = batchSeqService.nextSeq(Constants.PRIN_SEQ, Outsource.principalStatus.PRINCODE_DIGIT.getPrincipalCode());
             if (Objects.isNull(labelValue)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "The client code for failure", "委托方编号获取失败")).body(null);
@@ -94,8 +97,8 @@ public class OutsourceController extends BaseController {
             outsource.setOutsCode(letter + subCode);
             //启用状态0
             outsource.setFlag(Outsource.deleteStatus.START.getDeleteCode());
-            outsource.setCreateTime(ZWDateUtil.getNowDateTime()); //创建时间
-            outsource.setCreator(user.getId());
+            outsource.setOperateTime(ZWDateUtil.getNowDateTime()); //创建时间
+            outsource.setUser(user);
             Outsource outsourceReturn = outsourceRepository.save(outsource);
             return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(outsourceReturn);
         } else {
@@ -155,15 +158,6 @@ public class OutsourceController extends BaseController {
         if (Objects.nonNull(outsName)) {
             builder.and(qOutsource.outsName.like(outsName.concat("%")));
         }
-        if (Objects.nonNull(outsProvinces)) {
-            builder.and(qOutsource.outsProvinces.like(outsProvinces.concat("%")));
-        }
-        if (Objects.nonNull(outsCity)) {
-            builder.and(qOutsource.outsCity.like(outsCity.concat("%")));
-        }
-        if (Objects.nonNull(outsCounty)) {
-            builder.and(qOutsource.outsCounty.like(outsCounty.concat("%")));
-        }
         if (Objects.nonNull(outsAddress)) {
             builder.and(qOutsource.outsAddress.like(outsAddress.concat("%")));
         }
@@ -180,7 +174,7 @@ public class OutsourceController extends BaseController {
             builder.and(qOutsource.outsEmail.like(outsEmail.concat("%")));
         }
         if (Objects.nonNull(creator)) {
-            builder.and(qOutsource.creator.like(creator.concat("%")));
+            builder.and(qOutsource.user.userName.like(creator.concat("%")));
         }
         if (Objects.nonNull(outsOrgtype)) {
             builder.and(qOutsource.outsOrgtype.eq(outsOrgtype));

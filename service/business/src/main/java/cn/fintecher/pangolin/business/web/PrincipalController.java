@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.repository.PrincipalRepository;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -87,7 +88,7 @@ public class PrincipalController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "The outsourcename is not allowed to be used", "该名字不允许被使用")).body(null);
             }
-            LabelValue labelValue = batchSeqService.nextSeq(Outsource.OUT_PRIN_SEQ, Outsource.principalStatus.PRINCODE_DIGIT.getPrincipalCode());
+            LabelValue labelValue = batchSeqService.nextSeq(Constants.PRIN_SEQ, Outsource.principalStatus.PRINCODE_DIGIT.getPrincipalCode());
             if (Objects.isNull(labelValue)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "The client code for failure", "委托方编号获取失败")).body(null);
