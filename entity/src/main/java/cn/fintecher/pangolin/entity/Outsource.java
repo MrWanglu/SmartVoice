@@ -23,9 +23,8 @@ public class Outsource extends BaseEntity {
     @ApiModelProperty("委外方")
     private String outsName;
 
-    @ManyToOne
-    @JoinColumn(name = "area_id")
-    private AreaCode areaCode;
+    @ApiModelProperty("市的id")
+    private String area_id;
 
     @ApiModelProperty("详细地址")
     private String outsAddress;

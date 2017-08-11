@@ -22,9 +22,8 @@ public class Principal extends BaseEntity {
     private String code;
     @ApiModelProperty("委托方")
     private String name;
-    @ManyToOne
-    @JoinColumn(name = "area_id")
-    private AreaCode areaCode;
+    @ApiModelProperty("市的id")
+    private String area_id;
     @ApiModelProperty("详细地址")
     private String address;
     @ApiModelProperty("联系人")
