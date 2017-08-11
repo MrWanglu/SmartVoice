@@ -743,6 +743,7 @@ public class CaseInfoService {
         caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上一个催收员
         caseInfo.setCurrentCollector(user); //当前催收员
         caseInfo.setHoldDays(0); //持案天数归0
+        caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件标记为无色
         caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1); //流转次数加一
         caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态 20-待催收
