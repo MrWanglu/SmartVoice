@@ -508,6 +508,7 @@ public class CaseInfoService {
         caseAssistApply.setApplyDate(ZWDateUtil.getNowDateTime()); //申请时间
         caseAssistApply.setApplyInvalidTime(applyInvalidTime); //申请失效日期
         caseAssistApply.setAssistWay(assistApplyParams.getAssistWay()); //协催方式
+        caseAssistApply.setApproveStatus(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue()); //审批状态 32-电催待审批
         caseAssistApply.setProductSeries(caseInfo.getProduct().getProductSeries().getId()); //产品系列ID
         caseAssistApply.setProductId(caseInfo.getProduct().getId()); //产品ID
         caseAssistApply.setProductSeriesName(caseInfo.getProduct().getProductSeries().getSeriesName()); //产品系列名称
@@ -518,6 +519,7 @@ public class CaseInfoService {
         //更新原案件
         caseInfo.setAssistFlag(1); //协催标识
         caseInfo.setAssistWay(assistApplyParams.getAssistWay()); //协催方式
+        caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue()); //协催状态
         caseInfo.setOperator(tokenUser); //操作人
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         caseInfoRepository.saveAndFlush(caseInfo);

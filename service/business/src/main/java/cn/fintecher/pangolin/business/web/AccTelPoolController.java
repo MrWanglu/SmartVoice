@@ -356,7 +356,7 @@ public class AccTelPoolController extends BaseController {
      */
     @PostMapping("/assistApply")
     @ApiOperation(value = "协催申请", notes = "协催申请")
-    public ResponseEntity<Void> assistApply(AssistApplyParams assistApplyParams,
+    public ResponseEntity<Void> assistApply(@RequestBody AssistApplyParams assistApplyParams,
                                             @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save assist apply");
         try {
