@@ -42,6 +42,7 @@ public class CaseInfo extends BaseEntity {
     private Integer holdDays;
     private Integer leftDays;
     private Integer caseType;
+    @ApiModelProperty("协催标识：0-未留案，1-留案")
     private Integer leaveCaseFlag;
     private Date leaveDate;
     private Integer hasLeaveDays;
@@ -384,5 +385,32 @@ public class CaseInfo extends BaseEntity {
         public String getRemark() {
             return remark;
         }
+    }
+
+    /**
+     * 留案标志
+     */
+    public enum leaveCaseFlagEnum{
+        //非留案
+        NO_LEAVE(0, "非留案"),
+        //留案
+        YES_LEAVE(1, "留案");
+        private Integer value;
+
+        private String remark;
+
+        leaveCaseFlagEnum(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+
     }
 }

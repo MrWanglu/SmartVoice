@@ -153,6 +153,26 @@ public final class Constants {
         }
     }
 
+    /**电催小流转**/
+    public final static String SYS_PHNOEFLOW_SMALLDAYS="sys.phnoeFlow.smallDays" ;
+    /**电催大流转**/
+    public final static String SYS_PHNOEFLOW_BIGDAYS="sys.phnoeFlow.bigDays" ;
+    /**电催留案流转**/
+    public final static String SYS_PHNOEFLOW_LEAVEDAYS="sys.phnoeFlow.leaveDays";
+    /**电催留案比例**/
+    public final static String SYS_PHNOEFLOW_LEAVERATE="sys.phnoeFlow.leaveRate";
+    /**电催审批失效天数**/
+    public final static String SYS_PHNOEFLOW_ADVANCEDAYS="sys.phnoeFlow.advanceDays";
 
+    /**外访小流转**/
+    public final static String SYS_OUTBOUNDFLOW_SMALLDAYS="sys.outboundFlow.smallDays" ;
+    /**外访大流转**/
+    public final static String SYS_OUTBOUNDFLOW_BIGDAYS="sys.outboundFlow.bigDays" ;
+    /**外访留案流转**/
+    public final static String SYS_OUTBOUNDFLOW_LEAVEDAYS="sys.outboundFlow.leaveDays";
+    /**外访留案比例**/
+    public final static String SYS_OUTBOUNDFLOW_LEAVERATE="sys.outboundflow.leaveRate";
+    /**外访审批失效天数**/
+    public final static String SYS_OUTBOUNDFLOW_ADVANCEDAYS="sys.outboundFlow.advanceDays";
 
 }

@@ -401,4 +401,28 @@ public class CaseFollowupRecord extends BaseEntity {
             return remark;
         }
     }
+
+    /**
+     * @Description 跟记录类型
+     */
+    public enum CollectionWayEnum {
+        AUTO(0, "自动"),
+        MANUAL(1, "手动");
+        private Integer value;
+
+        private String remark;
+
+        CollectionWayEnum(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
 }

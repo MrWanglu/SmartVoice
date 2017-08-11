@@ -75,6 +75,34 @@ public class JobTaskService {
         }
         return false;
     }
+
+    /**
+     *更新指定的参数值
+     * @param companyCode
+     * @param sysParamCode
+     */
+    public void updateSysparam(String companyCode,String sysParamCode,String value){
+        SysParam sysParam=new SysParam();
+        sysParam.setCompanyCode(companyCode);
+        sysParam.setCode(sysParamCode);
+        sysParam.setValue(value);
+        sysParamRepository.save(sysParam);
+    }
+
+    /**
+     * 获取指定的参数值
+     * @param companyCode
+     * @param sysParamCode
+     * @return
+     */
+    public SysParam getSysparam(String companyCode,String sysParamCode){
+        QSysParam qSysParam=QSysParam.sysParam;
+        return sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                                    .and(qSysParam.code.eq(sysParamCode)));
+    }
+
+
+
 }
 
 
