@@ -4,10 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Date;
 
 /**
@@ -20,7 +17,7 @@ import java.util.Date;
 public class Department extends BaseEntity {
     @ApiModelProperty("所属公司的特定标识")
     private String companyCode;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pid")
     @ApiModelProperty("父机构的id")
     private Department parent;
