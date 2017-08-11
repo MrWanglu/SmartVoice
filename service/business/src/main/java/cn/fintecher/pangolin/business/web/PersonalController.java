@@ -324,11 +324,16 @@ public class PersonalController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfo>> getPersonalCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                               @ApiIgnore Pageable pageable,
-                                                              @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+                                                              @RequestHeader(value = "X-UserToken") String token,
+                                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) throws URISyntaxException {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
+            if(Objects.equals(tokenUser.getUserName(),"administrator")){
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+            }else{
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
+            }
             Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/PersonalController/getPersonalCaseInfo");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
