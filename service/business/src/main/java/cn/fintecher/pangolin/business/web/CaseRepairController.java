@@ -1,7 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
-import cn.fintecher.pangolin.business.model.BatchDistributeModel;
 import cn.fintecher.pangolin.business.model.CaseRepairRequest;
 import cn.fintecher.pangolin.business.repository.CaseRepairRecordRepository;
 import cn.fintecher.pangolin.business.repository.CaseRepairRepository;
@@ -117,47 +116,32 @@ public class CaseRepairController extends BaseController{
     })
     public ResponseEntity<Page<CaseRepair>> getAllTelCase(@QuerydslPredicate(root = CaseRepair.class) Predicate predicate,
                                                           @ApiIgnore Pageable pageable,
-                                                          @RequestHeader(value = "X-UserToken") String token) {
+                                                          @RequestHeader(value = "X-UserToken") String token,
+                                                          @RequestParam(required = false) @ApiParam(value = "修复状态") Integer repairStatus,
+                                                          @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         User user = null;
         try {
             user = getUserByToken(token);
         } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
+        List<Integer> list = new ArrayList<>();
+        list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
+        list.add(CaseInfo.CollectionStatus.CASE_OUT.getValue());
+        list.add(CaseInfo.CollectionStatus.REPAID.getValue());
         BooleanBuilder builder = new BooleanBuilder(predicate);
-        builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(user.getCompanyCode()));
+        if(Objects.equals(user.getUserName(),"administrator")){
+            builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(companyCode));
+        }else{
+            builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(user.getCompanyCode()));
+        }
+        if(Objects.equals(repairStatus,CaseRepair.CaseRepairStatus.REPAIRING.getValue())
+                || Objects.equals(repairStatus,CaseRepair.CaseRepairStatus.REPAIRED.getValue())){
+            builder.and(QCaseRepair.caseRepair.caseId.collectionStatus.notIn(list));
+        }
+        builder.and(QCaseRepair.caseRepair.repairStatus.eq(repairStatus));
         Page<CaseRepair> page = caseRepairRepository.findAll(builder,pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "RepairCaseDistributeController")).body(page);
-    }
-
-    /**
-     * @Description 修复页面获取专员分配信息
-     */
-    @GetMapping("/getAttachBatchInfo")
-    @ApiOperation(value = "修复页面获取专员分配信息", notes = "修复页面获取分配信息")
-    public ResponseEntity<BatchDistributeModel> getAttachBatchInfo(@RequestHeader(value = "X-UserToken") String token,
-                                                                   @ApiParam("催收员ID集合")@RequestParam(required = false) List<String> userIds) {
-        try {
-            BatchDistributeModel batchDistributeModel = caseInfoService.getAttachBatchDistribution(userIds);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取分配信息成功", "RepairCaseDistributeController")).body(batchDistributeModel);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取分配信息失败", "caseInfo", e.getMessage())).body(null);
-        }
-    }
-
-    /**
-     * @Description 修复页面获取机构分配信息
-     */
-    @GetMapping("/getDeptBatchInfo")
-    @ApiOperation(value = "修复页面获取机构分配信息", notes = "修复页面获取机构分配信息")
-    public ResponseEntity<Long> getDeptBatchInfo(@RequestHeader(value = "X-UserToken") String token,
-                                                 @ApiParam("机构ID")@RequestParam(required = false) String deptId) {
-        try {
-            Long count = caseInfoService.getDeptBatchDistribution(deptId);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取分配信息成功", "RepairCaseDistributeController")).body(count);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取分配信息失败", "caseInfo", e.getMessage())).body(null);
-        }
     }
 
     /**
