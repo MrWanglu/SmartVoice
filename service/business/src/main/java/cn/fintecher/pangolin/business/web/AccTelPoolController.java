@@ -268,6 +268,8 @@ public class AccTelPoolController extends BaseController {
         list.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue()); //催收中
         list.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue()); //逾期还款中
         list.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue()); //提前结清还款中
+        list.add(CaseInfo.CollectionStatus.PART_REPAID.getValue()); //部分已还款
+        list.add(CaseInfo.CollectionStatus.REPAID.getValue()); //已还款
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
