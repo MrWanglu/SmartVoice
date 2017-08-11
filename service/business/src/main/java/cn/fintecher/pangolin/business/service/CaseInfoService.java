@@ -929,15 +929,15 @@ public class CaseInfoService {
                         if (Objects.nonNull(targetUser)) {
                             caseInfo.setDepartment(targetUser.getDepartment());
                             caseInfo.setCurrentCollector(targetUser);
-                            if (Objects.equals(user.getType(), User.Type.TEL.getValue())) {
+                            if (Objects.equals(targetUser.getType(), User.Type.TEL.getValue())) {
                                 caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
-                            } else if (Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
+                            } else if (Objects.equals(targetUser.getType(), User.Type.VISIT.getValue())) {
                                 caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
-                            } else if (Objects.equals(user.getType(), User.Type.JUD.getValue())) {
+                            } else if (Objects.equals(targetUser.getType(), User.Type.JUD.getValue())) {
                                 caseInfo.setCollectionType(CaseInfo.CollectionType.JUDICIAL.getValue());
-                            } else if (Objects.equals(user.getType(), User.Type.OUT.getValue())) {
+                            } else if (Objects.equals(targetUser.getType(), User.Type.OUT.getValue())) {
                                 caseInfo.setCollectionType(CaseInfo.CollectionType.outside.getValue());
-                            } else if (Objects.equals(user.getType(), User.Type.REMINDER.getValue())) {
+                            } else if (Objects.equals(targetUser.getType(), User.Type.REMINDER.getValue())) {
                                 caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
                             }
                             caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());
@@ -1224,6 +1224,8 @@ public class CaseInfoService {
                 //按照部门分
                 if (Objects.nonNull(department)) {
                     caseInfo.setDepartment(department); //部门
+                    caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上个催收员
+                    caseInfo.setCurrentCollector(null); //当前催收员置空
                     if (Objects.equals(department.getType(), Department.Type.TELEPHONE_COLLECTION.getValue())) {
                         caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
                     } else if (Objects.equals(department.getType(), Department.Type.OUTBOUND_COLLECTION.getValue())) {
@@ -1241,15 +1243,15 @@ public class CaseInfoService {
                 if (Objects.nonNull(targetUser)) {
                     caseInfo.setDepartment(targetUser.getDepartment());
                     caseInfo.setCurrentCollector(targetUser);
-                    if (Objects.equals(user.getType(), User.Type.TEL.getValue())) {
+                    if (Objects.equals(targetUser.getType(), User.Type.TEL.getValue())) {
                         caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
-                    } else if (Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
+                    } else if (Objects.equals(targetUser.getType(), User.Type.VISIT.getValue())) {
                         caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
-                    } else if (Objects.equals(user.getType(), User.Type.JUD.getValue())) {
+                    } else if (Objects.equals(targetUser.getType(), User.Type.JUD.getValue())) {
                         caseInfo.setCollectionType(CaseInfo.CollectionType.JUDICIAL.getValue());
-                    } else if (Objects.equals(user.getType(), User.Type.OUT.getValue())) {
+                    } else if (Objects.equals(targetUser.getType(), User.Type.OUT.getValue())) {
                         caseInfo.setCollectionType(CaseInfo.CollectionType.outside.getValue());
-                    } else if (Objects.equals(user.getType(), User.Type.REMINDER.getValue())) {
+                    } else if (Objects.equals(targetUser.getType(), User.Type.REMINDER.getValue())) {
                         caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
                     }
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
@@ -1292,7 +1294,6 @@ public class CaseInfoService {
                 caseTurnRecord.setOperator(user); //操作员
                 caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                 caseTurnRecordList.add(caseTurnRecord);
-                caseInfo.setId(null);
                 //案件列表
                 caseInfoObjList.add(caseInfo);
             }
