@@ -41,6 +41,8 @@ public class RecordDownLoadJob implements Job{
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         logger.info("录音下载批量.......");
+
+
     }
 
     @Bean
@@ -59,10 +61,10 @@ public class RecordDownLoadJob implements Job{
                         cron="0 ".concat("0").concat("/").concat(cron).concat(" * * * ?");
                         JobDetail jobDetail = ConfigureQuartz.createJobDetail(this.getClass(), Constants.RECORD_JOB_GROUP,
                                 Constants.RECORD_JOB_NAME.concat("_").concat(company.getCode()),
-                                Constants.RECORD_JOB_DESC.concat("_").concat(company.getChinaName()));
+                                Constants.RECORD_JOB_DESC.concat("_").concat(company.getCode()));
                         JobDataMap jobDataMap=new JobDataMap();
                         jobDataMap.put("companyCode",company.getCode());
-                        jobDataMap.put("sysParamCode",Constants.SYSPARAM_RECORD);
+                        jobDataMap.put("sysParamCode",Constants.SYSPARAM_RECORD_STATUS);
                         CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.RECORD_TRIGGER_GROUP,
                                 Constants.RECORD_TRIGGER_NAME.concat("_").concat(company.getCode()),
                                 "RecordDownLoadJobBean".concat("_").concat(company.getCode()),

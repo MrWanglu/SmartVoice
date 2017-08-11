@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.job;
 import cn.fintecher.pangolin.business.config.ConfigureQuartz;
 import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
+import cn.fintecher.pangolin.business.service.JobTaskService;
 import cn.fintecher.pangolin.entity.Company;
 import cn.fintecher.pangolin.entity.QSysParam;
 import cn.fintecher.pangolin.entity.SysParam;
@@ -38,11 +39,14 @@ public class OverNightJob implements Job {
     CompanyRepository companyRepository;
     @Autowired
     SysParamRepository sysParamRepository;
+    @Autowired
+    JobTaskService jobTaskService;
 
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         JobDataMap jobDataMap = jobExecutionContext.getTrigger().getJobDataMap();
+
         StopWatch watch = new StopWatch();
         watch.start();
         logger.info("开始晚间批量 {} ",jobDataMap.get("sysParamCode"));
@@ -72,14 +76,14 @@ public class OverNightJob implements Job {
                         cronStr=second.concat(" ").concat(mis).concat(" ").concat(hours).concat(" * * ?");
                         JobDetail jobDetail = ConfigureQuartz.createJobDetail(this.getClass(), Constants.OVERNIGHT_JOB_GROUP,
                                 Constants.OVERNIGHT_JOB_NAME.concat("_").concat(company.getCode()),
-                                Constants.OVERNIGHT_JOB_DESC.concat("_").concat(company.getChinaName()));
+                                Constants.OVERNIGHT_JOB_DESC.concat("_").concat(company.getCode()));
                         JobDataMap jobDataMap=new JobDataMap();
                         jobDataMap.put("companyCode",company.getCode());
-                        jobDataMap.put("sysParamCode",Constants.SYSPARAM_OVERNIGHT);
+                        jobDataMap.put("sysParamCode",Constants.SYSPARAM_OVERNIGHT_STATUS);
                         CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.OVERNIGHT_TRIGGER_GROUP,
                                 Constants.OVERNIGHT_TRIGGER_NAME.concat("_").concat(company.getCode()),
                                 "overNightJobBean".concat("_").concat(company.getCode()),
-                                Constants.OVERNIGHT_TRIGGER_DESC, jobDetail, cronStr,jobDataMap);
+                                Constants.OVERNIGHT_TRIGGER_DESC.concat("_").concat(company.getCode()), jobDetail, cronStr,jobDataMap);
                         cronTriggerFactoryBean.afterPropertiesSet();
                         schedFactory.getScheduler().deleteJob(jobDetail.getKey());
                         //加入调度器
