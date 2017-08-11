@@ -1,10 +1,7 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.PersonalInfoExportModel;
-import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
-import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
-import cn.fintecher.pangolin.business.repository.PersonalRepository;
+import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.PersonalInfoExportService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
@@ -72,9 +69,10 @@ public class PersonalController extends BaseController {
     @Inject
     private CaseTurnRecordRepository caseTurnRecordRepository;
     @Inject
-    private CaseFollowupRecordRepository caseFollowupRecordRepository;
+    private DepartmentRepository departmentRepository;
     @Inject
     EntityManager em;
+
 
     @PostMapping("/personalInfoExport")
     @ApiOperation(value = "客户信息导出", notes = "客户信息导出")
@@ -115,7 +113,8 @@ public class PersonalController extends BaseController {
                     collectorName = (String) collectorObj.get(0);
                 }
                 // 部门下的催收员
-                BooleanExpression exp = qCaseInfo.department.code.startsWith(orgCode);
+                Department one = departmentRepository.findOne(orgCode);
+                BooleanExpression exp = qCaseInfo.department.code.startsWith(one.getCode());
                 exp.and(qCaseInfo.currentCollector.realName.eq(collectorName));
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
                 caseInfos = IterableUtils.toList(all);
@@ -205,7 +204,7 @@ public class PersonalController extends BaseController {
                 }
                 list.add(caseStatus);
             }
-            headMap = personalInfoExportService.createHeadMap(exportType, list, null);
+            headMap = personalInfoExportService.createHeadMap(exportType, list, maxNum);
             dataList = personalInfoExportService.createDataList(caseInfos);
             workbook = new HSSFWorkbook();
             HSSFSheet sheet = workbook.createSheet("客户信息");
