@@ -1078,6 +1078,11 @@ public class CaseInfoService {
                     }
                     caseInfo.setOperator(user);
                     caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+                    caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上一个催收员
+                    caseInfo.setHoldDays(0); //持案天数归0
+                    caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1); //流转次数加一
+                    caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
+                    caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件标记为无色
                     //案件列表
                     caseInfoObjList.add(caseInfo);
                     //案件流转记录
@@ -1110,43 +1115,5 @@ public class CaseInfoService {
         caseRepairRepository.save(caseRepairList);
         //保存案件信息
         caseInfoRepository.save(caseInfoObjList);
-    }
-
-    /**
-     * @Description 获取特定用户案件分配信息
-     */
-    public BatchDistributeModel getAttachBatchDistribution(List<String> userIds) {
-        Iterator<String> it = userIds.iterator();
-        Integer avgCaseNum = 0; //人均案件数
-        Integer userNum = 0; //登录用户部门下的所有启用用户总数
-        Integer caseNum = 0; //登录用户部门下的所有启用用户持有未结案案件总数
-        List<BatchInfoModel> batchInfoModels = new ArrayList<>();
-        while (it.hasNext()) {
-            BatchInfoModel batchInfoModel = new BatchInfoModel();
-            String userId = it.next();
-            Integer caseCount = caseInfoRepository.getCaseCount(userId);
-            batchInfoModel.setCaseCount(caseCount); //持有案件数
-            batchInfoModel.setCollectionUser(userRepository.findOne(userId)); //催收人
-            batchInfoModels.add(batchInfoModel);
-            userNum++;
-            caseNum = caseNum + caseCount;
-        }
-        if (userNum != 0) {
-            avgCaseNum = (caseNum % userNum == 0) ? caseNum / userNum : (caseNum / userNum + 1);
-        }
-        BatchDistributeModel batchDistributeModel = new BatchDistributeModel();
-        batchDistributeModel.setAverageNum(avgCaseNum);
-        batchDistributeModel.setBatchInfoModelList(batchInfoModels);
-        return batchDistributeModel;
-    }
-
-    /**
-     * @Description 获取特定机构案件分配信息
-     */
-    public Long getDeptBatchDistribution(String deptId) {
-        BooleanBuilder builder = new BooleanBuilder();
-        builder.and(QCaseInfo.caseInfo.department.id.eq(deptId));
-        builder.and(QCaseInfo.caseInfo.collectionStatus.in(20, 21, 22, 23, 25));
-        return caseInfoRepository.count(builder);
     }
 }
