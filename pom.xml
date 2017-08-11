@@ -33,6 +33,7 @@
         <tk.mybatis>1.1.1</tk.mybatis>
         <com.github.pagehelper>1.1.1</com.github.pagehelper>
         <mybatis.spring.version>1.2.4</mybatis.spring.version>
+        <org.quartz-scheduler>2.2.1</org.quartz-scheduler>
     </properties>
 
     <modules>

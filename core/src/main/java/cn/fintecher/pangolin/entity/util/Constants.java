@@ -104,4 +104,55 @@ public final class Constants {
         }
     }
 
+    /**
+     * 晚间批量任务调度
+     */
+    public final static String OVERNIGHT_TRIGGER_GROUP="overNightTriggerGroup";
+    public final static String OVERNIGHT_TRIGGER_NAME="overNightTriggerName";
+    public final static String OVERNIGHT_TRIGGER_DESC="晚间批量触发器";
+    public final static String OVERNIGHT_JOB_GROUP="OverNightJobGroup";
+    public final static String OVERNIGHT_JOB_NAME="OverNightJobName";
+    public final static String OVERNIGHT_JOB_DESC="晚间批量";
+    public final static String SYSPARAM_OVERNIGHT="SysParam.overNight";
+    public final static String SYSPARAM_OVERNIGHT_STATUS="Sysparam.overnight.status";
+    public final static String SYSPARAM_OVERNIGHT_STEP="Sysparam.overnight.step";
+
+
+    /**
+     * 录音下载调度
+     */
+    public final static String RECORD_TRIGGER_GROUP="recordTriggerGroup";
+    public final static String RECORD_TRIGGER_NAME="recordTriggerName";
+    public final static String RECORD_TRIGGER_DESC="录音下载触发器";
+    public final static String RECORD_JOB_GROUP="recordJobGroup";
+    public final static String RECORD_JOB_NAME="recordJobName";
+    public final static String RECORD_JOB_DESC="录音下载批量";
+    public final static String SYSPARAM_RECORD="Sysparam.record";
+    public final static String SYSPARAM_RECORD_STATUS="Sysparam.record.status";
+
+    /**
+     * 批量执行状态
+     */
+    public enum BatchStatus{
+        STOP("0","未执行"),RUNING("1","正在执行");
+
+        String value;
+        String code;
+
+        BatchStatus(String value, String code) {
+            this.value = value;
+            this.code = code;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public String getCode() {
+            return code;
+        }
+    }
+
+
+
 }

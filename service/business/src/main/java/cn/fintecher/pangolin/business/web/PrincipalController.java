@@ -1,6 +1,8 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.repository.PrincipalRepository;
+import cn.fintecher.pangolin.entity.Principal;
+import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
@@ -63,7 +65,7 @@ public class PrincipalController extends BaseController {
     public ResponseEntity<List<Principal>> getPrincipalPageList() {
         logger.debug("REST request to get all Principal");
         List<Principal> all = principalRepository.findAll();
-        return ResponseEntity.ok().body(all);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","ENTITY_NAME")).body(all);
     }
 
     /**

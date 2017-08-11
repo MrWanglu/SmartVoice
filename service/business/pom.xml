@@ -133,7 +133,19 @@
         <dependency>
             <groupId>cn.fintecher</groupId>
             <artifactId>pangolin-service-file</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- quartz  -->
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>${org.quartz-scheduler}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz-jobs</artifactId>
+            <version>${org.quartz-scheduler}</version>
         </dependency>
     </dependencies>
 

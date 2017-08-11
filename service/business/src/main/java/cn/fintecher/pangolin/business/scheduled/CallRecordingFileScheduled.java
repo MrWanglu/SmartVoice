@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -45,7 +44,7 @@ public class CallRecordingFileScheduled {
     private RestTemplate restTemplate;
 
     //erpv3定时调度 拉取录音
-    @Scheduled(cron = "1 0/10 * * * ?")
+    //@Scheduled(cron = "1 0/10 * * * ?")
     void checkCallRecordFile() throws IOException {
         log.info("定时调度 录音文件是否已更新" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
         QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
@@ -99,7 +98,7 @@ public class CallRecordingFileScheduled {
     /**
      * @Description : 中通天鸿下载录音调度
      */
-    @Scheduled(cron = "1 0/11 * * * ?")
+    //@Scheduled(cron = "1 0/11 * * * ?")
     void checkCallRecordFileZtth() throws IOException {
         log.info("定时调度 中通天鸿的录音调度" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
         try {

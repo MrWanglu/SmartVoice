@@ -14,6 +14,7 @@ server:
         cookie:
             http-only: true
 
+
 hystrix:
   command:
     default:
@@ -21,3 +22,5 @@ hystrix:
         isolation:
           thread:
             timeoutInMilliseconds: 60000
+quartz:
+  enabled: true
