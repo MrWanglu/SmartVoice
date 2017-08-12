@@ -188,4 +188,11 @@ public class CaseInfoController extends BaseController {
         }
 
     }
+
+    @GetMapping("/getCaseInfoDetails")
+    @ApiOperation(value = "案件详情查询操作", notes = "案件详情查询操作")
+    public ResponseEntity<CaseInfo> getCaseInfoDetails(@RequestParam("id") String id) {
+        CaseInfo caseInfo = caseInfoRepository.findOne(id);
+        return ResponseEntity.ok().body(caseInfo);
+    }
 }

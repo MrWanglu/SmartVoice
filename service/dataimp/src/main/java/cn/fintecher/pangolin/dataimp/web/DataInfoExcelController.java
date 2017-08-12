@@ -7,6 +7,7 @@ import cn.fintecher.pangolin.dataimp.model.UpLoadFileModel;
 import cn.fintecher.pangolin.dataimp.repository.DataInfoExcelFileRepository;
 import cn.fintecher.pangolin.dataimp.repository.DataInfoExcelRepository;
 import cn.fintecher.pangolin.dataimp.service.DataInfoExcelService;
+import cn.fintecher.pangolin.entity.SysParam;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -63,8 +64,8 @@ public class DataInfoExcelController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<DataInfoExcel>> getDataInfoExcelList(@QuerydslPredicate(root = DataInfoExcel.class) Predicate predicate,
-                                                                    @ApiIgnore Pageable pageable
-                                                                    , @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token){
+                                                                    @ApiIgnore Pageable pageable,
+                                                                    @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token){
         ResponseEntity<User> userResponseEntity=null;
         try {
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
@@ -215,5 +216,33 @@ public class DataInfoExcelController {
         User user = userResponseEntity.getBody();
         dataInfoExcelService.casesConfirmByBatchNum(user);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功",ENTITY_NAME)).body(null);
+    }
+
+    @GetMapping("/loadTemplate")
+    @ApiOperation(value = "案件导入模板下载", notes = "案件导入模板下载")
+    public ResponseEntity<String> loadTemplate(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        ResponseEntity<User> userResponseEntity=null;
+        try {
+            userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+        }catch (final Exception e){
+            logger.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert( "DataInfoExcelController","loadTemplate", e.getMessage())).body(null);
+        }
+        User user = userResponseEntity.getBody();
+        ResponseEntity<SysParam> forEntity = null;
+        try {
+            String requestUrl = Constants.SYSPARAM_URL.concat("?")
+                    .concat("&userId=".concat(user.getId()))
+                    .concat("&companyCode=".concat(user.getCompanyCode()))
+                    .concat("&code=".concat(Constants.CASE_IMPORT_TEMPLATE_URL_CODE))
+                    .concat("&type=".concat(Constants.CASE_IMPORT_TEMPLATE_URL_TYPE));
+//            logger.info(requestUrl);
+            forEntity = restTemplate.getForEntity(requestUrl, SysParam.class);
+            SysParam body = forEntity.getBody();
+            return ResponseEntity.ok().body(body.getValue());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("DataInfoExcelController", "loadTemplate", "下载失败")).body(null);
+        }
     }
 }

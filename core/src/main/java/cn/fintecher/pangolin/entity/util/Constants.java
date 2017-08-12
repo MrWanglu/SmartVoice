@@ -79,8 +79,12 @@ public final class Constants {
     public static final String DAILY_RESULT_REPORT_EXCEL_URL_CODE = "SysParam.dailyresultreportexcelurl";
     public static final String DAILY_RESULT_REPORT_EXCEL_URL_TYPE = "0014";
 
+    //案件导入excel模板url
+    public static final String CASE_IMPORT_TEMPLATE_URL_CODE = "SysParam.caseimportexcelurl";
+    public static final String CASE_IMPORT_TEMPLATE_URL_TYPE = "9004";
+
     //系统参数请求
-    public static final String SYSPARAM_URL = "http://business-service/api/sysParamResource/";
+    public static final String SYSPARAM_URL = "http://business-service/api/sysParamResource";
 
     /**
      * 数据来源

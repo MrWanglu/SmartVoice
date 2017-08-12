@@ -155,4 +155,11 @@ public class CaseInfoDistributeController extends BaseController {
                     .body(null);
         }
     }
+
+    @GetMapping("/getCaseInfoDistributedDetails")
+    @ApiOperation(value = "案件详情查询操作", notes = "案件详情查询操作")
+    public ResponseEntity<CaseInfoDistributed> getCaseInfoDistributedDetails(@RequestParam("id") String id){
+        CaseInfoDistributed caseInfoDistributed= caseInfoDistributedRepository.findOne(id);
+        return ResponseEntity.ok().body(caseInfoDistributed);
+    }
 }
