@@ -59,14 +59,15 @@
 
     <!--周催计数-->
     <select id="getWeekFollCount" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
-        SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS dayOfWeek FROM case_followup_record
+        SELECT COUNT(*) AS num,WEEKDAY(record.operator_time) AS dayOfWeek
+        FROM case_followup_record AS record
         LEFT JOIN `user`
-        ON case_followup_record.operator = `user`.id
+        ON record.operator = `user`.user_name
         LEFT JOIN department
         ON `user`.dept_id = department.id
         WHERE department.`code` LIKE concat(#{deptCode},'%')
-        AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
-        GROUP BY WEEKDAY(operator_time)
+        AND YEARWEEK(DATE_FORMAT(record.operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        GROUP BY WEEKDAY(record.operator_time)
         ORDER BY dayOfWeek
     </select>
 
