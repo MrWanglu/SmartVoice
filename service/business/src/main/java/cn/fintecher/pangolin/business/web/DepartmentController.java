@@ -111,6 +111,9 @@ public class DepartmentController extends BaseController {
         if (Objects.nonNull(department.getParent().getType())) {
             department.setType(department.getParent().getType());
         }
+        if (department.getParent().getLevel() >= 14) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level must not exceed six levels", "部门等级不能超过六级")).body(null);
+        }
         if (Objects.isNull(department.getParent().getLevel())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "部门级别不能为空")).body(null);
         } else {
@@ -146,7 +149,7 @@ public class DepartmentController extends BaseController {
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用，请重新输入名称")).body(null);
         }
-        if (!(Objects.equals(department.getParent().getType(), department.getType())) && !(Objects.equals(department.getParent().getType(),User.Type.SYNTHESIZE.getValue()))) {
+        if (!(Objects.equals(department.getParent().getType(), department.getType())) && !(Objects.equals(department.getParent().getType(), User.Type.SYNTHESIZE.getValue()))) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The type is inconsistent", "父子机构不一致时，父机构的类型智能是综合管理")).body(null);
         }
         //status  状态 Eable(0)启用 Disable(1) 停用  机构的状态改变
