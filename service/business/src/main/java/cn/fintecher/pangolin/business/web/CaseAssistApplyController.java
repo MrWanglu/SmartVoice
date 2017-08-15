@@ -199,10 +199,13 @@ public class CaseAssistApplyController extends BaseController {
             }
             // 修改申请表信息
             caseAssistApplyRepository.save(apply);
-            // 修改协催案件信息
-            caseAssistRepository.save(caseAssist);
             // 修改原案件
             caseInfoRepository.save(caseInfo);
+            // 审批通过时需要新增协催案件
+            if (approveResult == CaseAssistApply.ApproveResult.VISIT_PASS.getValue()) {
+                // 修改协催案件信息
+                caseAssistRepository.save(caseAssist);
+            }
             // 提醒
             for (String userId : userIds) {
                 sendAssistApproveReminder(title,content,userId);
