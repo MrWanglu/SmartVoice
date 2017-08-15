@@ -146,11 +146,11 @@ public class LoginController extends BaseController {
                     }
                 }
             }
-            userService.save(user);
+            userRepository.save(user);
             //用户设定修改密码的时间限制
             if (Objects.isNull(user.getPasswordInvalidTime())) {
                 user.setPasswordInvalidTime(ZWDateUtil.getNowDateTime());
-                userService.save(user);
+                userRepository.save(user);
                 response.setReset(false);
             } else {
                 //登录的密码设定的时间限制
