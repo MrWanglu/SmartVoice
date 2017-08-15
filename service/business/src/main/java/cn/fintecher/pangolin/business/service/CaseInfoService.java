@@ -71,19 +71,7 @@ public class CaseInfoService {
     PersonalContactRepository personalContactRepository;
 
     @Inject
-    PersonalBankRepository personalBankRepository;
-
-    @Inject
-    PersonalCarRepository personalCarRepository;
-
-    @Inject
-    PersonalJobRepository personalJobRepository;
-
-    @Inject
     RestTemplate restTemplate;
-
-    @Inject
-    PersonalIncomeExpRepository personalIncomeExpRepository;
 
     @Autowired
     CaseInfoExceptionService caseInfoExceptionService;
@@ -93,9 +81,6 @@ public class CaseInfoService {
 
     @Autowired
     CaseRepairRepository caseRepairRepository;
-
-    @Inject
-    PersonalRepository personalRepository;
 
     @Inject
     DepartmentRepository departmentRepository;
