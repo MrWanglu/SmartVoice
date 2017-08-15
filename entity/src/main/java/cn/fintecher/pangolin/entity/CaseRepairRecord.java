@@ -19,7 +19,6 @@ import java.util.Date;
 @Data
 @Table(name = "case_repair_record")
 public class CaseRepairRecord extends BaseEntity {
-public class CaseRepairRecord extends BaseEntity{
 
     @ApiModelProperty(notes = "修复文件id")
     private String id;
@@ -44,10 +43,6 @@ public class CaseRepairRecord extends BaseEntity{
 
     @ApiModelProperty("操作时间")
     private Date operatorTime;
-
-    /*@ManyToOne
-    @JoinColumn(name = "case_id")
-    private CaseInfo caseInfo;*/
 
     private String caseId;
 
