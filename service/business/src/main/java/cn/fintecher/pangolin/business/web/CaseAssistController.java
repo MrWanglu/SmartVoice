@@ -305,6 +305,7 @@ public class CaseAssistController extends BaseController {
             BooleanBuilder builder = new BooleanBuilder(predicate);
             QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
             builder.and(qCaseFollowupRecord.caseId.eq(caseId));
+            /*builder.and(qCaseFollowupRecord.caseId.id.eq(caseId));*/
             Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseAssistController/getFollowupRecord");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);

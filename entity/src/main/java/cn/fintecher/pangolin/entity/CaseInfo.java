@@ -3,12 +3,10 @@ package cn.fintecher.pangolin.entity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by ChenChang on 2017/7/10.
@@ -110,6 +108,10 @@ public class CaseInfo extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "operator")
     private User operator;
+
+    @OneToMany
+    @JoinColumn(name = "case_id")
+    private List<CaseRepairRecord> caseRepairRecordList;
 
     /**
      * @Description 催收类型枚举类
