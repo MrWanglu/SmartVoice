@@ -171,6 +171,13 @@ public final class Constants {
     public final static String SYS_PHNOEFLOW_LEAVERATE="sys.phnoeFlow.leaveRate";
     /**电催审批失效天数**/
     public final static String SYS_PHNOEFLOW_ADVANCEDAYS="sys.phnoeFlow.advanceDays";
+    /**电催小流转部门**/
+    public final static String SYS_PHNOETURN_SMALLDEPTNAME="电催小流转";
+    /**电催强制流转部门**/
+    public final static String SYS_PHNOETURN_BIGDEPTNAME="电催强制流转";
+    /**电催留案流转部门**/
+    public final static String SYS_PHNOETURN_LEAVEDEPTNAME="电催留案流转";
+
 
     /**外访小流转**/
     public final static String SYS_OUTBOUNDFLOW_SMALLDAYS="sys.outboundFlow.smallDays" ;
@@ -182,5 +189,11 @@ public final class Constants {
     public final static String SYS_OUTBOUNDFLOW_LEAVERATE="sys.outboundflow.leaveRate";
     /**外访审批失效天数**/
     public final static String SYS_OUTBOUNDFLOW_ADVANCEDAYS="sys.outboundFlow.advanceDays";
+    /**外访小流转部门**/
+    public final static String SYS_OUTTURN_SMALLDEPTNAME="外访小流转";
+    /**外访强制流转部门**/
+    public final static String SYS_OUTTURN_BIGDEPTNAME="外访强制流转";
+    /**外访留案流转部门**/
+    public final static String SYS_OUTTURN_LEAVEDEPTNAME="外访留案流转";
 
 }
