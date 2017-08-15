@@ -1,8 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.repository.PrincipalRepository;
-import cn.fintecher.pangolin.entity.Principal;
-import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
@@ -10,9 +8,13 @@ import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -50,6 +52,14 @@ public class PrincipalController extends BaseController {
 
     @GetMapping("/getPrincipalPageList")
     @ApiOperation(value = "获取委托方分页查询", notes = "获取委托方分页查询")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
     public ResponseEntity<Page<Principal>> getPrincipalPageList(@QuerydslPredicate(root = Principal.class) Predicate predicate,
                                                                 @ApiIgnore Pageable pageable,
                                                                 @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
@@ -62,10 +72,16 @@ public class PrincipalController extends BaseController {
 
     @GetMapping("/getPrincipalList")
     @ApiOperation(value = "获取所有委托方信息", notes = "获取所有委托方信息")
-    public ResponseEntity<List<Principal>> getPrincipalPageList() {
+    public ResponseEntity<List<Principal>> getPrincipalPageList(@RequestParam String companyCode) {
         logger.debug("REST request to get all Principal");
-        List<Principal> all = principalRepository.findAll();
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","ENTITY_NAME")).body(all);
+        QPrincipal qPrincipal = QPrincipal.principal;
+        BooleanBuilder builder = new BooleanBuilder();
+        if (Objects.nonNull(companyCode)) {
+            builder.and(qPrincipal.companyCode.eq(companyCode));
+        }
+        Iterator<Principal> principalIterator = principalRepository.findAll(builder).iterator();
+        List<Principal> principalList = IteratorUtils.toList(principalIterator);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "ENTITY_NAME")).body(principalList);
     }
 
     /**
@@ -85,7 +101,7 @@ public class PrincipalController extends BaseController {
         if (Objects.isNull(request.getId())) {
             //验证委外方是否重名
             QPrincipal qPrincipal = QPrincipal.principal;
-            Iterator<Principal> principalIterator = principalRepository.findAll(qPrincipal.name.eq(request.getName()).and(qPrincipal.flag.eq(Outsource.deleteStatus.START.getDeleteCode()))).iterator();
+            Iterator<Principal> principalIterator = principalRepository.findAll(qPrincipal.name.eq(request.getName()).and(qPrincipal.flag.eq(Outsource.deleteStatus.START.getDeleteCode())).and(qPrincipal.companyCode.eq(request.getCompanyCode()))).iterator();
             if (principalIterator.hasNext()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "The outsourcename is not allowed to be used", "该名字不允许被使用")).body(null);
