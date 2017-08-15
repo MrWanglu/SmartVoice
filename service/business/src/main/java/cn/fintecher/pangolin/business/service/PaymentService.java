@@ -194,9 +194,9 @@ public class PaymentService {
                             caseTurnRecord.setId(null); //主键置空
                             caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
                             caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
-                            caseTurnRecord.setReceiveUserid(caseInfo.getCurrentCollector()); //接受人
-                            caseTurnRecord.setReceiveDeptid(caseInfo.getCurrentCollector().getDepartment()); //接收部门
-                            caseTurnRecord.setOperator(tokenUser); //操作员
+                            caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
+                            caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
+                            caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                             caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                             caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
                         }
