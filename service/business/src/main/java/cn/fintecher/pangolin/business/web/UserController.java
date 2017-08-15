@@ -89,7 +89,7 @@ public class UserController extends BaseController {
         QSysParam qSysParam1 = QSysParam.sysParam;
         SysParam sysParamsNumber = null;
         try {
-            sysParamsNumber = sysParamRepository.findOne(qSysParam1.code.eq(Constants.APPLY_USER_NUMBER_CODE).and(qSysParam1.type.eq(Constants.APPLY_USER_NUMBER_TYPE)).and(qSysParam1.companyCode.eq(user.getDepartment().getCompanyCode())));
+            sysParamsNumber = sysParamRepository.findOne(qSysParam1.code.eq(Constants.APPLY_USER_NUMBER_CODE).and(qSysParam1.type.eq(Constants.APPLY_USER_NUMBER_TYPE)).and(qSysParam1.companyCode.eq(user.getCompanyCode())));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User number parameters", "用户个数参数异常")).body(null);
@@ -115,7 +115,7 @@ public class UserController extends BaseController {
         QSysParam qSysParam = QSysParam.sysParam;
         SysParam sysParamsPassword = null;
         try {
-            sysParamsPassword = sysParamRepository.findOne(qSysParam.code.eq(Constants.APPLY_PASSWORD_CODE).and(qSysParam.type.eq(Constants.APPLY_PASSWORD_TYPE)).and(qSysParam.companyCode.eq(user.getDepartment().getCompanyCode())));
+            sysParamsPassword = sysParamRepository.findOne(qSysParam.code.eq(Constants.APPLY_PASSWORD_CODE).and(qSysParam.type.eq(Constants.APPLY_PASSWORD_TYPE)).and(qSysParam.companyCode.eq(user.getCompanyCode())));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user password parameters abnormality", "用户密码参数异常")).body(null);

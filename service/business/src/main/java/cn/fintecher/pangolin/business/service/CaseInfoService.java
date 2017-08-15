@@ -71,19 +71,7 @@ public class CaseInfoService {
     PersonalContactRepository personalContactRepository;
 
     @Inject
-    PersonalBankRepository personalBankRepository;
-
-    @Inject
-    PersonalCarRepository personalCarRepository;
-
-    @Inject
-    PersonalJobRepository personalJobRepository;
-
-    @Inject
     RestTemplate restTemplate;
-
-    @Inject
-    PersonalIncomeExpRepository personalIncomeExpRepository;
 
     @Autowired
     CaseInfoExceptionService caseInfoExceptionService;
@@ -93,9 +81,6 @@ public class CaseInfoService {
 
     @Autowired
     CaseRepairRepository caseRepairRepository;
-
-    @Inject
-    PersonalRepository personalRepository;
 
     @Inject
     DepartmentRepository departmentRepository;
@@ -357,6 +342,7 @@ public class CaseInfoService {
         caseFollowupRecord.setPersonalId(caseFollowupParams.getPersonalId());
         caseFollowupRecord.setOperator(tokenUser.getUserName()); //操作人
         caseFollowupRecord.setOperatorName(tokenUser.getRealName()); //操作人姓名
+        caseFollowupRecord.setOperatorDeptName(tokenUser.getDepartment().getName()); // 操作人部门
         caseFollowupRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         caseFollowupRecordRepository.saveAndFlush(caseFollowupRecord);
 

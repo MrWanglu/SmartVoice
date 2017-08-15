@@ -134,7 +134,7 @@ public class RoleController extends BaseController {
         //更新角色的公司code码需要前端传
         //判断角色的名称是否重复
         QRole qRole = QRole.role;
-        boolean exists = roleRepository.exists(qRole.id.ne(role.getId()).and(qRole.name.eq(role.getName())).and(qRole.companyCode.eq(user.getCompanyCode())));
+        boolean exists = roleRepository.exists(qRole.id.ne(role.getId()).and(qRole.name.eq(role.getName())).and(qRole.companyCode.eq(role.getCompanyCode())));
         if (exists) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role name has been occupied", "该角色名已被占用")).body(null);
         } else {
