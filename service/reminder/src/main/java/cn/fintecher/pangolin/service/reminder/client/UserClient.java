@@ -20,4 +20,6 @@ public interface UserClient {
     ResponseEntity<Integer> getUsersOnCompany(@RequestParam(value = "ids") @ApiParam("ids") List<String> ids,
                                               @RequestParam(value = "token") @ApiParam("token")String token);
 
+    @RequestMapping(method = RequestMethod.GET, value = "/api/userResource/findUserById")
+    ResponseEntity<User> findUserById(@RequestParam(value = "id") String id);
 }

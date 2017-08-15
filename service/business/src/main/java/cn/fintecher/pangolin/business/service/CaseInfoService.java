@@ -1106,7 +1106,9 @@ public class CaseInfoService {
                     caseInfo.setHoldDays(0); //持案天数归0
                     caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1); //流转次数加一
                     caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
+                    caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
                     caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件标记为无色
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue());
                     //案件列表
                     caseInfoObjList.add(caseInfo);
                     //案件流转记录
