@@ -125,9 +125,7 @@ public class LoginController extends BaseController {
                                     loginRequest.setUsdeCode(ip);
                                     userDevice.setCode(ip);
                                 } else {
-                                    if (Objects.equals(ip, userDevice.getCode())) {
-                                        return ResponseEntity.ok().headers(HeaderUtil.createAlert("设备锁验证正确", ENTITY_NAME)).body(response);
-                                    } else {
+                                    if (!Objects.equals(ip, userDevice.getCode())) {
                                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "deviceKey failure", "本次登录和上次登录地址不一致！")).body(null);
                                     }
                                 }
@@ -135,9 +133,7 @@ public class LoginController extends BaseController {
                                 if (ZWStringUtils.isEmpty(userDevice.getCode())) {
                                     userDevice.setCode(loginRequest.getUsdeCode());
                                 } else {
-                                    if (Objects.equals(loginRequest.getUsdeCode(), userDevice.getCode())) {
-                                        return ResponseEntity.ok().headers(HeaderUtil.createAlert("设备锁验证正确", ENTITY_NAME)).body(response);
-                                    } else {
+                                    if (!Objects.equals(loginRequest.getUsdeCode(), userDevice.getCode())) {
                                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "deviceKey failure", "本次登录和上次登录地址不一致！")).body(null);
                                     }
                                 }

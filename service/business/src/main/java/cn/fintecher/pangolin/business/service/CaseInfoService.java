@@ -733,6 +733,7 @@ public class CaseInfoService {
         caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1); //流转次数加一
         caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态 20-待催收
+        caseInfo.setLeaveCaseFlag(0); //留案标识置0
         if (Objects.equals(user.getType(), User.Type.TEL.getValue())) {
             caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
         } else if (Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
@@ -865,6 +866,9 @@ public class CaseInfoService {
             }
             if (!Objects.equals(caseInfo.getCurrentCollector(), tokenUser)) {
                 throw new RuntimeException("只能对自己所持有的案件进行留案操作");
+            }
+            if (Objects.equals(caseInfo.getLeaveCaseFlag(), 1)) {
+                throw new RuntimeException("所选案件存在已经留案的案件");
             }
             if (flagNum > leaveNum) {
                 throw new RuntimeException("所选案件数量超过可留案案件数");
