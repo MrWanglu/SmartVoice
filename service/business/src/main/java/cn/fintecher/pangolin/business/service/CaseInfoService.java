@@ -873,7 +873,9 @@ public class CaseInfoService {
             if (flagNum > leaveNum) {
                 throw new RuntimeException("所选案件数量超过可留案案件数");
             }
-            caseInfo.setLeaveCaseFlag(1);
+            caseInfo.setLeaveCaseFlag(1); //留案标志
+            caseInfo.setOperator(tokenUser); //操作人
+            caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseInfoRepository.saveAndFlush(caseInfo);
             flagNum++;
         }
