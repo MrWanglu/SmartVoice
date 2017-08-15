@@ -162,6 +162,20 @@ public class ProcessDataInfoExcelService {
     private CaseInfoException addCaseInfoException(DataInfoExcelModel dataInfoExcelModel,User user,Set<String> caseInfoDistributedSets,Set<String> caseInfoSets) {
         CaseInfoException caseInfoException=new CaseInfoException();
         BeanUtils.copyProperties(dataInfoExcelModel,caseInfoException);
+        caseInfoException.setCommissionRate(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getCommissionRate(),null,null));
+        caseInfoException.setContractAmount(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getContractAmount(),null,null));
+        caseInfoException.setHasPayAmount(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getHasPayAmount(),null,null));
+        caseInfoException.setOtherAmt(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getOtherAmt(),null,null));
+        caseInfoException.setLatelyPayAmount(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getLatelyPayAmount(),null,null));
+        caseInfoException.setLeftCapital(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getLeftCapital(),null,null));
+        caseInfoException.setOverdueAmount(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getOverdueAmount(),null,null));
+        caseInfoException.setLeftInterest(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getLeftInterest(),null,null));
+        caseInfoException.setOverdueCapital(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getOverdueCapital(),null,null));
+        caseInfoException.setOverdueDelayFine(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getOverdueDelayFine(),null,null));
+        caseInfoException.setPerPayAmount(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getPerPayAmount(),null,null));
+        caseInfoException.setOverdueManageFee(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getOverdueManageFee(),null,null));
+        caseInfoException.setOverDueInterest(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getOverDueInterest(),null,null));
+        caseInfoException.setOverdueFine(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getOverdueFine(),null,null));
         //待分配案件重复
         caseInfoException.setDistributeRepeat(ZWStringUtils.collectionToString(caseInfoDistributedSets,","));
         //已分配案件重复
