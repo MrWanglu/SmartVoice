@@ -97,6 +97,9 @@ public class DataInfoExcelController {
         List<CellError> cellErrorList=null;
         try {
            cellErrorList= dataInfoExcelService.importExcelData(dataImportRecord,user);
+           if (!cellErrorList.isEmpty()) {
+               return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"importExcelData","")).body(cellErrorList);
+           }
         }catch (Exception e){
             e.printStackTrace();
             if(Objects.nonNull(cellErrorList) && !cellErrorList.isEmpty()){
