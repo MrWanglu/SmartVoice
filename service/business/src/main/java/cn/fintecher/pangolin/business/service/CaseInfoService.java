@@ -966,6 +966,7 @@ public class CaseInfoService {
                             caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());
                             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
                         }
+                        caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
                         caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
                         //案件剩余天数(结案日期-当前日期)
                         caseInfo.setLeftDays(ZWDateUtil.getBetween(ZWDateUtil.getNowDate(), caseInfo.getCloseDate(), ChronoUnit.DAYS));
