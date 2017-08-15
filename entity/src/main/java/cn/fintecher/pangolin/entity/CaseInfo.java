@@ -43,7 +43,7 @@ public class CaseInfo extends BaseEntity {
     private Integer leftDays;
     private Integer caseType;
     @ApiModelProperty("协催标识：0-未留案，1-留案")
-    private Integer leaveCaseFlag;
+    private Integer leaveCaseFlag = 0;
     private Date leaveDate;
     private Integer hasLeaveDays;
     private Integer followUpNum = 0;
@@ -390,7 +390,7 @@ public class CaseInfo extends BaseEntity {
     /**
      * 留案标志
      */
-    public enum leaveCaseFlagEnum{
+    public enum leaveCaseFlagEnum {
         //非留案
         NO_LEAVE(0, "非留案"),
         //留案
