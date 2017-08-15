@@ -196,6 +196,7 @@ public class DataInfoExcelController {
     public ResponseEntity<List<DataInfoExcelFileExist>> checkCasesFile(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         ResponseEntity<User> userResponseEntity=null;
         try {
+
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
         }catch (Exception e){
             logger.error(e.getMessage(),e);
