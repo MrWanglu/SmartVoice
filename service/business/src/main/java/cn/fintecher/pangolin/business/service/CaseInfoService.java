@@ -849,7 +849,7 @@ public class CaseInfoService {
 
         //查询已留案案件数
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-        int flagNum = (int)caseInfoRepository.count(qCaseInfo.currentCollector.id.eq(tokenUser.getId()).and(qCaseInfo.leaveCaseFlag.eq(1)));
+        int flagNum = (int) caseInfoRepository.count(qCaseInfo.currentCollector.id.eq(tokenUser.getId()).and(qCaseInfo.leaveCaseFlag.eq(1)));
 
         //获得留案比例
         QSysParam qSysParam = QSysParam.sysParam;
@@ -857,7 +857,7 @@ public class CaseInfoService {
         Double rate = Double.parseDouble(sysParam.getValue()) / 100;
 
         //计算留案案件是否超过比例
-        Integer leaveNum = (int)(caseNum * rate); //可留案的案件数
+        Integer leaveNum = (int) (caseNum * rate); //可留案的案件数
         List<String> caseIds = leaveCaseParams.getCaseIds();
         for (String caseId : caseIds) {
             CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
@@ -870,7 +870,7 @@ public class CaseInfoService {
             if (Objects.equals(caseInfo.getLeaveCaseFlag(), 1)) {
                 throw new RuntimeException("所选案件存在已经留案的案件");
             }
-            if (flagNum > leaveNum) {
+            if (flagNum >= leaveNum) {
                 throw new RuntimeException("所选案件数量超过可留案案件数");
             }
             caseInfo.setLeaveCaseFlag(1); //留案标志
