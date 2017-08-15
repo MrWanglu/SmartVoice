@@ -1,11 +1,11 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
+import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
-import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.QCaseInfo;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
@@ -21,6 +21,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
@@ -44,6 +45,12 @@ public class CaseInfoController extends BaseController {
 
     @Inject
     private CaseInfoService caseInfoService;
+    @Inject
+    private CaseFollowupRecordRepository caseFollowupRecordRepository;
+    @Inject
+    private CaseTurnRecordRepository caseTurnRecordRepository;
+    @Inject
+    private RestTemplate restTemplate;
 
     public CaseInfoController(CaseInfoRepository caseInfoRepository) {
         this.caseInfoRepository = caseInfoRepository;
@@ -194,5 +201,29 @@ public class CaseInfoController extends BaseController {
     public ResponseEntity<CaseInfo> getCaseInfoDetails(@RequestParam("id") String id) {
         CaseInfo caseInfo = caseInfoRepository.findOne(id);
         return ResponseEntity.ok().body(caseInfo);
+    }
+
+    @GetMapping("/getCaseInfoFollowRecord")
+    @ApiOperation(value = "案件跟进记录", notes = "案件跟进记录")
+    public ResponseEntity<Page<CaseFollowupRecord>> getCaseInfoFollowRecord(@QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
+                                                                            @ApiIgnore Pageable pageable,
+                                                                            @RequestParam("caseId") @ApiParam("案件ID") String caseId) {
+        QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
+        BooleanBuilder builder = new BooleanBuilder(predicate);
+        builder.and(qCaseFollowupRecord.caseId.eq(caseId));
+        Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
+        return ResponseEntity.ok().body(page);
+    }
+
+    @GetMapping("/getCaseInfoTurnRecord")
+    @ApiOperation(value = "案件流转记录", notes = "案件流转记录")
+    public ResponseEntity<Page<CaseTurnRecord>> getCaseInfoTurnRecord(@QuerydslPredicate(root = CaseTurnRecord.class) Predicate predicate,
+                                                                      @ApiIgnore Pageable pageable,
+                                                                      @RequestParam("caseId") @ApiParam("案件ID") String caseId) {
+        QCaseTurnRecord qCaseTurnRecord = QCaseTurnRecord.caseTurnRecord;
+        BooleanBuilder builder = new BooleanBuilder(predicate);
+        builder.and(qCaseTurnRecord.caseId.eq(caseId));
+        Page<CaseTurnRecord> page = caseTurnRecordRepository.findAll(builder, pageable);
+        return ResponseEntity.ok().body(page);
     }
 }
