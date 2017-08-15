@@ -272,7 +272,7 @@ public class DepartmentController extends BaseController {
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if (Objects.nonNull(user.getCompanyCode())) {
-            builder.and(QDepartment.department.companyCode.like(user.getCompanyCode().concat("%")));
+            builder.and(QDepartment.department.companyCode.eq(user.getCompanyCode()));
         }
         Page<Department> page = departmentRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(page);
@@ -294,7 +294,7 @@ public class DepartmentController extends BaseController {
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if (Objects.nonNull(user.getCompanyCode())) {
-            builder.and(QDepartment.department.companyCode.like(user.getCompanyCode().concat("%")));
+            builder.and(QDepartment.department.companyCode.eq(user.getCompanyCode()));
         }
         Iterator<Department> departmentIterator = departmentRepository.findAll(builder).iterator();
         List<Department> departmentList = IteratorUtils.toList(departmentIterator);
