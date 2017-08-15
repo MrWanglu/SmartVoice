@@ -5,6 +5,8 @@ import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
+import cn.fintecher.pangolin.business.service.FollowRecordExportService;
+import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
@@ -13,24 +15,33 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by ChenChang on 2017/5/23.
@@ -52,6 +63,8 @@ public class CaseInfoController extends BaseController {
     private CaseTurnRecordRepository caseTurnRecordRepository;
     @Inject
     private RestTemplate restTemplate;
+    @Inject
+    private FollowRecordExportService followRecordExportService;
 
     public CaseInfoController(CaseInfoRepository caseInfoRepository) {
         this.caseInfoRepository = caseInfoRepository;
@@ -266,5 +279,173 @@ public class CaseInfoController extends BaseController {
         Iterable<CaseTurnRecord> all = caseTurnRecordRepository.findAll(builder);
         List<CaseTurnRecord> caseTurnRecords = IterableUtils.toList(all);
         return ResponseEntity.ok().body(caseTurnRecords);
+    }
+
+    @GetMapping("/exportCaseInfoFollowRecord")
+    @ApiOperation(value = "导出跟进记录", notes = "导出跟进记录")
+    public ResponseEntity exportCaseInfoFollowRecord(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                     @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        HSSFWorkbook workbook = null;
+        File file = null;
+        ByteArrayOutputStream out = null;
+        FileOutputStream fileOutputStream = null;
+
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", e.getMessage())).body(null);
+        }
+
+        try {
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+//            builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+            Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
+            List<CaseInfo> caseInfos = IterableUtils.toList(all);
+            if (caseInfos.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "跟进记录数据为空!")).body(null);
+            }
+            List<CaseFollowupRecord> caseFollowupRecords = new ArrayList<>();
+            for (CaseInfo caseInfo :caseInfos) {
+                Iterable<CaseFollowupRecord> all1 = caseFollowupRecordRepository.findAll(QCaseFollowupRecord.caseFollowupRecord.caseId.eq(caseInfo.getId()));
+                List<CaseFollowupRecord> records = IterableUtils.toList(all1);
+                caseFollowupRecords.addAll(records);
+            }
+            workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet("sheet1");
+            out = new ByteArrayOutputStream();
+            Map<String, String> head = followRecordExportService.createHead();
+            List<Map<String, Object>> data = followRecordExportService.createData(caseFollowupRecords);
+            ExcelExportHelper.createExcel(workbook, sheet, head,data,0,0);
+            workbook.write(out);
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xls");
+            file = new File(filePath);
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(out.toByteArray());
+            FileSystemResource resource = new FileSystemResource(file);
+            MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+            param.add("file", resource);
+            ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
+            if (url == null) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController","exportCaseInfoFollowRecord","系统错误!")).body(null);
+            } else {
+                return ResponseEntity.ok().body(url.getBody());
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            log.error(ex.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController","exportCaseInfoFollowRecord","上传文件服务器失败")).body(null);
+        } finally {
+            // 关闭流
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            // 删除文件
+            if (file != null) {
+                file.delete();
+            }
+        }
+    }
+
+    @GetMapping("/exportFollowRecord")
+    @ApiOperation(value = "导出跟进记录(单案件)", notes = "导出跟进记录(单案件)")
+    public ResponseEntity exportFollowRecord(@QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
+                                             @RequestParam("caseId") @ApiParam("案件ID") String caseId,
+                                             @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        HSSFWorkbook workbook = null;
+        File file = null;
+        ByteArrayOutputStream out = null;
+        FileOutputStream fileOutputStream = null;
+
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", e.getMessage())).body(null);
+        }
+
+        try {
+            QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+//            builder.and(qCaseFollowupRecord.companyCode.eq(user.getCompanyCode()));
+            builder.and(qCaseFollowupRecord.caseId.eq(caseId));
+            Iterable<CaseFollowupRecord> all = caseFollowupRecordRepository.findAll(builder);
+            List<CaseFollowupRecord> caseFollowupRecords = IterableUtils.toList(all);
+            if (caseFollowupRecords.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "跟进记录数据为空!")).body(null);
+            }
+            workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet("sheet1");
+            out = new ByteArrayOutputStream();
+            Map<String, String> head = followRecordExportService.createHead();
+            List<Map<String, Object>> data = followRecordExportService.createData(caseFollowupRecords);
+            ExcelExportHelper.createExcel(workbook, sheet, head,data,0,0);
+            workbook.write(out);
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xls");
+            file = new File(filePath);
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(out.toByteArray());
+            FileSystemResource resource = new FileSystemResource(file);
+            MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+            param.add("file", resource);
+            ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
+            if (url == null) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController","exportCaseInfoFollowRecord","系统错误!")).body(null);
+            } else {
+                return ResponseEntity.ok().body(url.getBody());
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            log.error(ex.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController","exportCaseInfoFollowRecord","上传文件服务器失败")).body(null);
+        } finally {
+            // 关闭流
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            // 删除文件
+            if (file != null) {
+                file.delete();
+            }
+        }
     }
 }

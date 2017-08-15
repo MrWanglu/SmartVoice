@@ -28,6 +28,7 @@ public class ExcelExportHelper {
         CellStyle headStyle = workbook.createCellStyle();
         CellStyle bodyStyle = workbook.createCellStyle();
         headStyle.setAlignment(HorizontalAlignment.CENTER); // 居中
+        bodyStyle.setAlignment(HorizontalAlignment.CENTER); //居中
         //设置头文件字体
         Font fontTitle = workbook.createFont();
         fontTitle.setFontName("黑体");
@@ -100,6 +101,9 @@ public class ExcelExportHelper {
                     }
                 }
             }
+        }
+        for (int i=0;i<headMap.size();i++) {
+            sheet.autoSizeColumn((short)i);
         }
     }
 }
