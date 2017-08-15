@@ -60,10 +60,10 @@ public class RecordDownLoadJob implements Job {
         DateTime dateTime;
         Iterator<CaseFollowupRecord> caseFollowupRecords;
         List<CaseFollowupRecord> caseFollowupRecordList;
-
+        SysParam sysParam;
         logger.info("录音下载批量.......");
         QSysParam qSysParam = QSysParam.sysParam;
-        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYSPARAM_OVERNIGHT_STATUS));
+        sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYSPARAM_OVERNIGHT_STATUS));
         if (Objects.equals("0", sysParam.getValue())) {
             sysParam.setValue("1");
             sysParamRepository.save(sysParam);
@@ -135,6 +135,13 @@ public class RecordDownLoadJob implements Job {
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+        }
+
+
+        sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYSPARAM_OVERNIGHT_STATUS));
+        if (Objects.equals("1", sysParam.getValue())) {
+            sysParam.setValue("0");
+            sysParamRepository.save(sysParam);
         }
     }
 
