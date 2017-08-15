@@ -251,7 +251,7 @@ public class CaseAssistApplyController extends BaseController {
             if (Objects.isNull(approveResult) || StringUtils.isBlank(approveMemo)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistApplyController", "assistApplyTelApprove", "审批结果或者审批意见不能为空!")).body(null);
             }
-            apply.setApproveStatus(CaseAssistApply.ApproveStatus.TEL_COMPLETE.getValue()); //审批状态修改为电催审批完成
+
             apply.setApprovePhoneResult(approveResult); //审批结果
             apply.setApprovePhoneMemo(approveMemo); //审批意见
             apply.setApprovePhoneUser(user.getUserName()); //电催审批人审批人
@@ -263,6 +263,7 @@ public class CaseAssistApplyController extends BaseController {
             List<String> userIds = new ArrayList<>();
             // 审批拒绝
             if (approveResult == CaseAssistApply.ApproveResult.TEL_REJECT.getValue()) {
+                apply.setApproveStatus(CaseAssistApply.ApproveStatus.TEL_COMPLETE.getValue()); //审批状态修改为电催审批完成
                 //修该原案件
                 caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_REFUSED.getValue()); //协催状态
                 caseInfo.setAssistFlag(0); //协催标识
@@ -275,6 +276,7 @@ public class CaseAssistApplyController extends BaseController {
             }
             // 审批通过
             if (approveResult == CaseAssistApply.ApproveResult.TEL_PASS.getValue()) {
+                apply.setApproveStatus(CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue()); //审批状态修改为外访待审批
                 title = "有协催申请需要审批!";
                 content = "电催组申请对案件["+apply.getCaseNumber()+"]进行协催，请及时审批!";
                 List<User> allUser = userService.getAllUser(user.getCompanyCode(), 2, 0, 0);//公司Code 电催 启用 管理者
