@@ -57,6 +57,9 @@ public class CaseFollowupRecord extends BaseEntity {
     @ApiModelProperty(notes = "操作人姓名")
     private String operatorName;
 
+    @ApiModelProperty(notes = "操作人部门")
+    private String operatorDeptName;
+
     @ApiModelProperty(notes = "操作时间")
     private Date operatorTime;
 
