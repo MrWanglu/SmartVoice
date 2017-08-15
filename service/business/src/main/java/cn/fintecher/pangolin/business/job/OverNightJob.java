@@ -3,11 +3,13 @@ package cn.fintecher.pangolin.business.job;
 import cn.fintecher.pangolin.business.config.ConfigureQuartz;
 import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
+import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.service.JobTaskService;
 import cn.fintecher.pangolin.business.service.OverNightBatchService;
 import cn.fintecher.pangolin.entity.Company;
 import cn.fintecher.pangolin.entity.QSysParam;
 import cn.fintecher.pangolin.entity.SysParam;
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
 import org.apache.commons.lang.StringUtils;
 import org.quartz.*;
@@ -46,6 +48,9 @@ public class OverNightJob implements Job {
     @Autowired
     OverNightBatchService overNightBatchService;
 
+    @Autowired
+    UserRepository userRepository;
+
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
@@ -57,19 +62,31 @@ public class OverNightJob implements Job {
             if(jobTaskService.checkJobIsRunning(jobDataMap.getString("companyCode"),jobDataMap.getString("sysParamCode"))){
                 logger.info("晚间批量正在执行_{}",jobDataMap.get("sysParamCode"));
             }else{
+                //获取超级管理员信息
+                User user=userRepository.findOne(Constants.ADMINISTRATOR_ID);
                 //批量状态修改为正在执行
                 jobTaskService.updateSysparam(jobDataMap.getString("companyCode"),jobDataMap.getString("sysParamCode"),Constants.BatchStatus.RUNING.getValue());
                 //批量步骤
                 SysParam sysParam=jobTaskService.getSysparam(jobDataMap.getString("companyCode"),Constants.SYSPARAM_OVERNIGHT_STEP);
                 String step=sysParam.getValue();
                 switch (step){
-                    case "" :
+                    case "5" :
                         step="0";
-                        break;
                     case "0":
                         step="1";
                         overNightBatchService.doOverNightOne(jobDataMap,step);
-                        break;
+                    case "1":
+                        step="2";
+                        overNightBatchService.doOverNightTwo(jobDataMap,step,user);
+                    case "2":
+                        step="3";
+                        overNightBatchService.doOverNightThree(jobDataMap,step,user);
+                    case "3":
+                        step="4";
+                        overNightBatchService.doOverNightFour(jobDataMap,step,user);
+                    case "4":
+                        step="5";
+                        overNightBatchService.doOverNightFive(jobDataMap,step);
                     default:
                         break;
                 }

@@ -38,5 +38,7 @@ public class MobilePosition implements Serializable {
     private Date datetime;
     @ApiModelProperty(notes = "地址")
     private String address;
+    @ApiModelProperty("特定公司的标识")
+    private String companyCode;
 
 }

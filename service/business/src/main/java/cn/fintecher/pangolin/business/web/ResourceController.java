@@ -109,8 +109,8 @@ public class ResourceController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "Can't add without permission", "没有权限不能添加")).body(null);
         }
-        Resource result = resourceService.save(resource);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(result);
+        resourceService.save(resource);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
     }
 
     /**
@@ -136,8 +136,8 @@ public class ResourceController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "Can't add without permission", "没有权限不能添加")).body(null);
         }
-        Resource result = resourceService.save(resource);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(result);
+        resourceService.save(resource);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
     }
 
     /**
@@ -174,7 +174,7 @@ public class ResourceController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "Role does not exist", "角色不存在")).body(null);
         }
-        roleRepository.deleteResoByRoleId(request.getRoleId());
+        resourceService.deleteResoByRoleId(request.getRoleId());
         List<Resource> resources = resourceRepository.findAll(request.getResoIds());
         for (Resource resource : resources) {
             resource.getRoles().add(role);

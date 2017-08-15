@@ -90,4 +90,29 @@ public class CaseAssist extends BaseEntity {
             return remark;
         }
     }
+
+    /**
+     * @Description 协催方结束方式
+     */
+    public enum AssistCloseFlagEnum {
+        //单次协催
+        MANUAL(0, "手动结束"),
+        //全程协催
+        AUTO(1, "自动结束");
+        private Integer value;
+        private String remark;
+
+        AssistCloseFlagEnum(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
 }

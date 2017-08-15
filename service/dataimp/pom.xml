@@ -87,6 +87,11 @@
             <artifactId>commons-io</artifactId>
             <version>RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>cn.fintecher</groupId>
+            <artifactId>pangolin-service-file</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>

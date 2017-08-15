@@ -493,13 +493,13 @@ public class AccVisitPoolController extends BaseController {
      */
     @PostMapping("/leaveVisitCase")
     @ApiOperation(value = "外访案件留案操作", notes = "外访案件留案操作")
-    public ResponseEntity<Long> leaveTelCase(@RequestBody LeaveCaseParams leaveCaseParams,
-                                             @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<LeaveCaseModel> leaveTelCase(@RequestBody LeaveCaseParams leaveCaseParams,
+                                                       @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to leave case");
         try {
             User tokenUser = getUserByToken(token);
-            Long caseNum = caseInfoService.leaveCase(leaveCaseParams, tokenUser);
-            return ResponseEntity.ok().body(caseNum);
+            LeaveCaseModel leaveCaseModel = caseInfoService.leaveCase(leaveCaseParams, tokenUser);
+            return ResponseEntity.ok().body(leaveCaseModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", e.getMessage())).body(null);

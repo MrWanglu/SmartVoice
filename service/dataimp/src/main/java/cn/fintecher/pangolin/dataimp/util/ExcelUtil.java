@@ -381,7 +381,7 @@ public class ExcelUtil {
         }
         String cellValue = getCellValue(cell);
         if ("java.util.Date".equalsIgnoreCase(clazz.getName())) {
-            if (cellValue.matches("\\d{4}/\\d{2}/\\d{2}"))
+            if (cellValue.matches("\\d{4}/\\d{1,2}/\\d{1,2}"))
                 return ZWDateUtil.getUtilDate(cellValue, "yyyy/MM/dd");
             else if (cellValue.matches("\\d{4}-\\d{2}-\\d{2}"))
                 return ZWDateUtil.getUtilDate(cellValue, "yyyy-MM-dd");

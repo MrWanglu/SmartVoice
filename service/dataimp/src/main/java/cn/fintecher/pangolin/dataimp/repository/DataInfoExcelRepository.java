@@ -42,7 +42,11 @@ public interface DataInfoExcelRepository extends MongoRepository<DataInfoExcel, 
                 return path.goe(firstOverDueAmount);
             }
         });
+
         bindings.bind(root.mobileNo).first((path, value) -> path.eq(value));
+        bindings.bind(root.idCard).first((path, value) -> path.eq(value));
+        bindings.bind(root.province).first((path, value) -> path.startsWith(value));
+        bindings.bind(root.city).first((path, value) -> path.startsWith(value));
     }
 
     /**

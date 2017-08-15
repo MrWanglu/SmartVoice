@@ -843,13 +843,13 @@ public class CaseInfoService {
     /**
      * @Descripion 留案操作
      */
-    public Long leaveCase(LeaveCaseParams leaveCaseParams, User tokenUser) {
+    public LeaveCaseModel leaveCase(LeaveCaseParams leaveCaseParams, User tokenUser) {
         //获得所持有未结案的案件总数
         Integer caseNum = caseInfoRepository.getCaseCount(tokenUser.getId());
 
         //查询已留案案件数
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-        long flagNum = caseInfoRepository.count(qCaseInfo.currentCollector.id.eq(tokenUser.getId()).and(qCaseInfo.leaveCaseFlag.eq(1)));
+        int flagNum = (int) caseInfoRepository.count(qCaseInfo.currentCollector.id.eq(tokenUser.getId()).and(qCaseInfo.leaveCaseFlag.eq(1)));
 
         //获得留案比例
         QSysParam qSysParam = QSysParam.sysParam;
@@ -857,7 +857,7 @@ public class CaseInfoService {
         Double rate = Double.parseDouble(sysParam.getValue()) / 100;
 
         //计算留案案件是否超过比例
-        Long leaveNum = Double.doubleToLongBits(caseNum * rate); //可留案的案件数
+        Integer leaveNum = (int) (caseNum * rate); //可留案的案件数
         List<String> caseIds = leaveCaseParams.getCaseIds();
         for (String caseId : caseIds) {
             CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
@@ -870,7 +870,7 @@ public class CaseInfoService {
             if (Objects.equals(caseInfo.getLeaveCaseFlag(), 1)) {
                 throw new RuntimeException("所选案件存在已经留案的案件");
             }
-            if (flagNum > leaveNum) {
+            if (flagNum >= leaveNum) {
                 throw new RuntimeException("所选案件数量超过可留案案件数");
             }
             caseInfo.setLeaveCaseFlag(1); //留案标志
@@ -879,7 +879,9 @@ public class CaseInfoService {
             caseInfoRepository.saveAndFlush(caseInfo);
             flagNum++;
         }
-        return leaveNum - flagNum;
+        LeaveCaseModel leaveCaseModel = new LeaveCaseModel();
+        leaveCaseModel.setCaseNum(leaveNum - flagNum);
+        return leaveCaseModel;
     }
 
 
@@ -1106,7 +1108,9 @@ public class CaseInfoService {
                     caseInfo.setHoldDays(0); //持案天数归0
                     caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1); //流转次数加一
                     caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
+                    caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
                     caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件标记为无色
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue());
                     //案件列表
                     caseInfoObjList.add(caseInfo);
                     //案件流转记录
