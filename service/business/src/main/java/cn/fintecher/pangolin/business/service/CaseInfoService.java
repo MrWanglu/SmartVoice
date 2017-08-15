@@ -120,9 +120,6 @@ public class CaseInfoService {
                         caseAssist.setOperator(tokenUser); //操作员
                         caseAssistRepository.saveAndFlush(caseAssist);
 
-                        //同步更新原案件协催状态
-                        caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //29-协催完成
-
                         //协催结束新增一条流转记录
                         CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
                         BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
@@ -663,6 +660,11 @@ public class CaseInfoService {
                         } else { //是协催案件
                             setAttribute(caseInfo, batchInfoModel.getCollectionUser(), tokenUser);
                         }
+                        //同步更新原案件协催员，协催方式，协催标识，协催状态
+                        caseInfo.setAssistCollector(null); //协催员置空
+                        caseInfo.setAssistWay(null); //协催方式置空
+                        caseInfo.setAssistFlag(0); //协催标识 0-否
+                        caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
                     } else { //没有协催标识
                         setAttribute(caseInfo, batchInfoModel.getCollectionUser(), tokenUser);
                     }

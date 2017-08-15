@@ -4,9 +4,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.persistence.Entity;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.util.Date;
 
@@ -45,6 +42,5 @@ public class CaseRepairRecord extends BaseEntity {
     private Date operatorTime;
 
     private String caseId;
-
 
 }
