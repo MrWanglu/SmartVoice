@@ -62,16 +62,16 @@ public class CaseTurnRecord {
     private Integer caseType;
 
     @ApiModelProperty(notes = "接受人名称")
-    private User receiveUserRealName;
+    private String receiveUserRealName;
 
     @ApiModelProperty(notes = "案件流转次数")
     private Integer followUpNum;
 
     @ApiModelProperty(notes = "接受部门名称")
-    private Department receiveDeptName;
+    private String receiveDeptName;
 
     @ApiModelProperty(notes = "操作员")
-    private User operatorUserName;
+    private String operatorUserName;
 
     @ApiModelProperty(notes = "操作时间")
     private Date operatorTime;
