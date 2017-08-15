@@ -27,8 +27,6 @@ public class CaseAssist extends BaseEntity {
     private String departId;
     @ApiModelProperty("协催持案天数")
     private Integer holdDays;
-    @ApiModelProperty("协催剩余天数")
-    private Integer leftDays;
     @ApiModelProperty("留案标志")
     private Integer leaveCaseFlag;
     @ApiModelProperty("已留案天数")
