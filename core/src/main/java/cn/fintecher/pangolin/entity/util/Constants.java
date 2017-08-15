@@ -86,6 +86,10 @@ public final class Constants {
     //系统参数请求
     public static final String SYSPARAM_URL = "http://business-service/api/sysParamResource";
 
+    //协催过期天数
+    public static final String TYPE_TEL = "0010";
+    public static final String ASSIST_APPLY_CODE = "SysParam.assistApplyOverday";
+
     /**
      * 数据来源
      */

@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import com.querydsl.core.BooleanBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -33,9 +34,6 @@ import static cn.fintecher.pangolin.entity.QCaseInfo.caseInfo;
 public class CaseInfoService {
     final Logger log = LoggerFactory.getLogger(CaseInfoService.class);
 
-    private static final String TYPE_TEL = "0010";
-
-    private static final String ASSIST_APPLY_CODE = "SysParam.assistApplyOverday";
 
     @Inject
     CaseInfoRepository caseInfoRepository;
@@ -457,7 +455,7 @@ public class CaseInfoService {
         }
         //获得失效日数
         QSysParam qSysParam = QSysParam.sysParam;
-        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(ASSIST_APPLY_CODE).and(qSysParam.type.eq(TYPE_TEL)).and(qSysParam.companyCode.eq(tokenUser.getCompanyCode())));
+        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.ASSIST_APPLY_CODE).and(qSysParam.type.eq(Constants.TYPE_TEL)).and(qSysParam.companyCode.eq(tokenUser.getCompanyCode())));
         if (Objects.isNull(sysParam)) {
             throw new RuntimeException("协催失效配置天数未找到");
         }
@@ -844,19 +842,38 @@ public class CaseInfoService {
     /**
      * @Descripion 留案操作
      */
-    public void leaveCase(String caseId, User tokenUser) {
-        CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
-        if (Objects.isNull(caseInfo)) {
-            throw new RuntimeException("该案件未找到");
-        }
-        if (!Objects.equals(caseInfo.getCurrentCollector(), tokenUser)) {
-            throw new RuntimeException("智能对自己所持有的案件进行留案操作");
-        }
-        Integer num = caseInfoRepository.getCaseCount(tokenUser.getId()); //获得所持有未结案的案件总数
+    public Long leaveCase(LeaveCaseParams leaveCaseParams, User tokenUser) {
+        //获得所持有未结案的案件总数
+        Integer caseNum = caseInfoRepository.getCaseCount(tokenUser.getId());
+
+        //查询已留案案件数
+        QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+        long flagNum = caseInfoRepository.count(qCaseInfo.currentCollector.id.eq(tokenUser.getId()).and(qCaseInfo.leaveCaseFlag.eq(1)));
 
         //获得留案比例
         QSysParam qSysParam = QSysParam.sysParam;
-//        SysParam sysParam = sysParamRepository.findOne(qSysParam.)
+        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_PHNOEFLOW_LEAVERATE).and(qSysParam.companyCode.eq(tokenUser.getCompanyCode())));
+        Double rate = Double.parseDouble(sysParam.getValue()) / 100;
+
+        //计算留案案件是否超过比例
+        Long leaveNum = Double.doubleToLongBits(caseNum * rate); //可留案的案件数
+        List<String> caseIds = leaveCaseParams.getCaseIds();
+        for (String caseId : caseIds) {
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+            if (Objects.isNull(caseInfo)) {
+                throw new RuntimeException("所选案件未找到");
+            }
+            if (!Objects.equals(caseInfo.getCurrentCollector(), tokenUser)) {
+                throw new RuntimeException("只能对自己所持有的案件进行留案操作");
+            }
+            if (flagNum > leaveNum) {
+                throw new RuntimeException("所选案件数量超过可留案案件数");
+            }
+            caseInfo.setLeaveCaseFlag(1);
+            caseInfoRepository.saveAndFlush(caseInfo);
+            flagNum++;
+        }
+        return leaveNum - flagNum;
     }
 
 
