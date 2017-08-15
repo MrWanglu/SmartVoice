@@ -4,9 +4,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.persistence.Entity;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.util.Date;
 
@@ -19,7 +16,6 @@ import java.util.Date;
 @Data
 @Table(name = "case_repair_record")
 public class CaseRepairRecord extends BaseEntity {
-public class CaseRepairRecord extends BaseEntity{
 
     @ApiModelProperty(notes = "修复文件id")
     private String id;
@@ -50,6 +46,5 @@ public class CaseRepairRecord extends BaseEntity{
     private CaseInfo caseInfo;*/
 
     private String caseId;
-
 
 }
