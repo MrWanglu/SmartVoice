@@ -843,13 +843,13 @@ public class CaseInfoService {
     /**
      * @Descripion 留案操作
      */
-    public Long leaveCase(LeaveCaseParams leaveCaseParams, User tokenUser) {
+    public Integer leaveCase(LeaveCaseParams leaveCaseParams, User tokenUser) {
         //获得所持有未结案的案件总数
         Integer caseNum = caseInfoRepository.getCaseCount(tokenUser.getId());
 
         //查询已留案案件数
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-        long flagNum = caseInfoRepository.count(qCaseInfo.currentCollector.id.eq(tokenUser.getId()).and(qCaseInfo.leaveCaseFlag.eq(1)));
+        int flagNum = (int)caseInfoRepository.count(qCaseInfo.currentCollector.id.eq(tokenUser.getId()).and(qCaseInfo.leaveCaseFlag.eq(1)));
 
         //获得留案比例
         QSysParam qSysParam = QSysParam.sysParam;
@@ -857,7 +857,7 @@ public class CaseInfoService {
         Double rate = Double.parseDouble(sysParam.getValue()) / 100;
 
         //计算留案案件是否超过比例
-        Long leaveNum = Double.doubleToLongBits(caseNum * rate); //可留案的案件数
+        Integer leaveNum = (int)(caseNum * rate); //可留案的案件数
         List<String> caseIds = leaveCaseParams.getCaseIds();
         for (String caseId : caseIds) {
             CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
