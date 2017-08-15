@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author : xiaqun
@@ -30,4 +31,9 @@ public class CaseFollowupParams {
     private Integer type; //跟进方式
     private Integer collectionWay; //催记方式 0-自动 1-手动
     private String companyCode; //公司code码
+    private List fileIds; //文件ID
+    private Integer addrType;//地址类型
+    private String detail;//详细地址
+    private String collectionLocation;//定位地址
+    private Integer contactState; //联系电话状态
 }
