@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.business.service;
 
 import cn.fintecher.pangolin.business.repository.ResourceRepository;
+import cn.fintecher.pangolin.business.repository.RoleRepository;
 import cn.fintecher.pangolin.entity.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,8 @@ public class ResourceService {
     final Logger log = LoggerFactory.getLogger(ResourceService.class);
     @Autowired
     private ResourceRepository resourceRepository;
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Cacheable(value = "resourceCache", key = "'petstore:resource:all'", unless = "#result==null")
     public List<Resource> findAll() {
@@ -27,7 +30,12 @@ public class ResourceService {
     }
 
     @Cacheable(value = "resourceCache", key = "'petstore:resource:all'", unless = "#result==null")
-    public Resource save(Resource object) {
-        return resourceRepository.save(object);
+    public void save(Resource object) {
+        resourceRepository.save(object);
+    }
+
+    @Cacheable(value = "resourceCache", key = "'petstore:resource:all'", unless = "#result==null")
+    public List<Resource> deleteResoByRoleId(String id) {
+        return roleRepository.deleteResoByRoleId(id);
     }
 }

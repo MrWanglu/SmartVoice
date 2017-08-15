@@ -146,8 +146,8 @@ public class DepartmentController extends BaseController {
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用,请重新输入名称")).body(null);
         }
-        if (!(Objects.equals(department.getParent().getType(), department.getType())) && Objects.nonNull(department.getParent().getType())) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The type is inconsistent", "父子机构类型不一致,不能修改")).body(null);
+        if (!(Objects.equals(department.getParent().getType(), department.getType())) && !(Objects.equals(department.getParent().getType(),User.Type.SYNTHESIZE.getValue()))) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The type is inconsistent", "父子机构不一致时，父机构的类型智能是综合管理")).body(null);
         }
         //status  状态 Eable(0)启用 Disable(1) 停用  机构的状态改变
         if (!(Objects.equals(department.getStatus(), dept.getStatus()))) {

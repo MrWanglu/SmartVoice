@@ -104,7 +104,8 @@ public class User extends BaseEntity {
         OUT(4, "委外催收"),
         INTILL(5, "智能催收"),
         REMINDER(6, "提醒催收"),
-        REPAIR(7, "修复管理");
+        REPAIR(7, "修复管理"),
+        SYNTHESIZE(196, "综合管理");
 
         private Integer value;
         private String name;

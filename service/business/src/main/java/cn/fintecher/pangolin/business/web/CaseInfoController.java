@@ -35,7 +35,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api/caseInfoController")
-@Api(value = "CaseInfoController",description = "案件操作")
+@Api(value = "CaseInfoController", description = "案件操作")
 public class CaseInfoController extends BaseController {
 
     private static final String ENTITY_NAME = "caseInfo";
@@ -108,7 +108,7 @@ public class CaseInfoController extends BaseController {
     }
 
     @GetMapping("/getAllBatchNumber")
-    @ApiOperation(value = "获取所有批次号",notes = "获取所有批次号")
+    @ApiOperation(value = "获取所有批次号", notes = "获取所有批次号")
     public ResponseEntity<List<String>> getAllBatchNumber(@RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to getAllBatchNumber");
         User user = null;
@@ -170,7 +170,7 @@ public class CaseInfoController extends BaseController {
     @PostMapping(value = "/distributeCeaseInfoAgain")
     @ApiOperation(value = "案件重新分配", notes = "案件重新分配")
     public ResponseEntity distributeCeaseInfoAgain(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
-                                                    @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to distributeCeaseInfoAgain");
         User user = null;
         try {
@@ -181,10 +181,10 @@ public class CaseInfoController extends BaseController {
         }
         try {
             caseInfoService.distributeCeaseInfoAgain(accCaseInfoDisModel, user);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功",ENTITY_NAME)).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController","distributeCeaseInfoAgain","系统错误!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "distributeCeaseInfoAgain", "系统错误!")).body(null);
         }
 
     }
@@ -194,5 +194,37 @@ public class CaseInfoController extends BaseController {
     public ResponseEntity<CaseInfo> getCaseInfoDetails(@RequestParam("id") String id) {
         CaseInfo caseInfo = caseInfoRepository.findOne(id);
         return ResponseEntity.ok().body(caseInfo);
+    }
+
+    @GetMapping("/getTelCaseInfo")
+    @ApiOperation(value = "分页查询电催案件", notes = "分页查询电催案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseInfo>> getTelCaseInfo(
+            @ApiIgnore Pageable pageable,
+            @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to getAllCaseInfo");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllCaseInfo", e.getMessage())).body(null);
+        }
+        try {
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            BooleanBuilder builder = new BooleanBuilder();
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllCaseInfo", "系统异常!")).body(null);
+        }
     }
 }
