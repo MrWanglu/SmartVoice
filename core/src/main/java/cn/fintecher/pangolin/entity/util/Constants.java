@@ -79,8 +79,12 @@ public final class Constants {
     public static final String DAILY_RESULT_REPORT_EXCEL_URL_CODE = "SysParam.dailyresultreportexcelurl";
     public static final String DAILY_RESULT_REPORT_EXCEL_URL_TYPE = "0014";
 
+    //案件导入excel模板url
+    public static final String CASE_IMPORT_TEMPLATE_URL_CODE = "SysParam.caseimportexcelurl";
+    public static final String CASE_IMPORT_TEMPLATE_URL_TYPE = "9004";
+
     //系统参数请求
-    public static final String SYSPARAM_URL = "http://business-service/api/sysParamResource/";
+    public static final String SYSPARAM_URL = "http://business-service/api/sysParamResource";
 
     /**
      * 数据来源
@@ -103,5 +107,76 @@ public final class Constants {
             return remark;
         }
     }
+
+    /**
+     * 晚间批量任务调度
+     */
+    public final static String OVERNIGHT_TRIGGER_GROUP="overNightTriggerGroup";
+    public final static String OVERNIGHT_TRIGGER_NAME="overNightTriggerName";
+    public final static String OVERNIGHT_TRIGGER_DESC="晚间批量触发器";
+    public final static String OVERNIGHT_JOB_GROUP="OverNightJobGroup";
+    public final static String OVERNIGHT_JOB_NAME="OverNightJobName";
+    public final static String OVERNIGHT_JOB_DESC="晚间批量";
+    public final static String SYSPARAM_OVERNIGHT="SysParam.overNight";
+    public final static String SYSPARAM_OVERNIGHT_STATUS="Sysparam.overnight.status";
+    public final static String SYSPARAM_OVERNIGHT_STEP="Sysparam.overnight.step";
+
+
+    /**
+     * 录音下载调度
+     */
+    public final static String RECORD_TRIGGER_GROUP="recordTriggerGroup";
+    public final static String RECORD_TRIGGER_NAME="recordTriggerName";
+    public final static String RECORD_TRIGGER_DESC="录音下载触发器";
+    public final static String RECORD_JOB_GROUP="recordJobGroup";
+    public final static String RECORD_JOB_NAME="recordJobName";
+    public final static String RECORD_JOB_DESC="录音下载批量";
+    public final static String SYSPARAM_RECORD="Sysparam.record";
+    public final static String SYSPARAM_RECORD_STATUS="Sysparam.record.status";
+
+    /**
+     * 批量执行状态
+     */
+    public enum BatchStatus{
+        STOP("0","未执行"),RUNING("1","正在执行");
+
+        String value;
+        String code;
+
+        BatchStatus(String value, String code) {
+            this.value = value;
+            this.code = code;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public String getCode() {
+            return code;
+        }
+    }
+
+    /**电催小流转**/
+    public final static String SYS_PHNOEFLOW_SMALLDAYS="sys.phnoeFlow.smallDays" ;
+    /**电催大流转**/
+    public final static String SYS_PHNOEFLOW_BIGDAYS="sys.phnoeFlow.bigDays" ;
+    /**电催留案流转**/
+    public final static String SYS_PHNOEFLOW_LEAVEDAYS="sys.phnoeFlow.leaveDays";
+    /**电催留案比例**/
+    public final static String SYS_PHNOEFLOW_LEAVERATE="sys.phnoeFlow.leaveRate";
+    /**电催审批失效天数**/
+    public final static String SYS_PHNOEFLOW_ADVANCEDAYS="sys.phnoeFlow.advanceDays";
+
+    /**外访小流转**/
+    public final static String SYS_OUTBOUNDFLOW_SMALLDAYS="sys.outboundFlow.smallDays" ;
+    /**外访大流转**/
+    public final static String SYS_OUTBOUNDFLOW_BIGDAYS="sys.outboundFlow.bigDays" ;
+    /**外访留案流转**/
+    public final static String SYS_OUTBOUNDFLOW_LEAVEDAYS="sys.outboundFlow.leaveDays";
+    /**外访留案比例**/
+    public final static String SYS_OUTBOUNDFLOW_LEAVERATE="sys.outboundflow.leaveRate";
+    /**外访审批失效天数**/
+    public final static String SYS_OUTBOUNDFLOW_ADVANCEDAYS="sys.outboundFlow.advanceDays";
 
 }

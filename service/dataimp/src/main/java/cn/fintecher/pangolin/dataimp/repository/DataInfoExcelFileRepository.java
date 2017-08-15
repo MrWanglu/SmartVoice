@@ -7,6 +7,8 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 
+import java.util.List;
+
 /**
  * @Author: PeiShouWen
  * @Description:
@@ -16,4 +18,10 @@ public interface DataInfoExcelFileRepository extends MongoRepository<DataInfoExc
         QuerydslBinderCustomizer<QDataInfoExcelFile> {
     @Override
     default void customize(final QuerydslBindings bindings, final QDataInfoExcelFile root) {}
+
+    /**
+     * 根据案件编号和公司code查找导入案件附件
+     * @return
+     */
+    List<DataInfoExcelFile> findByBatchNumberAndCompanyCode(String batchNumber, String companyCode);
 }

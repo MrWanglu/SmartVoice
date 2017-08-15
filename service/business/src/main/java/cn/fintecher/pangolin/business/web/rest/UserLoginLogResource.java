@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
 import java.net.URI;
@@ -22,6 +23,7 @@ import java.util.Optional;
  * @Description : 用户登录日志
  * @Date : 2017/8/7.
  */
+@ApiIgnore
 @RestController
 @RequestMapping("/api/userLoginLogResource")
 @Api(value = "UserLoginLogResource", description = "用户登录日志")

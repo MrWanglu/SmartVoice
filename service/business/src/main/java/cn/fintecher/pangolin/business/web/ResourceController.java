@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.business.model.ResAddRole;
 import cn.fintecher.pangolin.business.repository.ResourceRepository;
 import cn.fintecher.pangolin.business.repository.RoleRepository;
 import cn.fintecher.pangolin.business.service.DataDictService;
+import cn.fintecher.pangolin.business.service.ResourceService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -41,6 +42,8 @@ public class ResourceController extends BaseController {
     DataDictService dataDictService;
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private ResourceService resourceService;
 
     /**
      * @Description : 资源的level属性
@@ -106,7 +109,7 @@ public class ResourceController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "Can't add without permission", "没有权限不能添加")).body(null);
         }
-        Resource result = resourceRepository.save(resource);
+        Resource result = resourceService.save(resource);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(result);
     }
 
@@ -133,7 +136,7 @@ public class ResourceController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "Can't add without permission", "没有权限不能添加")).body(null);
         }
-        Resource result = resourceRepository.save(resource);
+        Resource result = resourceService.save(resource);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(result);
     }
 
@@ -147,7 +150,7 @@ public class ResourceController extends BaseController {
         String code = String.valueOf(list.hashCode());
         Map<String, String> map = new HashMap<String, String>();
         map.put("resourceHashCode", code);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功",ENTITY_NAME)).body(map);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(map);
     }
 
     /**
@@ -156,7 +159,7 @@ public class ResourceController extends BaseController {
     @GetMapping(value = "/getAllResource")
     @ApiOperation(value = "获取所有资源", notes = "获取所有资源")
     public ResponseEntity<List<Resource>> getAllResource() {
-        List<Resource> list = resourceRepository.findAll();
+        List<Resource> list = resourceService.findAll();
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(list);
     }
 
@@ -175,7 +178,7 @@ public class ResourceController extends BaseController {
         List<Resource> resources = resourceRepository.findAll(request.getResoIds());
         for (Resource resource : resources) {
             resource.getRoles().add(role);
-            resourceRepository.save(resource);
+            resourceService.save(resource);
         }
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
     }

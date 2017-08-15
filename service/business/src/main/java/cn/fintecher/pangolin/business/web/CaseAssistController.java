@@ -191,7 +191,7 @@ public class CaseAssistController extends BaseController {
         }
     }
 
-    @PostMapping("/assistCaseMarkColor")
+    @PutMapping("/assistCaseMarkColor")
     @ApiOperation(value = "协催案件颜色打标", notes = "协催案件颜色打标")
     public ResponseEntity<Void> assistCaseMarkColor(@RequestBody AssistCaseMarkParams caseMarkParams,
                                                           @RequestHeader(value = "X-UserToken") String token) {
@@ -204,18 +204,18 @@ public class CaseAssistController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistCaseMarkColor", e.getMessage())).body(null);
         }
         try {
-            List<CaseAssist> all = caseAssistRepository.findAll(caseMarkParams.getAssistIds());
-            if (all.isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistCaseMarkColor", "协催案件未找到")).body(null);
+            List<String> assistIds = caseMarkParams.getAssistIds();
+            if (assistIds.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "assistCaseMarkColor", "请选择要打标的案件!")).body(null);
             }
-            List<CaseAssist> saveList = new ArrayList<>();
-            for (CaseAssist caseAssist : all) {
+            for (String id : assistIds) {
+                CaseAssist caseAssist = caseAssistRepository.findOne(id);
                 caseAssist.setMarkId(caseMarkParams.getMarkId()); //打标
                 caseAssist.setOperator(user); //操作人
                 caseAssist.setOperatorTime(new Date()); //操作时间
-                saveList.add(caseAssist);
+                caseAssistRepository.saveAndFlush(caseAssist);
             }
-            caseAssistRepository.save(saveList);
+
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("打标成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -531,7 +531,8 @@ public class CaseAssistController extends BaseController {
     @ApiOperation(value = "多条件查询协催已处理记录", notes = "多条件查询协催已处理记录")
     public ResponseEntity<Page<CaseAssist>> getAllRecordAssistCase(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
                                                                    @ApiIgnore Pageable pageable,
-                                                                   @RequestHeader(value = "X-UserToken") String token) {
+                                                                   @RequestHeader(value = "X-UserToken") String token,
+                                                                   @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         log.debug("REST request to getAllRecordAssistCase");
         User user = null;
         try {
@@ -544,7 +545,12 @@ public class CaseAssistController extends BaseController {
             List<Department> departments = departmentService.querySonDepartment(user); //是否有子部门
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
-            exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
+            // 超级管理员 权限
+            if (Objects.equals(user.getUserName(), "administrator")) {
+                exp.and(qCaseAssist.companyCode.eq(companyCode));
+            } else {
+                exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
+            }
             Page<CaseAssist> page = null;
             if (departments.isEmpty()) {
                 exp.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
@@ -566,7 +572,8 @@ public class CaseAssistController extends BaseController {
     @ApiOperation(value = "获取所有协催案件", notes = "获取所有协催案件")
     public ResponseEntity<Page<CaseAssist>> findAllCaseAssist(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
                                                               @ApiIgnore Pageable pageable,
-                                                              @RequestHeader(value = "X-UserToken") String token) {
+                                                              @RequestHeader(value = "X-UserToken") String token,
+                                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         log.debug("Rest request to findAllCaseAssist");
         User user = null;
         try {
@@ -576,10 +583,16 @@ public class CaseAssistController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "findAllCaseAssist", e.getMessage())).body(null);
         }
         try {
+
             List<Department> departments = departmentService.querySonDepartment(user); //是否有子部门
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
-            exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
+            // 超级管理员 权限
+            if (Objects.equals(user.getUserName(), "administrator")) {
+                exp.and(qCaseAssist.companyCode.eq(companyCode));
+            } else {
+                exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
+            }
             Page<CaseAssist> page = null;
             if (departments.isEmpty()) {
                 // 过滤掉协催结束的协催案件

@@ -20,4 +20,11 @@ public interface PrincipalRepository extends QueryDslPredicateExecutor<Principal
         bindings.bind(String.class).first((StringPath path, String value) -> path.containsIgnoreCase(value));
 //        bindings.bind(root.domain.id).first((path, value) -> path.like(value));
     }
+
+    /**
+     * 根据委托方编码获取委托方
+     * @param code
+     * @return
+     */
+    Principal findByCode(String code);
 }

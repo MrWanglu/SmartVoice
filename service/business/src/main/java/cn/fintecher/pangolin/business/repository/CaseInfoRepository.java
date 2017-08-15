@@ -4,6 +4,7 @@ package cn.fintecher.pangolin.business.repository;
 import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.QCaseInfo;
 import com.querydsl.core.types.dsl.StringPath;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
@@ -12,9 +13,7 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by ChenChang on 2017/7/11.
@@ -121,6 +120,20 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
         bindings.bind(root.area.id).first((path, value) -> path.eq(value));
         //标记颜色
         bindings.bind(root.caseMark).first((path, value) -> path.eq(value));
+        //还款状态
+        List<String> list = new ArrayList<>();
+        list.add("M1");
+        list.add("M2");
+        list.add("M3");
+        list.add("M4");
+        list.add("M5");
+        bindings.bind(root.payStatus).first((path, value) -> {
+            if (Objects.equals(StringUtils.trim(value), CaseInfo.PayStatus.M6_PLUS.getRemark())) {
+                return path.notIn(list);
+            } else {
+                return path.eq(value);
+            }
+        });
     }
 
     /**

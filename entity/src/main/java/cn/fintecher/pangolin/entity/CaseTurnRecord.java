@@ -3,10 +3,7 @@ package cn.fintecher.pangolin.entity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -19,7 +16,12 @@ import java.util.Date;
 @Entity
 @Table(name = "case_turn_record")
 @Data
-public class CaseTurnRecord extends BaseEntity {
+public class CaseTurnRecord {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @ApiModelProperty(notes = "主键ID")
+    private Integer id;
+
     @ApiModelProperty(notes = "案件ID")
     private String caseId;
 

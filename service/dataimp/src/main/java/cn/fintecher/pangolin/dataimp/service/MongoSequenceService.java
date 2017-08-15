@@ -49,4 +49,5 @@ public class MongoSequenceService {
         String seq= ZWStringUtils.formatString(seqStr,mongoSequence.getLength(),3);
         return nowDate.concat(seq);
     }
+
 }

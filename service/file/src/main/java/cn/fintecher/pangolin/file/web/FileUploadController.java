@@ -1,10 +1,10 @@
 package cn.fintecher.pangolin.file.web;
 
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.message.ImportFileUploadSuccessMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.file.model.UnZipCaseFileRequest;
-import cn.fintecher.pangolin.file.model.User;
 import cn.fintecher.pangolin.file.repository.UploadFileRepository;
 import cn.fintecher.pangolin.file.service.UploadFileService;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -66,14 +66,19 @@ public class FileUploadController {
         if (StringUtils.isBlank(request.getBatchNum())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createAlert("批次号是空的", "")).body(null);
         }
-        ResponseEntity<User> entity = restTemplate.getForEntity("http://organization-service/api/userResource/getUserByToken?token=" + token, User.class);
-        User user = entity.getBody();
+        ResponseEntity<User> userResponseEntity=null;
+        try {
+            userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+        }catch (Exception e){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", "")).body(null);
+        }
+        User user = userResponseEntity.getBody();
         UploadFile uploadFile = uploadFileRepository.findOne(request.getUploadFile());
         ImportFileUploadSuccessMessage message = new ImportFileUploadSuccessMessage();
         message.setBatchNum(request.getBatchNum());
         message.setUploadFile(uploadFile);
         message.setUserName(user.getUserName());
-        message.setUserId(user.getUserId());
+        message.setUserId(user.getId());
         rabbitTemplate.convertAndSend("mr.cui.file.import.upload.success", message);
         return ResponseEntity.ok(uploadFile);
     }

@@ -86,7 +86,7 @@ public class ProcessDataInfoExcelService {
         QCaseInfoDistributed qCaseInfoDistributed=QCaseInfoDistributed.caseInfoDistributed;
         Iterable<CaseInfoDistributed> caseInfoDistributedIterable=caseInfoDistributedRepository.findAll(qCaseInfoDistributed.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
                                               .and(qCaseInfoDistributed.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
-                                              .and(qCaseInfoDistributed.principalId.id.eq(dataInfoExcelModel.getPrinCode()))
+                                              .and(qCaseInfoDistributed.principalId.code.eq(dataInfoExcelModel.getPrinCode()))
                                               .and(qCaseInfoDistributed.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
                                               .and(qCaseInfoDistributed.companyCode.eq(dataInfoExcelModel.getCompanyCode())));
         if(caseInfoDistributedIterable.iterator().hasNext()){
@@ -211,7 +211,7 @@ public class ProcessDataInfoExcelService {
         caseInfoDistributed.setLatelyPayAmount(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getLatelyPayAmount(),null,null));
         caseInfoDistributed.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());
         caseInfoDistributed.setPayStatus(dataInfoExcelModel.getPaymentStatus());
-        caseInfoDistributed.setPrincipalId(principalRepository.findOne(dataInfoExcelModel.getPrinCode()));
+        caseInfoDistributed.setPrincipalId(principalRepository.findByCode(dataInfoExcelModel.getPrinCode()));
         caseInfoDistributed.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue());
         caseInfoDistributed.setDelegationDate(dataInfoExcelModel.getDelegationDate());
         caseInfoDistributed.setCloseDate(dataInfoExcelModel.getCloseDate());
@@ -224,6 +224,7 @@ public class ProcessDataInfoExcelService {
         caseInfoDistributed.setOperator(user);
         caseInfoDistributed.setOperatorTime(ZWDateUtil.getNowDateTime());
         caseInfoDistributed.setCompanyCode(dataInfoExcelModel.getCompanyCode());
+        caseInfoDistributed.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件颜色标记
         return caseInfoDistributed;
     }
 
@@ -549,10 +550,14 @@ public class ProcessDataInfoExcelService {
         String province=null;
         if(Objects.isNull(dataInfoExcelModel.getProvince())){
             province="";
+        } else {
+            province = dataInfoExcelModel.getProvince();
         }
         String city=null;
         if(Objects.isNull(dataInfoExcelModel.getCity())){
             city="";
+        } else {
+            city =dataInfoExcelModel.getProvince();
         }
         //现居住地地址
         if(addr.startsWith(province)){

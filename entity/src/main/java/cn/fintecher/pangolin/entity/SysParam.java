@@ -40,4 +40,24 @@ public class SysParam extends BaseEntity {
     private String remark;
     @ApiModelProperty("备用字段")
     private String field;
+
+    /**
+     * 参数启用停用
+     */
+    public enum StatusEnum{
+        Start(0,"启用"),Stop(1,"停用");
+        Integer value;
+        String  code;
+        StatusEnum(Integer value,String code){
+            this.value=value;
+            this.code=code;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+        public String getCode() {
+            return code;
+        }
+    }
 }

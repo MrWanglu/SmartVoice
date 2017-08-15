@@ -13,6 +13,7 @@ import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.MD5;
 import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -120,8 +121,8 @@ public class UserController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user password parameters abnormality", "用户密码参数异常")).body(null);
         }
         String hashedPassword;
-        if (Objects.nonNull(sysParamsPassword)&& Objects.equals(Status.Enable.getValue(), sysParamsNumber.getStatus())) {
-            hashedPassword = passwordEncoder.encode(sysParamsPassword.getValue());
+        if (Objects.nonNull(sysParamsPassword) && Objects.equals(Status.Enable.getValue(), sysParamsNumber.getStatus())) {
+            hashedPassword = passwordEncoder.encode(MD5.MD5Encode(sysParamsPassword.getValue()));
         } else {
             //默认密码888888
             hashedPassword = passwordEncoder.encode(Constants.RET_PASSWORD);
@@ -134,7 +135,7 @@ public class UserController extends BaseController {
         user.setPassword(hashedPassword);
         user.setOperator(userToken.getUserName());
         user.setOperateTime(ZWDateUtil.getNowDateTime());
-        User userReturn = userRepository.save(user);
+        User userReturn = userService.save(user);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(userReturn);
     }
 
@@ -173,7 +174,7 @@ public class UserController extends BaseController {
         if (Objects.equals(Status.Disable.getValue(), department.getStatus())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department for the disabled state, can not add user", "该部门为停用状态，不能添加用户")).body(null);
         }
-        User updateUser = userRepository.save(user);
+        User updateUser = userService.save(user);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(updateUser);
     }
 
@@ -187,7 +188,7 @@ public class UserController extends BaseController {
         user.setRoles(new HashSet<>());
         List<Role> roles = roleRepository.findAll(request.getRoleIds());
         user.getRoles().addAll(roles);
-        User userReturn = userRepository.save(user);
+        User userReturn = userService.save(user);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(userReturn);
     }
 
@@ -202,7 +203,7 @@ public class UserController extends BaseController {
         for (User user : users) {
             user.setRoles(new HashSet<>());
             user.getRoles().addAll(roles);
-            userRepository.save(user);
+            userService.save(user);
         }
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
     }

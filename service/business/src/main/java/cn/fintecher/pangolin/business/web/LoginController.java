@@ -1,22 +1,26 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.UpdatePassword;
+import cn.fintecher.pangolin.business.model.UserDeviceReset;
 import cn.fintecher.pangolin.business.model.UserLoginResponse;
+import cn.fintecher.pangolin.business.repository.RoleRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.business.session.SessionStore;
-import cn.fintecher.pangolin.entity.QSysParam;
-import cn.fintecher.pangolin.entity.SysParam;
-import cn.fintecher.pangolin.entity.User;
-import cn.fintecher.pangolin.entity.UserLoginRequest;
+import cn.fintecher.pangolin.business.utils.GetClientIp;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.MD5;
 import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -28,6 +32,9 @@ import javax.servlet.http.HttpSession;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Set;
+
+import static cn.fintecher.pangolin.entity.util.Constants.ADMIN_ROLE_ID;
 
 /**
  * @Author: PeiShouWen
@@ -38,11 +45,38 @@ import java.util.Objects;
 @RequestMapping("/api/login")
 @Api(value = "登录相关", description = "登陆相关")
 public class LoginController extends BaseController {
+    private final Logger logger = LoggerFactory.getLogger(UserController.class);
     private static final String ENTITY_NAME = "login";
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    UserService userService;
+
     @Autowired
     private SysParamRepository sysParamRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    /**
+     * 无MD5加密用户登录 开发使用
+     */
+    @GetMapping("/getUserByToken")
+    @ApiOperation(value = "通过token获取用户信息", notes = "通过token获取用户信息")
+    public ResponseEntity<User> getUserToken(@RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = super.getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "该用户不存在")).body(null);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(user);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "该用户不存在")).body(null);
+        }
+    }
 
     /**
      * 无MD5加密用户登录 开发使用
@@ -77,10 +111,46 @@ public class LoginController extends BaseController {
             UserLoginResponse response = new UserLoginResponse();
             response.setUser(user);
             response.setToken(session.getId());
+            Set<UserDevice> userDevices = user.getUserDevices();
+            for (UserDevice userDevice : userDevices) {
+                // 是否开启验证设备
+                if (Objects.equals(userDevice.getValidate(), Status.Enable.getValue())) {
+                    // 是否启用设备锁
+                    if (Objects.equals(userDevice.getStatus(), Status.Enable.getValue())) {
+                        if (Objects.equals(loginRequest.getUsdeType(),userDevice.getType())) {
+                            if (Objects.equals(loginRequest.getUsdeType(), Status.Enable.getValue())) {
+                                String ip = GetClientIp.getIp(request);
+                                if (ZWStringUtils.isEmpty(userDevice.getCode())) {
+                                    // 判断用户请求的设备状态(PC端：0，移动端：1)
+                                    loginRequest.setUsdeCode(ip);
+                                    userDevice.setCode(ip);
+                                } else {
+                                    if (Objects.equals(ip, userDevice.getCode())) {
+                                        return ResponseEntity.ok().headers(HeaderUtil.createAlert("设备锁验证正确", ENTITY_NAME)).body(response);
+                                    } else {
+                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "deviceKey failure", "本次登录和上次登录地址不一致！")).body(null);
+                                    }
+                                }
+                            } else {
+                                if (ZWStringUtils.isEmpty(userDevice.getCode())) {
+                                    userDevice.setCode(loginRequest.getUsdeCode());
+                                } else {
+                                    if (Objects.equals(loginRequest.getUsdeCode(), userDevice.getCode())) {
+                                        return ResponseEntity.ok().headers(HeaderUtil.createAlert("设备锁验证正确", ENTITY_NAME)).body(response);
+                                    } else {
+                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "deviceKey failure", "本次登录和上次登录地址不一致！")).body(null);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            userService.save(user);
             //用户设定修改密码的时间限制
             if (Objects.isNull(user.getPasswordInvalidTime())) {
                 user.setPasswordInvalidTime(ZWDateUtil.getNowDateTime());
-                userRepository.save(user);
+                userService.save(user);
                 response.setReset(false);
             } else {
                 //登录的密码设定的时间限制
@@ -118,21 +188,10 @@ public class LoginController extends BaseController {
                 }
             }
             SessionStore.getInstance().addUser(session.getId(), session);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功",ENTITY_NAME)).body(response);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(response);
         } else {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "wrong password", "密码错误")).body(null);
         }
-    }
-
-    /**
-     * @Description : 注销用户
-     */
-    @RequestMapping(value = "/logout", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-    @ApiOperation(value = "注销", notes = "注销")
-    public ResponseEntity logout(@RequestParam String token, HttpServletRequest request) {
-        request.getSession().removeAttribute(Constants.SESSION_USER);
-        SessionStore.getInstance().removeUser(request.getSession().getId());
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Cancellation of success", "注销成功")).body(request);
     }
 
     /**
@@ -162,7 +221,7 @@ public class LoginController extends BaseController {
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setPasswordInvalidTime(ZWDateUtil.getNowDateTime());
-        User user1 = userRepository.save(user);
+        User user1 = userService.save(user);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Change the password successfully", "修改密码成功")).body(user1);
 
     }
@@ -193,12 +252,76 @@ public class LoginController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "To reset the password parameter abnormalities", "重置密码参数异常")).body(null);
         }
         if (Objects.nonNull(sysParamsPassword) && Objects.equals(Status.Enable.getValue(), sysParamsPassword.getStatus())) {
-            user.setPassword(passwordEncoder.encode(sysParamsPassword.getValue()));
+            user.setPassword(passwordEncoder.encode(MD5.MD5Encode(sysParamsPassword.getValue())));
         } else {
             userOld.setPassword(passwordEncoder.encode(Constants.LOGIN_RET_PASSWORD));
         }
         userOld.setPasswordInvalidTime(ZWDateUtil.getNowDateTime());
-        User userReturn = userRepository.save(userOld);
+        User userReturn = userService.save(userOld);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Password reset successfully", "重置密码成功")).body(userReturn);
+    }
+
+    /**
+     * @Description :启用/禁用设备
+     */
+    @RequestMapping(value = "/disableDevice", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ApiOperation(value = "启用/禁用设备", notes = "启用/禁用设备")
+    public ResponseEntity<User> disableDevice(@Validated @RequestBody @ApiParam("启用/禁用设备") UserDeviceReset request,
+                                              @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "用户未登录")).body(null);
+        }
+        if (Objects.isNull(user)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
+        }
+        userService.resetDeviceStatus(request);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("禁用设备操作成功","operator successfully")).body(user);
+    }
+
+    /**
+     * @Description : 启用/停用设备锁
+     */
+    @RequestMapping(value = "/enableDeviceKey", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ApiOperation(value = "启用/停用设备锁", notes = "启用/停用设备锁")
+    public ResponseEntity<User> enableDeviceKey(@Validated @RequestBody @ApiParam("启用/停用设备锁") UserDeviceReset request,
+                                                @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "用户未登录")).body(null);
+        }
+        if (Objects.isNull(user)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
+        }
+        userService.resetDeviceValidate(request);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("启用设备锁操作成功","operator successfully")).body(user);
+    }
+
+
+    /**
+     * @Description : 重置设备
+     */
+    @RequestMapping(value = "/resetDevice", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ApiOperation(value = "重置设备", notes = "重置设备")
+    public ResponseEntity<User> resetDevice(@Validated @RequestBody @ApiParam("重置设备") UserDeviceReset request,
+                                            @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "用户未登录")).body(null);
+        }
+        if (Objects.isNull(user)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
+        }
+        userService.resetDeviceCode(request);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("重置设备操作成功","operator successfully")).body(user);
     }
 }

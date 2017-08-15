@@ -8,6 +8,7 @@ import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @Author: PeiShouWen
@@ -43,4 +44,10 @@ public interface DataInfoExcelRepository extends MongoRepository<DataInfoExcel, 
         });
         bindings.bind(root.mobileNo).first((path, value) -> path.eq(value));
     }
+
+    /**
+     * 根据案件编号和公司code查找导入案件
+     * @return
+     */
+    List<DataInfoExcel> findByBatchNumberAndCompanyCode(String batchNumber, String companyCode);
 }

@@ -11,7 +11,7 @@ spring:
         serialization.indent_output: true
     data:
         mongodb:
-            uri: mongodb://192.168.3.5:27017
+            uri: mongodb://192.168.3.8:27017
             database: pangolin_common_db_test
     rabbitmq:
         username: test
@@ -61,13 +61,13 @@ pangolin:
     sysNumber: cuibei_business
     seed: zzl_apt
     verificationCode: 123654
-    zhongtong-server:
-        cti: http://m.icsoc.net/v2/wintelapi/webcall/cti
-        webCall1800: http://m.icsoc.net/v2/wintelapi/webcall/webcall800
-        callout: http://m.icsoc.net/v2/wintelapi/detail/callout
-        downloadrRecord: http://m.icsoc.net/v2/wintelapi/record/playrecord
-        enterprise-code: 4216052701
-        proceedSign: 59715406
-        secret: 6b21a1c997dcea6a20c3181677c20744
+  zhongtong-server:
+      cti: http://m.icsoc.net/v2/wintelapi/webcall/cti
+      webCall1800: http://m.icsoc.net/v2/wintelapi/webcall/webcall800
+      callout: http://m.icsoc.net/v2/wintelapi/detail/callout
+      downloadrRecord: http://m.icsoc.net/v2/wintelapi/record/playrecord
+      enterprise-code: 4216052701
+      proceedSign: 59715406
+      secret: 6b21a1c997dcea6a20c3181677c20744
 server:
     port: 9002

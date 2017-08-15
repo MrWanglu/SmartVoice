@@ -16,6 +16,9 @@ public class CaseRepairRequest {
     /** 文件的id集合 */
     private List<String> fileIds;
 
+    /** 修复说明 */
+    private String repairMemo;
+
     private String id;
 
 }

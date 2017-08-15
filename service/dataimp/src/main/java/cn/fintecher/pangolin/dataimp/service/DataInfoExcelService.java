@@ -21,6 +21,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -33,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+
+import static cn.fintecher.pangolin.dataimp.entity.QDataInfoExcel.dataInfoExcel;
 
 /**
  * @Author: PeiShouWen
@@ -191,7 +194,7 @@ public class DataInfoExcelService {
      */
     public List<String> queryBatchNumGroup(User user) {
         Query query = new Query();
-        query.addCriteria(Criteria.where("creator").is(user.getUserName()));
+        query.addCriteria(Criteria.where("operator").is(user.getId()));
         List<String> batchNumList = mongoTemplate.getCollection("dataInfoExcel")
                 .distinct("batchNumber", query.getQueryObject());
         return batchNumList;
@@ -209,16 +212,18 @@ public class DataInfoExcelService {
         obj.setBatchNumber(upLoadFileModel.getBatchNumber());
         obj.setOperator(user.getId());
         obj.setCompanyCode(user.getCompanyCode());
-        dataInfoExcelFileRepository.delete(obj);
+        Example<DataInfoExcelFile> example = Example.of(obj);
+        List<DataInfoExcelFile> all = dataInfoExcelFileRepository.findAll(example);
+        dataInfoExcelFileRepository.delete(all);
         List<String> fileIdList = upLoadFileModel.getFileIdList();
         if(!fileIdList.isEmpty()){
             StringBuilder sb=new StringBuilder();
             for (String id : fileIdList) {
                 sb.append(id).append(",");
             }
-            String ids=fileIdList.subList(0,fileIdList.lastIndexOf(",")).toString();
+            String ids=sb.toString();
             ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>(){};
-            ResponseEntity<List<UploadFile>> resp = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("getAllUploadFileByIds/").concat(ids),
+            ResponseEntity<List<UploadFile>> resp = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(ids),
                     HttpMethod.GET, null, responseType);
             List<UploadFile> uploadFileList=resp.getBody();
             List<DataInfoExcelFile> dataInfoExcelFiles=new ArrayList<>();
@@ -248,15 +253,11 @@ public class DataInfoExcelService {
      */
     public void deleteCasesByBatchNum(String batchNumber, User user)  {
         //删除案件信息
-        DataInfoExcel dataInfoExcel = new DataInfoExcel();
-        dataInfoExcel.setBatchNumber(batchNumber);
-        dataInfoExcel.setCompanyCode(user.getCompanyCode());
-        dataInfoExcelRepository.delete(dataInfoExcel);
+        List<DataInfoExcel> dataInfoExcels = dataInfoExcelRepository.findByBatchNumberAndCompanyCode(batchNumber, user.getCompanyCode());
+        dataInfoExcelRepository.delete(dataInfoExcels);
         //删除附件信息
-        DataInfoExcelFile dataInfoExcelFile=new DataInfoExcelFile();
-        dataInfoExcelFile.setCompanyCode(user.getCompanyCode());
-        dataInfoExcelFile.setBatchNumber(batchNumber);
-        dataInfoExcelFileRepository.delete(dataInfoExcelFile);
+        List<DataInfoExcelFile> dataInfoExcelFiles = dataInfoExcelFileRepository.findByBatchNumberAndCompanyCode(batchNumber, user.getCompanyCode());
+        dataInfoExcelFileRepository.delete(dataInfoExcelFiles);
     }
 
     /**
@@ -266,8 +267,8 @@ public class DataInfoExcelService {
      */
     public List<DataInfoExcelFileExist> checkCasesFile(User user)  {
         List<DataInfoExcelFileExist> dataInfoExcelFileExistList=new ArrayList<>();
-        QDataInfoExcel qDataInfoExcel=QDataInfoExcel.dataInfoExcel;
-        Iterable<DataInfoExcel> dataInfoExcelIterable=dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getOperator())
+        QDataInfoExcel qDataInfoExcel= dataInfoExcel;
+        Iterable<DataInfoExcel> dataInfoExcelIterable=dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId())
                 .and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
         for(Iterator<DataInfoExcel> it = dataInfoExcelIterable.iterator(); it.hasNext();){
             DataInfoExcel dataInfoExcel=it.next();
@@ -292,7 +293,7 @@ public class DataInfoExcelService {
      */
     public void casesConfirmByBatchNum(User user){
         //查询该用户下所有未确认的案件
-        QDataInfoExcel qDataInfoExcel=QDataInfoExcel.dataInfoExcel;
+        QDataInfoExcel qDataInfoExcel= dataInfoExcel;
         Iterable<DataInfoExcel> dataInfoExcelIterable= dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId()).and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
         int dataTotal=0;
         for (Iterator iterator = dataInfoExcelIterable.iterator(); iterator.hasNext();) {

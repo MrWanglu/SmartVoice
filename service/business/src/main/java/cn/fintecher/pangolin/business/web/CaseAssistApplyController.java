@@ -60,7 +60,8 @@ public class CaseAssistApplyController extends BaseController {
     @ApiOperation(value = "外访审批协催申请页面条件查询", notes = "外访审批协催申请页面条件查询")
     public ResponseEntity<Page<CaseAssistApply>> findAllTelPassedApply(@QuerydslPredicate Predicate predicate,
                                                                        @ApiIgnore Pageable pageable,
-                                                                       @RequestHeader(value = "X-UserToken") String token) {
+                                                                       @RequestHeader(value = "X-UserToken") String token,
+                                                                       @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         log.debug("Rest request get all tel passed apply");
         User user = null;
         try {
@@ -73,7 +74,12 @@ public class CaseAssistApplyController extends BaseController {
             QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
             // 查出所有电催审批通过的
             BooleanBuilder exp = new BooleanBuilder(predicate);
-            exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));
+            // 超级管理员 权限
+            if (Objects.equals(user.getUserName(), "administrator")) {
+                exp.and(qCaseAssistApply.companyCode.eq(companyCode));
+            } else {
+                exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));
+            }
             exp.and(qCaseAssistApply.approvePhoneResult.eq(CaseAssistApply.ApproveResult.TEL_PASS.getValue()));
             Page<CaseAssistApply> page = caseAssistApplyRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);
@@ -87,7 +93,8 @@ public class CaseAssistApplyController extends BaseController {
     @ApiOperation(value = "电催审批协催申请页面条件查询", notes = "电催审批协催申请页面条件查询")
     public ResponseEntity<Page<CaseAssistApply>> findAllApply(@QuerydslPredicate Predicate predicate,
                                                               @ApiIgnore Pageable pageable,
-                                                              @RequestHeader(value = "X-UserToken") String token) {
+                                                              @RequestHeader(value = "X-UserToken") String token,
+                                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         log.debug("Rest request get all CaseAssistApply of tel passed");
         User user = null;
         try {
@@ -99,7 +106,12 @@ public class CaseAssistApplyController extends BaseController {
         try {
             QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
             BooleanBuilder exp = new BooleanBuilder(predicate);
-            exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));
+            // 超级管理员 权限
+            if (Objects.equals(user.getUserName(), "administrator")) {
+                exp.and(qCaseAssistApply.companyCode.eq(companyCode));
+            } else {
+                exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));
+            }
             // 查出所有电催待审批的案件
             Page<CaseAssistApply> page = caseAssistApplyRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);

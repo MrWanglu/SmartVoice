@@ -18,13 +18,14 @@ import java.util.Date;
         description = "委托方信息",
         parent = BaseEntity.class)
 public class Principal extends BaseEntity {
+    @ApiModelProperty("特定公司的标识")
+    private String companyCode;
     @ApiModelProperty("委托方编码")
     private String code;
     @ApiModelProperty("委托方")
     private String name;
-    @ManyToOne
-    @JoinColumn(name = "area_id")
-    private AreaCode areaCode;
+    @ApiModelProperty("市的id")
+    private String area_id;
     @ApiModelProperty("详细地址")
     private String address;
     @ApiModelProperty("联系人")

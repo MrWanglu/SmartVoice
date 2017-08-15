@@ -10,7 +10,7 @@ spring:
         serialization.indent_output: true
     data:
         mongodb:
-            uri: mongodb://192.168.3.5:27017
+            uri: mongodb://192.168.3.8:27017
             database: file_db_test
     rabbitmq:
         username: test
@@ -40,7 +40,7 @@ fdfs:
     width: 150
     height: 150
   trackerList:            #TrackerList参数,支持多个
-    - 192.168.1.8:22122
+    - 192.168.3.8:22122
 
 server:
     port: 9004

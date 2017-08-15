@@ -121,6 +121,32 @@
             <artifactId>commons-io</artifactId>
             <version>RELEASE</version>
         </dependency>
+        <dependency>
+            <groupId>javax.cache</groupId>
+            <artifactId>cache-api</artifactId>
+            <version>${jcache.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.fintecher</groupId>
+            <artifactId>pangolin-service-file</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- quartz  -->
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>${org.quartz-scheduler}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz-jobs</artifactId>
+            <version>${org.quartz-scheduler}</version>
+        </dependency>
     </dependencies>
 
 
@@ -144,3 +170,4 @@
     </build>
 
 </project>
+

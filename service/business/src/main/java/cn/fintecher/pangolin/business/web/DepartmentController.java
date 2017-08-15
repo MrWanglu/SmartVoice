@@ -260,9 +260,9 @@ public class DepartmentController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<Department>> queryCaseInfo(@QuerydslPredicate(root = Department.class) Predicate predicate,
-                                                          @ApiIgnore Pageable pageable,
-                                                          @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<Page<Department>> queryDepartment(@QuerydslPredicate(root = Department.class) Predicate predicate,
+                                                            @ApiIgnore Pageable pageable,
+                                                            @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
@@ -276,6 +276,29 @@ public class DepartmentController extends BaseController {
         }
         Page<Department> page = departmentRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(page);
+    }
+
+    /**
+     * @Description :查询用户所在的子部门list
+     */
+    @GetMapping("/queryDepartmentList")
+    @ApiOperation(value = "查询用户所在的子部门", notes = "查询用户所在的子部门")
+    public ResponseEntity<List<Department>> queryDepartmentList(@QuerydslPredicate(root = Department.class) Predicate predicate,
+                                                                @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        BooleanBuilder builder = new BooleanBuilder(predicate);
+        if (Objects.nonNull(user.getCompanyCode())) {
+            builder.and(QDepartment.department.companyCode.like(user.getCompanyCode().concat("%")));
+        }
+        Iterator<Department> departmentIterator = departmentRepository.findAll(builder).iterator();
+        List<Department> departmentList = IteratorUtils.toList(departmentIterator);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
     }
 
     /**

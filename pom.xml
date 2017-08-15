@@ -20,6 +20,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
+        <jcache.version>1.0.0</jcache.version>
         <spring-cloud.version>Dalston.SR1</spring-cloud.version>
         <apache.common.lang3.version>3.4</apache.common.lang3.version>
         <lombok.version>1.16.16</lombok.version>
@@ -32,6 +33,7 @@
         <tk.mybatis>1.1.1</tk.mybatis>
         <com.github.pagehelper>1.1.1</com.github.pagehelper>
         <mybatis.spring.version>1.2.4</mybatis.spring.version>
+        <org.quartz-scheduler>2.2.1</org.quartz-scheduler>
     </properties>
 
     <modules>

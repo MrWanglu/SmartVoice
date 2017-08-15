@@ -1,9 +1,6 @@
 package cn.fintecher.pangolin.business.service;
 
-import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.PersonalBank;
-import cn.fintecher.pangolin.entity.PersonalContact;
-import cn.fintecher.pangolin.entity.PersonalJob;
+import cn.fintecher.pangolin.entity.*;
 import org.apache.commons.collections4.IteratorUtils;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +44,7 @@ public class PersonalInfoExportService {
      * @return
      */
     public Map<String, String> createHeadMap(Integer exportType, List<List<String>> list, Integer maxNum) {
-        Map<String, String> headMap = new HashMap<>(); //存储头信息
+        Map<String, String> headMap = new LinkedHashMap<>(); //存储头信息
         if (Objects.equals(exportType, 0)) {
             List<String> collect = list.get(0);
             // 遍历collect
@@ -55,6 +52,7 @@ public class PersonalInfoExportService {
                 for (int k = 0; k < collectData.length; k++) {
                     if (Objects.equals(collect.get(i), collectData[k])) {
                         headMap.put(collectPro[k], collect.get(i));
+                        break;
                     }
                 }
             }
@@ -69,6 +67,7 @@ public class PersonalInfoExportService {
                 for (int k = 0; k < baseInfoData.length; k++) {
                     if (Objects.equals(baseInfo.get(i), baseInfoData[k])) {
                         headMap.put(baseInfoPro[k], baseInfo.get(i));
+                        break;
                     }
                 }
             }
@@ -76,28 +75,40 @@ public class PersonalInfoExportService {
                 for (int k = 0; k < workInfoData.length; k++) {
                     if (Objects.equals(workInfo.get(i), workInfoData[k])) {
                         headMap.put(workInfoPro[k], workInfo.get(i));
+                        break;
                     }
                 }
             }
-            for (int i = 0; i < contactInfo.size(); i++) {
-                for (int k = 0; k < contactInfoData.length; k++) {
-                    if (Objects.equals(contactInfo.get(i), contactInfoData[k])) {
-                        if (Objects.nonNull(maxNum) && !Objects.equals(maxNum, 0)) {
-                            if (Objects.equals(maxNum, 1)) {
-                                headMap.put(contactInfoPro[k], contactInfo.get(i));
-                            } else {
-                                for (int m = 1; m <= maxNum; m++) {
-                                    headMap.put(contactInfoPro[k] + m, contactInfo.get(i) + m);
+            if (Objects.nonNull(maxNum) && !Objects.equals(maxNum, 0)) {
+                if (Objects.equals(maxNum, 1)) {
+                    for (String con : contactInfo) {
+                        for (int k = 0; k < contactInfoData.length; k++) {
+                            if (Objects.equals(con, contactInfoData[k])) {
+                                headMap.put(contactInfoPro[k], con);
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    for (int m = 1; m <= maxNum; m++) {
+                        for (String con : contactInfo) {
+                            for (int k = 0; k < contactInfoData.length; k++) {
+                                if (Objects.equals(con, contactInfoData[k])) {
+                                    headMap.put(contactInfoPro[k] + m, con + m);
+                                    break;
                                 }
                             }
                         }
                     }
                 }
             }
+
+
             for (int i = 0; i < bankInfo.size(); i++) {
                 for (int k = 0; k < bankInfoData.length; k++) {
                     if (Objects.equals(bankInfo.get(i), bankInfoData[k])) {
                         headMap.put(bankInfoPro[k], bankInfo.get(i));
+                        break;
                     }
                 }
             }
@@ -109,6 +120,7 @@ public class PersonalInfoExportService {
                 for (int k = 0; k < batchNumData.length; k++) {
                     if (Objects.equals(batch.get(i), batchNumData[k])) {
                         headMap.put(batchNumPro[k], batch.get(i));
+                        break;
                     }
                 }
             }
@@ -120,6 +132,7 @@ public class PersonalInfoExportService {
                 for (int k = 0; k < caseStatusData.length; k++) {
                     if (Objects.equals(caseStatus.get(i), caseStatusData[k])) {
                         headMap.put(caseStatusPro[k], caseStatus.get(i));
+                        break;
                     }
                 }
             }
@@ -148,7 +161,18 @@ public class PersonalInfoExportService {
             map.put("loanDate", caseInfo.getLoanDate()); //贷款日期
             map.put("payStatus", caseInfo.getPayStatus()); //还款状态
             map.put("batchNum", caseInfo.getBatchNumber()); //批次号
-            map.put("collector", caseInfo.getCurrentCollector().getRealName()); //催收员
+            CaseInfo.CollectionStatus[] values1 = CaseInfo.CollectionStatus.values();
+            for (int i = 0; i< values1.length; i++) {
+                if (Objects.equals(values1[i].getValue(), caseInfo.getCollectionStatus())) { //案件状态
+                    map.put("caseStatus", values1[i].getRemark());
+                    break;
+                }
+            }
+            if (Objects.isNull(caseInfo.getCurrentCollector())) {
+                map.put("collector", ""); //催收员
+            } else {
+                map.put("collector", caseInfo.getCurrentCollector().getRealName()); //催收员
+            }
             map.put("idCardAddress", caseInfo.getPersonalInfo().getIdCardAddress()); //身份证户籍地址
             map.put("homeAddress", caseInfo.getPersonalInfo().getLocalHomeAddress()); //家庭地址
             map.put("homePhone", caseInfo.getPersonalInfo().getLocalPhoneNo()); //家庭电话
@@ -169,17 +193,29 @@ public class PersonalInfoExportService {
             List<PersonalContact> personalContacts = IteratorUtils.toList(conIterator);
             if (Objects.equals(personalContacts.size(), 1)) {
                 PersonalContact personalContact = personalContacts.get(0);
-                map.put("relation", personalContact.getRelation());
-                map.put("contactName", personalContact.getRelation());
-                map.put("contactPhone", personalContact.getRelation());
-                map.put("contactHomePhone", personalContact.getRelation());
-                map.put("contactAddress", personalContact.getRelation());
-                map.put("contactWorkAddress", personalContact.getRelation());
-                map.put("contactWorkPhone", personalContact.getRelation());
+                Personal.RelationEnum[] values = Personal.RelationEnum.values();
+                for (int i = 0; i< values.length; i++) {
+                    if (Objects.equals(values[i].getValue(), personalContact.getRelation())) {
+                        map.put("relation", values[i].getRemark());
+                        break;
+                    }
+                }
+                map.put("contactName", personalContact.getName());
+                map.put("contactPhone", personalContact.getPhone());
+                map.put("contactHomePhone", personalContact.getMobile());
+                map.put("contactAddress", personalContact.getAddress());
+                map.put("contactWorkAddress", personalContact.getAddress());
+                map.put("contactWorkPhone", personalContact.getWorkPhone());
             } else if (personalContacts.size() > 1) {
                 for (int i = 1; i <= personalContacts.size(); i++) {
-                    PersonalContact personalContact = personalContacts.get(i);
-                    map.put("relation" + i, personalContact.getRelation());
+                    PersonalContact personalContact = personalContacts.get(i - 1);
+                    Personal.RelationEnum[] values = Personal.RelationEnum.values();
+                    for (int k = 0; k< values.length; k++) {
+                        if (Objects.equals(values[k].getValue(), personalContact.getRelation())) {
+                            map.put("relation" + i, values[k].getRemark());
+                            break;
+                        }
+                    }
                     map.put("contactName" + i, personalContact.getName());
                     map.put("contactPhone" + i, personalContact.getMobile());
                     map.put("contactHomePhone" + i, personalContact.getPhone());

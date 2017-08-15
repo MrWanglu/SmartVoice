@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -14,7 +15,8 @@ import java.util.Set;
 @Entity
 @Table(name = "user")
 @Data
-@ApiModel(value = "user",description = "用户信息管理")
+@ApiModel(value = "user", description = "用户信息管理")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User extends BaseEntity {
     @ApiModelProperty("特定公司的标识")
     private String companyCode;
@@ -59,26 +61,34 @@ public class User extends BaseEntity {
     @ApiModelProperty("创建时间")
     private Date operateTime;
     @ApiModelProperty("备用字段")
-    private String field ;
+    private String field;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "dept_id")
     @ApiModelProperty("用户所在部门的id")
     private Department department;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     @ApiModelProperty("用户所拥有的角色")
     private Set<Role> roles;
 
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
+    @ApiModelProperty("用户的登陆设备")
+    private Set<UserDevice> userDevices;
+
+
     /**
      * 是否有数据权限
      */
-    public enum MANAGER_TYPE{
-        NO_DATA_AUTH(0),DATA_AUTH(1);
+    public enum MANAGER_TYPE {
+        NO_DATA_AUTH(0), DATA_AUTH(1);
         Integer value;
-        MANAGER_TYPE(Integer value){
-            this.value=value;
+
+        MANAGER_TYPE(Integer value) {
+            this.value = value;
         }
+
         public Integer getValue() {
             return value;
         }
@@ -89,12 +99,12 @@ public class User extends BaseEntity {
      */
     public enum Type {
         TEL(1, "电话催收"),
-        VISIT(2,"外访催收"),
-        JUD(3,"司法催收"),
-        OUT(4,"委外催收"),
-        INTILL(5,"智能催收"),
-        REMINDER(6,"提醒催收"),
-        REPAIR(7,"修复管理");
+        VISIT(2, "外访催收"),
+        JUD(3, "司法催收"),
+        OUT(4, "委外催收"),
+        INTILL(5, "智能催收"),
+        REMINDER(6, "提醒催收"),
+        REPAIR(7, "修复管理");
 
         private Integer value;
         private String name;

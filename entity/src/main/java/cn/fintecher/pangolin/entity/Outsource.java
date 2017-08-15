@@ -4,6 +4,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import java.util.Date;
@@ -12,8 +14,8 @@ import java.util.Date;
 @Table(name = "outsource")
 @Data
 public class Outsource extends BaseEntity {
-    //委托方编号最大999（3位）
-    public final static String OUT_PRIN_SEQ = "prinSeq";
+    @ApiModelProperty("特定公司的标识")
+    private String companyCode;
 
     @ApiModelProperty("委外方编码")
     private String outsCode;
@@ -21,23 +23,8 @@ public class Outsource extends BaseEntity {
     @ApiModelProperty("委外方")
     private String outsName;
 
-    @ApiModelProperty("省份ID")
-    private Integer outsPrid;
-
-    @ApiModelProperty("城市ID")
-    private Integer outsCityid;
-
-    @ApiModelProperty("区县ID")
-    private Integer outsCtyid;
-
-    @ApiModelProperty("省份")
-    private String outsProvinces;
-
-    @ApiModelProperty("城市")
-    private String outsCity;
-
-    @ApiModelProperty("区县")
-    private String outsCounty;
+    @ApiModelProperty("市的id")
+    private String area_id;
 
     @ApiModelProperty("详细地址")
     private String outsAddress;
@@ -59,10 +46,11 @@ public class Outsource extends BaseEntity {
     private String outsRemark;
 
     @ApiModelProperty("创建时间")
-    private Date createTime;
+    private Date operateTime;
 
-    @ApiModelProperty("操作人")
-    private String creator;
+    @ManyToOne
+    @JoinColumn(name = "operator")
+    private User user;
 
     @ApiModelProperty("是否删除 0否1是")
     private Integer flag;

@@ -83,18 +83,18 @@ public class SmaController {
     public ResponseEntity<Map<String, String>> validateTaskIdInEmpId(@RequestHeader(value = "X-UserToken") String token) {
         User user = userClient.getUserByToken(token).getBody();
         //呼叫中心配置
-        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), user.getCompanyCode(), Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + user.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
         if (Objects.isNull(sysParam)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "未获取呼叫配置的系统参数", "Did not get call configuration of system parameters")).body(null);
         }
         // 163 erpv3   164  中通天鸿  165  云羿
-        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
             Map paramMap = new HashMap();
             paramMap.put("empId", user.getId());
             return smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);
         }
         //164  中通天鸿 对呼绑定 在user中的callPhone 字段
-        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
             if (Objects.nonNull(user.getCallPhone())) {
                 Map paramMap = new HashMap();
                 paramMap.put("callPhone", user.getCallPhone());
@@ -113,14 +113,13 @@ public class SmaController {
     public ResponseEntity<Map<String, String>> bindTaskDataByCallerId(@RequestBody BindCallNumberRequest request, @RequestHeader(value = "X-UserToken") String token) {
         // 是否登录
         User user = userClient.getUserByToken(token).getBody();
-
         //呼叫中心配置
-        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), user.getCompanyCode(), Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + user.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
         if (Objects.isNull(sysParam)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "未获取呼叫配置的系统参数", "Did not get call configuration of system parameters")).body(null);
         }
         // 163 erpv3   164  中通天鸿  165  云羿
-        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
             Map paramMap = new HashMap();
             paramMap.put("empId", user.getId());
             paramMap.put("callerid", request.getCallerId());//固定话机ID
@@ -129,7 +128,7 @@ public class SmaController {
             return smaRequestService.smaRequest("bindTaskDataByCallerid.html", paramMap);
         }
         //164  中通天鸿 对呼绑定 在user中的callPhone 字段
-        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
             if (Objects.nonNull(user.getCallPhone())) {
                 Map paramMap = new HashMap();
                 paramMap.put("callPhone", user.getCallPhone());
@@ -155,13 +154,13 @@ public class SmaController {
                                                                @RequestHeader(value = "X-UserToken") String token) {
         User user = userClient.getUserByToken(token).getBody();
 //        呼叫中心配置
-        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), request.getCompanyCode(), Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + request.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
         if (Objects.isNull(sysParam)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
         }
 
 //         163 erpv3     165  云羿
-        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
             Map paramMap = new HashMap();
             paramMap.put("id", request.getTaskId());//呼叫流程id
             paramMap.put("caller", request.getCaller());//主叫号码
@@ -174,7 +173,7 @@ public class SmaController {
             return smaRequestService.smaRequest("addTaskRecoder.html", paramMap);
         }
 //        164  中通天鸿
-        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue())) {
             if (Objects.isNull(user.getCallPhone())) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
             }
@@ -207,7 +206,7 @@ public class SmaController {
             }
         }
         //        165 云羿呼叫中心
-        if (Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue(), sysParam.getValue())) {
+        if (Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
             if (Objects.isNull(user.getCallPhone())) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
             }
@@ -271,7 +270,7 @@ public class SmaController {
                                               @RequestHeader(value = "X-UserToken") String token) {
         User user = userClient.getUserByToken(token).getBody();
         //        呼叫中心配置
-        SysParam sysParam = sysParamClient.getSysParamByCodeAndType(user.getId(), companyCode, Constants.PHONE_CALL_CODE, Constants.PHONE_CALL_TYPE).getBody();
+        SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + companyCode + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
         if (Objects.isNull(sysParam)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
         }

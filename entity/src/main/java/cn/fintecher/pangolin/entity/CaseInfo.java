@@ -42,10 +42,11 @@ public class CaseInfo extends BaseEntity {
     private Integer holdDays;
     private Integer leftDays;
     private Integer caseType;
+    @ApiModelProperty("协催标识：0-未留案，1-留案")
     private Integer leaveCaseFlag;
     private Date leaveDate;
     private Integer hasLeaveDays;
-    private Integer followUpNum;
+    private Integer followUpNum = 0;
     private Date caseFollowInTime;
     private String payStatus;
     private String orderId;
@@ -76,7 +77,7 @@ public class CaseInfo extends BaseEntity {
     private BigDecimal creditAmount; //授信金额
 
     private Date operatorTime;
-    private Integer caseMark;
+    private Integer caseMark = 126;
 
     @ManyToOne
     @JoinColumn(name = "personal_id")
@@ -110,7 +111,7 @@ public class CaseInfo extends BaseEntity {
     private User operator;
 
     @OneToMany
-    @JoinColumn(name = "case_id")
+    @JoinColumn(name = "caseId")
     private List<CaseRepairRecord> caseRepairRecordList;
 
     /**
@@ -331,9 +332,9 @@ public class CaseInfo extends BaseEntity {
      * 案件流转类型
      */
     public enum CaseType {
-        DISTRIBUTE(173,"案件分配"),PHNONESMALLTURN(174,"电催小流转"),PHNONEFORCETURN(175,"电催强制流转"),PHNONEFAHEADTURN(176,"电催提前流转"),
-        PHNONELEAVETURN(177,"电催保留流转"), OUTSMALLTURN(178,"外访小流转"), OUTFAHEADTURN(179,"外访提前流转"),OUTFORCETURN(180,"外访强制流"),
-        OUTLEAVETURN(181,"外访保留流转");
+        DISTRIBUTE(173, "案件分配"), PHNONESMALLTURN(174, "电催小流转"), PHNONEFORCETURN(175, "电催强制流转"), PHNONEFAHEADTURN(176, "电催提前流转"),
+        PHNONELEAVETURN(177, "电催保留流转"), OUTSMALLTURN(178, "外访小流转"), OUTFAHEADTURN(179, "外访提前流转"), OUTFORCETURN(180, "外访强制流"),
+        OUTLEAVETURN(181, "外访保留流转");
         private Integer value;
 
         private String remark;
@@ -350,5 +351,66 @@ public class CaseInfo extends BaseEntity {
         public String getRemark() {
             return remark;
         }
+    }
+
+    /**
+     * @还款状态枚举类
+     */
+    public enum PayStatus {
+        //M1
+        M1(190, "M1"),
+        //M2
+        M2(191, "M2"),
+        //M3
+        M3(192, "M3"),
+        //M4
+        M4(193, "M4"),
+        //M5
+        M5(194, "M5"),
+        //M6+
+        M6_PLUS(195, "M6");
+        private Integer value;
+
+        private String remark;
+
+        PayStatus(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
+    /**
+     * 留案标志
+     */
+    public enum leaveCaseFlagEnum{
+        //非留案
+        NO_LEAVE(0, "非留案"),
+        //留案
+        YES_LEAVE(1, "留案");
+        private Integer value;
+
+        private String remark;
+
+        leaveCaseFlagEnum(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+
     }
 }

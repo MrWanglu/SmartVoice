@@ -29,12 +29,12 @@ public class Role extends BaseEntity {
     private String operator;
     @ApiModelProperty("创建时间")
     private Date operateTime;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "role_resource", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "reso_id"))
     @Transient
     private Set<Resource> resources;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     @Transient
     private Set<User> users;

@@ -5,9 +5,11 @@ import cn.fintecher.pangolin.entity.CaseInfoDistributed;
 import cn.fintecher.pangolin.entity.QCaseInfoDistributed;
 import com.querydsl.core.types.dsl.StringPath;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
+import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.util.Iterator;
@@ -59,5 +61,10 @@ public interface CaseInfoDistributedRepository extends QueryDslPredicateExecutor
         //产品系列
         bindings.bind(root.product.productSeries.id).first((path, value) -> path.eq(value));
     }
+
+    @Query(value = "SELECT COUNT(id) FROM case_info " +
+            "WHERE (current_collector = :userId OR assist_collector = :userId) " +
+            "AND collection_status NOT IN (24,25,166)", nativeQuery = true)
+    Integer getCaseCountOnUser(@Param("userId") String userId);
 
 }

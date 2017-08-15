@@ -1,6 +1,8 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.QCaseInfo;
 import cn.fintecher.pangolin.entity.User;
@@ -9,8 +11,7 @@ import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -22,9 +23,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -38,6 +41,9 @@ public class CaseInfoController extends BaseController {
     private static final String ENTITY_NAME = "caseInfo";
     private final Logger log = LoggerFactory.getLogger(CaseInfoController.class);
     private final CaseInfoRepository caseInfoRepository;
+
+    @Inject
+    private CaseInfoService caseInfoService;
 
     public CaseInfoController(CaseInfoRepository caseInfoRepository) {
         this.caseInfoRepository = caseInfoRepository;
@@ -118,5 +124,75 @@ public class CaseInfoController extends BaseController {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllBatchNumber", "系统异常!")).body(null);
         }
+    }
+
+    @GetMapping("/getAllCaseInfo")
+    @ApiOperation(value = "分页查询案件管理案件", notes = "分页查询案件管理案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseInfo>> getAllCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                         @ApiIgnore Pageable pageable,
+                                                         @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to getAllCaseInfo");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllCaseInfo", e.getMessage())).body(null);
+        }
+        try {
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode())); //公司
+            builder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //以结案
+            builder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OUT.getValue())); //已委外
+            if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) { //管理者
+                builder.and(qCaseInfo.department.code.like(user.getDepartment().getCode().concat("%")));
+            }
+            if (Objects.equals(user.getManager(), User.MANAGER_TYPE.NO_DATA_AUTH.getValue())) { //不是管理者
+                builder.and(qCaseInfo.currentCollector.eq(user).or(qCaseInfo.assistCollector.eq(user)));
+            }
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllCaseInfo", "系统异常!")).body(null);
+        }
+    }
+
+    @PostMapping(value = "/distributeCeaseInfoAgain")
+    @ApiOperation(value = "案件重新分配", notes = "案件重新分配")
+    public ResponseEntity distributeCeaseInfoAgain(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
+                                                    @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        log.debug("REST request to distributeCeaseInfoAgain");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "distributeCeaseInfoAgain", e.getMessage())).body(null);
+        }
+        try {
+            caseInfoService.distributeCeaseInfoAgain(accCaseInfoDisModel, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功",ENTITY_NAME)).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController","distributeCeaseInfoAgain","系统错误!")).body(null);
+        }
+
+    }
+
+    @GetMapping("/getCaseInfoDetails")
+    @ApiOperation(value = "案件详情查询操作", notes = "案件详情查询操作")
+    public ResponseEntity<CaseInfo> getCaseInfoDetails(@RequestParam("id") String id) {
+        CaseInfo caseInfo = caseInfoRepository.findOne(id);
+        return ResponseEntity.ok().body(caseInfo);
     }
 }

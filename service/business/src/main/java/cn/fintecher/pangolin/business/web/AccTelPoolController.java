@@ -257,7 +257,8 @@ public class AccTelPoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CaseInfo>> getAllTelCase(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+    public ResponseEntity<Page<CaseInfo>> getAllTelCase(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                        @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                         @ApiIgnore Pageable pageable,
                                                         @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get all tel case");
@@ -267,10 +268,16 @@ public class AccTelPoolController extends BaseController {
         list.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue()); //催收中
         list.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue()); //逾期还款中
         list.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue()); //提前结清还款中
+        list.add(CaseInfo.CollectionStatus.PART_REPAID.getValue()); //部分已还款
+        list.add(CaseInfo.CollectionStatus.REPAID.getValue()); //已还款
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+            if (Objects.equals(tokenUser.getUserName(), "administrator")) {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+            } else {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+            }
             if (Objects.equals(tokenUser.getManager(), 1)) {
                 builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
             } else {
@@ -300,14 +307,19 @@ public class AccTelPoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CaseInfo>> getAllHandleTelCase(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+    public ResponseEntity<Page<CaseInfo>> getAllHandleTelCase(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                              @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                               @ApiIgnore Pageable pageable,
                                                               @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get all handle tel case");
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+            if (Objects.equals(tokenUser.getUserName(), "administrator")) {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+            } else {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+            }
             if (Objects.equals(tokenUser.getManager(), 1)) {
                 builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
             } else {
@@ -346,7 +358,7 @@ public class AccTelPoolController extends BaseController {
      */
     @PostMapping("/assistApply")
     @ApiOperation(value = "协催申请", notes = "协催申请")
-    public ResponseEntity<Void> assistApply(AssistApplyParams assistApplyParams,
+    public ResponseEntity<Void> assistApply(@RequestBody AssistApplyParams assistApplyParams,
                                             @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save assist apply");
         try {
@@ -479,7 +491,7 @@ public class AccTelPoolController extends BaseController {
     @PutMapping("/telCaseMarkColor")
     @ApiOperation(value = "电催案件颜色打标", notes = "电催案件颜色打标")
     public ResponseEntity<Void> telCaseMarkColor(@RequestBody CaseMarkParams caseMarkParams,
-                                                     @RequestHeader(value = "X-UserToken") String token) {
+                                                 @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to mark color");
         try {
             User tokenUser = getUserByToken(token);
