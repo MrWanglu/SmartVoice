@@ -61,23 +61,17 @@ public class CaseTurnRecord {
     @ApiModelProperty(notes = "案件类型")
     private Integer caseType;
 
-    @ApiModelProperty(notes = "接受人")
-    @ManyToOne
-    @JoinColumn(name = "receive_userid")
-    private User receiveUserid;
+    @ApiModelProperty(notes = "接受人名称")
+    private User receiveUserRealName;
 
     @ApiModelProperty(notes = "案件流转次数")
     private Integer followUpNum;
 
-    @ApiModelProperty(notes = "接受部门")
-    @ManyToOne
-    @JoinColumn(name = "receive_deptid")
-    private Department receiveDeptid;
+    @ApiModelProperty(notes = "接受部门名称")
+    private Department receiveDeptName;
 
     @ApiModelProperty(notes = "操作员")
-    @ManyToOne
-    @JoinColumn(name = "operator")
-    private User operator;
+    private User operatorUserName;
 
     @ApiModelProperty(notes = "操作时间")
     private Date operatorTime;
