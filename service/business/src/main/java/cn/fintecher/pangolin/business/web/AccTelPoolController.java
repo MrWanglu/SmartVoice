@@ -569,4 +569,22 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", e.getMessage())).body(null);
         }
     }
+
+    /**
+     * @Description 电催案件留案操作
+     */
+    @PostMapping("/leaveTelCase")
+    @ApiOperation(value = "电催案件留案操作", notes = "电催案件留案操作")
+    public ResponseEntity<Long> leaveTelCase(@RequestBody LeaveCaseParams leaveCaseParams,
+                                             @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to leave case");
+        try {
+            User tokenUser = getUserByToken(token);
+            Long caseNum = caseInfoService.leaveCase(leaveCaseParams, tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("留案成功", ENTITY_CASEINFO)).body(caseNum);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", e.getMessage())).body(null);
+        }
+    }
 }
