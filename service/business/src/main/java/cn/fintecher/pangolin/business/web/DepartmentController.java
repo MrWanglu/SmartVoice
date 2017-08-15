@@ -97,7 +97,7 @@ public class DepartmentController extends BaseController {
         QDepartment qDepartment = QDepartment.department;
         boolean exist = departmentRepository.exists(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode())));
         if (exist) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用,请重新输入名称")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用，请重新输入名称")).body(null);
         }
         if (Objects.equals(Status.Disable.getValue(), department.getParent().getStatus())) {
             department.setStatus(Status.Disable.getValue());
@@ -144,7 +144,7 @@ public class DepartmentController extends BaseController {
         QDepartment qDepartment = QDepartment.department;
         boolean exist = departmentRepository.exists(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode())).and(qDepartment.id.ne(department.getId())));
         if (exist) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用,请重新输入名称")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用，请重新输入名称")).body(null);
         }
         if (!(Objects.equals(department.getParent().getType(), department.getType())) && !(Objects.equals(department.getParent().getType(),User.Type.SYNTHESIZE.getValue()))) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The type is inconsistent", "父子机构不一致时，父机构的类型智能是综合管理")).body(null);
@@ -158,7 +158,7 @@ public class DepartmentController extends BaseController {
                     Department deptNew = departmentRepository.save(department);
                     return ResponseEntity.ok().body(deptNew);
                 } else {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The parent department for the disabled", "父部门为停用,请先修改父部门状态")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The parent department for the disabled", "父部门为停用，请先修改父部门状态")).body(null);
                 }
             }
             //状态由启用变为停用
@@ -183,7 +183,7 @@ public class DepartmentController extends BaseController {
                 QUser qUser = QUser.user;
                 int usersNum = (int) userRepository.count(qUser.department.code.like(dept.getCode().concat("%")));
                 if (usersNum > 0) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户,不能停用,请先移出用户")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户，不能停用，请先移出用户")).body(null);
                 }
                 //子机构状态
                 Iterator<Department> departments = departmentRepository.findAll(qDepartment.code.like(department.getCode().concat("%")).and(qDepartment.companyCode.eq(department.getCompanyCode())).and(qDepartment.id.ne(department.getId()))).iterator();
@@ -232,7 +232,7 @@ public class DepartmentController extends BaseController {
         QUser qUser = QUser.user;
         int usersNum = (int) userRepository.count(qUser.department.code.like(department.getCode().concat("%")).and(qUser.companyCode.eq(department.getCompanyCode())));
         if (usersNum > 0) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户,不能停用,请先移出用户")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户，不能停用，请先移出用户")).body(null);
         }
         if (usersNum > 0) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot delete", "该部门下有" + usersNum + "个用户不能删除")).body(null);
@@ -406,7 +406,7 @@ public class DepartmentController extends BaseController {
         QUser qUser = QUser.user;
         int usersNum = (int) userRepository.count(qUser.department.code.like(dept.getCode().concat("%")).and(qUser.companyCode.eq(dept.getCompanyCode())));
         if (usersNum > 0) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户,不能移动,请先移出用户")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户，不能移动，请先移出用户")).body(null);
         }
         //子机构数量
         QDepartment qDepartment = QDepartment.department;

@@ -83,7 +83,7 @@ public class UserController extends BaseController {
         }
         if (user.getDepartment().getLevel() <= 9 && !Objects.equals(Constants.ADMIN_USER_NAME, userToken.getUserName())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                    "New user institutions must be greater than the first class", "新增用户,用户机构等级必须大于一级")).body(null);
+                    "New user institutions must be greater than the first class", "新增用户，用户机构等级必须大于一级")).body(null);
         }
 //        新增用户的个数限制
         QSysParam qSysParam1 = QSysParam.sysParam;
