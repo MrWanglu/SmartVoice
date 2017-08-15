@@ -843,7 +843,7 @@ public class CaseInfoService {
     /**
      * @Descripion 留案操作
      */
-    public Integer leaveCase(LeaveCaseParams leaveCaseParams, User tokenUser) {
+    public LeaveCaseModel leaveCase(LeaveCaseParams leaveCaseParams, User tokenUser) {
         //获得所持有未结案的案件总数
         Integer caseNum = caseInfoRepository.getCaseCount(tokenUser.getId());
 
@@ -879,7 +879,9 @@ public class CaseInfoService {
             caseInfoRepository.saveAndFlush(caseInfo);
             flagNum++;
         }
-        return leaveNum - flagNum;
+        LeaveCaseModel leaveCaseModel = new LeaveCaseModel();
+        leaveCaseModel.setCaseNum(leaveNum - flagNum);
+        return leaveCaseModel;
     }
 
 
