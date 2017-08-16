@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.common.service;
 
 import cn.fintecher.pangolin.common.model.AddTaskRecorderRequest;
+import cn.fintecher.pangolin.common.model.RecordRequest;
 import cn.fintecher.pangolin.entity.util.Base64;
 import cn.fintecher.pangolin.entity.util.Constants;
 import org.apache.commons.httpclient.HttpMethod;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import sun.misc.BASE64Encoder;
 
 import java.security.MessageDigest;
 import java.util.Map;
@@ -124,5 +126,27 @@ public class CallService {
         Map<String, String> map = Constants.map;
         map.remove(key);
         return map;
+    }
+
+    /**
+     * @Description : 中通天鸿 164 保存通话记录
+     */
+    public HttpMethod getRecordMethod(RecordRequest request) {
+        PostMethod post = new PostMethod(webCall1800);
+        String Nonce = new BASE64Encoder().encode("123456abc".getBytes()); //随机字符串
+        String Created = String.valueOf(System.currentTimeMillis());
+        String PasswordDigest = "";
+        try {
+            PasswordDigest = encode(Nonce, Created, ztSecret);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        String headerValue = "UsernameToken Username=\"" + enterpriseCode + "\",PasswordDigest=\"" + PasswordDigest + "\",Nonce=\"" + Nonce + "\",Created=\"" + Created + "\"";
+        post.setRequestHeader("X-WSSE", headerValue);   //http请求头的键名（大小写无关）固定字符串，后面添加一个空格
+        String test = "{\"filter\":{\"start_time\":\"2014-05-06 00:00:00\"}}";
+        NameValuePair model1 = new NameValuePair("start_time", request.getStartTime());
+        NameValuePair model2 = new NameValuePair("end_time", request.getEndTime());
+        post.setRequestBody(new NameValuePair[]{model1, model2});
+        return post;
     }
 }

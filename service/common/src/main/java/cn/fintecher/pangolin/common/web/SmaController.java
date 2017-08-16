@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.common.client.SysParamClient;
 import cn.fintecher.pangolin.common.client.UserClient;
 import cn.fintecher.pangolin.common.model.AddTaskRecorderRequest;
 import cn.fintecher.pangolin.common.model.BindCallNumberRequest;
+import cn.fintecher.pangolin.common.model.RecordRequest;
 import cn.fintecher.pangolin.common.service.CallService;
 import cn.fintecher.pangolin.common.service.SmaRequestService;
 import cn.fintecher.pangolin.entity.CaseFollowupRecord;
@@ -64,6 +65,8 @@ public class SmaController {
     //中通天鸿参数配置
     @Value("${pangolin.zhongtong-server.cti}")
     private String cti;
+    @Value("${pangolin.zhongtong-server.webCall1800}")
+    private String webCall1800;
 
     /**
      * @Description : 呼叫类型设置
@@ -350,4 +353,36 @@ public class SmaController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Checkin failure", "签入失败")).body(null);
         }
     }
+
+    /**
+     * @Description : 中通天鸿 164 获取通话记录
+     */
+    @PostMapping("/getVoice")
+    @ApiOperation(value = "用于查询双向外呼通话记录", notes = "用于查询双向外呼通话记录")
+    public ResponseEntity<String> getVoice(@RequestBody RecordRequest request) {
+        try {
+            HttpClient client = new HttpClient();
+            client.setConnectionTimeout(1000 * 60);
+            client.getHostConfiguration().setHost(webCall1800, 80, "http");
+            HttpMethod method = callService.getRecordMethod(request);
+            client.executeMethod(method);
+            System.out.println("*****" + method.getStatusLine());
+
+        /* getResponseBodyAsStream start */
+            InputStream inputStream = method.getResponseBodyAsStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+            StringBuffer response = new StringBuffer();
+            String read = "";
+            while ((read = br.readLine()) != null) {
+                response.append(read);
+            }
+            System.out.println(response);
+        /* getResponseBodyAsStream start */
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(response.toString());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "失败")).body(null);
+        }
+    }
+
 }
