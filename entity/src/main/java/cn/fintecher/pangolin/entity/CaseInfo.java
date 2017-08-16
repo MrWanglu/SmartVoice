@@ -80,6 +80,7 @@ public class CaseInfo extends BaseEntity {
     private Date operatorTime;
     private Integer caseMark = 126;
 
+    private BigDecimal impHasPayAmount; //导入案件中的已还款金额
     @ManyToOne
     @JoinColumn(name = "personal_id")
     private Personal personalInfo;
