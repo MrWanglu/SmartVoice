@@ -49,5 +49,6 @@
         group by
         b.deptCode,b.deptName,b.parentDeptCode,b.parentDeptName,b.userName,b.realName,a.waitCollectNum,a.waitCollectAmt,
         a.collectingNum,a.collectingAmt,a.overdueNum,a.advanceNum,a.advanceAmt,a.overdueAmt,a.promiseNum,a.promiseAmt,a.endNum,a.endAmt
+        order by b.deptCode asc
     </select>
 </mapper>
