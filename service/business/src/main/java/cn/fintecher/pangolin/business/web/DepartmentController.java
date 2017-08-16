@@ -99,7 +99,7 @@ public class DepartmentController extends BaseController {
         }
         //判断公司的名称是否重复
         QDepartment qDepartment = QDepartment.department;
-        boolean exist = departmentRepository.exists(qDepartment.name.eq(department.getName())  .and(qDepartment.companyCode.eq(department.getCompanyCode())));
+        boolean exist = departmentRepository.exists(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode())));
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用，请重新输入名称")).body(null);
         }
@@ -163,7 +163,7 @@ public class DepartmentController extends BaseController {
             Iterator<Department> departments = departmentRepository.findAll(qDepartment.code.like(department.getCode().concat("%")).and(qDepartment.companyCode.eq(department.getCompanyCode())).and(qDepartment.id.ne(department.getId()))).iterator();
             List<Department> departmentList = IteratorUtils.toList(departments);
             for (Department department1 : departmentList) {
-                if (Objects.equals(department.getType(), department1.getType())) {
+                if (!Objects.equals(department.getType(), department1.getType())) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "There is a mismatch in the type of father and son institution", "父子机构类型不一致")).body(null);
                 }
             }
