@@ -75,6 +75,7 @@ public class CaseInfo extends BaseEntity {
     private BigDecimal promiseAmt; //承诺还款金额
     private Date promiseTime; //承诺还款日期
     private BigDecimal creditAmount; //授信金额
+    private Integer circulationStatus; //流转审批状态
 
     private Date operatorTime;
     private Integer caseMark = 126;
@@ -412,5 +413,39 @@ public class CaseInfo extends BaseEntity {
             return remark;
         }
 
+    }
+
+    /**
+     * @Description 流转审批状态
+     */
+    public enum CirculationStatus {
+        //电催流转待审批
+        PHONE_WAITING(197, "电催流转待审批"),
+        //电催流转通过
+        PHONE_PASS(198, "电催流转通过"),
+        //电催流转拒绝
+        PHONE_REFUSE(199, "电催流转拒绝"),
+        //外访流转待审批
+        VISIT_WAITING(200, "外访流转待审批"),
+        //外访流转通过
+        VISIT_PASS(201, "外访流转通过"),
+        //外访流转拒绝
+        VISIT_REFUSE(202, "外访流转拒绝");
+        private Integer value;
+
+        private String remark;
+
+        CirculationStatus(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
     }
 }
