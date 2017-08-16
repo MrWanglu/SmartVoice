@@ -957,10 +957,12 @@ public class CaseInfoService {
                     if (Objects.nonNull(department)) {
                         caseInfo.setDepartment(department);
                         caseInfo.setCaseFollowInTime(null);
+                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
                     }
                     if (Objects.nonNull(targetUser)) {
                         caseInfo.setDepartment(targetUser.getDepartment());
                         caseInfo.setCurrentCollector(targetUser);
+                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
                         caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());
                     }
                     caseInfo.setOperator(user);
@@ -971,7 +973,6 @@ public class CaseInfoService {
                     caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
                     caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
                     caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件标记为无色
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue());
                     //案件列表
                     caseInfoObjList.add(caseInfo);
                     //案件流转记录

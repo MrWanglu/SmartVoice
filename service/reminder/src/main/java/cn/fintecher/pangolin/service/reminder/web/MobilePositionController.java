@@ -74,6 +74,7 @@ public class MobilePositionController{
         User user = userResult.getBody();
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(QMobilePosition.mobilePosition.companyCode.eq(user.getCompanyCode()));
+        builder.and(QMobilePosition.mobilePosition.depCode.startsWith(user.getDepartment().getCode()));
         builder.and(QMobilePosition.mobilePosition.userName.ne("administrator"));
         if (null != mobilePositionParams.getName()
                 || null != mobilePositionParams.getDepCode()
@@ -100,7 +101,7 @@ public class MobilePositionController{
                 mobilePositionList.add(e);
             });
         } else {
-            builder.and(QMobilePosition.mobilePosition.datetime.after(ZWDateUtil.getNowDate()));
+            builder.and(QMobilePosition.mobilePosition.datetime.after(ZWDateUtil.getNightTime(-1)));
             Iterable<MobilePosition> mobilePositionIterable = mobilePositionRepository.findAll(builder, new Sort(Sort.Direction.DESC, "datetime"));
             List<String> nameList = new ArrayList<>();
             mobilePositionIterable.forEach(e->{
