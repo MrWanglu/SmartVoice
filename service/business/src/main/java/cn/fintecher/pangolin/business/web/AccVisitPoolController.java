@@ -573,7 +573,7 @@ public class AccVisitPoolController extends BaseController {
     @PostMapping("/approvalVisitCirculation")
     @ApiOperation(value = "外访审批小流转案件", notes = "外访审批小流转案件")
     public ResponseEntity<Void> approvalVisitCirculation(@RequestBody CirculationApprovalParams circulationApprovalParams,
-                                                       @RequestHeader(value = "X-UserToken") String token) {
+                                                         @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to approval visit circulation case");
         try {
             User tokenUser = getUserByToken(token);
@@ -582,6 +582,22 @@ public class AccVisitPoolController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 外访页面查询客户联系人
+     */
+    @GetMapping("/getVisitPersonalContact")
+    @ApiOperation(value = "外访页面查询客户联系人", notes = "外访页面查询客户联系人")
+    public ResponseEntity<List<PersonalContact>> getVisitPersonalContact(@RequestParam @ApiParam(value = "客户信息ID", required = true) String personalId) {
+        log.debug("REST request to get personal contact by {personalId}", personalId);
+        try {
+            List<PersonalContact> personalContacts = caseInfoService.getPersonalContact(personalId);
+            return ResponseEntity.ok().body(personalContacts);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "personalContact", e.getMessage())).body(null);
         }
     }
 }
