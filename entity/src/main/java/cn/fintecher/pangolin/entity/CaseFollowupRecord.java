@@ -237,7 +237,8 @@ public class CaseFollowupRecord extends BaseEntity {
         //外访
         VISIT(81, "外访"),
         //信贷
-        LOAN(82, "信贷");
+        LOAN(82, "信贷"),
+        ASSIST(203, "协催");
         private Integer value;
 
         private String remark;
