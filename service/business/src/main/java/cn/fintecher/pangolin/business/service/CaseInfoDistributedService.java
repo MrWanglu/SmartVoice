@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -135,6 +136,8 @@ public class CaseInfoDistributedService {
                     if (Objects.nonNull(caseInfoDistributed)) {
                         CaseInfo caseInfo = new CaseInfo();
                         BeanUtils.copyProperties(caseInfoDistributed, caseInfo);
+                        caseInfo.setHasPayAmount(new BigDecimal(0)); //已还款金额
+                        caseInfo.setImpHasPayAmount(caseInfoDistributed.getHasPayAmount()); //导入已还款款金额
                         if (Objects.nonNull(department)) {
                             caseInfo.setDepartment(department); //部门
                             caseInfoService.setCollectionType(caseInfo, department,null);
