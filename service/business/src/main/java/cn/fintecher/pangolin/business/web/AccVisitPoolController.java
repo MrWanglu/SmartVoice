@@ -572,7 +572,7 @@ public class AccVisitPoolController extends BaseController {
      */
     @PostMapping("/approvalVisitCirculation")
     @ApiOperation(value = "外访审批小流转案件", notes = "外访审批小流转案件")
-    public ResponseEntity<Void> approvalTelCirculation(@RequestBody CirculationApprovalParams circulationApprovalParams,
+    public ResponseEntity<Void> approvalVisitCirculation(@RequestBody CirculationApprovalParams circulationApprovalParams,
                                                        @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to approval visit circulation case");
         try {
