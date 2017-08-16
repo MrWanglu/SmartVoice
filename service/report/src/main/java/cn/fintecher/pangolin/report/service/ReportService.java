@@ -34,6 +34,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.inject.Inject;
 import java.io.*;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -64,7 +65,7 @@ public class ReportService {
     /**
      * @Description 查询催收员回款报表
      */
-    public List<BackMoneyModel> getBackMoneyReport(GeneralParams generalParams, User tokenUser) {
+    public List<BackMoneyModel> getBackMoneyReport(GeneralParams generalParams, User tokenUser) throws ParseException {
         List<BackMoneyModel> backMoneyModels = new ArrayList<>();
         List<BackMoneyReport> backMoneyReports = makeBackMoneyReport(generalParams, tokenUser);
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
@@ -104,8 +105,6 @@ public class ReportService {
                     backMoneySecModel.setBackMoneyThiModels(backMoneyThiModelList); //二级模型中加入三级模型
                     backMoneySecModelList.add(backMoneySecModel);
                     backMoneyModel.setBackMoneySecModels(backMoneySecModelList); //一级模型中加入二级模型
-
-                    backMoneyModels.add(backMoneyModel);
                 } else { //二级模型不为空
                     int flag1 = 0; //判断二级模型中是否包含该对象组别code
                     for (BackMoneySecModel backMoneySecModel1 : backMoneySecModelList) {
@@ -136,8 +135,6 @@ public class ReportService {
                         backMoneySecModel.setBackMoneyThiModels(backMoneyThiModelList); //二级模型中加入三级模型
                         backMoneySecModelList.add(backMoneySecModel);
                         backMoneyModel.setBackMoneySecModels(backMoneySecModelList); //一级模型中加入二级模型
-
-                        backMoneyModels.add(backMoneyModel);
                     } else { //包含
                         List<BackMoneyThiModel> backMoneyThiModelList = backMoneySecModel.getBackMoneyThiModels(); //获取三级模型
                         int flag2 = 0; //判断三级模型中是否包含该对象的部门code
@@ -239,8 +236,6 @@ public class ReportService {
                     performanceSecModel.setPerformanceBasisModels(performanceBasisModelList); //二级模型中加入基础模型
                     performanceSecModels.add(performanceSecModel);
                     performanceModel.setPerformanceSecModels(performanceSecModels); //一级模型中加入二级模型
-
-                    performanceModels.add(performanceModel);
                 } else { //二级模型不为空
                     int flag = 0; //判断二级模型中是否包含该code码
                     for (PerformanceSecModel performanceSecModel1 : performanceSecModels) {
@@ -293,7 +288,7 @@ public class ReportService {
     /**
      * @Description 催收员每日催收过程报表
      */
-    public List<DailyProcessModel> getDailyProcessReport(GeneralParams generalParams, User tokenUser) {
+    public List<DailyProcessModel> getDailyProcessReport(GeneralParams generalParams, User tokenUser) throws ParseException {
         List<DailyProcessModel> dailyProcessModels = new ArrayList<>();
         List<DailyProcessReport> dailyProcessReports;
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
@@ -304,11 +299,13 @@ public class ReportService {
                 dailyProcessReports = dailyProcessReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode()); //获得实时报表
             }
         } else { //历史报表
+            Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
+            Date date2 = ZWDateUtil.getFormatDate(generalParams.getEndDate());
             if (StringUtils.equals(tokenUser.getUserName(), "administrator")) {
-                dailyProcessReports = dailyProcessReportMapper.getHistoryReport(generalParams.getStartDate(), generalParams.getEndDate(),
+                dailyProcessReports = dailyProcessReportMapper.getHistoryReport(date1, date2,
                         deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
             } else {
-                dailyProcessReports = dailyProcessReportMapper.getHistoryReport(generalParams.getStartDate(), generalParams.getEndDate(),
+                dailyProcessReports = dailyProcessReportMapper.getHistoryReport(date1, date2,
                         deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
             }
         }
@@ -348,8 +345,6 @@ public class ReportService {
                     dailyProcessSecModel.setDailyProcessThiModels(dailyProcessThiModels); //二级模型中加入三级模型
                     dailyProcessSecModels.add(dailyProcessSecModel);
                     dailyProcessModel.setDailyProcessSecModels(dailyProcessSecModels); //一级模型中加入二级模型
-
-                    dailyProcessModels.add(dailyProcessModel);
                 } else { //不为空
                     int flag1 = 0; //判断二级模型中是否有该code码
                     for (DailyProcessSecModel dailyProcessSecModel1 : dailyProcessSecModels) {
@@ -379,8 +374,6 @@ public class ReportService {
                         dailyProcessSecModel.setDailyProcessThiModels(dailyProcessThiModels); //二级模型中加入三级模型
                         dailyProcessSecModels.add(dailyProcessSecModel);
                         dailyProcessModel.setDailyProcessSecModels(dailyProcessSecModels); //一级模型中加入二级模型
-
-                        dailyProcessModels.add(dailyProcessModel);
                     } else { //如果包含
                         List<DailyProcessThiModel> dailyProcessThiModels = dailyProcessSecModel.getDailyProcessThiModels(); //获得三级模型集合
                         int flag2 = 0; //判断三级模型中是否包含该code码
@@ -444,7 +437,7 @@ public class ReportService {
     /**
      * @Description 催收员每日催收结果报表
      */
-    public List<DailyResultModel> getDailyResultReport(GeneralParams generalParams, User tokenUser) {
+    public List<DailyResultModel> getDailyResultReport(GeneralParams generalParams, User tokenUser) throws ParseException {
         List<DailyResultModel> dailyResultModels = new ArrayList<>();
         List<DailyResultReport> dailyResultReports;
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
@@ -455,11 +448,13 @@ public class ReportService {
                 dailyResultReports = dailyResultReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
             }
         } else { //历史报表
+            Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
+            Date date2 = ZWDateUtil.getFormatDate(generalParams.getEndDate());
             if (StringUtils.equals(tokenUser.getUserName(), "administrator")) {
-                dailyResultReports = dailyResultReportMapper.getHistoryReport(generalParams.getStartDate(), generalParams.getEndDate(),
+                dailyResultReports = dailyResultReportMapper.getHistoryReport(date1, date2,
                         deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
             } else {
-                dailyResultReports = dailyResultReportMapper.getHistoryReport(generalParams.getStartDate(), generalParams.getEndDate(),
+                dailyResultReports = dailyResultReportMapper.getHistoryReport(date1, date2,
                         deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
             }
         }
@@ -499,8 +494,6 @@ public class ReportService {
                     dailyResultSecModel.setDailyResultThiModels(dailyResultThiModels); //二级模型中加入三级模型
                     dailyResultSecModels.add(dailyResultSecModel);
                     dailyResultModel.setDailyResultSecModels(dailyResultSecModels); //一级模型中加入二级模型
-
-                    dailyResultModels.add(dailyResultModel);
                 } else { //不为空
                     int flag1 = 0; //判断二级模型中是否有该code码
                     for (DailyResultSecModel dailyResultSecModel1 : dailyResultSecModels) {
@@ -530,8 +523,6 @@ public class ReportService {
                         dailyResultSecModel.setDailyResultThiModels(dailyResultThiModels); //二级模型中加入三级模型
                         dailyResultSecModels.add(dailyResultSecModel);
                         dailyResultModel.setDailyResultSecModels(dailyResultSecModels); //一级模型中加入二级模型
-
-                        dailyResultModels.add(dailyResultModel);
                     } else { //如果包含
                         List<DailyResultThiModel> dailyResultThiModels = dailyResultSecModel.getDailyResultThiModels(); //获得三级模型集合
                         int flag2 = 0; //判断三级模型中是否包含该code码
@@ -595,7 +586,7 @@ public class ReportService {
     /**
      * @Description 获取催收员回款报表
      */
-    private List<BackMoneyReport> makeBackMoneyReport(GeneralParams generalParams, User tokenUser) {
+    private List<BackMoneyReport> makeBackMoneyReport(GeneralParams generalParams, User tokenUser) throws ParseException {
         List<BackMoneyReport> backMoneyReports;
         List<NoBackMoneyModel> noBackMoneyModels;
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
@@ -632,8 +623,10 @@ public class ReportService {
             //合并实时回款记录和没有回款的记录
             backMoneyReports.addAll(backMoneyReportList);
         } else { //历史报表
-            backMoneyReports = backMoneyReportMapper.getHistoryReport(deptModel.getCode(), generalParams.getStartDate(),
-                    generalParams.getEndDate(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+            Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
+            Date date2 = ZWDateUtil.getFormatDate(generalParams.getEndDate());
+            backMoneyReports = backMoneyReportMapper.getHistoryReport(deptModel.getCode(), date1,
+                    date2, generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
         }
         return backMoneyReports;
     }
@@ -641,7 +634,7 @@ public class ReportService {
     /**
      * @Description 导出催收员回款报表
      */
-    public String exportBackMoneyReport(GeneralParams generalParams, User tokenUser) throws IOException {
+    public String exportBackMoneyReport(GeneralParams generalParams, User tokenUser) throws IOException, ParseException {
         //获取导出数据模型
         List<BackMoneyModel> backMoneyModels = getBackMoneyReport(generalParams, tokenUser);
         if (Objects.isNull(backMoneyModels)) {
@@ -987,7 +980,7 @@ public class ReportService {
     /**
      * @Description 导出催收员每日催收过程报表
      */
-    public String exportDailyProcessReport(GeneralParams generalParams, User tokenUser) throws IOException {
+    public String exportDailyProcessReport(GeneralParams generalParams, User tokenUser) throws IOException, ParseException {
         //获取导出数据模型
         List<DailyProcessModel> dailyProcessModels = getDailyProcessReport(generalParams, tokenUser);
         if (Objects.isNull(dailyProcessModels)) {
@@ -1223,7 +1216,7 @@ public class ReportService {
     /**
      * @Description 导出催收员每日催收结果报表
      */
-    public String exportDailyResultReport(GeneralParams generalParams, User tokenUser) throws IOException {
+    public String exportDailyResultReport(GeneralParams generalParams, User tokenUser) throws IOException, ParseException {
         //获取导出数据模型
         List<DailyResultModel> dailyResultModels = getDailyResultReport(generalParams, tokenUser);
         if (Objects.isNull(dailyResultModels)) {
