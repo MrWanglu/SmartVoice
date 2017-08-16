@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.business.model.UserInfoModel;
 import cn.fintecher.pangolin.business.repository.CaseInfoDistributedRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.service.CaseInfoDistributedService;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -47,6 +48,8 @@ public class CaseInfoDistributeController extends BaseController {
     UserRepository userRepository;
     @Inject
     CaseInfoRepository caseInfoRepository;
+    @Inject
+    CaseInfoDistributedService caseInfoDistributedService;
 
     @RequestMapping(value = "/distributeCeaseInfo", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
@@ -55,7 +58,7 @@ public class CaseInfoDistributeController extends BaseController {
                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         try {
             User user=getUserByToken(token);
-            caseInfoService.distributeCeaseInfo(accCaseInfoDisModel, user);
+            caseInfoDistributedService.distributeCeaseInfo(accCaseInfoDisModel, user);
             return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功",ENTITY_NAME)).body(null);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
