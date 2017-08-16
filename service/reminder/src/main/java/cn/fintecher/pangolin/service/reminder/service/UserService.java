@@ -107,6 +107,9 @@ public class UserService {
             String key = next.getKey(); //userId
             userIds.add(key);
         }
+        if (userIds.isEmpty()) {
+            return 0;
+        }
         ResponseEntity<Integer> usersOnCompany = userClient.getUsersOnCompany(userIds, token);
         Integer num = usersOnCompany.getBody();
         return num;

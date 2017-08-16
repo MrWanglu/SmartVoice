@@ -1281,6 +1281,7 @@ public class CaseInfoService {
                         one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催结束
                         one.setOperator(user);
                         one.setOperatorTime(new Date());
+                        one.setCaseFlowinTime(new Date()); //流入时间
                         caseAssistList.add(one);
                     }
                     caseInfo.setAssistFlag(0); //协催标识置0
@@ -1300,9 +1301,9 @@ public class CaseInfoService {
                 caseTurnRecord.setId(null); //主键置空
                 caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
                 caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
-                caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                 if (Objects.nonNull(caseInfo.getCurrentCollector())) {
                     caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
+                    caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                 } else {
                     caseTurnRecord.setReceiveDeptName(caseInfo.getDepartment().getName());
                 }

@@ -165,9 +165,9 @@ public class CaseInfoDistributedService {
                         caseTurnRecord.setId(null); //主键置空
                         caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
                         caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
-                        caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
-                        if (Objects.nonNull(caseInfo.getCurrentCollector())) {
+                        if (Objects.nonNull(caseInfo.getCurrentCollector())) { //催收员为空则是分给部门
                             caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
+                            caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                         } else {
                             caseTurnRecord.setReceiveDeptName(caseInfo.getDepartment().getName());
                         }

@@ -7,7 +7,7 @@
         select m.pamt/n.back_cash from
         (
         select sum(apply.apply_pay_amt) as pamt,apply.apply_user_name from case_pay_apply as apply
-        where apply.approve_status = '58'
+        where (apply.approve_result = 179 OR apply.approve_status = 58)
         and apply.apply_user_name = #{username}
         and year(apply.apply_date) = year(NOW())
         and month(apply.apply_date) = month(NOW())
@@ -34,7 +34,7 @@
         SELECT sum(apply_pay_amt) AS amount,WEEKDAY(approve_pay_datetime) AS dayOfWeek FROM case_pay_apply
         WHERE apply_user_name = #{username}
         AND YEARWEEK(date_format(approve_pay_datetime,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
-        AND approve_status = 58
+        AND (approve_result = 179 OR approve_status = 58)
         GROUP BY WEEKDAY(approve_pay_datetime)
         ORDER BY dayOfWeek
     </select>
@@ -88,16 +88,20 @@
 
     <!--今日流出案件数-->
     <select id="getFlowOutCaseToday" parameterType="string" resultType="integer">
-        SELECT COUNT(*) AS num FROM case_turn_record
-        LEFT JOIN case_info
-        ON case_turn_record.case_id = case_info.id
-        WHERE to_days(case_turn_record.operator_time) = to_days(now())
-        AND (case_info.current_collector != #{userId} OR case_info.assist_collector != #{userId})
+        SELECT COUNT(*) FROM (
+            SELECT id FROM case_info
+            WHERE to_days(case_follow_in_time) = to_days(now())
+            AND lately_collector = #{userId}
+            UNION ALL
+            SELECT id FROM case_assist
+            WHERE to_days(case_flowin_time) = to_days(now())
+            AND lately_collector = #{userId}
+        ) as m
     </select>
 
     <!--催收员回款总额-->
     <select id="getMoneySumResult" parameterType="string" resultType="java.math.BigDecimal">
-        SELECT SUM(apply_pay_amt) FROM case_pay_apply WHERE approve_result = 179 AND apply_user_name = #{username}
+        SELECT SUM(apply_pay_amt) FROM case_pay_apply WHERE (approve_result = 179 OR approve_status = 58) AND apply_user_name = #{username}
     </select>
 
     <!--本月回款总额-->
