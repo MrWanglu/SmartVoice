@@ -99,7 +99,7 @@ public class DepartmentController extends BaseController {
         }
         //判断公司的名称是否重复
         QDepartment qDepartment = QDepartment.department;
-        boolean exist = departmentRepository.exists(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode())));
+        boolean exist = departmentRepository.exists(qDepartment.name.eq(department.getName())  .and(qDepartment.companyCode.eq(department.getCompanyCode())));
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用，请重新输入名称")).body(null);
         }
