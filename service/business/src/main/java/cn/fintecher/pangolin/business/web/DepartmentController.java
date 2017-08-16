@@ -253,14 +253,14 @@ public class DepartmentController extends BaseController {
         if (Objects.nonNull(assistingStatisticsMode)) {
             int num = assistingStatisticsMode.getNum();
             if (0 != num) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + num + "个未处理的协催案件，不能停用，请先处理完该机构下的案件")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + num + "个未处理的协催案件，不能删除，请先处理完该机构下的案件")).body(null);
             }
         }
         //首先的移除部门下面的用户
         QUser qUser = QUser.user;
         int usersNum = (int) userRepository.count(qUser.department.code.like(department.getCode().concat("%")).and(qUser.companyCode.eq(department.getCompanyCode())));
         if (usersNum > 0) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户，不能停用，请先移出用户")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户，不能删除，请先移出用户")).body(null);
         }
         if (usersNum > 0) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot delete", "该部门下有" + usersNum + "个用户不能删除")).body(null);
