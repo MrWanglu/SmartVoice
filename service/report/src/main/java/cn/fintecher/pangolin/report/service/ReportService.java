@@ -104,6 +104,8 @@ public class ReportService {
                     backMoneySecModel.setBackMoneyThiModels(backMoneyThiModelList); //二级模型中加入三级模型
                     backMoneySecModelList.add(backMoneySecModel);
                     backMoneyModel.setBackMoneySecModels(backMoneySecModelList); //一级模型中加入二级模型
+
+                    backMoneyModels.add(backMoneyModel);
                 } else { //二级模型不为空
                     int flag1 = 0; //判断二级模型中是否包含该对象组别code
                     for (BackMoneySecModel backMoneySecModel1 : backMoneySecModelList) {
@@ -134,6 +136,8 @@ public class ReportService {
                         backMoneySecModel.setBackMoneyThiModels(backMoneyThiModelList); //二级模型中加入三级模型
                         backMoneySecModelList.add(backMoneySecModel);
                         backMoneyModel.setBackMoneySecModels(backMoneySecModelList); //一级模型中加入二级模型
+
+                        backMoneyModels.add(backMoneyModel);
                     } else { //包含
                         List<BackMoneyThiModel> backMoneyThiModelList = backMoneySecModel.getBackMoneyThiModels(); //获取三级模型
                         int flag2 = 0; //判断三级模型中是否包含该对象的部门code
@@ -188,8 +192,9 @@ public class ReportService {
                 backMoneySecModel.setBackMoneyThiModels(backMoneyThiModelList); //二级模型中加入三级模型
                 backMoneySecModelList.add(backMoneySecModel);
                 backMoneyModel.setBackMoneySecModels(backMoneySecModelList); //一级模型中加入二级模型
+
+                backMoneyModels.add(backMoneyModel);
             }
-            backMoneyModels.add(backMoneyModel);
         }
         return backMoneyModels;
     }
@@ -234,6 +239,8 @@ public class ReportService {
                     performanceSecModel.setPerformanceBasisModels(performanceBasisModelList); //二级模型中加入基础模型
                     performanceSecModels.add(performanceSecModel);
                     performanceModel.setPerformanceSecModels(performanceSecModels); //一级模型中加入二级模型
+
+                    performanceModels.add(performanceModel);
                 } else { //二级模型不为空
                     int flag = 0; //判断二级模型中是否包含该code码
                     for (PerformanceSecModel performanceSecModel1 : performanceSecModels) {
@@ -276,6 +283,7 @@ public class ReportService {
                 performanceSecModel.setPerformanceBasisModels(performanceBasisModelList); //二级模型中加入基础模型
                 performanceSecModels.add(performanceSecModel);
                 performanceModel.setPerformanceSecModels(performanceSecModels); //一级模型中加入二级模型
+
                 performanceModels.add(performanceModel);
             }
         }
@@ -340,6 +348,8 @@ public class ReportService {
                     dailyProcessSecModel.setDailyProcessThiModels(dailyProcessThiModels); //二级模型中加入三级模型
                     dailyProcessSecModels.add(dailyProcessSecModel);
                     dailyProcessModel.setDailyProcessSecModels(dailyProcessSecModels); //一级模型中加入二级模型
+
+                    dailyProcessModels.add(dailyProcessModel);
                 } else { //不为空
                     int flag1 = 0; //判断二级模型中是否有该code码
                     for (DailyProcessSecModel dailyProcessSecModel1 : dailyProcessSecModels) {
@@ -369,6 +379,8 @@ public class ReportService {
                         dailyProcessSecModel.setDailyProcessThiModels(dailyProcessThiModels); //二级模型中加入三级模型
                         dailyProcessSecModels.add(dailyProcessSecModel);
                         dailyProcessModel.setDailyProcessSecModels(dailyProcessSecModels); //一级模型中加入二级模型
+
+                        dailyProcessModels.add(dailyProcessModel);
                     } else { //如果包含
                         List<DailyProcessThiModel> dailyProcessThiModels = dailyProcessSecModel.getDailyProcessThiModels(); //获得三级模型集合
                         int flag2 = 0; //判断三级模型中是否包含该code码
@@ -422,8 +434,9 @@ public class ReportService {
                 dailyProcessSecModel.setDailyProcessThiModels(dailyProcessThiModels); //二级模型中就加入三级模型
                 dailyProcessSecModels.add(dailyProcessSecModel);
                 dailyProcessModel.setDailyProcessSecModels(dailyProcessSecModels); //一级模型中加入二级模型
+
+                dailyProcessModels.add(dailyProcessModel);
             }
-            dailyProcessModels.add(dailyProcessModel);
         }
         return dailyProcessModels;
     }
@@ -486,6 +499,8 @@ public class ReportService {
                     dailyResultSecModel.setDailyResultThiModels(dailyResultThiModels); //二级模型中加入三级模型
                     dailyResultSecModels.add(dailyResultSecModel);
                     dailyResultModel.setDailyResultSecModels(dailyResultSecModels); //一级模型中加入二级模型
+
+                    dailyResultModels.add(dailyResultModel);
                 } else { //不为空
                     int flag1 = 0; //判断二级模型中是否有该code码
                     for (DailyResultSecModel dailyResultSecModel1 : dailyResultSecModels) {
@@ -515,6 +530,8 @@ public class ReportService {
                         dailyResultSecModel.setDailyResultThiModels(dailyResultThiModels); //二级模型中加入三级模型
                         dailyResultSecModels.add(dailyResultSecModel);
                         dailyResultModel.setDailyResultSecModels(dailyResultSecModels); //一级模型中加入二级模型
+
+                        dailyResultModels.add(dailyResultModel);
                     } else { //如果包含
                         List<DailyResultThiModel> dailyResultThiModels = dailyResultSecModel.getDailyResultThiModels(); //获得三级模型集合
                         int flag2 = 0; //判断三级模型中是否包含该code码
@@ -568,8 +585,9 @@ public class ReportService {
                 dailyResultSecModel.setDailyResultThiModels(dailyResultThiModels); //二级模型中就加入三级模型
                 dailyResultSecModels.add(dailyResultSecModel);
                 dailyResultModel.setDailyResultSecModels(dailyResultSecModels); //一级模型中加入二级模型
+
+                dailyResultModels.add(dailyResultModel);
             }
-            dailyResultModels.add(dailyResultModel);
         }
         return dailyResultModels;
     }
