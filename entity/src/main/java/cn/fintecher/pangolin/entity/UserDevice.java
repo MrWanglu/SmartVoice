@@ -49,10 +49,7 @@ public class UserDevice extends BaseEntity{
     @ApiModelProperty("备用字段")
     private String field;
 
-  /*  @ManyToOne
-    @JoinColumn(name = "user_id")
-    @ApiModelProperty("用户Id")
-    private User user;*/
+    private String userId;
 
 
 }

@@ -1,10 +1,7 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.*;
-import cn.fintecher.pangolin.business.repository.DepartmentRepository;
-import cn.fintecher.pangolin.business.repository.RoleRepository;
-import cn.fintecher.pangolin.business.repository.SysParamRepository;
-import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseAssistService;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.UserService;
@@ -69,6 +66,9 @@ public class UserController extends BaseController {
     CaseAssistService caseAssistService;
     @Autowired
     RestTemplate restTemplate;
+
+    @Autowired
+    private UserDeviceRepository userDeviceRepository;
 
     /**
      * @Description : 新增用户
@@ -142,13 +142,33 @@ public class UserController extends BaseController {
         if (Objects.isNull(user.getSignature())) {
             user.setSignature("Congratulations on becoming a member of the company, I wish you a happy work");
         }
+        Set<UserDevice> userDevices = new HashSet<>();
+
+        UserDevice userDevicePc = new UserDevice();
+        userDevicePc.setUserId(user.getId());
+        userDevicePc.setStatus(Status.Enable.getValue());
+        userDevicePc.setValidate(Status.Enable.getValue());
+        userDevicePc.setType(Status.Enable.getValue());
+        userDevicePc.setOperateTime(ZWDateUtil.getNowDateTime());
+        userDeviceRepository.saveAndFlush(userDevicePc);
+        userDevices.add(userDevicePc);
+
+        UserDevice userDeviceApp = new UserDevice();
+        userDeviceApp.setUserId(user.getId());
+        userDeviceApp.setStatus(Status.Enable.getValue());
+        userDeviceApp.setValidate(Status.Enable.getValue());
+        userDeviceApp.setType(Status.Disable.getValue());
+        userDeviceApp.setOperateTime(ZWDateUtil.getNowDateTime());
+        userDeviceRepository.saveAndFlush(userDeviceApp);
+        userDevices.add(userDeviceApp);
         //密码过期时间
         user.setPasswordInvalidTime(ZWDateUtil.getNowDateTime());
         user.setPassword(hashedPassword);
         user.setOperator(userToken.getUserName());
         user.setOperateTime(ZWDateUtil.getNowDateTime());
+        user.setUserDevices(userDevices);
         User userReturn = userService.save(user);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(userReturn);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(userReturn);
     }
 
     /**
