@@ -7,6 +7,8 @@ import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -792,6 +794,7 @@ public class CaseInfoService {
         personalContact.setPhoneStatus(repairInfoModel.getPhoneStatus()); //电话状态
         personalContact.setSocialType(repairInfoModel.getSocialType()); //社交帐号类型
         personalContact.setSocialValue(repairInfoModel.getSocialValue()); //社交帐号内容
+        personalContact.setSource(Constants.DataSource.REPAIR.getValue()); //数据来源 147-修复
         personalContact.setOperator(tokenUser.getUserName()); //操作人
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         personalContactRepository.saveAndFlush(personalContact);
@@ -949,6 +952,25 @@ public class CaseInfoService {
         caseInfo.setOperator(tokenUser); //操作人
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         caseInfoRepository.saveAndFlush(caseInfo);
+    }
+
+    /**
+     * @Description 查询客户联系人
+     */
+    public List<PersonalContact> getPersonalContact(String personalId) {
+        OrderSpecifier<Date> sortOrder = QPersonalContact.personalContact.operatorTime.desc();
+        QPersonalContact qPersonalContact = QPersonalContact.personalContact;
+        Iterable<PersonalContact> personalContacts1 = personalContactRepository.findAll(qPersonalContact.source.eq(Constants.DataSource.IMPORT.getValue()).
+                and(qPersonalContact.personalId.eq(personalId))); //查询导入的联系人信息
+        Iterable<PersonalContact> personalContacts2 = personalContactRepository.findAll(qPersonalContact.source.eq(Constants.DataSource.REPAIR.getValue()).
+                and(qPersonalContact.personalId.eq(personalId)), sortOrder); //查询修复的联系人信息
+        if (!personalContacts1.iterator().hasNext() && !personalContacts2.iterator().hasNext()) {
+            return new ArrayList<>();
+        }
+        List<PersonalContact> personalContactList = IteratorUtils.toList(personalContacts1.iterator());
+        List<PersonalContact> personalContactList1 = IteratorUtils.toList(personalContacts2.iterator());
+        personalContactList.addAll(personalContactList1);
+        return personalContactList;
     }
 
     @Transactional

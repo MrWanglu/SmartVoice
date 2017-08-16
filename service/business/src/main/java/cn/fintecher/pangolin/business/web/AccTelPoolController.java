@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
@@ -42,8 +43,6 @@ public class AccTelPoolController extends BaseController {
     final Logger log = LoggerFactory.getLogger(AccTelPoolController.class);
 
     private static final String ENTITY_CASEINFO = "CaseInfo";
-
-    private static final String ENTITY_PERSONAL = "Personal";
 
     private static final String ENTITY_CASE_PAY_APPLY = "CasePayApply";
 
@@ -440,6 +439,7 @@ public class AccTelPoolController extends BaseController {
             BeanUtils.copyProperties(personalContact, result);
             result.setId(null);
             result.setPhone(addPhoneOrMailParams.getPhone());
+            result.setSource(Constants.DataSource.REPAIR.getValue()); //数据来源 147-修复
             result.setMail(addPhoneOrMailParams.getEmail());
             result.setOperator(tokenUser.getUserName()); //操作人
             result.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
@@ -664,6 +664,22 @@ public class AccTelPoolController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 电催页面查询客户联系人
+     */
+    @GetMapping("/getTelPersonalContact")
+    @ApiOperation(value = "电催页面查询客户联系人", notes = "电催页面查询客户联系人")
+    public ResponseEntity<List<PersonalContact>> getTelPersonalContact(@RequestParam @ApiParam(value = "客户信息ID", required = true) String personalId) {
+        log.debug("REST request to get personal contact by {personalId}", personalId);
+        try {
+            List<PersonalContact> personalContacts = caseInfoService.getPersonalContact(personalId);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功",ENTITY_PERSONAL_CONTACT)).body(personalContacts);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONAL_CONTACT, "personalContact", e.getMessage())).body(null);
         }
     }
 }
