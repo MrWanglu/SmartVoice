@@ -63,6 +63,8 @@ public class CaseAssistController extends BaseController {
     private CasePayApplyRepository casePayApplyRepository;
     @Inject
     private UserService userService;
+    @Inject
+    private CaseAssistApplyRepository caseAssistApplyRepository;
 
     @GetMapping("/closeCaseAssist")
     @ApiOperation(value = "结束协催", notes = "结束协催")
@@ -110,7 +112,7 @@ public class CaseAssistController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CaseAssist>> findCaseInfoAssistRecord(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
+    public ResponseEntity<Page<CaseAssistApply>> findCaseInfoAssistRecord(@QuerydslPredicate(root = CaseAssistApply.class) Predicate predicate,
                                                                      @RequestParam @ApiParam("案件ID") String caseId,
                                                                      @ApiIgnore Pageable pageable,
                                                                      @RequestHeader(value = "X-UserToken") String token) {
@@ -124,10 +126,9 @@ public class CaseAssistController extends BaseController {
         }
         try {
             BooleanBuilder exp = new BooleanBuilder(predicate);
-            QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
-            exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
-            exp.and(qCaseAssist.caseId.id.eq(caseId));
-            Page<CaseAssist> page = caseAssistRepository.findAll(exp, pageable);
+            QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
+            exp.and(qCaseAssistApply.caseId.eq(caseId));
+            Page<CaseAssistApply> page = caseAssistApplyRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -138,7 +139,7 @@ public class CaseAssistController extends BaseController {
     @GetMapping("/findAssistCasePayRecord")
     @ApiOperation(value = "查询还款申请/记录", notes = "查询还款申请/记录")
     public ResponseEntity<Page<CasePayApply>> findAssistCasePayRecord(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
-                                                                      @RequestParam @ApiParam("协催案件ID") String assistId,
+                                                                      @RequestParam @ApiParam("案件ID") String assistId,
                                                                       @ApiIgnore Pageable pageable,
                                                                       @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to findAssistCasePayRecord");
@@ -150,12 +151,10 @@ public class CaseAssistController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "findAssistCaseMessageRecord", e.getMessage())).body(null);
         }
         try {
-            CaseAssist one = caseAssistRepository.findOne(assistId);
-            String caseId = one.getCaseId().getId();
             QCasePayApply qCasePayApply = QCasePayApply.casePayApply;
             BooleanBuilder builder = new BooleanBuilder(predicate);
             builder.and(qCasePayApply.companyCode.eq(user.getCompanyCode()));
-            builder.and(qCasePayApply.caseId.eq(caseId));
+            builder.and(qCasePayApply.caseId.eq(assistId));
             Page<CasePayApply> page = casePayApplyRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
