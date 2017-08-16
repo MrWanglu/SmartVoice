@@ -57,7 +57,12 @@ public final class Constants {
     public static final String USERTOKEN_SERVICE_URL = "http://business-service/api/userResource/getUserByToken?token=";
     //用户服务
     public static final String USER_SERVICE_URL = "http://business-service/api/api/";
-
+    //business服务
+    public static final String BUSINESS_SERVICE_URL = "http://business-service/api/caseInfoResource/";
+    //通过用户id获取用户
+    public static final String USERNAME_SERVICE_URL = "http://business-service/api/userResource/";
+    //机构服务
+    public static final String ORG_SERVICE_URL = "http://business-service/api/departmentResource/";
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
     //案件确认数据发送队列
