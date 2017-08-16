@@ -1,9 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
-import cn.fintecher.pangolin.business.model.AssistingStatisticsModel;
-import cn.fintecher.pangolin.business.model.CollectionCaseModel;
-import cn.fintecher.pangolin.business.model.ManyUserAddRoleRequest;
-import cn.fintecher.pangolin.business.model.UserAddRoleRequest;
+import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.DepartmentRepository;
 import cn.fintecher.pangolin.business.repository.RoleRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
@@ -13,23 +10,36 @@ import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.ExcelUtil;
 import cn.fintecher.pangolin.entity.util.MD5;
 import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.*;
+import org.apache.commons.io.FileUtils;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -57,6 +67,8 @@ public class UserController extends BaseController {
     CaseInfoService caseInfoService;
     @Autowired
     CaseAssistService caseAssistService;
+    @Autowired
+    RestTemplate restTemplate;
 
     /**
      * @Description : 新增用户
@@ -385,5 +397,125 @@ public class UserController extends BaseController {
         }
         Page<User> page = userRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+    }
+
+    /**
+     * @Description 导出用户列表
+     */
+    @PostMapping("/exportUserList")
+    @ApiOperation(value = "导出用户列表", notes = "导出用户列表")
+    public ResponseEntity<String> exportReport(@RequestBody UserListExport request) {
+        HSSFWorkbook workbook = null;
+        File file = null;
+        ByteArrayOutputStream out = null;
+        FileOutputStream fileOutputStream = null;
+        List<UserModel> userModelList = new ArrayList<>();
+        for (User user : request.getUserList()) {
+            UserModel userModel = new UserModel();
+            userModel.setUserName(user.getUserName());
+            userModel.setRealName(user.getRealName());
+            userModel.setDepartment(user.getDepartment().getName());
+            String type = null;
+            switch (user.getType()) {
+                case 1:
+                    type = "电话催收";
+                    break;
+                case 2:
+                    type = "外访催收";
+                    break;
+                case 3:
+                    type = "司法催收";
+                    break;
+                case 4:
+                    type = "委外催收";
+                    break;
+                case 5:
+                    type = "智能催收";
+                    break;
+                case 6:
+                    type = "提醒催收";
+                    break;
+                case 7:
+                    type = "修复管理";
+                    break;
+                case 196:
+                    type = "综合管理";
+                    break;
+                default:
+                    type = "未知类型";
+                    break;
+            }
+            userModel.setType(type);
+            String manager = null;
+            switch (user.getManager()) {
+                case 0:
+                    manager = "是";
+                    break;
+                case 1:
+                    manager = "否";
+                    break;
+                default:
+                    type = "未知类型";
+                    break;
+            }
+            userModel.setManager(manager);
+            userModel.setPhone(user.getPhone());
+            userModel.setEmail(user.getEmail());
+            userModel.setRemark(user.getRemark());
+            userModel.setOperator(user.getOperator());
+            userModelList.add(userModel);
+        }
+        try {
+            String[] titleList = {"用户名", "姓名", "所属部门", "催收类型", "是否管理员", "电话", "邮箱", "备注", "创建人"};
+            String[] proNames = {"userName", "realName", "department", "type", "manager", "phone", "email", "remark", "operator"};
+            workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet("sheet1");
+            ExcelUtil.createExcel(workbook, sheet, userModelList, titleList, proNames, 0, 0);
+            out = new ByteArrayOutputStream();
+            workbook.write(out);
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "用户列表.xls");
+            file = new File(filePath);
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(out.toByteArray());
+            FileSystemResource resource = new FileSystemResource(file);
+            MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+            param.add("file", resource);
+            ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
+            if (url == null) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The upload server failed", "上传服务器失败")).body(null);
+            } else {
+                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(url.getBody());
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The upload server failed", "失败")).body(null);
+        } finally {
+            // 关闭流
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            // 删除文件
+            if (file != null) {
+                file.delete();
+            }
+        }
     }
 }
