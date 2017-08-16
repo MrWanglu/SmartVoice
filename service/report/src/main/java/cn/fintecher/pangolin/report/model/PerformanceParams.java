@@ -12,4 +12,5 @@ import lombok.Data;
 public class PerformanceParams {
     private String code; //部门code码
     private String userName; //用户名
+    private String companyCode; //公司code码
 }

@@ -17,4 +17,5 @@ public class GeneralParams {
     private String realName; //用户名
     private String code; //部门code码
     private Integer type; //报表类型 0-实时 1历史
+    private String companyCode; //公司code码
 }
