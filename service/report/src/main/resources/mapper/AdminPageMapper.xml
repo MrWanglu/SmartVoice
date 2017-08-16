@@ -137,7 +137,7 @@
         SELECT SUM(apply_pay_amt) AS payed,case_pay_apply.personal_name AS name,case_pay_apply.personal_id AS pid FROM case_pay_apply
         LEFT JOIN department
         ON case_pay_apply.depart_id = department.id
-        WHERE (apply.approve_status = 58 OR apply.approve_result =179)
+        WHERE (case_pay_apply.approve_status = 58 OR case_pay_apply.approve_result =179)
         AND department.`code` LIKE concat(#{deptCode},'%')
         AND DATE_FORMAT(approve_pay_datetime, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m')
         GROUP BY case_pay_apply.personal_id,case_pay_apply.personal_name
