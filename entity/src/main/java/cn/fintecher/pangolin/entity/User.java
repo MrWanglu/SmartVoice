@@ -73,7 +73,7 @@ public class User extends BaseEntity {
     private Set<Role> roles;
 
     @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "userId")
     @ApiModelProperty("用户的登陆设备")
     private Set<UserDevice> userDevices;
 

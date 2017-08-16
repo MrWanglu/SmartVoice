@@ -1,0 +1,14 @@
+package cn.fintecher.pangolin;
+import  cn.fintecher.pangolin.entity.CaseInfoDistributed
+global java.util.List checkedList
+dialect  "mvel"
+
+rule "ebbf91e5-987c-4c06-8707-4e2b7da3b205"
+no-loop true            //只检查一次
+    dialect "mvel"
+    when
+        $c : CaseInfoDistributed(overdueDays>10)
+            then
+        System.err.println($c);
+        checkedList.add($c);
+end

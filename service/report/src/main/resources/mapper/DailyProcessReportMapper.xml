@@ -75,7 +75,7 @@
             resultType="cn.fintecher.pangolin.report.entity.DailyProcessReport">
         select * from daily_process_report where dept_code LIKE CONCAT(#{deptCode}, '%') AND company_code =
         #{companyCode}
-        <if test="startDate ! null and endDate != null">
+        <if test="startDate != null and endDate != null">
             AND <![CDATA[DATE_FORMAT(now_date,'%Y-%m-%d') >= DATE_FORMAT(#{startDate},'%Y-%m-%d')]]>
             AND <![CDATA[DATE_FORMAT(now_date,'%Y-%m-%d') <= DATE_FORMAT(#{endDate},'%Y-%m-%d')]]>
         </if>
