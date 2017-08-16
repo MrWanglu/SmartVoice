@@ -93,6 +93,10 @@ public class DepartmentController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
+        //判断公司类型 如果父机构不是综合的类型 子机构和父机构的类型必须一致
+        if (!Objects.equals(department.getType(), department.getParent().getType()) && !Objects.equals(department.getParent().getType(), User.Type.SYNTHESIZE.getValue())) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department types are inconsistent", "子父部门类型不一致的时候，父部门类型只能是综合管理")).body(null);
+        }
         //判断公司的名称是否重复
         QDepartment qDepartment = QDepartment.department;
         boolean exist = departmentRepository.exists(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode())));
@@ -142,9 +146,31 @@ public class DepartmentController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
-        Department dept = departmentRepository.findOne(department.getId());
-        //判断公司的名称是否重复
         QDepartment qDepartment = QDepartment.department;
+        QUser qUser = QUser.user;
+        Department dept = departmentRepository.findOne(department.getId());
+        //判断公司类型 如果父机构不是综合的类型 子机构和父机构的类型必须一致
+        if (!Objects.equals(department.getType(), department.getParent().getType()) && !Objects.equals(department.getParent().getType(), User.Type.SYNTHESIZE.getValue())) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department types are inconsistent", "子父部门类型不一致的时候，父部门类型只能是综合管理")).body(null);
+        }
+        if (!Objects.equals(department.getType(), dept.getType())) {
+            //首先的移除部门下面的用户
+            int usersNum1 = (int) userRepository.count(qUser.department.code.like(dept.getCode().concat("%")));
+            if (usersNum1 > 0) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum1 + "个用户，请先移出用户")).body(null);
+            }
+            //子机构类型
+            Iterator<Department> departments = departmentRepository.findAll(qDepartment.code.like(department.getCode().concat("%")).and(qDepartment.companyCode.eq(department.getCompanyCode())).and(qDepartment.id.ne(department.getId()))).iterator();
+            List<Department> departmentList = IteratorUtils.toList(departments);
+            for (Department department1 : departmentList) {
+                if (Objects.equals(department.getType(), department1.getType())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "There is a mismatch in the type of father and son institution", "父子机构类型不一致")).body(null);
+                }
+            }
+        }
+
+        //判断公司的名称是否重复
+
         boolean exist = departmentRepository.exists(qDepartment.name.eq(department.getName()).and(qDepartment.companyCode.eq(department.getCompanyCode())).and(qDepartment.id.ne(department.getId())));
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department name has been occupied", "该部门名称已被占用，请重新输入名称")).body(null);
@@ -183,7 +209,6 @@ public class DepartmentController extends BaseController {
                     }
                 }
                 //首先的移除部门下面的用户
-                QUser qUser = QUser.user;
                 int usersNum = (int) userRepository.count(qUser.department.code.like(dept.getCode().concat("%")));
                 if (usersNum > 0) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户，不能停用，请先移出用户")).body(null);
