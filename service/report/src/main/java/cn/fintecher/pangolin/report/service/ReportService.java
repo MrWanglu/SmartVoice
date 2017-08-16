@@ -622,6 +622,7 @@ public class ReportService {
             }
             //合并实时回款记录和没有回款的记录
             backMoneyReports.addAll(backMoneyReportList);
+            backMoneyReports.sort((o1, o2) -> (o2.getDeptCode().compareTo(o1.getDeptCode())));
         } else { //历史报表
             Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
             Date date2 = ZWDateUtil.getFormatDate(generalParams.getEndDate());
