@@ -14,6 +14,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +66,8 @@ public class DataInfoExcelController {
     })
     public ResponseEntity<Page<DataInfoExcel>> getDataInfoExcelList(@QuerydslPredicate(root = DataInfoExcel.class) Predicate predicate,
                                                                     @ApiIgnore Pageable pageable,
-                                                                    @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token){
+                                                                    @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                                    @RequestParam(value = "companyCode",required = false) @ApiParam("公司Code") String companyCode) {
         ResponseEntity<User> userResponseEntity=null;
         try {
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
@@ -77,7 +79,15 @@ public class DataInfoExcelController {
         //只查询本人数据
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QDataInfoExcel.dataInfoExcel.operator.eq(user.getId()));
-        builder.and(QDataInfoExcel.dataInfoExcel.companyCode.eq(user.getCompanyCode()));
+        if (Objects.equals(user.getUserName(), "administrator")) {
+            if (StringUtils.isNotBlank(companyCode)) {
+                builder.and(QDataInfoExcel.dataInfoExcel.companyCode.eq(companyCode));
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "getDataInfoExcelList", "请先选择公司!")).body(null);
+            }
+        } else {
+            builder.and(QDataInfoExcel.dataInfoExcel.companyCode.eq(user.getCompanyCode()));
+        }
         Page<DataInfoExcel> dataInfoExcelPage=  dataInfoExcelRepository.findAll(builder,pageable);
       return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询数据成功",ENTITY_NAME)).body(dataInfoExcelPage);
     }
@@ -85,7 +95,7 @@ public class DataInfoExcelController {
     @PostMapping("/importExcelData")
     @ApiOperation(value = "案件导入", notes = "案件导入")
     public ResponseEntity<List<CellError>>  importExcelData(@RequestBody DataImportRecord dataImportRecord,
-                                           @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         ResponseEntity<User> userResponseEntity=null;
         try {
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
@@ -94,10 +104,23 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
         User user=userResponseEntity.getBody();
+        // 超级管理员
+        if (Objects.equals(user.getUserName(), "administrator")) {
+            if (Objects.nonNull(dataImportRecord.getCompanyCode())) {
+                user.setCompanyCode(dataImportRecord.getCompanyCode());
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司!")).body(null);
+            }
+        }
         List<CellError> cellErrorList=null;
         try {
-           cellErrorList= dataInfoExcelService.importExcelData(dataImportRecord,user);
-           if (!cellErrorList.isEmpty()) {
+            try {
+                cellErrorList= dataInfoExcelService.importExcelData(dataImportRecord,user);
+            } catch (final Exception e) {
+                logger.error(e.getMessage(),e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "importExcelData", e.getMessage())).body(null);
+            }
+            if (!cellErrorList.isEmpty()) {
                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"importExcelData","")).body(cellErrorList);
            }
         }catch (Exception e){
@@ -121,7 +144,8 @@ public class DataInfoExcelController {
 
     @GetMapping("/queryBatchNumGroup")
     @ApiOperation(value = "获取批次号列表", notes = "获取批次号列表")
-    public ResponseEntity<List<String>>  queryBatchNumGroup(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+    public ResponseEntity<List<String>> queryBatchNumGroup(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                           @RequestParam(value = "companyCode",required = false) @ApiParam("公司Code") String companyCode) {
         ResponseEntity<User> userResponseEntity=null;
         try {
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
@@ -130,6 +154,13 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
         User user=userResponseEntity.getBody();
+        if (Objects.equals(user.getUserName(), "administrator")) {
+            if (StringUtils.isNotBlank(companyCode)) {
+                user.setCompanyCode(companyCode);
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "queryBatchNumGroup", "请先选择公司!")).body(null);
+            }
+        }
         List<String> batchNumList= dataInfoExcelService.queryBatchNumGroup(user);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("获取批次号成功",ENTITY_NAME)).body(batchNumList);
     }
@@ -138,7 +169,7 @@ public class DataInfoExcelController {
     @ResponseBody
     @ApiOperation(value = "导入单个案件附件", notes = "导入单个案件附件")
     public ResponseEntity uploadCaseFileSingle(@RequestBody UpLoadFileModel upLoadFileModel,
-                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         ResponseEntity<User> userResponseEntity=null;
         try {
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
@@ -177,7 +208,7 @@ public class DataInfoExcelController {
     @GetMapping("/deleteCasesByBatchNum")
     @ApiOperation(value = "按批次号删除案件", notes = "按批次号删除案件")
     public ResponseEntity deleteCasesByBatchNum(@RequestParam(required = true) @ApiParam(value = "批次号") String batchNumber,
-                                        @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         ResponseEntity<User> userResponseEntity=null;
         try {
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
@@ -193,7 +224,8 @@ public class DataInfoExcelController {
     @GetMapping("/checkCasesFile")
     @ResponseBody
     @ApiOperation(value = "检查案件附件是否存在", notes = "检查案件附件是否存在")
-    public ResponseEntity<List<DataInfoExcelFileExist>> checkCasesFile(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+    public ResponseEntity<List<DataInfoExcelFileExist>> checkCasesFile(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                                       @RequestParam(value = "companyCode",required = false) @ApiParam("公司Code") String companyCode) {
         ResponseEntity<User> userResponseEntity=null;
         try {
 
@@ -203,13 +235,21 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
         User user = userResponseEntity.getBody();
+        if (Objects.equals(user.getUserName(), "administrator")) {
+            if (StringUtils.isNotBlank(companyCode)) {
+                user.setCompanyCode(companyCode);
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "queryBatchNumGroup", "请先选择公司!")).body(null);
+            }
+        }
         List<DataInfoExcelFileExist> checkStr = dataInfoExcelService.checkCasesFile(user);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("检查附件是否存在",ENTITY_NAME)).body(checkStr);
     }
 
     @GetMapping("/casesConfirmByBatchNum")
     @ApiOperation(value = "案件确认操作", notes = "案件确认操作")
-    public ResponseEntity casesConfirmByBatchNum(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+    public ResponseEntity casesConfirmByBatchNum(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                 @RequestParam(value = "companyCode",required = false) @ApiParam("公司Code") String companyCode) {
         ResponseEntity<User> userResponseEntity=null;
         try {
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
@@ -218,6 +258,13 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
         User user = userResponseEntity.getBody();
+        if (Objects.equals(user.getUserName(), "administrator")) {
+            if (StringUtils.isNotBlank(companyCode)) {
+                user.setCompanyCode(companyCode);
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "queryBatchNumGroup", "请先选择公司!")).body(null);
+            }
+        }
         dataInfoExcelService.casesConfirmByBatchNum(user);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功",ENTITY_NAME)).body(null);
     }
