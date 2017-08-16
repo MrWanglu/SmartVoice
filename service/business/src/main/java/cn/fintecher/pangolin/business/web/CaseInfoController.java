@@ -33,7 +33,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -280,6 +279,175 @@ public class CaseInfoController extends BaseController {
         List<CaseTurnRecord> caseTurnRecords = IterableUtils.toList(all);
         return ResponseEntity.ok().body(caseTurnRecords);
     }
+
+    @GetMapping("/electricSmallCirculation")
+    @ApiOperation(value = "电催小流转池", notes = "电催小流转池")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity electricSmallCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                   @ApiIgnore Pageable pageable,
+                                                   @RequestHeader(value = "X-UserToken") String token,
+                                                   @RequestParam(required = false) @ApiParam(value = "流转状态") Integer caseType,
+                                                   @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                   @RequestParam(required = false) @ApiParam(value = "催收类型") Integer type){
+        User user;
+        try {
+            user = getUserByToken(token);
+
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
+        }
+        BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+        if (!Objects.equals(user.getUserName(), "administrator")) {
+            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+        }
+        //type  15 电催  16 外访
+        if (Objects.nonNull(type)) {
+            if (Objects.equals(type,15)) {
+                if(Objects.nonNull(caseType)){
+                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(caseType));
+                }else{
+                    // 电催的小流转和提前流转
+                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONESMALLTURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue()));
+                }
+
+            }
+        }
+        Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "smallCirculation")).body(page);
+    }
+    @GetMapping("/electricForceCirculation")
+    @ApiOperation(value = "电催强制流转池", notes = "电催强制流转池")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+        public ResponseEntity electricForceCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                       @ApiIgnore Pageable pageable,
+                                                       @RequestHeader(value = "X-UserToken") String token,
+                                                       @RequestParam(required = false) @ApiParam(value = "流转状态") Integer caseType,
+                                                       @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                       @RequestParam(required = false) @ApiParam(value = "催收类型") Integer type) {
+        User user;
+        BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+        try {
+            user = getUserByToken(token);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
+        }
+        if (!Objects.equals(user.getUserName(), "administrator")) {
+            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+        }
+        //type  15 电催  16 外访
+        if (Objects.nonNull(type)) {
+            if (Objects.equals(type,15)) {
+                if(Objects.nonNull(caseType)){
+                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(caseType));
+                }else{
+                    // 电催的强制流转和保留流转
+                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONEFORCETURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONELEAVETURN.getValue()));
+                }
+            }
+        }
+        Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "smallCirculation")).body(page);
+    }
+
+    @GetMapping("/outSmallCirculation")
+    @ApiOperation(value = "外访小流转池", notes = "外访小流转池")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity outSmallCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                              @ApiIgnore Pageable pageable,
+                                              @RequestHeader(value = "X-UserToken") String token,
+                                              @RequestParam(required = false) @ApiParam(value = "流转状态") Integer caseType,
+                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                              @RequestParam(required = false) @ApiParam(value = "催收类型") Integer type) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
+        }
+        BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+        if (!Objects.equals(user.getUserName(), "administrator")) {
+            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+        }
+        //type  15 电催  16 外访
+        if (Objects.nonNull(type)) {
+            if (Objects.equals(type,16)) {
+                if(Objects.nonNull(caseType)){
+                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(caseType));
+                }else{
+                    // 外访的小流转和保留流转
+                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTSMALLTURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTFAHEADTURN.getValue()));
+                }
+            }
+        }
+        Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "smallCirculation")).body(page);
+    }
+    @GetMapping("/outForceCirculation")
+    @ApiOperation(value = "外访强制流转池", notes = "外访强制流转池")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity outForceCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                              @ApiIgnore Pageable pageable,
+                                              @RequestHeader(value = "X-UserToken") String token,
+                                              @RequestParam(required = false) @ApiParam(value = "流转状态") Integer caseType,
+                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                              @RequestParam(required = false) @ApiParam(value = "催收类型") Integer type) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
+        }
+        BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+        if (!Objects.equals(user.getUserName(), "administrator")) {
+            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+        }
+        if (Objects.nonNull(type)) {
+            if (Objects.equals(type,16)) {
+                booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(type));
+                if(Objects.nonNull(caseType)){
+                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(caseType));
+                }else{
+                    // 外访的强制流转和保留流转
+                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTFORCETURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTLEAVETURN.getValue()));
+                }
+            }
+        }
+        Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "smallCirculation")).body(page);
+    }
+
 
     @GetMapping("/exportCaseInfoFollowRecord")
     @ApiOperation(value = "导出跟进记录", notes = "导出跟进记录")

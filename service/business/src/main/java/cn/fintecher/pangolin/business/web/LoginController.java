@@ -115,7 +115,7 @@ public class LoginController extends BaseController {
             for (UserDevice userDevice : userDevices) {
                 // 是否开启验证设备
                 if (Objects.equals(userDevice.getValidate(), Status.Enable.getValue())) {
-                    // 是否启用设备锁
+                    // 是否启用设备
                     if (Objects.equals(userDevice.getStatus(), Status.Enable.getValue())) {
                         if (Objects.equals(loginRequest.getUsdeType(),userDevice.getType())) {
                             if (Objects.equals(loginRequest.getUsdeType(), Status.Enable.getValue())) {
