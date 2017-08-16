@@ -24,7 +24,7 @@ public class Outsource extends BaseEntity {
     private String outsName;
 
     @ApiModelProperty("市的id")
-    private String area_id;
+    private Integer area_id;
 
     @ApiModelProperty("详细地址")
     private String outsAddress;

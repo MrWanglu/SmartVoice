@@ -85,6 +85,24 @@ public class PrincipalController extends BaseController {
     }
 
     /**
+     * @Description : 删除委托方
+     */
+    @DeleteMapping("/deletePrincipal")
+    @ApiOperation(value = "删除委托方", notes = "删除委托方")
+    public ResponseEntity<Principal> deletePrincipal(@RequestParam String id,
+                                                     @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        principalRepository.delete(id);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+    }
+
+    /**
      * @Description : 新增/修改委托方信息
      */
     @PostMapping("/createPrincipal")
