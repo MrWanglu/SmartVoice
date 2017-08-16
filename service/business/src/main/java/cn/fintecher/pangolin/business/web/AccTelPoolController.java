@@ -283,6 +283,7 @@ public class AccTelPoolController extends BaseController {
             } else {
                 builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(tokenUser.getId()));
             }
+            builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.DISTRIBUTE.getValue())); //只查案件类型为案件分配的
             builder.and(QCaseInfo.caseInfo.collectionStatus.in(list)); //不查询已结案案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())); //只查询电催案件
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
@@ -576,12 +577,90 @@ public class AccTelPoolController extends BaseController {
     @PostMapping("/leaveTelCase")
     @ApiOperation(value = "电催案件留案操作", notes = "电催案件留案操作")
     public ResponseEntity<LeaveCaseModel> leaveTelCase(@RequestBody LeaveCaseParams leaveCaseParams,
-                                             @RequestHeader(value = "X-UserToken") String token) {
+                                                       @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to leave case");
         try {
             User tokenUser = getUserByToken(token);
             LeaveCaseModel leaveCaseModel = caseInfoService.leaveCase(leaveCaseParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("留案成功", ENTITY_CASEINFO)).body(leaveCaseModel);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 电催申请提前流转
+     */
+    @PostMapping("/telAdvanceCirculation")
+    @ApiOperation(value = "电催申请提前流转", notes = "电催申请提前流转")
+    public ResponseEntity<Void> telAdvanceCirculation(@RequestBody AdvanceCirculationParams advanceCirculationParams,
+                                                      @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to advance circulation");
+        try {
+            User tokenUser = getUserByToken(token);
+            caseInfoService.advanceCirculation(advanceCirculationParams, tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("申请成功", ENTITY_CASEINFO)).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 多条件查询电催小流转待审批案件
+     */
+    @GetMapping("/getTelPendingCase")
+    @ApiOperation(value = "多条件查询电催小流转待审批案件", notes = "多条件查询电催小流转待审批案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseInfo>> getTelPendingCase(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                            @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                            @ApiIgnore Pageable pageable,
+                                                            @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get tel pending case");
+        List<Integer> list = new ArrayList<>();
+        list.add(CaseInfo.CirculationStatus.PHONE_WAITING.getValue()); //197-电催流转待审批
+        list.add(CaseInfo.CirculationStatus.PHONE_PASS.getValue()); //198-电催流转通过
+        list.add(CaseInfo.CirculationStatus.PHONE_REFUSE.getValue()); //199-电催流转拒绝
+        try {
+            User tokenUser = getUserByToken(token);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            if (Objects.equals(tokenUser.getUserName(), "administrator")) {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+            } else {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+            }
+            builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue())); //只查案件类型为电催提前流转的
+            builder.and(QCaseInfo.caseInfo.circulationStatus.in(list)); //只查限定的小流转审批状态的案件
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getTelPendingCase");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "查询失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 电催审批小流转案件
+     */
+    @PostMapping("/approvalTelCirculation")
+    @ApiOperation(value = "电催审批小流转案件", notes = "电催审批小流转案件")
+    public ResponseEntity<Void> approvalTelCirculation(@RequestBody CirculationApprovalParams circulationApprovalParams,
+                                                       @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to approval tel circulation case");
+        try {
+            User tokenUser = getUserByToken(token);
+            caseInfoService.approvalCirculation(circulationApprovalParams, tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功", ENTITY_CASEINFO)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", e.getMessage())).body(null);

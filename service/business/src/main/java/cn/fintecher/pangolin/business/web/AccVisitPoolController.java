@@ -107,6 +107,7 @@ public class AccVisitPoolController extends BaseController {
             } else {
                 builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(tokenUser.getId()));
             }
+            builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.DISTRIBUTE.getValue())); //只查案件类型为案件分配的
             builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //不查询已结案案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); //只查询外访案件
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
@@ -500,6 +501,84 @@ public class AccVisitPoolController extends BaseController {
             User tokenUser = getUserByToken(token);
             LeaveCaseModel leaveCaseModel = caseInfoService.leaveCase(leaveCaseParams, tokenUser);
             return ResponseEntity.ok().body(leaveCaseModel);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 外访申请提前流转
+     */
+    @PostMapping("/visitAdvanceCirculation")
+    @ApiOperation(value = "外访申请提前流转", notes = "外访申请提前流转")
+    public ResponseEntity<Void> visitAdvanceCirculation(@RequestBody AdvanceCirculationParams advanceCirculationParams,
+                                                        @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to advance circulation");
+        try {
+            User tokenUser = getUserByToken(token);
+            caseInfoService.advanceCirculation(advanceCirculationParams, tokenUser);
+            return ResponseEntity.ok().body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 多条件查询外访小流转待审批案件
+     */
+    @GetMapping("/getVisitPendingCase")
+    @ApiOperation(value = "多条件查询外访小流转待审批案件", notes = "多条件查询外访小流转待审批案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseInfo>> getVisitPendingCase(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                              @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                              @ApiIgnore Pageable pageable,
+                                                              @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get visit pending case");
+        List<Integer> list = new ArrayList<>();
+        list.add(CaseInfo.CirculationStatus.VISIT_WAITING.getValue()); //200-外访流转待审批
+        list.add(CaseInfo.CirculationStatus.VISIT_PASS.getValue()); //201-外访流转通过
+        list.add(CaseInfo.CirculationStatus.VISIT_REFUSE.getValue()); //202-外访流转拒绝
+        try {
+            User tokenUser = getUserByToken(token);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            if (Objects.equals(tokenUser.getUserName(), "administrator")) {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+            } else {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+            }
+            builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue())); //只查案件类型为外访提前流转的
+            builder.and(QCaseInfo.caseInfo.circulationStatus.in(list)); //只查限定的小流转审批状态的案件
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getVisitPendingCase");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "查询失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 外访审批小流转案件
+     */
+    @PostMapping("/approvalVisitCirculation")
+    @ApiOperation(value = "外访审批小流转案件", notes = "外访审批小流转案件")
+    public ResponseEntity<Void> approvalTelCirculation(@RequestBody CirculationApprovalParams circulationApprovalParams,
+                                                       @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to approval visit circulation case");
+        try {
+            User tokenUser = getUserByToken(token);
+            caseInfoService.approvalCirculation(circulationApprovalParams, tokenUser);
+            return ResponseEntity.ok().body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", e.getMessage())).body(null);

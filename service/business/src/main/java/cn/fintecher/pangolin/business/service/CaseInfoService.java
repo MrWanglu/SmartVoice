@@ -873,6 +873,11 @@ public class CaseInfoService {
                 throw new RuntimeException("所选案件数量超过可留案案件数");
             }
             caseInfo.setLeaveCaseFlag(1); //留案标志
+            if (Objects.equals(tokenUser.getType(), User.Type.TEL.getValue())) {
+                caseInfo.setCaseType(CaseInfo.CaseType.PHNONELEAVETURN.getValue()); //案件类型 177-电催保留流转
+            } else if (Objects.equals(tokenUser.getType(), User.Type.VISIT.getValue())) {
+                caseInfo.setCaseType(CaseInfo.CaseType.OUTLEAVETURN.getValue()); //案件类型 181-外访保留流转
+            }
             caseInfo.setOperator(tokenUser); //操作人
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseInfoRepository.saveAndFlush(caseInfo);
@@ -883,8 +888,68 @@ public class CaseInfoService {
         return leaveCaseModel;
     }
 
+    /**
+     * @Description 申请提前流转
+     */
+    public void advanceCirculation(AdvanceCirculationParams advanceCirculationParams, User tokenUser) {
+        List<String> caseIds = advanceCirculationParams.getCaseIds();
+        for (String caseId : caseIds) {
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+            if (Objects.isNull(caseInfo)) {
+                throw new RuntimeException("所选案件未找到");
+            }
+            if (Objects.equals(advanceCirculationParams.getType(), 0)) {
+                caseInfo.setCaseType(CaseInfo.CaseType.PHNONESMALLTURN.getValue()); //案件类型 174-电催小流转
+                caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.PHONE_WAITING.getValue()); //小流转审批状态 197-电催流转待审批
+            } else {
+                caseInfo.setCaseType(CaseInfo.CaseType.OUTSMALLTURN.getValue()); //案件类型 178-外访小流转
+                caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.VISIT_WAITING.getValue()); //小流转审批状态 200-外访流转待审批
+            }
+            caseInfo.setOperator(tokenUser); //操作人
+            caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+            caseInfoRepository.saveAndFlush(caseInfo);
+        }
+    }
 
-
+    /**
+     * @Description 审批小流转案件
+     */
+    public void approvalCirculation(CirculationApprovalParams circulationApprovalParams, User tokenUser) {
+        CaseInfo caseInfo = caseInfoRepository.findOne(circulationApprovalParams.getCaseId()); //获取案件信息
+        if (Objects.isNull(caseInfo)) {
+            throw new RuntimeException("该案件未找到");
+        }
+        if (Objects.equals(circulationApprovalParams.getResult(), 0)) { //审批通过
+            if (Objects.equals(circulationApprovalParams.getType(), 0)) { //电催小流转
+                caseInfo.setCollectionType(CaseInfo.CirculationStatus.PHONE_PASS.getValue()); //198-电催流转通过
+            } else { //外访小流转
+                caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.VISIT_PASS.getValue()); //201-外访流转通过
+            }
+            caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上一个催收员变为当前催收员
+            caseInfo.setCurrentCollector(tokenUser); //当前催收员变为审批人
+            //通过后添加一条流转记录
+            CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+            BeanUtils.copyProperties(caseInfo, caseTurnRecord);
+            caseTurnRecord.setId(null);
+            caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
+            caseTurnRecord.setDepartId(tokenUser.getDepartment().getId()); //部门ID
+            caseTurnRecord.setReceiveUserRealName(tokenUser.getRealName()); //接受人名称
+            caseTurnRecord.setReceiveDeptName(tokenUser.getDepartment().getName()); //接收部门名称
+            caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
+            caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+            caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
+        } else { //审批拒绝
+            if (Objects.equals(circulationApprovalParams.getType(), 0)) { //电催小流转
+                caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.PHONE_REFUSE.getValue()); //199-电催流转拒绝
+            } else { //外访小流转
+                caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.VISIT_REFUSE.getValue()); //202-外访流转拒绝
+            }
+            caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型恢复为193-案件分配
+        }
+        caseInfo.setOperator(tokenUser); //操作人
+        caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        caseInfoRepository.saveAndFlush(caseInfo);
+    }
 
     @Transactional
     public void distributeRepairCase(AccCaseInfoDisModel accCaseInfoDisModel, User user) throws Exception {
