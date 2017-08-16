@@ -328,9 +328,9 @@ public class PersonalController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.equals(tokenUser.getUserName(),"administrator")){
+            if (Objects.equals(tokenUser.getUserName(), "administrator")) {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
-            }else{
+            } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
             }
             Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);
@@ -358,7 +358,7 @@ public class PersonalController extends BaseController {
                     .and(qCaseTurnRecord.companyCode.eq(tokenUser.getCompanyCode())), sortOrder);
             List<CaseTurnRecord> caseTurnRecordList = IterableUtils.toList(caseTurnRecords);
             if (caseTurnRecordList.isEmpty()) {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("该案件跟进记录为空", ENTITY_CASE_TURN_RECORD)).body(null);
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("该案件跟进记录为空", ENTITY_CASE_TURN_RECORD)).body(new ArrayList<>());
             } else {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASE_TURN_RECORD)).body(caseTurnRecordList);
             }

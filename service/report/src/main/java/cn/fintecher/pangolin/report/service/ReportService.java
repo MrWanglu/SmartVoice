@@ -14,6 +14,7 @@ import cn.fintecher.pangolin.report.mapper.PerformanceReportMapper;
 import cn.fintecher.pangolin.report.model.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -33,6 +34,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.inject.Inject;
 import java.io.*;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -63,7 +65,7 @@ public class ReportService {
     /**
      * @Description 查询催收员回款报表
      */
-    public List<BackMoneyModel> getBackMoneyReport(GeneralParams generalParams, User tokenUser) {
+    public List<BackMoneyModel> getBackMoneyReport(GeneralParams generalParams, User tokenUser) throws ParseException {
         List<BackMoneyModel> backMoneyModels = new ArrayList<>();
         List<BackMoneyReport> backMoneyReports = makeBackMoneyReport(generalParams, tokenUser);
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
@@ -187,8 +189,9 @@ public class ReportService {
                 backMoneySecModel.setBackMoneyThiModels(backMoneyThiModelList); //二级模型中加入三级模型
                 backMoneySecModelList.add(backMoneySecModel);
                 backMoneyModel.setBackMoneySecModels(backMoneySecModelList); //一级模型中加入二级模型
+
+                backMoneyModels.add(backMoneyModel);
             }
-            backMoneyModels.add(backMoneyModel);
         }
         return backMoneyModels;
     }
@@ -199,7 +202,12 @@ public class ReportService {
     public List<PerformanceModel> getPerformanceReport(PerformanceParams performanceParams, User tokenUser) {
         List<PerformanceModel> performanceModels = new ArrayList<>();
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
-        List<PerformanceBasisModel> performanceBasisModels = performanceReportMapper.getPerformanceReport(deptModel.getCode(), performanceParams.getCode(), performanceParams.getUserName(), tokenUser.getCompanyCode());
+        List<PerformanceBasisModel> performanceBasisModels;
+        if (StringUtils.equals(tokenUser.getUserName(), "administrator")) {
+            performanceBasisModels = performanceReportMapper.getPerformanceReport(deptModel.getCode(), performanceParams.getCode(), performanceParams.getUserName(), performanceParams.getCompanyCode());
+        } else {
+            performanceBasisModels = performanceReportMapper.getPerformanceReport(deptModel.getCode(), performanceParams.getCode(), performanceParams.getUserName(), tokenUser.getCompanyCode());
+        }
         if (performanceBasisModels.isEmpty()) {
             return null;
         }
@@ -270,6 +278,7 @@ public class ReportService {
                 performanceSecModel.setPerformanceBasisModels(performanceBasisModelList); //二级模型中加入基础模型
                 performanceSecModels.add(performanceSecModel);
                 performanceModel.setPerformanceSecModels(performanceSecModels); //一级模型中加入二级模型
+
                 performanceModels.add(performanceModel);
             }
         }
@@ -279,15 +288,26 @@ public class ReportService {
     /**
      * @Description 催收员每日催收过程报表
      */
-    public List<DailyProcessModel> getDailyProcessReport(GeneralParams generalParams, User tokenUser) {
+    public List<DailyProcessModel> getDailyProcessReport(GeneralParams generalParams, User tokenUser) throws ParseException {
         List<DailyProcessModel> dailyProcessModels = new ArrayList<>();
         List<DailyProcessReport> dailyProcessReports;
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
         if (Objects.equals(generalParams.getType(), 0)) { //实时报表
-            dailyProcessReports = dailyProcessReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode()); //获得实时报表
+            if (StringUtils.equals(tokenUser.getUserName(), "administrator")) {
+                dailyProcessReports = dailyProcessReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode()); //获得实时报表
+            } else {
+                dailyProcessReports = dailyProcessReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode()); //获得实时报表
+            }
         } else { //历史报表
-            dailyProcessReports = dailyProcessReportMapper.getHistoryReport(generalParams.getStartDate(), generalParams.getEndDate(),
-                    deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+            Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
+            Date date2 = ZWDateUtil.getFormatDate(generalParams.getEndDate());
+            if (StringUtils.equals(tokenUser.getUserName(), "administrator")) {
+                dailyProcessReports = dailyProcessReportMapper.getHistoryReport(date1, date2,
+                        deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
+            } else {
+                dailyProcessReports = dailyProcessReportMapper.getHistoryReport(date1, date2,
+                        deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+            }
         }
         //构建报表展示模型
         if (dailyProcessReports.isEmpty()) { //如果报表为空则返回null
@@ -407,8 +427,9 @@ public class ReportService {
                 dailyProcessSecModel.setDailyProcessThiModels(dailyProcessThiModels); //二级模型中就加入三级模型
                 dailyProcessSecModels.add(dailyProcessSecModel);
                 dailyProcessModel.setDailyProcessSecModels(dailyProcessSecModels); //一级模型中加入二级模型
+
+                dailyProcessModels.add(dailyProcessModel);
             }
-            dailyProcessModels.add(dailyProcessModel);
         }
         return dailyProcessModels;
     }
@@ -416,15 +437,26 @@ public class ReportService {
     /**
      * @Description 催收员每日催收结果报表
      */
-    public List<DailyResultModel> getDailyResultReport(GeneralParams generalParams, User tokenUser) {
+    public List<DailyResultModel> getDailyResultReport(GeneralParams generalParams, User tokenUser) throws ParseException {
         List<DailyResultModel> dailyResultModels = new ArrayList<>();
         List<DailyResultReport> dailyResultReports;
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
         if (Objects.equals(generalParams.getType(), 0)) { //实时报表
-            dailyResultReports = dailyResultReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+            if (StringUtils.equals(tokenUser.getUserName(), "administrator")) {
+                dailyResultReports = dailyResultReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
+            } else {
+                dailyResultReports = dailyResultReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+            }
         } else { //历史报表
-            dailyResultReports = dailyResultReportMapper.getHistoryReport(generalParams.getStartDate(), generalParams.getEndDate(),
-                    deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+            Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
+            Date date2 = ZWDateUtil.getFormatDate(generalParams.getEndDate());
+            if (StringUtils.equals(tokenUser.getUserName(), "administrator")) {
+                dailyResultReports = dailyResultReportMapper.getHistoryReport(date1, date2,
+                        deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
+            } else {
+                dailyResultReports = dailyResultReportMapper.getHistoryReport(date1, date2,
+                        deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+            }
         }
         //构建报表展示模型
         if (Objects.isNull(dailyResultReports)) {
@@ -544,8 +576,9 @@ public class ReportService {
                 dailyResultSecModel.setDailyResultThiModels(dailyResultThiModels); //二级模型中就加入三级模型
                 dailyResultSecModels.add(dailyResultSecModel);
                 dailyResultModel.setDailyResultSecModels(dailyResultSecModels); //一级模型中加入二级模型
+
+                dailyResultModels.add(dailyResultModel);
             }
-            dailyResultModels.add(dailyResultModel);
         }
         return dailyResultModels;
     }
@@ -553,15 +586,20 @@ public class ReportService {
     /**
      * @Description 获取催收员回款报表
      */
-    private List<BackMoneyReport> makeBackMoneyReport(GeneralParams generalParams, User tokenUser) {
+    private List<BackMoneyReport> makeBackMoneyReport(GeneralParams generalParams, User tokenUser) throws ParseException {
         List<BackMoneyReport> backMoneyReports;
+        List<NoBackMoneyModel> noBackMoneyModels;
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
         if (Objects.equals(generalParams.getType(), 0)) { //实时报表
-            //获取当日有回款的记录
-            backMoneyReports = backMoneyReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
-
-            //获取没有案件中有案件但没有回款的记录
-            List<NoBackMoneyModel> noBackMoneyModels = backMoneyReportMapper.getUserNames(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+            if (StringUtils.equals(tokenUser.getUserName(), "administrator")) {
+                backMoneyReports = backMoneyReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
+                noBackMoneyModels = backMoneyReportMapper.getUserNames(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
+            } else {
+                //获取当日有回款的记录
+                backMoneyReports = backMoneyReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+                //获取没有案件中有案件但没有回款的记录
+                noBackMoneyModels = backMoneyReportMapper.getUserNames(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+            }
             DeptModel dept;
             List<BackMoneyReport> backMoneyReportList = new ArrayList<>();
             if (!noBackMoneyModels.isEmpty()) { //存在有案件却没有回款的用户
@@ -585,8 +623,10 @@ public class ReportService {
             //合并实时回款记录和没有回款的记录
             backMoneyReports.addAll(backMoneyReportList);
         } else { //历史报表
-            backMoneyReports = backMoneyReportMapper.getHistoryReport(deptModel.getCode(), generalParams.getStartDate(),
-                    generalParams.getEndDate(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+            Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
+            Date date2 = ZWDateUtil.getFormatDate(generalParams.getEndDate());
+            backMoneyReports = backMoneyReportMapper.getHistoryReport(deptModel.getCode(), date1,
+                    date2, generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
         }
         return backMoneyReports;
     }
@@ -594,7 +634,7 @@ public class ReportService {
     /**
      * @Description 导出催收员回款报表
      */
-    public String exportBackMoneyReport(GeneralParams generalParams, User tokenUser) throws IOException {
+    public String exportBackMoneyReport(GeneralParams generalParams, User tokenUser) throws IOException, ParseException {
         //获取导出数据模型
         List<BackMoneyModel> backMoneyModels = getBackMoneyReport(generalParams, tokenUser);
         if (Objects.isNull(backMoneyModels)) {
@@ -940,7 +980,7 @@ public class ReportService {
     /**
      * @Description 导出催收员每日催收过程报表
      */
-    public String exportDailyProcessReport(GeneralParams generalParams, User tokenUser) throws IOException {
+    public String exportDailyProcessReport(GeneralParams generalParams, User tokenUser) throws IOException, ParseException {
         //获取导出数据模型
         List<DailyProcessModel> dailyProcessModels = getDailyProcessReport(generalParams, tokenUser);
         if (Objects.isNull(dailyProcessModels)) {
@@ -1176,7 +1216,7 @@ public class ReportService {
     /**
      * @Description 导出催收员每日催收结果报表
      */
-    public String exportDailyResultReport(GeneralParams generalParams, User tokenUser) throws IOException {
+    public String exportDailyResultReport(GeneralParams generalParams, User tokenUser) throws IOException, ParseException {
         //获取导出数据模型
         List<DailyResultModel> dailyResultModels = getDailyResultReport(generalParams, tokenUser);
         if (Objects.isNull(dailyResultModels)) {
