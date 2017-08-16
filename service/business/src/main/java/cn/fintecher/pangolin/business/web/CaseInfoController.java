@@ -21,6 +21,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.Constants;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -292,10 +293,7 @@ public class CaseInfoController extends BaseController {
     })
     public ResponseEntity electricSmallCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                    @ApiIgnore Pageable pageable,
-                                                   @RequestHeader(value = "X-UserToken") String token,
-                                                   @RequestParam(required = false) @ApiParam(value = "流转状态") Integer caseType,
-                                                   @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                                   @RequestParam(required = false) @ApiParam(value = "催收类型") Integer type){
+                                                   @RequestHeader(value = "X-UserToken") String token){
         User user;
         try {
             user = getUserByToken(token);
@@ -305,23 +303,13 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        if (!Objects.equals(user.getUserName(), "administrator")) {
-            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
-        }
-        //type  15 电催  16 外访
-        if (Objects.nonNull(type)) {
-            if (Objects.equals(type,15)) {
-                if(Objects.nonNull(caseType)){
-                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(caseType));
-                }else{
-                    // 电催的小流转和提前流转
-                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONESMALLTURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue()));
-                }
-
-            }
-        }
+               //type  15 电催  16 外访
+        booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue()));
+        // 电催的小流转和提前流转
+        booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONESMALLTURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue()));
+        booleanBuilder.and(QCaseInfo.caseInfo.circulationStatus.eq(CaseInfo.CirculationStatus.PHONE_PASS.getValue()));
         Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "smallCirculation")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "electricSmallCirculation")).body(page);
     }
     @GetMapping("/electricForceCirculation")
     @ApiOperation(value = "电催强制流转池", notes = "电催强制流转池")
@@ -335,10 +323,7 @@ public class CaseInfoController extends BaseController {
     })
         public ResponseEntity electricForceCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                        @ApiIgnore Pageable pageable,
-                                                       @RequestHeader(value = "X-UserToken") String token,
-                                                       @RequestParam(required = false) @ApiParam(value = "流转状态") Integer caseType,
-                                                       @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                                       @RequestParam(required = false) @ApiParam(value = "催收类型") Integer type) {
+                                                       @RequestHeader(value = "X-UserToken") String token) {
         User user;
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
         try {
@@ -347,22 +332,11 @@ public class CaseInfoController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
-        if (!Objects.equals(user.getUserName(), "administrator")) {
-            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
-        }
-        //type  15 电催  16 外访
-        if (Objects.nonNull(type)) {
-            if (Objects.equals(type,15)) {
-                if(Objects.nonNull(caseType)){
-                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(caseType));
-                }else{
-                    // 电催的强制流转和保留流转
-                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONEFORCETURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONELEAVETURN.getValue()));
-                }
-            }
-        }
+        booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue()));
+        booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONEFORCETURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONELEAVETURN.getValue()));
+        booleanBuilder.and(QCaseInfo.caseInfo.circulationStatus.eq(CaseInfo.CirculationStatus.PHONE_PASS.getValue()));
         Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "smallCirculation")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "electricForceCirculation")).body(page);
     }
 
     @GetMapping("/outSmallCirculation")
@@ -377,10 +351,7 @@ public class CaseInfoController extends BaseController {
     })
     public ResponseEntity outSmallCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                               @ApiIgnore Pageable pageable,
-                                              @RequestHeader(value = "X-UserToken") String token,
-                                              @RequestParam(required = false) @ApiParam(value = "流转状态") Integer caseType,
-                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                              @RequestParam(required = false) @ApiParam(value = "催收类型") Integer type) {
+                                              @RequestHeader(value = "X-UserToken") String token){
         User user;
         try {
             user = getUserByToken(token);
@@ -389,22 +360,12 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        if (!Objects.equals(user.getUserName(), "administrator")) {
-            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
-        }
-        //type  15 电催  16 外访
-        if (Objects.nonNull(type)) {
-            if (Objects.equals(type,16)) {
-                if(Objects.nonNull(caseType)){
-                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(caseType));
-                }else{
-                    // 外访的小流转和保留流转
-                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTSMALLTURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTFAHEADTURN.getValue()));
-                }
-            }
-        }
+        booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
+        // 外访的小流转和保留流转
+        booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTSMALLTURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTFAHEADTURN.getValue()));
+        booleanBuilder.and(QCaseInfo.caseInfo.circulationStatus.eq(CaseInfo.CirculationStatus.VISIT_PASS.getValue()));
         Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "smallCirculation")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "outSmallCirculation")).body(page);
     }
     @GetMapping("/outForceCirculation")
     @ApiOperation(value = "外访强制流转池", notes = "外访强制流转池")
@@ -418,10 +379,7 @@ public class CaseInfoController extends BaseController {
     })
     public ResponseEntity outForceCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                               @ApiIgnore Pageable pageable,
-                                              @RequestHeader(value = "X-UserToken") String token,
-                                              @RequestParam(required = false) @ApiParam(value = "流转状态") Integer caseType,
-                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                              @RequestParam(required = false) @ApiParam(value = "催收类型") Integer type) {
+                                              @RequestHeader(value = "X-UserToken") String token){
         User user;
         try {
             user = getUserByToken(token);
@@ -430,22 +388,12 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        if (!Objects.equals(user.getUserName(), "administrator")) {
-            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
-        }
-        if (Objects.nonNull(type)) {
-            if (Objects.equals(type,16)) {
-                booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(type));
-                if(Objects.nonNull(caseType)){
-                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(caseType));
-                }else{
-                    // 外访的强制流转和保留流转
-                    booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTFORCETURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTLEAVETURN.getValue()));
-                }
-            }
-        }
+        booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
+        // 外访的强制流转和保留流转
+        booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTFORCETURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTLEAVETURN.getValue()));
+        booleanBuilder.and(QCaseInfo.caseInfo.circulationStatus.eq(CaseInfo.CirculationStatus.VISIT_PASS.getValue()));
         Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "smallCirculation")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "outForceCirculation")).body(page);
     }
 
 
