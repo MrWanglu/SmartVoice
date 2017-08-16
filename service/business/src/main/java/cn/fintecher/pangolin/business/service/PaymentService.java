@@ -202,18 +202,17 @@ public class PaymentService {
                         }
                     }
                 }
-                casePayApply.setApprovePayUser(tokenUser.getUserName()); //还款审批人
-                casePayApply.setApprovePayName(tokenUser.getRealName()); //还款审批人姓名
-                casePayApply.setApprovePayMemo(paymentParams.getOpinion()); //还款审批意见
-                casePayApply.setApprovePayDatetime(ZWDateUtil.getNowDateTime()); //还款审批时间
             }
+            casePayApply.setApprovePayUser(tokenUser.getUserName()); //还款审批人
+            casePayApply.setApprovePayName(tokenUser.getRealName()); //还款审批人姓名
+            casePayApply.setApprovePayMemo(paymentParams.getOpinion()); //还款审批意见
+            casePayApply.setApprovePayDatetime(ZWDateUtil.getNowDateTime()); //还款审批时间
             casePayApply.setOperatorUserName(tokenUser.getUserName()); //操作人
             casePayApply.setOperatorRealName(tokenUser.getRealName()); //操作人姓名
             casePayApply.setOperatorDate(ZWDateUtil.getNowDateTime()); //操作时间
-
-            caseInfoRepository.saveAndFlush(caseInfo);
-            casePayApplyRepository.saveAndFlush(casePayApply);
         }
+        caseInfoRepository.saveAndFlush(caseInfo);
+        casePayApplyRepository.saveAndFlush(casePayApply);
     }
 
     /**
