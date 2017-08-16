@@ -27,7 +27,7 @@ import java.util.Objects;
 @Service("caseInfoDistributedService")
 public class CaseInfoDistributedService {
 
-    Logger logger= LoggerFactory.getLogger(CaseInfoDistributedService.class);
+    Logger logger = LoggerFactory.getLogger(CaseInfoDistributedService.class);
 
     @Inject
     CaseInfoRepository caseInfoRepository;
@@ -140,14 +140,14 @@ public class CaseInfoDistributedService {
                         caseInfo.setImpHasPayAmount(caseInfoDistributed.getHasPayAmount()); //导入已还款款金额
                         if (Objects.nonNull(department)) {
                             caseInfo.setDepartment(department); //部门
-                            caseInfoService.setCollectionType(caseInfo, department,null);
+                            caseInfoService.setCollectionType(caseInfo, department, null);
                             caseInfo.setCaseFollowInTime(null); //案件流入时间
                             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
                         }
                         if (Objects.nonNull(targetUser)) {
                             caseInfo.setDepartment(targetUser.getDepartment());
                             caseInfo.setCurrentCollector(targetUser);
-                            caseInfoService.setCollectionType(caseInfo, null,targetUser);
+                            caseInfoService.setCollectionType(caseInfo, null, targetUser);
                             caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());
                             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
                         }
@@ -171,6 +171,7 @@ public class CaseInfoDistributedService {
                         } else {
                             caseTurnRecord.setReceiveDeptName(caseInfo.getDepartment().getName());
                         }
+                        caseTurnRecord.setCollectionType(3); //流转类型 3-正常流转
                         caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
                         caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                         caseTurnRecordList.add(caseTurnRecord);
@@ -201,7 +202,6 @@ public class CaseInfoDistributedService {
             }
         }
     }
-
 
 
 }

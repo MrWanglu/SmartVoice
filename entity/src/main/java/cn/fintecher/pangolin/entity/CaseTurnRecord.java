@@ -78,4 +78,7 @@ public class CaseTurnRecord {
 
     @ApiModelProperty(notes = "公司code码")
     private String companyCode;
+
+    @ApiModelProperty(notes = "流转类型 0-自动流转 1-手动流转 2-正常流转")
+    private Integer circulationType;
 }
