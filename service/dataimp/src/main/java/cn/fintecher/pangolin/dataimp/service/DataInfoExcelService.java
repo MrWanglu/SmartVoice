@@ -127,7 +127,12 @@ public class DataInfoExcelService {
                 dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
                 dataImportRecord.setCompanyCode(user.getCompanyCode());
                 //批次号
-                String batchNumber=mongoSequenceService.getNextSeq(Constants.ORDER_SEQ,user.getCompanyCode());
+                String batchNumber= null;
+                try {
+                    batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ,user.getCompanyCode());
+                } catch (final Exception e) {
+                    throw new RuntimeException(e.getMessage());
+                }
                 dataImportRecord.setBatchNumber(batchNumber);
                 dataImportRecordRepository.save(dataImportRecord);
                 //开始保存数据

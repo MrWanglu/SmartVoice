@@ -12,6 +12,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +81,8 @@ public class CaseInfoDistributeController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfoDistributed>> findCaseInfoDistribute(@QuerydslPredicate(root = CaseInfoDistributed.class) Predicate predicate,
                                                                             @ApiIgnore Pageable pageable,
-                                                                            @RequestHeader(value = "X-UserToken") String token) {
+                                                                            @RequestHeader(value = "X-UserToken") String token,
+                                                                            @RequestParam(value = "companyCode",required = false) String companyCode) {
         logger.debug("REST request to findCaseInfoDistribute");
         User user = null;
         try {
@@ -94,6 +96,13 @@ public class CaseInfoDistributeController extends BaseController {
         try {
             QCaseInfoDistributed qd = QCaseInfoDistributed.caseInfoDistributed;
             BooleanBuilder builder = new BooleanBuilder(predicate);
+            if (Objects.equals(user.getUserName(), "administrator")) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    user.setCompanyCode(companyCode);
+                } else {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "findCaseInfoDistribute", "请先选择公司!")).body(null);
+                }
+            }
             builder.and(qd.companyCode.eq(user.getCompanyCode()));
             Page<CaseInfoDistributed> page = caseInfoDistributedRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);

@@ -21,7 +21,6 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.Constants;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +33,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -159,7 +159,8 @@ public class CaseInfoController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfo>> getAllCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                          @ApiIgnore Pageable pageable,
-                                                         @RequestHeader(value = "X-UserToken") String token) {
+                                                         @RequestHeader(value = "X-UserToken") String token,
+                                                         @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code码") String companyCode) {
         log.debug("REST request to getAllCaseInfo");
         User user = null;
         try {
@@ -167,6 +168,14 @@ public class CaseInfoController extends BaseController {
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllCaseInfo", e.getMessage())).body(null);
+        }
+        // 超级管理员
+        if (Objects.equals(user.getUserName(), "administrator")) {
+            if (Objects.nonNull(companyCode)) {
+                user.setCompanyCode(companyCode);
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司!")).body(null);
+            }
         }
         try {
             QCaseInfo qCaseInfo = QCaseInfo.caseInfo;

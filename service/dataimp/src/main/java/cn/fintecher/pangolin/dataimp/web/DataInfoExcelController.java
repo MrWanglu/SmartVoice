@@ -262,7 +262,7 @@ public class DataInfoExcelController {
             if (StringUtils.isNotBlank(companyCode)) {
                 user.setCompanyCode(companyCode);
             } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "queryBatchNumGroup", "请先选择公司!")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "casesConfirmByBatchNum", "请先选择公司!")).body(null);
             }
         }
         dataInfoExcelService.casesConfirmByBatchNum(user);
