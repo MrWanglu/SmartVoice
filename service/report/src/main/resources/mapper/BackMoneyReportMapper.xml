@@ -49,7 +49,7 @@
         (SELECT apply_user_name from case_pay_apply where approve_status = 58)))) a LEFT JOIN
         (SELECT n.code as deptCode,m.user_name as userName from department n,user m where n.id = m.dept_id) b
         on a.userName = b.userName where deptCode like CONCAT(#{deptCode},'_%') AND a.companyCode = #{companyCode}
-        <if test="deptCode != null">
+        <if test="code != null">
             AND b.deptCode LIKE CONCAT(#{code}, '%')
         </if>
         <if test="realName != null">
