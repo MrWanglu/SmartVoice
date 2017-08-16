@@ -291,17 +291,17 @@ public class ReportService {
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
         if (Objects.equals(generalParams.getType(), 0)) { //实时报表
             if (StringUtils.equals(tokenUser.getUserName(), "administrator")) {
-                dailyProcessReports = dailyProcessReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode()); //获得实时报表
-            } else {
                 dailyProcessReports = dailyProcessReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode()); //获得实时报表
+            } else {
+                dailyProcessReports = dailyProcessReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode()); //获得实时报表
             }
         } else { //历史报表
             if (StringUtils.equals(tokenUser.getUserName(), "administrator")) {
                 dailyProcessReports = dailyProcessReportMapper.getHistoryReport(generalParams.getStartDate(), generalParams.getEndDate(),
-                        deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+                        deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
             } else {
                 dailyProcessReports = dailyProcessReportMapper.getHistoryReport(generalParams.getStartDate(), generalParams.getEndDate(),
-                        deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
+                        deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
             }
         }
         //构建报表展示模型
