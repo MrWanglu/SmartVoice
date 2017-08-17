@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
 import javax.servlet.http.HttpSession;
 import java.util.*;
 
@@ -165,7 +166,7 @@ public class UserService {
         userRepository.flush();
     }
 
-    @Cacheable(value = "userCache", key = "'petstore:user:'+#user.userName", unless = "#result==null")
+    @Cacheable(value = "userCache", key = "'petstore:user:all'", unless = "#result==null")
     public User save(User user) {
         return userRepository.save(user);
     }
