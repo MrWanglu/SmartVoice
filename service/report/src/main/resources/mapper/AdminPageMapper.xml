@@ -129,6 +129,8 @@
             group by c.coll
         ) as m
         on n.uname = m.coll
+        order by rate desc
+        LIMIT 0,3
     </select>
 
     <!--客户排名-->

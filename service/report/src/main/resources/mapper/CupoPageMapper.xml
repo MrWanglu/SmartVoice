@@ -60,15 +60,9 @@
 
     <!--今日流入案件数-->
     <select id="getFlowInCaseToday" parameterType="string" resultType="integer">
-        SELECT COUNT(*) FROM (
-            SELECT id FROM case_info
-            WHERE to_days(case_follow_in_time) = to_days(now())
-            AND current_collector = #{userId}
-            UNION ALL
-            SELECT id FROM case_assist
-            WHERE to_days(case_flowin_time) = to_days(now())
-            AND assist_collector = #{userId}
-        ) as m
+        SELECT COUNT(*) FROM case_turn_record
+        WHERE to_days(operator_time) = to_days(now())
+        AND receive_user_id = #{userId}
     </select>
 
     <!--今日结清案件数-->
@@ -88,15 +82,9 @@
 
     <!--今日流出案件数-->
     <select id="getFlowOutCaseToday" parameterType="string" resultType="integer">
-        SELECT COUNT(*) FROM (
-            SELECT id FROM case_info
-            WHERE to_days(case_follow_in_time) = to_days(now())
-            AND lately_collector = #{userId}
-            UNION ALL
-            SELECT id FROM case_assist
-            WHERE to_days(case_flowin_time) = to_days(now())
-            AND lately_collector = #{userId}
-        ) as m
+        SELECT COUNT(*) FROM case_turn_record
+        WHERE to_days(operator_time) = to_days(now())
+        AND current_collector = #{userId}
     </select>
 
     <!--催收员回款总额-->
