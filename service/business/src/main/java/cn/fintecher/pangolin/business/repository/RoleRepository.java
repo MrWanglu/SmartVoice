@@ -29,7 +29,6 @@ public interface RoleRepository extends QueryDslPredicateExecutor<Role>, JpaRepo
         bindings.bind(root.companyCode).first((path, value) -> path.eq(value));
     }
 
-    @Transactional
     @Query(value = "delete from role_resource where role_id=:roleId", nativeQuery = true)
     List<Resource> deleteResoByRoleId(@Param("roleId") String roleId);
 }

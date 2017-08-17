@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.repository.ResourceRepository;
 import cn.fintecher.pangolin.business.repository.RoleRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.service.ResourceService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.Status;
@@ -43,6 +44,8 @@ public class RoleController extends BaseController {
     private ResourceRepository resourceRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    ResourceService resourceService;
 
     /**
      * @Description : 带条件的分页查询
@@ -145,7 +148,7 @@ public class RoleController extends BaseController {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role of related user, please delete the user", "该角色下有关联的用户，请先删除用户")).body(null);
                 } else {
                     //解除角色与资源的关系
-                    roleRepository.deleteResoByRoleId(role.getId());
+                    resourceService.deleteResoByRoleId(role.getId());
                     Role roleNew = roleRepository.save(role);
                     return ResponseEntity.ok().body(roleNew);
                 }
@@ -265,7 +268,7 @@ public class RoleController extends BaseController {
                     "The role has an associated user, please delete the relationship with the user first", "该角色下有关联用户，请先删除与用户的关系")).body(null);
         }
         //解除角色与资源的关系
-        roleRepository.deleteResoByRoleId(role.getId());
+        resourceService.deleteResoByRoleId(role.getId());
         Role roleNew = roleRepository.save(role);
         roleRepository.delete(id);
         return ResponseEntity.ok().body(null);
