@@ -685,7 +685,7 @@ public class AccTelPoolController extends BaseController {
         }
     }
 
-    @PostMapping("/turnCaseConfirm")
+    @PostMapping("/turnCaseVisitConfirm")
     @ApiOperation(value = "流转案件确认",notes = "流转案件确认")
     public ResponseEntity toConfirm(@RequestBody List<String> caseIds,
                                     @RequestHeader(value = "X-UserToken") String token){
@@ -699,7 +699,7 @@ public class AccTelPoolController extends BaseController {
         }
     }
 
-    @PostMapping("/turnCaseDistribution")
+    @PostMapping("/turnCaseVisitDistribution")
     @ApiOperation(value = "流转案件分配",notes = "流转案件分配")
     public ResponseEntity batchTurnCase(@RequestBody BatchDistributeModel batchDistributeModel,
                                         @RequestHeader(value = "X-UserToken") String token) {

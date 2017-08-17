@@ -1097,7 +1097,7 @@ public class CaseInfoService {
                 String caseId = caseInfoList.get(alreadyCaseNum);
                 CaseRepair caseRepair = caseRepairRepository.findOne(caseId);
                 if (Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.TEL.getValue())) {
-                    if (Objects.nonNull(user.getType()) && !Objects.equals(user.getType(), User.Type.TEL.getValue())) {
+                    if (Objects.nonNull(user.getType()) && !Objects.equals(user.getType(), User.Type.SYNTHESIZE.getValue()) && !Objects.equals(user.getType(), User.Type.TEL.getValue())) {
                         throw new Exception("当前用户不可以分配电催案件");
                     }
                     if (Objects.nonNull(department) && !Objects.equals(department.getType(), Department.Type.TELEPHONE_COLLECTION.getValue())) {
@@ -1108,7 +1108,7 @@ public class CaseInfoService {
                     }
                 }
                 if (Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.VISIT.getValue())) {
-                    if (Objects.nonNull(user.getType()) && !Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
+                    if (Objects.nonNull(user.getType()) && !Objects.equals(user.getType(), User.Type.SYNTHESIZE.getValue()) && !Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
                         throw new Exception("当前用户不可以分配外访案件");
                     }
                     if (Objects.nonNull(department) && !Objects.equals(department.getType(), Department.Type.OUTBOUND_COLLECTION.getValue())) {
@@ -1137,6 +1137,7 @@ public class CaseInfoService {
                     caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
                     caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上一个催收员
                     caseInfo.setHoldDays(0); //持案天数归0
+                    caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //流转类型-案件分配
                     caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1); //流转次数加一
                     caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
                     caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
@@ -1398,6 +1399,9 @@ public class CaseInfoService {
         for(int i =0; i<caseInfos.size(); i++) {
                 CaseInfo caseInfo = caseInfos.get(i);
                 setAttribute(caseInfo,user,user);
+                caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
+                caseInfo.setCaseType(CaseInfo.CaseType.OUTSMALLTURN.getValue());
+                caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.VISIT_PASS.getValue());
                 caseInfoResults.add(caseInfo);
                 CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
                 BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
@@ -1428,11 +1432,7 @@ public class CaseInfoService {
             for (int i = 0; i < caseCount; i++) {
                 CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(i)); //获得案件信息
                 User user = batchInfoModel.getCollectionUser();
-                if(Objects.equals(caseInfo.getCollectionType(),CaseInfo.CollectionType.TEL.getValue())
-                        && !Objects.equals(user.getType(),User.Type.TEL.getValue())){
-                    throw new RuntimeException("电催案件不能分配给非电催人员");
-                }else if(Objects.equals(caseInfo.getCollectionType(),CaseInfo.CollectionType.VISIT.getValue())
-                        && !Objects.equals(user.getType(),User.Type.VISIT.getValue())){
+                if(!Objects.equals(user.getType(),User.Type.VISIT.getValue())){
                     throw new RuntimeException("外访案件不能分配给非外访人员");
                 }
                 setAttribute(caseInfo, user, tokenUser);
