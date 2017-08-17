@@ -57,7 +57,7 @@ public class TemplateDataModelService {
         Optional<String> colOpt = Optional.of(colNum);
         if (colOpt.isPresent()) {
             try {
-                //colIndex = Integer.parseInt(excelColStrToNum(colNum)) - 1;
+                colIndex = Integer.parseInt(excelColStrToNum(colNum)) - 1;
             } catch (Exception e) {
                 throw new NumberFormatException("列号太大");
             }
