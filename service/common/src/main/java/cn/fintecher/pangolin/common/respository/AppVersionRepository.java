@@ -10,4 +10,5 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
  * @Date 15:47 2017/7/18
  */
 public interface AppVersionRepository extends MongoRepository<AppVersion, String>, QueryDslPredicateExecutor<AppVersion> {
+
 }

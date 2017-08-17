@@ -130,13 +130,7 @@
             <groupId>org.ehcache</groupId>
             <artifactId>ehcache</artifactId>
         </dependency>
-        <!--<dependency>
-            <groupId>cn.fintecher</groupId>
-            <artifactId>pangolin-service-file</artifactId>
-            <version>${project.version}</version>
-        </dependency>-->
-
-        <!-- quartz  -->
+        <!-- quartz -->
         <dependency>
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>

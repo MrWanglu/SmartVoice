@@ -3,6 +3,8 @@ package cn.fintecher.pangolin.entity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
@@ -49,6 +51,7 @@ public class UserDevice extends BaseEntity{
     @ApiModelProperty("备用字段")
     private String field;
 
+    @Column(name = "user_id")
     private String userId;
 
 
