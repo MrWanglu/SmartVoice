@@ -63,4 +63,16 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
 
     @Query(value = "select * from case_followup_record where case_id = :id and promise_flag = :flag order by operator_time desc limit 1",nativeQuery = true)
     CaseFollowupRecord getPayPromise(@Param("id")String id, @Param("flag") Integer flag);
+    /**
+     * @Description : 中通天鸿 164 双向外呼通话个数统计
+     */
+
+    @Query(value = "select count(*) a,operator,operator_name from case_followup_record where operator_time>:startTime and operator_time<:endTime and company_code =:companyCode and call_type ='164' GROUP BY operator,operator_name ORDER BY a DESC",nativeQuery = true)
+    List<Object[]> getCountSmaRecord(@Param("startTime") String startTime, @Param("endTime") String endTime,@Param("companyCode") String companyCode);
+    /**
+     * @Description : 中通天鸿 164 双向外呼通话时长统计
+     */
+
+    @Query(value = "select sum(conn_secs) a ,operator,operator_name from case_followup_record where operator_time>:startTime and operator_time<:endTime and company_code =:companyCode and call_type ='164' GROUP BY operator,operator_name ORDER BY a DESC",nativeQuery = true)
+    List<Object[]> getCountTimeSmaRecord(@Param("startTime") String startTime, @Param("endTime") String endTime,@Param("companyCode") String companyCode);
 }
