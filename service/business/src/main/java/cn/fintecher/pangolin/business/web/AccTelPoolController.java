@@ -687,11 +687,11 @@ public class AccTelPoolController extends BaseController {
 
     @PostMapping("/turnCaseVisitConfirm")
     @ApiOperation(value = "流转案件确认",notes = "流转案件确认")
-    public ResponseEntity toConfirm(@RequestBody List<String> caseIds,
+    public ResponseEntity toConfirm(@RequestBody CaseDistributeInfoModel caseDistributeInfoModel,
                                     @RequestHeader(value = "X-UserToken") String token){
         try {
             User tokenUser = getUserByToken(token);
-            caseInfoService.turnCaseConfirm(caseIds,tokenUser);
+            caseInfoService.turnCaseConfirm(caseDistributeInfoModel.getCaseIdList(),tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功", ENTITY_CASEINFO)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
