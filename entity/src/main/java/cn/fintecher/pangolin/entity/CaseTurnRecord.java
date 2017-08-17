@@ -61,6 +61,12 @@ public class CaseTurnRecord {
     @ApiModelProperty(notes = "案件类型")
     private Integer caseType;
 
+    @ApiModelProperty(notes = "当前催收员ID")
+    private String current_collector;
+
+    @ApiModelProperty(notes = "接收人ID")
+    private String receiveUserId;
+
     @ApiModelProperty(notes = "接受人名称")
     private String receiveUserRealName;
 
