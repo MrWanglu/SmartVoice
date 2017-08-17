@@ -179,8 +179,8 @@ public class CaseAssistApplyController extends BaseController {
                 // 案件协催表增加记录
                 caseAssist.setCaseId(caseInfo); //案件信息
                 //caseAssist.setLeftDays(); //剩余天数
-                caseAssist.setMarkId(caseInfo.getCaseMark()); //打标标记
-                caseAssist.setHandupFlag(caseInfo.getHandUpFlag()); //挂起表示
+                caseAssist.setMarkId(CaseInfo.Color.NO_COLOR.getValue()); //打标标记-默认无色
+//                caseAssist.setHandupFlag(caseInfo.getHandUpFlag()); //挂起表示
                 caseAssist.setCompanyCode(caseInfo.getCompanyCode()); //公司Code
                 caseAssist.setAssistWay(apply.getAssistWay()); //协催方式
                 caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue()); //协催状态（协催待分配）

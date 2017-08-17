@@ -208,7 +208,8 @@ public class DataInfoExcelController {
     @GetMapping("/deleteCasesByBatchNum")
     @ApiOperation(value = "按批次号删除案件", notes = "按批次号删除案件")
     public ResponseEntity deleteCasesByBatchNum(@RequestParam(required = true) @ApiParam(value = "批次号") String batchNumber,
-                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                @RequestParam(value = "companyCode",required = false) @ApiParam("公司Code") String companyCode) {
         ResponseEntity<User> userResponseEntity=null;
         try {
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
@@ -217,6 +218,13 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
         User user = userResponseEntity.getBody();
+        if (Objects.equals(user.getUserName(), "administrator")) {
+            if (StringUtils.isNotBlank(companyCode)) {
+                user.setCompanyCode(companyCode);
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "queryBatchNumGroup", "请先选择公司!")).body(null);
+            }
+        }
         dataInfoExcelService.deleteCasesByBatchNum(batchNumber,user);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("删除案件信息",ENTITY_NAME)).body(null);
     }

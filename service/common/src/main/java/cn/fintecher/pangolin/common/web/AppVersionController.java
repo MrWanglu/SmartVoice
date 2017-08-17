@@ -7,6 +7,7 @@ import cn.fintecher.pangolin.common.model.QAppVersion;
 import cn.fintecher.pangolin.common.respository.AppVersionRepository;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
@@ -77,6 +78,9 @@ public class AppVersionController {
             AppVersion appVersion = new AppVersion();
             BeanUtils.copyProperties(condition, appVersion);
             appVersion.setOs(os);
+            appVersion.setCreator(user.getUserName());
+            appVersion.setCreateTime(ZWDateUtil.getNowDateTime());
+            appVersion.setPublishTime(ZWDateUtil.getNowDateTime());
             AppVersion appVersion1 = appVersionRepository.save(appVersion);
             appVersionList.add(appVersion1);
         }
@@ -106,10 +110,9 @@ public class AppVersionController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     @ApiOperation(value = "分页查询app版本控制", notes = "分页查询app版本控制")
-    public ResponseEntity<Page<AppVersion>> queryAppVersion(
-            @QuerydslPredicate(root = AppVersion.class) Predicate predicate,
-            @ApiIgnore Pageable pageable,
-            @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+    public ResponseEntity<Page<AppVersion>> queryAppVersion(@QuerydslPredicate(root = AppVersion.class) Predicate predicate,
+                                                            @ApiIgnore Pageable pageable,
+                                                            @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
         logger.debug("REST request to query company : {}");
         BooleanBuilder builder = new BooleanBuilder(predicate);
         Page<AppVersion> page = appVersionRepository.findAll(builder, pageable);
@@ -134,6 +137,6 @@ public class AppVersionController {
             }
         }
         return ResponseEntity.ok().body(null);
-
     }
+
 }

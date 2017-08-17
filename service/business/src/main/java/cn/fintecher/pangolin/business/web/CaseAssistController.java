@@ -550,14 +550,13 @@ public class CaseAssistController extends BaseController {
             } else {
                 exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
             }
+            exp.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())); //协催完成
             Page<CaseAssist> page = null;
             if (departments.isEmpty()) {
-                exp.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
                 // 协催员智能看见自己的协催案件
                 exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
                 page = caseAssistRepository.findAll(exp, pageable);
             } else {
-                exp.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())); //查询协催结束的协催案件
                 page = caseAssistRepository.findAll(exp, pageable);
             }
             return ResponseEntity.ok().body(page);

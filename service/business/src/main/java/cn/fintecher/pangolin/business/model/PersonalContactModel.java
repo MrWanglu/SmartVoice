@@ -13,5 +13,5 @@ import java.util.List;
 
 @Data
 public class PersonalContactModel {
-    private List<PersonalContact> personalContacts;
+    private List<PersonalContact> content;
 }

@@ -1,9 +1,9 @@
 package cn.fintecher.pangolin.common.service;
 
 import cn.fintecher.pangolin.common.model.AddTaskRecorderRequest;
-import cn.fintecher.pangolin.common.model.RecordRequest;
 import cn.fintecher.pangolin.entity.util.Base64;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -45,6 +45,8 @@ public class CallService {
     //中通天鸿下载录音
     @Value("${pangolin.zhongtong-server.downloadrRecord}")
     private String downloadrRecord;
+    @Value("${pangolin.zhongtong-server.recordlist}")
+    private String recordlist;
 
     //中通天鸿的电话呼叫
     public String encode(String nonce, String created, String secret) throws Exception {
@@ -101,13 +103,36 @@ public class CallService {
         String Created = String.valueOf(System.currentTimeMillis());
         String PasswordDigest = "";
         try {
-            PasswordDigest = encode(Nonce, Created, secret);
+            PasswordDigest = encode(Nonce, Created, ztSecret);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
         String headerValue = "UsernameToken Username=\"" + enterpriseCode + "\",PasswordDigest=\"" + PasswordDigest + "\",Nonce=\"" + Nonce + "\",Created=\"" + Created + "\"";
         get.setRequestHeader("X-WSSE", headerValue); //http请求头的键名（大小写无关）固定字符串，后面添加一个空格
         return get;
+    }
+
+    /**
+     * @Description : 中通天鸿 164 通话记录
+     */
+    public HttpMethod getAllVoice() {
+        String startTime = ZWDateUtil.fomratterDate(ZWDateUtil.getNowDate(), "yyyy-MM-dd HH:mm:ss");
+        PostMethod post = new PostMethod(recordlist);
+        String Nonce = new BASE64Encoder().encode("123456abc".getBytes()); //随机字符串
+        String Created = String.valueOf(System.currentTimeMillis());
+        String PasswordDigest = "";
+        try {
+            PasswordDigest = encode(Nonce, Created, ztSecret);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        String headerValue = "UsernameToken Username=\"" + enterpriseCode + "\",PasswordDigest=\"" + PasswordDigest + "\",Nonce=\"" + Nonce + "\",Created=\"" + Created + "\"";
+        post.setRequestHeader("X-WSSE", headerValue);   //http请求头的键名（大小写无关）固定字符串，后面添加一个空格
+        NameValuePair model1 = new NameValuePair("vcc_code", enterpriseCode);
+        String jsonStr = "{\"filter\": {\"ag_num\": \"" + null + "\",\"start_time\":\"" + startTime + "\"}}";
+        NameValuePair model2 = new NameValuePair("info", jsonStr);
+        post.setRequestBody(new NameValuePair[]{model1, model2});
+        return post;
     }
 
     /**
@@ -128,25 +153,5 @@ public class CallService {
         return map;
     }
 
-    /**
-     * @Description : 中通天鸿 164 保存通话记录
-     */
-    public HttpMethod getRecordMethod(RecordRequest request) {
-        PostMethod post = new PostMethod(webCall1800);
-        String Nonce = new BASE64Encoder().encode("123456abc".getBytes()); //随机字符串
-        String Created = String.valueOf(System.currentTimeMillis());
-        String PasswordDigest = "";
-        try {
-            PasswordDigest = encode(Nonce, Created, ztSecret);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-        String headerValue = "UsernameToken Username=\"" + enterpriseCode + "\",PasswordDigest=\"" + PasswordDigest + "\",Nonce=\"" + Nonce + "\",Created=\"" + Created + "\"";
-        post.setRequestHeader("X-WSSE", headerValue);   //http请求头的键名（大小写无关）固定字符串，后面添加一个空格
-        String test = "{\"filter\":{\"start_time\":\"2014-05-06 00:00:00\"}}";
-        NameValuePair model1 = new NameValuePair("start_time", request.getStartTime());
-        NameValuePair model2 = new NameValuePair("end_time", request.getEndTime());
-        post.setRequestBody(new NameValuePair[]{model1, model2});
-        return post;
-    }
+
 }

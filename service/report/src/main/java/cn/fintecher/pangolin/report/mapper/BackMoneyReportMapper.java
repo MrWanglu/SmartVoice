@@ -2,7 +2,6 @@ package cn.fintecher.pangolin.report.mapper;
 
 import cn.fintecher.pangolin.report.entity.BackMoneyReport;
 import cn.fintecher.pangolin.report.model.DeptModel;
-import cn.fintecher.pangolin.report.model.NoBackMoneyModel;
 import cn.fintecher.pangolin.report.util.MyMapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -33,19 +32,6 @@ public interface BackMoneyReportMapper extends MyMapper<BackMoneyReport> {
      * @Description 查询用户的部门code码和名称
      */
     DeptModel getDept(@Param("userName") String userName);
-
-    /**
-     * @Description 查询用户的父部门code码和名称
-     */
-    DeptModel getParentDept(@Param("userName") String userName);
-
-    /**
-     * @Description 查询有案件却没有回款的用户
-     */
-    List<NoBackMoneyModel> getUserNames(@Param("deptCode") String deptCode,
-                                        @Param("code") String code,
-                                        @Param("realName") String realName,
-                                        @Param("companyCode") String companyCode);
 
     /**
      * @Descritpion 查询历史报表
