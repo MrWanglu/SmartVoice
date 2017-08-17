@@ -4,57 +4,87 @@
     <!-- 查询催收员实时回款报表 -->
     <select id="getRealTimeReport" parameterType="cn.fintecher.pangolin.report.model.GeneralParams"
             resultType="cn.fintecher.pangolin.report.entity.BackMoneyReport">
-        SELECT a.userName,a.backMoney,a.realName,a.companyCode from
-        (SELECT apply_user_name as userName,apply_real_name as realName,sum(apply_pay_amt+apply_derate_amt) as
-        backMoney,company_code as companyCode
-        from case_pay_apply where approve_status = 58 and DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') =
-        DATE_FORMAT(NOW(),'%Y-%m-%d')
-        GROUP BY userName,realName,companyCode) a LEFT JOIN
-        (SELECT n.code as deptCode,m.user_name as userName from department n,user m where n.id = m.dept_id) b on
-        a.userName =
-        b.userName where deptCode like CONCAT(#{deptCode},'%')
+        SELECT parentDeptCode,parentDeptName,deptCode,deptName,userName,realName,backMoney,companyCode,backDate from
+        (SELECT b.deptCode as parentDeptCode,b.deptName as parentDeptName,b.groupCode as deptCode,b.groupName as
+        deptName,b.userName,b.realName,a.backMoney,a.companyCode,DATE_FORMAT(NOW(),'%Y-%m-%d') as backDate from
+        (SELECT apply_user_name as userName,apply_real_name as realName,sum(case when apply_pay_amt is null then 0 else
+        apply_pay_amt end + case when apply_derate_amt is null then 0 else apply_derate_amt end) as
+        backMoney,company_code as companyCode from case_pay_apply where approve_status = 58 and
+        DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d') GROUP BY
+        userName,realName,companyCode) a
+        left join
+        (SELECT l.deptCode,l.deptName,l.groupCode,l.groupName,k.userName,k.realName from
+        (SELECT user_name as userName,dept_id as deptId,real_name as realName from user) k
+        LEFT JOIN
+        (SELECT g.deptCode,g.deptName,f.groupCode,f.groupName,f.id from(
+        (SELECT `code` as groupCode,`name` as groupName,id,pid from department) f
+        LEFT JOIN
+        (SELECT id,`code` as deptCode,`name` as deptName from department) g on f.pid = g.id)) l on k.deptId = l.id) b
+        on a.userName = b.userName
+        UNION
+        SELECT b.deptCode as parentDeptCode,b.deptName as parentDeptName,b.groupCode as deptCode,b.groupName as
+        deptName,a.userName,a.realName,0 as backMoney,a.companyCode,DATE_FORMAT(NOW(),'%Y-%m-%d') as backDate from
+        (SELECT user_name as userName,real_name as realName,company_code
+        as companyCode from user where id in
+        (SELECT current_collector as userId from case_info where current_collector not in(SELECT id from user where
+        user_name in
+        (SELECT apply_user_name from case_pay_apply where approve_status = 58)))) a
+        LEFT JOIN
+        (SELECT l.deptCode,l.deptName,l.groupCode,l.groupName,k.userName,k.realName from
+        (SELECT user_name as userName,dept_id as deptId,real_name as realName from user) k
+        LEFT JOIN
+        (SELECT g.deptCode,g.deptName,f.groupCode,f.groupName,f.id from
+        (SELECT `code` as groupCode,`name` as groupName,id,pid from department) f
+        LEFT JOIN
+        (SELECT id,`code` as deptCode,`name` as deptName from department) g on f.pid = g.id) l on k.deptId = l.id) b
+        on a.userName = b.userName
+        ) as temp where deptCode like CONCAT(#{deptCode},'%') AND companyCode = #{companyCode}
         <if test="code != null">
-            AND b.deptCode LIKE CONCAT(#{code}, '%')
+            AND deptCode LIKE CONCAT(#{code}, '%')
         </if>
         <if test="realName != null">
-            AND a.realName LIKE CONCAT('%', #{realName}, '%')
+            AND realName LIKE CONCAT('%', #{realName}, '%')
         </if>
-        AND companyCode = #{companyCode}
+        ORDER BY deptCode asc,backMoney desc
     </select>
 
     <!-- 生成催收员历史回款报表 -->
     <select id="saveHistoryReport" parameterType="Date"
             resultType="cn.fintecher.pangolin.report.entity.BackMoneyReport">
-        SELECT apply_user_name as userName,apply_real_name as realName,sum(apply_pay_amt+apply_derate_amt) as backMoney,
-        company_code as companyCode from case_pay_apply where approve_status = 58 and DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') = DATE_FORMAT(#{historyDate},'%Y-%m-%d')
-        GROUP BY userName,realName,companyCode
+        SELECT parentDeptCode,parentDeptName,deptCode,deptName,userName,realName,backMoney,companyCode,backDate from
+        (SELECT b.deptCode as parentDeptCode,b.deptName as parentDeptName,b.groupCode as deptCode,b.groupName as deptName,b.userName,b.realName,a.backMoney,a.companyCode,DATE_FORMAT(NOW(),'%Y-%m-%d') as backDate from
+        (SELECT apply_user_name as userName,apply_real_name as realName,sum(case when apply_pay_amt is null then 0 else apply_pay_amt end + case when apply_derate_amt is null then 0 else apply_derate_amt end) as
+        backMoney,company_code as companyCode from case_pay_apply where approve_status = 58 and DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d') GROUP BY userName,realName,companyCode) a
+        eft join
+        (SELECT l.deptCode,l.deptName,l.groupCode,l.groupName,k.userName,k.realName from
+        (SELECT user_name as userName,dept_id as deptId,real_name as realName from user) k
+        LEFT JOIN
+        (SELECT g.deptCode,g.deptName,f.groupCode,f.groupName,f.id from(
+		(SELECT `code` as groupCode,`name` as groupName,id,pid from department) f
+		LEFT JOIN
+		(SELECT id,`code` as deptCode,`name` as deptName from department) g on f.pid = g.id)) l on k.deptId = l.id) b
+		on a.userName = b.userName
+        UNION
+        SELECT b.deptCode as parentDeptCode,b.deptName as parentDeptName,b.groupCode as deptCode,b.groupName as deptName,a.userName,a.realName,0 as backMoney,a.companyCode,DATE_FORMAT(NOW(),'%Y-%m-%d') as backDate from (SELECT user_name as userName,real_name as realName,company_code
+        as companyCode from user where id in
+        (SELECT current_collector as userId from case_info where current_collector not in(SELECT id from user where
+        user_name in
+        (SELECT apply_user_name from case_pay_apply where approve_status = 58)))) a
+        LEFT JOIN
+        (SELECT l.deptCode,l.deptName,l.groupCode,l.groupName,k.userName,k.realName from
+				(SELECT user_name as userName,dept_id as deptId,real_name as realName from user) k
+				LEFT JOIN
+				(SELECT g.deptCode,g.deptName,f.groupCode,f.groupName,f.id from
+				(SELECT `code` as groupCode,`name` as groupName,id,pid from department) f
+				LEFT JOIN
+				(SELECT id,`code` as deptCode,`name` as deptName from department) g on f.pid = g.id) l on k.deptId = l.id) b
+        on a.userName = b.userName
+        ) as temp ORDER BY deptCode asc,backMoney desc
     </select>
 
     <!-- 查询用户的部门code码和名称 -->
     <select id="getDept" parameterType="String" resultType="cn.fintecher.pangolin.report.model.DeptModel">
         SELECT code,name,case when pid is null THEN 0 ELSE 1 end as flag from department where id = (SELECT dept_id from user where user_name = #{userName})
-    </select>
-
-    <!-- 查询用户的父部门code码和名称 -->
-    <select id="getParentDept" parameterType="String" resultType="cn.fintecher.pangolin.report.model.DeptModel">
-        SELECT code,name from department where id = (SELECT pid from department where id = (SELECT dept_id from user where user_name = #{userName}))
-    </select>
-
-    <!-- 查询有案件却没有回款的用户 -->
-    <select id="getUserNames" resultType="cn.fintecher.pangolin.report.model.NoBackMoneyModel">
-        SELECT a.userName,a.realName,a.companyCode from (SELECT user_name as userName,real_name as realName,company_code
-        as companyCode from user where id in
-        (SELECT current_collector as userId from case_info where current_collector not in(SELECT id from user where
-        user_name in
-        (SELECT apply_user_name from case_pay_apply where approve_status = 58)))) a LEFT JOIN
-        (SELECT n.code as deptCode,m.user_name as userName from department n,user m where n.id = m.dept_id) b
-        on a.userName = b.userName where deptCode like CONCAT(#{deptCode},'_%') AND a.companyCode = #{companyCode}
-        <if test="code != null">
-            AND b.deptCode LIKE CONCAT(#{code}, '%')
-        </if>
-        <if test="realName != null">
-            AND a.realName LIKE CONCAT('%', #{code}, '%')
-        </if>
     </select>
 
     <!-- 查询回款历史报表 -->

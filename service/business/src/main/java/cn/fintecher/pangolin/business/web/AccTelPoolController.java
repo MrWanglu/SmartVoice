@@ -677,7 +677,7 @@ public class AccTelPoolController extends BaseController {
         try {
             List<PersonalContact> content = caseInfoService.getPersonalContact(personalId);
             PersonalContactModel personalContactModel = new PersonalContactModel();
-            personalContactModel.setPersonalContacts(content);
+            personalContactModel.setContent(content);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_PERSONAL_CONTACT)).body(personalContactModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

@@ -588,41 +588,14 @@ public class ReportService {
      */
     private List<BackMoneyReport> makeBackMoneyReport(GeneralParams generalParams, User tokenUser) throws ParseException {
         List<BackMoneyReport> backMoneyReports;
-        List<NoBackMoneyModel> noBackMoneyModels;
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
         if (Objects.equals(generalParams.getType(), 0)) { //实时报表
             if (StringUtils.equals(tokenUser.getUserName(), "administrator")) {
                 backMoneyReports = backMoneyReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
-                noBackMoneyModels = backMoneyReportMapper.getUserNames(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
             } else {
                 //获取当日有回款的记录
                 backMoneyReports = backMoneyReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
-                //获取没有案件中有案件但没有回款的记录
-                noBackMoneyModels = backMoneyReportMapper.getUserNames(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
             }
-            DeptModel dept;
-            List<BackMoneyReport> backMoneyReportList = new ArrayList<>();
-            if (!noBackMoneyModels.isEmpty()) { //存在有案件却没有回款的用户
-                BackMoneyReport backMoneyReport;
-                for (NoBackMoneyModel noBackMoneyModel : noBackMoneyModels) {
-                    backMoneyReport = new BackMoneyReport();
-                    backMoneyReport.setUserName(noBackMoneyModel.getUserName()); //用户名
-                    backMoneyReport.setRealName(noBackMoneyModel.getRealName()); //用户姓名
-                    backMoneyReport.setOperatorDate(ZWDateUtil.getNowDateTime()); //操作时间
-                    dept = backMoneyReportMapper.getDept(noBackMoneyModel.getUserName()); //获取本部门信息
-                    backMoneyReport.setDeptCode(dept.getCode()); //本部门code码
-                    backMoneyReport.setDeptName(dept.getName()); //本部门名称
-                    if (Objects.equals(dept.getFlag(), 1)) { //存在父部门
-                        dept = backMoneyReportMapper.getParentDept(noBackMoneyModel.getUserName()); //获得父部门信息
-                        backMoneyReport.setParentDeptCode(dept.getCode()); //父部门code码
-                        backMoneyReport.setParentDeptName(dept.getName()); //父部门名称
-                    }
-                    backMoneyReportList.add(backMoneyReport);
-                }
-            }
-            //合并实时回款记录和没有回款的记录
-            backMoneyReports.addAll(backMoneyReportList);
-            backMoneyReports.sort((o1, o2) -> (o2.getDeptCode().compareTo(o1.getDeptCode())));
         } else { //历史报表
             Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
             Date date2 = ZWDateUtil.getFormatDate(generalParams.getEndDate());
