@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.repository.CaseInfoExceptionRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoExceptionService;
 import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.CaseInfoDistributed;
@@ -7,18 +8,18 @@ import cn.fintecher.pangolin.entity.CaseInfoException;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.net.URISyntaxException;
-import java.util.List;
 
 /**
  * @author : DuChao
@@ -38,6 +39,8 @@ public class CaseInfoExceptionController extends BaseController {
     CaseInfoExceptionService caseInfoExceptionService;
     @Autowired
     RestTemplate restTemplate;
+    @Autowired
+    CaseInfoExceptionRepository caseInfoExceptionRepository;
 
     /**
      * 获取所有异常案件
@@ -45,9 +48,18 @@ public class CaseInfoExceptionController extends BaseController {
      */
     @GetMapping("/findAllCaseInfoException")
     @ApiOperation(value = "获取所有异常案件", notes = "获取所有异常案件")
-    public List<CaseInfoException> getAllCaseInfoException(){
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseInfoException>> getAllCaseInfoException(@ApiIgnore Pageable pageable){
         log.debug("REST request to get all CaseInfoExceptions");
-        return caseInfoExceptionService.getAllCaseInfoException();
+        Page<CaseInfoException> page = caseInfoExceptionRepository.findAll(pageable);
+        return ResponseEntity.ok().body(page);
     }
 
     /**
