@@ -12,6 +12,7 @@ import java.util.Objects;
  */
 @Data
 public class CaseCountResult {
+    // 催收状态
     private Integer status;
 
     private Integer num;

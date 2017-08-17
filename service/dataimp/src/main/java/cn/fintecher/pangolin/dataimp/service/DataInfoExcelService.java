@@ -199,7 +199,7 @@ public class DataInfoExcelService {
      */
     public List<String> queryBatchNumGroup(User user) {
         Query query = new Query();
-        query.addCriteria(Criteria.where("operator").is(user.getId()));
+        query.addCriteria(Criteria.where("operator").is(user.getId()).and("companyCode").is(user.getCompanyCode()));
         List<String> batchNumList = mongoTemplate.getCollection("dataInfoExcel")
                 .distinct("batchNumber", query.getQueryObject());
         return batchNumList;

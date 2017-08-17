@@ -24,8 +24,8 @@
 
     <!--案件情况/案件金额总计-->
     <select id="getCaseCountResult" parameterType="string" resultType="cn.fintecher.pangolin.report.model.CaseCountResult">
-        SELECT collection_status AS status,count(collection_status) AS num,sum(overdue_amount) AS amount FROM case_info
-        WHERE (current_collector = #{userId} OR assist_collector = #{userId})
+        SELECT collection_status AS status,count(collection_status) AS num,sum(overdue_amount) AS amt FROM case_info
+        WHERE (current_collector = #{userId} OR assist_collector = #{userId}) AND collection_status IN (20, 21, 22, 23, 24)
         GROUP BY collection_status
     </select>
 
@@ -42,7 +42,7 @@
     <!--本周催计数-->
     <select id="getFolWeek" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
        SELECT count(id) AS num,WEEKDAY(operator_time) AS dayOfWeek FROM case_followup_record
-       WHERE operator = #{userId}
+       WHERE operator = #{username}
        AND YEARWEEK(date_format(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
        GROUP BY WEEKDAY(operator_time)
        ORDER BY dayOfWeek
@@ -112,14 +112,14 @@
     <select id="getDayFollowCount" parameterType="string" resultType="integer">
         SELECT COUNT(*) FROM case_followup_record
         WHERE to_days(operator_time) = to_days(now())
-        AND operator = #{userId}
+        AND operator = #{username}
     </select>
 
     <!--本月累计催收次数-->
     <select id="getMonthFollowCount" parameterType="string" resultType="integer">
         SELECT COUNT(*) FROM case_followup_record
         WHERE DATE_FORMAT(operator_time, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m')
-        AND operator = #{userId}
+        AND operator = #{username}
     </select>
 
     <!--催收员当前催收案件数-->

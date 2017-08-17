@@ -143,7 +143,7 @@ public class HomePageService {
         cupoPage.setWeekRepaySum(addWeekListZero(repayWeek));
 
         // 第六部分 周催计数统计
-        List<WeekCountResult> folWeek = cupoPageMapper.getFolWeek(user.getId());
+        List<WeekCountResult> folWeek = cupoPageMapper.getFolWeek(user.getUserName());
         cupoPage.setWeekFollCount(addWeekListZero(folWeek));
 
         // 第七部分 本周结案数统计
@@ -215,8 +215,8 @@ public class HomePageService {
         BigDecimal moneySumResult = cupoPageMapper.getMoneySumResult(user.getUserName()); //回款总金额
         BigDecimal monthMoneyResult = cupoPageMapper.getMonthMoneyResult(user.getUserName()); // 本月回款金额
         BigDecimal dayMoneyResult = cupoPageMapper.getDayMoneyResult(user.getUserName()); // 本天回款金额
-        Integer dayFollowCount = cupoPageMapper.getDayFollowCount(user.getId());//今日累计催收次数
-        Integer monthFollowCount = cupoPageMapper.getMonthFollowCount(user.getId());// 本月累计催收次数
+        Integer dayFollowCount = cupoPageMapper.getDayFollowCount(user.getUserName());//今日累计催收次数
+        Integer monthFollowCount = cupoPageMapper.getMonthFollowCount(user.getUserName());// 本月累计催收次数
         collectorCaseResult.setFlowInCaseToday(flowInCaseToday);
         collectorCaseResult.setFinishCaseToday(finishCaseToday);
         collectorCaseResult.setFlowOutCaseToday(flowOutCaseToday);

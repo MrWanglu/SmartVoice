@@ -37,10 +37,10 @@ public interface CupoPageMapper {
 
     /**
      * 本周催计数
-     * @param userId
+     * @param username
      * @return
      */
-    List<WeekCountResult> getFolWeek(String userId);
+    List<WeekCountResult> getFolWeek(String username);
 
     /**
      * 本周结案数
@@ -93,17 +93,17 @@ public interface CupoPageMapper {
 
     /**
      * 今日累计催收次数
-     * @param userId
+     * @param username
      * @return
      */
-    Integer getDayFollowCount(String userId);
+    Integer getDayFollowCount(String username);
 
     /**
      * 本月累计催收次数
-     * @param userId
+     * @param username
      * @return
      */
-    Integer getMonthFollowCount(String userId);
+    Integer getMonthFollowCount(String username);
 
     /**
      * 催收员当前催收案件数
