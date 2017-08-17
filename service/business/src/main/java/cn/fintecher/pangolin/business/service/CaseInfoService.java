@@ -142,7 +142,7 @@ public class CaseInfoService {
                 caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
             }
         } else { //是协催案件
-            if (!Objects.equals(user.getType(), CaseInfo.CollectionType.VISIT.getValue())) {
+            if (!Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
                 throw new RuntimeException("协催案件不能分配给外访以外人员");
             }
             CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(reDistributionParams.getCaseId()).
@@ -153,6 +153,7 @@ public class CaseInfoService {
             caseAssist.setLatelyCollector(caseAssist.getCurrentCollector()); //上一个协催员
             caseAssist.setAssistCollector(user); //协催员
             caseAssist.setOperator(tokenUser); //操作员
+            caseAssist.setCaseFlowinTime(ZWDateUtil.getNowDateTime()); //流入时间
             caseAssist.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseAssist.setHoldDays(0); //持案天数归0
             caseAssistRepository.saveAndFlush(caseAssist);
@@ -601,7 +602,7 @@ public class CaseInfoService {
             if (0 == caseCount) {
                 continue;
             }
-            if (!Objects.equals(tokenUser.getType(), User.Type.VISIT.getValue())) { //分配给外访以外
+            if (!Objects.equals(batchInfoModel.getCollectionUser().getType(), User.Type.VISIT.getValue())) { //分配给外访以外
                 for (int i = 0; i < caseCount; i++) {
                     CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(i)); //获得案件信息
                     if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
@@ -645,8 +646,11 @@ public class CaseInfoService {
                                 caseAssist.setOperator(tokenUser); //操作员
                                 caseAssists.add(caseAssist);
 
-                                //同步更新原案件协催状态
-                                caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //29-协催完成
+                                //同步更新原案件协催员，协催方式，协催标识，协催状态
+                                caseInfo.setAssistCollector(null); //协催员置空
+                                caseInfo.setAssistWay(null); //协催方式置空
+                                caseInfo.setAssistFlag(0); //协催标识 0-否
+                                caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
 
                                 //协催结束新增一条流转记录
                                 CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
@@ -662,13 +666,22 @@ public class CaseInfoService {
                                 caseTurnRecords.add(caseTurnRecord);
                             }
                         } else { //是协催案件
-                            setAttribute(caseInfo, batchInfoModel.getCollectionUser(), tokenUser);
+                            CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseIds.get(i)).
+                                    and(qCaseAssist.assistStatus.in(28,117,118)));
+                            if (Objects.isNull(caseAssist)) {
+                                throw new RuntimeException("协催案件未找到");
+                            }
+                            caseAssist.setLatelyCollector(caseAssist.getCurrentCollector()); //上一个协催员
+                            caseAssist.setAssistCollector(batchInfoModel.getCollectionUser()); //协催员
+                            caseAssist.setOperator(tokenUser); //操作员
+                            caseAssist.setCaseFlowinTime(ZWDateUtil.getNowDateTime()); //流入时间
+                            caseAssist.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                            caseAssist.setHoldDays(0); //持案天数归0
+                            caseAssists.add(caseAssist);
+
+                            //同步更新原案件协催员
+                            caseInfo.setAssistCollector(batchInfoModel.getCollectionUser()); //协催员
                         }
-                        //同步更新原案件协催员，协催方式，协催标识，协催状态
-                        caseInfo.setAssistCollector(null); //协催员置空
-                        caseInfo.setAssistWay(null); //协催方式置空
-                        caseInfo.setAssistFlag(0); //协催标识 0-否
-                        caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
                     } else { //没有协催标识
                         setAttribute(caseInfo, batchInfoModel.getCollectionUser(), tokenUser);
                     }
