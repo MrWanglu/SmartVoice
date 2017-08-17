@@ -12,6 +12,7 @@ import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.CellError;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.*;
@@ -26,7 +27,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -100,7 +100,7 @@ public class UserBackcashPlanController extends BaseController {
             builder.and(qUserBackcashPlan.companyCode.eq(companyCode));
         }
         Page<UserBackcashPlan> page = userBackcashPlanRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(page);
     }
 
     /**
@@ -130,7 +130,7 @@ public class UserBackcashPlanController extends BaseController {
                     "idexists", "用户" + userBackcashPlan.getUserName() + ",姓名" + userBackcashPlan.getRealName() + "," + userBackcashPlan.getYear() + "年" + userBackcashPlan.getMonth() + "的计划回款已经存在")).body(null);
         }
         UserBackcashPlan userBackcashPlan1 = userBackcashPlanRepository.save(userBackcashPlan);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(userBackcashPlan1);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(userBackcashPlan1);
     }
 
     /**
@@ -159,23 +159,15 @@ public class UserBackcashPlanController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "idexists", "用户" + userBackcashPlan.getUserName() + ",姓名" + userBackcashPlan.getRealName() + "," + userBackcashPlan.getYear() + "年" + userBackcashPlan.getMonth() + "的计划回款已经存在")).body(null);
         }
-        UserBackcashPlan userBackcashPlan1 = userBackcashPlanRepository.save(userBackcashPlan);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(userBackcashPlan1);
-    }
-
-    /**
-     * @Description : 删除用户计划回款
-     */
-    @DeleteMapping("/deleteUserBackcashPlan")
-    @ApiOperation(value = "删除用户计划回款", notes = "删除用户计划回款")
-    public ResponseEntity<Void> deleteUserBackcashPlan(@RequestParam String id) {
-        logger.debug("REST request to delete caseInfo : {}", id);
-        if (Objects.isNull(id)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                    "Select delete object", "请选择删除对象")).body(null);
-        }
-        userBackcashPlanRepository.delete(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        UserBackcashPlan backcashPlan = userBackcashPlanRepository.findOne(userBackcashPlan.getId());
+        backcashPlan.setUserName(userBackcashPlan.getUserName());
+        backcashPlan.setRealName(userBackcashPlan.getRealName());
+        backcashPlan.setOperateTime(ZWDateUtil.getNowDateTime());
+        backcashPlan.setBackCash(userBackcashPlan.getBackCash());
+        backcashPlan.setYear(userBackcashPlan.getYear());
+        backcashPlan.setMonth(userBackcashPlan.getMonth());
+        userBackcashPlanRepository.save(backcashPlan);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(backcashPlan);
     }
 
     /**
@@ -186,13 +178,12 @@ public class UserBackcashPlanController extends BaseController {
     public ResponseEntity<Void> deleteManyUserBackcashPlan(@RequestBody ManyUserBackcashPlanId request) {
         logger.debug("REST request to delete caseInfo : {}", request.getIds());
         if (Objects.isNull(request.getIds())) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                    "Select delete object", "请选择删除对象")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Select delete object", "请选择删除对象")).body(null);
         }
         for (String id : request.getIds()) {
             userBackcashPlanRepository.delete(id);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(null);
     }
 
     /**
@@ -215,15 +206,15 @@ public class UserBackcashPlanController extends BaseController {
         if (Objects.isNull(sysParams)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failure to obtain parameters", "未能获取参数")).body(null);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(sysParams.getValue());
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(sysParams.getValue());
     }
 
     /**
      * @Description : 导入月度回款Excel数据
      */
-    @PostMapping(value = "/importUserBackcashPlanExcelTemplate")
+    @PostMapping(value = "/importBackAmtGoalExcel")
     @ApiOperation(value = "导入月度回款Excel数据", notes = "导入月度回款Excel数据")
-    public ResponseEntity<String> backAmtGoalExcel(@RequestBody UploadUserBackcashPlanExcelInfo request,
+    public ResponseEntity<String> importBackAmtGoalExcel(@RequestBody UploadUserBackcashPlanExcelInfo request,
                                                    @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         logger.debug("REST request to import UploadUserBackcashPlanExcelInfo");
         User user;
@@ -240,7 +231,7 @@ public class UserBackcashPlanController extends BaseController {
         UploadFile uploadFile = null;
         try {
             // 根据ID查找到上传服务器的文件
-            uploadFile = restTemplate.getForEntity("http://file-service/api/uploadFile?id=" + request.getFileId(), UploadFile.class).getBody();
+            uploadFile = restTemplate.getForEntity(Constants.FILEID_SERVICE_URL.concat("uploadFile/").concat(request.getFileId()), UploadFile.class).getBody();
             if (Objects.isNull(uploadFile)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to obtain upload file", "获取上传文件失败")).body(null);
             }
@@ -265,8 +256,6 @@ public class UserBackcashPlanController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to get the  user", "获取用户失败")).body(null);
         }
-
-
         // 获取到已经导入的用户
         List<UserBackcashPlan> userPlan = new ArrayList<>();
         try {
@@ -274,10 +263,7 @@ public class UserBackcashPlanController extends BaseController {
             for (UserBackcashPlan accPaybackPlan : all) {
                 userPlan.add(accPaybackPlan);
             }
-        } catch (
-                Exception e)
-
-        {
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to get the imported user", "获取导入的用户失败")).body(null);
         }
@@ -295,13 +281,14 @@ public class UserBackcashPlanController extends BaseController {
         List<CellError> cellErrorList = new ArrayList<>();
         try {
             cellErrorList = userBackcashPlanExcelImportService.importExcelDataInfo(backPlanImportParams);
-            if (Objects.nonNull(cellErrorList)) {
+            if (Objects.isNull(cellErrorList)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败")).body(cellErrorList.get(0).getErrorMsg());
             }
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败")).body(null);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(null);
     }
+
 }
