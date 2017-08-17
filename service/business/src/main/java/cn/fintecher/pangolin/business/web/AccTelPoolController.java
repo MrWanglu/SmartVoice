@@ -675,9 +675,9 @@ public class AccTelPoolController extends BaseController {
     public ResponseEntity<PersonalContactModel> getTelPersonalContact(@RequestParam @ApiParam(value = "客户信息ID", required = true) String personalId) {
         log.debug("REST request to get personal contact by {personalId}", personalId);
         try {
-            List<PersonalContact> personalContacts = caseInfoService.getPersonalContact(personalId);
+            List<PersonalContact> content = caseInfoService.getPersonalContact(personalId);
             PersonalContactModel personalContactModel = new PersonalContactModel();
-            personalContactModel.setPersonalContacts(personalContacts);
+            personalContactModel.setPersonalContacts(content);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_PERSONAL_CONTACT)).body(personalContactModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
