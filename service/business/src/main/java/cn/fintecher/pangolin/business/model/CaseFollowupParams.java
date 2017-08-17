@@ -36,4 +36,5 @@ public class CaseFollowupParams {
     private String detail;//详细地址
     private String collectionLocation;//定位地址
     private Integer contactState; //联系电话状态
+    private Integer addrStatus; //地址状态
 }
