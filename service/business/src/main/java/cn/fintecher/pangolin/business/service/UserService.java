@@ -166,7 +166,7 @@ public class UserService {
         userRepository.flush();
     }
 
-    @Cacheable(value = "userCache", key = "'petstore:user:all'", unless = "#result==null")
+    @Cacheable(value = "userCache", key = "'petstore:user:'+#user.userName", unless = "#result==null")
     public User save(User user) {
         return userRepository.save(user);
     }
