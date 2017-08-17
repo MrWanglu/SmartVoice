@@ -62,7 +62,7 @@ public class CaseTurnRecord {
     private Integer caseType;
 
     @ApiModelProperty(notes = "当前催收员ID")
-    private String current_collector;
+    private String currentCollector;
 
     @ApiModelProperty(notes = "接收人ID")
     private String receiveUserId;
