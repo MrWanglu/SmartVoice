@@ -684,4 +684,33 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONAL_CONTACT, "personalContact", e.getMessage())).body(null);
         }
     }
+
+    @PostMapping("/turnCaseConfirm")
+    @ApiOperation(value = "流转案件确认",notes = "流转案件确认")
+    public ResponseEntity toConfirm(@RequestBody List<String> caseIds,
+                                    @RequestHeader(value = "X-UserToken") String token){
+        try {
+            User tokenUser = getUserByToken(token);
+            caseInfoService.turnCaseConfirm(caseIds,tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功", ENTITY_CASEINFO)).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    @PostMapping("/turnCaseDistribution")
+    @ApiOperation(value = "流转案件分配",notes = "流转案件分配")
+    public ResponseEntity batchTurnCase(@RequestBody BatchDistributeModel batchDistributeModel,
+                                        @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User tokenUser = getUserByToken(token);
+            caseInfoService.turnCaseDistribution(batchDistributeModel,tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功", ENTITY_CASEINFO)).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
 }

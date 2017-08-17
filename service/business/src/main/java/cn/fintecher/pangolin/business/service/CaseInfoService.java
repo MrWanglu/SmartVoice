@@ -129,7 +129,7 @@ public class CaseInfoService {
                         caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
                         caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
                         caseTurnRecord.setReceiveDeptName(user.getDepartment().getName()); //接收部门名称
-                        caseTurnRecord.setCollectionType(3); //流转类型 3-正常流转
+                        caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
                         caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员
                         caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                         caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
@@ -175,7 +175,7 @@ public class CaseInfoService {
         caseTurnRecord.setReceiveDeptName(user.getDepartment().getName()); //接收部门名称
         caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
         caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
-        caseTurnRecord.setCollectionType(3); //流转类型 3-正常流转
+        caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
         caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
         caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
@@ -426,7 +426,7 @@ public class CaseInfoService {
                 caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
                 caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
                 caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
-                caseTurnRecord.setCollectionType(3); //流转类型 3-正常流转
+                caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
                 caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                 caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                 caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
@@ -630,7 +630,7 @@ public class CaseInfoService {
                     caseTurnRecord.setReceiveDeptName(batchInfoModel.getCollectionUser().getDepartment().getName()); //接收部门名称
                     caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
                     caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
-                    caseTurnRecord.setCollectionType(3); //流转类型 3-正常流转
+                    caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
                     caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                     caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                     caseTurnRecords.add(caseTurnRecord);
@@ -670,7 +670,7 @@ public class CaseInfoService {
                                 caseTurnRecord.setReceiveDeptName(batchInfoModel.getCollectionUser().getDepartment().getName()); //接收部门名称
                                 caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
                                 caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
-                                caseTurnRecord.setCollectionType(3); //流转类型 3-正常流转
+                                caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
                                 caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                                 caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                                 caseTurnRecords.add(caseTurnRecord);
@@ -706,7 +706,7 @@ public class CaseInfoService {
                     caseTurnRecord.setReceiveDeptName(batchInfoModel.getCollectionUser().getDepartment().getName()); //接收部门名称
                     caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
                     caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
-                    caseTurnRecord.setCollectionType(3); //流转类型 3-正常流转
+                    caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
                     caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                     caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                     caseTurnRecords.add(caseTurnRecord);
@@ -766,6 +766,7 @@ public class CaseInfoService {
         caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态 20-待催收
         caseInfo.setLeaveCaseFlag(0); //留案标识置0
+        caseInfo.setDepartment(user.getDepartment());
         if (Objects.equals(user.getType(), User.Type.TEL.getValue())) {
             caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
         } else if (Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
@@ -985,7 +986,7 @@ public class CaseInfoService {
                         caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
                         caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
                         caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
-                        caseTurnRecord.setCollectionType(3); //流转类型 3-正常流转
+                        caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
                         caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员
                         caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                         caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
@@ -1017,7 +1018,7 @@ public class CaseInfoService {
             caseTurnRecord.setReceiveDeptName(tokenUser.getDepartment().getName()); //接收部门名称
             caseTurnRecord.setReceiveUserId(tokenUser.getId()); //接受人ID
             caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
-            caseTurnRecord.setCollectionType(2); //流转类型 2-手动流转
+            caseTurnRecord.setCirculationType(1); //流转类型 1-手动流转
             caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
             caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
@@ -1156,7 +1157,7 @@ public class CaseInfoService {
                     }
                     caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
                     caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-                    caseTurnRecord.setCollectionType(3); //流转类型 3-正常流转
+                    caseTurnRecord.setCirculationType(2);
                     caseTurnRecordList.add(caseTurnRecord);
                     //更新修复池
                     caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.DISTRIBUTE.getValue());
@@ -1339,7 +1340,7 @@ public class CaseInfoService {
                 }
                 caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
                 caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-                caseTurnRecord.setCollectionType(3); //流转类型 3-正常流转
+                caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
                 caseTurnRecordList.add(caseTurnRecord);
                 //案件列表
                 caseInfoObjList.add(caseInfo);
@@ -1388,5 +1389,69 @@ public class CaseInfoService {
             default:
                 return;
         }
+    }
+
+    public void turnCaseConfirm(List<String> caseIds, User user){
+        List<CaseInfo> caseInfos = caseInfoRepository.findAll(caseIds);
+        List<CaseTurnRecord> caseTurnRecords = new ArrayList<>();
+        List<CaseInfo> caseInfoResults = new ArrayList<>();
+        for(int i =0; i<caseInfos.size(); i++) {
+                CaseInfo caseInfo = caseInfos.get(i);
+                setAttribute(caseInfo,user,user);
+                caseInfoResults.add(caseInfo);
+                CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+                BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
+                caseTurnRecord.setId(null); //主键置空
+                caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
+                caseTurnRecord.setDepartId(user.getDepartment().getId()); //部门ID
+                caseTurnRecord.setReceiveUserRealName(user.getRealName()); //接受人名称
+                caseTurnRecord.setReceiveDeptName(user.getDepartment().getName()); //接收部门名称
+                caseTurnRecord.setCirculationType(2);
+                caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
+                caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                caseTurnRecords.add(caseTurnRecord);
+            }
+            caseInfoRepository.save(caseInfoResults);
+            caseTurnRecordRepository.save(caseTurnRecords);
+    }
+
+    public void turnCaseDistribution(BatchDistributeModel batchDistributeModel,User tokenUser){
+        List<BatchInfoModel> batchInfoModels = batchDistributeModel.getBatchInfoModelList();
+        List<String> caseIds = batchDistributeModel.getCaseIds();
+        List<CaseInfo> caseInfos = new ArrayList<>();
+        List<CaseTurnRecord> caseTurnRecords = new ArrayList<>();
+        for (BatchInfoModel batchInfoModel : batchInfoModels) {
+            Integer caseCount = batchInfoModel.getDistributionCount(); //分配案件数
+            if (0 == caseCount) {
+                continue;
+            }
+            for (int i = 0; i < caseCount; i++) {
+                CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(i)); //获得案件信息
+                User user = batchInfoModel.getCollectionUser();
+                if(Objects.equals(caseInfo.getCollectionType(),CaseInfo.CollectionType.TEL.getValue())
+                        && !Objects.equals(user.getType(),User.Type.TEL.getValue())){
+                    throw new RuntimeException("电催案件不能分配给非电催人员");
+                }else if(Objects.equals(caseInfo.getCollectionType(),CaseInfo.CollectionType.VISIT.getValue())
+                        && !Objects.equals(user.getType(),User.Type.VISIT.getValue())){
+                    throw new RuntimeException("外访案件不能分配给非外访人员");
+                }
+                setAttribute(caseInfo, user, tokenUser);
+                caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //流转类型-案件分配
+                caseInfos.add(caseInfo);
+                CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+                BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
+                caseTurnRecord.setId(null); //主键置空
+                caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
+                caseTurnRecord.setDepartId(user.getDepartment().getId()); //部门ID
+                caseTurnRecord.setReceiveUserRealName(user.getRealName()); //接受人名称
+                caseTurnRecord.setReceiveDeptName(user.getDepartment().getName()); //接收部门名称
+                caseTurnRecord.setCirculationType(2);
+                caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
+                caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                caseTurnRecords.add(caseTurnRecord);
+            }
+        }
+        caseInfoRepository.save(caseInfos);
+        caseTurnRecordRepository.save(caseTurnRecords);
     }
 }
