@@ -68,5 +68,6 @@ pangolin:
     enterprise-code: 4216052701
     proceedSign: 59715406
     secret: 6b21a1c997dcea6a20c3181677c20744
+    recordlist: http://m.icsoc.net/v2/wintelapi/record/recordlist
 server:
     port: 9002
