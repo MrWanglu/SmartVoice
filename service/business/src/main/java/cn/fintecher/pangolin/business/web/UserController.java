@@ -142,7 +142,6 @@ public class UserController extends BaseController {
         if (Objects.isNull(user.getSignature())) {
             user.setSignature("Congratulations on becoming a member of the company, I wish you a happy work");
         }
-
         //密码过期时间
         user.setPasswordInvalidTime(ZWDateUtil.getNowDateTime());
         user.setPassword(hashedPassword);
