@@ -672,11 +672,13 @@ public class AccTelPoolController extends BaseController {
      */
     @GetMapping("/getTelPersonalContact")
     @ApiOperation(value = "电催页面查询客户联系人", notes = "电催页面查询客户联系人")
-    public ResponseEntity<List<PersonalContact>> getTelPersonalContact(@RequestParam @ApiParam(value = "客户信息ID", required = true) String personalId) {
+    public ResponseEntity<PersonalContactModel> getTelPersonalContact(@RequestParam @ApiParam(value = "客户信息ID", required = true) String personalId) {
         log.debug("REST request to get personal contact by {personalId}", personalId);
         try {
             List<PersonalContact> personalContacts = caseInfoService.getPersonalContact(personalId);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功",ENTITY_PERSONAL_CONTACT)).body(personalContacts);
+            PersonalContactModel personalContactModel = new PersonalContactModel();
+            personalContactModel.setPersonalContacts(personalContacts);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_PERSONAL_CONTACT)).body(personalContactModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONAL_CONTACT, "personalContact", e.getMessage())).body(null);
