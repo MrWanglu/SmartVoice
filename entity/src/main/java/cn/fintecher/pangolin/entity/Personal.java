@@ -149,7 +149,7 @@ public class Personal extends BaseEntity {
 
 
     /**
-     * @Description 电话状态
+     * @Description 地址状态
      */
     public enum AddrStatus {
         VALIDADDR(148, "有效地址"),
