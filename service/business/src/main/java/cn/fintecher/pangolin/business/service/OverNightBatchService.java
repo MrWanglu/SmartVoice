@@ -345,7 +345,7 @@ public class OverNightBatchService {
             caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
             caseTurnRecord.setReceiveUserRealName(user.getRealName()); //接受人名称
             caseTurnRecord.setReceiveDeptName(trunDeptName);
-            caseTurnRecord.setCollectionType(1); //流转类型 1-自动流转
+            caseTurnRecord.setCirculationType(1); //流转类型 1-自动流转
             caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
             caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseTurnRecordList.add(caseTurnRecord);
