@@ -124,7 +124,7 @@ public class CaseInfoService {
                         BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
                         caseTurnRecord.setId(null); //主键置空
                         caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
-                        caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
+                        caseTurnRecord.setDepartId(caseInfo.getCurrentCollector().getDepartment().getId()); //部门ID
                         caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                         caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
                         caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
@@ -421,7 +421,7 @@ public class CaseInfoService {
                 BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
                 caseTurnRecord.setId(null); //主键置空
                 caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
-                caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
+                caseTurnRecord.setDepartId(caseInfo.getCurrentCollector().getDepartment().getId()); //部门ID
                 caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                 caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
                 caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
@@ -665,7 +665,7 @@ public class CaseInfoService {
                                 BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
                                 caseTurnRecord.setId(null); //主键置空
                                 caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
-                                caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
+                                caseTurnRecord.setDepartId(caseInfo.getCurrentCollector().getDepartment().getId()); //部门ID
                                 caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                                 caseTurnRecord.setReceiveDeptName(batchInfoModel.getCollectionUser().getDepartment().getName()); //接收部门名称
                                 caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
@@ -980,7 +980,7 @@ public class CaseInfoService {
                         BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
                         caseTurnRecord.setId(null); //主键置空
                         caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
-                        caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
+                        caseTurnRecord.setDepartId(caseInfo.getCurrentCollector().getDepartment().getId()); //部门ID
                         caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                         caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
                         caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
