@@ -138,6 +138,7 @@ public class CaseInfoDistributedService {
                         BeanUtils.copyProperties(caseInfoDistributed, caseInfo);
                         caseInfo.setHasPayAmount(new BigDecimal(0)); //已还款金额
                         caseInfo.setImpHasPayAmount(caseInfoDistributed.getHasPayAmount()); //导入已还款款金额
+                        caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型-案件分配
                         if (Objects.nonNull(department)) {
                             caseInfo.setDepartment(department); //部门
                             caseInfoService.setCollectionType(caseInfo, department, null);
@@ -165,8 +166,9 @@ public class CaseInfoDistributedService {
                         caseTurnRecord.setId(null); //主键置空
                         caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
                         caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
-                        if (Objects.nonNull(caseInfo.getCurrentCollector())) { //催收员为空则是分给部门
+                        if (Objects.nonNull(caseInfo.getCurrentCollector())) { //催收员不为空则是分给催收员
                             caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
+                            caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接收人ID
                             caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                         } else {
                             caseTurnRecord.setReceiveDeptName(caseInfo.getDepartment().getName());

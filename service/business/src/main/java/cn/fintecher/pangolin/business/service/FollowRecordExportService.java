@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.service;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.entity.CaseFollowupRecord;
 import cn.fintecher.pangolin.entity.CaseInfo;
+import cn.fintecher.pangolin.entity.Personal;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.springframework.stereotype.Service;
 
@@ -62,7 +63,7 @@ public class FollowRecordExportService {
                 CaseFollowupRecord.ContactState[] values2 = CaseFollowupRecord.ContactState.values();
                 for (int i = 0; i < values2.length; i++) {
                     if (Objects.equals(record.getContactState(), values2[i].getValue())) {
-                        dataMap.put("follContype", values2[i].getRemark());
+                        dataMap.put("follContype", values2[i].getRemark());  //电话/地址状态
                         break;
                     }
                 }
@@ -70,10 +71,10 @@ public class FollowRecordExportService {
             }
             // 外访/协催
             if (!Objects.equals(record.getType(),CaseFollowupRecord.Type.TEL.getValue())) {
-                CaseFollowupRecord.AddrType[] values2 = CaseFollowupRecord.AddrType.values();
+                Personal.AddrStatus[] values2 = Personal.AddrStatus.values();
                 for (int i = 0; i < values2.length; i++) {
-                    if (Objects.equals(record.getAddrType(), values2[i].getValue())) {
-                        dataMap.put("follContype", values2[i].getRemark());
+                    if (Objects.equals(record.getAddrStatus(), values2[i].getValue())) {
+                        dataMap.put("follContype", values2[i].getRemark()); //电话/地址状态
                         break;
                     }
                 }

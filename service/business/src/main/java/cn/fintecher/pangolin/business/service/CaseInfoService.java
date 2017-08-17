@@ -1284,7 +1284,7 @@ public class CaseInfoService {
                 }
                 String caseId = caseInfoYes.get(alreadyCaseNum).getId();
                 CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
-
+                caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型-案件分配
                 //按照部门分
                 if (Objects.nonNull(department)) {
                     caseInfo.setDepartment(department); //部门
@@ -1332,6 +1332,7 @@ public class CaseInfoService {
                 caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
                 if (Objects.nonNull(caseInfo.getCurrentCollector())) {
                     caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
+                    caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接收人ID
                     caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                 } else {
                     caseTurnRecord.setReceiveDeptName(caseInfo.getDepartment().getName());
