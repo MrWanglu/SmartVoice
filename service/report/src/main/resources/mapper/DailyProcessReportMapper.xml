@@ -6,7 +6,8 @@
             resultType="cn.fintecher.pangolin.report.entity.DailyProcessReport">
         SELECT
         c.deptCode,c.deptName,c.parentDeptCode,c.parentDeptName,c.userName,c.realName,a.caseNum,a.caseAmt,a.handleNum,a.promiseNum,a.consultNum,a.otherTellNum,a.findNum,
-        a.noAnswerNum,b.callNum,b.communicateNum,b.effectiveCallNum,c.companyCode from
+        a.noAnswerNum,case when b.callNum is null then 0 else b.callNum end as callNum,case when b.communicateNum is null then 0 else b.communicateNum end as communicateNum,
+        case when b.effectiveCallNum is null then 0 else b.effectiveCallNum end as effectiveCallNum,c.companyCode,DATE_FORMAT(NOW(),'%Y-%m-%d') as nowDate from
         (SELECT current_collector,count(case when collection_status in(20,21,22,23,24) then id end) as caseNum,
         sum(case when collection_status in (20,21,22,23,24) then ((case when overdue_amount is null then 0 else
         overdue_amount end)+(case when early_settle_amt is null then 0 else early_settle_amt end)) else 0 end) as
@@ -41,14 +42,15 @@
         <if test="realName != null">
             AND c.realName LIKE CONCAT('%',#{realName},'%')
         </if>
-        order by c.deptCode asc
+        order by c.parentDeptCode asc
     </select>
 
     <!-- 保存催收员每日催收过程历史报表 -->
     <select id="saveHistoryReport" parameterType="Date"
             resultType="cn.fintecher.pangolin.report.entity.DailyProcessReport">
-        SELECT c.deptCode,c.deptName,c.parentDeptCode,c.parentDeptName,a.caseNum,a.caseAmt,a.handleNum,a.promiseNum,a.consultNum,a.otherTellNum,a.findNum,
-        a.noAnswerNum,b.callNum,b.communicateNum,b.effectiveCallNum,c.companyCode from
+        SELECT c.deptCode,c.deptName,c.parentDeptCode,c.parentDeptName,c.userName,c.realName,a.caseNum,a.caseAmt,a.handleNum,a.promiseNum,a.consultNum,a.otherTellNum,a.findNum,
+        a.noAnswerNum,case when b.callNum is null then 0 else b.callNum end as callNum,case when b.communicateNum is null then 0 else b.communicateNum end as communicateNum,
+        case when b.effectiveCallNum is null then 0 else b.effectiveCallNum end as effectiveCallNum,c.companyCode from
         (SELECT current_collector,count(case when collection_status in(20,21,22,23,24,171,172) then id end) as caseNum,
         sum(case when collection_status in (20,21,22,23,24,171,172) then ((case when overdue_amount is null then 0 else overdue_amount end)+(case when early_settle_amt is null then 0 else early_settle_amt end)) else 0 end) as caseAmt,
         count(case when DATE_FORMAT(followup_time,'%Y-%m-%d') = DATE_FORMAT(#{historyDate},'%Y-%m-%d') then id end) as handleNum,

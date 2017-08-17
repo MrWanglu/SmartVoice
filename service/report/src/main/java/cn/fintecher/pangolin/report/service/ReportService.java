@@ -185,7 +185,6 @@ public class ReportService {
                 backMoneyThiModelList.add(backMoneyThiModel);
 
                 backMoneyThiModel.setBackMoneyReports(backMoneyReportList); //三级模型中加入报表集合
-                backMoneyThiModelList.add(backMoneyThiModel);
                 backMoneySecModel.setBackMoneyThiModels(backMoneyThiModelList); //二级模型中加入三级模型
                 backMoneySecModelList.add(backMoneySecModel);
                 backMoneyModel.setBackMoneySecModels(backMoneySecModelList); //一级模型中加入二级模型
@@ -659,8 +658,19 @@ public class ReportService {
                         HSSFRow row = hssfSheet.createRow((short) userIndex);
 
                         //创建单元格
-                        HSSFCell cell;
+                        HSSFCell cell = null;
                         int paramIndex = 0; //excel数据展示顺序数组角标
+
+                        for (int i = 0; i < 2; i++) {
+                            if (0 == i) {
+                                Object obj = ExcelUtil.getProValue("parentDeptName", backMoneyReport); //通过字段映射获取相应的数据
+                                cell = setCellValue(obj, row, 0); //给单元格set值
+                            } else if (1 == i) {
+                                Object obj = ExcelUtil.getProValue("deptName", backMoneyReport); //通过字段映射获取相应的数据
+                                cell = setCellValue(obj, row, 1); //给单元格set值
+                            }
+                            cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                        }
 
                         //给该行每一列设置数据
                         for (int i = 2; i < 5; i++) { //i为报表模版数据列数,从第[2]列姓名开始
@@ -682,8 +692,11 @@ public class ReportService {
                     }
                 }
                 //合并组别
-                CellRangeAddress cra = new CellRangeAddress(groupIndex, userIndex, 1, 1); // 四个参数分别是：起始行，结束行,起始列，结束列
-                hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+                if (userIndex - groupIndex > 1) {
+                    CellRangeAddress cra = new CellRangeAddress(groupIndex, userIndex - 1, 1, 1); // 四个参数分别是：起始行，结束行,起始列，结束列
+                    hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+                }
+                groupIndex = userIndex + 1;
 
                 //如果导出实时报表
                 if (Objects.equals(generalParams.getType(), 0)) { //如果导出实时报表，则多加一行累计
@@ -694,8 +707,8 @@ public class ReportService {
                     HSSFCell cell;
 
                     //给该行每一列设置数据
-                    for (int i = 1; i < 5; i++) { //i为报表模版数据列数,从第[1]列组别开始
-                        if (2 == i || 3 == i) { //如果为第[2]列姓名或者第[3]列日期,则设置为空
+                    for (int i = 0; i < 5; i++) { //i为报表模版数据列数,从第[1]列组别开始
+                        if (0 == i || 2 == i || 3 == i) { //如果为第[2]列姓名或者第[3]列日期,则设置为空
                             cell = row.createCell(i, CellType.STRING);
                             cell.setCellValue("");
                         } else if (1 == i) { //如果为第[1]列组别,则设置为累计
@@ -705,6 +718,7 @@ public class ReportService {
                             cell = row.createCell(i, CellType.NUMERIC);
                             cell.setCellValue(total.doubleValue());
                         }
+                        cell.setCellStyle(hssfCellStyle); //给单元格设置格式
                     }
                     //设置完毕后行数+1,进行下一行设置
                     userIndex++;
@@ -714,8 +728,9 @@ public class ReportService {
             groupIndex = userIndex;
 
             //合并部门
-            CellRangeAddress cra = new CellRangeAddress(deptIndex, userIndex, 0, 0); // 四个参数分别是：起始行，结束行,起始列，结束列
+            CellRangeAddress cra = new CellRangeAddress(deptIndex, userIndex - 1, 0, 0); // 四个参数分别是：起始行，结束行,起始列，结束列
             hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+            deptIndex = userIndex;
         }
 
         //上传填好数据的报表
@@ -804,8 +819,19 @@ public class ReportService {
                     HSSFRow row = hssfSheet.createRow((short) userIndex);
 
                     //创建单元格
-                    HSSFCell cell;
+                    HSSFCell cell = null;
                     int paramIndex = 0; //excel数据展示顺序数组角标
+
+                    for (int i = 0; i < 2; i++) {
+                        if (0 == i) {
+                            Object obj = ExcelUtil.getProValue("parentDeptName", performanceBasisModel); //通过字段映射获取相应的数据
+                            cell = setCellValue(obj, row, 0); //给单元格set值
+                        } else if (1 == i) {
+                            Object obj = ExcelUtil.getProValue("deptName", performanceBasisModel); //通过字段映射获取相应的数据
+                            cell = setCellValue(obj, row, 1); //给单元格set值
+                        }
+                        cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                    }
 
                     //给该行每一列设置数据
                     for (int i = 2; i < 15; i++) { //i为报表模版数据列数,从第[2]列姓名开始
@@ -882,18 +908,21 @@ public class ReportService {
                     userIndex++;
                 }
                 //合并组别
-                CellRangeAddress cra = new CellRangeAddress(groupIndex, userIndex, 1, 1); // 四个参数分别是：起始行，结束行,起始列，结束列
-                hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+                if (userIndex - groupIndex > 1) {
+                    CellRangeAddress cra = new CellRangeAddress(groupIndex, userIndex - 1, 1, 1); // 四个参数分别是：起始行，结束行,起始列，结束列
+                    hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+                }
+                groupIndex = userIndex + 1;
 
                 //在excel创建一行
                 HSSFRow row = hssfSheet.createRow((short) (userIndex));
 
                 //创建单元格
-                HSSFCell cell;
+                HSSFCell cell = null;
 
                 //给该行每一列设置数据
-                for (int i = 1; i < 15; i++) { //i为报表模版数据列数,从第[1]列组别开始
-                    if (2 == i) { //如果为第[2]列姓名,则设置为空
+                for (int i = 0; i < 15; i++) { //i为报表模版数据列数,从第[1]列组别开始
+                    if (0 == i || 2 == i) { //如果为第[2]列姓名,则设置为空
                         cell = row.createCell(i, CellType.STRING);
                         cell.setCellValue("");
                     } else if (1 == i) { //如果为第[1]列组别,则设置为累计
@@ -936,6 +965,7 @@ public class ReportService {
                         cell = row.createCell(i, CellType.NUMERIC);
                         cell.setCellValue(endAmtTotal.doubleValue());
                     }
+                    cell.setCellStyle(hssfCellStyle); //给单元格设置格式
                 }
                 //设置完毕后行数+1,进行下一行设置
                 userIndex++;
@@ -944,8 +974,9 @@ public class ReportService {
             groupIndex = userIndex;
 
             //合并部门
-            CellRangeAddress cra = new CellRangeAddress(deptIndex, userIndex, 0, 0); // 四个参数分别是：起始行，结束行,起始列，结束列
+            CellRangeAddress cra = new CellRangeAddress(deptIndex, userIndex - 1, 0, 0); // 四个参数分别是：起始行，结束行,起始列，结束列
             hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+            deptIndex = userIndex;
         }
         //上传填好数据的报表
         return uploadExcel(hssfWorkbook);
@@ -1037,8 +1068,19 @@ public class ReportService {
                         HSSFRow row = hssfSheet.createRow((short) userIndex);
 
                         //创建单元格
-                        HSSFCell cell;
+                        HSSFCell cell = null;
                         int paramIndex = 0; //excel数据展示顺序数组角标
+
+                        for (int i = 0; i < 2; i++) {
+                            if (0 == i) {
+                                Object obj = ExcelUtil.getProValue("parentDeptName", dailyProcessReport); //通过字段映射获取相应的数据
+                                cell = setCellValue(obj, row, 0); //给单元格set值
+                            } else if (1 == i) {
+                                Object obj = ExcelUtil.getProValue("deptName", dailyProcessReport); //通过字段映射获取相应的数据
+                                cell = setCellValue(obj, row, 1); //给单元格set值
+                            }
+                            cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                        }
 
                         //给该行每一列设置数据
                         for (int i = 2; i < 16; i++) { //i为报表模版数据列数,从第[2]列姓名开始
@@ -1109,14 +1151,18 @@ public class ReportService {
                                 communicateNumTotal = (Integer) obj + communicateNumTotal; //沟通记录总条数
                             }
                             paramIndex++;
+                            cell.setCellStyle(hssfCellStyle); //给单元格设置格式
                         }
                         //设置完毕后行数+1,进行下一行设置
                         userIndex++;
                     }
                 }
                 //合并组别
-                CellRangeAddress cra = new CellRangeAddress(groupIndex, userIndex, 1, 1); // 四个参数分别是：起始行，结束行,起始列，结束列
-                hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+                if (userIndex - groupIndex > 1) {
+                    CellRangeAddress cra = new CellRangeAddress(groupIndex, userIndex - 1, 1, 1); // 四个参数分别是：起始行，结束行,起始列，结束列
+                    hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+                }
+                groupIndex = userIndex + 1;
 
                 //如果导出实时报表
                 if (Objects.equals(generalParams.getType(), 0)) { //如果导出实时报表，则多加一行累计
@@ -1124,11 +1170,11 @@ public class ReportService {
                     HSSFRow row = hssfSheet.createRow((short) (userIndex));
 
                     //创建单元格
-                    HSSFCell cell;
+                    HSSFCell cell = null;
 
                     //给该行每一列设置数据
-                    for (int i = 1; i < 16; i++) { //i为报表模版数据列数,从第[1]列组别开始
-                        if (2 == i || 3 == i) { //如果为第[2]列姓名或者第[3]列日期,则设置为空
+                    for (int i = 0; i < 16; i++) { //i为报表模版数据列数,从第[1]列组别开始
+                        if (0 == i || 2 == i || 3 == i) { //如果为第[2]列姓名或者第[3]列日期,则设置为空
                             cell = row.createCell(i, CellType.STRING);
                             cell.setCellValue("");
                         } else if (1 == i) { //如果为第[1]列组别,则设置为累计
@@ -1171,6 +1217,7 @@ public class ReportService {
                             cell = row.createCell(i, CellType.NUMERIC);
                             cell.setCellValue(communicateNumTotal);
                         }
+                        cell.setCellStyle(hssfCellStyle); //给单元格设置格式
                     }
                     //设置完毕后行数+1,进行下一行设置
                     userIndex++;
@@ -1180,8 +1227,9 @@ public class ReportService {
             groupIndex = userIndex;
 
             //合并部门
-            CellRangeAddress cra = new CellRangeAddress(deptIndex, userIndex, 0, 0); // 四个参数分别是：起始行，结束行,起始列，结束列
+            CellRangeAddress cra = new CellRangeAddress(deptIndex, userIndex - 1, 0, 0); // 四个参数分别是：起始行，结束行,起始列，结束列
             hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+            deptIndex = userIndex;
         }
         //上传填好数据的报表
         return uploadExcel(hssfWorkbook);
@@ -1267,8 +1315,19 @@ public class ReportService {
                         HSSFRow row = hssfSheet.createRow((short) userIndex);
 
                         //创建单元格
-                        HSSFCell cell;
+                        HSSFCell cell = null;
                         int paramIndex = 0; //excel数据展示顺序数组角标
+
+                        for (int i = 0; i < 2; i++) {
+                            if (0 == i) {
+                                Object obj = ExcelUtil.getProValue("parentDeptName", dailyResultReport); //通过字段映射获取相应的数据
+                                cell = setCellValue(obj, row, 0); //给单元格set值
+                            } else if (1 == i) {
+                                Object obj = ExcelUtil.getProValue("deptName", dailyResultReport); //通过字段映射获取相应的数据
+                                cell = setCellValue(obj, row, 1); //给单元格set值
+                            }
+                            cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                        }
 
                         //给该行每一列设置数据
                         for (int i = 2; i < 14; i++) { //i为报表模版数据列数,从第[2]列姓名开始
@@ -1335,14 +1394,18 @@ public class ReportService {
                                 targetTotal = ((BigDecimal) obj).setScale(2, BigDecimal.ROUND_HALF_UP).add(targetTotal); //月度回款金额总目标
                             }
                             paramIndex++;
+                            cell.setCellStyle(hssfCellStyle); //给单元格设置格式
                         }
                         //设置完毕后行数+1,进行下一行设置
                         userIndex++;
                     }
                 }
                 //合并组别
-                CellRangeAddress cra = new CellRangeAddress(groupIndex, userIndex, 1, 1); // 四个参数分别是：起始行，结束行,起始列，结束列
-                hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+                if (userIndex - groupIndex > 1) {
+                    CellRangeAddress cra = new CellRangeAddress(groupIndex, userIndex - 1, 1, 1); // 四个参数分别是：起始行，结束行,起始列，结束列
+                    hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+                }
+                groupIndex = userIndex + 1;
 
                 //如果导出实时报表
                 if (Objects.equals(generalParams.getType(), 0)) { //如果导出实时报表，则多加一行累计
@@ -1350,11 +1413,11 @@ public class ReportService {
                     HSSFRow row = hssfSheet.createRow((short) (userIndex));
 
                     //创建单元格
-                    HSSFCell cell;
+                    HSSFCell cell = null;
 
                     //给该行每一列设置数据
-                    for (int i = 1; i < 14; i++) { //i为报表模版数据列数,从第[1]列组别开始
-                        if (2 == i || 3 == i) { //如果为第[2]列姓名或者第[3]列日期,则设置为空
+                    for (int i = 0; i < 14; i++) { //i为报表模版数据列数,从第[1]列组别开始
+                        if (0 == i || 2 == i || 3 == i) { //如果为第[2]列姓名或者第[3]列日期,则设置为空
                             cell = row.createCell(i, CellType.STRING);
                             cell.setCellValue("");
                         } else if (1 == i) { //如果为第[1]列组别,则设置为累计
@@ -1383,14 +1446,15 @@ public class ReportService {
                             cell.setCellValue(dayNumRateTotal.multiply(new BigDecimal(100)).toString() + "%");
                         } else if (i == 11) { //如果为第[11]列当日回款金额比,则设置为dayAmtRateTotal
                             cell = row.createCell(i, CellType.STRING);
-                            cell.setCellValue(dayNumRateTotal.multiply(new BigDecimal(100)).toString() + "%");
+                            cell.setCellValue(dayAmtRateTotal.multiply(new BigDecimal(100)).toString() + "%");
                         } else if (i == 12) { //如果为第[12]列回款比,则设置为backMoneyRateTotal
                             cell = row.createCell(i, CellType.STRING);
-                            cell.setCellValue(dayNumRateTotal.multiply(new BigDecimal(100)).toString() + "%");
+                            cell.setCellValue(backMoneyRateTotal.multiply(new BigDecimal(100)).toString() + "%");
                         } else if (i == 13) { //如果为第[13]列月度回款金额目标,则设置为targetTotal
                             cell = row.createCell(i, CellType.NUMERIC);
                             cell.setCellValue(targetTotal.doubleValue());
                         }
+                        cell.setCellStyle(hssfCellStyle); //给单元格设置格式
                     }
                     //设置完毕后行数+1,进行下一行设置
                     userIndex++;
@@ -1400,8 +1464,9 @@ public class ReportService {
             groupIndex = userIndex;
 
             //合并部门
-            CellRangeAddress cra = new CellRangeAddress(deptIndex, userIndex, 0, 0); // 四个参数分别是：起始行，结束行,起始列，结束列
+            CellRangeAddress cra = new CellRangeAddress(deptIndex, userIndex - 1, 0, 0); // 四个参数分别是：起始行，结束行,起始列，结束列
             hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+            deptIndex = userIndex;
         }
         //上传填好数据的报表
         return uploadExcel(hssfWorkbook);
