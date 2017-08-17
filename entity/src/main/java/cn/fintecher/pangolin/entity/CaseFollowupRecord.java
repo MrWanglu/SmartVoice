@@ -81,6 +81,9 @@ public class CaseFollowupRecord extends BaseEntity {
     @ApiModelProperty(notes = "下次跟进提醒内容")
     private String follnextContent;
 
+    @ApiModelProperty(notes = "地址状态")
+    private Integer addrStatus;
+
     @ApiModelProperty(notes = "地址类型")
     private Integer addrType;
 
