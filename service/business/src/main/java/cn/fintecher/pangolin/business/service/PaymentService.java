@@ -265,7 +265,7 @@ public class PaymentService {
             ExcelExportHelper.createExcel(workbook, sheet, headMap, dataList, 0, 0);
             out = new ByteArrayOutputStream();
             workbook.write(out);
-            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "客户信息表.xls");
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "还款信息表.xls");
             file = new File(filePath);
             fileOutputStream = new FileOutputStream(file);
             fileOutputStream.write(out.toByteArray());
