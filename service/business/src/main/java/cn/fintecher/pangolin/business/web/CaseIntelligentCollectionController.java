@@ -137,6 +137,7 @@ public class CaseIntelligentCollectionController extends BaseController {
                     emailSendRequest.setCustId(personalContacts.iterator().next().getPersonalId()); // 客户ID
                     emailSendRequest.setCustName(personalContacts.iterator().next().getName()); // 客户姓名
                     emailSendRequest.setEmail(personalContacts.iterator().next().getMail()); // 客户邮箱
+                    emailSendRequest.setCupoId(caseInfo.getId());
                     emailSendRequests.add(emailSendRequest);
                 }
             }
@@ -186,5 +187,6 @@ public class CaseIntelligentCollectionController extends BaseController {
         messageBatchSendRequest.setStatus(statusList);
         messageBatchSendRequest.setNameList(nameList);
         return messageBatchSendRequest;
+
     }
 }

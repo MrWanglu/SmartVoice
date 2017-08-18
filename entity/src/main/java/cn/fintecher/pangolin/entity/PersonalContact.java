@@ -62,4 +62,46 @@ public class PersonalContact extends BaseEntity {
             return remark;
         }
     }
+
+    /**
+     * @Description 客户关系枚举类
+     */
+    public enum relation {
+
+        SELF(69, "本人"),
+
+        SPOUSE(70, "配偶"),
+
+        PARENT(71, "父母"),
+
+        CHILD(72, "子女"),
+
+        RELATIVES(73, "亲属"),
+
+        COLLEUAGUE(74, "同事"),
+
+        FRIEND(75, "朋友"),
+
+        OTHER(76, "其他"),
+
+        UNIT(77, "单位");
+
+        private Integer value;
+
+        private String remark;
+
+        relation(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+
+    }
 }
