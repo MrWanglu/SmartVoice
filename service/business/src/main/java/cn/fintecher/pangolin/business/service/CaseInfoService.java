@@ -677,7 +677,7 @@ public class CaseInfoService {
                             }
                         } else { //是协催案件
                             CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseIds.get(i)).
-                                    and(qCaseAssist.assistStatus.in(28,117,118)));
+                                    and(qCaseAssist.assistStatus.in(28, 117, 118)));
                             if (Objects.isNull(caseAssist)) {
                                 throw new RuntimeException("协催案件未找到");
                             }
@@ -747,7 +747,11 @@ public class CaseInfoService {
         if (Objects.isNull(personalContact)) {
             throw new RuntimeException("该联系人信息未找到");
         }
-        personalContact.setPhoneStatus(phoneStatusParams.getPhoneStatus()); //电话状态
+        if (Objects.nonNull(phoneStatusParams.getPhoneStatus())) {
+            personalContact.setPhoneStatus(phoneStatusParams.getPhoneStatus()); //电话状态
+        } else {
+            personalContact.setAddressStatus(phoneStatusParams.getAddressStatus()); //地址状态
+        }
         personalContact.setOperator(tokenUser.getUserName()); //操作人
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         personalContactRepository.saveAndFlush(personalContact);
@@ -824,6 +828,8 @@ public class CaseInfoService {
         personalContact.setName(repairInfoModel.getName()); //姓名
         personalContact.setPhone(repairInfoModel.getPhone()); //电话号码
         personalContact.setPhoneStatus(repairInfoModel.getPhoneStatus()); //电话状态
+        personalContact.setAddress(repairInfoModel.getAddress()); //地址
+        personalContact.setAddressStatus(repairInfoModel.getAddressStatus()); //地址状态
         personalContact.setSocialType(repairInfoModel.getSocialType()); //社交帐号类型
         personalContact.setSocialValue(repairInfoModel.getSocialValue()); //社交帐号内容
         personalContact.setSource(Constants.DataSource.REPAIR.getValue()); //数据来源 147-修复
@@ -1392,34 +1398,34 @@ public class CaseInfoService {
         }
     }
 
-    public void turnCaseConfirm(List<String> caseIds, User user){
+    public void turnCaseConfirm(List<String> caseIds, User user) {
         List<CaseInfo> caseInfos = caseInfoRepository.findAll(caseIds);
         List<CaseTurnRecord> caseTurnRecords = new ArrayList<>();
         List<CaseInfo> caseInfoResults = new ArrayList<>();
-        for(int i =0; i<caseInfos.size(); i++) {
-                CaseInfo caseInfo = caseInfos.get(i);
-                setAttribute(caseInfo,user,user);
-                caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
-                caseInfo.setCaseType(CaseInfo.CaseType.OUTSMALLTURN.getValue());
-                caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.VISIT_PASS.getValue());
-                caseInfoResults.add(caseInfo);
-                CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
-                BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
-                caseTurnRecord.setId(null); //主键置空
-                caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
-                caseTurnRecord.setDepartId(user.getDepartment().getId()); //部门ID
-                caseTurnRecord.setReceiveUserRealName(user.getRealName()); //接受人名称
-                caseTurnRecord.setReceiveDeptName(user.getDepartment().getName()); //接收部门名称
-                caseTurnRecord.setCirculationType(2);
-                caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
-                caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-                caseTurnRecords.add(caseTurnRecord);
-            }
-            caseInfoRepository.save(caseInfoResults);
-            caseTurnRecordRepository.save(caseTurnRecords);
+        for (int i = 0; i < caseInfos.size(); i++) {
+            CaseInfo caseInfo = caseInfos.get(i);
+            setAttribute(caseInfo, user, user);
+            caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
+            caseInfo.setCaseType(CaseInfo.CaseType.OUTSMALLTURN.getValue());
+            caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.VISIT_PASS.getValue());
+            caseInfoResults.add(caseInfo);
+            CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+            BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
+            caseTurnRecord.setId(null); //主键置空
+            caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
+            caseTurnRecord.setDepartId(user.getDepartment().getId()); //部门ID
+            caseTurnRecord.setReceiveUserRealName(user.getRealName()); //接受人名称
+            caseTurnRecord.setReceiveDeptName(user.getDepartment().getName()); //接收部门名称
+            caseTurnRecord.setCirculationType(2);
+            caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
+            caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+            caseTurnRecords.add(caseTurnRecord);
+        }
+        caseInfoRepository.save(caseInfoResults);
+        caseTurnRecordRepository.save(caseTurnRecords);
     }
 
-    public void turnCaseDistribution(BatchDistributeModel batchDistributeModel,User tokenUser){
+    public void turnCaseDistribution(BatchDistributeModel batchDistributeModel, User tokenUser) {
         List<BatchInfoModel> batchInfoModels = batchDistributeModel.getBatchInfoModelList();
         List<String> caseIds = batchDistributeModel.getCaseIds();
         List<CaseInfo> caseInfos = new ArrayList<>();
@@ -1432,7 +1438,7 @@ public class CaseInfoService {
             for (int i = 0; i < caseCount; i++) {
                 CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(i)); //获得案件信息
                 User user = batchInfoModel.getCollectionUser();
-                if(!Objects.equals(user.getType(),User.Type.VISIT.getValue())){
+                if (!Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
                     throw new RuntimeException("外访案件不能分配给非外访人员");
                 }
                 setAttribute(caseInfo, user, tokenUser);

@@ -17,4 +17,6 @@ public class RepairInfoModel {
     private String phone; //电话号码
     private Integer socialType; //社交帐号类型
     private String socialValue; //社交帐号内容
+    private String address; //地址
+    private Integer addressStatus; //地址状态
 }
