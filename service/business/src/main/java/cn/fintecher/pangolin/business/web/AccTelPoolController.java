@@ -10,7 +10,6 @@ import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -28,7 +27,6 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
