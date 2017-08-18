@@ -1094,6 +1094,29 @@ public class CaseInfoService {
         return personalAddressList;
     }
 
+    /**
+     * @Description 查询案件电话录音
+     */
+    public List<PhoneRecordModel> getPhoneRecord(String caseId) {
+        OrderSpecifier<Date> sortOrder = QCaseFollowupRecord.caseFollowupRecord.operatorTime.desc();
+        QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
+
+        //查询制定案件ID的，并且录音地址不为null的所有跟进记录
+        Iterable<CaseFollowupRecord> caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.caseId.eq(caseId).and(qCaseFollowupRecord.opUrl.isNotNull()), sortOrder);
+        if (!caseFollowupRecords.iterator().hasNext()) {
+            return null;
+        }
+        Iterator<CaseFollowupRecord> iterator = caseFollowupRecords.iterator();
+        List<PhoneRecordModel> phoneRecordModels = new ArrayList<>();
+        while (iterator.hasNext()) {
+            PhoneRecordModel phoneRecordModel = new PhoneRecordModel();
+            phoneRecordModel.setUrl(iterator.next().getOpUrl()); //录音地址
+            phoneRecordModel.setDate(iterator.next().getOperatorTime()); //时间
+            phoneRecordModels.add(phoneRecordModel);
+        }
+        return phoneRecordModels;
+    }
+
     @Transactional
     public void distributeRepairCase(AccCaseInfoDisModel accCaseInfoDisModel, User user) throws Exception {
         //案件列表
