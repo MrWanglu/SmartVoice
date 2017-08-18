@@ -12,6 +12,8 @@ import java.util.Date;
 
 @Data
 public class PhoneRecordModel {
-    private String url;
-    private Date date;
+    private String targetName; //跟进对象
+    private String operatorName; //操作人
+    private String url; //录音地址
+    private Date date; //跟进时间
 }

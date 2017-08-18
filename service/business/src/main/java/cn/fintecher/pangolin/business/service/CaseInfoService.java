@@ -783,6 +783,7 @@ public class CaseInfoService {
         }
         caseInfo.setOperator(tokenUser); //操作员
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        caseInfo.setDepartment(user.getDepartment()); //部门
         return caseInfo;
     }
 
@@ -1110,8 +1111,10 @@ public class CaseInfoService {
         List<PhoneRecordModel> phoneRecordModels = new ArrayList<>();
         while (iterator.hasNext()) {
             PhoneRecordModel phoneRecordModel = new PhoneRecordModel();
+            phoneRecordModel.setTargetName(iterator.next().getTargetName()); //跟进对象
+            phoneRecordModel.setOperatorName(iterator.next().getOperatorName()); //操作人
             phoneRecordModel.setUrl(iterator.next().getOpUrl()); //录音地址
-            phoneRecordModel.setDate(iterator.next().getOperatorTime()); //时间
+            phoneRecordModel.setDate(iterator.next().getOperatorTime()); //跟进时间
             phoneRecordModels.add(phoneRecordModel);
         }
         return phoneRecordModels;
