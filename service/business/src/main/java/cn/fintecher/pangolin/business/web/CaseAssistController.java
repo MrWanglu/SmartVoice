@@ -545,7 +545,7 @@ public class CaseAssistController extends BaseController {
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
-            if (Objects.equals(user.getUserName(), "administrator")) {
+            if (Objects.isNull(user.getCompanyCode())) {
                 exp.and(qCaseAssist.companyCode.eq(companyCode));
             } else {
                 exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
@@ -586,7 +586,7 @@ public class CaseAssistController extends BaseController {
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
-            if (Objects.equals(user.getUserName(), "administrator")) {
+            if (Objects.isNull(user.getCompanyCode())) {
                 exp.and(qCaseAssist.companyCode.eq(companyCode));
             } else {
                 exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));

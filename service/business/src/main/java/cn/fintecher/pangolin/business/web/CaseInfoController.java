@@ -170,7 +170,7 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllCaseInfo", e.getMessage())).body(null);
         }
         // 超级管理员
-        if (Objects.equals(user.getUserName(), "administrator")) {
+        if (Objects.isNull(user.getCompanyCode())) {
             if (Objects.nonNull(companyCode)) {
                 user.setCompanyCode(companyCode);
             } else {

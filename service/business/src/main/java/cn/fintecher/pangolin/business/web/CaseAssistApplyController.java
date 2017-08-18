@@ -75,7 +75,7 @@ public class CaseAssistApplyController extends BaseController {
             // 查出所有电催审批通过的
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
-            if (Objects.equals(user.getUserName(), "administrator")) {
+            if (Objects.isNull(user.getCompanyCode())) {
                 exp.and(qCaseAssistApply.companyCode.eq(companyCode));
             } else {
                 exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));
@@ -107,7 +107,7 @@ public class CaseAssistApplyController extends BaseController {
             QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
-            if (Objects.equals(user.getUserName(), "administrator")) {
+            if (Objects.isNull(user.getCompanyCode())) {
                 exp.and(qCaseAssistApply.companyCode.eq(companyCode));
             } else {
                 exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));

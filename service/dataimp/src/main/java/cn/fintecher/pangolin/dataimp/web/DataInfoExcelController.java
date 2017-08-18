@@ -79,7 +79,7 @@ public class DataInfoExcelController {
         //只查询本人数据
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QDataInfoExcel.dataInfoExcel.operator.eq(user.getId()));
-        if (Objects.equals(user.getUserName(), "administrator")) {
+        if (Objects.isNull(user.getCompanyCode())) {
             if (StringUtils.isNotBlank(companyCode)) {
                 builder.and(QDataInfoExcel.dataInfoExcel.companyCode.eq(companyCode));
             } else {
@@ -105,7 +105,7 @@ public class DataInfoExcelController {
         }
         User user=userResponseEntity.getBody();
         // 超级管理员
-        if (Objects.equals(user.getUserName(), "administrator")) {
+        if (Objects.isNull(user.getCompanyCode())) {
             if (Objects.nonNull(dataImportRecord.getCompanyCode())) {
                 user.setCompanyCode(dataImportRecord.getCompanyCode());
             } else {
@@ -154,7 +154,7 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
         User user=userResponseEntity.getBody();
-        if (Objects.equals(user.getUserName(), "administrator")) {
+        if (Objects.isNull(user.getCompanyCode())) {
             if (StringUtils.isNotBlank(companyCode)) {
                 user.setCompanyCode(companyCode);
             } else {
@@ -218,7 +218,7 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
         User user = userResponseEntity.getBody();
-        if (Objects.equals(user.getUserName(), "administrator")) {
+        if (Objects.isNull(user.getCompanyCode())) {
             if (StringUtils.isNotBlank(companyCode)) {
                 user.setCompanyCode(companyCode);
             } else {
@@ -243,7 +243,7 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
         User user = userResponseEntity.getBody();
-        if (Objects.equals(user.getUserName(), "administrator")) {
+        if (Objects.isNull(user.getCompanyCode())) {
             if (StringUtils.isNotBlank(companyCode)) {
                 user.setCompanyCode(companyCode);
             } else {
@@ -266,7 +266,7 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
         User user = userResponseEntity.getBody();
-        if (Objects.equals(user.getUserName(), "administrator")) {
+        if (Objects.isNull(user.getCompanyCode())) {
             if (StringUtils.isNotBlank(companyCode)) {
                 user.setCompanyCode(companyCode);
             } else {

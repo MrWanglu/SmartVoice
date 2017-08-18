@@ -96,7 +96,7 @@ public class CaseInfoDistributeController extends BaseController {
         try {
             QCaseInfoDistributed qd = QCaseInfoDistributed.caseInfoDistributed;
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.equals(user.getUserName(), "administrator")) {
+            if (Objects.isNull(user.getCompanyCode())) {
                 if (StringUtils.isNotBlank(companyCode)) {
                     user.setCompanyCode(companyCode);
                 } else {
