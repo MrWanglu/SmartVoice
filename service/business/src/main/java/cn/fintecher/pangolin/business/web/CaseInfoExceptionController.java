@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.net.URISyntaxException;
+import java.util.Objects;
 
 /**
  * @author : DuChao
@@ -69,7 +70,7 @@ public class CaseInfoExceptionController extends BaseController {
      */
     @PostMapping("/addCaseInfoException")
     @ApiOperation(value = "新增案件", notes = "新增案件")
-    public ResponseEntity<CaseInfoDistributed> addCaseInfo(@RequestBody String caseInfoExceptionId,
+    public ResponseEntity<CaseInfoDistributed> addCaseInfo(@RequestParam(value="异常案件id") String caseInfoExceptionId,
                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception{
         log.debug("REST request to add case to CaseInfoDistributed");
         CaseInfoDistributed caseInfoDistributed = caseInfoExceptionService.addCaseInfo(caseInfoExceptionId,getUserByToken(token));
@@ -84,11 +85,14 @@ public class CaseInfoExceptionController extends BaseController {
      */
     @PutMapping("/updateCaseInfoException")
     @ApiOperation(value = "更新案件", notes = "更新案件")
-    public ResponseEntity<CaseInfo> updateCaseInfo(@RequestBody String caseInfoExceptionId,
+    public ResponseEntity<CaseInfo> updateCaseInfo(@RequestParam(value="异常案件id") String caseInfoExceptionId,
                                                    @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
         log.debug("REST request to update CaseInfo");
         CaseInfo caseInfo= caseInfoExceptionService.updateCaseInfoException(caseInfoExceptionId,getUserByToken(token));
+        if(Objects.nonNull(caseInfo)){
         return ResponseEntity.ok().headers(HeaderUtil.createEntityUpdateAlert(CASE_INFO_ENTITY,caseInfo.getId().toString())).body(caseInfo);
+        }
+        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseNotFound", "不存在相同案件，无法更新")).body(null);
     }
 
     /**
@@ -98,7 +102,7 @@ public class CaseInfoExceptionController extends BaseController {
      */
     @DeleteMapping("/deleteCaseInfoException")
     @ApiOperation(value = "删除异常池案件", notes = "删除异常池案件")
-    public ResponseEntity<Void> deleteCaseInfoException(@RequestBody String caseInfoExceptionId) {
+    public ResponseEntity<Void> deleteCaseInfoException(@RequestParam(value="异常案件id") String caseInfoExceptionId) {
         log.debug("REST request to delete caseInfoException : {}",caseInfoExceptionId);
         caseInfoExceptionService.deleteCaseInfoException(caseInfoExceptionId);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, caseInfoExceptionId)).build();
