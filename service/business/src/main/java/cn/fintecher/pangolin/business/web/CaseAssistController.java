@@ -12,6 +12,7 @@ import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -546,10 +547,13 @@ public class CaseAssistController extends BaseController {
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
             if (Objects.isNull(user.getCompanyCode())) {
-                exp.and(qCaseAssist.companyCode.eq(companyCode));
-            } else {
-                exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
+                if (StringUtils.isNotBlank(companyCode)) {
+                    user.setCompanyCode(companyCode);
+                } else {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司!")).body(null);
+                }
             }
+            exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
             exp.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())); //协催完成
             Page<CaseAssist> page = null;
             if (departments.isEmpty()) {
@@ -587,10 +591,13 @@ public class CaseAssistController extends BaseController {
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
             if (Objects.isNull(user.getCompanyCode())) {
-                exp.and(qCaseAssist.companyCode.eq(companyCode));
-            } else {
-                exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
+                if (StringUtils.isNotBlank(companyCode)) {
+                    user.setCompanyCode(companyCode);
+                } else {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司!")).body(null);
+                }
             }
+            exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
             Page<CaseAssist> page = null;
             if (departments.isEmpty()) {
                 // 过滤掉协催结束的协催案件

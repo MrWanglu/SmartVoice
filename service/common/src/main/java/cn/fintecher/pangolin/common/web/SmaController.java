@@ -192,13 +192,14 @@ public class SmaController {
             /* getResponseBodyAsStream start */
                 InputStream inputStream = method.getResponseBodyAsStream();
                 BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-                String response = null;
-                while ((br.readLine()) != null) {
-                    response = br.readLine();
+                StringBuffer response = new StringBuffer();
+                String read = "";
+                while ((read = br.readLine()) != null) {
+                    response.append(read);
                 }
                 //解析交给前端，这边比较麻烦
                 Map<String, String> map = new HashMap<>();
-                map.put("response", response);
+                map.put("response", response.toString());
         /* getResponseBodyAsStream start */
                 method.releaseConnection();
                 return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(map);

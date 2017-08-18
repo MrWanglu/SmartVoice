@@ -783,6 +783,7 @@ public class CaseInfoService {
         }
         caseInfo.setOperator(tokenUser); //操作员
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        caseInfo.setDepartment(user.getDepartment()); //部门
         return caseInfo;
     }
 

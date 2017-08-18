@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.business.webapp;
 
 import cn.fintecher.pangolin.business.repository.MessagePushRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.business.web.BaseController;
 import cn.fintecher.pangolin.entity.MessagePush;
 import cn.fintecher.pangolin.entity.User;
@@ -33,7 +34,7 @@ public class AppRegisterController extends BaseController {
     @Inject
     MessagePushRepository messagePushRepository;
     @Inject
-    UserRepository userRepository;
+    UserService userService;
 
     @PostMapping("/saveAppRegister")
     @ApiOperation(value = "新增app消息推送注册服务", notes = "新增app消息推送注册服务")
@@ -51,8 +52,8 @@ public class AppRegisterController extends BaseController {
             messagePush.setOperateTime(ZWDateUtil.getNowDateTime());
             messagePush.setOperator(user.getUserName());
             MessagePush result = messagePushRepository.save(messagePush);
-            user.setMessagePushId(result.getId());
-            userRepository.saveAndFlush(user);
+            user.setMessagePushId("是");
+            userService.save(user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("绑定成功", "")).body(null);
         } else {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("已绑定", "")).body(null);

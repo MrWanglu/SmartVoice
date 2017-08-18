@@ -50,7 +50,7 @@ public class BatchManageController extends BaseController{
 
         SysParam one = sysParamRepository.findOne(QSysParam.sysParam.companyCode.eq(user.getCompanyCode())
                 .and(QSysParam.sysParam.code.eq(Constants.SYSPARAM_OVERNIGHT_STEP)));
-        if (Objects.equals(one.getValue(),5)) { //步数为5-批量成功
+        if (Objects.equals(one.getValue(),"5")) { //步数为5-批量成功
             SysNotice sysNotice = new SysNotice();
             sysNotice.setTitle("批量完成");
             sysNotice.setContent("您于["+ ZWDateUtil.fomratterDate(one.getOperateTime(),null)+"]批量完成");
