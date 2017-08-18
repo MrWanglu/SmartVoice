@@ -1,22 +1,35 @@
 package cn.fintecher.pangolin.business.web;
 
-import cn.fintecher.pangolin.business.model.OutSourceCommissionIds;
-import cn.fintecher.pangolin.business.model.OutSourceCommssionList;
+import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.OutSourceCommssionRepository;
 import cn.fintecher.pangolin.entity.OutSourceCommssion;
 import cn.fintecher.pangolin.entity.QOutSourceCommssion;
+import cn.fintecher.pangolin.entity.util.ExcelUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +48,8 @@ public class OutSourceCommssionController extends BaseController {
     private static final String ENTITY_NAME = "OutSource";
     @Autowired
     OutSourceCommssionRepository outSourceCommssionRepository;
+    @Autowired
+    RestTemplate restTemplate;
 
     /**
      * @Description : 根据委外方id和公司code码查询委外佣金
@@ -102,5 +117,231 @@ public class OutSourceCommssionController extends BaseController {
             }
         }
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+    }
+
+    /**
+     * @return result对象
+     * @function 委外佣金报表 204 回款  205 回退  206 修复
+     */
+    @GetMapping("/outsourceCommissionForm")
+    @ApiOperation(value = "委外佣金报表", notes = "委外佣金报表")
+    public ResponseEntity<List> outsourceCommissionForm(@RequestParam String companyCode,
+                                                        @RequestParam Integer operationType,
+                                                        @RequestParam String outsName) {
+        Object[] objects;
+        if (Objects.equals(204, operationType)) {
+            objects = outSourceCommssionRepository.outsourceCommissionReturn(companyCode, operationType, outsName);
+        } else if (Objects.equals(205, operationType)) {
+            objects = outSourceCommssionRepository.outsourceCommissionRollback(companyCode, operationType, outsName);
+        } else {
+            objects = outSourceCommssionRepository.outsourceCommissionRepair(companyCode, operationType, outsName);
+        }
+        if (objects.length == 1 && Objects.isNull(((Object[]) objects[0])[0])) {
+            List kong = new ArrayList();
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(kong);
+        }
+        List<ObjectReturn> objectReturnList = new ArrayList<>();
+        for (int i = 0; i < objects.length; i++) {
+            if (Objects.nonNull(((Object[]) objects[i])[0])) {
+                Object[] object = (Object[]) objects[i];
+                if (0 == objectReturnList.size()) {
+                    ObjectReturn objectReturn = new ObjectReturn();
+                    ObjectSon objectSon = new ObjectSon();
+                    List<ObjectSon> objectSonList = new ArrayList<>();
+                    if (Objects.nonNull(object[0].toString())) {
+                        objectSon.setOuts_name(object[0].toString());
+                    }
+                    if (Objects.nonNull(object[1].toString())) {
+                        objectSon.setOverdue_time(object[1].toString());
+                    }
+                    if (Objects.nonNull(object[2].toString())) {
+                        objectSon.setMonrybili(new BigDecimal(object[2].toString()));
+                    }
+                    if (Objects.nonNull(object[3].toString())) {
+                        objectSon.setMoney(new BigDecimal(object[3].toString()));
+                    }
+                    if (Objects.nonNull(object[4].toString())) {
+                        objectSon.setHushubili(new BigDecimal(object[4].toString()));
+                    }
+                    if (Objects.nonNull(object[5].toString())) {
+                        objectSon.setNummoney(new BigDecimal(object[5].toString()));
+                    }
+                    if (Objects.nonNull(object[0].toString())) {
+                        objectReturn.setName(object[0].toString());
+                    }
+                    objectSonList.add(objectSon);
+                    objectReturn.setObjectSonList(objectSonList);
+                    objectReturnList.add(objectReturn);
+                } else {
+                    for (ObjectReturn obOld : objectReturnList) {
+                        if (Objects.equals(obOld.getName(), object[0].toString())) {
+                            ObjectSon objectSon = new ObjectSon();
+                            if (Objects.nonNull(object[0].toString())) {
+                                objectSon.setOuts_name(object[0].toString());
+                            }
+                            if (Objects.nonNull(object[1].toString())) {
+                                objectSon.setOverdue_time(object[1].toString());
+                            }
+                            if (Objects.nonNull(object[2].toString())) {
+                                objectSon.setMonrybili(new BigDecimal(object[2].toString()));
+                            }
+                            if (Objects.nonNull(object[3].toString())) {
+                                objectSon.setMoney(new BigDecimal(object[3].toString()));
+                            }
+                            if (Objects.nonNull(object[4].toString())) {
+                                objectSon.setHushubili(new BigDecimal(object[4].toString()));
+                            }
+                            if (Objects.nonNull(object[5].toString())) {
+                                objectSon.setNummoney(new BigDecimal(object[5].toString()));
+                            }
+                            List<ObjectSon> objectSonNew = obOld.getObjectSonList();
+                            List<ObjectSon> objectSonList1 = new ArrayList<>();
+                            for (ObjectSon objectSon1 : objectSonNew) {
+                                objectSonList1.add(objectSon1);
+                            }
+                            objectSonList1.add(objectSon);
+                            obOld.setObjectSonList(objectSonList1);
+                        }
+                    }
+                    boolean a = true;
+                    for (ObjectReturn obOld : objectReturnList) {
+                        if (Objects.equals(obOld.getName(), object[0].toString())) {
+                            a = false;
+                        }
+                    }
+                    if (a) {
+                        ObjectReturn objectReturn = new ObjectReturn();
+                        ObjectSon objectSon = new ObjectSon();
+                        List<ObjectSon> objectSonList = new ArrayList<>();
+                        if (Objects.nonNull(object[0].toString())) {
+                            objectSon.setOuts_name(object[0].toString());
+                        }
+                        if (Objects.nonNull(object[1].toString())) {
+                            objectSon.setOverdue_time(object[1].toString());
+                        }
+                        if (Objects.nonNull(object[2].toString())) {
+                            objectSon.setMonrybili(new BigDecimal(object[2].toString()));
+                        }
+                        if (Objects.nonNull(object[3].toString())) {
+                            objectSon.setMoney(new BigDecimal(object[3].toString()));
+                        }
+                        if (Objects.nonNull(object[4].toString())) {
+                            objectSon.setHushubili(new BigDecimal(object[4].toString()));
+                        }
+                        if (Objects.nonNull(object[5].toString())) {
+                            objectSon.setNummoney(new BigDecimal(object[5].toString()));
+                        }
+                        if (Objects.nonNull(object[0].toString())) {
+                            objectReturn.setName(object[0].toString());
+                        }
+                        List<ObjectSon> objectSonList2 = new ArrayList<>();
+                        objectSonList2.add(objectSon);
+                        objectReturn.setObjectSonList(objectSonList2);
+                        objectReturnList.add(objectReturn);
+                    }
+                }
+            }
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(objectReturnList);
+    }
+
+    /**
+     * @Description 导出回款报表
+     */
+    @GetMapping("/exportReport")
+    @ApiOperation(value = "导出佣金报表", notes = "导出佣金报表")
+    public ResponseEntity<String> exportReport(@RequestParam String companyCode,
+                                               @RequestParam Integer operationType,
+                                               @RequestParam String outsName) {
+        HSSFWorkbook workbook = null;
+        File file = null;
+        ByteArrayOutputStream out = null;
+        FileOutputStream fileOutputStream = null;
+        Object[] objects;
+        if (Objects.equals(204, operationType)) {
+            objects = outSourceCommssionRepository.outsourceCommissionReturn(companyCode, operationType, outsName);
+        } else if (Objects.equals(205, operationType)) {
+            objects = outSourceCommssionRepository.outsourceCommissionRollback(companyCode, operationType, outsName);
+        } else {
+            objects = outSourceCommssionRepository.outsourceCommissionRepair(companyCode, operationType, outsName);
+        }
+        List<ObjectSonExcel> objectSonList = new ArrayList<>();
+        for (int i = 0; i < objects.length; i++) {
+            if (Objects.nonNull(((Object[]) objects[i])[0])) {
+                Object[] object = (Object[]) objects[i];
+                ObjectSonExcel objectSon = new ObjectSonExcel();
+                if (Objects.nonNull(object[0].toString())) {
+                    objectSon.setOuts_name(object[0].toString());
+                }
+                if (Objects.nonNull(object[1].toString())) {
+                    objectSon.setOverdue_time(object[1].toString());
+                }
+                if (Objects.nonNull(object[2].toString())) {
+                    objectSon.setMonrybili(object[2].toString());
+                }
+                if (Objects.nonNull(object[3].toString())) {
+                    objectSon.setMoney(object[3].toString());
+                }
+                if (Objects.nonNull(object[4].toString())) {
+                    objectSon.setHushubili(object[4].toString());
+                }
+                if (Objects.nonNull(object[5].toString())) {
+                    objectSon.setNummoney(object[5].toString());
+                }
+                objectSonList.add(objectSon);
+            }
+        }
+        try {
+            String[] titleList = {"委外方", "逾期时段", "金额比例", "金额", "户数", "金额(户数)"};
+            String[] proNames = {"outs_name", "overdue_time", "monrybili", "money", "hushubili", "nummoney"};
+            workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet("sheet1");
+            ExcelUtil.createExcel(workbook, sheet, objectSonList, titleList, proNames, 0, 0);
+            out = new ByteArrayOutputStream();
+            workbook.write(out);
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "佣金报表.xls");
+            file = new File(filePath);
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(out.toByteArray());
+            FileSystemResource resource = new FileSystemResource(file);
+            MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+            param.add("file", resource);
+            ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
+            if (url == null) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail to upload", "上传服务器失败")).body(null);
+            } else {
+                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(url.getBody());
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail", "失败")).body(null);
+        } finally {
+            // 关闭流
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            // 删除文件
+            if (file != null) {
+                file.delete();
+            }
+        }
     }
 }
