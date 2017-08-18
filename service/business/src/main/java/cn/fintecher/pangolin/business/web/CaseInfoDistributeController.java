@@ -157,6 +157,7 @@ public class CaseInfoDistributeController extends BaseController {
             QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
             BooleanBuilder builder = new BooleanBuilder();
             builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+            builder.and(qCaseInfo.department.code.like(deptCode.concat("%")));
             builder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
             Long count = caseInfoRepository.count(builder);
             return ResponseEntity.ok().body(count);
