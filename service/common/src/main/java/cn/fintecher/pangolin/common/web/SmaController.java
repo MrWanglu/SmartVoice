@@ -356,7 +356,7 @@ public class SmaController {
     /**
      * @Description : 中通天鸿 164 获取通话记录
      */
-    @GetMapping("/getVoice")
+    @GetMapping("/getTianHongVoice")
     @ApiOperation(value = "用于查询双向外呼通话记录", notes = "用于查询双向外呼通话记录")
     public ResponseEntity<String> getVoice() {
         try {
