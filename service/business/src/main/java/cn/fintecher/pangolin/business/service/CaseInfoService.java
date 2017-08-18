@@ -84,6 +84,9 @@ public class CaseInfoService {
     @Inject
     DepartmentRepository departmentRepository;
 
+    @Inject
+    PersonalAddressRepository personalAddressRepository;
+
     /**
      * @Description 重新分配
      */
@@ -747,11 +750,7 @@ public class CaseInfoService {
         if (Objects.isNull(personalContact)) {
             throw new RuntimeException("该联系人信息未找到");
         }
-        if (Objects.nonNull(phoneStatusParams.getPhoneStatus())) {
-            personalContact.setPhoneStatus(phoneStatusParams.getPhoneStatus()); //电话状态
-        } else {
-            personalContact.setAddressStatus(phoneStatusParams.getAddressStatus()); //地址状态
-        }
+        personalContact.setPhoneStatus(phoneStatusParams.getPhoneStatus()); //电话状态
         personalContact.setOperator(tokenUser.getUserName()); //操作人
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         personalContactRepository.saveAndFlush(personalContact);
@@ -819,7 +818,7 @@ public class CaseInfoService {
     }
 
     /**
-     * @Description 添加修复信息
+     * @Description 电催添加修复信息
      */
     public PersonalContact saveRepairInfo(RepairInfoModel repairInfoModel, User tokenUser) {
         PersonalContact personalContact = new PersonalContact();
@@ -828,8 +827,6 @@ public class CaseInfoService {
         personalContact.setName(repairInfoModel.getName()); //姓名
         personalContact.setPhone(repairInfoModel.getPhone()); //电话号码
         personalContact.setPhoneStatus(repairInfoModel.getPhoneStatus()); //电话状态
-        personalContact.setAddress(repairInfoModel.getAddress()); //地址
-        personalContact.setAddressStatus(repairInfoModel.getAddressStatus()); //地址状态
         personalContact.setSocialType(repairInfoModel.getSocialType()); //社交帐号类型
         personalContact.setSocialValue(repairInfoModel.getSocialValue()); //社交帐号内容
         personalContact.setSource(Constants.DataSource.REPAIR.getValue()); //数据来源 147-修复
@@ -1058,6 +1055,43 @@ public class CaseInfoService {
         List<PersonalContact> personalContactList1 = IteratorUtils.toList(personalContacts2.iterator());
         personalContactList.addAll(personalContactList1);
         return personalContactList;
+    }
+
+    /**
+     * @Description 外方添加修复信息
+     */
+    public PersonalAddress saveVisitRepairInfo(RepairInfoModel repairInfoModel, User tokenUser) {
+        PersonalAddress personalAddress = new PersonalAddress();
+        personalAddress.setPersonalId(repairInfoModel.getPersonalId()); //客户信息ID
+        personalAddress.setRelation(repairInfoModel.getRelation()); //关系
+        personalAddress.setName(repairInfoModel.getName()); //姓名
+        personalAddress.setDetail(repairInfoModel.getAddress()); //地址
+        personalAddress.setStatus(repairInfoModel.getAddressStatus()); //地址状态
+        personalAddress.setSource(Constants.DataSource.REPAIR.getValue()); //数据来源 147-修复
+        personalAddress.setType(repairInfoModel.getType()); //地址类型
+        personalAddress.setOperator(tokenUser.getUserName()); //操作人
+        personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        personalAddressRepository.saveAndFlush(personalAddress);
+        return personalAddress;
+    }
+
+    /**
+     * @Description 查询客户联系人地址
+     */
+    public List<PersonalAddress> getPersonalAddress(String personalId) {
+        OrderSpecifier<Date> sortOrder = QPersonalAddress.personalAddress.operatorTime.desc();
+        QPersonalAddress qPersonalAddress = QPersonalAddress.personalAddress;
+        Iterable<PersonalAddress> personalAddresses1 = personalAddressRepository.findAll(qPersonalAddress.source.eq(Constants.DataSource.IMPORT.getValue()).
+                and(qPersonalAddress.personalId.eq(personalId))); //查询导入的联系人信息
+        Iterable<PersonalAddress> personalAddresses2 = personalAddressRepository.findAll(qPersonalAddress.source.eq(Constants.DataSource.REPAIR.getValue()).
+                and(qPersonalAddress.personalId.eq(personalId)), sortOrder); //查询修复的联系人信息
+        if (!personalAddresses1.iterator().hasNext() && !personalAddresses2.iterator().hasNext()) {
+            return new ArrayList<>();
+        }
+        List<PersonalAddress> personalAddressList = IteratorUtils.toList(personalAddresses1.iterator());
+        List<PersonalAddress> personalAddressList1 = IteratorUtils.toList(personalAddresses2.iterator());
+        personalAddressList.addAll(personalAddressList1);
+        return personalAddressList;
     }
 
     @Transactional

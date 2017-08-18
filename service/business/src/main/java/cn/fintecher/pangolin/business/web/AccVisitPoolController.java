@@ -97,7 +97,10 @@ public class AccVisitPoolController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.equals(tokenUser.getUserName(), "administrator")) {
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+                }
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
@@ -132,7 +135,10 @@ public class AccVisitPoolController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.equals(tokenUser.getUserName(), "administrator")) {
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+                }
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
@@ -550,7 +556,10 @@ public class AccVisitPoolController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.equals(tokenUser.getUserName(), "administrator")) {
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+                }
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
@@ -600,6 +609,41 @@ public class AccVisitPoolController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("修改失败", "personalContact", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 外访页面添加修复信息
+     */
+    @PostMapping("/saveRepairInfo")
+    @ApiOperation(value = "外访页面添加修复信息", notes = "外访页面添加修复信息")
+    public ResponseEntity<PersonalAddress> saveRepairInfo(@RequestBody RepairInfoModel repairInfoModel,
+                                                          @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to save repair information");
+        try {
+            User tokenUser = getUserByToken(token);
+            PersonalAddress personalAddress = caseInfoService.saveVisitRepairInfo(repairInfoModel, tokenUser);
+            return ResponseEntity.ok().body(personalAddress);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("添加失败", "personalAddress", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 外访页面查询客户联系人
+     */
+    @GetMapping("/getVisitPersonalAddress")
+    @ApiOperation(value = "外访页面查询客户联系人", notes = "外访页面查询客户联系人")
+    public ResponseEntity<PersonalAddressModel> getTelPersonalContact(@RequestParam @ApiParam(value = "客户信息ID", required = true) String personalId) {
+        log.debug("REST request to get personal contact by {personalId}", personalId);
+        try {
+            List<PersonalAddress> content = caseInfoService.getPersonalAddress(personalId);
+            PersonalAddressModel personalAddressModel = new PersonalAddressModel();
+            personalAddressModel.setContent(content);
+            return ResponseEntity.ok().body(personalAddressModel);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "personalContact", e.getMessage())).body(null);
         }
     }
 }

@@ -272,7 +272,10 @@ public class AccTelPoolController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.equals(tokenUser.getUserName(), "administrator")) {
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "请选择公司")).body(null);
+                }
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
@@ -315,7 +318,10 @@ public class AccTelPoolController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.equals(tokenUser.getUserName(), "administrator")) {
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "请选择公司")).body(null);
+                }
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
@@ -536,7 +542,7 @@ public class AccTelPoolController extends BaseController {
             PersonalContact personalContact = caseInfoService.saveRepairInfo(repairInfoModel, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("添加成功", ENTITY_PERSONAL_CONTACT)).body(personalContact);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("添加失败", "personalContact", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERSONAL_CONTACT, "personalContact", e.getMessage())).body(null);
         }
     }
 
@@ -632,7 +638,10 @@ public class AccTelPoolController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.equals(tokenUser.getUserName(), "administrator")) {
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "请选择公司")).body(null);
+                }
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
@@ -686,12 +695,12 @@ public class AccTelPoolController extends BaseController {
     }
 
     @PostMapping("/turnCaseVisitConfirm")
-    @ApiOperation(value = "流转案件确认",notes = "流转案件确认")
+    @ApiOperation(value = "流转案件确认", notes = "流转案件确认")
     public ResponseEntity toConfirm(@RequestBody CaseDistributeInfoModel caseDistributeInfoModel,
-                                    @RequestHeader(value = "X-UserToken") String token){
+                                    @RequestHeader(value = "X-UserToken") String token) {
         try {
             User tokenUser = getUserByToken(token);
-            caseInfoService.turnCaseConfirm(caseDistributeInfoModel.getCaseIdList(),tokenUser);
+            caseInfoService.turnCaseConfirm(caseDistributeInfoModel.getCaseIdList(), tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功", ENTITY_CASEINFO)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -700,12 +709,12 @@ public class AccTelPoolController extends BaseController {
     }
 
     @PostMapping("/turnCaseVisitDistribution")
-    @ApiOperation(value = "流转案件分配",notes = "流转案件分配")
+    @ApiOperation(value = "流转案件分配", notes = "流转案件分配")
     public ResponseEntity batchTurnCase(@RequestBody BatchDistributeModel batchDistributeModel,
                                         @RequestHeader(value = "X-UserToken") String token) {
         try {
             User tokenUser = getUserByToken(token);
-            caseInfoService.turnCaseDistribution(batchDistributeModel,tokenUser);
+            caseInfoService.turnCaseDistribution(batchDistributeModel, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功", ENTITY_CASEINFO)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

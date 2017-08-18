@@ -12,5 +12,4 @@ import lombok.Data;
 public class PhoneStatusParams {
     private String personalContactId; //联系人ID
     private Integer phoneStatus; //电话状态
-    private Integer addressStatus; //地址状态
 }
