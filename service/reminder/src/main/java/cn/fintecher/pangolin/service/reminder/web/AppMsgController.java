@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.Iterator;
-import java.util.List;
 
 
 /**
@@ -44,16 +42,16 @@ public class AppMsgController{
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("推送成功", "")).body(null);
     }
 
-    @PostMapping("/saveAppmsg")
-    @ApiOperation(value = "新增app信息批量推送", notes = "新增app信息批量推送")
-    @ResponseBody
-    public ResponseEntity saveAppmsg(@RequestBody List<AppMsg> requests) {
-        Iterator<AppMsg> iterator = requests.iterator();
-        while(iterator.hasNext()){
-            AppMsg request = iterator.next();
-            AppMsg returnAppMsg = appMsgRepository.save(request);
-            appMsgService.sendPush(returnAppMsg);
-        }
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("推送成功", "")).body(null);
-    }
+//    @PostMapping("/saveAppmsg")
+//    @ApiOperation(value = "新增app信息批量推送", notes = "新增app信息批量推送")
+//    @ResponseBody
+//    public ResponseEntity saveAppmsg(@RequestBody List<AppMsg> requests) {
+//        Iterator<AppMsg> iterator = requests.iterator();
+//        while(iterator.hasNext()){
+//            AppMsg request = iterator.next();
+//            AppMsg returnAppMsg = appMsgRepository.save(request);
+//            appMsgService.sendPush(returnAppMsg);
+//        }
+//        return ResponseEntity.ok().headers(HeaderUtil.createAlert("推送成功", "")).body(null);
+//    }
 }
