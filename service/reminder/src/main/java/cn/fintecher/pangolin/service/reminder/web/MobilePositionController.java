@@ -1,9 +1,9 @@
 package cn.fintecher.pangolin.service.reminder.web;
 
 
+import cn.fintecher.pangolin.entity.MobilePosition;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.service.reminder.client.UserClient;
-import cn.fintecher.pangolin.service.reminder.model.MobilePosition;
 import cn.fintecher.pangolin.service.reminder.model.MobilePositionParams;
 import cn.fintecher.pangolin.service.reminder.model.QMobilePosition;
 import cn.fintecher.pangolin.service.reminder.repository.MobilePositionRepository;
@@ -45,7 +45,7 @@ public class MobilePositionController{
     @PostMapping("/saveLatitudeAndLongitude")
     @ApiOperation(value = "保存外访人员实时经纬度", notes = "保存外访人员实时经纬度")
     @ResponseBody
-    public ResponseEntity saveLatitudeAndLongitude(@RequestBody MobilePosition mobilePosition,@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity saveLatitudeAndLongitude(@RequestBody MobilePosition mobilePosition, @RequestHeader(value = "X-UserToken") String token) {
         try {
             ResponseEntity<User> userResult = userClient.getUserByToken(token);
             User user = userResult.getBody();

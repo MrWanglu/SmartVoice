@@ -1,6 +1,6 @@
 package cn.fintecher.pangolin.service.reminder.service.impl;
 
-import cn.fintecher.pangolin.service.reminder.model.MobilePosition;
+import cn.fintecher.pangolin.entity.MobilePosition;
 import cn.fintecher.pangolin.service.reminder.model.MobilePositionParams;
 import cn.fintecher.pangolin.service.reminder.repository.MobilePositionRepository;
 import cn.fintecher.pangolin.service.reminder.service.MobilePositionService;
