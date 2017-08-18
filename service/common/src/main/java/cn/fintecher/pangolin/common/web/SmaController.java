@@ -358,7 +358,7 @@ public class SmaController {
      */
     @GetMapping("/getTianHongVoice")
     @ApiOperation(value = "用于查询双向外呼通话记录", notes = "用于查询双向外呼通话记录")
-    public ResponseEntity<String> getVoice() {
+    public ResponseEntity<String> getTianHongVoice() {
         try {
             HttpClient client = new HttpClient();
             client.setConnectionTimeout(1000 * 60);
