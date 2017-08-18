@@ -10,6 +10,7 @@ import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -27,6 +28,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -699,14 +701,25 @@ public class AccTelPoolController extends BaseController {
      */
     @GetMapping("/getPhoneRecord")
     @ApiOperation(value = "电催页面查看电话录音列表", notes = "电催页面查看电话录音列表")
-    public ResponseEntity<List<PhoneRecordModel>> getPhoneRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseFollowupRecord>> getPhoneRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+                                                                   @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                                   @ApiIgnore Pageable pageable) {
         log.debug("REST request to get phone record by {caseId}", caseId);
         try {
-            List<PhoneRecordModel> phoneRecordModels = caseInfoService.getPhoneRecord(caseId);
-            if (Objects.isNull(phoneRecordModels)) {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("录音为空", ENTITY_CASE_FOLLOWUP_RECORD)).body(null);
-            }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASE_FOLLOWUP_RECORD)).body(phoneRecordModels);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseId.eq(caseId)); //制定案件ID
+            builder.and(QCaseFollowupRecord.caseFollowupRecord.opUrl.isNotNull()); //录音地址不为空
+            Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getPhoneRecord");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_FOLLOWUP_RECORD, "caseFollowupRecord", e.getMessage())).body(null);
