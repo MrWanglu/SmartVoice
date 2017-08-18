@@ -22,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by ChenChang on 2017/3/10.
@@ -73,12 +74,20 @@ public class FileUploadController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", "")).body(null);
         }
         User user = userResponseEntity.getBody();
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (StringUtils.isNotBlank(request.getCompanyCode())) {
+                user.setCompanyCode(request.getCompanyCode());
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createAlert("请选择公司", "")).body(null);
+            }
+        }
         UploadFile uploadFile = uploadFileRepository.findOne(request.getUploadFile());
         ImportFileUploadSuccessMessage message = new ImportFileUploadSuccessMessage();
         message.setBatchNum(request.getBatchNum());
         message.setUploadFile(uploadFile);
         message.setUserName(user.getUserName());
         message.setUserId(user.getId());
+        message.setCompanyCode(user.getCompanyCode());
         rabbitTemplate.convertAndSend("mr.cui.file.import.upload.success", message);
         return ResponseEntity.ok(uploadFile);
     }

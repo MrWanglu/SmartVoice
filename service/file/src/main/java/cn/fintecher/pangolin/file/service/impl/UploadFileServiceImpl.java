@@ -83,7 +83,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     }
 
     @Override
-    public void uploadCaseFileReduce(InputStream inputStream, String userId, String userName, String batchNum) {
+    public void uploadCaseFileReduce(InputStream inputStream, String userId, String userName, String batchNum, String companyCode) {
         String targetTempFilePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(userName).
                 concat(File.separator).concat(ShortUUID.generateShortUuid()).concat(File.separator);
 
@@ -108,6 +108,7 @@ public class UploadFileServiceImpl implements UploadFileService {
             progressMessage.setCurrent(0);
             progressMessage.setTotal(total);
             progressMessage.setText("开始解压缩文件");
+            //上传文件进度
             rabbitTemplate.convertAndSend("mr.cui.file.unReduce.progress", progressMessage);
             for (String directoryName : directoryList) {
                 File file = FileUtils.getFile(targetTempFilePath, directoryName);
@@ -121,6 +122,7 @@ public class UploadFileServiceImpl implements UploadFileService {
                         UploadFile uploadFile = uploadFile(in, f.length(), FilenameUtils.getBaseName(f.getName()),
                                 FilenameUtils.getExtension(f.getName()), userName);
                         UnReduceFileMessage message = new UnReduceFileMessage();
+                        message.setCompanyCode(companyCode);
                         message.setUserId(userId);
                         message.setUploadFile(uploadFile);
                         message.setBatchNum(batchNum);

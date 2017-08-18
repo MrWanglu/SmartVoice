@@ -33,7 +33,7 @@ eureka:
             defaultZone: http://localhost:8761/eureka/
 
 fdfs:
-  path: 117.36.75.166:8883
+  path: 192.168.3.10
   localPath: 192.168.3.10
   soTimeout: 1500
   connectTimeout: 600

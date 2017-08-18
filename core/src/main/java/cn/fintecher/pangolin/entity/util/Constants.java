@@ -58,6 +58,8 @@ public final class Constants {
     public static final String FILEID_SERVICE_URL = "http://file-service/api/";
     //通过TOKEN获取用户对象
     public static final String USERTOKEN_SERVICE_URL = "http://business-service/api/userResource/getUserByToken?token=";
+    //通过UserId获取user
+    public static final String USERBYID_SERVICE_URL = "http://business-service/api/userResource//findUserById?id=";
     //用户服务
     public static final String USER_SERVICE_URL = "http://business-service/api/api/";
     //business服务

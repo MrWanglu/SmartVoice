@@ -15,5 +15,6 @@ public class ImportFileUploadSuccessMessage implements Serializable {
     private String batchNum;
     private String userId;
     private String userName;
+    private String companyCode;
 
 }

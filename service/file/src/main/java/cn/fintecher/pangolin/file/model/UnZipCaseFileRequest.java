@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.file.model;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -7,6 +8,10 @@ import lombok.Data;
  */
 @Data
 public class UnZipCaseFileRequest {
+    @ApiModelProperty("批次号")
     private String batchNum;
+    @ApiModelProperty("文件ID")
     private String uploadFile;
+    @ApiModelProperty("公司Code")
+    private String companyCode;
 }

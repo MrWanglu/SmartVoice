@@ -320,4 +320,28 @@ public class DataInfoExcelService {
         }
     }
 
+    public List<DataInfoExcel> queryDataInfoExcelListNoPage(DataInfoExcel dataInfoExcel, User user) throws Exception {
+        try {
+            Query query = new Query();
+            if (StringUtils.isNotBlank(dataInfoExcel.getOperator())) {
+                query.addCriteria(Criteria.where("operator").is(dataInfoExcel.getOperator()));
+            }
+            if (StringUtils.isNotBlank(dataInfoExcel.getBatchNumber())) {
+                query.addCriteria(Criteria.where("batchNumber").is(dataInfoExcel.getBatchNumber()));
+            }
+            if (StringUtils.isNotBlank(dataInfoExcel.getPersonalName())) {
+                query.addCriteria(Criteria.where("personalName").is(dataInfoExcel.getPersonalName()));
+            }
+            if (StringUtils.isNotBlank(dataInfoExcel.getIdCard())) {
+                query.addCriteria(Criteria.where("idCard").is(dataInfoExcel.getIdCard()));
+            }
+            if (StringUtils.isNotBlank(dataInfoExcel.getProductName())) {
+                query.addCriteria(Criteria.where("productName").is(dataInfoExcel.getProductName()));
+            }
+            return mongoTemplate.find(query, DataInfoExcel.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
 }

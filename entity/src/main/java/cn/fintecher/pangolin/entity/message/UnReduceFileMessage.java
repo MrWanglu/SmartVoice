@@ -17,5 +17,5 @@ public class UnReduceFileMessage implements Serializable {
     private String userId;
     private Integer total;
     private Integer current;
-
+    private String companyCode;
 }
