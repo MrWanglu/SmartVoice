@@ -42,6 +42,10 @@ public class AccessFilter extends ZuulFilter {
 
         log.debug(String.format("%s request to %s", request.getMethod(), request.getRequestURL().toString()));
         String accessToken = request.getHeader("X-UserToken");
+        if (StringUtils.contains(request.getRequestURL().toString(), "/api/companyController")
+                || StringUtils.containsIgnoreCase(request.getRequestURL().toString(), "getAllCompany")) {
+            return null;
+        }
         if (StringUtils.contains(request.getRequestURL().toString(), "api/login/login")
                 || StringUtils.contains(request.getRequestURL().toString(), "swagger")
                 || StringUtils.contains(request.getRequestURL().toString(), "api-docs")
