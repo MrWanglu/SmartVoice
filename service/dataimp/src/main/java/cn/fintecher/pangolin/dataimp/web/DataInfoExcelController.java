@@ -178,6 +178,10 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
         User user = userResponseEntity.getBody();
+        //超级管理员
+        if (Objects.isNull(user.getCompanyCode())) {
+            user.setCompanyCode(upLoadFileModel.getCompanyCode());
+        }
         dataInfoExcelService.uploadCaseFileSingle(upLoadFileModel, user);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("添加附件成功",ENTITY_NAME)).body(null);
     }
