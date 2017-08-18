@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.entity;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Set;
 
@@ -38,6 +39,8 @@ public class Personal extends BaseEntity {
     private String operator;
     private Date operatorTime;
     private String companyCode;
+    private BigDecimal longitude;
+    private BigDecimal latitude;
 
     @OneToMany(cascade = CascadeType.REFRESH)
     @JoinColumn(name = "personalId", insertable = false, updatable = false)

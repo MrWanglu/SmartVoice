@@ -204,4 +204,9 @@ public final class Constants {
     /**外访留案流转部门**/
     public final static String SYS_OUTTURN_LEAVEDEPTNAME="外访留案流转";
 
+    /**抢单半径（公里）**/
+    public final static String SYS_QIANGDAN_RADIUS="sys.qiangdan.radius";
+    /**地球半径**/
+    public final static double EARTH_RADIUS=6371;
+
 }
