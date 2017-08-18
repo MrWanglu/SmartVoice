@@ -14,6 +14,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -24,7 +25,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -210,7 +210,7 @@ public class OutsourceController extends BaseController {
      */
     @GetMapping("/getAllOutsource")
     @ApiOperation(value = "查询所有委外方", notes = "查询所有委外方")
-    public ResponseEntity<List<Outsource>> getAllOutsource(@RequestParam String companyCode,
+    public ResponseEntity<List<Outsource>> getAllOutsource(@RequestParam(required = false) String companyCode,
                                                            @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
@@ -224,11 +224,8 @@ public class OutsourceController extends BaseController {
         if (Objects.nonNull(companyCode)) {
             builder.and(qOutsource.companyCode.eq(companyCode));
         }
-        List<Outsource> outsourceList = new ArrayList<>();
         Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(builder).iterator();
-        if (outsourceIterator.hasNext()) {
-            outsourceList.add(outsourceIterator.next());
-        }
+        List<Outsource> outsourceList = IteratorUtils.toList(outsourceIterator);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(outsourceList);
     }
 }

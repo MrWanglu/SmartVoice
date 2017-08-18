@@ -72,7 +72,7 @@ public class PrincipalController extends BaseController {
 
     @GetMapping("/getPrincipalList")
     @ApiOperation(value = "获取所有委托方信息", notes = "获取所有委托方信息")
-    public ResponseEntity<List<Principal>> getPrincipalPageList(@RequestParam String companyCode) {
+    public ResponseEntity<List<Principal>> getPrincipalPageList(@RequestParam(required = false) String companyCode) {
         logger.debug("REST request to get all Principal");
         QPrincipal qPrincipal = QPrincipal.principal;
         BooleanBuilder builder = new BooleanBuilder();
