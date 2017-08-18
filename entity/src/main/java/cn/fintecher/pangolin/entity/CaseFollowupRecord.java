@@ -122,13 +122,13 @@ public class CaseFollowupRecord extends BaseEntity {
     private Integer callType;
 
     @ApiModelProperty(notes = "呼叫开始时间")
-    private String startTime;
+    private Date startTime;
 
     @ApiModelProperty(notes = "呼叫结束时间")
-    private String endTime;
+    private Date endTime;
 
     @ApiModelProperty(notes = "通话时长默认为秒")
-    private String connSecs;
+    private Integer connSecs;
 
     /**
      * @Description 电话状态枚举类
