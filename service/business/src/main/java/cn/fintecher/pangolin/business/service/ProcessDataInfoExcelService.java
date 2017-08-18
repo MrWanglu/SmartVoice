@@ -315,6 +315,8 @@ public class ProcessDataInfoExcelService {
         personalContact.setEmployer(dataInfoExcelModel.getCompanyName());
         personalContact.setWorkPhone(dataInfoExcelModel.getCompanyPhone());
         personalContact.setSource(dataInfoExcelModel.getDataSources());
+        personalContact.setAddress(dataInfoExcelModel.getHomeAddress());
+        personalContact.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
         personalContact.setOperator(user.getId());
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime());
         personalContactList.add(personalContact);
@@ -330,6 +332,8 @@ public class ProcessDataInfoExcelService {
             obj.setEmployer(dataInfoExcelModel.getContactWorkUnit1());
             obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone1());
             obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress1());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
             obj.setOperator(user.getId());
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
@@ -346,6 +350,8 @@ public class ProcessDataInfoExcelService {
             obj.setEmployer(dataInfoExcelModel.getContactWorkUnit2());
             obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone2());
             obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress2());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
             obj.setOperator(user.getId());
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
@@ -362,6 +368,8 @@ public class ProcessDataInfoExcelService {
             obj.setEmployer(dataInfoExcelModel.getContactWorkUnit3());
             obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone3());
             obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress3());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
             obj.setOperator(user.getId());
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
@@ -379,6 +387,8 @@ public class ProcessDataInfoExcelService {
             obj.setEmployer(dataInfoExcelModel.getContactWorkUnit4());
             obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone4());
             obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress4());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
             obj.setOperator(user.getId());
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
@@ -400,12 +410,12 @@ public class ProcessDataInfoExcelService {
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(Personal.RelationEnum.SELF.getValue());
             personalAddress.setName(dataInfoExcelModel.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
             personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getHomeAddress()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
 
@@ -415,12 +425,12 @@ public class ProcessDataInfoExcelService {
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(Personal.RelationEnum.SELF.getValue());
             personalAddress.setName(dataInfoExcelModel.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.IDCARDADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.IDCARDADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
             personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getIdCardAddress()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
 
@@ -430,12 +440,12 @@ public class ProcessDataInfoExcelService {
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(Personal.RelationEnum.SELF.getValue());
             personalAddress.setName(dataInfoExcelModel.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.UNITADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.UNITADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
             personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getCompanyAddr()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
 
@@ -445,12 +455,12 @@ public class ProcessDataInfoExcelService {
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation1()));
             personalAddress.setName(dataInfoExcelModel.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
             personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress1()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
 
@@ -460,12 +470,12 @@ public class ProcessDataInfoExcelService {
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation2()));
             personalAddress.setName(dataInfoExcelModel.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
             personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress2()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
 
@@ -475,12 +485,12 @@ public class ProcessDataInfoExcelService {
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation3()));
             personalAddress.setName(dataInfoExcelModel.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
             personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress3()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
 
         }
@@ -491,12 +501,12 @@ public class ProcessDataInfoExcelService {
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation4()));
             personalAddress.setName(dataInfoExcelModel.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
             personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress4()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
         persosnalAddressRepository.save(personalAddressList);
