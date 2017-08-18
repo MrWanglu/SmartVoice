@@ -1,9 +1,9 @@
 package cn.fintecher.pangolin.service.reminder.web;
 
 
-import cn.fintecher.pangolin.entity.MobilePosition;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.service.reminder.client.UserClient;
+import cn.fintecher.pangolin.service.reminder.model.MobilePosition;
 import cn.fintecher.pangolin.service.reminder.model.MobilePositionParams;
 import cn.fintecher.pangolin.service.reminder.model.QMobilePosition;
 import cn.fintecher.pangolin.service.reminder.repository.MobilePositionRepository;
@@ -19,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

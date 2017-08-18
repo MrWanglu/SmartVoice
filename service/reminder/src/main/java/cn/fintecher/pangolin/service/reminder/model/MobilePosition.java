@@ -1,4 +1,4 @@
-package cn.fintecher.pangolin.entity;
+package cn.fintecher.pangolin.service.reminder.model;
 
 
 import io.swagger.annotations.ApiModel;

@@ -1,7 +1,7 @@
 package cn.fintecher.pangolin.service.reminder.repository;
 
 
-import cn.fintecher.pangolin.entity.MobilePosition;
+import cn.fintecher.pangolin.service.reminder.model.MobilePosition;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 

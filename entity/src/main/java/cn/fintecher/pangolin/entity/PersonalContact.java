@@ -32,6 +32,7 @@ public class PersonalContact extends BaseEntity {
     private Integer socialType; //社交帐号类型
     private String socialValue; //社交帐号内容
     private String personalId; //客户信息ID
+    private Integer addressStatus; //地址状态
 
     /**
      * @Description 社交帐号枚举类
