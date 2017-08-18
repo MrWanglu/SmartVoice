@@ -1,7 +1,6 @@
 package cn.fintecher.pangolin.service.reminder.web;
 
-import cn.fintecher.pangolin.entity.MessagePush;
-import cn.fintecher.pangolin.entity.User;
+
 import cn.fintecher.pangolin.service.reminder.client.UserClient;
 import cn.fintecher.pangolin.service.reminder.model.AppMsg;
 import cn.fintecher.pangolin.service.reminder.repository.AppMsgRepository;
@@ -14,9 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
+import java.util.Iterator;
+import java.util.List;
 
-import java.util.Objects;
 
 /**
  * Created by  gaobeibei.
@@ -42,6 +41,19 @@ public class AppMsgController{
     public ResponseEntity saveAppmsg(@RequestBody AppMsg request) {
         AppMsg returnAppMsg = appMsgRepository.save(request);
         appMsgService.sendPush(returnAppMsg);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("推送成功", "")).body(null);
+    }
+
+    @PostMapping("/saveAppmsg")
+    @ApiOperation(value = "新增app信息批量推送", notes = "新增app信息批量推送")
+    @ResponseBody
+    public ResponseEntity saveAppmsg(@RequestBody List<AppMsg> requests) {
+        Iterator<AppMsg> iterator = requests.iterator();
+        while(iterator.hasNext()){
+            AppMsg request = iterator.next();
+            AppMsg returnAppMsg = appMsgRepository.save(request);
+            appMsgService.sendPush(returnAppMsg);
+        }
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("推送成功", "")).body(null);
     }
 }
