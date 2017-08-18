@@ -31,11 +31,11 @@ public class MongoSequenceService {
      * @param name
      * @return
      */
-    public String getNextSeq(String name,String companyCode) throws Exception{
+    public String getNextSeq(String name,String companyCode,Integer length) throws Exception{
         MongoSequence mongoSequence=null;
         synchronized (this){
-                 mongoSequence = mongo.findAndModify( query(where("_id").is(name).and("companyCode").is(companyCode)),
-                    new Update().inc("currentValue", 1),options().upsert(true).returnNew(true),
+                 mongoSequence = mongo.findAndModify( query(where("code").is(name).and("companyCode").is(companyCode)),
+                    new Update().inc("currentValue", 1).set("length",length), options().upsert(true).returnNew(true),
                     MongoSequence.class);
         }
         if(Objects.isNull(mongoSequence)){

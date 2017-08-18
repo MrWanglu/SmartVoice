@@ -39,8 +39,11 @@ public final class Constants {
 
     //导入批次号最大999(3位)
     public final static String ORDER_SEQ = "orderSeq";
+    public final static Integer ORDER_SEQ_LENGTH=3;
+
     //案件编号最大99999（5位）
     public final static String CASE_SEQ = "caseSeq";
+    public final static Integer CASE_SEQ_LENGTH=5;
     //委托方编号最大999（3位）
     public final static String PRIN_SEQ = "prinSeq";
     public static final String ERROR_MESSAGE = "系统错误";
