@@ -1107,14 +1107,14 @@ public class CaseInfoService {
         if (!caseFollowupRecords.iterator().hasNext()) {
             return null;
         }
-        Iterator<CaseFollowupRecord> iterator = caseFollowupRecords.iterator();
+        List<CaseFollowupRecord> caseFollowupRecordList = IteratorUtils.toList(caseFollowupRecords.iterator());
         List<PhoneRecordModel> phoneRecordModels = new ArrayList<>();
-        while (iterator.hasNext()) {
+        for (CaseFollowupRecord caseFollowupRecord : caseFollowupRecordList) {
             PhoneRecordModel phoneRecordModel = new PhoneRecordModel();
-            phoneRecordModel.setTargetName(iterator.next().getTargetName()); //跟进对象
-            phoneRecordModel.setOperatorName(iterator.next().getOperatorName()); //操作人
-            phoneRecordModel.setUrl(iterator.next().getOpUrl()); //录音地址
-            phoneRecordModel.setDate(iterator.next().getOperatorTime()); //跟进时间
+            phoneRecordModel.setTargetName(caseFollowupRecord.getTargetName()); //跟进对象
+            phoneRecordModel.setOperatorName(caseFollowupRecord.getOperatorName()); //操作人
+            phoneRecordModel.setUrl(caseFollowupRecord.getOpUrl()); //录音地址
+            phoneRecordModel.setDate(caseFollowupRecord.getOperatorTime()); //跟进时间
             phoneRecordModels.add(phoneRecordModel);
         }
         return phoneRecordModels;
