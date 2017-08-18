@@ -133,7 +133,6 @@ public class PaymentService {
 
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.PART_REPAID.getValue()); //催收状态 172-部分已还款
                     caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount())); //逾期实际还款金额
-                    caseInfo.setHasPayAmount(caseInfo.getRealPayAmount().add(caseInfo.getDerateAmt())); //已还款金额
 
                 } else if (Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.ALLOVERDUE.getValue()) //42-全额逾期还款
                         || Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.DERATEOVERDUE.getValue())) { //减免逾期还款
@@ -141,13 +140,11 @@ public class PaymentService {
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.REPAID.getValue()); //催收状态 171-已还款
                     caseInfo.setDerateAmt(casePayApply.getApplyDerateAmt().add(caseInfo.getDerateAmt())); //逾期还款减免金额
                     caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount())); //逾期实际还款金额
-                    caseInfo.setHasPayAmount(caseInfo.getRealPayAmount().add(caseInfo.getDerateAmt())); //已还款金额
 
                 } else if (Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.PARTADVANCE.getValue())) { //44-部分提前结清
 
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.PART_REPAID.getValue()); //催收状态 172-部分已还款
                     caseInfo.setEarlyRealSettleAmt(casePayApply.getApplyPayAmt().add(caseInfo.getEarlyRealSettleAmt())); //提前结清实际还款金额
-                    caseInfo.setEarlySettleAmt(caseInfo.getEarlyRealSettleAmt().add(caseInfo.getEarlyDerateAmt())); //提前结清已还款金额
 
                 } else if (Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.ALLADVANCE.getValue()) //45-全额提前结清
                         || Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.DERATEADVANCE.getValue())) { //46-减免提前结清
@@ -155,7 +152,6 @@ public class PaymentService {
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.REPAID.getValue()); //催收状态 171-已还款
                     caseInfo.setEarlyDerateAmt(casePayApply.getApplyDerateAmt().add(caseInfo.getEarlyDerateAmt())); //提前结清减免金额
                     caseInfo.setEarlyRealSettleAmt(casePayApply.getApplyPayAmt().add(caseInfo.getEarlyRealSettleAmt())); //提前结清实际还款金额
-                    caseInfo.setEarlySettleAmt(caseInfo.getEarlyRealSettleAmt().add(caseInfo.getEarlyDerateAmt())); //提前结清已还款金额
 
                 } else {
                     throw new RuntimeException("该还款类型未找到");
@@ -269,7 +265,7 @@ public class PaymentService {
             ExcelExportHelper.createExcel(workbook, sheet, headMap, dataList, 0, 0);
             out = new ByteArrayOutputStream();
             workbook.write(out);
-            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "客户信息表.xls");
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "还款信息表.xls");
             file = new File(filePath);
             fileOutputStream = new FileOutputStream(file);
             fileOutputStream.write(out.toByteArray());
