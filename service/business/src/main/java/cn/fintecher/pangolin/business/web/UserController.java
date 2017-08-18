@@ -168,8 +168,7 @@ public class UserController extends BaseController {
         userDeviceRepository.saveAndFlush(userDeviceApp);
         userDevices.add(userDeviceApp);
         user.setUserDevices(userDevices);
-
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(userReturn);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(userReturn);
     }
 
     /**

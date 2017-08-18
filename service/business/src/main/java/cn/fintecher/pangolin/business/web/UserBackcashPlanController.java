@@ -98,6 +98,8 @@ public class UserBackcashPlanController extends BaseController {
         }
         if (Objects.nonNull(companyCode)) {
             builder.and(qUserBackcashPlan.companyCode.eq(companyCode));
+        }else {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate failure", "请先输入公司code码")).body(null);
         }
         Page<UserBackcashPlan> page = userBackcashPlanRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(page);
@@ -120,14 +122,14 @@ public class UserBackcashPlanController extends BaseController {
         }
         if (userBackcashPlan.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                    "idexists", "新增不应该含有ID")).body(null);
+                    "id exists", "新增不应该含有ID")).body(null);
         }
         //判断是否有这个年份  这个月份插入的计划回款金额
         QUserBackcashPlan qUserBackcashPlan = QUserBackcashPlan.userBackcashPlan;
         boolean exist = userBackcashPlanRepository.exists(qUserBackcashPlan.userName.eq(userBackcashPlan.getUserName()).and(qUserBackcashPlan.realName.eq(userBackcashPlan.getRealName())).and(qUserBackcashPlan.year.eq(userBackcashPlan.getYear())).and(qUserBackcashPlan.month.eq(userBackcashPlan.getMonth())).and(qUserBackcashPlan.companyCode.eq(userBackcashPlan.getCompanyCode())));
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                    "idexists", "用户" + userBackcashPlan.getUserName() + ",姓名" + userBackcashPlan.getRealName() + "," + userBackcashPlan.getYear() + "年" + userBackcashPlan.getMonth() + "的计划回款已经存在")).body(null);
+                    "id exists", "用户" + userBackcashPlan.getUserName() + ",姓名" + userBackcashPlan.getRealName() + "," + userBackcashPlan.getYear() + "年" + userBackcashPlan.getMonth() + "的计划回款已经存在")).body(null);
         }
         UserBackcashPlan userBackcashPlan1 = userBackcashPlanRepository.save(userBackcashPlan);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(userBackcashPlan1);
@@ -151,14 +153,14 @@ public class UserBackcashPlanController extends BaseController {
         }
         if (Objects.isNull(userBackcashPlan.getId())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                    "idexists", "修改应该含有ID")).body(null);
+                    "id exists", "修改应该含有ID")).body(null);
         }
         //判断是否有这个年份  这个月份插入的计划回款金额
         QUserBackcashPlan qUserBackcashPlan = QUserBackcashPlan.userBackcashPlan;
         boolean exist = userBackcashPlanRepository.exists(qUserBackcashPlan.userName.eq(userBackcashPlan.getUserName()).and(qUserBackcashPlan.realName.eq(userBackcashPlan.getRealName())).and(qUserBackcashPlan.year.eq(userBackcashPlan.getYear())).and(qUserBackcashPlan.month.eq(userBackcashPlan.getMonth())).and(qUserBackcashPlan.companyCode.eq(userBackcashPlan.getCompanyCode())).and(qUserBackcashPlan.id.ne(userBackcashPlan.getId())));
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                    "idexists", "用户" + userBackcashPlan.getUserName() + ",姓名" + userBackcashPlan.getRealName() + "," + userBackcashPlan.getYear() + "年" + userBackcashPlan.getMonth() + "的计划回款已经存在")).body(null);
+                    "id exists", "用户" + userBackcashPlan.getUserName() + ",姓名" + userBackcashPlan.getRealName() + "," + userBackcashPlan.getYear() + "年" + userBackcashPlan.getMonth() + "的计划回款已经存在")).body(null);
         }
         UserBackcashPlan backcashPlan = userBackcashPlanRepository.findOne(userBackcashPlan.getId());
         backcashPlan.setUserName(userBackcashPlan.getUserName());
