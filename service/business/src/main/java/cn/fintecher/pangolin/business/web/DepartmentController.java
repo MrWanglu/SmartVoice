@@ -112,9 +112,6 @@ public class DepartmentController extends BaseController {
         } else {
             department.setCode(department.getParent().getCode() + "_" + ShortUUID.generateShortUuid());
         }
-        if (Objects.nonNull(department.getParent().getType())) {
-            department.setType(department.getParent().getType());
-        }
         if (department.getParent().getLevel() >= 14) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level must not exceed six levels", "部门等级不能超过六级")).body(null);
         }

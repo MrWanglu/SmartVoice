@@ -11,11 +11,11 @@ import java.util.Date;
 @Data
 public class OutsourceRecord extends BaseEntity {
     @ManyToOne
-    @JoinColumn(name="case_id")
+    @JoinColumn(name = "case_id")
     private CaseInfo caseInfo;
 
     @ManyToOne
-    @JoinColumn(name="outs_id")
+    @JoinColumn(name = "outs_id")
     private Outsource outsource;
 
     @ApiModelProperty("案件编号")
@@ -39,4 +39,6 @@ public class OutsourceRecord extends BaseEntity {
     @ApiModelProperty("状态 0正常  1删除")
     private Integer flag;
 
+    @ApiModelProperty("佣金回款 204 回款 205 回退 206 修复")
+    private Integer operationType;
 }

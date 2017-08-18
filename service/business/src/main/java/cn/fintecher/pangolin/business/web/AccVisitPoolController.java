@@ -584,4 +584,22 @@ public class AccVisitPoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", e.getMessage())).body(null);
         }
     }
+
+    /**
+     * @Description 外访页面修改联系人地址状态
+     */
+    @PutMapping("/modifyAddressStatus")
+    @ApiOperation(value = "修改联系人地址状态", notes = "修改联系人地址状态")
+    public ResponseEntity<PersonalContact> modifyPhoneStatus(@RequestBody PhoneStatusParams phoneStatusParams,
+                                                             @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to modify address status");
+        try {
+            User tokenUser = getUserByToken(token);
+            PersonalContact personalContact = caseInfoService.modifyPhoneStatus(phoneStatusParams, tokenUser);
+            return ResponseEntity.ok().body(personalContact);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("修改失败", "personalContact", e.getMessage())).body(null);
+        }
+    }
 }

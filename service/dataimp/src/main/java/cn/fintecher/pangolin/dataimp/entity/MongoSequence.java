@@ -19,8 +19,10 @@ import java.io.Serializable;
 public class MongoSequence implements Serializable{
 
     @Id
-    @ApiModelProperty(notes = "序列名称")
+    @ApiModelProperty(notes = "序列ID")
     private String id;
+    @ApiModelProperty(notes = "序列CODE值")
+    private String code;
     @ApiModelProperty(notes = "序列当前值")
     private Integer currentValue;
     @ApiModelProperty(notes = "数据长度")

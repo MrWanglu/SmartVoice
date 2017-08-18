@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.dataimp.web;
 import cn.fintecher.pangolin.dataimp.entity.MongoSequence;
 import cn.fintecher.pangolin.dataimp.entity.QMongoSequence;
 import cn.fintecher.pangolin.dataimp.repository.MongoSequenceRepository;
+import cn.fintecher.pangolin.dataimp.service.MongoSequenceService;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -35,6 +36,9 @@ public class SequenceController {
 
     @Autowired
     MongoSequenceRepository mongoSequenceRepository;
+
+    @Autowired
+    MongoSequenceService mongoSequenceService;
     @GetMapping("/restSequence")
     @ApiOperation(value = "序列重置", notes = "序列重置")
     public ResponseEntity restSequence(@RequestParam String id1,@RequestParam String id2,
@@ -55,6 +59,17 @@ public class SequenceController {
             }
          List result=mongoSequenceRepository.save(mongoSequenceList);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("序列重置成功",ENTITY_NAME)).body(result);
+        }
+    }
+
+    @GetMapping("/getSequence")
+    @ApiOperation(value = "获取序列值", notes = "获取序列值")
+    public ResponseEntity<String> getSequence(@RequestParam String code,@RequestParam String companyCode,Integer length){
+        try {
+            String seq= mongoSequenceService.getNextSeq(code,companyCode,length);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("序列重置成功",ENTITY_NAME)).body(seq);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"restSequence","序列不存在")).body(null);
         }
     }
 }

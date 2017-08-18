@@ -127,7 +127,7 @@ public class DataInfoExcelService {
                 dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
                 dataImportRecord.setCompanyCode(user.getCompanyCode());
                 //批次号
-                String batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ,user.getCompanyCode());
+                String batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ,user.getCompanyCode(),Constants.ORDER_SEQ_LENGTH);
                 dataImportRecord.setBatchNumber(batchNumber);
                 dataImportRecordRepository.save(dataImportRecord);
                 //开始保存数据
@@ -145,7 +145,7 @@ public class DataInfoExcelService {
                     tempObj.setPaymentStatus("M".concat(String.valueOf(tempObj.getOverDuePeriods() == null ? "M0" : tempObj.getOverDuePeriods())));
                     tempObj.setDelegationDate(dataImportRecord.getDelegationDate());
                     tempObj.setCloseDate(dataImportRecord.getCloseDate());
-                    String caseNumber=mongoSequenceService.getNextSeq(Constants.CASE_SEQ,user.getCompanyCode());
+                    String caseNumber=mongoSequenceService.getNextSeq(Constants.CASE_SEQ,user.getCompanyCode(),Constants.CASE_SEQ_LENGTH);
                     tempObj.setCaseNumber(caseNumber);
                     dataInfoExcelRepository.save(tempObj);
                 }
