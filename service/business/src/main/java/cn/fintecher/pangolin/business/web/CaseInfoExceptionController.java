@@ -68,9 +68,9 @@ public class CaseInfoExceptionController extends BaseController {
      * @return
      * @throws URISyntaxException
      */
-    @PostMapping("/addCaseInfoException")
+    @GetMapping("/addCaseInfoException")
     @ApiOperation(value = "新增案件", notes = "新增案件")
-    public ResponseEntity<CaseInfoDistributed> addCaseInfo(@RequestParam(value="异常案件id") String caseInfoExceptionId,
+    public ResponseEntity<CaseInfoDistributed> addCaseInfo(@RequestParam @ApiParam(value ="异常案件id") String caseInfoExceptionId,
                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception{
         log.debug("REST request to add case to CaseInfoDistributed");
         CaseInfoDistributed caseInfoDistributed = caseInfoExceptionService.addCaseInfo(caseInfoExceptionId,getUserByToken(token));
@@ -83,9 +83,9 @@ public class CaseInfoExceptionController extends BaseController {
      * @return
      * @throws URISyntaxException
      */
-    @PutMapping("/updateCaseInfoException")
+    @GetMapping("/updateCaseInfoException")
     @ApiOperation(value = "更新案件", notes = "更新案件")
-    public ResponseEntity<CaseInfo> updateCaseInfo(@RequestParam(value="异常案件id") String caseInfoExceptionId,
+    public ResponseEntity<CaseInfo> updateCaseInfo(@RequestParam @ApiParam(value="异常案件id") String caseInfoExceptionId,
                                                    @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
         log.debug("REST request to update CaseInfo");
         CaseInfo caseInfo= caseInfoExceptionService.updateCaseInfoException(caseInfoExceptionId,getUserByToken(token));
@@ -102,7 +102,7 @@ public class CaseInfoExceptionController extends BaseController {
      */
     @DeleteMapping("/deleteCaseInfoException")
     @ApiOperation(value = "删除异常池案件", notes = "删除异常池案件")
-    public ResponseEntity<Void> deleteCaseInfoException(@RequestParam(value="异常案件id") String caseInfoExceptionId) {
+    public ResponseEntity<Void> deleteCaseInfoException(@RequestParam @ApiParam(value="异常案件id") String caseInfoExceptionId) {
         log.debug("REST request to delete caseInfoException : {}",caseInfoExceptionId);
         caseInfoExceptionService.deleteCaseInfoException(caseInfoExceptionId);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, caseInfoExceptionId)).build();
