@@ -4,7 +4,7 @@ package cn.fintecher.pangolin.entity;
  * Created by ChenChang on 2017/4/6.
  */
 public enum ReminderType {
-    REPAYMENT("还款提醒"), FLLOWUP("跟进提醒"), REPAIRED("修复提醒"), DERATE("减免审批提醒"), APPLY("还款审核提醒"), ASSIST_APPROVE("协催审批提醒");
+    REPAYMENT("还款提醒"), FLLOWUP("跟进提醒"), REPAIRED("修复提醒"), DERATE("减免审批提醒"), APPLY("还款审核提醒"), ASSIST_APPROVE("协催审批提醒"),LEAVE_CASE("留案案件提醒");
     private String cName;
 
     ReminderType(String cName) {

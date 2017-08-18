@@ -25,5 +25,8 @@ public class UpLoadFileModel implements Serializable {
     @ApiModelProperty(notes = "文件ID")
     private List<String> fileIdList;
 
+    @ApiModelProperty("公司Code")
+    private String companyCode;
+
 
 }
