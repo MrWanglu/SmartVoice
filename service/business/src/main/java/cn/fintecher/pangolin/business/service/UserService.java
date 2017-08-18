@@ -77,6 +77,23 @@ public class UserService {
     }
 
     /**
+     * 获取用户所在部门主管
+     * @param userId
+     * @return
+     */
+    public User getManagerByUser(String userId){
+        BooleanBuilder builder = new BooleanBuilder();
+        QUser quser = QUser.user;
+        builder.and(quser.department.id.eq(userRepository.getOne(userId).getDepartment().getId()).
+                and(quser.manager.eq(1)));
+        Iterable<User> userIterable = userRepository.findAll(builder);
+        if(userIterable.iterator().hasNext()){
+            return userIterable.iterator().next();
+        }
+        return null;
+    }
+
+    /**
      * @Description : 通过token查询用户
      */
     public User getUserByToken(String token) throws Exception {

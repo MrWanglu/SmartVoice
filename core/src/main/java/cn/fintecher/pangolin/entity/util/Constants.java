@@ -147,6 +147,18 @@ public final class Constants {
     public final static String SYSPARAM_RECORD_STATUS="Sysparam.record.status";
 
     /**
+     * 消息提醒调度
+     */
+    public final static String REMINDER_TRIGGER_GROUP="reminderTriggerGroup";
+    public final static String REMIDER_TRIGGER_NAME="reminderTriggerName";
+    public final static String REMIDER_TRIGGER_DESC="消息提醒触发器";
+    public final static String REMIDER_JOB_GROUP="reminderJobGroup";
+    public final static String REMIDER_JOB_NAME="reminderJobName";
+    public final static String REMIDER_JOB_DESC="消息提醒批量";
+    public final static String SYSPARAM_REMIDER="Sysparam.reminder";
+    public final static String SYSPARAM_REMIDER_STATUS="Sysparam.reminder.status";
+
+    /**
      * 批量执行状态
      */
     public enum BatchStatus{

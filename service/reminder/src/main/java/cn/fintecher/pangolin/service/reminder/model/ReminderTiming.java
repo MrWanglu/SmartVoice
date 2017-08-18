@@ -10,12 +10,15 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
+
 /**
- * Created by ChenChang on 2017/3/17.
+ * @Author duchao
+ * @Description
+ * @Date : 2017/8/18.
  */
-@Document
 @Data
-public class ReminderMessage implements Serializable {
+@Document
+public class ReminderTiming implements Serializable {
     public enum ReadStatus {
         Read, UnRead
     }
