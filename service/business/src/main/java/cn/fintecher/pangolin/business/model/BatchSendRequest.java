@@ -12,7 +12,7 @@ import java.util.List;
  */
 @Data
 public class BatchSendRequest {
-    private List<String> cupoIdList = new ArrayList<>(); //案件数组ID
+    private List<String> cupoIdList = new ArrayList<>(); //案件id集合
     private Integer selected; //是否选择本人
-    private List<Integer> selRelationsList = new ArrayList<>(); //联系人数组
+    private List<Integer> selRelationsList = new ArrayList<>(); //联系人集合
 }

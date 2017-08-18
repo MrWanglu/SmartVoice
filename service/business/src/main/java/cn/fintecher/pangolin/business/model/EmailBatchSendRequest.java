@@ -12,9 +12,9 @@ import java.util.List;
  */
 @Data
 public class EmailBatchSendRequest {
-    //案件数组ID
-    private List<String> emailBatchSendList = new ArrayList<>();
-    private List<EmailSendRequest> emailSendRequestList = new ArrayList<>();
+
+    private List<String> emailBatchSendList = new ArrayList<>(); //案件ID集合
+    private List<EmailSendRequest> emailSendRequestList = new ArrayList<>(); // 电子邮件群发参数集合
     private String mereContent;
     private String tesmId;
     private Integer mereStyle;

@@ -23,27 +23,25 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Created by  hukaijia.
+ * Created by  yuanyanting.
  * Description:
- * Date: 2017-07-06-9:44
+ * Date: 2017-08-18
  */
 @RestController
 @RequestMapping("/api/caseIntelligentCollectionController")
 @Api(value = "智能催收", description = "智能催收")
 public class CaseIntelligentCollectionController extends BaseController {
+
     private final Logger logger = LoggerFactory.getLogger(CaseIntelligentCollectionController.class);
     private static final String ENTITY_NAME = "CaseIntelligentCollection";
-    private final CaseInfoRepository caseInfoRepository;
 
-    public CaseIntelligentCollectionController(CaseInfoRepository caseInfoRepository) {
-        this.caseInfoRepository = caseInfoRepository;
-    }
+    @Autowired
+    private CaseInfoRepository caseInfoRepository;
 
     @Autowired
     private PersonalContactRepository personalContactRepository;
@@ -52,6 +50,7 @@ public class CaseIntelligentCollectionController extends BaseController {
      * @Description : 分页,多条件查询智能催收案件信息
      */
     @GetMapping("/queryCaseInfo")
+    @ApiOperation(value = "查询智能催收案件信息", notes = "查询智能催收案件信息")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
                     value = "页数 (0..N)"),
@@ -71,12 +70,17 @@ public class CaseIntelligentCollectionController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
-        builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
+        List<Integer> list = new ArrayList<>();
+        list.add(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue());
+        list.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue());
+        list.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue());
+        list.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue());
+        builder.and(QCaseInfo.caseInfo.collectionStatus.in(list));
         if (Objects.nonNull(user.getCompanyCode())) {
             builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","CaseIntelligentCollectionController")).body(page);
     }
 
     /**
@@ -85,23 +89,27 @@ public class CaseIntelligentCollectionController extends BaseController {
     @PostMapping("/handleBatchSend")
     @ApiOperation(value = "短信群发及语音群呼操作", notes = "短信群发及语音群呼操作")
     public ResponseEntity<List<MessageBatchSendRequest>> handleBatchSend(@RequestBody BatchSendRequest request) {
-        //获得案件ID集合
-        List<String> cupoIdlist = request.getCupoIdList();
-        List<CaseInfo> caseInfolList = new ArrayList<CaseInfo>();
-        for (String cupoId : cupoIdlist) {
-            CaseInfo caseInfo = caseInfoRepository.findOne(cupoId);
-            caseInfolList.add(caseInfo);
+        try {
+            List<String> cupoIdlist = request.getCupoIdList(); //获得案件ID集合
+            Integer selected = request.getSelected(); //是否选择本人
+            List<Integer> selRelations = request.getSelRelationsList(); //客户关系集合
+            List<CaseInfo> caseInfolList = new ArrayList<>();
+            for (String cupoId : cupoIdlist) {
+                CaseInfo caseInfo = caseInfoRepository.findOne(cupoId);
+                caseInfolList.add(caseInfo);
+            }
+            List<MessageBatchSendRequest> messageBatchSendRequestList = new ArrayList<>();
+            for (CaseInfo caseInfo : caseInfolList) {
+                MessageBatchSendRequest messageBatchSendRequest = batchSend(caseInfo, selected, selRelations);
+                messageBatchSendRequest.setCustId(caseInfo.getPersonalInfo().getId()); // 客户id
+                messageBatchSendRequest.setCustName(caseInfo.getPersonalInfo().getName()); // 客户姓名
+                messageBatchSendRequestList.add(messageBatchSendRequest);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(messageBatchSendRequestList);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"operation failure","操作失败")).body(null);
         }
-        List<MessageBatchSendRequest> messageBatchSendRequestList = new ArrayList<MessageBatchSendRequest>();
-        Integer selected = request.getSelected(); //是否选择本人
-        List<Integer> selRelations = request.getSelRelationsList(); //客户关系数组
-        for (CaseInfo caseInfo : caseInfolList) {
-            MessageBatchSendRequest messageBatchSendRequest = batchSend(caseInfo, selected, selRelations);
-            messageBatchSendRequest.setCustId(caseInfo.getPersonalInfo().getId());
-            messageBatchSendRequest.setCustName(caseInfo.getPersonalInfo().getName());
-            messageBatchSendRequestList.add(messageBatchSendRequest);
-        }
-        return ResponseEntity.ok().body(messageBatchSendRequestList);
 
     }
 
@@ -111,27 +119,33 @@ public class CaseIntelligentCollectionController extends BaseController {
     @PostMapping("/handleEmailSend")
     @ApiOperation(value = "电子邮件群发操作", notes = "电子邮件群发操作")
     public ResponseEntity<List<EmailSendRequest>> handleEmailSend(@RequestBody EmailBatchSendRequest emailBatchSendRequest) {
-        //获得案件ID集合
-        List<String> cupoIdlist = emailBatchSendRequest.getEmailBatchSendList();
-        List<CaseInfo> caseInfos = new ArrayList<CaseInfo>();
-        for (String cupoId : cupoIdlist) {
-            CaseInfo caseInfo = caseInfoRepository.findOne(cupoId);
-            caseInfos.add(caseInfo);
-        }
-        List<EmailSendRequest> emailSendRequests = new ArrayList<EmailSendRequest>(); //客户与邮箱集合
-        for (CaseInfo caseInfo : caseInfos) {
-            QPersonalContact qPersonalContact = QPersonalContact.personalContact;
-            //本人的数字码是69
-            Iterable<PersonalContact> personalContacts = personalContactRepository.findAll(qPersonalContact.personalId.eq(caseInfo.getPersonalInfo().getId()).and(qPersonalContact.relation.eq(69)));
-            if (personalContacts.iterator().hasNext() && Objects.nonNull(personalContacts.iterator().next().getMail())) {
-                EmailSendRequest emailSendRequest = new EmailSendRequest();
-                emailSendRequest.setCustId(personalContacts.iterator().next().getPersonalId());
-                emailSendRequest.setCustName(personalContacts.iterator().next().getName());
-                emailSendRequest.setEmail(personalContacts.iterator().next().getMail());
-                emailSendRequests.add(emailSendRequest);
+
+        try{
+            List<String> cupoIdlist = emailBatchSendRequest.getEmailBatchSendList(); //获得案件ID集合
+            List<CaseInfo> caseInfos = new ArrayList<>();
+            for (String cupoId : cupoIdlist) {
+                CaseInfo caseInfo = caseInfoRepository.findOne(cupoId);
+                caseInfos.add(caseInfo);
             }
+            List<EmailSendRequest> emailSendRequests = new ArrayList<>(); //客户与邮箱集合
+            for (CaseInfo caseInfo : caseInfos) {
+                QPersonalContact qPersonalContact = QPersonalContact.personalContact;
+                //本人的数字码是69
+                Iterable<PersonalContact> personalContacts = personalContactRepository.findAll(qPersonalContact.personalId.eq(caseInfo.getPersonalInfo().getId()).and(qPersonalContact.relation.eq(69)));
+                if (personalContacts.iterator().hasNext() && Objects.nonNull(personalContacts.iterator().next().getMail())) {
+                    EmailSendRequest emailSendRequest = new EmailSendRequest();
+                    emailSendRequest.setCustId(personalContacts.iterator().next().getPersonalId()); // 客户ID
+                    emailSendRequest.setCustName(personalContacts.iterator().next().getName()); // 客户姓名
+                    emailSendRequest.setEmail(personalContacts.iterator().next().getMail()); // 客户邮箱
+                    emailSendRequests.add(emailSendRequest);
+                }
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(emailSendRequests);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"operation failure","操作失败")).body(null);
         }
-        return ResponseEntity.ok().body(emailSendRequests);
+
     }
 
     /**
@@ -143,9 +157,9 @@ public class CaseIntelligentCollectionController extends BaseController {
         List<String> phoneList = new ArrayList<>(); //客户关系的电话列表
         List<Integer> statusList = new ArrayList<>(); //状态列表
         List<String> nameList = new ArrayList<>(); //关系人姓名
+        QPersonalContact qPersonalContact = QPersonalContact.personalContact;
         if (1 == selected) { //判断是否选择本人 1：是
-            QPersonalContact qPersonalContact = QPersonalContact.personalContact;
-            //本人的数字码是69
+            //本人的数字码(relation)是69
             Iterable<PersonalContact> personalContacts = personalContactRepository.findAll(qPersonalContact.personalId.eq(caseInfo.getPersonalInfo().getId()).and(qPersonalContact.relation.eq(69)));
             if (personalContacts.iterator().hasNext() && Objects.nonNull(personalContacts.iterator().next().getPhone())) {
                 relationList.add(personalContacts.iterator().next().getRelation());
@@ -154,9 +168,7 @@ public class CaseIntelligentCollectionController extends BaseController {
                 statusList.add(personalContacts.iterator().next().getPhoneStatus());
             }
         }
-        List<PersonalContact> personalContactList = new ArrayList<PersonalContact>();
-        QPersonalContact qPersonalContact = QPersonalContact.personalContact;
-        //本人的数字码是69
+        List<PersonalContact> personalContactList = new ArrayList<>();
         Iterable<PersonalContact> personalContacts = personalContactRepository.findAll(qPersonalContact.personalId.eq(caseInfo.getPersonalInfo().getId()).and(qPersonalContact.relation.ne(69)));
         if (personalContacts.iterator().hasNext()) {
             personalContactList.add(personalContacts.iterator().next());
