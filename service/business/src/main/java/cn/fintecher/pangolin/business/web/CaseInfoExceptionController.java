@@ -5,8 +5,6 @@ import cn.fintecher.pangolin.business.service.CaseInfoExceptionService;
 import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.CaseInfoDistributed;
 import cn.fintecher.pangolin.entity.CaseInfoException;
-import cn.fintecher.pangolin.entity.User;
-import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -72,9 +70,9 @@ public class CaseInfoExceptionController extends BaseController {
     @PostMapping("/addCaseInfoException")
     @ApiOperation(value = "新增案件", notes = "新增案件")
     public ResponseEntity<CaseInfoDistributed> addCaseInfo(@RequestBody String caseInfoExceptionId,
-                                                           @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws URISyntaxException{
-        log.debug("REST request to update CaseInfo");
-        CaseInfoDistributed caseInfoDistributed = caseInfoExceptionService.addCaseInfo(caseInfoExceptionId,getUserEntity(token));
+                                                           @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception{
+        log.debug("REST request to add case to CaseInfoDistributed");
+        CaseInfoDistributed caseInfoDistributed = caseInfoExceptionService.addCaseInfo(caseInfoExceptionId,getUserByToken(token));
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert(CASE_INFO_ENTITY,caseInfoDistributed.getId())).body(caseInfoDistributed);
     }
     /**
@@ -87,21 +85,12 @@ public class CaseInfoExceptionController extends BaseController {
     @PutMapping("/updateCaseInfoException")
     @ApiOperation(value = "更新案件", notes = "更新案件")
     public ResponseEntity<CaseInfo> updateCaseInfo(@RequestBody String caseInfoExceptionId,
-                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws URISyntaxException {
-        log.debug("REST request to update CaseInfoException");
-        CaseInfo caseInfo= caseInfoExceptionService.updateCaseInfoException(caseInfoExceptionId,getUserEntity(token));
+                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
+        log.debug("REST request to update CaseInfo");
+        CaseInfo caseInfo= caseInfoExceptionService.updateCaseInfoException(caseInfoExceptionId,getUserByToken(token));
         return ResponseEntity.ok().headers(HeaderUtil.createEntityUpdateAlert(CASE_INFO_ENTITY,caseInfo.getId().toString())).body(caseInfo);
     }
 
-    private User getUserEntity(String token){
-        ResponseEntity<User> userResponseEntity=null;
-        try {
-            userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
-        }
-        return userResponseEntity.getBody();
-    }
     /**
      * 删除异常池案件
      * @param caseInfoExceptionId
