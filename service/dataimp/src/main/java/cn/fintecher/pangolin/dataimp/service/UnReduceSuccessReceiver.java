@@ -76,9 +76,9 @@ public class UnReduceSuccessReceiver {
                 dataInfoExcelFile.setOperatorName(user.getRealName());
                 dataInfoExcelFile.setCompanyCode(user.getCompanyCode());
                 //解析文件文件路径
-                //通过文件名字获取案件信息(客户姓名身份证号产品名称公司Code)
+                //通过文件名字获取案件信息(客户姓名身份证号产品名称)
                 String[] fileNameArr = path.split("_");
-                if (Objects.isNull(fileNameArr) || fileNameArr.length != 4) {
+                if (Objects.isNull(fileNameArr) || fileNameArr.length != 3) {
                     log.error("文件夹名称 {} 未按规定命名,无法与案件匹配", path);
                 } else {
                     DataInfoExcel dataInfoExcel = new DataInfoExcel();
