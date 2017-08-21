@@ -147,7 +147,7 @@ public class CaseStrategyController  {
     @ApiModelProperty
     @PostMapping("/smartDistribute")
     @ApiOperation(value = "策略分配案件", notes = "策略分配案件")
-    public ResponseEntity smartDistribute(@RequestBody CaseInfoDisModel caseInfoDisModel, @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
+    public ResponseEntity smartDistribute( @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
         List<CaseStrategy> caseStrategies = caseStrategyRepository.findAll(new Sort(Sort.Direction.ASC, "priority"));
         if (caseStrategies.isEmpty()) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no strategy", "没有查询到的分配策略")).body("");
@@ -157,7 +157,7 @@ public class CaseStrategyController  {
         //接收案件列表信息
         List<String> dataList = null;
         //计算平均分配案件数
-        List<Integer> disNumList = new ArrayList<>();
+       // List<Integer> disNumList = new ArrayList<>();
         for (CaseStrategy caseStrategy : caseStrategies) {
             //得到符合分配策略的案件 caseInfos
             List<CaseInfoDistributed> caseInfos = runCaseRun(caseStrategy, false);
@@ -185,33 +185,31 @@ public class CaseStrategyController  {
                 int alreadyCaseNum = 0;
                 //接收案件列表信息
                 List<String> deptOrUserList = null;
-                if (caseInfoDisModel.getDisType().equals(CaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
+                if (caseStrategy.getAssignType().equals(CaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
                     //所要分配 机构id
-                    deptOrUserList = caseInfoDisModel.getDepIdList();
-                } else if (caseInfoDisModel.getDisType().equals(CaseInfoDisModel.DisType.USER_WAY.getValue())) {
+                      deptOrUserList =caseStrategy.getDepartments();
+                } else if (caseStrategy.getAssignType().equals(CaseInfoDisModel.DisType.USER_WAY.getValue())) {
                     //得到所有用户ID
-                    deptOrUserList = caseInfoDisModel.getUserNameList();
+                    deptOrUserList =caseStrategy.getUsers();
                 }
                 for (int i = 0; i < (deptOrUserList != null ? deptOrUserList.size() : 0); i++) {
                     //如果按机构分配则是机构的ID，如果是按用户分配则是用户ID
                     String deptOrUserid = deptOrUserList.get(i);
                     Department department = null;
                     User targetUser = null;
-                    if (caseInfoDisModel.getDisType().equals(CaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
+                    if (caseStrategy.getAssignType().equals(CaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
                         ResponseEntity<Department> departmentResponseEntity = restTemplate.getForEntity(Constants.ORG_SERVICE_URL.concat("getDepartmentById").concat("?deptId=").concat(deptOrUserid), Department.class);
                         department = departmentResponseEntity.getBody();
-                    } else if (caseInfoDisModel.getDisType().equals(CaseInfoDisModel.DisType.USER_WAY.getValue())) {
+                    } else if (caseStrategy.getAssignType().equals(CaseInfoDisModel.DisType.USER_WAY.getValue())) {
                         ResponseEntity<User> userResponseEntity = restTemplate.getForEntity("http://business-service/api/userResource/findUserById?id=" + deptOrUserid, User.class);
 
                         targetUser = userResponseEntity.getBody();
                     }
+                    //计算平均分配案件数
+                    List<Integer> disNumList = new ArrayList<>();
                     setDistributeNum(caseInfos, deptOrUserList, disNumList);
                     Integer disNum = disNumList.get(i);//每个人分配的案件数
                     for (int j = 0; j < disNum; j++) {
-                        //检查输入的案件数量是否和选择的案件数量一致
-                        if (alreadyCaseNum > caseIds.size()) {
-                            throw new Exception("选择的案件总量与实际输入的案件数量不匹配");
-                        }
                         CaseInfoDistributed caseInfoDistributed = caseInfos.get(alreadyCaseNum);
                         if (Objects.nonNull(caseInfoDistributed)) {
                             CaseInfo caseInfo = new CaseInfo();
@@ -289,7 +287,7 @@ public class CaseStrategyController  {
                     }
                 }
                 //保存案件信息
-                restTemplate.postForEntity(Constants.BUSINESS_SERVICE_URL.concat("saveCaseInfo"), caseInfoObjList, CaseInfo.class);
+              //  restTemplate.postForEntity(Constants.BUSINESS_SERVICE_URL.concat("saveCaseInfo"), caseInfoObjList, CaseInfo.class);
                 //保存流转记录
                 restTemplate.postForEntity(Constants.BUSINESS_SERVICE_URL.concat("saveCaseInfoRecord"), caseTurnRecordList, CaseTurnRecord.class);
                 //保存修复信息
@@ -394,7 +392,13 @@ public class CaseStrategyController  {
             disNumList.add(number + caseInfoModelsTemp.size() % dataList.size());
         } else {
             for (int i = 0; i < dataList.size(); i++) {
-                disNumList.add(1);
+                if(i < caseInfoModelsTemp.size()){//如果人数暂时小于案件数
+                    disNumList.add(1);
+                }else{
+                    disNumList.add(0);
+                }
+                int num = dataList.size()-caseInfoModelsTemp.size();//分不到案件的人数
+                //disNumList.add(1);
             }
         }
     }
