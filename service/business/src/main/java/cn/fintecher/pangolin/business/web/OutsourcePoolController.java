@@ -169,6 +169,7 @@ public class OutsourcePoolController extends BaseController {
                                                      @RequestParam(required = false) @ApiParam(value = "最小还款金额") BigDecimal oupoPaynumMin,
                                                      @RequestParam(required = false) @ApiParam(value = "最大还款金额") BigDecimal oupoPaynumMax,
                                                      @RequestParam(required = false) @ApiParam(value = "批次号") String outbatch,
+                                                     @RequestParam(required = false) String companyCode,
                                                      @ApiIgnore Pageable pageable) {
         try{
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
@@ -202,6 +203,9 @@ public class OutsourcePoolController extends BaseController {
             }
             if (Objects.nonNull(outbatch)) {
                 builder.and(qOutsourcePool.outBatch.eq(outbatch));
+            }
+            if (Objects.nonNull(companyCode)) {
+                builder.and(qOutsourcePool.outsource.companyCode.eq(companyCode));
             }
             Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
