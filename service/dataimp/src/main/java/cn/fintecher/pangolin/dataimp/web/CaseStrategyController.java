@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.dataimp.web;
 
 import cn.fintecher.pangolin.dataimp.entity.CaseStrategy;
+import cn.fintecher.pangolin.dataimp.entity.QCaseStrategy;
 import cn.fintecher.pangolin.dataimp.model.CaseInfoDisModel;
 import cn.fintecher.pangolin.dataimp.repository.CaseStrategyRepository;
 import cn.fintecher.pangolin.entity.*;
@@ -136,7 +137,7 @@ public class CaseStrategyController  {
             caseStrategy.setStrategyText(sb.toString());
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "解析分配策略失败")).body(null);
+
         }
         caseStrategy.setCreateTime(ZWDateUtil.getNowDateTime());
         caseStrategy.setCreator(userResult.getBody().getRealName());
@@ -300,7 +301,39 @@ public class CaseStrategyController  {
         }
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "分配成功")).body(caseInfoObjList);
     }
-
+    @ApiModelProperty
+    @GetMapping("/findCaseStrategy")
+    @ApiOperation(value = "检查策略名称是否重复", notes = "检查策略名称是否重复")
+    public ResponseEntity findCaseStrategy(@RequestParam String name) {
+        if (ZWStringUtils.isEmpty(name)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no name", "没有输入策略名称")).body(null);
+        }
+        try {
+           CaseStrategy caseStrategy = caseStrategyRepository.findOne(QCaseStrategy.caseStrategy.name.eq(name));
+           if(Objects.nonNull(caseStrategy)){
+               return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Strategy's name has exist", "该策略名称已存在")).body(null);
+           }
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "检查策略名称失败")).body(null);
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "策略名称没有重复")).body(null);
+    }
+    @ApiModelProperty
+    @GetMapping("/deleteCaseStrategy")
+    @ApiOperation(value = "删除分配策略", notes = "删除分配策略")
+    public ResponseEntity queryCaseInfoByCondition(@RequestParam String ruleId) {
+        if (ZWStringUtils.isEmpty(ruleId)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "没有分配规则ID")).body(null);
+        }
+        try {
+            caseStrategyRepository.delete(ruleId);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "删除分配策略规则失败")).body(null);
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "分配成功")).body(null);
+    }
     private String analysisRule(String jsonObject, StringBuilder stringBuilder) {
         String result = "";
         if (Objects.isNull(jsonObject) || jsonObject.isEmpty()) {
