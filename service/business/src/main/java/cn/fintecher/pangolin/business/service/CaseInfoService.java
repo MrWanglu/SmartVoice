@@ -796,7 +796,7 @@ public class CaseInfoService {
         list.add(CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue()); // 34-外访待审批
         QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
         CaseAssistApply caseAssistApply = caseAssistApplyRepository.findOne(qCaseAssistApply.caseId.eq(caseId)
-                .and(qCaseAssistApply.approvePhoneResult.in(list)));
+                .and(qCaseAssistApply.approveStatus.in(list)));
         if (Objects.isNull(caseAssistApply)) {
             throw new RuntimeException("协催申请记录未找到");
         }
@@ -1495,4 +1495,28 @@ public class CaseInfoService {
         caseInfoRepository.save(caseInfos);
         caseTurnRecordRepository.save(caseTurnRecords);
     }
+
+    public void receiveCaseAssist(String id, User user){
+        synchronized (this) {
+            CaseAssist caseAssist = caseAssistRepository.findOne(id);
+            //更改协催案件信息
+            caseAssist.setDepartId(user.getDepartment().getId()); //协催部门ID
+            caseAssist.setAssistCollector(user); //协催员
+            caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue()); //协催状态 待催收
+            caseAssist.setOperator(user); //操作员
+            caseAssist.setCaseFlowinTime(ZWDateUtil.getNowDateTime()); //流入时间
+            caseAssist.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+            caseAssist.setHoldDays(0); //持案天数归0
+            caseAssist.setLeaveCaseFlag(0);
+            caseAssist.setMarkId(CaseInfo.Color.NO_COLOR.getValue()); //颜色 无色
+            //更改案件信息
+            CaseInfo caseInfo = caseAssist.getCaseId();
+            caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue()); //协催状态
+            caseInfo.setAssistCollector(user); //协催员
+            caseAssist.setCaseId(caseInfo);
+            caseAssistRepository.save(caseAssist);
+        }
+    }
+
+
 }

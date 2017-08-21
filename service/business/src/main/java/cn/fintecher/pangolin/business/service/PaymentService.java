@@ -101,6 +101,7 @@ public class PaymentService {
             if (Objects.equals(paymentParams.getResult(), 0)) { //减免审批拒绝
                 //更新还款审批信息
                 casePayApply.setApproveStatus(CasePayApply.ApproveStatus.DERATE_AUDIT_REJECT.getValue()); //审批状态 56-减免审批驳回
+                casePayApply.setApproveResult(CasePayApply.ApproveResult.DERATE_REJECT.getValue()); //审核结果 178-减免拒绝
 
                 //更新原案件信息
                 caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue()); //催收状态 21-催收中
@@ -109,7 +110,7 @@ public class PaymentService {
             } else { //减免审批通过
                 //更新还款审批信息
                 casePayApply.setApproveStatus(CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue()); //审批状态 57-还款待审批
-
+                casePayApply.setApproveResult(CasePayApply.ApproveResult.DERATE_AGREE.getValue()); //审核结果 177-减免同意
             }
             casePayApply.setApproveDerateUser(tokenUser.getUserName()); //减免审批人
             casePayApply.setApproveDerateName(tokenUser.getRealName()); //减免审批人姓名
@@ -119,6 +120,7 @@ public class PaymentService {
             if (Objects.equals(paymentParams.getResult(), 0)) { //还款审批拒绝
                 //更新还款审批信息
                 casePayApply.setApproveStatus(CasePayApply.ApproveStatus.AUDIT_REJECT.getValue()); //还款审批拒绝 59-审批拒绝
+                casePayApply.setApproveResult(CasePayApply.ApproveResult.REJECT.getValue()); //审核结果 180-驳回
 
                 //更新原案件信息
                 caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue()); //催收状态 21-催收中
@@ -127,6 +129,7 @@ public class PaymentService {
             } else { //还款审核通过
                 //更新还款审批信息
                 casePayApply.setApproveStatus(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue()); //还款审批状态 58-审核通过
+                casePayApply.setApproveResult(CasePayApply.ApproveResult.AGREE.getValue()); //审核结果 179-入账
 
                 //更新原案件信息
                 if (Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.PARTOVERDUE.getValue())) { //41-部分逾期还款
@@ -166,7 +169,7 @@ public class PaymentService {
                 if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                     if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
                         CaseAssistApply caseAssistApply = caseAssistApplyRepository.findOne(qCaseAssistApply.caseId.eq(caseInfo.getId())
-                                .and(qCaseAssistApply.approvePhoneResult.in(list)));
+                                .and(qCaseAssistApply.approveStatus.in(list)));
                         if (!Objects.isNull(caseAssistApply)) {
                             caseAssistApply = caseInfoService.getCaseAssistApply(caseInfo.getId(), tokenUser, "案件还款强制拒绝");
                             caseAssistApplyRepository.saveAndFlush(caseAssistApply);

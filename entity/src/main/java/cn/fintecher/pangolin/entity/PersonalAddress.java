@@ -23,7 +23,7 @@ public class PersonalAddress extends BaseEntity {
     private String personalId;
     private String operator;
     private Date operatorTime;
-//    private BigDecimal longitude = new BigDecimal(0);
-//    private BigDecimal latitude = new BigDecimal(0);
+    private BigDecimal longitude;
+    private BigDecimal latitude;
 }
 

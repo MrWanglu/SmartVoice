@@ -76,10 +76,11 @@ public class TotalPageAppController extends BaseController {
         }
         cal.set(Calendar.DAY_OF_MONTH,1);
         startDayOfMonth = cal.getTime();
-        userStatisAppModel.setWeekVisitNum(caseFollowupRecordRepository.getCollectionNum(user.getId(), CaseFollowupRecord.Type.VISIT.getValue(),startDate, endDate));
-        userStatisAppModel.setMonthVisitNum(caseFollowupRecordRepository.getCollectionNum(user.getId(), CaseFollowupRecord.Type.VISIT.getValue(),startDayOfMonth, endDate));
-        userStatisAppModel.setWeekAssistNum(caseFollowupRecordRepository.getCollectionNum(user.getId(), CaseFollowupRecord.Type.ASSIST.getValue(),startDate, endDate));
-        userStatisAppModel.setMonthAssistNum(caseFollowupRecordRepository.getCollectionNum(user.getId(), CaseFollowupRecord.Type.ASSIST.getValue(),startDayOfMonth, endDate));
+        userStatisAppModel.setWeekVisitNum(caseFollowupRecordRepository.getCollectionNum(user.getUserName(), CaseFollowupRecord.Type.VISIT.getValue(),startDate, endDate));
+        userStatisAppModel.setMonthVisitNum(caseFollowupRecordRepository.getCollectionNum(user.getUserName(), CaseFollowupRecord.Type.VISIT.getValue(),startDayOfMonth, endDate));
+        userStatisAppModel.setWeekAssistNum(caseFollowupRecordRepository.getCollectionNum(user.getUserName(), CaseFollowupRecord.Type.ASSIST.getValue(),startDate, endDate));
+        userStatisAppModel.setMonthAssistNum(caseFollowupRecordRepository.getCollectionNum(user.getUserName(), CaseFollowupRecord.Type.ASSIST.getValue(),startDayOfMonth, endDate));
+        userStatisAppModel.setCommissionAmt(casePayApplyRepository.queryCommission(user.getUserName(),CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDayOfMonth, endDate));
         userStatisAppModel.setWeekCollectionNum(userStatisAppModel.getWeekVisitNum()+userStatisAppModel.getWeekAssistNum());
         userStatisAppModel.setMonthCollectionNum(userStatisAppModel.getMonthAssistNum()+userStatisAppModel.getMonthVisitNum());
         payList = parseRank(casePayApplyRepository.queryPayList(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDate,endDate,User.Type.VISIT.getValue()),user.getId());

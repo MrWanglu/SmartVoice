@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.webapp;
 import cn.fintecher.pangolin.business.model.CaseFollowupParams;
 import cn.fintecher.pangolin.business.repository.CaseFlowupFileRepository;
 import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.web.BaseController;
 import cn.fintecher.pangolin.entity.*;
@@ -46,6 +47,9 @@ public class CaseFollowupAppController extends BaseController {
 
     @Inject
     CaseInfoService caseInfoService;
+
+    @Inject
+    CaseInfoRepository caseInfoRepository;
 
     @GetMapping("/getAllFollowupsForApp")
     @ApiOperation(value = "APP查询案件跟进记录", notes = "APP查询案件跟进记录")
@@ -94,6 +98,14 @@ public class CaseFollowupAppController extends BaseController {
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+        }
+        CaseInfo caseInfo = caseInfoRepository.findOne(caseFollowupParams.getCaseId());
+        if(Objects.equals(caseInfo.getAssistFlag(),CaseInfo.AssistFlag.NO_ASSIST.getValue())){
+            caseFollowupParams.setSource(CaseFollowupRecord.Source.VISIT.getValue());
+            caseFollowupParams.setType(CaseFollowupRecord.Type.VISIT.getValue());
+        }else{
+            caseFollowupParams.setSource(CaseFollowupRecord.Source.ASSIST.getValue());
+            caseFollowupParams.setType(CaseFollowupRecord.Type.ASSIST.getValue());
         }
         CaseFollowupRecord result = caseInfoService.saveFollowupRecord(caseFollowupParams, user);
         if(Objects.nonNull(caseFollowupParams.getFileIds())){

@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.business.service;
 
 import cn.fintecher.pangolin.business.model.MapModel;
+import cn.fintecher.pangolin.entity.Personal;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -59,8 +60,8 @@ public class AccMapService {
                                     if (StringUtils.isNotBlank(results)) {
                                         JSONObject jsonObject1 = JSONObject.parseObject(results);
                                         JSONObject jsonObject2 = JSONObject.parseObject(jsonObject1.getString("location"));
-                                        model.setLongitude(BigDecimal.valueOf(Double.valueOf(jsonObject2.getString("lng"))));
-                                        model.setLatitude(BigDecimal.valueOf(Double.valueOf(jsonObject2.getString("lat"))));
+                                        model.setLongitude(Double.valueOf(jsonObject2.getString("lng")));
+                                        model.setLatitude(Double.valueOf(jsonObject2.getString("lat")));
                                     } else {
                                         throw new RuntimeException("地址信息无效");
                                     }
