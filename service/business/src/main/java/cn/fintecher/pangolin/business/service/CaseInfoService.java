@@ -948,13 +948,13 @@ public class CaseInfoService {
         //消息提醒
         List<User> userList = userService.getAllHigherLevelManagerByUser(tokenUser.getId());
         List<String> managerIdList = new ArrayList<>();
-        for(User user : userList){
+        for (User user : userList) {
             managerIdList.add(user.getId());
         }
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
         sendReminderMessage.setUserId(tokenUser.getId());
         sendReminderMessage.setTitle("案件提前流转申请");
-        sendReminderMessage.setContent("您有提前流转案件 ["+caseIds.toString()+"] 申请需要审批");
+        sendReminderMessage.setContent("您有提前流转案件 [" + caseIds.toString() + "] 申请需要审批");
         sendReminderMessage.setType(ReminderType.CIRCULATION);
         sendReminderMessage.setCcUserIds(managerIdList.toArray(new String[managerIdList.size()]));
         reminderService.sendReminder(sendReminderMessage);
@@ -1052,7 +1052,7 @@ public class CaseInfoService {
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
         sendReminderMessage.setUserId(tokenUser.getId());
         sendReminderMessage.setTitle("案件提前流转申请结果");
-        sendReminderMessage.setContent("您申请的提前流转案件 ["+caseInfo.getCaseNumber()+"] 申请"+(Objects.equals(circulationApprovalParams.getResult(), 0)?"已通过":"被拒绝"));
+        sendReminderMessage.setContent("您申请的提前流转案件 [" + caseInfo.getCaseNumber() + "] 申请" + (Objects.equals(circulationApprovalParams.getResult(), 0) ? "已通过" : "被拒绝"));
         sendReminderMessage.setType(ReminderType.CIRCULATION);
         reminderService.sendReminder(sendReminderMessage);
     }
@@ -1111,6 +1111,21 @@ public class CaseInfoService {
         List<PersonalAddress> personalAddressList1 = IteratorUtils.toList(personalAddresses2.iterator());
         personalAddressList.addAll(personalAddressList1);
         return personalAddressList;
+    }
+
+    /**
+     * @Descriprion 修改地址状态
+     */
+    public PersonalAddress modifyAddressStatus(PhoneStatusParams phoneStatusParams, User tokenUser) {
+        PersonalAddress personalAddress = personalAddressRepository.findOne(phoneStatusParams.getPersonalContactId());
+        if (Objects.isNull(personalAddress)) {
+            throw new RuntimeException("该联系人信息未找到");
+        }
+        personalAddress.setStatus(phoneStatusParams.getAddressStatus()); //地址状态
+        personalAddress.setOperator(tokenUser.getUserName()); //操作人
+        personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        personalAddressRepository.saveAndFlush(personalAddress);
+        return personalAddress;
     }
 
     @Transactional

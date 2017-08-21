@@ -599,13 +599,13 @@ public class AccVisitPoolController extends BaseController {
      */
     @PutMapping("/modifyAddressStatus")
     @ApiOperation(value = "修改联系人地址状态", notes = "修改联系人地址状态")
-    public ResponseEntity<PersonalContact> modifyPhoneStatus(@RequestBody PhoneStatusParams phoneStatusParams,
+    public ResponseEntity<PersonalAddress> modifyPhoneStatus(@RequestBody PhoneStatusParams phoneStatusParams,
                                                              @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to modify address status");
         try {
             User tokenUser = getUserByToken(token);
-            PersonalContact personalContact = caseInfoService.modifyPhoneStatus(phoneStatusParams, tokenUser);
-            return ResponseEntity.ok().body(personalContact);
+            PersonalAddress personalAddress = caseInfoService.modifyAddressStatus(phoneStatusParams, tokenUser);
+            return ResponseEntity.ok().body(personalAddress);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("修改失败", "personalContact", e.getMessage())).body(null);
