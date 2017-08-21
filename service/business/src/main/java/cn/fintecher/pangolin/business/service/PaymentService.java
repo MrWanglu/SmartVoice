@@ -166,7 +166,7 @@ public class PaymentService {
                 if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                     if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
                         CaseAssistApply caseAssistApply = caseAssistApplyRepository.findOne(qCaseAssistApply.caseId.eq(caseInfo.getId())
-                                .and(qCaseAssistApply.approvePhoneResult.in(list)));
+                                .and(qCaseAssistApply.approveStatus.in(list)));
                         if (!Objects.isNull(caseAssistApply)) {
                             caseAssistApply = caseInfoService.getCaseAssistApply(caseInfo.getId(), tokenUser, "案件还款强制拒绝");
                             caseAssistApplyRepository.saveAndFlush(caseAssistApply);
