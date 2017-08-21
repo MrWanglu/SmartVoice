@@ -16,6 +16,7 @@ public class CaseFlowupFile extends BaseEntity {
     @JoinColumn(name = "followup_id")
     private CaseFollowupRecord followupId;
     private String caseNumber;
+    private String caseId;
     private String fileid;
     private String filetype;
     private String fileurl;
