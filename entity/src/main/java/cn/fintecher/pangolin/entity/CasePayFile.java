@@ -16,4 +16,5 @@ public class CasePayFile extends BaseEntity {
     private String operator;
     private String operatorName;
     private Date operatorTime;
+    private String caseId;
 }

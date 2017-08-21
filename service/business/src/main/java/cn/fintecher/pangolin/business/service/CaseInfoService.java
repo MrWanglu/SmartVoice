@@ -288,6 +288,7 @@ public class CaseInfoService {
                 casePayFile.setOperator(tokenUser.getUserName());
                 casePayFile.setOperatorName(tokenUser.getRealName());
                 casePayFile.setPayId(casePayApply.getId());
+                casePayFile.setCaseId(caseInfo.getId());
                 casePayFileRepository.saveAndFlush(casePayFile);
             }
         }
