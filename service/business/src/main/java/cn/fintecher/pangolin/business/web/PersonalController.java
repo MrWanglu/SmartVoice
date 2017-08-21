@@ -375,37 +375,9 @@ public class PersonalController extends BaseController {
 
     @GetMapping("/getMapInfo")
     @ApiOperation(value = "查询客户地图", notes = "查询客户地图")
-    public ResponseEntity<Personal> getMapInfo(@RequestParam @ApiParam(value = "客户ID", required = true) String personalId,
-                                                      @RequestHeader(value = "X-UserToken") String token){
-        try {
-            User tokenUser = getUserByToken(token);
-            BooleanBuilder builder = new BooleanBuilder();
-            builder.and(QPersonal.personal.companyCode.eq(tokenUser.getCompanyCode()));
-            builder.and(QPersonal.personal.id.eq(personalId));
-            Personal personal = personalRepository.findOne(builder);
-            if(Objects.isNull(personal.getLongitude()) || Objects.isNull(personal.getLatitude())){
-                MapModel model = accMapService.getAddLngLat(personal.getLocalHomeAddress());
-                personal.setLongitude(BigDecimal.valueOf(model.getLongitude()));
-                personal.setLatitude(BigDecimal.valueOf(model.getLatitude()));
-            }
-            Set<PersonalAddress> personalAddresses = personal.getPersonalAddresses();
-            personalAddresses.forEach(e->{
-                if(Objects.isNull(e.getLongitude()) || Objects.isNull(e.getLatitude())){
-                    try {
-                        MapModel model = accMapService.getAddLngLat(e.getDetail());
-                        e.setLatitude(BigDecimal.valueOf(model.getLatitude()));
-                        e.setLongitude(BigDecimal.valueOf(model.getLongitude()));
-                    }catch(Exception e1){
-                        e1.getMessage();
-                    }
-                }
-            });
-            personalRepository.saveAndFlush(personal);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功",null)).body(personal);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", null, e.getMessage())).body(null);
-        }
+    public ResponseEntity<MapModel> getMapInfo(@RequestParam @ApiParam(value = "客户ID", required = true) String address){
+        MapModel model = accMapService.getAddLngLat(address);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功",null)).body(model);
     }
 
 }
