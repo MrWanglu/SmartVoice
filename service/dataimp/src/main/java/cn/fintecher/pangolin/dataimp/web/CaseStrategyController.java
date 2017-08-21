@@ -332,7 +332,7 @@ public class CaseStrategyController  {
             logger.error(ex.getMessage(), ex);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "删除分配策略规则失败")).body(null);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "分配成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "删除成功")).body(null);
     }
     private String analysisRule(String jsonObject, StringBuilder stringBuilder) {
         String result = "";
