@@ -4,6 +4,13 @@ import cn.fintecher.pangolin.business.model.SysNotice;
 import cn.fintecher.pangolin.business.repository.BatchManageRepository;
 import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
+import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.service.JobTaskService;
+import cn.fintecher.pangolin.business.service.OverNightBatchService;
+import cn.fintecher.pangolin.entity.BatchManage;
+import cn.fintecher.pangolin.entity.QSysParam;
+import cn.fintecher.pangolin.entity.SysParam;
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -14,6 +21,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +31,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,7 +60,17 @@ public class BatchManageController extends BaseController{
     private BatchManageRepository batchManageRepository;
 
     @Autowired
+    private JobExecutionContext jobExecutionContext;
+
+    @Autowired
+    private JobTaskService jobTaskService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private CompanyRepository companyRepository;
+
 
     @GetMapping("/getBatchSysNotice")
     @ApiOperation(notes = "首页批量系统公告", value = "首页批量系统公告")
@@ -96,7 +116,7 @@ public class BatchManageController extends BaseController{
         }
     }
 
-    @GetMapping("/getBatchManage")
+    @GetMapping("/batchManage")
     @ApiOperation(value = "多条件查询批量处理记录", notes = "多条件查询批量处理记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -106,7 +126,7 @@ public class BatchManageController extends BaseController{
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<BatchManage>> getBatchManage(@QuerydslPredicate(root = BatchManage.class) Predicate predicate,
+    public ResponseEntity<Page<BatchManage>> batchManage(@QuerydslPredicate(root = BatchManage.class) Predicate predicate,
                                                             @ApiIgnore Pageable pageable,
                                                             @RequestHeader(value = "X-UserToken") String token) {
         User user;
@@ -121,4 +141,58 @@ public class BatchManageController extends BaseController{
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","batchManageController")).body(page);
     }
 
+
+    @GetMapping("/batchManage")
+    @ApiOperation(value = "批量处理", notes = "批量处理")
+    public ResponseEntity<Page<BatchManage>> batchManage() {
+        JobDataMap jobDataMap = jobExecutionContext.getTrigger().getJobDataMap();
+        StopWatch watch = new StopWatch();
+        watch.start();
+        try {
+            logger.info("开始晚间批量_{} ", jobDataMap.get("sysParamCode"));
+            if (jobTaskService.checkJobIsRunning(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"))) {
+                logger.info("晚间批量正在执行_{}", jobDataMap.get("sysParamCode"));
+            } else {
+                //获取超级管理员信息
+                User user = userRepository.findOne(Constants.ADMINISTRATOR_ID);
+                //批量状态修改为正在执行
+                jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"), Constants.BatchStatus.RUNING.getValue());
+                //批量步骤
+                SysParam sysParam = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP);
+                String step = sysParam.getValue();
+                switch (step) {
+
+                    case "5":
+                        step = "0";
+                    case "0":
+                        step = "1";
+                        overNightBatchService.doOverNightOne(jobDataMap, step);
+                    case "1":
+                        step = "2";
+                        overNightBatchService.doOverNightTwo(jobDataMap, step, user);
+                    case "2":
+                        step = "3";
+                        overNightBatchService.doOverNightThree(jobDataMap, step, user);
+                    case "3":
+                        step = "4";
+                        overNightBatchService.doOverNightFour(jobDataMap, step, user);
+                    case "4":
+                        step = "5";
+                        overNightBatchService.doOverNightFive(jobDataMap, step);
+                    case "5":
+                        step = "6";
+                        overNightBatchService.doOverNightSix(jobDataMap, step);
+                    default:
+                        break;
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            //批量状态修改为未执行
+            jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"), Constants.BatchStatus.STOP.getValue());
+            watch.stop();
+            logger.info("结束晚间批量 {} ,耗时: {} 毫秒", jobDataMap.get("sysParamCode"), watch.getTotalTimeMillis());
+        }
+    }
 }
