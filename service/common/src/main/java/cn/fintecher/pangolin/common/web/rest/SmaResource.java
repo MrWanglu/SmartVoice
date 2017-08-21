@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.common.web.rest;
 
 
+import cn.fintecher.pangolin.common.model.SmaErpv3Return;
 import cn.fintecher.pangolin.common.service.CallService;
 import cn.fintecher.pangolin.common.service.SmaRequestService;
 import cn.fintecher.pangolin.entity.message.AddTaskVoiceFileMessage;
@@ -24,6 +25,7 @@ import springfox.documentation.annotations.ApiIgnore;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/smaResource")
@@ -55,13 +57,13 @@ public class SmaResource {
         // 是当前坐席id
         paramMap.put("taskcallerid", request.getTaskcallerId());
         paramMap.put("salesmanCode", "");
-        ResponseEntity<Map<String, String>> result = smaRequestService.smaRequest("addTaskVoiceFileBytaskId.html", paramMap);
-        if (result.getStatusCode().is2xxSuccessful()) {
-            Map<String, String> resultMap = result.getBody();
+        SmaErpv3Return smaErpv3Return = smaRequestService.smaRequest("addTaskVoiceFileBytaskId.html", paramMap);
+        if (Objects.equals("success",smaErpv3Return.getSign())) {
+            Map<String, String> resultMap = smaErpv3Return.getMap();
             log.info("{} 获取录音成功:{}", request.getRecorderId(), resultMap);
             return ResponseEntity.ok().body(resultMap.get("taskVoiceFileUrl"));
         } else {
-            log.info("{} {}", request.getRecorderId(), result.getHeaders().get("X-pangolin-alert"));
+            log.info("{} {}", request.getRecorderId());
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
     }

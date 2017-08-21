@@ -38,6 +38,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -86,7 +87,8 @@ public class TemplateDataModelController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity getExcelTemplateList(@QuerydslPredicate(root = TemplateDataModel.class) Predicate predicate,@RequestHeader(value = "X-UserToken") String token,
+    public ResponseEntity getExcelTemplateList(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                               @QuerydslPredicate(root = TemplateDataModel.class) Predicate predicate,@RequestHeader(value = "X-UserToken") String token,
                                                @ApiIgnore Pageable pageable) {
         try {
             ResponseEntity<User> userResponseEntity=null;
@@ -98,7 +100,14 @@ public class TemplateDataModelController {
             }
             User user=userResponseEntity.getBody();
             BooleanBuilder builder = new BooleanBuilder(predicate);
-           builder.and(QTemplateDataModel.templateDataModel.companyCode.eq(user.getCompanyCode()));
+            if(Objects.isNull(user.getCompanyCode())){
+                if(Objects.isNull(companyCode)){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("templateDataModel", "TemplateDataModel", "请选择公司")).body(null);
+                }
+                builder.and(QTemplateDataModel.templateDataModel.companyCode.eq(companyCode));
+            }else{
+                builder.and(QTemplateDataModel.templateDataModel.companyCode.eq(user.getCompanyCode()));
+            }
             Page<TemplateDataModel> page = templateDataModelRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/accImportExcelDataController/getExcelTemplateList");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);

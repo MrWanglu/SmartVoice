@@ -375,29 +375,9 @@ public class PersonalController extends BaseController {
 
     @GetMapping("/getMapInfo")
     @ApiOperation(value = "查询客户地图", notes = "查询客户地图")
-    public ResponseEntity<MapModel> getMapInfo(@RequestParam @ApiParam(value = "客户ID", required = true) String personalId,
-                                                      @RequestHeader(value = "X-UserToken") String token){
-        try {
-            User tokenUser = getUserByToken(token);
-            BooleanBuilder builder = new BooleanBuilder();
-            builder.and(QPersonal.personal.companyCode.eq(tokenUser.getCompanyCode()));
-            builder.and(QPersonal.personal.id.eq(personalId));
-            Personal personal = personalRepository.findOne(builder);
-            MapModel model = new MapModel();
-            model.setAddress(personal.getLocalHomeAddress());
-            if(Objects.isNull(personal.getLongitude()) || Objects.isNull(personal.getLatitude())){
-                model = accMapService.getAddLngLat(personal.getLocalHomeAddress());
-                personal.setLongitude(BigDecimal.valueOf(model.getLongitude()));
-                personal.setLatitude(BigDecimal.valueOf(model.getLatitude()));
-                personalRepository.saveAndFlush(personal);
-            }
-            model.setLatitude(personal.getLatitude().doubleValue());
-            model.setLongitude(personal.getLongitude().doubleValue());
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功",null)).body(model);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", null, e.getMessage())).body(null);
-        }
+    public ResponseEntity<MapModel> getMapInfo(@RequestParam @ApiParam(value = "客户ID", required = true) String address){
+        MapModel model = accMapService.getAddLngLat(address);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功",null)).body(model);
     }
 
 }

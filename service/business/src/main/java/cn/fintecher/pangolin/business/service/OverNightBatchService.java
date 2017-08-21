@@ -1,8 +1,6 @@
 package cn.fintecher.pangolin.business.service;
 
-import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
-import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
+import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -19,10 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @Author: PeiShouWen
@@ -50,6 +45,15 @@ public class OverNightBatchService {
 
     @Autowired
     CaseTurnRecordRepository caseTurnRecordRepository;
+
+    @Autowired
+    BatchManageRepository batchManageRepository;
+
+    @Autowired
+    CasePayApplyRepository casePayApplyRepository;
+
+    @Autowired
+    CaseAssistApplyRepository caseAssistApplyRepository;
 
     /**
      * 重置批次号和案件编号
@@ -223,6 +227,44 @@ public class OverNightBatchService {
             throw new Exception(jobDataMap.getString("sysParamCode").concat("案件相关天数更新批量失败"));
         }
     }
+    /**
+     * 协催审批失效
+     */
+    @Transactional
+    public void doOverNightSix(JobDataMap jobDataMap, String step) throws Exception {
+        QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
+        JPAQuery<CaseAssistApply> jpaQuery = new JPAQuery<>(entityManager);
+        Date nowDate = ZWDateUtil.getNowDate();
+        Set<String> idset = new HashSet<>();
+        try {
+            //电催审批失效配置参数
+            SysParam sysParam1 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYS_PHNOEFLOW_ADVANCEDAYS);
+            List<CaseAssistApply> caseInfoList1 = approvePhoneCase(qCaseAssistApply, jpaQuery, sysParam1, CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue());
+            for(CaseAssistApply caseAssistApply:caseInfoList1){
+                idset.add(caseAssistApply.getCaseId());
+            }
+            //电催审批失效更新
+            updatePhoneCase(caseInfoList1,nowDate);
+
+            //外访审批失效配置参数
+            SysParam sysParam2 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYS_OUTBOUNDFLOW_ADVANCEDAYS);
+            List<CaseAssistApply> caseInfoList2 = approvePhoneCase(qCaseAssistApply, jpaQuery, sysParam2, CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue());
+            for(CaseAssistApply caseAssistApply:caseInfoList2){
+                idset.add(caseAssistApply.getCaseId());
+            }
+            //外访审批失效更新
+            updatePhoneCase(caseInfoList2,nowDate);
+            //修改案件协催状态
+            if (!idset.isEmpty()) {
+                caseInfoRepository.updateCaseStatusToCollectioning(idset);
+            }
+            //更新批量步骤
+            jobTaskService.updateSysparam(jobDataMap.getString("sysParamCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception(jobDataMap.getString("sysParamCode").concat("协催审批更新批量失败"));
+        }
+    }
 
     /**
      * 留案案件查询
@@ -345,13 +387,40 @@ public class OverNightBatchService {
             caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
             caseTurnRecord.setReceiveUserRealName(user.getRealName()); //接受人名称
             caseTurnRecord.setReceiveDeptName(trunDeptName);
-            caseTurnRecord.setCirculationType(1); //流转类型 1-自动流转
+            caseTurnRecord.setCirculationType(CaseTurnRecord.circulationTypeEnum.AUTO.getValue()); //流转类型 1-自动流转
             caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
             caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseTurnRecordList.add(caseTurnRecord);
         }
         caseTurnRecordRepository.save(caseTurnRecordList);
         caseInfoRepository.save(caseInfoList);
+    }
+    /**
+     * 电催/外访待审批
+     */
+    private List<CaseAssistApply> approvePhoneCase(QCaseAssistApply qCaseAssistApply, JPAQuery<CaseAssistApply> jpaQuery, SysParam sysParam, Integer type) {
+        jpaQuery.select(qCaseAssistApply)
+                .from(QCaseAssistApply.caseAssistApply);
+        jpaQuery.where(qCaseAssistApply.approveStatus.eq(type)
+                .and(qCaseAssistApply.applyInvalidTime.loe(ZWDateUtil.getNowDate()))
+                .and(qCaseAssistApply.companyCode.eq(sysParam.getCompanyCode())) //公司码
+        );
+
+        return jpaQuery.fetch();
+    }
+
+    /**
+     * 更新电催审批状态和审批结果
+     * @param caseInfoList1
+     * @param date
+     */
+    public void updatePhoneCase(List<CaseAssistApply> caseInfoList1,Date date){
+        for(CaseAssistApply caseAssistApply:caseInfoList1){
+            caseAssistApply.setApproveStatus(CaseAssistApply.ApproveStatus.FAILURE.getValue());//审批状态
+            caseAssistApply.setApprovePhoneResult(CaseAssistApply.ApproveResult.OUT_DATE.getValue());//审批结果
+            caseAssistApplyRepository.save(caseAssistApply);
+        }
+
     }
 
 }

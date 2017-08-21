@@ -420,6 +420,7 @@ public class OutsourcePoolController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfo>> getAllOutCase(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                         @ApiIgnore Pageable pageable,
+                                                        @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                         @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("REST request to get all case");
         List<Integer> list = new ArrayList<>();
@@ -432,7 +433,7 @@ public class OutsourcePoolController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+            builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode)); //限制公司code码
             builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
             builder.and(QCaseInfo.caseInfo.collectionStatus.in(list)); //不查询已结案、已还款案件
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);

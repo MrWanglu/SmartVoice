@@ -800,7 +800,7 @@ public class CaseInfoService {
         list.add(CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue()); // 34-外访待审批
         QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
         CaseAssistApply caseAssistApply = caseAssistApplyRepository.findOne(qCaseAssistApply.caseId.eq(caseId)
-                .and(qCaseAssistApply.approvePhoneResult.in(list)));
+                .and(qCaseAssistApply.approveStatus.in(list)));
         if (Objects.isNull(caseAssistApply)) {
             throw new RuntimeException("协催申请记录未找到");
         }
