@@ -53,7 +53,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/caseStrategyController")
 @Api(value = "", description = "案件策略")
-public class CaseStrategyController  {
+public class CaseStrategyController {
     @Autowired
     private CaseStrategyRepository caseStrategyRepository;
     @Autowired
@@ -148,7 +148,7 @@ public class CaseStrategyController  {
     @ApiModelProperty
     @PostMapping("/smartDistribute")
     @ApiOperation(value = "策略分配案件", notes = "策略分配案件")
-    public ResponseEntity smartDistribute( @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
+    public ResponseEntity smartDistribute(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
         List<CaseStrategy> caseStrategies = caseStrategyRepository.findAll(new Sort(Sort.Direction.ASC, "priority"));
         if (caseStrategies.isEmpty()) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no strategy", "没有查询到的分配策略")).body("");
@@ -158,7 +158,7 @@ public class CaseStrategyController  {
         //接收案件列表信息
         List<String> dataList = null;
         //计算平均分配案件数
-       // List<Integer> disNumList = new ArrayList<>();
+        // List<Integer> disNumList = new ArrayList<>();
         for (CaseStrategy caseStrategy : caseStrategies) {
             //得到符合分配策略的案件 caseInfos
             List<CaseInfoDistributed> caseInfos = runCaseRun(caseStrategy, false);
@@ -188,10 +188,10 @@ public class CaseStrategyController  {
                 List<String> deptOrUserList = null;
                 if (caseStrategy.getAssignType().equals(CaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
                     //所要分配 机构id
-                      deptOrUserList =caseStrategy.getDepartments();
+                    deptOrUserList = caseStrategy.getDepartments();
                 } else if (caseStrategy.getAssignType().equals(CaseInfoDisModel.DisType.USER_WAY.getValue())) {
                     //得到所有用户ID
-                    deptOrUserList =caseStrategy.getUsers();
+                    deptOrUserList = caseStrategy.getUsers();
                 }
                 for (int i = 0; i < (deptOrUserList != null ? deptOrUserList.size() : 0); i++) {
                     //如果按机构分配则是机构的ID，如果是按用户分配则是用户ID
@@ -268,7 +268,7 @@ public class CaseStrategyController  {
                             } else {
                                 caseTurnRecord.setReceiveDeptName(caseInfo.getDepartment().getName());
                             }
-                            caseTurnRecord.setCollectionType(3); //流转类型 3-正常流转
+                            caseTurnRecord.setCirculationType(3); //流转类型 3-正常流转
                             caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员
                             caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                             caseTurnRecordList.add(caseTurnRecord);
@@ -288,7 +288,7 @@ public class CaseStrategyController  {
                     }
                 }
                 //保存案件信息
-              //  restTemplate.postForEntity(Constants.BUSINESS_SERVICE_URL.concat("saveCaseInfo"), caseInfoObjList, CaseInfo.class);
+                //  restTemplate.postForEntity(Constants.BUSINESS_SERVICE_URL.concat("saveCaseInfo"), caseInfoObjList, CaseInfo.class);
                 //保存流转记录
                 restTemplate.postForEntity(Constants.BUSINESS_SERVICE_URL.concat("saveCaseInfoRecord"), caseTurnRecordList, CaseTurnRecord.class);
                 //保存修复信息
@@ -301,6 +301,7 @@ public class CaseStrategyController  {
         }
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "分配成功")).body(caseInfoObjList);
     }
+
     @ApiModelProperty
     @GetMapping("/findCaseStrategy")
     @ApiOperation(value = "检查策略名称是否重复", notes = "检查策略名称是否重复")
@@ -309,16 +310,17 @@ public class CaseStrategyController  {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no name", "没有输入策略名称")).body(null);
         }
         try {
-           CaseStrategy caseStrategy = caseStrategyRepository.findOne(QCaseStrategy.caseStrategy.name.eq(name));
-           if(Objects.nonNull(caseStrategy)){
-               return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Strategy's name has exist", "该策略名称已存在")).body(null);
-           }
+            CaseStrategy caseStrategy = caseStrategyRepository.findOne(QCaseStrategy.caseStrategy.name.eq(name));
+            if (Objects.nonNull(caseStrategy)) {
+                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Strategy's name has exist", "该策略名称已存在")).body(null);
+            }
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "检查策略名称失败")).body(null);
         }
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "策略名称没有重复")).body(null);
     }
+
     @ApiModelProperty
     @GetMapping("/deleteCaseStrategy")
     @ApiOperation(value = "删除分配策略", notes = "删除分配策略")
@@ -334,6 +336,7 @@ public class CaseStrategyController  {
         }
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "删除成功")).body(null);
     }
+
     private String analysisRule(String jsonObject, StringBuilder stringBuilder) {
         String result = "";
         if (Objects.isNull(jsonObject) || jsonObject.isEmpty()) {
@@ -425,12 +428,12 @@ public class CaseStrategyController  {
             disNumList.add(number + caseInfoModelsTemp.size() % dataList.size());
         } else {
             for (int i = 0; i < dataList.size(); i++) {
-                if(i < caseInfoModelsTemp.size()){//如果人数暂时小于案件数
+                if (i < caseInfoModelsTemp.size()) {//如果人数暂时小于案件数
                     disNumList.add(1);
-                }else{
+                } else {
                     disNumList.add(0);
                 }
-                int num = dataList.size()-caseInfoModelsTemp.size();//分不到案件的人数
+                int num = dataList.size() - caseInfoModelsTemp.size();//分不到案件的人数
                 //disNumList.add(1);
             }
         }
