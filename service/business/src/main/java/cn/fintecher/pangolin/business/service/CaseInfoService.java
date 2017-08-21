@@ -647,48 +647,18 @@ public class CaseInfoService {
                 for (int i = 0; i < caseCount; i++) {
                     CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(i)); //获得案件信息
                     if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
-                        if (!Objects.equals(caseInfo.getCollectionType(), CaseInfo.CollectionType.VISIT.getValue())) { //不是协催案件
-                            if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                                CaseAssistApply caseAssistApply = getCaseAssistApply(caseIds.get(i), tokenUser, "案件流转强制拒绝");
-                                caseAssistApplies.add(caseAssistApply);
-                            } else { //有协催案件
-                                CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseIds.get(i)).
-                                        and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
-                                if (Objects.isNull(caseAssist)) {
-                                    throw new RuntimeException("协催案件未找到");
-                                }
-                                caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
-                                caseAssist.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-                                caseAssist.setOperator(tokenUser); //操作员
-                                caseAssists.add(caseAssist);
-
-                                //同步更新原案件协催员，协催方式，协催标识，协催状态
-                                caseInfo.setAssistCollector(null); //协催员置空
-                                caseInfo.setAssistWay(null); //协催方式置空
-                                caseInfo.setAssistFlag(0); //协催标识 0-否
-                                caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
-
-                                //协催结束新增一条流转记录
-                                CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
-                                BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
-                                caseTurnRecord.setId(null); //主键置空
-                                caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
-                                caseTurnRecord.setDepartId(caseInfo.getCurrentCollector().getDepartment().getId()); //部门ID
-                                caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
-                                caseTurnRecord.setReceiveDeptName(batchInfoModel.getCollectionUser().getDepartment().getName()); //接收部门名称
-                                caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
-                                caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
-                                caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
-                                caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
-                                caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-                                caseTurnRecords.add(caseTurnRecord);
-                            }
-                        } else { //是协催案件
+                        if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
+                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseIds.get(i), tokenUser, "案件流转强制拒绝");
+                            caseAssistApplies.add(caseAssistApply);
+                        } else { //有协催案件
                             CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseIds.get(i)).
-                                    and(qCaseAssist.assistStatus.in(28, 117, 118)));
+                                    and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
                             if (Objects.isNull(caseAssist)) {
                                 throw new RuntimeException("协催案件未找到");
                             }
+                            caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
+                            caseAssist.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                            caseAssist.setOperator(tokenUser); //操作员
                             caseAssist.setLatelyCollector(caseAssist.getCurrentCollector()); //上一个协催员
                             caseAssist.setAssistCollector(batchInfoModel.getCollectionUser()); //协催员
                             caseAssist.setOperator(tokenUser); //操作员
@@ -696,6 +666,27 @@ public class CaseInfoService {
                             caseAssist.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                             caseAssist.setHoldDays(0); //持案天数归0
                             caseAssists.add(caseAssist);
+
+                            //同步更新原案件协催员，协催方式，协催标识，协催状态
+                            caseInfo.setAssistCollector(null); //协催员置空
+                            caseInfo.setAssistWay(null); //协催方式置空
+                            caseInfo.setAssistFlag(0); //协催标识 0-否
+                            caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
+
+                            //协催结束新增一条流转记录
+                            CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+                            BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
+                            caseTurnRecord.setId(null); //主键置空
+                            caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
+                            caseTurnRecord.setDepartId(caseInfo.getCurrentCollector().getDepartment().getId()); //部门ID
+                            caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
+                            caseTurnRecord.setReceiveDeptName(batchInfoModel.getCollectionUser().getDepartment().getName()); //接收部门名称
+                            caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
+                            caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
+                            caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
+                            caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
+                            caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                            caseTurnRecords.add(caseTurnRecord);
 
                             //同步更新原案件协催员
                             caseInfo.setAssistCollector(batchInfoModel.getCollectionUser()); //协催员
@@ -726,6 +717,7 @@ public class CaseInfoService {
             caseAssistApplyRepository.save(caseAssistApplies);
             caseTurnRecordRepository.save(caseTurnRecords);
         }
+
     }
 
 
@@ -1522,7 +1514,7 @@ public class CaseInfoService {
         caseTurnRecordRepository.save(caseTurnRecords);
     }
 
-    public void receiveCaseAssist(String id, User user){
+    public void receiveCaseAssist(String id, User user) {
         synchronized (this) {
             CaseAssist caseAssist = caseAssistRepository.findOne(id);
             //更改协催案件信息
