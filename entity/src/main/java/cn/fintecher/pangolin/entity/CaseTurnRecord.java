@@ -28,9 +28,6 @@ public class CaseTurnRecord {
     @ApiModelProperty(notes = "案件编号")
     private String caseNumber;
 
-    @ApiModelProperty(notes = "催收类型")
-    private Integer collectionType;
-
     @ApiModelProperty(notes = "催收状态")
     private Integer collectionStatus;
 
