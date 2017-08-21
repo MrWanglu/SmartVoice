@@ -4,7 +4,10 @@ import cn.fintecher.pangolin.business.model.SysNotice;
 import cn.fintecher.pangolin.business.repository.BatchManageRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.service.OverNightBatchService;
-import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.BatchManage;
+import cn.fintecher.pangolin.entity.QSysParam;
+import cn.fintecher.pangolin.entity.SysParam;
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -14,7 +17,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import org.quartz.JobDataMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +24,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
-
 import javax.inject.Inject;
 import java.util.Objects;
 
@@ -99,18 +103,6 @@ public class BatchManageController extends BaseController{
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
         Page<BatchManage> page = batchManageRepository.findAll(booleanBuilder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","batchManageController")).body(page);
-    }
-
-    @GetMapping("/handleBatchSeq")
-    @ApiOperation(value = "批次号重置", notes = "批次号重置")
-    public ResponseEntity handleBatchSeq(JobDataMap jobDataMap, String step) {
-        try {
-            overNightBatchService.doOverNightOne(jobDataMap,step);
-        }catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","批次号重置失败")).body(null);
-        }
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("批次号重置成功","batchManageController")).body(null);
     }
 
 }
