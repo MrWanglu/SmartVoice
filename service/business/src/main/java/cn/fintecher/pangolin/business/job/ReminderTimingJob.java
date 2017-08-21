@@ -57,7 +57,7 @@ public class ReminderTimingJob implements Job{
             for (Company company : companyList) {
                 QSysParam qSysParam = QSysParam.sysParam;
                 SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
-                        .and(qSysParam.code.eq(Constants.SYSPARAM_OVERNIGHT))
+                        .and(qSysParam.code.eq(Constants.SYSPARAM_REMIDER))
                         .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
                 if (Objects.nonNull(sysParam)) {
                     String cronString = sysParam.getValue();
