@@ -633,8 +633,8 @@ public class AccTelPoolController extends BaseController {
         log.debug("REST request to get tel pending case");
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CirculationStatus.PHONE_WAITING.getValue()); //197-电催流转待审批
-        list.add(CaseInfo.CirculationStatus.PHONE_PASS.getValue()); //198-电催流转通过
-        list.add(CaseInfo.CirculationStatus.PHONE_REFUSE.getValue()); //199-电催流转拒绝
+//        list.add(CaseInfo.CirculationStatus.PHONE_PASS.getValue()); //198-电催流转通过
+//        list.add(CaseInfo.CirculationStatus.PHONE_REFUSE.getValue()); //199-电催流转拒绝
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);

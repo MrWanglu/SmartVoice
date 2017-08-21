@@ -551,8 +551,8 @@ public class AccVisitPoolController extends BaseController {
         log.debug("REST request to get visit pending case");
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CirculationStatus.VISIT_WAITING.getValue()); //200-外访流转待审批
-        list.add(CaseInfo.CirculationStatus.VISIT_PASS.getValue()); //201-外访流转通过
-        list.add(CaseInfo.CirculationStatus.VISIT_REFUSE.getValue()); //202-外访流转拒绝
+//        list.add(CaseInfo.CirculationStatus.VISIT_PASS.getValue()); //201-外访流转通过
+//        list.add(CaseInfo.CirculationStatus.VISIT_REFUSE.getValue()); //202-外访流转拒绝
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
