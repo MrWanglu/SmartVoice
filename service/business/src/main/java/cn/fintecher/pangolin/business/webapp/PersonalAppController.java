@@ -8,6 +8,7 @@ import cn.fintecher.pangolin.business.repository.PersonalContactRepository;
 import cn.fintecher.pangolin.business.repository.PersonalRepository;
 import cn.fintecher.pangolin.business.web.BaseController;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
@@ -112,7 +113,7 @@ public class PersonalAppController extends BaseController {
         PersonalAddress personalAddress = new PersonalAddress();
         BeanUtils.copyProperties(personalRepairInfo, personalAddress);
         BeanUtils.copyProperties(personalRepairInfo.getAddressList().get(0),personalAddress);
-        personalAddress.setSource(147);
+        personalAddress.setSource(Constants.DataSource.REPAIR.getValue());
         personalAddress.setOperator(user.getId());
         personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
         personalAddressRepository.saveAndFlush(personalAddress);
@@ -121,7 +122,7 @@ public class PersonalAppController extends BaseController {
             BeanUtils.copyProperties(personalRepairInfo, personalContact);
             BeanUtils.copyProperties(personalRepairInfo.getPhoneList().get(0), personalContact);
             BeanUtils.copyProperties(personalRepairInfo.getSocialList().get(i),personalContact);
-            personalContact.setSource(147);
+            personalContact.setSource(Constants.DataSource.REPAIR.getValue());
             personalContact.setOperator(user.getId());
             personalContact.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactRepository.saveAndFlush(personalContact);

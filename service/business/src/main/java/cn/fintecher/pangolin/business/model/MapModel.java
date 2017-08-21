@@ -12,6 +12,6 @@ import java.math.BigDecimal;
 @Data
 public class MapModel {
     private String address;
-    private BigDecimal longitude;
-    private BigDecimal latitude;
+    private double longitude;
+    private double latitude;
 }

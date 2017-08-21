@@ -66,7 +66,40 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
     /**
      @Description 获得周回款榜
      */
-    @Query(value = "select sum(apply_pay_amt) as amt, apply_real_name, u.id, u.photo from case_pay_apply c,user u where c.apply_user_name = u.user_name and apply_date >= :startDate and apply_date <= :endDate " +
-            "and approve_status=:approveStatu and u.type = :type  group by id, apply_real_name order by amt desc",nativeQuery = true)
+    @Query(value = "select sum(a.apply_pay_amt) as amt,u.real_name,u.id,u.photo from " +
+            "( " +
+            "select apply_pay_amt,apply_user_name from case_pay_apply " +
+            "where approve_pay_datetime >=:startDate " +
+            "and approve_pay_datetime <=:endDate " +
+            "and approve_status=:approveStatu " +
+            ") as a " +
+            "inner join " +
+            "( " +
+            "select id,real_name,photo,user_name from `user` " +
+            "where type = :type " +
+            ") as u " +
+            "on u.user_name = a.apply_user_name " +
+            "GROUP BY " +
+            "id " +
+            "order by " +
+            "amt desc",nativeQuery = true)
     List<Object[]> queryPayList(@Param("approveStatu") Integer approveStatu, @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type);
+
+    /**
+     * @Description 本月催收佣金
+     */
+    @Query(value = "select sum(a.apply_pay_amt*c.commission_rate/100) from " +
+            "( " +
+            "select commission_rate,id from case_info " +
+            ") as c " +
+            "inner join " +
+            "( " +
+            "select apply_pay_amt,case_id from case_pay_apply " +
+            "where approve_status=:approveStatu " +
+            "and apply_user_name =:username " +
+            "and approve_pay_datetime >=:startDate " +
+            "and approve_pay_datetime <=:endDate " +
+            ") as a " +
+            "on a.case_id = c.id",nativeQuery = true)
+    BigDecimal queryCommission(@Param("username") String username,@Param("approveStatu") Integer approveStatu, @Param("startDate") Date startDate, @Param("endDate") Date endDate);
 }
