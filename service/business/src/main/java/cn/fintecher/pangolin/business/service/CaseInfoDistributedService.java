@@ -172,7 +172,7 @@ public class CaseInfoDistributedService {
                         } else {
                             caseTurnRecord.setReceiveDeptName(caseInfo.getDepartment().getName());
                         }
-                        caseTurnRecord.setCollectionType(3); //流转类型 3-正常流转
+                        caseTurnRecord.setCirculationType(3); //流转类型 3-正常流转
                         caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
                         caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                         caseTurnRecordList.add(caseTurnRecord);
