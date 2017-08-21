@@ -66,6 +66,8 @@ public class CaseAssistController extends BaseController {
     private UserService userService;
     @Inject
     private CaseAssistApplyRepository caseAssistApplyRepository;
+    @Inject
+    private CaseTurnRecordRepository caseTurnRecordRepository;
 
     @GetMapping("/closeCaseAssist")
     @ApiOperation(value = "结束协催", notes = "结束协催")
@@ -474,18 +476,57 @@ public class CaseAssistController extends BaseController {
         }
         try {
             List<String> assistIds = assistCaseBatchModel.getAssistIds();
-            List<CaseAssist> all = caseAssistRepository.findAll(assistIds);
-            List<String> caseInfoIds = new ArrayList<>();
-            all.forEach(e -> caseInfoIds.add(e.getCaseId().getId()));
-            BatchDistributeModel batchDistributeModel = new BatchDistributeModel();
-            BeanUtils.copyProperties(assistCaseBatchModel, batchDistributeModel);
-            batchDistributeModel.setCaseIds(caseInfoIds);
-            try {
-                caseInfoService.batchCase(batchDistributeModel, user);
-            } catch (final Exception e) {
-                log.error(e.getMessage(), e);
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "batchCaseAssist", e.getMessage())).body(null);
+            List<CaseAssist> all = caseAssistRepository.findAll(assistIds); //要分配的所有协催案件
+            List<BatchInfoModel> batchInfoModelList = assistCaseBatchModel.getBatchInfoModelList();//分配信息
+            List<CaseAssist> caseAssistList = new ArrayList<>();
+            List<CaseTurnRecord> caseTurnRecordList = new ArrayList<>();
+            int total = 0;
+            for (BatchInfoModel batchInfoModel : batchInfoModelList) {
+                Integer caseCount = batchInfoModel.getDistributionCount(); //分配案件数
+                if (0 == caseCount) {
+                    continue;
+                }
+                if (!Objects.equals(batchInfoModel.getCollectionUser().getType(), User.Type.VISIT.getValue())) { //接收人不为外访
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "batchCaseAssist", "协催案件不能分配给外访以外的人员!")).body(null);
+                }
+                for (int i = 0; i < caseCount; i++) {
+                    //修改协催案件和原案件
+                    CaseAssist caseAssist = all.get(total);
+                    CaseInfo caseId = caseAssist.getCaseId();
+                    caseAssist.setLatelyCollector(caseAssist.getAssistCollector());
+                    caseId.setAssistCollector(batchInfoModel.getCollectionUser());
+                    caseAssist.setCaseId(caseId);
+                    caseAssist.setDepartId(batchInfoModel.getCollectionUser().getDepartment().getId());
+                    caseAssist.setAssistCollector(batchInfoModel.getCollectionUser());
+                    caseAssist.setCaseFlowinTime(new Date());
+                    caseAssist.setOperatorTime(new Date());
+                    caseAssist.setOperator(user);
+                    caseAssist.setHoldDays(0);
+                    caseAssist.setMarkId(CaseInfo.Color.NO_COLOR.getValue());
+                    caseAssistList.add(caseAssist);
+
+                    //增加流转记录
+                    CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+                    BeanUtils.copyProperties(caseAssist.getCaseId(), caseTurnRecord);
+                    caseTurnRecord.setCaseId(caseAssist.getCaseId().getId());//案件ID
+                    caseTurnRecord.setCaseNumber(caseAssist.getCaseId().getCaseNumber());//案件编号
+                    caseTurnRecord.setOperatorTime(new Date());
+                    caseTurnRecord.setHoldDays(caseAssist.getHoldDays()); //持案天数
+                    caseTurnRecord.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());//案件流转类型
+                    caseTurnRecord.setCompanyCode(user.getCompanyCode());
+                    caseTurnRecord.setDepartId(user.getDepartment().getId());
+                    caseTurnRecord.setOperatorUserName(user.getUserName());
+                    caseTurnRecord.setReceiveDeptName(batchInfoModel.getCollectionUser().getDepartment().getName());//接收部门
+                    caseTurnRecord.setReceiveUserId(batchInfoModel.getCollectionUser().getId());//接收人ID
+                    caseTurnRecord.setReceiveUserRealName(batchInfoModel.getCollectionUser().getRealName());
+                    caseTurnRecord.setCurrentCollector(batchInfoModel.getCollectionUser().getId());
+                    caseTurnRecordList.add(caseTurnRecord);
+
+                    total ++;
+                }
             }
+            caseAssistRepository.save(caseAssistList);
+            caseTurnRecordRepository.save(caseTurnRecordList);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

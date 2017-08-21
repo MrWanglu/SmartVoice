@@ -184,7 +184,7 @@ public class CaseInfoController extends BaseController {
             builder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //以结案
             builder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OUT.getValue())); //已委外
             if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) { //管理者
-                builder.and(qCaseInfo.department.code.like(user.getDepartment().getCode().concat("%")));
+                builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));
             }
             if (Objects.equals(user.getManager(), User.MANAGER_TYPE.NO_DATA_AUTH.getValue())) { //不是管理者
                 builder.and(qCaseInfo.currentCollector.eq(user).or(qCaseInfo.assistCollector.eq(user)));
