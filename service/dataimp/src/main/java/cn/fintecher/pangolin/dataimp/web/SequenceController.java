@@ -47,7 +47,7 @@ public class SequenceController {
         List<String> idList=new ArrayList<>();
         idList.add(id1);
         idList.add(id2);
-        Iterable<MongoSequence> mongoSequenceIterable= mongoSequenceRepository.findAll(qMongoSequence.id.in(idList).and(qMongoSequence.companyCode.eq(companyCode)));
+        Iterable<MongoSequence> mongoSequenceIterable= mongoSequenceRepository.findAll(qMongoSequence.code.in(idList).and(qMongoSequence.companyCode.eq(companyCode)));
         if(!mongoSequenceIterable.iterator().hasNext()){
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"restSequence","序列不存在")).body(null);
         }else{

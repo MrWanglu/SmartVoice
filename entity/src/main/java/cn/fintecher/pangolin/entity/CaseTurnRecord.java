@@ -87,4 +87,33 @@ public class CaseTurnRecord {
 
     @ApiModelProperty(notes = "流转类型 0-自动流转 1-手动流转 2-正常流转")
     private Integer circulationType;
+
+    /**
+     * 流转标识
+     */
+    public enum circulationTypeEnum {
+        //自动
+        AUTO(0, "自动流转"),
+        //手动
+        MANUAL(1, "手动流转"),
+        //正常
+        NOMAL(2, "正常流转");
+        private Integer value;
+
+        private String remark;
+
+        circulationTypeEnum(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+
+    }
 }

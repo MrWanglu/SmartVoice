@@ -104,7 +104,7 @@
             </build>
             <properties>
                 <!-- log configuration -->
-                <logback.loglevel>ERROR</logback.loglevel>
+                <logback.loglevel>INFO</logback.loglevel>
                 <!-- default Spring profiles -->
                 <spring.profiles.active>prod</spring.profiles.active>
             </properties>
