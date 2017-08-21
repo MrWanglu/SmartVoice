@@ -114,6 +114,8 @@ public class CaseFollowupAppController extends BaseController {
             while(iterator.hasNext()){
                 CaseFlowupFile caseFlowupFile = new CaseFlowupFile();
                 caseFlowupFile.setFollowupId(result);
+                caseFlowupFile.setCaseId(caseInfo.getId());
+                caseFlowupFile.setCaseNumber(caseInfo.getCaseNumber());
                 caseFlowupFile.setFileid(iterator.next());
                 caseFlowupFile.setOperator(user.getId());
                 caseFlowupFile.setOperatorName(user.getUserName());
