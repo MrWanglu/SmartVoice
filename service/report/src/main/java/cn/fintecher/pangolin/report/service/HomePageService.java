@@ -43,8 +43,8 @@ public class HomePageService {
         AdminPage adminPage = new AdminPage();
         //管理者部门
         String code = user.getDepartment().getCode();
-        List<User> allUser = adminPageMapper.getAllUserOnDepartment(code);
-        List<User> users = adminPageMapper.getAllUserOnCompany(user.getCompanyCode()); //该系统中所有的用户数
+        List<User> allUser = adminPageMapper.getAllUserOnDepartment(code); //部门下用户数
+
         //第一部分 案件总金额 人均金额
         BigDecimal caseSumAmt = adminPageMapper.getCaseSumAmt(code); //案件总金额
         Integer deptUserSum = allUser.size();
@@ -59,7 +59,12 @@ public class HomePageService {
         adminPage.setRepaySumAmtPerson(adminPage.getRepaySumAmt().divide(personCount, 2, BigDecimal.ROUND_HALF_UP));
 
         // 第三部分 催收员总数 在线人数 离线人数
-        adminPage.setCupoSum(users.size());
+        if (Objects.isNull(user.getCompanyCode())) {
+            adminPage.setCupoSum(allUser.size());
+        } else {
+            List<User> users = adminPageMapper.getAllUserOnCompany(user.getCompanyCode()); //公司下所有的用户数
+            adminPage.setCupoSum(users.size());
+        }
         adminPage.setCupoOnlineSum(0);
         adminPage.setCupoOfflineSum(0);
 
