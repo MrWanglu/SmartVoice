@@ -129,7 +129,7 @@ public class OverNightJob implements Job {
                 SysParam sysParam = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP);
                 String step = sysParam.getValue();
                 switch (step) {
-                    case "5":
+                    case "6":
                         step = "0";
                     case "0":
                         step = "1";
@@ -146,6 +146,9 @@ public class OverNightJob implements Job {
                     case "4":
                         step = "5";
                         overNightBatchService.doOverNightFive(jobDataMap, step);
+                    case "5":
+                        step = "6";
+                        overNightBatchService.doOverNightSix(jobDataMap, step);
                     default:
                         break;
                 }

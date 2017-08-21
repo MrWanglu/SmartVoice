@@ -106,7 +106,8 @@ public class CaseAssistApply extends BaseEntity {
         TEL_APPROVAL(32, "电催待审批"),
         TEL_COMPLETE(33, "电催审批完成"),
         VISIT_APPROVAL(34, "外访待审批"),
-        VISIT_COMPLETE(35, "外访审批完成");
+        VISIT_COMPLETE(35, "外访审批完成"),
+        FAILURE(36,"审批失效");
 
         private Integer value;
         private String name;
@@ -136,7 +137,8 @@ public class CaseAssistApply extends BaseEntity {
         TEL_PASS(37, "电催审批通过"),
         VISIT_REJECT(38, "外访审批拒绝"),
         VISIT_PASS(39, "外访审批通过"),
-        FORCED_REJECT(40, "流转强制拒绝");
+        FORCED_REJECT(40, "流转强制拒绝"),
+        OUT_DATE(41,"过期");
 
         private Integer value;
         private String name;

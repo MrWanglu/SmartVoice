@@ -6,6 +6,7 @@ import cn.fintecher.pangolin.entity.QCaseInfo;
 import com.querydsl.core.types.dsl.StringPath;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -164,4 +165,12 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
      * @return
      */
     List<CaseInfo> findByCaseNumber(String caseNumber);
+    /**
+     * 设置案件协催状态为审批失效
+     *
+     * @param cupoIds
+     */
+    @Modifying
+    @Query("update CaseInfo acc set acc.assistStatus=30 where acc.collectionStatus not in(24,166) and acc.id in ?1")
+    void updateCaseStatusToCollectioning(Set<String> cupoIds);
 }
