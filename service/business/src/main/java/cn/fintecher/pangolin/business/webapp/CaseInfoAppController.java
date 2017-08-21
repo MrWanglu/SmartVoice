@@ -3,10 +3,13 @@ package cn.fintecher.pangolin.business.webapp;
 import cn.fintecher.pangolin.business.model.MapModel;
 import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.service.AccMapService;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.web.BaseController;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.util.MapUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
@@ -24,6 +27,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.inject.Inject;
 
 import com.querydsl.core.types.Predicate;
+import springfox.documentation.annotations.ApiIgnore;
+
+import java.math.BigDecimal;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -44,6 +51,8 @@ public class CaseInfoAppController extends BaseController {
     CaseInfoService caseInfoService;
     @Inject
     AccMapService accMapService;
+    @Inject
+    SysParamRepository sysParamRepository;
 
     @GetMapping("/queryAssistDetail")
     @ApiOperation(value = "协催案件查询", notes = "协催案件查询")
@@ -70,9 +79,13 @@ public class CaseInfoAppController extends BaseController {
         page.forEach(e->{
             if(Objects.isNull(e.getCaseId().getPersonalInfo().getLongitude())
                     || Objects.isNull(e.getCaseId().getPersonalInfo().getLatitude())){
-                MapModel model = accMapService.getAddLngLat(e.getCaseId().getPersonalInfo().getLocalHomeAddress());
-                e.getCaseId().getPersonalInfo().setLatitude(model.getLatitude());
-                e.getCaseId().getPersonalInfo().setLongitude(model.getLongitude());
+                try {
+                    MapModel model = accMapService.getAddLngLat(e.getCaseId().getPersonalInfo().getLocalHomeAddress());
+                    e.getCaseId().getPersonalInfo().setLatitude(BigDecimal.valueOf(model.getLatitude()));
+                    e.getCaseId().getPersonalInfo().setLongitude(BigDecimal.valueOf(model.getLongitude()));
+                }catch(Exception e1){
+                    e1.getMessage();
+                }
             }
         });
         caseAssistRepository.save(page);
@@ -107,9 +120,13 @@ public class CaseInfoAppController extends BaseController {
         page.forEach(e->{
             if(Objects.isNull(e.getPersonalInfo().getLongitude())
                     || Objects.isNull(e.getPersonalInfo().getLatitude())){
-                MapModel model = accMapService.getAddLngLat(e.getPersonalInfo().getLocalHomeAddress());
-                e.getPersonalInfo().setLatitude(model.getLatitude());
-                e.getPersonalInfo().setLongitude(model.getLongitude());
+                try {
+                    MapModel model = accMapService.getAddLngLat(e.getPersonalInfo().getLocalHomeAddress());
+                    e.getPersonalInfo().setLatitude(BigDecimal.valueOf(model.getLatitude()));
+                    e.getPersonalInfo().setLongitude(BigDecimal.valueOf(model.getLongitude()));
+                }catch(Exception e1){
+                    e1.getMessage();
+                }
             }
         });
         caseInfoRepository.save(page);
@@ -131,7 +148,8 @@ public class CaseInfoAppController extends BaseController {
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if (user.getManager() == 1) {
-            builder.and(QCaseInfo.caseInfo.department.code.startsWith(user.getDepartment().getCode()));
+            builder.and(QCaseInfo.caseInfo.currentCollector.department.code.like(user.getDepartment().getCode()+"%")
+                    .or(QCaseInfo.caseInfo.assistCollector.department.code.like(user.getDepartment().getCode()+"%")));
         } else {
             builder.andAnyOf(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()), QCaseInfo.caseInfo.assistCollector.id.eq(user.getId()));
         }
@@ -142,9 +160,13 @@ public class CaseInfoAppController extends BaseController {
         page.forEach(e->{
             if(Objects.isNull(e.getPersonalInfo().getLongitude())
                     || Objects.isNull(e.getPersonalInfo().getLatitude())){
-                MapModel model = accMapService.getAddLngLat(e.getPersonalInfo().getLocalHomeAddress());
-                e.getPersonalInfo().setLatitude(model.getLatitude());
-                e.getPersonalInfo().setLongitude(model.getLongitude());
+                try {
+                    MapModel model = accMapService.getAddLngLat(e.getPersonalInfo().getLocalHomeAddress());
+                    e.getPersonalInfo().setLatitude(BigDecimal.valueOf(model.getLatitude()));
+                    e.getPersonalInfo().setLongitude(BigDecimal.valueOf(model.getLongitude()));
+                }catch(Exception e1){
+                    e1.getMessage();
+                }
             }
         });
         caseInfoRepository.save(page);
@@ -197,4 +219,96 @@ public class CaseInfoAppController extends BaseController {
         caseInfoRepository.saveAndFlush(caseInfo);
         return ResponseEntity.ok().body(null);
     }
+
+    @PostMapping("/nearbyCase")
+    @ApiOperation(value = "附近协催抢单", notes = "附近协催抢单")
+    public ResponseEntity<Page<CaseAssist>> nearbyCase(@RequestBody MapModel model,
+                                         @RequestHeader(value = "X-UserToken") String token,
+                                         Pageable pageable) {
+        log.debug("REST request to apply payment");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+        }
+        BooleanBuilder exp = new BooleanBuilder();
+        exp.and(QSysParam.sysParam.code.eq(Constants.SYS_QIANGDAN_RADIUS));
+        int radius = Integer.valueOf(sysParamRepository.findOne(exp).getValue());
+        Map<String,Double> resultMap = MapUtil.computeOrigin4Position(model.getLatitude(),model.getLongitude(), radius);
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
+        builder.and(QCaseAssist.caseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue()));
+        builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue()));
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.latitude.between(resultMap.get("maxlng"),resultMap.get("minlng")));
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.longitude.between(resultMap.get("minlat"),resultMap.get("maxlat")));
+        Page<CaseAssist> page = caseAssistRepository.findAll(builder,pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("附近案件查询成功", "CaseAssist")).body(page);
+    }
+
+    @PostMapping("/nearbyOwnCase")
+    @ApiOperation(value = "附近协催", notes = "附近协催")
+    public ResponseEntity<Page<CaseAssist>> nearbyOwnCase(@RequestBody MapModel model,
+                                                       @RequestHeader(value = "X-UserToken") String token,
+                                                       Pageable pageable) {
+        log.debug("REST request to apply payment");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+        }
+        BooleanBuilder exp = new BooleanBuilder();
+        exp.and(QSysParam.sysParam.code.eq(Constants.SYS_QIANGDAN_RADIUS));
+        int radius = Integer.valueOf(sysParamRepository.findOne(exp).getValue());
+        Map<String,Double> resultMap = MapUtil.computeOrigin4Position(model.getLatitude(),model.getLongitude(), radius);
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
+        builder.and(QCaseAssist.caseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue()));
+        builder.and(QCaseAssist.caseAssist.assistCollector.id.eq(user.getId()));
+        builder.and(QCaseAssist.caseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.latitude.between(resultMap.get("maxlng"),resultMap.get("minlng")));
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.longitude.between(resultMap.get("minlat"),resultMap.get("maxlat")));
+        Page<CaseAssist> page = caseAssistRepository.findAll(builder,pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("附近案件查询成功", "CaseAssist")).body(page);
+    }
+
+    @GetMapping("/receiveCaseAssist")
+    @ApiOperation(value = "协催案件抢单", notes = "协催案件抢单")
+    public ResponseEntity receiveCaseAssist(@RequestParam @ApiParam(value = "协催案件ID", required = true) String id,
+                                            @RequestHeader(value = "X-UserToken") String token) throws Exception {
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+        }
+        caseInfoService.receiveCaseAssist(id, user);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("抢单成功", "CaseAssist")).body(null);
+        }
+
+
+    @GetMapping("/getPersonalCase")
+    @ApiOperation(value = "客户查询", notes = "客户查询（分页、条件）")
+    public ResponseEntity<Page<CaseInfo>> getPersonalCase(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                              @ApiIgnore Pageable pageable,
+                                                              @RequestHeader(value = "X-UserToken") String token
+    ){
+        try {
+            User tokenUser = getUserByToken(token);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
+            builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CollectionType.VISIT.getValue()));
+            Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseInfoAppController/getPersonalCase");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "CaseInfo", e.getMessage())).body(null);
+        }
+    }
 }
+
