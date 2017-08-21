@@ -57,7 +57,11 @@ public class ReminderMessageResource {
         ReminderWebSocketMessage reminderWebSocketMessage = new ReminderWebSocketMessage();
         reminderWebSocketMessage.setData(result);
         userService.sendMessage(result.getUserId(), reminderWebSocketMessage);
-
+        if(Objects.nonNull(message.getCcUserIds())){
+            for(String userId : message.getCcUserIds()){
+                userService.sendMessage(userId , reminderWebSocketMessage);
+            }
+        }
         if (Objects.nonNull(result)) {
             Long count = reminderMessageService.countUnRead(result.getUserId());
             AppMsg request = new AppMsg();

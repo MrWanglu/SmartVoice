@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service("reminderTimingService")
 public class ReminderTimingServiceImpl implements ReminderTimingService {
@@ -47,6 +48,11 @@ public class ReminderTimingServiceImpl implements ReminderTimingService {
         ReminderWebSocketMessage reminderWebSocketMessage = new ReminderWebSocketMessage();
         reminderWebSocketMessage.setData(result);
         userService.sendMessage(result.getUserId(), reminderWebSocketMessage);
+        if(Objects.nonNull(reminderTiming.getCcUserIds())){
+            for(String userId : reminderTiming.getCcUserIds()){
+                userService.sendMessage(userId,reminderWebSocketMessage);
+            }
+        }
         reminderTimingRepository.delete(reminderTiming);
     }
 

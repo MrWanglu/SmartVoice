@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
+import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import com.querydsl.core.BooleanBuilder;
@@ -86,6 +87,9 @@ public class CaseInfoService {
 
     @Inject
     PersonalAddressRepository personalAddressRepository;
+
+    @Inject
+    ReminderService reminderService;
 
     /**
      * @Description 重新分配
@@ -948,6 +952,19 @@ public class CaseInfoService {
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseInfoRepository.saveAndFlush(caseInfo);
         }
+        //消息提醒
+        List<User> userList = userService.getAllHigherLevelManagerByUser(tokenUser.getId());
+        List<String> managerIdList = new ArrayList<>();
+        for(User user : userList){
+            managerIdList.add(user.getId());
+        }
+        SendReminderMessage sendReminderMessage = new SendReminderMessage();
+        sendReminderMessage.setUserId(tokenUser.getId());
+        sendReminderMessage.setTitle("案件提前流转申请");
+        sendReminderMessage.setContent("您有提前流转案件 ["+caseIds.toString()+"] 申请需要审批");
+        sendReminderMessage.setType(ReminderType.CIRCULATION);
+        sendReminderMessage.setCcUserIds(managerIdList.toArray(new String[managerIdList.size()]));
+        reminderService.sendReminder(sendReminderMessage);
     }
 
     /**
@@ -1037,6 +1054,14 @@ public class CaseInfoService {
         caseInfo.setOperator(tokenUser); //操作人
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         caseInfoRepository.saveAndFlush(caseInfo);
+
+        //消息提醒
+        SendReminderMessage sendReminderMessage = new SendReminderMessage();
+        sendReminderMessage.setUserId(tokenUser.getId());
+        sendReminderMessage.setTitle("案件提前流转申请结果");
+        sendReminderMessage.setContent("您申请的提前流转案件 ["+caseInfo.getCaseNumber()+"] 申请"+(Objects.equals(circulationApprovalParams.getResult(), 0)?"已通过":"被拒绝"));
+        sendReminderMessage.setType(ReminderType.CIRCULATION);
+        reminderService.sendReminder(sendReminderMessage);
     }
 
     /**

@@ -4,12 +4,10 @@ import cn.fintecher.pangolin.business.model.UserDeviceReset;
 import cn.fintecher.pangolin.business.repository.DepartmentRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.session.SessionStore;
-import cn.fintecher.pangolin.entity.Department;
-import cn.fintecher.pangolin.entity.QUser;
-import cn.fintecher.pangolin.entity.User;
-import cn.fintecher.pangolin.entity.UserDevice;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
 import com.querydsl.core.BooleanBuilder;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,17 +79,38 @@ public class UserService {
      * @param userId
      * @return
      */
-    public User getManagerByUser(String userId){
+    public List<User> getManagerByUser(String userId){
         BooleanBuilder builder = new BooleanBuilder();
-        QUser quser = QUser.user;
-        builder.and(quser.department.id.eq(userRepository.getOne(userId).getDepartment().getId()).
-                and(quser.manager.eq(1)));
-        Iterable<User> userIterable = userRepository.findAll(builder);
-        if(userIterable.iterator().hasNext()){
-            return userIterable.iterator().next();
-        }
-        return null;
+        QUser qUser = QUser.user;
+        User user = userRepository.getOne(userId);
+        builder.and(qUser.department.id.eq(user.getDepartment().getId()).
+                and(qUser.manager.eq(1)).
+                and(qUser.companyCode.eq(user.getCompanyCode())));
+        return IterableUtils.toList(userRepository.findAll(builder));
     }
+
+    /**
+     * 通过userId获取所有上级领导
+     * @param userId
+     * @return
+     */
+    public List<User> getAllHigherLevelManagerByUser(String userId){
+        Department department = userRepository.getOne(userId).getDepartment();
+        Department departmentTemp = department;
+        List<Department> departmentList = new ArrayList<>();
+        departmentList.add(department);
+        while(Objects.nonNull(departmentTemp.getParent())){
+            departmentTemp = departmentTemp.getParent();
+            departmentList.add(departmentTemp);
+        }
+        BooleanBuilder builder = new BooleanBuilder();
+        QUser qUser = QUser.user;
+        builder.and(qUser.department.in(departmentList)).
+                and(qUser.manager.eq(1)).
+                and(qUser.companyCode.eq(department.getCompanyCode()));
+        return IterableUtils.toList(userRepository.findAll(builder));
+    }
+
 
     /**
      * @Description : 通过token查询用户
