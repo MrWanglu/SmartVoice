@@ -93,7 +93,7 @@ public class SmaController {
         if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
             Map paramMap = new HashMap();
             paramMap.put("empId", user.getId());
-            return smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);
+             return smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);
         }
         //164  中通天鸿 对呼绑定 在user中的callPhone 字段
         if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {

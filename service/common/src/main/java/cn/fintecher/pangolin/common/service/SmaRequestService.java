@@ -3,7 +3,6 @@ package cn.fintecher.pangolin.common.service;
 
 import cn.fintecher.pangolin.util.RandomUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -46,8 +45,7 @@ public class SmaRequestService {
             try {
                 Map<String, String> map = mapper.readValue(entity.getBody(), Map.class);
                 if (Objects.equals(map.get("responseCode"), "1")) {
-
-                    return ResponseEntity.ok(map);
+                    return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert("", "Is binding", "已经绑定")).body(map);
                 }
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "error", map.get("responseinfo"))).body(null);
             } catch (IOException e) {
@@ -61,7 +59,7 @@ public class SmaRequestService {
     }
 
     private String createSign() {
-        JSONObject json = new JSONObject();
+        net.minidev.json.JSONObject json = new net.minidev.json.JSONObject();
         String timestamp = String.valueOf(Calendar.getInstance().getTimeInMillis());
         String accountId = RandomUtil.getRandomNumber(20);
         json.put("timestamp", timestamp);
