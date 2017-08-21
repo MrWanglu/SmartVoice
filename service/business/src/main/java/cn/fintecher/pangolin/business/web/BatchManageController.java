@@ -2,12 +2,9 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.SysNotice;
 import cn.fintecher.pangolin.business.repository.BatchManageRepository;
+import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
-import cn.fintecher.pangolin.business.service.OverNightBatchService;
-import cn.fintecher.pangolin.entity.BatchManage;
-import cn.fintecher.pangolin.entity.QSysParam;
-import cn.fintecher.pangolin.entity.SysParam;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -17,6 +14,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
+
 import javax.inject.Inject;
 import java.util.Objects;
 
@@ -51,7 +50,7 @@ public class BatchManageController extends BaseController{
     private BatchManageRepository batchManageRepository;
 
     @Autowired
-    private OverNightBatchService overNightBatchService;
+    private CompanyRepository companyRepository;
 
     @GetMapping("/getBatchSysNotice")
     @ApiOperation(notes = "首页批量系统公告", value = "首页批量系统公告")
@@ -62,18 +61,35 @@ public class BatchManageController extends BaseController{
             user = getUserByToken(token);
         } catch (final Exception e) {
             logger.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("ENTITY_NAME", "", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+        SysNotice sysNotice = new SysNotice();
+        if (Objects.isNull(user.getCompanyCode())) {
+            Iterable<SysParam> all = sysParamRepository.findAll(QSysParam.sysParam.code.eq(Constants.SYSPARAM_OVERNIGHT_STEP));
+            StringBuilder sb = new StringBuilder();
+            for (SysParam sysParam : all) {
+                if (!Objects.equals(sysParam.getValue(), "5")) {
+                    sb.append(companyRepository.findOne(QCompany.company.code.eq(sysParam.getCompanyCode())).getChinaName().concat("、"));
+                }
+            }
+            String sbn = sb.substring(0,sb.length()-1);
+            if (StringUtils.length(sbn) == 0) {
+                sysNotice.setTitle("批量完成");
+                sysNotice.setContent("各公司的批量完成");
+                return ResponseEntity.ok().body(sysNotice);
+            }
+            sysNotice.setTitle("批量失败");
+            sysNotice.setContent("公司" + sbn + "的批量失败");
+            return ResponseEntity.ok().body(sysNotice);
         }
 
         SysParam one = sysParamRepository.findOne(QSysParam.sysParam.companyCode.eq(user.getCompanyCode())
                 .and(QSysParam.sysParam.code.eq(Constants.SYSPARAM_OVERNIGHT_STEP)));
         if (Objects.equals(one.getValue(),"5")) { //步数为5-批量成功
-            SysNotice sysNotice = new SysNotice();
             sysNotice.setTitle("批量完成");
             sysNotice.setContent("您于["+ ZWDateUtil.fomratterDate(one.getOperateTime(),null)+"]批量完成");
             return ResponseEntity.ok().body(sysNotice);
         } else {
-            SysNotice sysNotice = new SysNotice();
             sysNotice.setTitle("批量失败");
             sysNotice.setContent("您于["+ ZWDateUtil.fomratterDate(one.getOperateTime(),null)+"]批量失败");
             return ResponseEntity.ok().body(sysNotice);
