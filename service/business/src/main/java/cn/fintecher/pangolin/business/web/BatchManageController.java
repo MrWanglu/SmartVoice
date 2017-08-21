@@ -24,6 +24,7 @@ import io.swagger.annotations.ApiOperation;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.apache.commons.lang3.StringUtils;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
-
 import javax.inject.Inject;
 import java.util.Objects;
 
@@ -60,9 +60,6 @@ public class BatchManageController extends BaseController{
     private BatchManageRepository batchManageRepository;
 
     @Autowired
-    private JobExecutionContext jobExecutionContext;
-
-    @Autowired
     private JobTaskService jobTaskService;
 
     @Autowired
@@ -70,6 +67,9 @@ public class BatchManageController extends BaseController{
 
     @Autowired
     private CompanyRepository companyRepository;
+
+    @Autowired
+    private OverNightBatchService overNightBatchService;
 
 
     @GetMapping("/getBatchSysNotice")
@@ -116,7 +116,7 @@ public class BatchManageController extends BaseController{
         }
     }
 
-    @GetMapping("/batchManage")
+    @GetMapping("/getBatchManage")
     @ApiOperation(value = "多条件查询批量处理记录", notes = "多条件查询批量处理记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -126,7 +126,7 @@ public class BatchManageController extends BaseController{
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<BatchManage>> batchManage(@QuerydslPredicate(root = BatchManage.class) Predicate predicate,
+    public ResponseEntity<Page<BatchManage>> getBatchManage(@QuerydslPredicate(root = BatchManage.class) Predicate predicate,
                                                             @ApiIgnore Pageable pageable,
                                                             @RequestHeader(value = "X-UserToken") String token) {
         User user;
@@ -144,7 +144,7 @@ public class BatchManageController extends BaseController{
 
     @GetMapping("/batchManage")
     @ApiOperation(value = "批量处理", notes = "批量处理")
-    public ResponseEntity<Page<BatchManage>> batchManage() {
+    public void batchManage(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         JobDataMap jobDataMap = jobExecutionContext.getTrigger().getJobDataMap();
         StopWatch watch = new StopWatch();
         watch.start();
@@ -161,8 +161,7 @@ public class BatchManageController extends BaseController{
                 SysParam sysParam = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP);
                 String step = sysParam.getValue();
                 switch (step) {
-
-                    case "5":
+                    case "6":
                         step = "0";
                     case "0":
                         step = "1";
