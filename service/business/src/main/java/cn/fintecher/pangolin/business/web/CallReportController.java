@@ -72,7 +72,7 @@ public class CallReportController extends BaseController {
         }
         builder.and(qCaseFollowupRecord.callType.eq(164));
         Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(page);
     }
 
     /**
@@ -91,7 +91,7 @@ public class CallReportController extends BaseController {
                 smaRecordReturn.setRealName(objects1[2].toString());
                 smaRecordReturns.add(smaRecordReturn);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(smaRecordReturns);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(smaRecordReturns);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operation failure", "操作失败")).body(null);

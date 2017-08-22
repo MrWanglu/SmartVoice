@@ -139,6 +139,8 @@ public class CaseIntelligentCollectionController extends BaseController {
                     emailSendRequest.setEmail(personalContacts.iterator().next().getMail()); // 客户邮箱
                     emailSendRequest.setCupoId(caseInfo.getId());// 案件id
                     emailSendRequests.add(emailSendRequest);
+                }else {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"mailAddress is null","此客戶沒有郵箱地址")).body(null);
                 }
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(emailSendRequests);

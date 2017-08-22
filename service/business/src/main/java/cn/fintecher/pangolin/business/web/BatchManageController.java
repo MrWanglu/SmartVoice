@@ -66,7 +66,6 @@ public class BatchManageController extends BaseController{
     @Autowired
     private OverNightBatchService overNightBatchService;
 
-
     @GetMapping("/getBatchSysNotice")
     @ApiOperation(notes = "首页批量系统公告", value = "首页批量系统公告")
     public ResponseEntity<SysNotice> getBatchSysNotice(@RequestHeader(value = "X-UserToken") String token) {
