@@ -128,6 +128,9 @@ public class CaseRepairController extends BaseController{
         list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if(Objects.equals(user.getUserName(),"administrator")){
+            if(Objects.isNull(companyCode)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseRepair", "", "请选择公司")).body(null);
+            }
             builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(companyCode));
         }else{
             builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(user.getCompanyCode()));
