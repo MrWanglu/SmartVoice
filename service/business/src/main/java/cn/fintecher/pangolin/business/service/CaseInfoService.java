@@ -1171,8 +1171,10 @@ public class CaseInfoService {
                 }
                 String caseId = caseInfoList.get(alreadyCaseNum);
                 CaseRepair caseRepair = caseRepairRepository.findOne(caseId);
-                if (Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.TEL.getValue())) {
-                    if (Objects.nonNull(user.getType()) && !Objects.equals(user.getType(), User.Type.SYNTHESIZE.getValue()) && !Objects.equals(user.getType(), User.Type.TEL.getValue())) {
+                if (Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.TEL.getValue())
+                        && !Objects.equals(user.getType(), User.Type.SYNTHESIZE.getValue())
+                        && Objects.nonNull(user.getType())) {
+                    if (!Objects.equals(user.getType(), User.Type.TEL.getValue())) {
                         throw new Exception("当前用户不可以分配电催案件");
                     }
                     if (Objects.nonNull(department) && !Objects.equals(department.getType(), Department.Type.TELEPHONE_COLLECTION.getValue())) {
@@ -1182,8 +1184,10 @@ public class CaseInfoService {
                         throw new Exception("电催案件不能分配给电催以外人员");
                     }
                 }
-                if (Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.VISIT.getValue())) {
-                    if (Objects.nonNull(user.getType()) && !Objects.equals(user.getType(), User.Type.SYNTHESIZE.getValue()) && !Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
+                if (Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.VISIT.getValue())
+                        && !Objects.equals(user.getType(), User.Type.SYNTHESIZE.getValue())
+                        && Objects.nonNull(user.getType())) {
+                    if (!Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
                         throw new Exception("当前用户不可以分配外访案件");
                     }
                     if (Objects.nonNull(department) && !Objects.equals(department.getType(), Department.Type.OUTBOUND_COLLECTION.getValue())) {
