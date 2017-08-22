@@ -126,8 +126,6 @@ public class CaseRepairController extends BaseController{
         }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
-        list.add(CaseInfo.CollectionStatus.CASE_OUT.getValue());
-        list.add(CaseInfo.CollectionStatus.REPAID.getValue());
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if(Objects.equals(user.getUserName(),"administrator")){
             builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(companyCode));

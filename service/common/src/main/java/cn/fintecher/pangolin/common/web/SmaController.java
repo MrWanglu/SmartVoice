@@ -5,7 +5,6 @@ import cn.fintecher.pangolin.common.client.SysParamClient;
 import cn.fintecher.pangolin.common.client.UserClient;
 import cn.fintecher.pangolin.common.model.AddTaskRecorderRequest;
 import cn.fintecher.pangolin.common.model.BindCallNumberRequest;
-import cn.fintecher.pangolin.common.model.SmaErpv3Return;
 import cn.fintecher.pangolin.common.service.CallService;
 import cn.fintecher.pangolin.common.service.SmaRequestService;
 import cn.fintecher.pangolin.entity.CaseFollowupRecord;
@@ -94,11 +93,7 @@ public class SmaController {
         if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
             Map paramMap = new HashMap();
             paramMap.put("empId", user.getId());
-            SmaErpv3Return smaErpv3Return = smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);
-            if (Objects.equals("success", smaErpv3Return.getSign())) {
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(smaErpv3Return.getMap());
-            }
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", smaErpv3Return.getReason())).body(null);
+            return smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);
         }
         //164  中通天鸿 对呼绑定 在user中的callPhone 字段
         if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
@@ -132,11 +127,7 @@ public class SmaController {
             paramMap.put("callerid", request.getCallerId());//固定话机ID
             paramMap.put("salesmanCode", user.getRealName() + user.getUserName());
             paramMap.put("caller", request.getCaller());//主叫号码选填
-            SmaErpv3Return smaErpv3Return = smaRequestService.smaRequest("bindTaskDataByCallerid.html", paramMap);
-            if (Objects.equals("success", smaErpv3Return.getSign())) {
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(smaErpv3Return.getMap());
-            }
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", smaErpv3Return.getReason())).body(null);
+            return smaRequestService.smaRequest("bindTaskDataByCallerid.html", paramMap);
         }
         //164  中通天鸿 对呼绑定 在user中的callPhone 字段
         if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
@@ -181,11 +172,7 @@ public class SmaController {
             paramMap.put("custInfoId", MD5.MD5Encode(request.getCustomer()));//客户ID
             paramMap.put("sysTarget", sysTarget);//ACC贷后，Review评审
             paramMap.put("salesmanCode", user.getRealName() + user.getUserName());
-            SmaErpv3Return smaErpv3Return = smaRequestService.smaRequest("addTaskRecoder.html", paramMap);
-            if (Objects.equals("success", smaErpv3Return.getSign())) {
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(smaErpv3Return.getMap());
-            }
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", smaErpv3Return.getReason())).body(null);
+            return smaRequestService.smaRequest("addTaskRecoder.html", paramMap);
         }
 //        164  中通天鸿
         if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue())) {
@@ -260,11 +247,7 @@ public class SmaController {
         paramMap.put("recoderId", request.getRecorderId());            //电签呼叫申请任务记录 ID
         paramMap.put("taskcallerid", request.getTaskcallerId());            //坐席号 ID
         paramMap.put("salesmanCode", "");
-        SmaErpv3Return smaErpv3Return = smaRequestService.smaRequest("addTaskVoiceFileBytaskId.html", paramMap);
-        if (Objects.equals("success", smaErpv3Return.getSign())) {
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(smaErpv3Return.getMap());
-        }
-        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", smaErpv3Return.getReason())).body(null);
+        return smaRequestService.smaRequest("addTaskVoiceFileBytaskId.html", paramMap);
     }
 
     /**
@@ -278,11 +261,7 @@ public class SmaController {
         paramMap.put("pageNo", pageable.getPageNumber());  //分页 页码
         paramMap.put("pageSize", pageable.getPageSize()); //分页 页数
         //验证 当前登陆者 是否绑定了 呼叫流程id
-        SmaErpv3Return smaErpv3Return = smaRequestService.smaRequest("getTaskRecoders.html", paramMap);
-        if (Objects.equals("success", smaErpv3Return.getSign())) {
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(smaErpv3Return.getMap());
-        }
-        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", smaErpv3Return.getReason())).body(null);
+        return smaRequestService.smaRequest("getTaskRecoders.html", paramMap);
     }
 
     /**
