@@ -1118,7 +1118,7 @@ public class CaseInfoService {
      * @Descriprion 修改地址状态
      */
     public PersonalAddress modifyAddressStatus(PhoneStatusParams phoneStatusParams, User tokenUser) {
-        PersonalAddress personalAddress = personalAddressRepository.findOne(phoneStatusParams.getPersonalContactId());
+        PersonalAddress personalAddress = personalAddressRepository.findOne(phoneStatusParams.getPersonalAddressId());
         if (Objects.isNull(personalAddress)) {
             throw new RuntimeException("该联系人信息未找到");
         }
