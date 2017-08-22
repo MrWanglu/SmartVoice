@@ -6,8 +6,10 @@ import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.FollowRecordExportService;
+import cn.fintecher.pangolin.business.service.ReminderService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
@@ -65,12 +67,28 @@ public class CaseInfoController extends BaseController {
     private RestTemplate restTemplate;
     @Inject
     private FollowRecordExportService followRecordExportService;
+    @Inject
+    private ReminderService reminderService;
 
     public CaseInfoController(CaseInfoRepository caseInfoRepository) {
         this.caseInfoRepository = caseInfoRepository;
     }
 
 
+    @PostMapping("/test")
+    public void test(){
+        SendReminderMessage sendReminderMessage = new SendReminderMessage();
+        List<String> userIdList = new ArrayList<>();
+        userIdList.add("ff8080815e07f27f015e080db2eb0103");
+        userIdList.add("0o0oo0o0-0o0o-0000-0000-0ooo000o0o0o");
+        sendReminderMessage.setTitle("testTitle");
+        sendReminderMessage.setMode(ReminderMode.POPUP);
+        sendReminderMessage.setContent("testContent");
+        sendReminderMessage.setUserId("4f08efdb-cdc9-4abc-b022-daab4330ae35");
+        sendReminderMessage.setCcUserIds(userIdList.toArray(new String[userIdList.size()]));
+        sendReminderMessage.setType(ReminderType.CIRCULATION);
+        reminderService.sendReminder(sendReminderMessage);
+    }
     @PostMapping("/caseInfo")
     public ResponseEntity<CaseInfo> createCaseInfo(@RequestBody CaseInfo caseInfo) throws URISyntaxException {
         log.debug("REST request to save caseInfo : {}", caseInfo);

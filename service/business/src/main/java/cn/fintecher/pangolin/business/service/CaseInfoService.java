@@ -9,6 +9,7 @@ import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -90,6 +91,9 @@ public class CaseInfoService {
 
     @Inject
     ReminderService reminderService;
+
+    @Inject
+    CompanyRepository companyRepository;
 
     /**
      * @Description 重新分配
@@ -953,9 +957,8 @@ public class CaseInfoService {
             managerIdList.add(user.getId());
         }
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
-        sendReminderMessage.setUserId(tokenUser.getId());
         sendReminderMessage.setTitle("案件提前流转申请");
-        sendReminderMessage.setContent("您有提前流转案件 [" + caseIds.toString() + "] 申请需要审批");
+        sendReminderMessage.setContent("您有 ["+caseIds.size()+"] 条提前流转案件申请需要审批");
         sendReminderMessage.setType(ReminderType.CIRCULATION);
         sendReminderMessage.setCcUserIds(managerIdList.toArray(new String[managerIdList.size()]));
         reminderService.sendReminder(sendReminderMessage);
@@ -966,6 +969,7 @@ public class CaseInfoService {
      */
     public void approvalCirculation(CirculationApprovalParams circulationApprovalParams, User tokenUser) {
         CaseInfo caseInfo = caseInfoRepository.findOne(circulationApprovalParams.getCaseId()); //获取案件信息
+        String userIdForReminde = caseInfo.getCurrentCollector().getId();
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
@@ -1051,7 +1055,7 @@ public class CaseInfoService {
 
         //消息提醒
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
-        sendReminderMessage.setUserId(tokenUser.getId());
+        sendReminderMessage.setUserId(userIdForReminde);
         sendReminderMessage.setTitle("案件提前流转申请结果");
         sendReminderMessage.setContent("您申请的提前流转案件 [" + caseInfo.getCaseNumber() + "] 申请" + (Objects.equals(circulationApprovalParams.getResult(), 0) ? "已通过" : "被拒绝"));
         sendReminderMessage.setType(ReminderType.CIRCULATION);
@@ -1556,5 +1560,47 @@ public class CaseInfoService {
         }
     }
 
+    /**
+     * 获取所有即将强制流转案件List
+     * @return
+     */
+    public List<CaseInfo> getAllForceTurnCase() {
+        List<CaseInfo> caseInfoList = new ArrayList<>();
+        //电催案件
+        caseInfoList.addAll(getForceTurnCase(Constants.SYS_PHNOEFLOW_BIGDAYSREMIND,Constants.SYS_PHNOEFLOW_BIGDAYS));
+        //外访案件
+        caseInfoList.addAll(getForceTurnCase(Constants.SYS_OUTBOUNDFLOW_BIGDAYSREMIND,Constants.SYS_PHNOEFLOW_BIGDAYS));
+        return caseInfoList;
+    }
+
+    /**
+     * 获取强制流转案件
+     * @param bigDaysRemind
+     * @param bigDays
+     * @return
+     */
+    public List<CaseInfo> getForceTurnCase(String bigDaysRemind , String bigDays){
+        List<CaseInfo> caseInfoList = new ArrayList<>();
+        //遍历所有公司
+        List<Company> companyList = companyRepository.findAll();
+        for (Company company : companyList) {
+            QSysParam qSysParam = QSysParam.sysParam;
+            SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
+                    .and(qSysParam.code.eq(bigDaysRemind))
+                    .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+            SysParam sysParam1 = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
+                    .and(qSysParam.code.eq(bigDays))
+                    .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+            if(Objects.nonNull(sysParam)&&Objects.nonNull(sysParam1)){
+                QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+                BooleanBuilder builder = new BooleanBuilder();
+                builder.and(qCaseInfo.holdDays.between(Integer.valueOf(sysParam1.getValue())-Integer.valueOf(sysParam.getValue()),
+                        Integer.valueOf(sysParam1.getValue())).
+                        and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())));
+                caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
+            }
+        }
+        return caseInfoList;
+    }
 
 }

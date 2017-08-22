@@ -1,13 +1,9 @@
 package cn.fintecher.pangolin.service.reminder.web.rest;
 
 import cn.fintecher.pangolin.entity.message.SendReminderMessage;
-import cn.fintecher.pangolin.service.reminder.model.AppMsg;
 import cn.fintecher.pangolin.service.reminder.model.ReminderMessage;
-import cn.fintecher.pangolin.service.reminder.model.ReminderWebSocketMessage;
 import cn.fintecher.pangolin.service.reminder.repository.ReminderMessageRepository;
-import cn.fintecher.pangolin.service.reminder.service.AppMsgService;
 import cn.fintecher.pangolin.service.reminder.service.ReminderMessageService;
-import cn.fintecher.pangolin.service.reminder.service.UserService;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import org.slf4j.Logger;
@@ -24,7 +20,6 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,41 +36,26 @@ public class ReminderMessageResource {
     private ReminderMessageRepository reminderMessageRepository;
     @Autowired
     private ReminderMessageService reminderMessageService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private AppMsgService appMsgService;
+
+    @PostMapping("/receiveMessage")
+    public void receiveReminderMessageInformation(@RequestBody SendReminderMessage sendReminderMessage) throws URISyntaxException{
+        if(Objects.nonNull(sendReminderMessage.getUserId())) {
+            createReminderMessage(sendReminderMessage);
+        }
+        if(Objects.nonNull(sendReminderMessage.getCcUserIds())){
+            for(String userId : sendReminderMessage.getCcUserIds()){
+                sendReminderMessage.setUserId(userId);
+                createReminderMessage(sendReminderMessage);
+            }
+        }
+    }
 
     @PostMapping
     public ResponseEntity<ReminderMessage> createReminderMessage(@RequestBody SendReminderMessage reminderMessage) throws URISyntaxException {
         log.debug("REST request to save ReminderMessage : {}", reminderMessage);
         ReminderMessage message=new ReminderMessage();
         BeanUtils.copyProperties(reminderMessage,message);
-        message.setState(ReminderMessage.ReadStatus.UnRead);
-        message.setCreateTime(new Date());
-        ReminderMessage result = reminderMessageRepository.save(message);
-        ReminderWebSocketMessage reminderWebSocketMessage = new ReminderWebSocketMessage();
-        reminderWebSocketMessage.setData(result);
-        userService.sendMessage(result.getUserId(), reminderWebSocketMessage);
-        if(Objects.nonNull(message.getCcUserIds())){
-            for(String userId : message.getCcUserIds()){
-                userService.sendMessage(userId , reminderWebSocketMessage);
-            }
-        }
-        if (Objects.nonNull(result)) {
-            Long count = reminderMessageService.countUnRead(result.getUserId());
-            AppMsg request = new AppMsg();
-            BeanUtils.copyProperties(result, request);
-            request.setId(null);
-            request.setAppMsgUnRead(new Long(count).intValue());
-            request.setContent(result.getContent());
-            try {
-                appMsgService.sendPush(request);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-                log.error("消息推送失败");
-            }
-        }
+        ReminderMessage result = reminderMessageService.sendMessage(message);
         return ResponseEntity.created(new URI("/api/ReminderMessages/" + result.getId()))
                 .headers(HeaderUtil.createEntityCreationAlert("ReminderMessage", result.getId()))
                 .body(result);

@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.job.OverNightJob;
+import cn.fintecher.pangolin.business.job.ReminderTimingJob;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.service.JobTaskService;
 import cn.fintecher.pangolin.entity.QSysParam;
@@ -125,7 +126,7 @@ public class SysParamController extends BaseController {
             //修改系统批量参数
             //验证批量是否正在执行
             SysParam one = sysParamRepository.findOne(qSysParam.companyCode.eq(sysParam.getCompanyCode())
-                    .and(qSysParam.code.eq(Constants.SYSPARAM_RECORD_STATUS)));
+                    .and(qSysParam.code.eq(Constants.SYSPARAM_OVERNIGHT_STATUS)));
            if(one.getValue().equals(Constants.BatchStatus.RUNING.getValue())){
                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                        "syspram value is illegitmacy", "晚间批量正在执行不允许修改调度时间")).body(null);
@@ -162,6 +163,49 @@ public class SysParamController extends BaseController {
            }catch (Exception e){
                logger.error("更新晚间批量调度失败",e);
            }
+        }
+        //修改系统参数
+        if(Constants.SYSPARAM_REMINDER.equals(sysParam.getCode())){
+            //修改系统批量参数
+            //验证批量是否正在执行
+            SysParam one = sysParamRepository.findOne(qSysParam.companyCode.eq(sysParam.getCompanyCode())
+                    .and(qSysParam.code.eq(Constants.SYSPARAM_REMINDER_STATUS)));
+            if(one.getValue().equals(Constants.BatchStatus.RUNING.getValue())){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                        "syspram value is illegitmacy", "晚间批量正在执行不允许修改调度时间")).body(null);
+            }
+            //验证输入的参数是否合规
+            String  value=sysParam.getValue();
+            if(StringUtils.isBlank(value)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                        "syspram value is illegitmacy", "参数值为空")).body(null);
+            }
+            if (StringUtils.length(value)!=6){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                        "syspram value is illegitmacy", "参数长度不满6位")).body(null);
+            }
+            if(!value.matches("^[0-2]{1}[0-9]{1}[0-5]{1}[0-9]{1}[0-5]{1}[0-9]{1}$")){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                        "syspram value is illegitmacy", "参数输入不合法")).body(null);
+            }
+            //触发系统批量
+            String hours = value.substring(0, 2);
+            if(Integer.parseInt(hours)>23){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                        "syspram value is illegitmacy", "参数输入不合法")).body(null);
+            }
+            String mis = value.substring(2, 4);
+            String second = value.substring(4, 6);
+            String  cronStr = second.concat(" ").concat(mis).concat(" ").concat(hours).concat(" * * ?");
+            try{
+                jobTaskService.updateJobTask(cronStr,sysParam.getCompanyCode(),Constants.SYSPARAM_REMINDER,Constants.REMINDER_TRIGGER_NAME.concat("_").concat(sysParam.getCompanyCode())
+                        ,Constants.REMINDER_TRIGGER_GROUP,Constants.REMINDER_TRIGGER_DESC.concat("_").concat(sysParam.getCompanyCode())
+                        ,Constants.REMINDER_JOB_NAME.concat("_").concat(sysParam.getCompanyCode()), Constants.REMINDER_JOB_GROUP
+                        ,Constants.REMINDER_JOB_DESC.concat("_").concat(sysParam.getCompanyCode()), ReminderTimingJob.class,
+                        "reminderTimingJobBean".concat("_").concat(sysParam.getCompanyCode()));
+            }catch (Exception e){
+                logger.error("更新消息提醒批量调度失败",e);
+            }
         }
         SysParam sysParam1 = sysParamRepository.save(sysParam);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(sysParam1);

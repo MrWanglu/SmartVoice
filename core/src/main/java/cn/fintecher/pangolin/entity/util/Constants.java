@@ -152,13 +152,13 @@ public final class Constants {
      * 消息提醒调度
      */
     public final static String REMINDER_TRIGGER_GROUP="reminderTriggerGroup";
-    public final static String REMIDER_TRIGGER_NAME="reminderTriggerName";
-    public final static String REMIDER_TRIGGER_DESC="消息提醒触发器";
-    public final static String REMIDER_JOB_GROUP="reminderJobGroup";
-    public final static String REMIDER_JOB_NAME="reminderJobName";
-    public final static String REMIDER_JOB_DESC="消息提醒批量";
-    public final static String SYSPARAM_REMIDER="Sysparam.reminder";
-    public final static String SYSPARAM_REMIDER_STATUS="Sysparam.reminder.status";
+    public final static String REMINDER_TRIGGER_NAME="reminderTriggerName";
+    public final static String REMINDER_TRIGGER_DESC="消息提醒触发器";
+    public final static String REMINDER_JOB_GROUP="reminderJobGroup";
+    public final static String REMINDER_JOB_NAME="reminderJobName";
+    public final static String REMINDER_JOB_DESC="消息提醒批量";
+    public final static String SYSPARAM_REMINDER="Sysparam.reminder";
+    public final static String SYSPARAM_REMINDER_STATUS="Sysparam.reminder.status";
 
     /**
      * 批量执行状态
@@ -193,6 +193,8 @@ public final class Constants {
     public final static String SYS_PHNOEFLOW_LEAVERATE="sys.phnoeFlow.leaveRate";
     /**电催审批失效天数**/
     public final static String SYS_PHNOEFLOW_ADVANCEDAYS="sys.phnoeFlow.advanceDays";
+    /**电催强制流转提醒天数**/
+    public final static String SYS_PHNOEFLOW_BIGDAYSREMIND="sys.phnoeFlow.bigDaysRemind";
     /**电催小流转部门**/
     public final static String SYS_PHNOETURN_SMALLDEPTNAME="电催小流转";
     /**电催强制流转部门**/
@@ -211,6 +213,8 @@ public final class Constants {
     public final static String SYS_OUTBOUNDFLOW_LEAVERATE="sys.outboundflow.leaveRate";
     /**外访审批失效天数**/
     public final static String SYS_OUTBOUNDFLOW_ADVANCEDAYS="sys.outboundFlow.advanceDays";
+    /**外访强制流转提醒天数**/
+    public final static String SYS_OUTBOUNDFLOW_BIGDAYSREMIND="sys.outboundFlow.bigDaysRemind";
     /**外访小流转部门**/
     public final static String SYS_OUTTURN_SMALLDEPTNAME="外访小流转";
     /**外访强制流转部门**/

@@ -30,5 +30,4 @@ public class ReminderMessage implements Serializable {
     private ReadStatus state;
     private Date createTime;
     private Map<String, Object> params;
-    private String[] ccUserIds;
 }

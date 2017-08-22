@@ -18,4 +18,6 @@ public interface ReminderMessageService {
     Page<ReminderMessage> findByUser(String userId, Map<String, Object> params, Pageable pageable);
 
     Long countUnRead(String userId);
+
+    ReminderMessage sendMessage(ReminderMessage reminderMessage);
 }

@@ -4,9 +4,10 @@ package cn.fintecher.pangolin.business.job;
 import cn.fintecher.pangolin.business.config.ConfigureQuartz;
 import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
-import cn.fintecher.pangolin.entity.Company;
-import cn.fintecher.pangolin.entity.QSysParam;
-import cn.fintecher.pangolin.entity.SysParam;
+import cn.fintecher.pangolin.business.service.CaseInfoService;
+import cn.fintecher.pangolin.business.service.ReminderService;
+import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
 import org.apache.commons.lang.StringUtils;
 import org.quartz.*;
@@ -32,7 +33,7 @@ public class ReminderTimingJob implements Job{
     private final Logger logger = LoggerFactory.getLogger(ReminderTimingJob.class);
 
     @Autowired
-    SchedulerFactoryBean schedFactory;
+    private SchedulerFactoryBean schedFactory;
 
     @Autowired
     private CompanyRepository companyRepository;
@@ -41,10 +42,29 @@ public class ReminderTimingJob implements Job{
     private SysParamRepository sysParamRepository;
 
     @Autowired
-    RestTemplate restTemplate;
+    private RestTemplate restTemplate;
+
+    @Autowired
+    private CaseInfoService caseInfoService;
+
+    @Autowired
+    private ReminderService ReminderService;
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        //案件即将强制流转提醒
+        List<CaseInfo> caseInfoList = caseInfoService.getAllForceTurnCase();
+        if(Objects.nonNull(caseInfoList)){
+            for(CaseInfo caseInfo : caseInfoList){
+                SendReminderMessage sendReminderMessage = new SendReminderMessage();
+                sendReminderMessage.setUserId(caseInfo.getCurrentCollector().getId());
+                sendReminderMessage.setType(ReminderType.FORCE_TURN);
+                sendReminderMessage.setTitle("案件强制流转提醒");
+                sendReminderMessage.setContent("您持有的案件 ["+caseInfo.getCaseNumber()+"] 即将强制流转,请及时处理");
+                sendReminderMessage.setMode(ReminderMode.POPUP);
+                ReminderService.sendReminder(sendReminderMessage);
+            }
+        }
         restTemplate.execute("http://reminder-service/api/reminderTiming/sendReminderTiming", HttpMethod.GET,null,null);
     }
 
@@ -57,7 +77,7 @@ public class ReminderTimingJob implements Job{
             for (Company company : companyList) {
                 QSysParam qSysParam = QSysParam.sysParam;
                 SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
-                        .and(qSysParam.code.eq(Constants.SYSPARAM_REMIDER))
+                        .and(qSysParam.code.eq(Constants.SYSPARAM_REMINDER))
                         .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
                 if (Objects.nonNull(sysParam)) {
                     String cronString = sysParam.getValue();
@@ -66,15 +86,15 @@ public class ReminderTimingJob implements Job{
                         String mis = cronString.substring(2, 4);
                         String second = cronString.substring(4, 6);
                         cronString = second.concat(" ").concat(mis).concat(" ").concat(hours).concat(" * * ?");
-                        JobDetail jobDetail = ConfigureQuartz.createJobDetail(ReminderTimingJob.class, Constants.REMIDER_JOB_GROUP,
-                                Constants.REMIDER_JOB_NAME.concat("_").concat(company.getCode()), Constants.REMIDER_JOB_DESC.concat("_").concat(company.getCode()));
+                        JobDetail jobDetail = ConfigureQuartz.createJobDetail(ReminderTimingJob.class, Constants.REMINDER_JOB_GROUP,
+                                Constants.REMINDER_JOB_NAME.concat("_").concat(company.getCode()), Constants.REMINDER_JOB_DESC.concat("_").concat(company.getCode()));
                         JobDataMap jobDataMap = new JobDataMap();
                         jobDataMap.put("companyCode", company.getCode());
-                        jobDataMap.put("sysParamCode", Constants.SYSPARAM_REMIDER_STATUS);
+                        jobDataMap.put("sysParamCode", Constants.SYSPARAM_REMINDER_STATUS);
                         CronTriggerFactoryBean cronTriggerFactoryBean =ConfigureQuartz.createCronTrigger(Constants.REMINDER_TRIGGER_GROUP.concat("_").concat(company.getCode()),
-                                Constants.REMIDER_TRIGGER_NAME.concat("_").concat(company.getCode()),
+                                Constants.REMINDER_TRIGGER_NAME.concat("_").concat(company.getCode()),
                                 "reminderTimingJobBean".concat("_").concat(company.getCode()),
-                                Constants.REMIDER_TRIGGER_DESC.concat("_").concat(company.getCode()),
+                                Constants.REMINDER_TRIGGER_DESC.concat("_").concat(company.getCode()),
                                 jobDetail,cronString,jobDataMap);
                         cronTriggerFactoryBean.afterPropertiesSet();
                         schedFactory.getScheduler().deleteJob(jobDetail.getKey());

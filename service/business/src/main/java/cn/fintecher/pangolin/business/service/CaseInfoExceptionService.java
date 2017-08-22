@@ -93,7 +93,7 @@ public class CaseInfoExceptionService {
      * @param user
      * @return
      */
-    public CaseInfoDistributed addCaseInfo(String caseInfoExceptionId,User user){
+    public CaseInfoDistributed addCaseInfoDistributed(String caseInfoExceptionId,User user){
         CaseInfoException caseInfoException = caseInfoExceptionRepository.getOne(caseInfoExceptionId);
         List<CaseInfoFile> caseInfoFileList =  findCaseInfoFileById(caseInfoExceptionId);
         Personal personal=createPersonal(caseInfoException, user);
@@ -233,7 +233,7 @@ public class CaseInfoExceptionService {
         caseInfoDistributed.setLatelyPayAmount(caseInfoException.getLatelyPayAmount());
         caseInfoDistributed.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());
         caseInfoDistributed.setPayStatus(caseInfoException.getPaymentStatus());
-        caseInfoDistributed.setPrincipalId(principalRepository.findOne(caseInfoException.getPrinCode()));
+        caseInfoDistributed.setPrincipalId(principalRepository.findByCode(caseInfoException.getPrinCode()));
         caseInfoDistributed.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue());
         caseInfoDistributed.setDelegationDate(caseInfoException.getDelegationDate());
         caseInfoDistributed.setCloseDate(caseInfoException.getCloseDate());
@@ -246,6 +246,7 @@ public class CaseInfoExceptionService {
         caseInfoDistributed.setOperator(user);
         caseInfoDistributed.setOperatorTime(ZWDateUtil.getNowDateTime());
         caseInfoDistributed.setCompanyCode(caseInfoException.getCompanyCode());
+        caseInfoDistributed.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件颜色标记
         return caseInfoDistributed;
     }
 
@@ -284,7 +285,7 @@ public class CaseInfoExceptionService {
         caseInfo.setLatelyPayAmount(caseInfoException.getLatelyPayAmount());
         caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());
         caseInfo.setPayStatus(caseInfoException.getPaymentStatus());
-        caseInfo.setPrincipalId(principalRepository.findOne(caseInfoException.getPrinCode()));
+        caseInfo.setPrincipalId(principalRepository.findByCode(caseInfoException.getPrinCode()));
         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue());
         caseInfo.setDelegationDate(caseInfoException.getDelegationDate());
         caseInfo.setCloseDate(caseInfoException.getCloseDate());
@@ -373,6 +374,8 @@ public class CaseInfoExceptionService {
         personalContact.setEmployer(caseInfoException.getCompanyName());
         personalContact.setWorkPhone(caseInfoException.getCompanyPhone());
         personalContact.setSource(caseInfoException.getDataSources());
+        personalContact.setAddress(caseInfoException.getHomeAddress());
+        personalContact.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
         personalContact.setOperator(user.getId());
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime());
         personalContactList.add(personalContact);
@@ -388,6 +391,8 @@ public class CaseInfoExceptionService {
             obj.setEmployer(caseInfoException.getContactWorkUnit1());
             obj.setWorkPhone(caseInfoException.getContactUnitPhone1());
             obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress1());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
             obj.setOperator(user.getId());
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
@@ -404,6 +409,8 @@ public class CaseInfoExceptionService {
             obj.setEmployer(caseInfoException.getContactWorkUnit2());
             obj.setWorkPhone(caseInfoException.getContactUnitPhone2());
             obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress2());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
             obj.setOperator(user.getId());
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
@@ -420,6 +427,8 @@ public class CaseInfoExceptionService {
             obj.setEmployer(caseInfoException.getContactWorkUnit3());
             obj.setWorkPhone(caseInfoException.getContactUnitPhone3());
             obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress3());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
             obj.setOperator(user.getId());
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
@@ -437,6 +446,8 @@ public class CaseInfoExceptionService {
             obj.setEmployer(caseInfoException.getContactWorkUnit4());
             obj.setWorkPhone(caseInfoException.getContactUnitPhone4());
             obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress4());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
             obj.setOperator(user.getId());
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
@@ -458,12 +469,12 @@ public class CaseInfoExceptionService {
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(Personal.RelationEnum.SELF.getValue());
             personalAddress.setName(caseInfoException.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
             personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getHomeAddress()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
 
@@ -473,12 +484,12 @@ public class CaseInfoExceptionService {
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(Personal.RelationEnum.SELF.getValue());
             personalAddress.setName(caseInfoException.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.IDCARDADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.IDCARDADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
             personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getIdCardAddress()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
 
@@ -488,12 +499,12 @@ public class CaseInfoExceptionService {
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(Personal.RelationEnum.SELF.getValue());
             personalAddress.setName(caseInfoException.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.UNITADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.UNITADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
             personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getCompanyAddr()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
 
@@ -503,55 +514,58 @@ public class CaseInfoExceptionService {
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation1()));
             personalAddress.setName(caseInfoException.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
             personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress1()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
 
         //居住地址(联系人2)
-        if(StringUtils.isNotBlank(caseInfoException.getContactName2())){
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress2())){
             PersonalAddress personalAddress=new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation2()));
             personalAddress.setName(caseInfoException.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress2()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
 
         //居住地址(联系人3)
-        if(StringUtils.isNotBlank(caseInfoException.getContactName3())){
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress3())){
             PersonalAddress personalAddress=new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation3()));
             personalAddress.setName(caseInfoException.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress3()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
 
         }
 
         //居住地址(联系人4)
-        if(StringUtils.isNotBlank(caseInfoException.getContactName4())){
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress4())){
             PersonalAddress personalAddress=new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation4()));
             personalAddress.setName(caseInfoException.getPersonalName());
-            personalAddress.setRelation(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress4()));
             personalAddress.setOperator(user.getId());
-            personalAddress.setOperatorTime(user.getOperateTime());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
         persosnalAddressRepository.save(personalAddressList);

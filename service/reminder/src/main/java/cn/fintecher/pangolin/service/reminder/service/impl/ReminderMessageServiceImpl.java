@@ -1,8 +1,15 @@
 package cn.fintecher.pangolin.service.reminder.service.impl;
 
+import cn.fintecher.pangolin.service.reminder.model.AppMsg;
 import cn.fintecher.pangolin.service.reminder.model.ReminderMessage;
+import cn.fintecher.pangolin.service.reminder.model.ReminderWebSocketMessage;
 import cn.fintecher.pangolin.service.reminder.repository.ReminderMessageRepository;
+import cn.fintecher.pangolin.service.reminder.service.AppMsgService;
 import cn.fintecher.pangolin.service.reminder.service.ReminderMessageService;
+import cn.fintecher.pangolin.service.reminder.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -13,17 +20,27 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by ChenChang on 2017/3/20.
  */
 @Service("reminderMessageService")
 public class ReminderMessageServiceImpl implements ReminderMessageService {
+    private final Logger log = LoggerFactory.getLogger(ReminderMessageServiceImpl.class);
+
     private final ReminderMessageRepository reminderMessageRepository;
     @Autowired
     private MongoTemplate mongoTemplate;
+    @Autowired
+    private ReminderMessageService reminderMessageService;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private AppMsgService appMsgService;
 
     @Autowired
     public ReminderMessageServiceImpl(ReminderMessageRepository reminderMessageRepository) {
@@ -69,5 +86,30 @@ public class ReminderMessageServiceImpl implements ReminderMessageService {
         query.addCriteria(Criteria.where("state").is(ReminderMessage.ReadStatus.UnRead));
         long count = mongoTemplate.count(query, ReminderMessage.class);
         return count;
+    }
+
+    @Override
+    public ReminderMessage sendMessage(ReminderMessage message) {
+        message.setState(ReminderMessage.ReadStatus.UnRead);
+        message.setCreateTime(new Date());
+        ReminderMessage result = reminderMessageRepository.save(message);
+        ReminderWebSocketMessage reminderWebSocketMessage = new ReminderWebSocketMessage();
+        reminderWebSocketMessage.setData(result);
+        userService.sendMessage(result.getUserId(), reminderWebSocketMessage);
+        if (Objects.nonNull(result)) {
+            Long count = reminderMessageService.countUnRead(result.getUserId());
+            AppMsg request = new AppMsg();
+            BeanUtils.copyProperties(result, request);
+            request.setId(null);
+            request.setAppMsgUnRead(new Long(count).intValue());
+            request.setContent(result.getContent());
+            try {
+                appMsgService.sendPush(request);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                log.error("消息推送失败");
+            }
+        }
+        return result;
     }
 }

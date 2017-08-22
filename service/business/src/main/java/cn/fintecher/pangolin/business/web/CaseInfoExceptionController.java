@@ -35,11 +35,11 @@ public class CaseInfoExceptionController extends BaseController {
     private static final String ENTITY_NAME = "caseInfoException";
     private static final String CASE_INFO_ENTITY = "caseInfo";
     @Autowired
-    CaseInfoExceptionService caseInfoExceptionService;
+    private CaseInfoExceptionService caseInfoExceptionService;
     @Autowired
-    RestTemplate restTemplate;
+    private RestTemplate restTemplate;
     @Autowired
-    CaseInfoExceptionRepository caseInfoExceptionRepository;
+    private CaseInfoExceptionRepository caseInfoExceptionRepository;
 
     /**
      * 获取所有异常案件
@@ -73,7 +73,7 @@ public class CaseInfoExceptionController extends BaseController {
     public ResponseEntity<CaseInfoDistributed> addCaseInfo(@RequestParam @ApiParam(value ="异常案件id") String caseInfoExceptionId,
                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception{
         log.debug("REST request to add case to CaseInfoDistributed");
-        CaseInfoDistributed caseInfoDistributed = caseInfoExceptionService.addCaseInfo(caseInfoExceptionId,getUserByToken(token));
+        CaseInfoDistributed caseInfoDistributed = caseInfoExceptionService.addCaseInfoDistributed(caseInfoExceptionId,getUserByToken(token));
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert(CASE_INFO_ENTITY,caseInfoDistributed.getId())).body(caseInfoDistributed);
     }
     /**
