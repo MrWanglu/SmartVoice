@@ -112,6 +112,9 @@ public class DataInfoExcelController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司!")).body(null);
             }
         }
+        if (StringUtils.isBlank(dataImportRecord.getPrincipalId())) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择委托方!")).body(null);
+        }
         List<CellError> cellErrorList=null;
         try {
             try {
