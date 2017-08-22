@@ -15,6 +15,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -572,5 +573,37 @@ public class CaseInfoController extends BaseController {
                 file.delete();
             }
         }
+    }
+
+
+    /**
+     * @Description : 查询共债案件
+     */
+
+    @GetMapping("/queryCaseInfoList")
+    @ApiOperation(value = "查询共债案件", notes = "查询共债案件")
+    public ResponseEntity<List<CaseInfo>> queryCaseInfoList(@RequestParam String companyCode,
+                                                            @RequestParam(required = false) String id,
+                                                            @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+
+        CaseInfo caseInfo = caseInfoRepository.findOne(id);
+        QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+        BooleanBuilder builder = new BooleanBuilder();
+        if (Objects.nonNull(companyCode)) {
+            builder.and(qCaseInfo.companyCode.eq(companyCode));
+        }
+        if (Objects.nonNull(caseInfo.getPersonalInfo())) {
+            builder.and(qCaseInfo.personalInfo.name.eq(caseInfo.getPersonalInfo().getName()).and(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard())).and(qCaseInfo.id.ne(caseInfo.getId())));
+        }
+        Iterator<CaseInfo> caseInfoIterator = caseInfoRepository.findAll(builder).iterator();
+        List<CaseInfo> caseInfoList = IteratorUtils.toList(caseInfoIterator);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(caseInfoList);
     }
 }
