@@ -107,10 +107,7 @@ public class MobilePositionController{
             List<String> nameList = new ArrayList<>();
             mobilePositionIterable.forEach(e->{
                 String userName = e.getUserName();
-                if(nameList.contains(userName)){
-                    nameList.add(userName);
                     mobilePositionList.add(e);
-                }
             });
         }
         return new ResponseEntity<>(mobilePositionList, HttpStatus.OK);
