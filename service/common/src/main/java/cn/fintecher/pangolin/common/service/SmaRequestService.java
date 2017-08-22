@@ -1,10 +1,11 @@
 package cn.fintecher.pangolin.common.service;
 
 
-import cn.fintecher.pangolin.common.model.SmaErpv3Return;
 import cn.fintecher.pangolin.util.RandomUtil;
+import cn.fintecher.pangolin.web.HeaderUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections4.map.HashedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,10 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 
 @Service
@@ -31,7 +29,7 @@ public class SmaRequestService {
     private String smaUrl;
 
 
-    public SmaErpv3Return smaRequest(String url, Map reqMap) {
+    public ResponseEntity<Map<String, String>> smaRequest(String url, Map reqMap) {
         RestTemplate restTemplate = new RestTemplate();
         //组装请求头信息
         HttpHeaders headers = new HttpHeaders();
@@ -41,30 +39,27 @@ public class SmaRequestService {
         HttpEntity<Object> httpEntity = new HttpEntity<>(reqMap, headers);
         ResponseEntity<String> entity = restTemplate.exchange(smaUrl + url, HttpMethod.POST, httpEntity, String.class);
         ObjectMapper mapper = new ObjectMapper();
-        SmaErpv3Return smaErpv3Return = new SmaErpv3Return();
+        Map<String, String> map = new HashedMap<>();
         if (entity.getStatusCode().is2xxSuccessful()) {
             try {
-                Map<String, String> map = mapper.readValue(entity.getBody(), Map.class);
-                if (Objects.equals(map.get("responseCode"), "1")) {
-                    smaErpv3Return = new SmaErpv3Return();
-                    smaErpv3Return.setSign("success");
-                    smaErpv3Return.setMap(map);
-                    return smaErpv3Return;
+                Map<String, String> LinkedHashMap = mapper.readValue(entity.getBody(), Map.class);
+                for (Iterator it = LinkedHashMap.keySet().iterator(); it.hasNext(); ) {
+                    Object key = it.next().toString();
+                    Object value = LinkedHashMap.get(key);
+                    map.put(key.toString(), value.toString());
                 }
-                smaErpv3Return.setSign("fail");
-                smaErpv3Return.setReason(map.get("responseinfo"));
-                return smaErpv3Return;
+
+                if (Objects.equals(map.get("responseCode"), "1")) {
+                    return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert("", "Is binding", "已经绑定")).body(map);
+                }
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "error", map.get("responseinfo"))).body(null);
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
-                smaErpv3Return.setSign("fail");
-                smaErpv3Return.setReason("无法解析外呼平台返回");
-                return smaErpv3Return;
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "error", "无法解析外呼平台返回")).body(null);
             }
 
         } else {
-            smaErpv3Return.setSign("fail");
-            smaErpv3Return.setReason("外呼平台返回错误");
-            return smaErpv3Return;
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "error", "外呼平台返回错误")).body(null);
         }
     }
 
