@@ -7,10 +7,6 @@ import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.service.JobTaskService;
 import cn.fintecher.pangolin.business.service.OverNightBatchService;
-import cn.fintecher.pangolin.entity.BatchManage;
-import cn.fintecher.pangolin.entity.QSysParam;
-import cn.fintecher.pangolin.entity.SysParam;
-import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -21,9 +17,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import org.quartz.JobDataMap;
-import org.quartz.JobExecutionContext;
 import org.apache.commons.lang3.StringUtils;
+import org.quartz.JobDataMap;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,10 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StopWatch;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 import javax.inject.Inject;
 import java.util.Objects;
@@ -49,7 +41,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/api/batchManageController")
 @Api(value = "批量管理", description = "批量管理")
-public class BatchManageController extends BaseController{
+public class BatchManageController extends BaseController {
     private final Logger logger = LoggerFactory.getLogger(BatchManageController.class);
     private static final String ENTITY_NAME = "BatchManageController";
 
@@ -141,15 +133,15 @@ public class BatchManageController extends BaseController{
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","batchManageController")).body(page);
     }
 
-
-    @GetMapping("/batchManage")
+    @PostMapping("/manualBatchManage")
     @ApiOperation(value = "批量处理", notes = "批量处理")
-    public void batchManage(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        JobDataMap jobDataMap = jobExecutionContext.getTrigger().getJobDataMap();
+    public void manualBatchManage() throws JobExecutionException {
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("companyCode","0001");
+        jobDataMap.put("sysParamCode","Sysparam.overnight.status");
         StopWatch watch = new StopWatch();
         watch.start();
         try {
-            logger.info("开始晚间批量_{} ", jobDataMap.get("sysParamCode"));
             if (jobTaskService.checkJobIsRunning(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"))) {
                 logger.info("晚间批量正在执行_{}", jobDataMap.get("sysParamCode"));
             } else {
