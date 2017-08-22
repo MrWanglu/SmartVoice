@@ -266,7 +266,7 @@ public class CaseAssistController extends BaseController {
         try {
             try {
                 caseInfoService.doPay(payApplyParams, user);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 log.debug(e.getMessage());
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "doTelPay", e.getMessage())).body(null);
             }

@@ -45,5 +45,6 @@ public class AccFinanceEntry extends BaseEntity{
   private String creator;
   @ApiModelProperty(notes = "操作时间")
   private Date createTime;
-
+  @ApiModelProperty("特定公司的标识")
+  private String companyCode;
 }
