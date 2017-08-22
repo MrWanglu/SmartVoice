@@ -313,7 +313,7 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-               //type  15 电催  16 外访
+        //type  15 电催  16 外访
         booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue()));
         // 电催的小流转和提前流转
         booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONESMALLTURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue()));
@@ -331,9 +331,9 @@ public class CaseInfoController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-        public ResponseEntity electricForceCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
-                                                       @ApiIgnore Pageable pageable,
-                                                       @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity electricForceCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                   @ApiIgnore Pageable pageable,
+                                                   @RequestHeader(value = "X-UserToken") String token) {
         User user;
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
         try {
