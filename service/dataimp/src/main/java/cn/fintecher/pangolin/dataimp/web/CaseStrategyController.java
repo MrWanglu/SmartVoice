@@ -311,14 +311,14 @@ public class CaseStrategyController {
         }
         try {
             CaseStrategy caseStrategy = caseStrategyRepository.findOne(QCaseStrategy.caseStrategy.name.eq(name));
-            if (Objects.nonNull(caseStrategy)) {
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Strategy's name has exist", "该策略名称已存在")).body(null);
-            }
+           if(Objects.nonNull(caseStrategy)){
+               return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exist", "该策略名称已存在")).body(null);
+           }
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "检查策略名称失败")).body(null);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "策略名称没有重复")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","caseInfo")).body(null);
     }
 
     @ApiModelProperty

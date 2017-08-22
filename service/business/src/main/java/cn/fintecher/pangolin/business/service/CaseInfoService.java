@@ -255,7 +255,7 @@ public class CaseInfoService {
         casePayApply.setCollectionType(caseInfo.getCollectionType()); //催收类型
         casePayApply.setDepartId(caseInfo.getDepartment().getId()); //部门ID
         casePayApply.setApplyPayAmt(payApplyParams.getPayAmt()); //申请还款金额
-        casePayApply.setApplyDerateAmt(payApplyParams.getDerateFee()); //申请减免金额
+        casePayApply.setApplyDerateAmt(Objects.isNull(payApplyParams.getDerateFee()) ? new BigDecimal(0) : payApplyParams.getDerateFee()); //申请减免金额
         casePayApply.setPayType(payApplyParams.getPayaType()); //还款类型
         casePayApply.setPayWay(payApplyParams.getPayWay()); //还款方式
         casePayApply.setDerateFlag(payApplyParams.getDerateFlag()); //减免标识

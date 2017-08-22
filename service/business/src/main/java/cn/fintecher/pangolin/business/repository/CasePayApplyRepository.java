@@ -25,6 +25,7 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
     @Override
     default void customize(final QuerydslBindings bindings, final QCasePayApply root) {
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
+        bindings.bind(root.caseId).first(SimpleExpression::eq); //手机号
         bindings.bind(root.personalPhone).first(SimpleExpression::eq); //手机号
         bindings.bind(root.principalId).first((SimpleExpression::eq)); //委托方
         bindings.bind(root.payType).first(SimpleExpression::eq); //还款类型
