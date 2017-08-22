@@ -15,7 +15,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -582,8 +581,9 @@ public class CaseInfoController extends BaseController {
 
     @GetMapping("/queryCaseInfoList")
     @ApiOperation(value = "查询共债案件", notes = "查询共债案件")
-    public ResponseEntity<List<CaseInfo>> queryCaseInfoList(@RequestParam String companyCode,
+    public ResponseEntity<Page<CaseInfo>> queryCaseInfoList(@RequestParam String companyCode,
                                                             @RequestParam(required = false) String id,
+                                                            @ApiIgnore Pageable pageable,
                                                             @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
@@ -602,8 +602,7 @@ public class CaseInfoController extends BaseController {
         if (Objects.nonNull(caseInfo.getPersonalInfo())) {
             builder.and(qCaseInfo.personalInfo.name.eq(caseInfo.getPersonalInfo().getName()).and(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard())).and(qCaseInfo.id.ne(caseInfo.getId())));
         }
-        Iterator<CaseInfo> caseInfoIterator = caseInfoRepository.findAll(builder).iterator();
-        List<CaseInfo> caseInfoList = IteratorUtils.toList(caseInfoIterator);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(caseInfoList);
+        Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
 }
