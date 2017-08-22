@@ -50,7 +50,7 @@ public class SmaRequestService {
                 }
 
                 if (Objects.equals(map.get("responseCode"), "1")) {
-                    return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert("", "Is binding", "已经绑定")).body(map);
+                    return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert("", "Is binding", "操作成功")).body(map);
                 }
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "error", map.get("responseinfo"))).body(null);
             } catch (IOException e) {
