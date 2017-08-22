@@ -18,7 +18,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.joda.time.DateTime;
@@ -27,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.*;
-import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -79,6 +77,7 @@ public class OutsourcePoolController extends BaseController {
     public static final String FINANCEEXCEL_URL = "http://117.36.75.166:8883/group1/M00/01/12/wKgBCFk4wJ6ACoknAAAnUAVwvzk14.xlsx";
     private static final String ENTITY_NAME = "OutSource";
     private static final String ENTITY_NAME1 = "OutSourcePool";
+    private static final String ENTITY_CASEINFO = "CaseInfo";
 
     @PostMapping("/outsource")
     @ApiOperation(value = "委外处理", notes = "委外处理")
@@ -170,10 +169,23 @@ public class OutsourcePoolController extends BaseController {
                                                      @RequestParam(required = false) @ApiParam(value = "最大还款金额") BigDecimal oupoPaynumMax,
                                                      @RequestParam(required = false) @ApiParam(value = "批次号") String outbatch,
                                                      @RequestParam(required = false) String companyCode,
+                                                     @RequestHeader(value = "X-UserToken") String token,
                                                      @ApiIgnore Pageable pageable) {
         try{
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
+                }
+                builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
+            } else {
+                builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
+            }
             if (Objects.nonNull(overDayMin)) {
                 builder.and(qOutsourcePool.caseInfo.overdueDays.gt(overDayMin));
             }
@@ -204,9 +216,6 @@ public class OutsourcePoolController extends BaseController {
             if (Objects.nonNull(outbatch)) {
                 builder.and(qOutsourcePool.outBatch.eq(outbatch));
             }
-            if (Objects.nonNull(companyCode)) {
-                builder.and(qOutsourcePool.outsource.companyCode.eq(companyCode));
-            }
             Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
@@ -222,6 +231,9 @@ public class OutsourcePoolController extends BaseController {
             List<String> outCaseIds = outCaseIdList.getOutCaseIds();
             List<OutsourcePool> outsourcePools = new ArrayList<>();
             User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
             for (String outId:outCaseIds){
                 OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
                 outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode());//状态改为委外结束
@@ -244,6 +256,9 @@ public class OutsourcePoolController extends BaseController {
             List<String> outCaseIds = outCaseIdList.getOutCaseIds();
             List<OutsourcePool> outsourcePools = new ArrayList<>();
             User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
             for (String outId:outCaseIds){
                 OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
                 outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());//状态改为待委外
@@ -263,7 +278,7 @@ public class OutsourcePoolController extends BaseController {
     @ResponseBody
     @ApiOperation(value = "委外案件导出", notes = "委外案件导出")
     //多条件查询领取案件
-    public ResponseEntity getAccRecevicePoolByToken(
+    public ResponseEntity getAccOutsourcePoolByToken(
             @RequestParam(required = false) @ApiParam(value = "最小逾期天数") Integer overDayMin,
             @RequestParam(required = false) @ApiParam(value = "最大逾期天数") Integer overDayMax,
             @RequestParam(required = false) @ApiParam(value = "委外方") String outsName,
@@ -274,14 +289,27 @@ public class OutsourcePoolController extends BaseController {
             @RequestParam(required = false) @ApiParam(value = "最小还款金额") BigDecimal oupoPaynumMin,
             @RequestParam(required = false) @ApiParam(value = "最大还款金额") BigDecimal oupoPaynumMax,
             @RequestParam(required = false) @ApiParam(value = "批次号") String outbatch,
+            @RequestParam(required = false) String companyCode,
             @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
         HSSFWorkbook workbook = null;
         File file = null;
         ByteArrayOutputStream out = null;
         FileOutputStream fileOutputStream = null;
         try {
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
+                }
+                builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
+            } else {
+                builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
+            }
             if (Objects.nonNull(overDayMin)) {
                 builder.and(qOutsourcePool.caseInfo.overdueDays.gt(overDayMin));
             }
@@ -433,7 +461,14 @@ public class OutsourcePoolController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode)); //限制公司code码
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "请选择公司")).body(null);
+                }
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+            } else {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+            }
             builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
             builder.and(QCaseInfo.caseInfo.collectionStatus.in(list)); //不查询已结案、已还款案件
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
@@ -464,7 +499,9 @@ public class OutsourcePoolController extends BaseController {
     @PostMapping("/importFinancData")
     @ResponseBody
     @ApiOperation(value = "账目导入", notes = "账目导入")
-    public ResponseEntity<List> importExcelData(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token, @RequestBody AccFinanceEntry accFinanceEntry) {
+    public ResponseEntity<List> importExcelData(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                @RequestBody AccFinanceEntry accFinanceEntry) {
         try {
             int[] startRow = {0};
             int[] startCol = {0};
@@ -472,6 +509,14 @@ public class OutsourcePoolController extends BaseController {
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
+                }
+                accFinanceEntry.setCompanyCode(companyCode);
+            } else {
+                accFinanceEntry.setCompanyCode(user.getCompanyCode());//限制公司code码
             }
             accFinanceEntry.setCreateTime(ZWDateUtil.getNowDateTime());
             accFinanceEntry.setCreator(user.getUserName());
@@ -556,9 +601,23 @@ public class OutsourcePoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<AccFinanceEntry>> findFinanceData(@ApiIgnore Pageable pageable) {
+    public ResponseEntity<Page<AccFinanceEntry>> findFinanceData(@ApiIgnore Pageable pageable,
+                                                                 @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                 @RequestHeader(value = "X-UserToken") String token) {
         try {
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
             AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
+                }
+                accFinanceEntry.setCompanyCode(companyCode);
+            } else {
+                accFinanceEntry.setCompanyCode(user.getCompanyCode()); //限制公司code码
+            }
             accFinanceEntry.setFienStatus(Status.Enable.getValue());
             accFinanceEntry.setFienCount(null);
             accFinanceEntry.setFienPayback(null);
@@ -596,17 +655,31 @@ public class OutsourcePoolController extends BaseController {
     @ResponseBody
     @ApiOperation(value = "导出委外财务对账数据", notes = "导出委外财务对账数据")
     public ResponseEntity<String> exportOutsideFinanceData(@RequestParam(value = "oupoOutbatch", required = false) @ApiParam("批次号") String oupoOutbatch,
-                                           @RequestParam(value = "outsName", required = false) @ApiParam("委外方") String outsName) {
+                                                           @RequestParam(value = "outsName", required = false) @ApiParam("委外方") String outsName,
+                                                           @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                           @RequestHeader(value = "X-UserToken") String token) {
         HSSFWorkbook workbook = null;
         File file = null;
         ByteArrayOutputStream out = null;
         FileOutputStream fileOutputStream = null;
 
         try {
-            List<OutsourcePool> accOutsourcePoolList = new ArrayList<>();
+            List<OutsourcePool> accOutsourcePoolList;
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
             try {
                 QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
                 BooleanBuilder builder = new BooleanBuilder();
+                if (Objects.isNull(user.getCompanyCode())) {
+                    if (Objects.isNull(companyCode)) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutsourcePool", "请选择公司")).body(null);
+                    }
+                    builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
+                } else {
+                    builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
+                }
                 if (Objects.nonNull(oupoOutbatch)) {
                     builder.and(qOutsourcePool.outBatch.gt(oupoOutbatch));
                 }
