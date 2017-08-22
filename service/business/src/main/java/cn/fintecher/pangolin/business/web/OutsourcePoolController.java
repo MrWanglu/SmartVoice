@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.*;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -282,16 +281,7 @@ public class OutsourcePoolController extends BaseController {
     @ApiOperation(value = "委外案件导出", notes = "委外案件导出")
     //多条件查询领取案件
     public ResponseEntity getAccOutsourcePoolByToken(
-            @RequestParam(required = false) @ApiParam(value = "最小逾期天数") Integer overDayMin,
-            @RequestParam(required = false) @ApiParam(value = "最大逾期天数") Integer overDayMax,
-            @RequestParam(required = false) @ApiParam(value = "委外方") String outsName,
-            @RequestParam(required = false) @ApiParam(value = "催收状态") Integer oupoStatus,
-            @RequestParam(required = false) @ApiParam(value = "最小案件金额") BigDecimal oupoAmtMin,
-            @RequestParam(required = false) @ApiParam(value = "最大案件金额") BigDecimal oupoAmtMax,
-            @RequestParam(required = false) @ApiParam(value = "还款状态") String payStatus,
-            @RequestParam(required = false) @ApiParam(value = "最小还款金额") BigDecimal oupoPaynumMin,
-            @RequestParam(required = false) @ApiParam(value = "最大还款金额") BigDecimal oupoPaynumMax,
-            @RequestParam(required = false) @ApiParam(value = "批次号") String outbatch,
+            @RequestBody OurBatchList ourBatchList,
             @RequestParam(required = false) String companyCode,
             @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
         HSSFWorkbook workbook = null;
@@ -313,35 +303,9 @@ public class OutsourcePoolController extends BaseController {
             } else {
                 builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
             }
-            if (Objects.nonNull(overDayMin)) {
-                builder.and(qOutsourcePool.caseInfo.overdueDays.gt(overDayMin));
-            }
-            if (Objects.nonNull(overDayMax)) {
-                builder.and(qOutsourcePool.caseInfo.overdueDays.lt(overDayMax));
-            }
-            if (Objects.nonNull(outsName)) {
-                builder.and(qOutsourcePool.outsource.outsName.like("%"+outsName+"%"));
-            }
-            if (Objects.nonNull(oupoStatus)) {
-                builder.and(qOutsourcePool.caseInfo.collectionStatus.eq(oupoStatus));
-            }
-            if (Objects.nonNull(oupoAmtMin)) {
-                builder.and(qOutsourcePool.caseInfo.overdueAmount.gt(oupoAmtMin));
-            }
-            if (Objects.nonNull(oupoAmtMax)) {
-                builder.and(qOutsourcePool.caseInfo.overdueAmount.lt(oupoAmtMax));
-            }
-            if (Objects.nonNull(payStatus)) {
-                builder.and(qOutsourcePool.caseInfo.payStatus.eq(payStatus));
-            }
-            if (Objects.nonNull(oupoPaynumMin)) {
-                builder.and(qOutsourcePool.caseInfo.hasPayAmount.gt(oupoPaynumMin));
-            }
-            if (Objects.nonNull(oupoPaynumMax)) {
-                builder.and(qOutsourcePool.caseInfo.hasPayAmount.lt(oupoPaynumMax));
-            }
-            if (Objects.nonNull(outbatch)) {
-                builder.and(qOutsourcePool.outBatch.eq(outbatch));
+            List<String> list = ourBatchList.getOurBatchList();
+            if (!list.isEmpty()){
+                builder.and(qOutsourcePool.outBatch.in(list));
             }
             List<OutsourcePool> outsourcePools = (List<OutsourcePool>)outsourcePoolRepository.findAll(builder);
             List<AccOutsourcePoolModel> accOutsourcePoolModels = new ArrayList<>();
