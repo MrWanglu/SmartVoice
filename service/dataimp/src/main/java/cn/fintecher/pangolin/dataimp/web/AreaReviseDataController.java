@@ -85,22 +85,23 @@ public class AreaReviseDataController {
     public ResponseEntity<Page<DataInfoExcel>> findAreaInfo(@QuerydslPredicate(root = DataInfoExcel.class) Predicate predicate,
                                        @ApiIgnore  Pageable pageable,
                                        @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
-        ResponseEntity<User> userResponseEntity = null;
-        try {
-            userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-        } catch (Exception e) {
-//            logger.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
-        }
-        if (!userResponseEntity.hasBody()) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "user", Constants.SYS_EXCEPTION_NOSESSION)).body(null);
-        }
-
-            User user = userResponseEntity.getBody();
-            BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QDataInfoExcel.dataInfoExcel.operator.eq(user.getId()));
-            Page<DataInfoExcel> dataInfoExcelPage = dataInfoExcelRepository.findAll(builder, pageable);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询数据成功",ENTITY_NAME)).body(dataInfoExcelPage);
+//        ResponseEntity<User> userResponseEntity = null;
+//        try {
+//            userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+//        } catch (Exception e) {
+////            logger.error(e.getMessage(),e);
+//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
+//        }
+//        if (!userResponseEntity.hasBody()) {
+//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "user", Constants.SYS_EXCEPTION_NOSESSION)).body(null);
+//        }
+//
+//            User user = userResponseEntity.getBody();
+//            BooleanBuilder builder = new BooleanBuilder(predicate);
+//            builder.and(QDataInfoExcel.dataInfoExcel.operator.eq(user.getId()));
+//            Page<DataInfoExcel> dataInfoExcelPage = dataInfoExcelRepository.findAll(builder, pageable);
+//            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询数据成功",ENTITY_NAME)).body(dataInfoExcelPage);
+        return null;
 
     }
 

@@ -185,7 +185,7 @@ public class HomePageService {
 
     private List<CaseCountResult> addCaseCountZero(List<CaseCountResult> caseCountResultList){
         // 案件状态
-        Integer[] items = {20,21,22,23,14};
+        Integer[] items = {20,21,22,23,24};
         List<Integer> addList = new ArrayList<>();
         for(Integer item : items){
             addList.add(item);

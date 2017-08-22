@@ -463,11 +463,13 @@ public class OutsourcePoolController extends BaseController {
         }
     }
 
-    @PostMapping("/importFinancData")
+    @GetMapping("/importFinancData")
     @ResponseBody
     @ApiOperation(value = "账目导入", notes = "账目导入")
     public ResponseEntity<List> importExcelData(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
-                                                @RequestBody AccFinanceEntry accFinanceEntry) {
+                                                @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                @RequestParam(required = false) @ApiParam(value = "文件ID") String fileId,
+                                                @RequestParam(required = false) @ApiParam(value = "备注") String fienRemark) {
         try {
             int[] startRow = {0};
             int[] startCol = {0};
@@ -476,7 +478,7 @@ public class OutsourcePoolController extends BaseController {
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
-            String companyCode = accFinanceEntry.getCompanyCode();//公司code码
+            AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(companyCode)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
@@ -487,11 +489,12 @@ public class OutsourcePoolController extends BaseController {
             }
             accFinanceEntry.setCreateTime(ZWDateUtil.getNowDateTime());
             accFinanceEntry.setCreator(user.getUserName());
+            accFinanceEntry.setFienRemark(fienRemark);
             //查找上传文件
             ResponseEntity<UploadFile> uploadFileResult = null;
             UploadFile uploadFile = null;
             try {
-                uploadFileResult = restTemplate.getForEntity("http://file-service/api/uploadFile/" + accFinanceEntry.getFileId(), UploadFile.class);
+                uploadFileResult = restTemplate.getForEntity("http://file-service/api/uploadFile/" + fileId, UploadFile.class);
                 if (!uploadFileResult.hasBody()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取上传文件失败", "", "获取上传文件失败")).body(null);
                 } else {

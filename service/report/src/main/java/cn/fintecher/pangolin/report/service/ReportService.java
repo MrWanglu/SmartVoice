@@ -7,10 +7,8 @@ import cn.fintecher.pangolin.entity.util.ExcelUtil;
 import cn.fintecher.pangolin.report.entity.BackMoneyReport;
 import cn.fintecher.pangolin.report.entity.DailyProcessReport;
 import cn.fintecher.pangolin.report.entity.DailyResultReport;
-import cn.fintecher.pangolin.report.mapper.BackMoneyReportMapper;
-import cn.fintecher.pangolin.report.mapper.DailyProcessReportMapper;
-import cn.fintecher.pangolin.report.mapper.DailyResultReportMapper;
-import cn.fintecher.pangolin.report.mapper.PerformanceReportMapper;
+import cn.fintecher.pangolin.report.entity.PerformanceRankingReport;
+import cn.fintecher.pangolin.report.mapper.*;
 import cn.fintecher.pangolin.report.model.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.commons.io.FileUtils;
@@ -34,10 +32,7 @@ import javax.inject.Inject;
 import java.io.*;
 import java.math.BigDecimal;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author : xiaqun
@@ -62,6 +57,9 @@ public class ReportService {
     DailyResultReportMapper dailyResultReportMapper;
 
     @Inject
+    PerformanceRankingReportMapper performanceRankingReportMapper;
+
+    @Inject
     RestTemplate restTemplate;
 
     /**
@@ -79,7 +77,7 @@ public class ReportService {
         BackMoneySecModel backMoneySecModel = new BackMoneySecModel();
         BackMoneyThiModel backMoneyThiModel = new BackMoneyThiModel();
         for (BackMoneyReport backMoneyReport : backMoneyReports) {
-            if (Objects.equals(backMoneyReport.getDeptCode(), deptModel.getCode())
+            if (Objects.equals(backMoneyReport.getParentDeptCode(), deptModel.getCode())
                     && !Objects.equals(backMoneyReport.getUserName(), tokenUser.getUserName())) { //过滤同部门
                 continue;
             }
@@ -156,6 +154,7 @@ public class ReportService {
                             List<BackMoneyReport> backMoneyReportList = new ArrayList<>();
                             backMoneyReportList.add(backMoneyReport);
                             backMoneyThiModel.setBackMoneyReports(backMoneyReportList); //三级模型中加入报表集合
+                            backMoneyThiModelList.add(backMoneyThiModel);
                         } else { //包含
                             List<BackMoneyReport> backMoneyReportList = backMoneyThiModel.getBackMoneyReports();
                             backMoneyReportList.add(backMoneyReport);
@@ -219,8 +218,8 @@ public class ReportService {
         PerformanceModel performanceModel = new PerformanceModel();
         PerformanceSecModel performanceSecModel = new PerformanceSecModel();
         for (PerformanceBasisModel performanceBasisModel : performanceBasisModels) {
-            if (Objects.equals(deptModel.getCode(), performanceBasisModel.getDeptCode())
-                    && !Objects.equals(deptModel.getName(), performanceBasisModel.getDeptName())) { //过滤同部门
+            if (Objects.equals(deptModel.getCode(), performanceBasisModel.getParentDeptCode())
+                    && !Objects.equals(tokenUser.getUserName(), performanceBasisModel.getUserName())) { //过滤同部门
                 continue;
             }
             if (Objects.equals(performanceModel.getDeptCode(), performanceBasisModel.getParentDeptCode())) { //一级模型中有该部门code码
@@ -257,6 +256,7 @@ public class ReportService {
                         List<PerformanceBasisModel> performanceBasisModelList = new ArrayList<>();
                         performanceBasisModelList.add(performanceBasisModel);
                         performanceSecModel.setPerformanceBasisModels(performanceBasisModelList); //二级模型中加入基础模型
+                        performanceSecModels.add(performanceSecModel);
                     } else { //包含
                         List<PerformanceBasisModel> performanceBasisModelList = performanceSecModel.getPerformanceBasisModels();
                         performanceBasisModelList.add(performanceBasisModel);
@@ -327,8 +327,8 @@ public class ReportService {
         DailyProcessSecModel dailyProcessSecModel = new DailyProcessSecModel();
         DailyProcessThiModel dailyProcessThiModel = new DailyProcessThiModel();
         for (DailyProcessReport dailyProcessReport : dailyProcessReports) {
-            if (Objects.equals(deptModel.getCode(), dailyProcessReport.getDeptCode())
-                    && !Objects.equals(deptModel.getName(), dailyProcessReport.getDeptName())) { //过滤同部门
+            if (Objects.equals(deptModel.getCode(), dailyProcessReport.getParentDeptCode())
+                    && !Objects.equals(tokenUser.getUserName(), dailyProcessReport.getUserName())) { //过滤同部门
                 continue;
             }
             if (Objects.equals(dailyProcessModel.getDeptCode(), dailyProcessReport.getParentDeptCode())) { //一级模型中有该部门code码
@@ -403,6 +403,7 @@ public class ReportService {
                             List<DailyProcessReport> dailyProcessReportList = new ArrayList<>();
                             dailyProcessReportList.add(dailyProcessReport);
                             dailyProcessThiModel.setDailyProcessReports(dailyProcessReportList); //三级模型中加入基础模型
+                            dailyProcessThiModels.add(dailyProcessThiModel);
                         } else { //包含
                             List<DailyProcessReport> dailyProcessReportList = dailyProcessThiModel.getDailyProcessReports();
                             dailyProcessReportList.add(dailyProcessReport);
@@ -482,8 +483,8 @@ public class ReportService {
         DailyResultSecModel dailyResultSecModel = new DailyResultSecModel();
         DailyResultThiModel dailyResultThiModel = new DailyResultThiModel();
         for (DailyResultReport dailyResultReport : dailyResultReports) {
-            if (Objects.equals(deptModel.getCode(), dailyResultReport.getDeptCode())
-                    && !Objects.equals(deptModel.getName(), dailyResultReport.getDeptName())) { //过滤同部门
+            if (Objects.equals(deptModel.getCode(), dailyResultReport.getParentDeptCode())
+                    && !Objects.equals(tokenUser.getUserName(), dailyResultReport.getUserName())) { //过滤同部门
                 continue;
             }
             if (Objects.equals(dailyResultModel.getDeptCode(), dailyResultReport.getParentDeptCode())) { //一级模型中有该部门code码
@@ -558,6 +559,7 @@ public class ReportService {
                             List<DailyResultReport> dailyResultReportList = new ArrayList<>();
                             dailyResultReportList.add(dailyResultReport);
                             dailyResultThiModel.setDailyResultReports(dailyResultReportList); //三级模型中加入基础模型
+                            dailyResultThiModels.add(dailyResultThiModel);
                         } else { //包含
                             List<DailyResultReport> dailyResultReportList = dailyResultThiModel.getDailyResultReports();
                             dailyResultReportList.add(dailyResultReport);
@@ -597,6 +599,371 @@ public class ReportService {
             }
         }
         return dailyResultModels;
+    }
+
+    /**
+     * @Description 催收员业绩排名报表
+     */
+    public List<CollectorPerformanceModel> getPerformanceRankingReport(PerformanceRankingParams performanceRankingParams, User tokenUser) {
+        //获得催收员业绩排名报表
+        List<PerformanceRankingReport> performanceRankingReports = getRankingReport(performanceRankingParams, tokenUser);
+        if (Objects.isNull(performanceRankingReports)) {
+            return null;
+        }
+
+        //构建报表展示模型
+        List<CollectorPerformanceModel> collectorPerformanceModels = new ArrayList<>();
+        CollectorPerformanceModel collectorPerformanceModel = new CollectorPerformanceModel();
+        for (PerformanceRankingReport performanceRankingReport : performanceRankingReports) {
+            if (Objects.equals(tokenUser.getDepartment().getCode(), performanceRankingReport.getDeptCode())
+                    && !Objects.equals(tokenUser.getUserName(), performanceRankingReport.getUserName())) { //过滤同部门
+                continue;
+            }
+            if (Objects.nonNull(collectorPerformanceModel.getDeptCode())
+                    || Objects.equals(collectorPerformanceModel.getDeptCode(), performanceRankingReport.getDeptCode())) { //如果部门code码不为空
+                List<PerformanceRankingReport> performanceRankingReports1 = collectorPerformanceModel.getPerformanceRankingReports();
+                performanceRankingReports1.add(performanceRankingReport);
+            } else { //部门code码为空
+                collectorPerformanceModel = new CollectorPerformanceModel();
+                collectorPerformanceModel.setDeptCode(performanceRankingReport.getParentDeptCode()); //部门code码
+                collectorPerformanceModel.setDeptName(performanceRankingReport.getParentDeptName()); //部门名称
+
+                List<PerformanceRankingReport> performanceRankingReportList = new ArrayList<>();
+                performanceRankingReportList.add(performanceRankingReport); //催收员业绩排名报表集合
+                collectorPerformanceModel.setPerformanceRankingReports(performanceRankingReportList);
+                collectorPerformanceModels.add(collectorPerformanceModel);
+            }
+        }
+
+        //添加组长姓名
+        for (CollectorPerformanceModel collectorPerformanceModel2 : collectorPerformanceModels) {
+            List<PerformanceRankingReport> performanceRankingReportList = collectorPerformanceModel2.getPerformanceRankingReports();
+            saveGroupLeader(performanceRankingReportList);
+        }
+
+        //添加累计,排名
+        for (CollectorPerformanceModel collectorPerformanceModel1 : collectorPerformanceModels) {
+            List<PerformanceRankingReport> performanceRankingReports1 = collectorPerformanceModel1.getPerformanceRankingReports();
+            doCalculate(performanceRankingReports1, 0);
+        }
+        return collectorPerformanceModels;
+    }
+
+    /**
+     * @Description 催收员业绩报名小组汇总报表
+     */
+    public List<PerformanceSummaryModel> getSummaryReport(PerformanceRankingParams performanceRankingParams, User tokenUser) {
+        //获得催收员业绩排名报表
+        List<PerformanceRankingReport> performanceRankingReports = getRankingReport(performanceRankingParams, tokenUser);
+        if (Objects.isNull(performanceRankingReports)) {
+            return null;
+        }
+
+        //构建展示模型
+        List<PerformanceSummaryModel> performanceSummaryModels = new ArrayList<>();
+        PerformanceSummaryModel performanceSummaryModel = new PerformanceSummaryModel();
+        PerformanceSummarySecModel performanceSummarySecModel = new PerformanceSummarySecModel();
+        for (PerformanceRankingReport performanceRankingReport : performanceRankingReports) {
+            if (Objects.equals(tokenUser.getDepartment().getCode(), performanceRankingReport.getDeptCode())
+                    && !Objects.equals(tokenUser.getUserName(), performanceRankingReport.getUserName())) { //过滤同部门
+                continue;
+            }
+            if (Objects.equals(performanceSummaryModel.getDeptCode(), performanceRankingReport.getParentDeptCode())) { //一级模型中有该部门code码
+                List<PerformanceSummarySecModel> performanceSummarySecModels = performanceSummaryModel.getPerformanceSummarySecModels();
+                if (Objects.isNull(performanceSummarySecModels)) { //如果二级模型集合为null则new
+                    //二级模型
+                    List<PerformanceSummarySecModel> performanceSummarySecModelList = new ArrayList<>();
+                    performanceSummarySecModel = new PerformanceSummarySecModel();
+                    performanceSummarySecModel.setGroupCode(performanceRankingReport.getDeptCode()); //组别code码
+                    performanceSummarySecModel.setGroupName(performanceRankingReport.getDeptName()); //组别名称
+
+                    //基础模型
+                    List<PerformanceRankingReport> performanceRankingReportList = new ArrayList<>();
+                    performanceRankingReportList.add(performanceRankingReport);
+                    performanceSummarySecModel.setPerformanceRankingReports(performanceRankingReportList); //二级模型中加入基础报表模型
+                    performanceSummarySecModelList.add(performanceSummarySecModel);
+
+                    performanceSummaryModel.setPerformanceSummarySecModels(performanceSummarySecModelList); //一级模型中加入二级模型
+                } else { //有二级模型集合
+                    int flag = 0; //判断二级模型中是否有该code码
+                    for (PerformanceSummarySecModel performanceSummarySecModel1 : performanceSummarySecModels) {
+                        if (Objects.equals(performanceSummarySecModel1.getGroupCode(), performanceRankingReport.getDeptCode())) {
+                            flag = 1;
+                            break;
+                        }
+                    }
+                    if (0 == flag) { //不包含
+                        //二级模型
+                        performanceSummarySecModel = new PerformanceSummarySecModel();
+                        performanceSummarySecModel.setGroupCode(performanceRankingReport.getDeptCode()); //组别code码
+                        performanceSummarySecModel.setGroupName(performanceRankingReport.getDeptName()); //组别名称
+
+                        List<PerformanceRankingReport> performanceRankingReportList = new ArrayList<>();
+                        performanceRankingReportList.add(performanceRankingReport);
+                        performanceSummarySecModel.setPerformanceRankingReports(performanceRankingReportList); //二级模型中加入基础报表集合
+                        performanceSummarySecModels.add(performanceSummarySecModel);
+                    } else { //包含
+                        List<PerformanceRankingReport> performanceRankingReportList = performanceSummarySecModel.getPerformanceRankingReports();
+                        performanceRankingReportList.add(performanceRankingReport);
+                        performanceSummarySecModel.setPerformanceRankingReports(performanceRankingReportList);
+                    }
+                }
+            } else { //一级模型中没有该部门code码
+                //一级模型
+                performanceSummaryModel = new PerformanceSummaryModel();
+                performanceSummaryModel.setDeptCode(performanceRankingReport.getParentDeptCode()); //部门code码
+                performanceSummaryModel.setDeptName(performanceRankingReport.getParentDeptName()); //部门名称
+
+                //二级模型
+                List<PerformanceSummarySecModel> performanceSummarySecModels = new ArrayList<>();
+                performanceSummarySecModel = new PerformanceSummarySecModel();
+                performanceSummarySecModel.setGroupCode(performanceRankingReport.getDeptCode()); //组别code码
+                performanceSummarySecModel.setGroupName(performanceRankingReport.getDeptName()); //组别名称
+
+                //基础报表
+                List<PerformanceRankingReport> performanceRankingReportList = new ArrayList<>();
+                performanceRankingReportList.add(performanceRankingReport);
+
+                performanceSummarySecModel.setPerformanceRankingReports(performanceRankingReportList); //二级模型中加入基础报表集合
+                performanceSummarySecModels.add(performanceSummarySecModel);
+                performanceSummaryModel.setPerformanceSummarySecModels(performanceSummarySecModels); //一级模型中加入二级模型集合
+
+                performanceSummaryModels.add(performanceSummaryModel);
+            }
+        }
+
+        //添加组长名称
+        for (PerformanceSummaryModel performanceSummaryModel1 : performanceSummaryModels) {
+            List<PerformanceSummarySecModel> performanceSummarySecModels = performanceSummaryModel1.getPerformanceSummarySecModels();
+            for (PerformanceSummarySecModel performanceSummarySecModel1 : performanceSummarySecModels) {
+                List<PerformanceRankingReport> performanceRankingReportList = performanceSummarySecModel1.getPerformanceRankingReports();
+                saveGroupLeader(performanceRankingReportList);
+            }
+        }
+
+        //添加累计,排名
+        for (PerformanceSummaryModel performanceSummaryModel1 : performanceSummaryModels) {
+            List<PerformanceSummarySecModel> performanceSummarySecModels = performanceSummaryModel1.getPerformanceSummarySecModels();
+            for (PerformanceSummarySecModel performanceSummarySecModel1 : performanceSummarySecModels) {
+                List<PerformanceRankingReport> performanceRankingReportList = performanceSummarySecModel1.getPerformanceRankingReports();
+                doCalculate(performanceRankingReportList, 1);
+            }
+        }
+        return performanceSummaryModels;
+    }
+
+    /**
+     * @Description 查询催收员业绩排名报表
+     */
+    private List<PerformanceRankingReport> getRankingReport(PerformanceRankingParams performanceRankingParams, User tokenUser) {
+        List<PerformanceRankingReport> performanceRankingReports;
+        if (Objects.equals(performanceRankingParams.getType(), 0)) { //实时报表
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.MONTH, 0);
+            cal.set(Calendar.DATE, 1);
+            Date startDate = cal.getTime();
+            Date endDate = ZWDateUtil.getNowDate();
+            if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
+                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
+                    throw new RuntimeException("请选择公司");
+                }
+                performanceRankingReports = performanceRankingReportMapper.getRealtimeReport(startDate, endDate, performanceRankingParams.getCompanyCode(),
+                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+            } else {
+                performanceRankingReports = performanceRankingReportMapper.getRealtimeReport(startDate, endDate, tokenUser.getCompanyCode(),
+                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+            }
+        } else { //历史报表
+            if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
+                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
+                    throw new RuntimeException("请选择公司");
+                }
+                performanceRankingReports = performanceRankingReportMapper.getHistoryReport(performanceRankingParams.getDate(), performanceRankingParams.getCompanyCode(),
+                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+            } else {
+                performanceRankingReports = performanceRankingReportMapper.getHistoryReport(performanceRankingParams.getDate(), tokenUser.getCompanyCode(),
+                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+            }
+        }
+        if (performanceRankingReports.isEmpty()) {
+            return null;
+        } else {
+            return performanceRankingReports;
+        }
+    }
+
+    /**
+     * @Description 计算累计，排名
+     */
+    private List<PerformanceRankingReport> doCalculate(List<PerformanceRankingReport> performanceRankingReports, Integer flag) {
+        Integer caseNumSum = 0; //案件总数
+        BigDecimal dayAmtSum = new BigDecimal(0); //当日回款总金额
+        BigDecimal monthAmtSum = new BigDecimal(0); //月累计回款金额
+        BigDecimal targetSum = new BigDecimal(0); //月度回款金额总目标
+        BigDecimal targetDisparitySum = new BigDecimal(0); //月度目标金额总差距
+
+        BigDecimal month = new BigDecimal(0); //月累计金额，做排名用
+        int rank = 0; //排名
+        for (PerformanceRankingReport report : performanceRankingReports) {
+            //计算累计
+            caseNumSum = caseNumSum + report.getCaseNum();
+            dayAmtSum = dayAmtSum.add(report.getDayBackMoney());
+            monthAmtSum = monthAmtSum.add(report.getMonthBackMoney());
+            targetDisparitySum = targetDisparitySum.add(report.getTargetDisparity());
+            targetSum = targetSum.add(report.getTarget());
+
+            //排名
+            if (!Objects.equals(report.getMonthBackMoney(), month)) {
+                rank++;
+                report.setRank(rank);
+            } else {
+                report.setRank(rank);
+            }
+            month = report.getMonthBackMoney();
+        }
+        PerformanceRankingReport performanceRankingReport = new PerformanceRankingReport();
+        if (0 == flag) {
+            performanceRankingReport.setRealName("累计");
+        } else {
+            performanceRankingReport.setDeptName("累计");
+        }
+        performanceRankingReport.setCaseNum(caseNumSum);
+        performanceRankingReport.setDayBackMoney(dayAmtSum);
+        performanceRankingReport.setMonthBackMoney(monthAmtSum);
+        performanceRankingReport.setTarget(targetSum);
+        performanceRankingReport.setTargetDisparity(targetDisparitySum);
+
+        performanceRankingReports.add(performanceRankingReport);
+        return performanceRankingReports;
+    }
+
+    /**
+     * @Description 添加组长名称
+     */
+    private List<PerformanceRankingReport> saveGroupLeader(List<PerformanceRankingReport> performanceRankingReports) {
+        PerformanceRankingReport report = null;
+        for (PerformanceRankingReport performanceRankingReport1 : performanceRankingReports) {
+            Integer manage = performanceRankingReportMapper.getManage(performanceRankingReport1.getUserName());
+            if (1 == manage) { //是管理者
+                report = performanceRankingReport1;
+                break;
+            }
+        }
+        if (Objects.nonNull(report)) {
+            for (PerformanceRankingReport performanceRankingReport2 : performanceRankingReports) {
+                performanceRankingReport2.setManageName(report.getRealName());
+            }
+        }
+        return performanceRankingReports;
+    }
+
+    /**
+     * @Description 催收员业绩报名汇总报表
+     */
+    public List<GroupLeaderModel> getGroupLeaderReport(PerformanceRankingParams performanceRankingParams, User tokenUser) {
+        //获得催收员业绩排名报表
+        List<PerformanceRankingReport> performanceRankingReportList = getRankingReport(performanceRankingParams, tokenUser);
+        if (Objects.isNull(performanceRankingReportList)) {
+            return null;
+        }
+
+        //报表分组
+        Map<String, List<PerformanceRankingReport>> map = new HashMap<>();
+        for (PerformanceRankingReport performanceRankingReport : performanceRankingReportList) {
+            //过滤管理人员
+            Integer manage = performanceRankingReportMapper.getManage(performanceRankingReport.getUserName());
+            if (1 == manage) { //是管理者
+                continue;
+            }
+            if (map.containsKey(performanceRankingReport.getDeptCode())) { //map的key包含所循环的报表的组别code码
+                List<PerformanceRankingReport> performanceRankingReports = map.get(performanceRankingReport.getDeptCode());
+                performanceRankingReports.add(performanceRankingReport);
+                map.put(performanceRankingReport.getDeptCode(), performanceRankingReports);
+            } else { //不包含
+                List<PerformanceRankingReport> performanceRankingReports = new ArrayList<>();
+                performanceRankingReports.add(performanceRankingReport);
+                map.put(performanceRankingReport.getDeptCode(), performanceRankingReports);
+            }
+        }
+
+        //构建展示模型
+        List<GroupLeaderModel> groupLeaderModels = new ArrayList<>();
+        for (Map.Entry<String, List<PerformanceRankingReport>> entry : map.entrySet()) {
+            List<PerformanceRankingReport> performanceRankingReports = entry.getValue();
+            Integer caseNum = 0; //案件数量
+            Integer manageNum = 0; //管理人数
+            BigDecimal dayBackMoney = new BigDecimal(0); //当日回款金额
+            BigDecimal monthBackMoney = new BigDecimal(0); //月累计回款金额
+            BigDecimal target = new BigDecimal(0); //月度回款金额目标
+            BigDecimal targetDisparity = new BigDecimal(0); //月度目标差距
+            String groupCode = null; //组别ceode码
+            String groupName = null; //组别名称
+            for (PerformanceRankingReport performanceRankingReport : performanceRankingReports) {
+                caseNum = caseNum + performanceRankingReport.getCaseNum();
+                manageNum = manageNum + 1;
+                dayBackMoney = dayBackMoney.add(performanceRankingReport.getDayBackMoney());
+                monthBackMoney = monthBackMoney.add(performanceRankingReport.getMonthBackMoney());
+                target = target.add(performanceRankingReport.getTarget());
+                targetDisparity = targetDisparity.add(performanceRankingReport.getTargetDisparity());
+                groupCode = performanceRankingReport.getDeptCode();
+                groupName = performanceRankingReport.getDeptName();
+            }
+            BigDecimal average = monthBackMoney.divide(new BigDecimal(manageNum)); //人均回款金额
+            GroupLeaderModel groupLeaderModel = new GroupLeaderModel();
+            groupLeaderModel.setGroupCode(groupCode);
+            groupLeaderModel.setGroupName(groupName);
+            groupLeaderModel.setCaseNum(caseNum);
+            groupLeaderModel.setManageNum(manageNum);
+            groupLeaderModel.setDayBackMoney(dayBackMoney);
+            groupLeaderModel.setMonthBackMoney(monthBackMoney);
+            groupLeaderModel.setAverageMoney(average);
+            groupLeaderModel.setTarget(target);
+            groupLeaderModel.setTargetDisparity(targetDisparity);
+            groupLeaderModels.add(groupLeaderModel);
+        }
+
+        //计算累计，排名
+        Integer caseSum = 0; //案件数量
+        Integer manageSum = 0; //管理人数
+        BigDecimal daySum = new BigDecimal(0); //当日回款金额
+        BigDecimal monthSum = new BigDecimal(0); //月累计回款金额
+        BigDecimal targetSum = new BigDecimal(0); //月度回款金额目标
+        BigDecimal targetDisparitySum = new BigDecimal(0); //月度目标差距
+
+        Integer rank = 0; //排名
+        for (GroupLeaderModel groupLeaderModel : groupLeaderModels) {
+            caseSum = caseSum + groupLeaderModel.getCaseNum();
+            manageSum = manageSum + groupLeaderModel.getManageNum();
+            daySum = daySum.add(groupLeaderModel.getDayBackMoney());
+            monthSum = monthSum.add(groupLeaderModel.getMonthBackMoney());
+            targetSum = targetSum.add(targetSum);
+            targetDisparitySum = targetDisparitySum.add(groupLeaderModel.getTargetDisparity());
+        }
+
+        //排序
+        groupLeaderModels.sort((o1, o2) -> o2.getAverageMoney().compareTo(o1.getAverageMoney()));
+        BigDecimal temp = new BigDecimal(0);
+        for (GroupLeaderModel groupLeaderModel1 : groupLeaderModels) {
+            if (Objects.equals(temp, groupLeaderModel1.getAverageMoney())) {
+                rank++;
+                groupLeaderModel1.setRank(rank);
+            } else {
+                groupLeaderModel1.setRank(rank);
+            }
+            temp = groupLeaderModel1.getAverageMoney();
+        }
+
+        GroupLeaderModel groupLeaderModel1 = new GroupLeaderModel();
+        groupLeaderModel1.setGroupName("累计");
+        groupLeaderModel1.setCaseNum(caseSum);
+        groupLeaderModel1.setManageNum(manageSum);
+        groupLeaderModel1.setDayBackMoney(daySum);
+        groupLeaderModel1.setMonthBackMoney(monthSum);
+        groupLeaderModel1.setTarget(targetSum);
+        groupLeaderModel1.setTargetDisparity(targetDisparitySum);
+        groupLeaderModels.add(groupLeaderModel1);
+
+        return groupLeaderModels;
     }
 
     /**

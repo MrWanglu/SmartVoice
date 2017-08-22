@@ -38,9 +38,9 @@
         LEFT JOIN
         (SELECT id,`code` as deptCode,`name` as deptName from department) g on f.pid = g.id) l on k.deptId = l.id) b
         on a.userName = b.userName
-        ) as temp where deptCode like CONCAT(#{deptCode},'%') AND companyCode = #{companyCode}
+        ) as temp where parentDeptCode like CONCAT(#{deptCode},'%') AND companyCode = #{companyCode}
         <if test="code != null">
-            AND deptCode LIKE CONCAT(#{code}, '%')
+            AND parentDeptCode LIKE CONCAT(#{code}, '%')
         </if>
         <if test="realName != null">
             AND realName LIKE CONCAT('%', #{realName}, '%')
@@ -96,10 +96,10 @@
             AND <![CDATA[DATE_FORMAT(back_date,'%Y-%m-%d') <= DATE_FORMAT(#{endDate},'%Y-%m-%d')]]>
         </if>
         <if test="code != null">
-            AND dept_code LIKE CONCAT(#{code}, '%')
+            AND parent_dept_code LIKE CONCAT(#{code}, '%')
         </if>
         <if test="realName != null">
-            AND a.realName LIKE CONCAT('%', #{code}, '%')
+            AND real_name LIKE CONCAT('%', #{realName}, '%')
         </if>
         order by back_date DESC,dept_code asc
     </select>

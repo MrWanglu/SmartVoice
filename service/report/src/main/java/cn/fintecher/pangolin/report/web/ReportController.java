@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.report.model.*;
 import cn.fintecher.pangolin.report.service.ReportService;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,8 @@ public class ReportController extends BaseController {
     private static final String ENTITY_DAILY_PROCESS_REPORT = "DailyProcessReport";
 
     private static final String ENTITY_DAILY_RESULT_REPORT = "DailyResultReport";
+
+    private static final String ENTITY_PERFORMANCE_RANKING_REPORT = "PerformanceRankingReport";
 
     @Inject
     ReportService reportService;
@@ -126,6 +129,69 @@ public class ReportController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_DAILY_RESULT_REPORT, "dailyResultReport", "查询失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 催收员业绩排名报表
+     */
+    @GetMapping("/getPerformanceRankingReport")
+    @ApiOperation(value = "催收员业绩排名报表", notes = "催收员业绩排名报表")
+    public ResponseEntity<List<CollectorPerformanceModel>> getPerformanceRankingReport(PerformanceRankingParams performanceRankingParams,
+                                                                                       @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get performance ranking report");
+        try {
+            User tokenUser = getUserByToken(token);
+            List<CollectorPerformanceModel> collectorPerformanceModels = reportService.getPerformanceRankingReport(performanceRankingParams, tokenUser);
+            if (Objects.isNull(collectorPerformanceModels)) {
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_RANKING_REPORT)).body(null);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_PERFORMANCE_RANKING_REPORT)).body(collectorPerformanceModels);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_RANKING_REPORT, "performanceRankingReport", "查询失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 催收员业绩排名小组汇总报表
+     */
+    @GetMapping("/getSummaryReport")
+    @ApiOperation(value = "催收员业绩报名小组汇总报表", notes = "催收员业绩报名小组汇总报表")
+    public ResponseEntity<List<PerformanceSummaryModel>> getSummaryReport(PerformanceRankingParams performanceRankingParams,
+                                                                          @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get summary report");
+        try {
+            User tokenUser = getUserByToken(token);
+            List<PerformanceSummaryModel> performanceSummaryModels = reportService.getSummaryReport(performanceRankingParams, tokenUser);
+            if (Objects.isNull(performanceSummaryModels)) {
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_RANKING_REPORT)).body(null);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_PERFORMANCE_RANKING_REPORT)).body(performanceSummaryModels);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_RANKING_REPORT, "performanceRankingReport", "查询失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 催收员业绩报名汇总报表
+     */
+    @GetMapping("/getGroupLeaderReport")
+    @ApiModelProperty(value = "催收员业绩报名汇总报表", notes = "催收员业绩报名汇总报表")
+    public ResponseEntity<List<GroupLeaderModel>> getGroupLeaderReport(PerformanceRankingParams performanceRankingParams,
+                                                                       @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get group leader report");
+        try {
+            User tokenUser = getUserByToken(token);
+            List<GroupLeaderModel> groupLeaderModels = reportService.getGroupLeaderReport(performanceRankingParams, tokenUser);
+            if (Objects.isNull(groupLeaderModels)) {
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_RANKING_REPORT)).body(null);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_PERFORMANCE_RANKING_REPORT)).body(groupLeaderModels);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_RANKING_REPORT, "performanceRankingReport", "查询失败")).body(null);
         }
     }
 

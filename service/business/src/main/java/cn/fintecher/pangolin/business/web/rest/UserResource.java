@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.business.web.rest;
 
 import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.business.session.SessionStore;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
@@ -30,6 +31,8 @@ public class UserResource {
     private static final String ENTITY_NAME = "User";
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    UserService userService;
 
     @GetMapping("/getUserByToken")
     @ApiOperation(value = "通过token获取用户", notes = "通过token获取用户")
@@ -45,7 +48,7 @@ public class UserResource {
     @PostMapping("/saveUser")
     @ApiOperation(value = "保存用户", notes = "保存用户")
     public ResponseEntity<User> saveUser(@RequestBody User user) {
-        User user1 = userRepository.save(user);
+        User user1 = userService.save(user);
         return ResponseEntity.ok().body(user1);
     }
 
