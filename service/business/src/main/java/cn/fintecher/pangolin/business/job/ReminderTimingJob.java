@@ -29,7 +29,7 @@ import java.util.Objects;
 @DisallowConcurrentExecution
 public class ReminderTimingJob implements Job{
 
-    private final Logger logger = LoggerFactory.getLogger(OverNightJob.class);
+    private final Logger logger = LoggerFactory.getLogger(ReminderTimingJob.class);
 
     @Autowired
     SchedulerFactoryBean schedFactory;
@@ -48,8 +48,8 @@ public class ReminderTimingJob implements Job{
         restTemplate.execute("http://reminder-service/api/reminderTiming/sendReminderTiming", HttpMethod.GET,null,null);
     }
 
-    @Bean
-    public List<CronTriggerFactoryBean> CreateCronTrigger() {
+    @Bean(name = "createReminderTimingJob")
+    public List<CronTriggerFactoryBean> CreateReminderTimingJob() {
         List<CronTriggerFactoryBean> cronTriggerFactoryBeanList = new ArrayList<>();
         try {
             //获取公司码
@@ -67,7 +67,7 @@ public class ReminderTimingJob implements Job{
                         String second = cronString.substring(4, 6);
                         cronString = second.concat(" ").concat(mis).concat(" ").concat(hours).concat(" * * ?");
                         JobDetail jobDetail = ConfigureQuartz.createJobDetail(ReminderTimingJob.class, Constants.REMIDER_JOB_GROUP,
-                                Constants.RECORD_JOB_NAME, Constants.RECORD_JOB_DESC);
+                                Constants.REMIDER_JOB_NAME.concat("_").concat(company.getCode()), Constants.REMIDER_JOB_DESC.concat("_").concat(company.getCode()));
                         JobDataMap jobDataMap = new JobDataMap();
                         jobDataMap.put("companyCode", company.getCode());
                         jobDataMap.put("sysParamCode", Constants.SYSPARAM_REMIDER_STATUS);

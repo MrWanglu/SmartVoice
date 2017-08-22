@@ -1,32 +1,30 @@
 package cn.fintecher.pangolin.business.job;
 
 import cn.fintecher.pangolin.business.config.ConfigureQuartz;
-import cn.fintecher.pangolin.business.model.SmaDetailReport;
-import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
 import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.service.JobTaskService;
 import cn.fintecher.pangolin.business.service.OverNightBatchService;
-import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.Company;
+import cn.fintecher.pangolin.entity.QSysParam;
+import cn.fintecher.pangolin.entity.SysParam;
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
-import org.springframework.web.client.RestTemplate;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @Author: PeiShouWen
@@ -38,10 +36,13 @@ import java.util.*;
 public class OverNightJob implements Job {
 
     Logger logger = LoggerFactory.getLogger(OverNightJob.class);
+
     @Autowired
     SchedulerFactoryBean schedFactory;
+
     @Autowired
     CompanyRepository companyRepository;
+
     @Autowired
     SysParamRepository sysParamRepository;
     @Autowired
@@ -53,15 +54,10 @@ public class OverNightJob implements Job {
     @Autowired
     UserRepository userRepository;
 
-    @Autowired
-    private RestTemplate restTemplate;
-
-    @Autowired
-    private CaseFollowupRecordRepository caseFollowupRecordRepository;
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        //中通天鸿的通话记录同步到跟进记录
+       /* //中通天鸿的通话记录同步到跟进记录
         Date data = new Date();
         QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
         Iterator<CaseFollowupRecord> caseFollowupRecordIterator = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.callType.eq(164).and(qCaseFollowupRecord.operatorTime.gt(data)).and(qCaseFollowupRecord.connSecs.isNull()).and(qCaseFollowupRecord.startTime.isNull()).and(qCaseFollowupRecord.endTime.isNull())).iterator();
@@ -110,7 +106,7 @@ public class OverNightJob implements Job {
                     }
                 }
             }
-        }
+        }*/
 
         JobDataMap jobDataMap = jobExecutionContext.getTrigger().getJobDataMap();
         StopWatch watch = new StopWatch();
@@ -162,13 +158,15 @@ public class OverNightJob implements Job {
         }
     }
 
-    @Bean
-    public List<CronTriggerFactoryBean> CreateCronTrigger() {
+
+    @Bean(name = "createOverNightJob")
+    public List<CronTriggerFactoryBean> CreateOverNightJob() {
         List<CronTriggerFactoryBean> cronTriggerFactoryBeanList = new ArrayList<>();
         try {
             //获取公司码
             List<Company> companyList = companyRepository.findAll();
             for (Company company : companyList) {
+                //晚间批量调度
                 QSysParam qSysParam = QSysParam.sysParam;
                 SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
                         .and(qSysParam.code.eq(Constants.SYSPARAM_OVERNIGHT))
@@ -181,7 +179,7 @@ public class OverNightJob implements Job {
                         String mis = cronStr.substring(2, 4);
                         String second = cronStr.substring(4, 6);
                         cronStr = second.concat(" ").concat(mis).concat(" ").concat(hours).concat(" * * ?");
-                        JobDetail jobDetail = ConfigureQuartz.createJobDetail(this.getClass(), Constants.OVERNIGHT_JOB_GROUP,
+                        JobDetail jobDetail = ConfigureQuartz.createJobDetail(OverNightJob.class, Constants.OVERNIGHT_JOB_GROUP,
                                 Constants.OVERNIGHT_JOB_NAME.concat("_").concat(company.getCode()),
                                 Constants.OVERNIGHT_JOB_DESC.concat("_").concat(company.getCode()));
                         JobDataMap jobDataMap = new JobDataMap();
@@ -204,6 +202,7 @@ public class OverNightJob implements Job {
         }
         return cronTriggerFactoryBeanList;
     }
+
 
 
 }

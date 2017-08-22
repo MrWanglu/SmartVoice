@@ -136,8 +136,6 @@ public class RecordDownLoadJob implements Job {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-
-
         sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYSPARAM_OVERNIGHT_STATUS));
         if (Objects.equals("1", sysParam.getValue())) {
             sysParam.setValue("0");
@@ -145,8 +143,8 @@ public class RecordDownLoadJob implements Job {
         }
     }
 
-    @Bean
-    public List<CronTriggerFactoryBean> CreateCronTrigger() {
+    @Bean(name = "createRecordDownLoadJob")
+    public List<CronTriggerFactoryBean> CreateRecordDownLoadJob() {
         List<CronTriggerFactoryBean> cronTriggerFactoryBeanList = new ArrayList<>();
         try {
             //获取公司码
@@ -159,7 +157,7 @@ public class RecordDownLoadJob implements Job {
                 if (Objects.nonNull(sysParam)) {
                     String cron = sysParam.getValue();
                     cron = "0 ".concat("0").concat("/").concat(cron).concat(" * * * ?");
-                    JobDetail jobDetail = ConfigureQuartz.createJobDetail(this.getClass(), Constants.RECORD_JOB_GROUP,
+                    JobDetail jobDetail = ConfigureQuartz.createJobDetail(RecordDownLoadJob.class, Constants.RECORD_JOB_GROUP,
                             Constants.RECORD_JOB_NAME.concat("_").concat(company.getCode()),
                             Constants.RECORD_JOB_DESC.concat("_").concat(company.getCode()));
                     JobDataMap jobDataMap = new JobDataMap();
@@ -168,7 +166,7 @@ public class RecordDownLoadJob implements Job {
                     CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.RECORD_TRIGGER_GROUP,
                             Constants.RECORD_TRIGGER_NAME.concat("_").concat(company.getCode()),
                             "RecordDownLoadJobBean".concat("_").concat(company.getCode()),
-                            Constants.RECORD_TRIGGER_DESC, jobDetail, cron, jobDataMap);
+                            Constants.RECORD_TRIGGER_DESC.concat("_").concat(company.getCode()), jobDetail, cron, jobDataMap);
                     cronTriggerFactoryBean.afterPropertiesSet();
                     schedFactory.getScheduler().deleteJob(jobDetail.getKey());
                     //加入调度器
@@ -181,4 +179,5 @@ public class RecordDownLoadJob implements Job {
         }
         return cronTriggerFactoryBeanList;
     }
+
 }

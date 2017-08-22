@@ -140,17 +140,21 @@ public class SysParamController extends BaseController {
                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                        "syspram value is illegitmacy", "参数长度不满6位")).body(null);
            }
-            if(!value.matches("^[0-2]{1}[0-3]{1}[0-5]{1}[0-9]{1}[0-5]{1}[0-9]{1}$")){
+            if(!value.matches("^[0-2]{1}[0-9]{1}[0-5]{1}[0-9]{1}[0-5]{1}[0-9]{1}$")){
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "syspram value is illegitmacy", "参数输入不合法")).body(null);
             }
             //触发系统批量
             String hours = value.substring(0, 2);
+            if(Integer.parseInt(hours)>23){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                        "syspram value is illegitmacy", "参数输入不合法")).body(null);
+            }
             String mis = value.substring(2, 4);
             String second = value.substring(4, 6);
            String  cronStr = second.concat(" ").concat(mis).concat(" ").concat(hours).concat(" * * ?");
            try{
-               jobTaskService.updateJobTask(cronStr,sysParam.getCompanyCode(),Constants.SYSPARAM_OVERNIGHT,Constants.REMIDER_TRIGGER_NAME.concat("_").concat(sysParam.getCompanyCode())
+               jobTaskService.updateJobTask(cronStr,sysParam.getCompanyCode(),Constants.SYSPARAM_OVERNIGHT,Constants.OVERNIGHT_TRIGGER_NAME.concat("_").concat(sysParam.getCompanyCode())
                        ,Constants.OVERNIGHT_TRIGGER_GROUP,Constants.OVERNIGHT_TRIGGER_DESC.concat("_").concat(sysParam.getCompanyCode())
                        ,Constants.OVERNIGHT_JOB_NAME.concat("_").concat(sysParam.getCompanyCode()), Constants.OVERNIGHT_JOB_GROUP
                        ,Constants.OVERNIGHT_JOB_DESC.concat("_").concat(sysParam.getCompanyCode()), OverNightJob.class,

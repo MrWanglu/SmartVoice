@@ -190,7 +190,7 @@ public class OverNightBatchService {
                     .from(QCaseInfo.caseInfo);
             jpaQuery.where(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())//未结案
                     .and(qCaseInfo.currentCollector.isNotNull())
-                    .and(qCaseInfo.companyCode.eq(jobDataMap.getString("sysParamCode"))));//催收员不为空
+                    .and(qCaseInfo.companyCode.eq(jobDataMap.getString("companyCode"))));//催收员不为空
             List<CaseInfo> caseInfoList = jpaQuery.fetch();
             //更新相关天数
             for (CaseInfo caseInfo : caseInfoList) {
@@ -201,9 +201,9 @@ public class OverNightBatchService {
                 }
                 //案件剩余天数
                 Integer leftDays = ZWDateUtil.getBetween(ZWDateUtil.getNowDate(), caseInfo.getCloseDate(), ChronoUnit.DAYS);
-                if (leftDays.intValue() < 0) {
+              /*  if (leftDays.intValue() < 0) {
                     leftDays = 0;
-                }
+                }*/
                 caseInfo.setLeftDays(leftDays);
             }
             caseInfoRepository.save(caseInfoList);
@@ -214,7 +214,7 @@ public class OverNightBatchService {
                     .from(qCaseAssist);
             caseAssistJPAQuery.where(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())//协催未结束
                     .and(qCaseAssist.currentCollector.isNotNull())//协催已分配
-                    .and(qCaseAssist.companyCode.eq(jobDataMap.getString("sysParamCode"))));//公司CODE
+                    .and(qCaseAssist.companyCode.eq(jobDataMap.getString("companyCode"))));//公司CODE
             List<CaseAssist> caseAssistList = caseAssistJPAQuery.fetch();
             for (CaseAssist caseAssist : caseAssistList) {
                 caseAssist.setHoldDays(caseAssist.getHoldDays() + 1);
