@@ -18,6 +18,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.joda.time.DateTime;
@@ -26,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -43,6 +45,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -792,6 +795,63 @@ public class OutsourcePoolController extends BaseController {
             }
         } else {
             return null;
+        }
+    }
+
+    @GetMapping("/getOutRecored")
+    @ApiOperation(value = "查询委外记录", notes = "查询委外记录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<OutsourceRecord>> getAccOutsourceOrder(
+            @RequestParam(required = false) @ApiParam(value = "委外方") String outsName,
+            @RequestParam(required = false) @ApiParam(value = "开始时间") String startDate,
+            @RequestParam(required = false) @ApiParam(value = "结束时间") String endDate,
+            @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+            @RequestHeader(value = "X-UserToken") String token,
+            Pageable pageable) throws URISyntaxException {
+        try {
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
+            if (StringUtils.isNotBlank(startDate)) {
+                startDate = startDate + " 00:00:00";
+            }
+            if (StringUtils.isNotBlank(endDate)) {
+                endDate = endDate + " 23:59:59";
+            }
+            Date minTime = ZWDateUtil.getUtilDate(startDate, "yyyy-MM-dd HH:mm:ss");
+            Date maxTime = ZWDateUtil.getUtilDate(endDate, "yyyy-MM-dd HH:mm:ss");
+            QOutsourceRecord qOutsourceRecord = QOutsourceRecord.outsourceRecord;
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourceRecord", "OutsourceRecord", "请选择公司")).body(null);
+                }
+                builder.and(qOutsourceRecord.caseInfo.companyCode.eq(companyCode));
+            } else {
+                builder.and(qOutsourceRecord.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
+            }
+            if (Objects.nonNull(startDate)) {
+                builder.and(qOutsourceRecord.createTime.gt(minTime));
+            }
+            if (Objects.nonNull(endDate)) {
+                builder.and(qOutsourceRecord.createTime.lt(maxTime));
+            }
+            if (Objects.nonNull(outsName)) {
+                builder.and(qOutsourceRecord.outsource.outsName.eq(outsName));
+            }
+            Page<OutsourceRecord> page = outsourceRecordRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "", e.getMessage())).body(null);
         }
     }
 }
