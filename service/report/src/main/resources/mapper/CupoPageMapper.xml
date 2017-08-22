@@ -50,11 +50,11 @@
 
     <!--本周结案数-->
     <select id="getCaseEndWeek" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
-        SELECT count(id) AS num,WEEKDAY(close_date) AS dayOfWeek FROM case_info
+        SELECT count(id) AS num,WEEKDAY(operator_time) AS dayOfWeek FROM case_info
         WHERE (current_collector = #{userId} OR assist_collector = #{userId})
         AND collection_status = 24
-        AND YEARWEEK(date_format(close_date,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
-        GROUP BY WEEKDAY(close_date)
+        AND YEARWEEK(date_format(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        GROUP BY WEEKDAY(operator_time)
         ORDER BY dayOfWeek
     </select>
 
@@ -71,12 +71,15 @@
         SELECT case_info.id FROM case_info
         WHERE current_collector = #{userId}
         AND collection_status = 24
-        AND to_days(close_date) = to_days(now())
+        AND to_days(operator_time) = to_days(now())
         UNION ALL
         SELECT case_assist.id AS num FROM case_assist
-        WHERE assist_collector = #{userId}
-        AND assist_status = 29
-        AND to_days(operator_time) = to_days(now())
+        LEFT JOIN case_info
+        ON case_assist.case_id = case_info.id
+        WHERE case_assist.assist_collector = #{userId}
+        AND case_assist.assist_status = 29
+        AND case_info.collection_status = 24
+        AND to_days(case_assist.operator_time) = to_days(now())
         ) AS m
     </select>
 

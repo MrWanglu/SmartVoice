@@ -363,7 +363,7 @@ public class CaseStrategyController {
                     }
                 }
             }
-            stringBuilder.delete(0, 1);
+           // stringBuilder.delete(0, 1);
             return stringBuilder.toString();
         } catch (Exception e) {
             //  e.printStackTrace();

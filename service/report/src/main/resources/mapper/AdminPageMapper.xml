@@ -73,26 +73,26 @@
 
     <!--周结案数-->
     <select id="getWeekCaseEndCount" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
-        SELECT SUM(m.num) AS num,m.closeDate AS dayOfWeek FROM (
-        SELECT COUNT(*) AS num,WEEKDAY(close_date) AS closeDate FROM case_info
+        SELECT SUM(m.num) AS num,m.operator_time AS dayOfWeek FROM (
+        SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS operator_time FROM case_info
         LEFT JOIN department
         ON case_info.depart_id = department.id
         WHERE department.`code` LIKE concat(#{deptCode},'%')
         AND case_info.collection_status = 24
-        AND YEARWEEK(DATE_FORMAT(close_date,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
-        GROUP BY WEEKDAY(close_date)
+        AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        GROUP BY WEEKDAY(operator_time)
         UNION ALL
-        SELECT COUNT(*) AS num,WEEKDAY(close_date) AS closeDate FROM case_info
+        SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS operator_time FROM case_info
         LEFT JOIN `user`
         ON `user`.id = case_info.assist_collector
         LEFT JOIN department
         ON `user`.dept_id = department.id
         WHERE department.`code` LIKE concat(#{deptCode},'%')
         AND case_info.collection_status = 24
-        AND YEARWEEK(DATE_FORMAT(close_date,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
-        GROUP BY WEEKDAY(close_date)
+        AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        GROUP BY WEEKDAY(operator_time)
         ) AS m
-        GROUP BY m.closeDate
+        GROUP BY m.operator_time
         ORDER BY dayOfWeek
     </select>
 
