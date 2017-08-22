@@ -233,13 +233,13 @@ public class CasePayApply extends BaseEntity {
      */
     public enum ApproveResult {
         //减免同意
-        DERATE_AGREE(177, "减免同意"),
+        DERATE_AGREE(60, "减免同意"),
         //减免拒绝
-        DERATE_REJECT(178, "减免拒绝"),
+        DERATE_REJECT(61, "减免拒绝"),
         //入账
-        AGREE(179, "入账"),
+        AGREE(62, "入账"),
         //驳回
-        REJECT(180, "驳回");
+        REJECT(63, "驳回");
         private Integer value;
 
         private String remark;
