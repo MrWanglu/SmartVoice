@@ -63,6 +63,7 @@ public class AccFinanceEntryService {
             afe.setFienRemark(accFinanceEntry.getFienRemark());
             afe.setCreator(accFinanceEntry.getCreator());
             afe.setCreateTime(accFinanceEntry.getCreateTime());
+            afe.setCompanyCode(accFinanceEntry.getCompanyCode());
             //验证必要数据的合法性
             if (!validityFinance(errorList, afe)) {
                 return;
