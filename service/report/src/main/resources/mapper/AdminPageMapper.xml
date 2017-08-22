@@ -28,7 +28,7 @@
         FROM case_pay_apply
         LEFT JOIN department ON case_pay_apply.depart_id = department.id
         WHERE department.`code` LIKE concat(#{deptCode},'%')
-        AND (case_pay_apply.approve_result = 179 OR case_pay_apply.approve_status =58)
+        AND (case_pay_apply.approve_result = 62 OR case_pay_apply.approve_status =58)
     </select>
 
     <!--部门下客户总数-->
@@ -103,7 +103,7 @@
             select apply.apply_user_name as uname,apply.apply_real_name as rname,sum(apply.apply_pay_amt) as pamt from case_pay_apply as apply
             left join department
             on apply.depart_id = department.id
-            where (apply.approve_status = 58 OR apply.approve_result =179)
+            where (apply.approve_status = 58 OR apply.approve_result =62)
             and department.code like concat(#{deptCode},'%')
             and year(apply.approve_pay_datetime) = year(NOW())
             and month(apply.approve_pay_datetime) = month(NOW())
@@ -139,7 +139,7 @@
         SELECT SUM(apply_pay_amt) AS payed,case_pay_apply.personal_name AS name,case_pay_apply.personal_id AS pid FROM case_pay_apply
         LEFT JOIN department
         ON case_pay_apply.depart_id = department.id
-        WHERE (case_pay_apply.approve_status = 58 OR case_pay_apply.approve_result =179)
+        WHERE (case_pay_apply.approve_status = 58 OR case_pay_apply.approve_result =62)
         AND department.`code` LIKE concat(#{deptCode},'%')
         AND DATE_FORMAT(approve_pay_datetime, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m')
         GROUP BY case_pay_apply.personal_id,case_pay_apply.personal_name
