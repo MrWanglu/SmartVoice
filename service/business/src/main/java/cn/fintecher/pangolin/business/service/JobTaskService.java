@@ -5,11 +5,11 @@ import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.entity.QSysParam;
 import cn.fintecher.pangolin.entity.SysParam;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
-import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +17,7 @@ import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Objects;
 
 /**
@@ -41,8 +42,7 @@ public class JobTaskService {
      */
     public void updateJobTask(String cron,String companyCode,String sysParamCode, String triggerName,String triggerGroup,String triggerDesc,
                               String jobName,String jobGroup,String jobDesc,Class objClass,String beanName) throws Exception {
-        StdSchedulerFactory schedulerFactory = new StdSchedulerFactory();
-        Scheduler scheduler = schedulerFactory.getScheduler();
+        Scheduler scheduler = schedFactory.getScheduler();
         JobDetail jobDetail=scheduler.getJobDetail(JobKey.jobKey(jobName,jobGroup));
         if(Objects.nonNull(jobDetail)){
             scheduler.deleteJob(jobDetail.getKey());
@@ -81,11 +81,14 @@ public class JobTaskService {
      * @param companyCode
      * @param sysParamCode
      */
+    @Transactional
     public void updateSysparam(String companyCode,String sysParamCode,String value){
         SysParam sysParam=new SysParam();
         sysParam.setCompanyCode(companyCode);
         sysParam.setCode(sysParamCode);
+        sysParam=sysParamRepository.findOne(QSysParam.sysParam.companyCode.eq(companyCode).and(QSysParam.sysParam.code.eq(sysParamCode)));
         sysParam.setValue(value);
+        sysParam.setOperateTime(ZWDateUtil.getNowDateTime());
         sysParamRepository.save(sysParam);
     }
 
