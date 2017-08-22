@@ -467,7 +467,6 @@ public class OutsourcePoolController extends BaseController {
     @ResponseBody
     @ApiOperation(value = "账目导入", notes = "账目导入")
     public ResponseEntity<List> importExcelData(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
-                                                @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                 @RequestBody AccFinanceEntry accFinanceEntry) {
         try {
             int[] startRow = {0};
@@ -477,6 +476,7 @@ public class OutsourcePoolController extends BaseController {
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
+            String companyCode = accFinanceEntry.getCompanyCode();//公司code码
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(companyCode)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
