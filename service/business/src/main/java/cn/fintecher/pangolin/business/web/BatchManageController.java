@@ -14,10 +14,7 @@ import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
@@ -141,11 +138,30 @@ public class BatchManageController extends BaseController {
 
     @PostMapping("/manualBatchManage")
     @ApiOperation(value = "批量处理", notes = "批量处理")
-    public void manualBatchManage() throws JobExecutionException {
+    public ResponseEntity manualBatchManage(@RequestHeader(value = "X-UserToken") String token,
+                                            @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) throws JobExecutionException {
+        User user;
+        try {
+            user = getUserByToken(token);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"user not login","用户未登录")).body(null);
+        }
         JobDataMap jobDataMap = new JobDataMap();
+        if(Objects.isNull(user.getCompanyCode())){
+            if(Objects.isNull(companyCode)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "batchManageController", "请先选择公司")).body(null);
+            }
+            jobDataMap.put("companyCode",companyCode);
+        }else{
+            jobDataMap.put("companyCode",user.getCompanyCode());
+        }
+        jobDataMap.put("sysParamCode",Constants.SYSPARAM_OVERNIGHT_STATUS);
         jobDataMap.put("companyCode", "0001");
         jobDataMap.put("sysParamCode", Constants.SYSPARAM_OVERNIGHT_STATUS);
         overNightBatchService.doOverNightTask(jobDataMap);
+        //sysParamService.findByCode(jobDataMap.getString("sysParamCode"));
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","batchManageController")).body(null);
     }
 
     /**

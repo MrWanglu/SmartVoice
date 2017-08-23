@@ -312,7 +312,6 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        // 电催的小流转和提前流转
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CaseType.PHNONESMALLTURN.getValue());
         list.add(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue());
@@ -371,7 +370,6 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        // 外访的小流转和保留流转
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CaseType.OUTSMALLTURN.getValue());
         list.add(CaseInfo.CaseType.OUTFAHEADTURN.getValue());
@@ -401,7 +399,6 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        // 外访的强制流转和保留流转
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CaseType.OUTFORCETURN.getValue());
         list.add(CaseInfo.CaseType.OUTLEAVETURN.getValue());
