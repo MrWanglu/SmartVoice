@@ -109,6 +109,8 @@ public final class Constants {
     //协催过期天数
     public static final String TYPE_TEL = "0010";
     public static final String ASSIST_APPLY_CODE = "SysParam.assistApplyOverday";
+    //批量成功步数
+    public static final String BATCH_STEP_SUCCESS = "6";
 
     /**
      * 数据来源
