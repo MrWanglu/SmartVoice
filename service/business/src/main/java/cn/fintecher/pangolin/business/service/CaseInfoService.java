@@ -1457,8 +1457,8 @@ public class CaseInfoService {
                 caseTurnRecordList.add(caseTurnRecord);
                 //案件列表
                 caseInfoObjList.add(caseInfo);
+                alreadyCaseNum = alreadyCaseNum + 1;
             }
-            alreadyCaseNum = alreadyCaseNum + 1;
         }
         //保存案件信息
         caseInfoRepository.save(caseInfoObjList);
