@@ -99,6 +99,8 @@ public class CaseInfoDistributedService {
             List<CaseRepair> caseRepairList = new ArrayList<>();
             //选择的案件ID列表
             List<String> caseInfoList = accCaseInfoDisModel.getCaseIdList();
+            //被分配的案件ID列表
+            List<String> caseInfoAlready = new ArrayList<>();
             //每个机构或人分配的数量
             List<Integer> disNumList = accCaseInfoDisModel.getCaseNumList();
             //已经分配的案件数量
@@ -190,6 +192,7 @@ public class CaseInfoDistributedService {
                         //案件列表
                         caseInfoObjList.add(caseInfo);
                     }
+                    caseInfoAlready.add(caseInfoDistributed.getId());
                     alreadyCaseNum = alreadyCaseNum + 1;
                 }
             }
@@ -200,7 +203,7 @@ public class CaseInfoDistributedService {
             //保存修复信息
             caseRepairRepository.save(caseRepairList);
             //删除待分配案件
-            for (String id : caseInfoList) {
+            for (String id : caseInfoAlready) {
                 caseInfoDistributedRepository.delete(id);
             }
         }
