@@ -13,7 +13,8 @@
         x.companyCode,DATE_FORMAT(now(),'%Y-%m-%d') as nowDate from
         (SELECT current_collector,count(id) as caseNum from case_info where current_collector is not null
         and current_collector in (SELECT id from `user` where dept_id in (SELECT id from department where `level` =
-        (SELECT max(`level`) from department where id in (SELECT dept_id from user where company_code = #{companyCode})))) GROUP
+        (SELECT max(`level`) from department where id in (SELECT dept_id from user where company_code =
+        #{companyCode})))) GROUP
         BY current_collector) w
         LEFT JOIN
         (SELECT
@@ -108,5 +109,76 @@
     <!-- 查询是否是管理者 -->
     <select id="getManage" parameterType="String" resultType="Integer">
         SELECT manager from user where user_name = #{userName}
+    </select>
+
+    <!-- 查询催收员业绩排名汇总实时报表 -->
+    <select id="getRealtimeSummaryReport" parameterType="cn.fintecher.pangolin.report.model.PerformanceRankingParams"
+            resultType="cn.fintecher.pangolin.report.entity.PerformanceRankingReport">
+        SELECT x.parentDeptCode,x.parentDeptName,x.deptCode,x.deptName,x.userName,x.realName,
+        case when x.dayBackMoney is null then 0 else x.dayBackMoney end as dayBackMoney,
+        case when x.monthBackMoney is null then 0 else x.monthBackMoney end as monthBackMoney,
+        case when x.target is null then 0 else x.target end as target,
+        (case when x.target is null then 0 else x.target end - case when x.monthBackMoney is null then 0 else
+        x.monthBackMoney end) as targetDisparity,
+        x.companyCode,DATE_FORMAT(now(),'%Y-%m-%d') as nowDate from
+        (SELECT current_collector,count(id) as caseNum from case_info where current_collector is not null
+        and current_collector in (SELECT id from `user` where dept_id in (SELECT id from department where `level` =
+        (SELECT max(`level`) from department where id in (SELECT dept_id from user where company_code =
+        #{companyCode})))) GROUP
+        BY current_collector) w
+        LEFT JOIN
+        (SELECT
+        u.id,u.companyCode,u.userName,u.realName,v.parentDeptCode,v.parentDeptName,v.deptCode,v.deptName,e.dayBackMoney,e.monthBackMoney,q.target
+        from
+        (SELECT id,dept_id,company_code as companyCode,user_name as userName,real_name as realName from user) u
+        LEFT JOIN
+        (SELECT z.apply_user_name,case when y.dayBackMoney is null then 0 else y.dayBackMoney end as dayBackMoney,
+        case when z.monthBackMoney is null then 0 else z.monthBackMoney end as monthBackMoney from
+        (SELECT apply_user_name,sum(case when apply_derate_amt is null then 0 else apply_derate_amt end + case when
+        apply_pay_amt is null then 0 else apply_pay_amt end) as monthBackMoney
+        from case_pay_apply where approve_status = 58 and
+        <![CDATA[DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') >= #{startDate}]]>
+        and <![CDATA[DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') <= #{endDate}]]> GROUP BY apply_user_name) z
+        LEFT JOIN
+        (SELECT apply_user_name,sum(case when apply_derate_amt is null then 0 else apply_derate_amt end + case when
+        apply_pay_amt is null then 0 else apply_pay_amt end) as dayBackMoney
+        from case_pay_apply where approve_status = 58 and DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') =
+        DATE_FORMAT(NOW(),'%Y-%m-%d') GROUP BY apply_user_name) y
+        on y.apply_user_name = z.apply_user_name) e on u.userName = e.apply_user_name
+        LEFT JOIN
+        (SELECT user_name,`year`,`month`,back_cash as target from user_backcash_plan where DATE_FORMAT(NOW(),'%Y') =
+        `year` and DATE_FORMAT(NOW(),'%c') = `month`) q on u.userName = q.user_name
+        LEFT JOIN
+        (SELECT s.id,s.deptCode,s.deptName,t.parentDeptCode,t.parentDeptName from
+        (SELECT id,pid,`code` as deptCode,`name` as deptName from department) s
+        LEFT JOIN
+        (SELECT id,`code` as parentDeptCode,`name` as parentDeptName from department) t on s.pid = t.id
+        ) v on u.dept_id = v.id
+        ) x on w.current_collector = x.id where companyCode = #{companyCode} and x.parentDeptCode LIKE
+        CONCAT(#{deptCode},'%')
+        <if test="realName != null">
+            AND x.realName LIKE CONCAT('%',#{realName},'%')
+        </if>
+        <if test="code != null">
+            AND x.parentDeptCode LIKE CONCAT(#{code},'%')
+        </if>
+        ORDER BY monthBackMoney desc,x.deptCode asc
+    </select>
+
+    <!-- 查询汇总历史报表 -->
+    <select id="getHistorySummayReport" parameterType="cn.fintecher.pangolin.report.model.PerformanceRankingParams"
+            resultType="cn.fintecher.pangolin.report.entity.PerformanceRankingReport">
+        SELECT * from performance_ranking_report
+        where company_code = #{companyCode} and parent_dept_code like CONCAT(#{deptCode},'%') ORDER BY month_back_money
+        <if test="date != null">
+            AND DATE_FORMAT(now_date,'%Y-%m-%d') = #{date}
+        </if>
+        <if test="realName != null">
+            AND real_name LIKE CONCAT('%',#{realName},'%')
+        </if>
+        <if test="code != null">
+            AND parent_dept_code LIKE CONCAT(#{cope},'%')
+        </if>
+        order by monthBackMoney desc,dept_code asc
     </select>
 </mapper>

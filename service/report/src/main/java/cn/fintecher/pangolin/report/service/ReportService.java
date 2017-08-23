@@ -654,8 +654,36 @@ public class ReportService {
      */
     public List<PerformanceSummaryModel> getSummaryReport(PerformanceRankingParams performanceRankingParams, User tokenUser) {
         //获得催收员业绩排名报表
-        List<PerformanceRankingReport> performanceRankingReports = getRankingReport(performanceRankingParams, tokenUser);
-        if (Objects.isNull(performanceRankingReports)) {
+        List<PerformanceRankingReport> performanceRankingReports;
+        if (Objects.equals(performanceRankingParams.getType(), 0)) { //实时报表
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.MONTH, 0);
+            cal.set(Calendar.DATE, 1);
+            Date startDate = cal.getTime();
+            Date endDate = ZWDateUtil.getNowDate();
+            if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
+                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
+                    throw new RuntimeException("请选择公司");
+                }
+                performanceRankingReports = performanceRankingReportMapper.getRealtimeSummaryReport(startDate, endDate, performanceRankingParams.getCompanyCode(),
+                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+            } else {
+                performanceRankingReports = performanceRankingReportMapper.getRealtimeSummaryReport(startDate, endDate, tokenUser.getCompanyCode(),
+                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+            }
+        } else { //历史报表
+            if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
+                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
+                    throw new RuntimeException("请选择公司");
+                }
+                performanceRankingReports = performanceRankingReportMapper.getHistorySummayReport(performanceRankingParams.getDate(), performanceRankingParams.getCompanyCode(),
+                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+            } else {
+                performanceRankingReports = performanceRankingReportMapper.getHistorySummayReport(performanceRankingParams.getDate(), tokenUser.getCompanyCode(),
+                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+            }
+        }
+        if (performanceRankingReports.isEmpty()) {
             return null;
         }
 
@@ -2005,7 +2033,12 @@ public class ReportService {
                     for (int i = 0; i < 2; i++) {
                         if (0 == i) {
                             Object obj = ExcelUtil.getProValue("parentDeptName", performanceRankingReport); //通过字段映射获取相应的数据
-                            cell = setCellValue(obj, row, 0); //给单元格set值
+                            if (Objects.isNull(obj)) {
+                                cell = row.createCell(i, CellType.STRING);
+                                cell.setCellValue("");
+                            } else {
+                                cell = setCellValue(obj, row, 0); //给单元格set值
+                            }
                         } else if (1 == i) {
                             Object obj = ExcelUtil.getProValue("deptName", performanceRankingReport); //通过字段映射获取相应的数据
                             cell = setCellValue(obj, row, 1); //给单元格set值
@@ -2014,24 +2047,34 @@ public class ReportService {
                     }
 
                     //给该行每一列设置数据
-                    for (int i = 2; i < 10; i++) { //i为报表模版数据列数,从第[2]列姓名开始
-                        Object obj = ExcelUtil.getProValue(paramArray[paramIndex], performanceRankingReport); //通过字段映射获取相应的数据
-                        if (2 == i || 3 == i || 6 == i) {
-                            if (Objects.isNull(obj)) {
-                                cell = row.createCell(i, CellType.STRING);
-                                cell.setCellValue("");
-                            } else {
-                                if (2 == i) {
-                                    cell = row.createCell(i, CellType.STRING);
-                                    cell.setCellValue(obj + "(" + performanceRankingReport.getManageName() + ")");
-                                }
-                                cell = setCellValue(obj, row, i); //给单元格set值
-                            }
+                    for (int i = 0; i < 10; i++) { //i为报表模版数据列数,从第[2]列姓名开始
+                        if (0 == i || 1 == i) {
+                            cell = row.createCell(i, CellType.STRING);
+                            cell.setCellValue("");
                         } else {
-                            cell = setCellValue(obj, row, i); //给单元格set值
+                            Object obj = ExcelUtil.getProValue(paramArray[paramIndex], performanceRankingReport); //通过字段映射获取相应的数据
+                            if (2 == i || 3 == i || 6 == i) {
+                                if (Objects.isNull(obj)) {
+                                    cell = row.createCell(i, CellType.STRING);
+                                    cell.setCellValue("");
+                                } else {
+                                    if (2 == i) {
+                                        cell = row.createCell(i, CellType.STRING);
+                                        cell.setCellValue(obj + "(" + performanceRankingReport.getManageName() + ")");
+                                    }
+                                    cell = setCellValue(obj, row, i); //给单元格set值
+                                }
+                            } else {
+                                if (Objects.isNull(obj)) {
+                                    cell = row.createCell(i, CellType.STRING);
+                                    cell.setCellValue("");
+                                } else {
+                                    cell = setCellValue(obj, row, i); //给单元格set值
+                                }
+                            }
+                            cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                            paramIndex++;
                         }
-                        cell.setCellStyle(hssfCellStyle); //给单元格设置格式
-                        paramIndex++;
                     }
                     //设置完毕后行数+1,进行下一行设置
                     userIndex++;
@@ -2061,6 +2104,7 @@ public class ReportService {
     /**
      * @Description 给报表单元格set值
      */
+
     private HSSFCell setCellValue(Object obj, HSSFRow row, Integer j) {
         HSSFCell cell;
         if (obj instanceof String) {

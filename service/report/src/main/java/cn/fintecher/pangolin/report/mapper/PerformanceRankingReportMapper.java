@@ -44,4 +44,23 @@ public interface PerformanceRankingReportMapper extends BaseMapper<PerformanceRa
      * @Description 判断是否是管理者
      */
     Integer getManage(@Param("userName") String userName);
+
+    /**
+     * @Description 查询催收员业绩排名汇总实时报表
+     */
+    List<PerformanceRankingReport> getRealtimeSummaryReport(@Param("startDate") Date startDate,
+                                                            @Param("endDate") Date endDate,
+                                                            @Param("companyCode") String companyCode,
+                                                            @Param("deptCode") String deptCode,
+                                                            @Param("realName") String realName,
+                                                            @Param("code") String code);
+
+    /**
+     * @Dexcription 查询汇总历史报表
+     */
+    List<PerformanceRankingReport> getHistorySummayReport(@Param("date") String date,
+                                                          @Param("companyCode") String companyCode,
+                                                          @Param("deptCode") String deptCode,
+                                                          @Param("realName") String realName,
+                                                          @Param("code") String code);
 }
