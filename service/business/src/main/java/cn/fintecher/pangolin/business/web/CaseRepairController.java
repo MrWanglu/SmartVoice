@@ -126,6 +126,10 @@ public class CaseRepairController extends BaseController{
         }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
+        list.add(CaseInfo.CollectionStatus.CASE_OUT.getValue());
+        List<Integer> list1 = new ArrayList<>();
+        list1.add(CaseRepair.CaseRepairStatus.REPAIRING.getValue());
+        list1.add(CaseRepair.CaseRepairStatus.REPAIRED.getValue());
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if(Objects.equals(user.getUserName(),"administrator")){
             if(Objects.isNull(companyCode)){
@@ -136,7 +140,7 @@ public class CaseRepairController extends BaseController{
             builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(user.getCompanyCode()));
         }
         builder.and(QCaseRepair.caseRepair.caseId.collectionStatus.notIn(list));
-        builder.and(QCaseRepair.caseRepair.repairStatus.eq(CaseRepair.CaseRepairStatus.REPAIRING.getValue()));
+        builder.and(QCaseRepair.caseRepair.repairStatus.in(list1));
         Page<CaseRepair> page = caseRepairRepository.findAll(builder,pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "RepairCaseDistributeController")).body(page);
     }
@@ -166,6 +170,7 @@ public class CaseRepairController extends BaseController{
         }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
+        list.add(CaseInfo.CollectionStatus.CASE_OUT.getValue());
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if(Objects.equals(user.getUserName(),"administrator")){
             if(Objects.isNull(companyCode)){
@@ -206,6 +211,7 @@ public class CaseRepairController extends BaseController{
         }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
+        list.add(CaseInfo.CollectionStatus.CASE_OUT.getValue());
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if(Objects.equals(user.getUserName(),"administrator")){
             if(Objects.isNull(companyCode)){
