@@ -58,6 +58,7 @@ public class PrincipalController extends BaseController {
     private CaseInfoDistributedRepository caseInfoDistributedRepository;
     @Autowired
     private CaseInfoExceptionRepository caseInfoExceptionRepository;
+
     @GetMapping("/getPrincipalPageList")
     @ApiOperation(value = "获取委托方分页查询", notes = "获取委托方分页查询")
     @ApiImplicitParams({
@@ -122,9 +123,13 @@ public class PrincipalController extends BaseController {
                     "The client's association case is not allowed to be deleted", "该委托方有关联分配的案件不允许删除")).body(null);
         }
 
-//        QCaseInfoException qCaseInfoException = QCaseInfoException.caseInfoException;
-//        Iterator<CaseInfoException> CaseInfoExceptionIterator = caseInfoExceptionRepository.findAll(qCaseInfoException.p).iterator();
-
+        Principal principal4 = principalRepository.findOne(id);
+        QCaseInfoException qCaseInfoException = QCaseInfoException.caseInfoException;
+        Iterator<CaseInfoException> CaseInfoExceptionIterator = caseInfoExceptionRepository.findAll(qCaseInfoException.prinCode.eq(principal4.getCode())).iterator();
+        if (CaseInfoExceptionIterator.hasNext()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                    "The client's association case is not allowed to be deleted", "该委托方有关联异常案件不允许删除")).body(null);
+        }
         Principal principal = principalRepository.findOne(id);
         principal.setFlag(Principal.deleteStatus.BLOCK.getDeleteCode());
         Principal principal1 = principalRepository.save(principal);
