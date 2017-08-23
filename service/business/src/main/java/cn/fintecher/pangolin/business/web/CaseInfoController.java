@@ -375,7 +375,8 @@ public class CaseInfoController extends BaseController {
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CaseType.OUTSMALLTURN.getValue());
         list.add(CaseInfo.CaseType.OUTFAHEADTURN.getValue());
-        booleanBuilder.and(QCaseInfo.caseInfo.caseType.in(list));;
+        booleanBuilder.and(QCaseInfo.caseInfo.caseType.in(list));
+        booleanBuilder.and(QCaseInfo.caseInfo.circulationStatus.eq(CaseInfo.CirculationStatus.VISIT_PASS.getValue()));
         Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "outSmallCirculation")).body(page);
     }
