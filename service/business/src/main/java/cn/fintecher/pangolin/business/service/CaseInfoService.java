@@ -1416,6 +1416,10 @@ public class CaseInfoService {
                 caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //流转类型-案件分配
                 caseInfo.setCaseFollowInTime(new Date()); //案件流入时间
                 caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件打标-无色
+                caseInfo.setFollowupBack(null); //催收反馈置空
+                caseInfo.setFollowupTime(null);//跟进时间置空
+                caseInfo.setPromiseAmt(new BigDecimal(0));//承诺还款置0
+                caseInfo.setPromiseTime(null);//承诺还款日期置空
                 caseInfo.setOperator(user);
                 caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
                 //案件流转记录
