@@ -32,7 +32,7 @@ import java.util.Objects;
  * @Date 17:59 2017/8/1
  */
 @RestController
-@RequestMapping("/api/caseInfo")
+@RequestMapping("/api/caseInfoReportController")
 @Api(description = "委托方数据操作")
 public class CaseInfoReportController extends BaseController{
 
