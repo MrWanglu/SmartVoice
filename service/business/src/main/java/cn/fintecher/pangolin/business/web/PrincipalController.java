@@ -133,7 +133,7 @@ public class PrincipalController extends BaseController {
         if (Objects.isNull(request.getId())) {
             //验证委外方是否重名
             QPrincipal qPrincipal = QPrincipal.principal;
-            Iterator<Principal> principalIterator = principalRepository.findAll(qPrincipal.name.eq(request.getName()).and(qPrincipal.flag.eq(Outsource.deleteStatus.START.getDeleteCode())).and(qPrincipal.companyCode.eq(request.getCompanyCode()))).iterator();
+            Iterator<Principal> principalIterator = principalRepository.findAll(qPrincipal.name.eq(request.getName()).and(qPrincipal.flag.eq(Principal.deleteStatus.START.getDeleteCode())).and(qPrincipal.companyCode.eq(request.getCompanyCode()))).iterator();
             if (principalIterator.hasNext()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "The outsourcename is not allowed to be used", "该名字不允许被使用")).body(null);
