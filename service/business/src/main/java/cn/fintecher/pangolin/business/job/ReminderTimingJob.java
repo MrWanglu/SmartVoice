@@ -6,9 +6,11 @@ import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.ReminderService;
+import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
+import javassist.expr.Cast;
 import org.apache.commons.lang.StringUtils;
 import org.quartz.*;
 import org.slf4j.Logger;
@@ -19,8 +21,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,22 +54,54 @@ public class ReminderTimingJob implements Job{
     @Autowired
     private ReminderService ReminderService;
 
+    @Autowired
+    private UserService userService;
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        try {
         //案件即将强制流转提醒
-        List<CaseInfo> caseInfoList = caseInfoService.getAllForceTurnCase();
-        if(Objects.nonNull(caseInfoList)){
-            for(CaseInfo caseInfo : caseInfoList){
+        List<CaseInfo> forceTurnCaseList = caseInfoService.getAllForceTurnCase();
+        if(Objects.nonNull(forceTurnCaseList)){
+            for(CaseInfo caseInfo : forceTurnCaseList){
                 SendReminderMessage sendReminderMessage = new SendReminderMessage();
                 sendReminderMessage.setUserId(caseInfo.getCurrentCollector().getId());
                 sendReminderMessage.setType(ReminderType.FORCE_TURN);
                 sendReminderMessage.setTitle("案件强制流转提醒");
-                sendReminderMessage.setContent("您持有的案件 ["+caseInfo.getCaseNumber()+"] 即将强制流转,请及时处理");
+                sendReminderMessage.setContent("您持有的案件 ["+caseInfo.getCaseNumber()+"] 即将强制流转,请及时留案");
                 sendReminderMessage.setMode(ReminderMode.POPUP);
                 ReminderService.sendReminder(sendReminderMessage);
             }
         }
-        restTemplate.execute("http://reminder-service/api/reminderTiming/sendReminderTiming", HttpMethod.GET,null,null);
+
+        //持案天数逾期无进展提醒
+        List<CaseInfo>  nowhereCaseList = caseInfoService.getAllNowhereCase();
+        if(Objects.nonNull(nowhereCaseList)){
+            for(CaseInfo caseInfo : nowhereCaseList){
+                List<User> managers = userService.getManagerByUser(caseInfo.getCurrentCollector().getId());
+                SendReminderMessage sendReminderMessage = new SendReminderMessage();
+                sendReminderMessage.setUserId(managers.get(0).getId());
+                sendReminderMessage.setType(ReminderType.FLLOWUP);
+                sendReminderMessage.setTitle("案件跟进提醒");
+                sendReminderMessage.setContent("案件 ["+caseInfo.getCaseNumber()+"] 长时间无跟进记录,请及时处理");
+                sendReminderMessage.setMode(ReminderMode.POPUP);
+                if(managers.size()>1){
+                    List<String> managerIds = new ArrayList<>();
+                    for(int i=1;i<managers.size();i++){
+                        managerIds.add(managers.get(i).getId());
+                    }
+                sendReminderMessage.setCcUserIds(managerIds.toArray(new String[managerIds.size()]));
+                }
+                ReminderService.sendReminder(sendReminderMessage);
+            }
+        }
+
+        //
+
+
+            restTemplate.execute("http://reminder-service/api/reminderTiming/sendReminderTiming", HttpMethod.GET,null,null);
+        } catch (RestClientException e) {
+            logger.error(e.getMessage(),e);
+        }
     }
 
     @Bean(name = "createReminderTimingJob")
@@ -104,11 +140,10 @@ public class ReminderTimingJob implements Job{
                 }
             }
         } catch (SchedulerException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(),e);
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(),e);
         }
         return cronTriggerFactoryBeanList;
     }
-
 }

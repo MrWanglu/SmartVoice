@@ -1627,11 +1627,52 @@ public class CaseInfoService {
                 BooleanBuilder builder = new BooleanBuilder();
                 builder.and(qCaseInfo.holdDays.between(Integer.valueOf(sysParam1.getValue()) - Integer.valueOf(sysParam.getValue()),
                         Integer.valueOf(sysParam1.getValue())).
-                        and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())));
+                        and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
+                        and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
                 caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
             }
         }
         return caseInfoList;
     }
 
+    /**
+     * 获取所有若干天无进展案件List
+     *
+     * @return
+     */
+    public List<CaseInfo> getAllNowhereCase() {
+        List<CaseInfo> caseInfoList = new ArrayList<>();
+        //电催案件
+        caseInfoList.addAll(getNowhereCase(Constants.SYS_PHONEREMIND_DAYS));
+        //外访案件
+        caseInfoList.addAll(getNowhereCase(Constants.SYS_OUTREMIND_DAYS));
+        return caseInfoList;
+    }
+
+    /**
+     * 获取若干天无进展案件
+     *
+     * @param remindDays
+     * @return
+     */
+    public List<CaseInfo> getNowhereCase(String remindDays) {
+        List<CaseInfo> caseInfoList = new ArrayList<>();
+        //遍历所有公司
+        List<Company> companyList = companyRepository.findAll();
+        for (Company company : companyList) {
+            QSysParam qSysParam = QSysParam.sysParam;
+            SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
+                    .and(qSysParam.code.eq(remindDays))
+                    .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+            if (Objects.nonNull(sysParam)) {
+                QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+                BooleanBuilder builder = new BooleanBuilder();
+                builder.and(qCaseInfo.followupTime.isNull().
+                        and((qCaseInfo.caseFollowInTime.lt(new Date(System.currentTimeMillis()-Constants.ONE_DAY_MILLIS * Integer.valueOf(sysParam.getValue()))))).
+                        and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
+                        and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
+            }
+        }
+        return caseInfoList;
+    }
 }

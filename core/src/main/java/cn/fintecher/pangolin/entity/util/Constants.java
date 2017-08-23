@@ -205,6 +205,8 @@ public final class Constants {
     public final static String SYS_PHNOEFLOW_ADVANCEDAYS="sys.phnoeFlow.advanceDays";
     /**电催强制流转提醒天数**/
     public final static String SYS_PHNOEFLOW_BIGDAYSREMIND="sys.phnoeFlow.bigDaysRemind";
+    /**电催无进展提醒天数**/
+    public final static String SYS_PHONEREMIND_DAYS="sys.phoneRemind.days";
     /**电催小流转部门**/
     public final static String SYS_PHNOETURN_SMALLDEPTNAME="电催小流转";
     /**电催强制流转部门**/
@@ -225,6 +227,8 @@ public final class Constants {
     public final static String SYS_OUTBOUNDFLOW_ADVANCEDAYS="sys.outboundFlow.advanceDays";
     /**外访强制流转提醒天数**/
     public final static String SYS_OUTBOUNDFLOW_BIGDAYSREMIND="sys.outboundFlow.bigDaysRemind";
+    /**外访无进展提醒天数**/
+    public final static String SYS_OUTREMIND_DAYS="sys.outRemind.days";
     /**外访小流转部门**/
     public final static String SYS_OUTTURN_SMALLDEPTNAME="外访小流转";
     /**外访强制流转部门**/
@@ -232,9 +236,15 @@ public final class Constants {
     /**外访留案流转部门**/
     public final static String SYS_OUTTURN_LEAVEDEPTNAME="外访留案流转";
 
+    /**协催无进展提醒天数**/
+    public final static String SYS_ASSISTREMIND_DAYS="sys.assistRemind.days";
+
     /**抢单半径（公里）**/
     public final static String SYS_QIANGDAN_RADIUS="sys.qiangdan.radius";
     /**地球半径**/
     public final static double EARTH_RADIUS=6371;
+
+    /**每日毫秒数**/
+    public final static long ONE_DAY_MILLIS=86400000;
 
 }
