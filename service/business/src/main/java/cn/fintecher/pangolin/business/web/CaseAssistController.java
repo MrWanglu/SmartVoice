@@ -333,6 +333,12 @@ public class CaseAssistController extends BaseController {
             CaseFollowupRecord result = null;
             try {
                 result = caseInfoService.saveFollowupRecord(caseFollowupParams, user);
+                CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.id.eq(caseFollowupParams.getCaseId())
+                        .and(QCaseAssist.caseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
+                if (Objects.equals(one.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue())) {
+                    one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
+                    caseAssistRepository.save(one);
+                }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "saveFollowupRecord", e.getMessage())).body(null);

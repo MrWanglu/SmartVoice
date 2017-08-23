@@ -163,13 +163,16 @@ public class CaseInfoService {
             if (Objects.isNull(caseAssist)) {
                 throw new RuntimeException("协催案件未找到");
             }
-            caseAssist.setLatelyCollector(caseAssist.getCurrentCollector()); //上一个协催员
+            caseAssist.setLatelyCollector(caseAssist.getAssistCollector()); //上一个协催员
             caseAssist.setAssistCollector(user); //协催员
             caseAssist.setDepartId(user.getDepartment().getId()); //部门
             caseAssist.setOperator(tokenUser); //操作员
             caseAssist.setCaseFlowinTime(ZWDateUtil.getNowDateTime()); //流入时间
             caseAssist.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseAssist.setHoldDays(0); //持案天数归0
+            caseAssist.setMarkId(CaseInfo.Color.NO_COLOR.getValue());//打标
+            caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue());//协催待催收
+            caseAssist.setCaseFlowinTime(new Date());
             caseAssistRepository.saveAndFlush(caseAssist);
 
             //同步更新原案件协催员
