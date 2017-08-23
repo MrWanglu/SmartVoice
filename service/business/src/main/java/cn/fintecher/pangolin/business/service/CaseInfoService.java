@@ -888,7 +888,22 @@ public class CaseInfoService {
 
         //获得留案比例
         QSysParam qSysParam = QSysParam.sysParam;
-        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_PHNOEFLOW_LEAVERATE).and(qSysParam.companyCode.eq(tokenUser.getCompanyCode())));
+        SysParam sysParam;
+        String companyCode;
+        if (Objects.isNull(tokenUser.getCompanyCode())) {
+            if (Objects.isNull(leaveCaseParams.getCompanyCode())) {
+                throw new RuntimeException("请选择公司");
+            }
+            companyCode = leaveCaseParams.getCompanyCode();
+        } else {
+            companyCode = tokenUser.getCompanyCode();
+        }
+        if (Objects.equals(leaveCaseParams.getType(), 0)) { //电催
+
+            sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_PHNOEFLOW_LEAVERATE).and(qSysParam.companyCode.eq(companyCode)));
+        } else { //外访
+            sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_LEAVERATE).and(qSysParam.companyCode.eq(companyCode)));
+        }
         Double rate = Double.parseDouble(sysParam.getValue()) / 100;
 
         //计算留案案件是否超过比例
@@ -1407,7 +1422,7 @@ public class CaseInfoService {
                 //案件类型
                 caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //流转类型-案件分配
                 caseInfo.setCaseFollowInTime(new Date()); //案件流入时间
-                caseInfo.setFollowUpNum(caseInfo.getFollowUpNum()+1);//流转次数
+                caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1);//流转次数
                 caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件打标-无色
                 caseInfo.setFollowupBack(null); //催收反馈置空
                 caseInfo.setFollowupTime(null);//跟进时间置空

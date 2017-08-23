@@ -110,7 +110,7 @@ public class AccVisitPoolController extends BaseController {
             } else {
                 builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(tokenUser.getId()));
             }
-            builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.DISTRIBUTE.getValue())); //只查案件类型为案件分配的
+            builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(), CaseInfo.CaseType.OUTLEAVETURN.getValue())); //只查案件类型为案件分配的
             builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //不查询已结案案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); //只查询外访案件
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);

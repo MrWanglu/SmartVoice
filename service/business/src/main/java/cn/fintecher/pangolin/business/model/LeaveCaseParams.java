@@ -12,5 +12,7 @@ import java.util.List;
 
 @Data
 public class LeaveCaseParams {
-    private List<String> caseIds;
+    private Integer type; //案件类型 0-电催 1-外访
+    private List<String> caseIds; //案件ID集合
+    private String companyCode; //公司code码
 }

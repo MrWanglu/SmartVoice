@@ -285,7 +285,7 @@ public class AccTelPoolController extends BaseController {
             } else {
                 builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(tokenUser.getId()));
             }
-            builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.DISTRIBUTE.getValue())); //只查案件类型为案件分配的
+            builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(), CaseInfo.CaseType.PHNONELEAVETURN.getValue())); //只查案件类型为案件分配的
             builder.and(QCaseInfo.caseInfo.collectionStatus.in(list)); //不查询已结案案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())); //只查询电催案件
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
