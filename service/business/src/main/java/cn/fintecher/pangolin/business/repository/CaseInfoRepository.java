@@ -135,6 +135,8 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
                 return path.eq(value);
             }
         });
+        //催收反馈
+        bindings.bind(root.followupBack).first((path, value) -> path.eq(value));
     }
 
     /**
@@ -165,6 +167,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
      * @return
      */
     List<CaseInfo> findByCaseNumber(String caseNumber);
+
     /**
      * 设置案件协催状态为审批失效
      *
