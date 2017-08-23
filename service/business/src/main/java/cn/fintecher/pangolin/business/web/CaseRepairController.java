@@ -61,7 +61,8 @@ public class CaseRepairController extends BaseController{
             // 案件修复表的id
             CaseRepair caseRepair = caseRepairRepository.findOne(request.getId());
             // 待修复上传的文件集合
-            List<CaseRepairRecord> caseRepairRecordList = new ArrayList<>();
+            List<CaseRepairRecord> caseRepairRecordList = caseRepair.getCaseId().getCaseRepairRecordList();
+            //List<CaseRepairRecord> caseRepairRecordList = new ArrayList<>();
             for(String fileId : fileIds) {
                 CaseRepairRecord caseRepairRecord = new CaseRepairRecord();
                 caseRepairRecord.setCaseId(caseRepair.getCaseId().getId());
@@ -101,10 +102,10 @@ public class CaseRepairController extends BaseController{
     }
 
     /**
-     * @Description 修复案件查询
+     * @Description 待修复案件查询
      */
-    @GetMapping("/getAllRepairedCase")
-    @ApiOperation(value = "修复案件查询", notes = "修复案件查询")
+    @GetMapping("/getAllRepairingCase")
+    @ApiOperation(value = "待修复案件查询", notes = "待修复案件查询")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
                     value = "页数 (0..N)"),
@@ -116,7 +117,6 @@ public class CaseRepairController extends BaseController{
     public ResponseEntity<Page<CaseRepair>> getAllTelCase(@QuerydslPredicate(root = CaseRepair.class) Predicate predicate,
                                                           @ApiIgnore Pageable pageable,
                                                           @RequestHeader(value = "X-UserToken") String token,
-                                                          @RequestParam(required = false) @ApiParam(value = "修复状态") Integer repairStatus,
                                                           @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         User user = null;
         try {
@@ -135,11 +135,88 @@ public class CaseRepairController extends BaseController{
         }else{
             builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(user.getCompanyCode()));
         }
-        if(Objects.equals(repairStatus,CaseRepair.CaseRepairStatus.REPAIRING.getValue())
-                || Objects.equals(repairStatus,CaseRepair.CaseRepairStatus.REPAIRED.getValue())){
-            builder.and(QCaseRepair.caseRepair.caseId.collectionStatus.notIn(list));
+        builder.and(QCaseRepair.caseRepair.caseId.collectionStatus.notIn(list));
+        builder.and(QCaseRepair.caseRepair.repairStatus.eq(CaseRepair.CaseRepairStatus.REPAIRING.getValue()));
+        Page<CaseRepair> page = caseRepairRepository.findAll(builder,pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "RepairCaseDistributeController")).body(page);
+    }
+
+    /**
+     * @Description 已修复案件查询
+     */
+    @GetMapping("/getAllRepairedCase")
+    @ApiOperation(value = "已修复案件查询", notes = "已修复案件查询")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseRepair>> getAllRepairedCase(@QuerydslPredicate(root = CaseRepair.class) Predicate predicate,
+                                                               @ApiIgnore Pageable pageable,
+                                                               @RequestHeader(value = "X-UserToken") String token,
+                                                               @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
-        builder.and(QCaseRepair.caseRepair.repairStatus.eq(repairStatus));
+        List<Integer> list = new ArrayList<>();
+        list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
+        BooleanBuilder builder = new BooleanBuilder(predicate);
+        if(Objects.equals(user.getUserName(),"administrator")){
+            if(Objects.isNull(companyCode)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseRepair", "", "请选择公司")).body(null);
+            }
+            builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(companyCode));
+        }else{
+            builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(user.getCompanyCode()));
+        }
+        builder.and(QCaseRepair.caseRepair.caseId.collectionStatus.notIn(list));
+        builder.and(QCaseRepair.caseRepair.repairStatus.eq(CaseRepair.CaseRepairStatus.REPAIRED.getValue()));
+        Page<CaseRepair> page = caseRepairRepository.findAll(builder,pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "RepairCaseDistributeController")).body(page);
+    }
+
+    /**
+     * @Description 已分配案件查询
+     */
+    @GetMapping("/getAllDistributeCase")
+    @ApiOperation(value = "已分配案件查询", notes = "已分配案件查询")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseRepair>> getAllDistributeCase(@QuerydslPredicate(root = CaseRepair.class) Predicate predicate,
+                                                                 @ApiIgnore Pageable pageable,
+                                                                 @RequestHeader(value = "X-UserToken") String token,
+                                                                 @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+        }
+        List<Integer> list = new ArrayList<>();
+        list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
+        BooleanBuilder builder = new BooleanBuilder(predicate);
+        if(Objects.equals(user.getUserName(),"administrator")){
+            if(Objects.isNull(companyCode)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseRepair", "", "请选择公司")).body(null);
+            }
+            builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(companyCode));
+        }else{
+            builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(user.getCompanyCode()));
+        }
+        builder.and(QCaseRepair.caseRepair.caseId.collectionStatus.notIn(list));
+        builder.and(QCaseRepair.caseRepair.repairStatus.eq(CaseRepair.CaseRepairStatus.DISTRIBUTE.getValue()));
         Page<CaseRepair> page = caseRepairRepository.findAll(builder,pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "RepairCaseDistributeController")).body(page);
     }
