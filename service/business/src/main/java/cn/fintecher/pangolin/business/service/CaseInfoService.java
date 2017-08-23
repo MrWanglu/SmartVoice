@@ -154,6 +154,8 @@ public class CaseInfoService {
                 caseInfo.setAssistFlag(0); //协催标识 0-否
                 caseInfo.setFollowupBack(null); //催收反馈置空
                 caseInfo.setFollowupTime(null); //跟进时间置空
+                caseInfo.setPromiseAmt(null); //承诺还款金额置空
+                caseInfo.setPromiseTime(null); //承诺还款时间置空
                 caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
             }
         } else { //是协催案件
@@ -680,6 +682,8 @@ public class CaseInfoService {
                             caseInfo.setAssistFlag(0); //协催标识 0-否
                             caseInfo.setFollowupBack(null); //催收反馈置空
                             caseInfo.setFollowupTime(null); //跟进时间置空
+                            caseInfo.setPromiseAmt(null); //承诺还款金额置空
+                            caseInfo.setPromiseTime(null); //承诺还款时间置空
                             caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
 
                             //协催结束新增一条流转记录
@@ -1024,6 +1028,8 @@ public class CaseInfoService {
             caseInfo.setAssistFlag(0); //协催标识 0-否
             caseInfo.setFollowupBack(null); //催收反馈置空
             caseInfo.setFollowupTime(null); //跟进时间置空
+            caseInfo.setPromiseAmt(null); //承诺还款金额置空
+            caseInfo.setPromiseTime(null); //承诺还款时间置空
             caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上一个催收员变为当前催收员
             caseInfo.setCurrentCollector(null); //当前催收员变为审批人
             caseInfo.setHoldDays(0); //持案天数归0
