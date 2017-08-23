@@ -12,6 +12,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityManager;
@@ -55,6 +56,63 @@ public class OverNightBatchService {
     @Autowired
     CaseAssistApplyRepository caseAssistApplyRepository;
 
+    @Autowired
+    UserRepository userRepository;
+
+    /**
+     * 晚间批量任务
+     * @param jobDataMap
+     */
+    public void doOverNightTask(JobDataMap jobDataMap){
+        StopWatch watch = new StopWatch();
+        watch.start();
+        try {
+            logger.info("开始晚间批量_{} ", jobDataMap.get("sysParamCode"));
+            if (jobTaskService.checkJobIsRunning(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"))) {
+                logger.info("晚间批量正在执行_{}", jobDataMap.get("sysParamCode"));
+            } else {
+                //获取超级管理员信息
+                User user = userRepository.findOne(Constants.ADMINISTRATOR_ID);
+                //批量状态修改为正在执行
+                jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"), Constants.BatchStatus.RUNING.getValue());
+                //批量步骤
+                SysParam sysParam = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP);
+                String step = sysParam.getValue();
+                switch (step) {
+                    case "6":
+                        step = "0";
+                    case "0":
+                        step = "1";
+                        doOverNightOne(jobDataMap, step);
+                    case "1":
+                        step = "2";
+                        doOverNightTwo(jobDataMap, step, user);
+                    case "2":
+                        step = "3";
+                        doOverNightThree(jobDataMap, step, user);
+                    case "3":
+                        step = "4";
+                        doOverNightFour(jobDataMap, step, user);
+                    case "4":
+                        step = "5";
+                        doOverNightFive(jobDataMap, step);
+                    case "5":
+                        step = "6";
+                        doOverNightSix(jobDataMap, step);
+                    default:
+                        break;
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            //批量状态修改为未执行
+            jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"), Constants.BatchStatus.STOP.getValue());
+            watch.stop();
+            logger.info("结束晚间批量 {} ,耗时: {} 毫秒", jobDataMap.get("companyCode"), watch.getTotalTimeMillis());
+        }
+    }
+
     /**
      * 重置批次号和案件编号
      *
@@ -63,20 +121,22 @@ public class OverNightBatchService {
      */
     @Transactional
     public void doOverNightOne(JobDataMap jobDataMap, String step) throws Exception {
+        logger.info("开始重置序列_{}",jobDataMap.getString("companyCode"));
         ResponseEntity responseEntity = null;
         try {
             responseEntity = restTemplate.getForEntity("http://dataimp-service/api/sequenceController/restSequence?id1=".concat(Constants.ORDER_SEQ)
                     .concat("&id2=").concat(Constants.CASE_SEQ).
-                            concat("&companyCode=").concat(jobDataMap.getString("sysParamCode")), ResponseEntity.class);
+                            concat("&companyCode=").concat(jobDataMap.getString("companyCode")), String.class);
             if (Objects.isNull(responseEntity) || Objects.isNull(responseEntity.getBody())) {
-                throw new Exception(jobDataMap.getString("sysParamCode").concat("重置序列失败"));
+                throw new Exception(jobDataMap.getString("companyCode").concat("重置序列失败"));
             }
             //更新批量步骤
-            jobTaskService.updateSysparam(jobDataMap.getString("sysParamCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
+            jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw new Exception(jobDataMap.getString("sysParamCode").concat("重置序列失败"));
+            throw new Exception(jobDataMap.getString("companyCode").concat("重置序列失败"));
         }
+        logger.info("结束重置序列_{}",jobDataMap.getString("companyCode"));
     }
 
     /**
@@ -88,6 +148,7 @@ public class OverNightBatchService {
      */
     @Transactional
     public void doOverNightTwo(JobDataMap jobDataMap, String step, User user) throws Exception {
+        logger.info("开始案件强制流转_{}",jobDataMap.getString("companyCode"));
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
         JPAQuery<CaseInfo> jpaQuery = new JPAQuery<>(entityManager);
         try {
@@ -102,11 +163,12 @@ public class OverNightBatchService {
             //外访更新
             updateCaseInfo(user, caseInfoList2, CaseInfo.CaseType.OUTFORCETURN.getValue(), Constants.SYS_OUTTURN_BIGDEPTNAME);
             //更新批量步骤
-            jobTaskService.updateSysparam(jobDataMap.getString("sysParamCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
+            jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw new Exception(jobDataMap.getString("sysParamCode").concat("案件强制流转批量失败"));
+            throw new Exception(jobDataMap.getString("companyCode").concat("案件强制流转批量失败"));
         }
+        logger.info("结束案件强制流转_{}",jobDataMap.getString("companyCode"));
     }
 
 
@@ -118,28 +180,29 @@ public class OverNightBatchService {
      */
     @Transactional
     public void doOverNightThree(JobDataMap jobDataMap, String step, User user) throws Exception {
+        logger.info("开始案件小流转_{}",jobDataMap.getString("companyCode"));
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-        QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
         JPAQuery<CaseInfo> jpaQuery = new JPAQuery<>(entityManager);
         //查找非留案、非结案、配置天数类无任何催收反馈的电催案件
         try {
             //电催小流转配置参数
             SysParam sysParam1 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYS_PHNOEFLOW_SMALLDAYS);
-            List<CaseInfo> caseInfoList1 = smallTurnCase(sysParam1, qCaseInfo, qCaseFollowupRecord, jpaQuery, CaseInfo.CollectionType.TEL.getValue());
+            List<CaseInfo> caseInfoList1 = smallTurnCase(sysParam1, qCaseInfo, jpaQuery, CaseInfo.CollectionType.TEL.getValue());
             //电催更新
             updateCaseInfo(user, caseInfoList1, CaseInfo.CaseType.PHNONESMALLTURN.getValue(), Constants.SYS_PHNOETURN_SMALLDEPTNAME);
 
             //外访小流转
             SysParam sysParam2 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYS_OUTBOUNDFLOW_SMALLDAYS);
-            List<CaseInfo> caseInfoList2 = smallTurnCase(sysParam2, qCaseInfo, qCaseFollowupRecord, jpaQuery, CaseInfo.CollectionType.VISIT.getValue());
+            List<CaseInfo> caseInfoList2 = smallTurnCase(sysParam2, qCaseInfo, jpaQuery, CaseInfo.CollectionType.VISIT.getValue());
             //外访更新
             updateCaseInfo(user, caseInfoList2, CaseInfo.CaseType.OUTSMALLTURN.getValue(), Constants.SYS_OUTTURN_SMALLDEPTNAME);
             //更新批量步骤
-            jobTaskService.updateSysparam(jobDataMap.getString("sysParamCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
+            jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw new Exception(jobDataMap.getString("sysParamCode").concat("案件小流转批量失败"));
+            throw new Exception(jobDataMap.getString("companyCode").concat("案件小流转批量失败"));
         }
+        logger.info("结束案件小流转_{}",jobDataMap.getString("companyCode"));
     }
 
     /**
@@ -150,28 +213,30 @@ public class OverNightBatchService {
      */
     @Transactional
     public void doOverNightFour(JobDataMap jobDataMap, String step, User user) throws Exception {
+        logger.info("开始留案案件流转_{}",jobDataMap.getString("companyCode"));
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
         JPAQuery<CaseInfo> jpaQuery = new JPAQuery<>(entityManager);
         try {
-            //电催小流转配置参数
+            //电催留案配置参数
             SysParam sysParam1 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYS_PHNOEFLOW_LEAVEDAYS);
             List<CaseInfo> caseInfoList1 = leaveTurnCase(qCaseInfo, jpaQuery, sysParam1, CaseInfo.CollectionType.TEL.getValue());
             //电催更新
             updateCaseInfo(user, caseInfoList1, CaseInfo.CaseType.PHNONELEAVETURN.getValue(), Constants.SYS_PHNOETURN_LEAVEDEPTNAME);
 
-            //外访小流转配置参数
+            //外访留案配置参数
             SysParam sysParam2 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYS_OUTBOUNDFLOW_LEAVEDAYS);
             List<CaseInfo> caseInfoList2 = leaveTurnCase(qCaseInfo, jpaQuery, sysParam2, CaseInfo.CollectionType.VISIT.getValue());
             //外访更新
             updateCaseInfo(user, caseInfoList2, CaseInfo.CaseType.OUTLEAVETURN.getValue(), Constants.SYS_OUTTURN_LEAVEDEPTNAME);
 
             //更新批量步骤
-            jobTaskService.updateSysparam(jobDataMap.getString("sysParamCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
+            jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
 
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw new Exception(jobDataMap.getString("sysParamCode").concat("案件留案流转批量失败"));
+            throw new Exception(jobDataMap.getString("companyCode").concat("案件留案流转批量失败"));
         }
+        logger.info("结束留案案件流转_{}",jobDataMap.getString("companyCode"));
     }
 
 
@@ -183,6 +248,7 @@ public class OverNightBatchService {
      */
     @Transactional
     public void doOverNightFive(JobDataMap jobDataMap, String step) throws Exception {
+        logger.info("开始更新案件相关天数更新_{}",jobDataMap.getString("companyCode"));
         try {
             QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
             JPAQuery<CaseInfo> jpaQuery = new JPAQuery<>(entityManager);
@@ -194,16 +260,13 @@ public class OverNightBatchService {
             List<CaseInfo> caseInfoList = jpaQuery.fetch();
             //更新相关天数
             for (CaseInfo caseInfo : caseInfoList) {
-                caseInfo.setHoldDays(caseInfo.getHoldDays() + 1);//持案天数
+                caseInfo.setHoldDays(Objects.isNull(caseInfo.getHoldDays()) ? 1 :(caseInfo.getHoldDays()+ 1) );//持案天数
                 if (Objects.nonNull(caseInfo.getLeaveCaseFlag()) && caseInfo.getLeaveCaseFlag().equals(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())) {
                     //留案天数
-                    caseInfo.setHasLeaveDays(caseInfo.getHasLeaveDays() + 1);
+                    caseInfo.setHasLeaveDays(Objects.isNull(caseInfo.getHasLeaveDays())  ? 1 : (caseInfo.getHasLeaveDays()+ 1));
                 }
                 //案件剩余天数
                 Integer leftDays = ZWDateUtil.getBetween(ZWDateUtil.getNowDate(), caseInfo.getCloseDate(), ChronoUnit.DAYS);
-              /*  if (leftDays.intValue() < 0) {
-                    leftDays = 0;
-                }*/
                 caseInfo.setLeftDays(leftDays);
             }
             caseInfoRepository.save(caseInfoList);
@@ -217,21 +280,23 @@ public class OverNightBatchService {
                     .and(qCaseAssist.companyCode.eq(jobDataMap.getString("companyCode"))));//公司CODE
             List<CaseAssist> caseAssistList = caseAssistJPAQuery.fetch();
             for (CaseAssist caseAssist : caseAssistList) {
-                caseAssist.setHoldDays(caseAssist.getHoldDays() + 1);
+                caseAssist.setHoldDays(Objects.isNull(caseAssist.getHoldDays()) ? 1 :(caseAssist.getHoldDays()+ 1));
             }
             caseAssistRepository.save(caseAssistList);
             //更新批量步骤
-            jobTaskService.updateSysparam(jobDataMap.getString("sysParamCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
+            jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw new Exception(jobDataMap.getString("sysParamCode").concat("案件相关天数更新批量失败"));
+            throw new Exception(jobDataMap.getString("companyCode").concat("案件相关天数更新批量失败"));
         }
+        logger.info("结束更新案件相关天数更新_{}",jobDataMap.getString("companyCode"));
     }
     /**
      * 协催审批失效
      */
     @Transactional
     public void doOverNightSix(JobDataMap jobDataMap, String step) throws Exception {
+        logger.info("开始协催审批失效_{}",jobDataMap.getString("companyCode"));
         QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
         JPAQuery<CaseAssistApply> jpaQuery = new JPAQuery<>(entityManager);
         Date nowDate = ZWDateUtil.getNowDate();
@@ -259,11 +324,12 @@ public class OverNightBatchService {
                 caseInfoRepository.updateCaseStatusToCollectioning(idset);
             }
             //更新批量步骤
-            jobTaskService.updateSysparam(jobDataMap.getString("sysParamCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
+            jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception(jobDataMap.getString("sysParamCode").concat("协催审批更新批量失败"));
+            throw new Exception(jobDataMap.getString("companyCode").concat("协催审批更新批量失败"));
         }
+        logger.info("结束协催审批失效_{}",jobDataMap.getString("companyCode"));
     }
 
     /**
@@ -292,23 +358,17 @@ public class OverNightBatchService {
      *
      * @param sysParam
      * @param qCaseInfo
-     * @param qCaseFollowupRecord
      * @param jpaQuery
      * @param collectionType
      */
-    private List<CaseInfo> smallTurnCase(SysParam sysParam, QCaseInfo qCaseInfo, QCaseFollowupRecord qCaseFollowupRecord, JPAQuery<CaseInfo> jpaQuery, Integer collectionType) {
-        jpaQuery.select(qCaseInfo)
-                .from(QCaseInfo.caseInfo)
-                .leftJoin(QCaseFollowupRecord.caseFollowupRecord)
-                .on(QCaseInfo.caseInfo.id.eq(QCaseFollowupRecord.caseFollowupRecord.caseId));
+    private List<CaseInfo> smallTurnCase(SysParam sysParam, QCaseInfo qCaseInfo, JPAQuery<CaseInfo> jpaQuery, Integer collectionType) {
+        jpaQuery.select(qCaseInfo).from(QCaseInfo.caseInfo);
         jpaQuery.where(qCaseInfo.leaveCaseFlag.eq(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue())//未留案
                 .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()))//未结案
                 .and(qCaseInfo.currentCollector.isNotNull())//催收员不为空
                 .and(qCaseInfo.collectionType.eq(collectionType))//催收类型
                 .and(qCaseInfo.holdDays.goe(Integer.parseInt(sysParam.getValue())))//持有天数大于等于配置参数
-                .and(qCaseFollowupRecord.collectionWay.eq(CaseFollowupRecord.CollectionWayEnum.MANUAL.getValue()))//跟进记录为手动
-                .and(qCaseFollowupRecord.operatorTime.goe(qCaseInfo.caseFollowInTime))//跟进日期大于等于流入日期
-                .and(qCaseFollowupRecord.id.isNull())//无跟进记录的案件
+                .and(qCaseInfo.followupTime.isNull().or(qCaseInfo.followupTime.lt(qCaseInfo.caseFollowInTime)))//最近跟进日期
                 .and(qCaseInfo.companyCode.eq(sysParam.getCompanyCode())));//公司码
         return jpaQuery.fetch();
     }
@@ -346,6 +406,7 @@ public class OverNightBatchService {
         List<CaseTurnRecord> caseTurnRecordList = new ArrayList<>();
         //更新案件属性
         for (CaseInfo caseInfo : caseInfoList) {
+            Department department=caseInfo.getDepartment();
             //部门ID置空
             caseInfo.setDepartment(null);
             //有协催的话需要结束协催
@@ -377,6 +438,18 @@ public class OverNightBatchService {
             caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1);//流转次数
             caseInfo.setLatelyCollector(caseInfo.getCurrentCollector());//上一个催员
             caseInfo.setCurrentCollector(null);//当前催员
+            caseInfo.setFollowupTime(null);//跟进时间
+            caseInfo.setFollowupBack(null);//催收反馈
+            caseInfo.setPromiseAmt(null);//承诺还款金额
+            caseInfo.setPromiseTime(null);//承诺还款日期
+            caseInfo.setCirculationStatus(null);//小流转状态
+            caseInfo.setAssistFlag(0);//未协催
+            caseInfo.setAssistStatus(null);//协催状态
+            caseInfo.setAssistCollector(null);//协催员
+            caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());//留案标志
+            caseInfo.setLeaveDate(null);//留案操作日期
+            caseInfo.setHasLeaveDays(0);//留案天数
+            caseInfo.setHandUpFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());//是否挂起
             caseInfo.setOperator(user);
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
             //案件流转记录
@@ -384,7 +457,7 @@ public class OverNightBatchService {
             BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
             caseTurnRecord.setId(null); //主键置空
             caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
-            caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
+            caseTurnRecord.setDepartId(Objects.isNull(department) ? null : department.getId()); //部门ID
             caseTurnRecord.setReceiveUserRealName(user.getRealName()); //接受人名称
             caseTurnRecord.setReceiveDeptName(trunDeptName);
             caseTurnRecord.setCirculationType(CaseTurnRecord.circulationTypeEnum.AUTO.getValue()); //流转类型 1-自动流转

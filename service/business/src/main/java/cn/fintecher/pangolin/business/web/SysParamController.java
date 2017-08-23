@@ -155,7 +155,7 @@ public class SysParamController extends BaseController {
             String second = value.substring(4, 6);
            String  cronStr = second.concat(" ").concat(mis).concat(" ").concat(hours).concat(" * * ?");
            try{
-               jobTaskService.updateJobTask(cronStr,sysParam.getCompanyCode(),Constants.SYSPARAM_OVERNIGHT,Constants.OVERNIGHT_TRIGGER_NAME.concat("_").concat(sysParam.getCompanyCode())
+               jobTaskService.updateJobTask(cronStr,sysParam.getCompanyCode(),Constants.SYSPARAM_OVERNIGHT_STATUS,Constants.OVERNIGHT_TRIGGER_NAME.concat("_").concat(sysParam.getCompanyCode())
                        ,Constants.OVERNIGHT_TRIGGER_GROUP,Constants.OVERNIGHT_TRIGGER_DESC.concat("_").concat(sysParam.getCompanyCode())
                        ,Constants.OVERNIGHT_JOB_NAME.concat("_").concat(sysParam.getCompanyCode()), Constants.OVERNIGHT_JOB_GROUP
                        ,Constants.OVERNIGHT_JOB_DESC.concat("_").concat(sysParam.getCompanyCode()), OverNightJob.class,

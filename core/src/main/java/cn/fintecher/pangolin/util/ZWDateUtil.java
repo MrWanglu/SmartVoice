@@ -184,7 +184,7 @@ public class ZWDateUtil {
     public static Integer getBetween(Date startDate,Date endDate,ChronoUnit type){
         LocalDateTime localDateTime1 = LocalDateTime.ofInstant(startDate.toInstant(), ZoneId.systemDefault());
         LocalDateTime localDateTime2=LocalDateTime.ofInstant(endDate.toInstant(), ZoneId.systemDefault());
-        String difValue= String.valueOf(localDateTime2.until(localDateTime1, type));
+        String difValue= String.valueOf(localDateTime1.until(localDateTime2, type));
         return  Integer.parseInt(difValue);
     }
 

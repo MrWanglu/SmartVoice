@@ -28,7 +28,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -65,6 +64,8 @@ public class BatchManageController extends BaseController{
 
     @Autowired
     private OverNightBatchService overNightBatchService;
+
+
 
     @GetMapping("/getBatchSysNotice")
     @ApiOperation(notes = "首页批量系统公告", value = "首页批量系统公告")
@@ -142,52 +143,7 @@ public class BatchManageController extends BaseController{
     public void manualBatchManage() throws JobExecutionException {
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("companyCode","0001");
-        jobDataMap.put("sysParamCode","Sysparam.overnight.status");
-        StopWatch watch = new StopWatch();
-        watch.start();
-        try {
-            if (jobTaskService.checkJobIsRunning(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"))) {
-                logger.info("晚间批量正在执行_{}", jobDataMap.get("sysParamCode"));
-            } else {
-                //获取超级管理员信息
-                User user = userRepository.findOne(Constants.ADMINISTRATOR_ID);
-                //批量状态修改为正在执行
-                jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"), Constants.BatchStatus.RUNING.getValue());
-                //批量步骤
-                SysParam sysParam = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP);
-                String step = sysParam.getValue();
-                switch (step) {
-                    case "6":
-                        step = "0";
-                    case "0":
-                        step = "1";
-                        overNightBatchService.doOverNightOne(jobDataMap, step);
-                    case "1":
-                        step = "2";
-                        overNightBatchService.doOverNightTwo(jobDataMap, step, user);
-                    case "2":
-                        step = "3";
-                        overNightBatchService.doOverNightThree(jobDataMap, step, user);
-                    case "3":
-                        step = "4";
-                        overNightBatchService.doOverNightFour(jobDataMap, step, user);
-                    case "4":
-                        step = "5";
-                        overNightBatchService.doOverNightFive(jobDataMap, step);
-                    case "5":
-                        step = "6";
-                        overNightBatchService.doOverNightSix(jobDataMap, step);
-                    default:
-                        break;
-                }
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        } finally {
-            //批量状态修改为未执行
-            jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"), Constants.BatchStatus.STOP.getValue());
-            watch.stop();
-            logger.info("结束晚间批量 {} ,耗时: {} 毫秒", jobDataMap.get("sysParamCode"), watch.getTotalTimeMillis());
-        }
+        jobDataMap.put("sysParamCode",Constants.SYSPARAM_OVERNIGHT_STATUS);
+        overNightBatchService.doOverNightTask(jobDataMap);
     }
 }

@@ -40,7 +40,7 @@ public class SequenceController {
     MongoSequenceService mongoSequenceService;
     @GetMapping("/restSequence")
     @ApiOperation(value = "序列重置", notes = "序列重置")
-    public ResponseEntity restSequence(@RequestParam String id1,@RequestParam String id2,
+    public ResponseEntity<String> restSequence(@RequestParam String id1,@RequestParam String id2,
                                        @RequestParam String companyCode){
         QMongoSequence qMongoSequence=QMongoSequence.mongoSequence;
         List<String> idList=new ArrayList<>();
@@ -56,8 +56,8 @@ public class SequenceController {
                 mongoSequence.setCurrentValue(1);
                 mongoSequenceList.add(mongoSequence);
             }
-         List result=mongoSequenceRepository.save(mongoSequenceList);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("序列重置成功",ENTITY_NAME)).body(result);
+         mongoSequenceRepository.save(mongoSequenceList);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("序列重置成功",ENTITY_NAME)).body("序列重置成功");
         }
     }
 
