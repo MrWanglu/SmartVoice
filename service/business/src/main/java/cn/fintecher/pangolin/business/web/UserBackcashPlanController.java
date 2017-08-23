@@ -96,10 +96,13 @@ public class UserBackcashPlanController extends BaseController {
         if (Objects.nonNull(month)) {
             builder.and(qUserBackcashPlan.month.eq(month));
         }
-        if (Objects.nonNull(companyCode)) {
+        if(Objects.isNull(user.getCompanyCode())){
+            if(Objects.isNull(companyCode)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "UserBackcashPlanController", "请先选择公司code码")).body(null);
+            }
             builder.and(qUserBackcashPlan.companyCode.eq(companyCode));
-        }else {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate failure", "请先输入公司code码")).body(null);
+        }else{
+            builder.and(qUserBackcashPlan.companyCode.eq(user.getCompanyCode()));
         }
         Page<UserBackcashPlan> page = userBackcashPlanRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(page);
