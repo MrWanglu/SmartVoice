@@ -112,7 +112,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
         //客户姓名
         bindings.bind(root.personalInfo.name).first((path, value) -> path.contains(value));
         //客户手机号
-        bindings.bind(root.personalInfo.mobileNo).first((path, value) -> path.eq(value));
+        bindings.bind(root.personalInfo.mobileNo).first((path, value) -> path.eq(value).or(root.personalInfo.personalContacts.any().phone.eq(value)));
         //批次号
         bindings.bind(root.batchNumber).first((path, value) -> path.eq(value));
         //申请省份
