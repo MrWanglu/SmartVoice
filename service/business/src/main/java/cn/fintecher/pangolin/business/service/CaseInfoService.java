@@ -763,7 +763,7 @@ public class CaseInfoService {
         caseInfo.setLeaveCaseFlag(0); //留案标识置0
         caseInfo.setFollowupBack(null); //催收反馈置空
         caseInfo.setFollowupTime(null); //跟进时间置空
-        caseInfo.setPromiseAmt(null); //承诺还款金额置空
+        caseInfo.setPromiseAmt(new BigDecimal(0)); //承诺还款金额置0
         caseInfo.setPromiseTime(null); //承诺还款时间置空
         caseInfo.setCirculationStatus(null); //流转审批状态置空
         caseInfo.setDepartment(user.getDepartment());
