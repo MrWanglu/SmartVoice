@@ -334,6 +334,9 @@ public class PersonalController extends BaseController {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.equals(tokenUser.getUserName(), "administrator")) {
+                if(Objects.isNull(companyCode)){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseRepair", "", "请选择公司")).body(null);
+                }
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));

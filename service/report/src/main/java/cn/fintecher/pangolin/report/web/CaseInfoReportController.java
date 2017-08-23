@@ -1,7 +1,6 @@
 package cn.fintecher.pangolin.report.web;
 
 
-import cn.fintecher.pangolin.entity.Personal;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.entity.CaseInfo;
 import cn.fintecher.pangolin.report.model.MapModel;
