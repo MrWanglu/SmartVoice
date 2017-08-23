@@ -115,12 +115,11 @@ public class TemplateDataModelController {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
         }
-
     }
 
-    @DeleteMapping(value = "deleteExcelData/{id}")
+    @DeleteMapping(value = "/deleteExcelData")
     @ApiOperation(value = "删除导入模板信息", notes = "删除导入模板信息")
-    public ResponseEntity deleteExcelData(@PathVariable("id") String id) {
+    public ResponseEntity deleteExcelData(@RequestParam(required = true) String id) {
         try {
             if (Objects.nonNull(id)) {
                 templateDataModelRepository.delete(id);
@@ -189,6 +188,12 @@ public class TemplateDataModelController {
             excelTemplateData.setOperatorTime(ZWDateUtil.getNowDateTime());
             excelTemplateData.setOperator(user.getUserName());
             excelTemplateData.setOperatorName(user.getRealName());
+            if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
+                excelTemplateData.setCompanyCode("");
+            }else{
+                excelTemplateData.setCompanyCode(user.getCompanyCode());
+            }
+            excelTemplateData.setCompanyCode(user.getCompanyCode());
             String templateId = excelTemplateData.getId();
             if (ZWStringUtils.isEmpty(templateId)) {
                 excelTemplateData.setId(null);
