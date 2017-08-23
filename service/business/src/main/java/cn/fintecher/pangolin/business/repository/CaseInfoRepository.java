@@ -174,7 +174,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
      * @param cupoIds
      */
     @Modifying
-    @Query("update CaseInfo acc set acc.assistStatus=30 where acc.collectionStatus not in(24,166) and acc.id in ?1")
+    @Query("update CaseInfo acc set acc.assistStatus=212 where acc.collectionStatus not in(24,166) and acc.id in ?1")
     void updateCaseStatusToCollectioning(Set<String> cupoIds);
 
 }

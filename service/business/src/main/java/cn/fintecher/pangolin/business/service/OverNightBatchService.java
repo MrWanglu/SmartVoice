@@ -318,7 +318,7 @@ public class OverNightBatchService {
                 idset.add(caseAssistApply.getCaseId());
             }
             //外访审批失效更新
-            updatePhoneCase(caseInfoList2,nowDate);
+            updateOutCase(caseInfoList2,nowDate);
             //修改案件协催状态
             if (!idset.isEmpty()) {
                 caseInfoRepository.updateCaseStatusToCollectioning(idset);
@@ -483,7 +483,7 @@ public class OverNightBatchService {
     }
 
     /**
-     * 更新电催审批状态和审批结果
+     * 更新审批状态和审批结果
      * @param caseInfoList1
      * @param date
      */
@@ -495,5 +495,16 @@ public class OverNightBatchService {
         }
 
     }
-
+    /**
+     * 更新WAIFANG 审批状态和审批结果
+     * @param caseInfoList2
+     * @param date
+     */
+    public void updateOutCase(List<CaseAssistApply> caseInfoList2,Date date){
+        for(CaseAssistApply caseAssistApply:caseInfoList2){
+            caseAssistApply.setApproveStatus(CaseAssistApply.ApproveStatus.FAILURE.getValue());//审批状态
+            caseAssistApply.setApproveOutResult(CaseAssistApply.ApproveResult.OUT_DATE.getValue());//审批结果
+            caseAssistApplyRepository.save(caseAssistApply);
+        }
+    }
 }
