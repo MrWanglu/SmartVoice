@@ -53,9 +53,6 @@ public class OutsourceController extends BaseController {
     public ResponseEntity<Outsource> createOutsource(@RequestBody Outsource outsource,
                                                      @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save department : {}", outsource);
-        if (outsource.getId() != null) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "新增委外方不应该含有ID")).body(null);
-        }
         if (Objects.isNull(outsource.getCompanyCode())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The company logo cannot be empty", "公司标识不能为空")).body(null);
         }
