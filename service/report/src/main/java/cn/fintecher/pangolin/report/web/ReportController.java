@@ -5,7 +5,6 @@ import cn.fintecher.pangolin.report.model.*;
 import cn.fintecher.pangolin.report.service.ReportService;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModelProperty;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,7 +177,7 @@ public class ReportController extends BaseController {
      * @Description 催收员业绩报名汇总报表
      */
     @GetMapping("/getGroupLeaderReport")
-    @ApiModelProperty(value = "催收员业绩报名汇总报表", notes = "催收员业绩报名汇总报表")
+    @ApiOperation(value = "催收员业绩报名汇总报表", notes = "催收员业绩报名汇总报表")
     public ResponseEntity<List<GroupLeaderModel>> getGroupLeaderReport(PerformanceRankingParams performanceRankingParams,
                                                                        @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get group leader report");
@@ -264,6 +263,42 @@ public class ReportController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_DAILY_RESULT_REPORT, "dailyResultReport", "导出失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 导出催收员业绩排名报表
+     */
+    @GetMapping("/exportPerformanceRankingReport")
+    @ApiOperation(value = "导出催收员业绩排名报表", notes = "导出催收员业绩排名报表")
+    public ResponseEntity<String> exportPerformanceRankingReport(PerformanceRankingParams performanceRankingParams,
+                                                                 @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to export performance ranking report");
+        try {
+            User tokenUser = getUserByToken(token);
+            String url = reportService.exportPerformanceRankingReport(performanceRankingParams, tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_PERFORMANCE_RANKING_REPORT)).body(url);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_RANKING_REPORT, "performanceRankingReport", "导出失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 导出催收员业绩排名小组汇总报表
+     */
+    @GetMapping("/exportSummaryReport")
+    @ApiOperation(value = "导出催收员业绩排名小组汇总报表", notes = "导出催收员业绩排名小组汇总报表")
+    public ResponseEntity<String> exportSummaryReport(PerformanceRankingParams performanceRankingParams,
+                                                      @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to export summary report");
+        try {
+            User tokenUser = getUserByToken(token);
+            String url = reportService.exportSummaryReport(performanceRankingParams, tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_PERFORMANCE_RANKING_REPORT)).body(url);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_RANKING_REPORT, "performanceRankingReport", "导出失败")).body(null);
         }
     }
 }

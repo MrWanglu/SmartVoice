@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="cn.fintecher.pangolin.report.mapper.PerformanceReportMapper">
+<mapper namespace="cn.fintecher.pangolin.report.mapper.PerformanceRankingReportMapper">
     <!-- 查询催收员业绩排名实时报表 -->
     <select id="getRealtimeReport" parameterType="cn.fintecher.pangolin.report.model.PerformanceRankingParams"
             resultType="cn.fintecher.pangolin.report.entity.PerformanceRankingReport">
@@ -10,10 +10,10 @@
         case when x.target is null then 0 else x.target end as target,
         (case when x.target is null then 0 else x.target end - case when x.monthBackMoney is null then 0 else
         x.monthBackMoney end) as targetDisparity,
-        x.companyCode from
+        x.companyCode,DATE_FORMAT(now(),'%Y-%m-%d') as nowDate from
         (SELECT current_collector,count(id) as caseNum from case_info where current_collector is not null
         and current_collector in (SELECT id from `user` where dept_id in (SELECT id from department where `level` =
-        (SELECT max(`level`) from department where id in (SELECT dept_id from user where company_code = #{companyCode}))) GROUP
+        (SELECT max(`level`) from department where id in (SELECT dept_id from user where company_code = #{companyCode})))) GROUP
         BY current_collector) w
         LEFT JOIN
         (SELECT

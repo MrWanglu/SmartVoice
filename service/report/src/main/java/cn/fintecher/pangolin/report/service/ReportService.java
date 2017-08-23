@@ -1868,6 +1868,197 @@ public class ReportService {
     }
 
     /**
+     * @Description 导出催收员业绩排名报表
+     */
+    public String exportPerformanceRankingReport(PerformanceRankingParams performanceRankingParams, User tokenUser) throws IOException {
+        //获得报表展示模型
+        List<CollectorPerformanceModel> collectorPerformanceModels = getPerformanceRankingReport(performanceRankingParams, tokenUser);
+
+        //下载催收员回款报表模版
+        //拼接请求地址
+        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_RANKING_REPORT_EXCEL_URL_CODE).
+                concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_RANKING_REPORT_EXCEL_URL_TYPE));
+        log.debug(requestUrl);
+        //下载模版
+        HSSFWorkbook hssfWorkbook = downloadTemplate(requestUrl);
+        //设置excel表格样式
+        HSSFCellStyle hssfCellStyle = setStyle(hssfWorkbook);
+        //创建excel表格
+        HSSFSheet hssfSheet = hssfWorkbook.getSheetAt(0);
+
+        //催收员开始行
+        int userIndex = 2;
+
+        //部门合并开始行
+        int deptIndex = 2;
+
+        //定义excel数据展示顺序
+        String[] paramArray = {"deptName", "realName", "nowDate", "caseNum", "dayBackMoney", "monthBackMoney", "rank", "target", "targetDisparity"};
+
+        //给excel中填值
+        for (CollectorPerformanceModel collectorPerformanceModel : collectorPerformanceModels) { //循环展示模型，获得二级模型
+            List<PerformanceRankingReport> performanceRankingReports = collectorPerformanceModel.getPerformanceRankingReports();
+            for (PerformanceRankingReport performanceRankingReport : performanceRankingReports) {
+                //在excel创建一行
+                HSSFRow row = hssfSheet.createRow((short) userIndex);
+
+                //创建单元格
+                HSSFCell cell = null;
+                int paramIndex = 0; //excel数据展示顺序数组角标
+
+                for (int i = 0; i < 1; i++) {
+                    if (0 == i) {
+                        Object obj = ExcelUtil.getProValue("parentDeptName", performanceRankingReport); //通过字段映射获取相应的数据
+                        if (Objects.isNull(obj)) {
+                            cell = row.createCell(i, CellType.STRING);
+                            cell.setCellValue("");
+                        } else {
+                            cell = setCellValue(obj, row, 0); //给单元格set值
+                        }
+                    }
+                    cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                }
+
+                //给该行每一列设置数据
+                for (int i = 1; i < 10; i++) {
+                    Object obj = ExcelUtil.getProValue(paramArray[paramIndex], performanceRankingReport); //通过字段映射获取相应的数据
+                    if (1 == i || 3 == i || 6 == i) {
+                        if (Objects.isNull(obj)) {
+                            cell = row.createCell(i, CellType.STRING);
+                            cell.setCellValue("");
+                        } else {
+                            if (1 == i) {
+                                cell = row.createCell(i, CellType.STRING);
+                                cell.setCellValue(obj + "(" + performanceRankingReport.getManageName() + ")");
+                            }
+                            cell = setCellValue(obj, row, i); //给单元格set值
+                        }
+                    } else {
+                        if (Objects.isNull(obj)) {
+                            cell = row.createCell(i, CellType.STRING);
+                            cell.setCellValue("");
+                        } else {
+                            cell = setCellValue(obj, row, 0); //给单元格set值
+                        }
+                    }
+                    cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                    paramIndex++;
+                }
+                //设置完毕后行数+1,进行下一行设置
+                userIndex++;
+            }
+            //合并部门
+            CellRangeAddress cra = new CellRangeAddress(deptIndex, userIndex - 1, 0, 0); // 四个参数分别是：起始行，结束行,起始列，结束列
+            hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+            deptIndex = userIndex;
+        }
+        //上传填好数据的报表
+        return uploadExcel(hssfWorkbook);
+    }
+
+    /**
+     * @Description
+     */
+    public String exportSummaryReport(PerformanceRankingParams performanceRankingParams, User tokenUser) throws IOException {
+        //获得报表展示模型
+        List<PerformanceSummaryModel> performanceSummaryModels = getSummaryReport(performanceRankingParams, tokenUser);
+
+        //下载催收员回款报表模版
+        //拼接请求地址
+        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_CODE).
+                concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_TYPE));
+        log.debug(requestUrl);
+        //下载模版
+        HSSFWorkbook hssfWorkbook = downloadTemplate(requestUrl);
+        //设置excel表格样式
+        HSSFCellStyle hssfCellStyle = setStyle(hssfWorkbook);
+        //创建excel表格
+        HSSFSheet hssfSheet = hssfWorkbook.getSheetAt(0);
+
+        //催收员开始行
+        int userIndex = 2;
+
+        //组合并开始行
+        int groupIndex = 2;
+
+        //部门合并开始行
+        int deptIndex = 2;
+
+        //定义excel数据展示顺序
+        String[] paramArray = {"realName", "nowDate", "caseNum", "dayBackMoney", "monthBackMoney", "rank", "target", "targetDisparity"};
+
+        //给excel中填值
+        for (PerformanceSummaryModel performanceSummaryModel : performanceSummaryModels) {
+            List<PerformanceSummarySecModel> performanceSummarySecModels = performanceSummaryModel.getPerformanceSummarySecModels();
+            for (PerformanceSummarySecModel performanceSummarySecModel : performanceSummarySecModels) {
+                List<PerformanceRankingReport> performanceRankingReports = performanceSummarySecModel.getPerformanceRankingReports();
+                for (PerformanceRankingReport performanceRankingReport : performanceRankingReports) {
+                    //在excel创建一行
+                    HSSFRow row = hssfSheet.createRow((short) userIndex);
+
+                    //创建单元格
+                    HSSFCell cell = null;
+                    int paramIndex = 0; //excel数据展示顺序数组角标
+
+                    for (int i = 0; i < 2; i++) {
+                        if (0 == i) {
+                            Object obj = ExcelUtil.getProValue("parentDeptName", performanceRankingReport); //通过字段映射获取相应的数据
+                            cell = setCellValue(obj, row, 0); //给单元格set值
+                        } else if (1 == i) {
+                            Object obj = ExcelUtil.getProValue("deptName", performanceRankingReport); //通过字段映射获取相应的数据
+                            cell = setCellValue(obj, row, 1); //给单元格set值
+                        }
+                        cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                    }
+
+                    //给该行每一列设置数据
+                    for (int i = 2; i < 10; i++) { //i为报表模版数据列数,从第[2]列姓名开始
+                        Object obj = ExcelUtil.getProValue(paramArray[paramIndex], performanceRankingReport); //通过字段映射获取相应的数据
+                        if (2 == i || 3 == i || 6 == i) {
+                            if (Objects.isNull(obj)) {
+                                cell = row.createCell(i, CellType.STRING);
+                                cell.setCellValue("");
+                            } else {
+                                if (2 == i) {
+                                    cell = row.createCell(i, CellType.STRING);
+                                    cell.setCellValue(obj + "(" + performanceRankingReport.getManageName() + ")");
+                                }
+                                cell = setCellValue(obj, row, i); //给单元格set值
+                            }
+                        } else {
+                            cell = setCellValue(obj, row, i); //给单元格set值
+                        }
+                        cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                        paramIndex++;
+                    }
+                    //设置完毕后行数+1,进行下一行设置
+                    userIndex++;
+                }
+                //合并组别
+                if (userIndex - groupIndex > 1) {
+                    CellRangeAddress cra = new CellRangeAddress(groupIndex, userIndex - 1, 1, 1); // 四个参数分别是：起始行，结束行,起始列，结束列
+                    hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+                }
+                groupIndex = userIndex + 1;
+            }
+            //设置完毕后行数+1,进行下一行设置
+            userIndex++;
+
+            //设置组合并起始行
+            groupIndex = userIndex;
+
+            //合并部门
+            CellRangeAddress cra = new CellRangeAddress(deptIndex, userIndex - 1, 0, 0); // 四个参数分别是：起始行，结束行,起始列，结束列
+            hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+            deptIndex = userIndex;
+        }
+        //上传填好数据的报表
+        return uploadExcel(hssfWorkbook);
+    }
+
+    /**
      * @Description 给报表单元格set值
      */
     private HSSFCell setCellValue(Object obj, HSSFRow row, Integer j) {
@@ -1941,7 +2132,7 @@ public class ReportService {
     private String uploadExcel(HSSFWorkbook hssfWorkbook) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         hssfWorkbook.write(out);
-        String resultFilePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "催收员回款报表.xls");
+        String resultFilePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "催收员报表.xls");
         File file = new File(resultFilePath);
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         fileOutputStream.write(out.toByteArray());
