@@ -363,6 +363,9 @@ public class CaseInfoService {
         caseFollowupRecordRepository.saveAndFlush(caseFollowupRecord);
 
         //同步更新案件
+        if (CaseInfo.CollectionStatus.WAITCOLLECTION.getValue().equals(caseInfo.getCollectionStatus())){
+            caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue());//首次跟进将催收状态变为催收中
+        }
         caseInfo.setFollowupTime(caseFollowupRecord.getOperatorTime()); //最新跟进时间
         caseInfo.setFollowupBack(caseFollowupRecord.getCollectionFeedback()); //催收反馈
         caseInfo.setPromiseAmt(caseFollowupRecord.getPromiseAmt()); //承诺还款金额
