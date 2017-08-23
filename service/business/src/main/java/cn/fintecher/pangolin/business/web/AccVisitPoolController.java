@@ -565,7 +565,7 @@ public class AccVisitPoolController extends BaseController {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
             builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
-            builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue())); //只查案件类型为外访提前流转的
+            builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTFAHEADTURN.getValue())); //只查案件类型为外访提前流转的
             builder.and(QCaseInfo.caseInfo.circulationStatus.in(list)); //只查限定的小流转审批状态的案件
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getVisitPendingCase");
