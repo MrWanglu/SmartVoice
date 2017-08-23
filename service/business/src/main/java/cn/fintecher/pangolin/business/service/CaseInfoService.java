@@ -988,7 +988,7 @@ public class CaseInfoService {
         String userIdForReminde = caseInfo.getCurrentCollector().getId();
         if (Objects.equals(circulationApprovalParams.getResult(), 0)) { //审批通过
             if (Objects.equals(circulationApprovalParams.getType(), 0)) { //电催小流转
-                caseInfo.setCollectionType(CaseInfo.CirculationStatus.PHONE_PASS.getValue()); //198-电催流转通过
+                caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.PHONE_PASS.getValue()); //198-电催流转通过
                 if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标志
                     if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
                         CaseAssistApply caseAssistApply = getCaseAssistApply(caseInfo.getId(), tokenUser, "流转强制拒绝");
