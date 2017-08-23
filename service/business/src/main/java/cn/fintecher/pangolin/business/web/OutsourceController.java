@@ -110,7 +110,7 @@ public class OutsourceController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "The outsourcename is not allowed to be used", "该名字不允许被使用")).body(null);
             }
-            BeanUtils.copyProperties(outsource1, outsource);
+            BeanUtils.copyProperties(outsource, outsource1);
             Outsource outsource2 = outsourceRepository.save(outsource1);
             return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(outsource2);
         }
