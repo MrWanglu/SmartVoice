@@ -167,21 +167,22 @@ public class DataInfoExcelService {
                 CellError cellError = new CellError();
                 cellError.setErrorMsg("第["+i+"]行的客户姓名为空");
                 cellErrorList.add(cellError);
-            }
-            if (StringUtils.isBlank(tempObj.getProductName())) {
-                CellError cellError = new CellError();
-                cellError.setErrorMsg("客户[".concat(tempObj.getPersonalName()).concat("]的产品名称为空"));
-                cellErrorList.add(cellError);
-            }
-            if (StringUtils.isBlank(tempObj.getIdCard())) {
-                CellError cellError = new CellError();
-                cellError.setErrorMsg("客户[".concat(tempObj.getPersonalName()).concat("]的身份证号为空"));
-                cellErrorList.add(cellError);
             } else {
-                if (!IdcardUtils.validateCard(tempObj.getIdCard())) {
+                if (StringUtils.isBlank(tempObj.getProductName())) {
                     CellError cellError = new CellError();
-                    cellError.setErrorMsg("客户[".concat(tempObj.getPersonalName()).concat("]的身份证号[").concat(tempObj.getIdCard()).concat("]不合法"));
+                    cellError.setErrorMsg("客户[".concat(tempObj.getPersonalName()).concat("]的产品名称为空"));
                     cellErrorList.add(cellError);
+                }
+                if (StringUtils.isBlank(tempObj.getIdCard())) {
+                    CellError cellError = new CellError();
+                    cellError.setErrorMsg("客户[".concat(tempObj.getPersonalName()).concat("]的身份证号为空"));
+                    cellErrorList.add(cellError);
+                } else {
+                    if (!IdcardUtils.validateCard(tempObj.getIdCard())) {
+                        CellError cellError = new CellError();
+                        cellError.setErrorMsg("客户[".concat(tempObj.getPersonalName()).concat("]的身份证号[").concat(tempObj.getIdCard()).concat("]不合法"));
+                        cellErrorList.add(cellError);
+                    }
                 }
             }
         }

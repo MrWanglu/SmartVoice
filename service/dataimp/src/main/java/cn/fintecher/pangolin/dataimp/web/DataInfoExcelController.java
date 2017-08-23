@@ -119,13 +119,13 @@ public class DataInfoExcelController {
         try {
             try {
                 cellErrorList= dataInfoExcelService.importExcelData(dataImportRecord,user);
+                if (!cellErrorList.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"importExcelData","")).body(cellErrorList);
+                }
             } catch (final Exception e) {
                 logger.error(e.getMessage(),e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "importExcelData", e.getMessage())).body(null);
             }
-            if (!cellErrorList.isEmpty()) {
-               return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"importExcelData","")).body(cellErrorList);
-           }
         }catch (Exception e){
             e.printStackTrace();
             if(Objects.nonNull(cellErrorList) && !cellErrorList.isEmpty()){
