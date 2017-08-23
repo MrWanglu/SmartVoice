@@ -83,7 +83,7 @@ public class CaseInfoHistoryController extends BaseController {
             QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
             BooleanBuilder builder = new BooleanBuilder(predicate);
             builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode())); //公司
-            builder.and(qCaseInfo.endType.isNotNull()); //以结案
+            builder.and(qCaseInfo.endType.eq(CaseInfo.EndType.REPAID.getValue())); //以结案
             if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) { //管理者
                 builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));
             }
