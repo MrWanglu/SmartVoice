@@ -89,6 +89,14 @@ public final class Constants {
     public static final String DAILY_RESULT_REPORT_EXCEL_URL_CODE = "SysParam.dailyresultreportexcelurl";
     public static final String DAILY_RESULT_REPORT_EXCEL_URL_TYPE = "0014";
 
+    //获取催收员业绩排名报表excel模版url
+    public static final String PERFORMANCE_RANKING_REPORT_EXCEL_URL_CODE = "SysParam.performancerankingreportexcelurl";
+    public static final String PERFORMANCE_RANKING_REPORT_EXCEL_URL_TYPE = "0015";
+
+    //获取催收员业绩排名汇总报表excel模版url
+    public static final String PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_CODE = "SysParam.performancesummaryreportexcelurl";
+    public static final String PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_TYPE = "0016";
+
     //案件导入excel模板url
     public static final String CASE_IMPORT_TEMPLATE_URL_CODE = "SysParam.caseimportexcelurl";
     public static final String CASE_IMPORT_TEMPLATE_URL_TYPE = "9004";
