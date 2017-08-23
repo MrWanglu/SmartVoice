@@ -49,5 +49,19 @@ public class Principal extends BaseEntity {
     @ApiModelProperty("机构类型")
     private Integer type;
 
+    //委托方删除状态
+    public enum deleteStatus {
+        //启用    停用
+        START(0), BLOCK(1);
+        private Integer deleteCode;
+
+        deleteStatus(Integer deleteCode) {
+            this.deleteCode = deleteCode;
+        }
+
+        public Integer getDeleteCode() {
+            return deleteCode;
+        }
+    }
 
 }

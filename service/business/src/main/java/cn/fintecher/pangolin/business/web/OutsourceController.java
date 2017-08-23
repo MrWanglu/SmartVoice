@@ -1,10 +1,9 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
 import cn.fintecher.pangolin.business.repository.OutsourceRepository;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
-import cn.fintecher.pangolin.entity.Outsource;
-import cn.fintecher.pangolin.entity.QOutsource;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -44,6 +43,8 @@ public class OutsourceController extends BaseController {
     private OutsourceRepository outsourceRepository;
     @Autowired
     private BatchSeqService batchSeqService;
+    @Autowired
+    private OutsourcePoolRepository outsourcePoolRepository;
 
     /**
      * @Description : 新增/修改委外方管理
@@ -180,6 +181,7 @@ public class OutsourceController extends BaseController {
         if (Objects.nonNull(outsOrgtype)) {
             builder.and(qOutsource.outsOrgtype.eq(outsOrgtype));
         }
+        builder.and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode()));
         Page<Outsource> page = outsourceRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
@@ -198,7 +200,15 @@ public class OutsourceController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
-        outsourceRepository.delete(id);
+        QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+        Iterator<OutsourcePool> outsourcePoolIterator = outsourcePoolRepository.findAll(qOutsourcePool.outsource.id.eq(id)).iterator();
+        if (outsourcePoolIterator.hasNext()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                    "The client's association case is not allowed to be deleted", "该委外方关联案件不允许删除")).body(null);
+        }
+        Outsource outsource = outsourceRepository.findOne(id);
+        outsource.setFlag(Outsource.deleteStatus.BLOCK.getDeleteCode());
+        Outsource outsource1 = outsourceRepository.save(outsource);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
     }
 

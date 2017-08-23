@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.PrincipalRepository;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.entity.*;
@@ -49,6 +50,8 @@ public class PrincipalController extends BaseController {
     private PrincipalRepository principalRepository;
     @Autowired
     private BatchSeqService batchSeqService;
+    @Autowired
+    private CaseInfoRepository caseInfoRepository;
 
     @GetMapping("/getPrincipalPageList")
     @ApiOperation(value = "获取委托方分页查询", notes = "获取委托方分页查询")
@@ -64,7 +67,10 @@ public class PrincipalController extends BaseController {
                                                                 @ApiIgnore Pageable pageable,
                                                                 @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
         logger.debug("REST request to get all AreaCode");
-        Page<Principal> page = principalRepository.findAll(predicate, pageable);
+        QPrincipal qPrincipal = QPrincipal.principal;
+        BooleanBuilder builder = new BooleanBuilder(predicate);
+        builder.and(qPrincipal.flag.eq(Principal.deleteStatus.START.getDeleteCode())); //查询未删除的
+        Page<Principal> page = principalRepository.findAll(builder, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/queryAreaCode");
         return new ResponseEntity<>(page, headers, HttpStatus.OK);
 
@@ -98,7 +104,15 @@ public class PrincipalController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
-        principalRepository.delete(id);
+        QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+        Iterator<CaseInfo> caseInfoIterator = caseInfoRepository.findAll(qCaseInfo.principalId.id.eq(id)).iterator();
+        if (caseInfoIterator.hasNext()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                    "The client's association case is not allowed to be deleted", "该委托方关联案件不允许删除")).body(null);
+        }
+        Principal principal = principalRepository.findOne(id);
+        principal.setFlag(Principal.deleteStatus.BLOCK.getDeleteCode());
+        Principal principal1 = principalRepository.save(principal);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
     }
 
