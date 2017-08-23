@@ -143,22 +143,22 @@ public class BatchManageController extends BaseController {
         User user;
         try {
             user = getUserByToken(token);
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"user not login","用户未登录")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "user not login", "用户未登录")).body(null);
         }
         JobDataMap jobDataMap = new JobDataMap();
-        if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (Objects.isNull(companyCode)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "batchManageController", "请先选择公司")).body(null);
             }
-            jobDataMap.put("companyCode",companyCode);
-        }else{
-            jobDataMap.put("companyCode",user.getCompanyCode());
+            jobDataMap.put("companyCode", companyCode);
+        } else {
+            jobDataMap.put("companyCode", user.getCompanyCode());
         }
-        jobDataMap.put("sysParamCode",Constants.SYSPARAM_OVERNIGHT_STATUS);
+        jobDataMap.put("sysParamCode", Constants.SYSPARAM_OVERNIGHT_STATUS);
         overNightBatchService.doOverNightTask(jobDataMap);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","batchManageController")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "batchManageController")).body(null);
     }
 
     /**
@@ -166,13 +166,12 @@ public class BatchManageController extends BaseController {
      */
     @GetMapping("/queryBatchManage")
     @ApiOperation(value = "查询批量处理", notes = "查询批量处理")
-    public ResponseEntity<List> queryBatchManage(@RequestParam String companyCode) {
+    public ResponseEntity<List<BatchManageList>> queryBatchManage(@RequestParam String companyCode) {
         Object[] objects = batchManageRepository.batchManageFind(companyCode);
-        if (objects.length == 1 && Objects.isNull(((Object[]) objects[0])[0])) {
-            List kong = new ArrayList();
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(kong);
-        }
         List<BatchManageList> batchManageLists = new ArrayList<>();
+        if (objects.length == 1 && Objects.isNull(((Object[]) objects[0])[0])) {
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(batchManageLists);
+        }
         for (int i = 0; i < objects.length; i++) {
             Object[] object = (Object[]) objects[i];
             BatchManageList batchManageList = new BatchManageList();
@@ -184,7 +183,7 @@ public class BatchManageController extends BaseController {
             }
             if (Objects.nonNull(object[2].toString())) {
                 String description = object[2].toString();
-                String b=description.substring(0,description.length()-5);
+                String b = description.substring(0, description.length() - 5);
                 batchManageList.setTaskDescription(b);
             }
             if (Objects.nonNull(object[3].toString())) {
