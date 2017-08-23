@@ -83,7 +83,7 @@ public class BatchManageController extends BaseController{
             List<SysParam> sysParams = IterableUtils.toList(all);
             StringBuilder sb = new StringBuilder();
             for (SysParam sysParam : sysParams) {
-                if (!Objects.equals(sysParam.getValue(), "5")) {
+                if (!Objects.equals(sysParam.getValue(), "6")) {
                     Company one = companyRepository.findOne(QCompany.company.code.eq(sysParam.getCompanyCode()));
                     sb.append(one.getChinaName().concat("、"));
                 }
@@ -101,7 +101,7 @@ public class BatchManageController extends BaseController{
 
         SysParam one = sysParamRepository.findOne(QSysParam.sysParam.companyCode.eq(user.getCompanyCode())
                 .and(QSysParam.sysParam.code.eq(Constants.SYSPARAM_OVERNIGHT_STEP)));
-        if (Objects.equals(one.getValue(),"5")) { //步数为5-批量成功
+        if (Objects.equals(one.getValue(),"6")) { //步数为5-批量成功
             sysNotice.setTitle("批量完成");
             sysNotice.setContent("您于["+ ZWDateUtil.fomratterDate(one.getOperateTime(),null)+"]批量完成");
             return ResponseEntity.ok().body(sysNotice);
