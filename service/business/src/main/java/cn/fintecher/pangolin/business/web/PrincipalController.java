@@ -1,5 +1,7 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.repository.CaseInfoDistributedRepository;
+import cn.fintecher.pangolin.business.repository.CaseInfoExceptionRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.PrincipalRepository;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
@@ -52,7 +54,10 @@ public class PrincipalController extends BaseController {
     private BatchSeqService batchSeqService;
     @Autowired
     private CaseInfoRepository caseInfoRepository;
-
+    @Autowired
+    private CaseInfoDistributedRepository caseInfoDistributedRepository;
+    @Autowired
+    private CaseInfoExceptionRepository caseInfoExceptionRepository;
     @GetMapping("/getPrincipalPageList")
     @ApiOperation(value = "获取委托方分页查询", notes = "获取委托方分页查询")
     @ApiImplicitParams({
@@ -108,8 +113,18 @@ public class PrincipalController extends BaseController {
         Iterator<CaseInfo> caseInfoIterator = caseInfoRepository.findAll(qCaseInfo.principalId.id.eq(id)).iterator();
         if (caseInfoIterator.hasNext()) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                    "The client's association case is not allowed to be deleted", "该委托方关联案件不允许删除")).body(null);
+                    "The client's association case is not allowed to be deleted", "该委托方有关联案件不允许删除")).body(null);
         }
+        QCaseInfoDistributed qCaseInfoDistributed = QCaseInfoDistributed.caseInfoDistributed;
+        Iterator<CaseInfoDistributed> caseInfoDistributedIterator = caseInfoDistributedRepository.findAll(qCaseInfoDistributed.principalId.id.eq(id)).iterator();
+        if (caseInfoDistributedIterator.hasNext()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                    "The client's association case is not allowed to be deleted", "该委托方有关联分配的案件不允许删除")).body(null);
+        }
+
+//        QCaseInfoException qCaseInfoException = QCaseInfoException.caseInfoException;
+//        Iterator<CaseInfoException> CaseInfoExceptionIterator = caseInfoExceptionRepository.findAll(qCaseInfoException.p).iterator();
+
         Principal principal = principalRepository.findOne(id);
         principal.setFlag(Principal.deleteStatus.BLOCK.getDeleteCode());
         Principal principal1 = principalRepository.save(principal);
