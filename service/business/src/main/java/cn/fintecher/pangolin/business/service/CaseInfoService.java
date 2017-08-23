@@ -1400,18 +1400,24 @@ public class CaseInfoService {
                         caseAssistList.add(one);
                     }
                     caseInfo.setAssistFlag(0); //协催标识置0
-                    caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue());
+                    caseInfo.setAssistStatus(null);//协催状态置空
                     caseInfo.setAssistWay(null);
                     caseInfo.setAssistCollector(null);
                 }
                 //案件类型
                 caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //流转类型-案件分配
                 caseInfo.setCaseFollowInTime(new Date()); //案件流入时间
+                caseInfo.setFollowUpNum(caseInfo.getFollowUpNum()+1);//流转次数
                 caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件打标-无色
                 caseInfo.setFollowupBack(null); //催收反馈置空
                 caseInfo.setFollowupTime(null);//跟进时间置空
                 caseInfo.setPromiseAmt(new BigDecimal(0));//承诺还款置0
                 caseInfo.setPromiseTime(null);//承诺还款日期置空
+                caseInfo.setCirculationStatus(null);//小流转状态
+                caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());//留案标识
+                caseInfo.setLeaveDate(null);//留案操作日期
+                caseInfo.setHasLeaveDays(0);//留案天数
+                caseInfo.setHandUpFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());//是否挂起
                 caseInfo.setOperator(user);
                 caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
                 //案件流转记录

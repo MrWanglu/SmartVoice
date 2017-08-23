@@ -141,7 +141,7 @@ public class CaseInfoDistributedService {
                         if (Objects.nonNull(department)) {
                             caseInfo.setDepartment(department); //部门
                             caseInfoService.setCollectionType(caseInfo, department, null);
-                            caseInfo.setCaseFollowInTime(null); //案件流入时间
+                            caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //案件流入时间
                             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
                         }
                         if (Objects.nonNull(targetUser)) {
@@ -157,6 +157,8 @@ public class CaseInfoDistributedService {
                         caseInfo.setLeftDays(ZWDateUtil.getBetween(ZWDateUtil.getNowDate(), caseInfo.getCloseDate(), ChronoUnit.DAYS));
                         //案件类型
                         caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());
+                        caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue());//打标标记
+                        caseInfo.setFollowUpNum(0);//流转次数
                         caseInfo.setOperator(user);
                         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
                         //案件流转记录
