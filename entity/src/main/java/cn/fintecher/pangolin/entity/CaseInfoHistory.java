@@ -1,22 +1,21 @@
-package cn.fintecher.pangolin.report.entity;
+package cn.fintecher.pangolin.entity;
 
-import cn.fintecher.pangolin.entity.Personal;
-import cn.fintecher.pangolin.entity.Principal;
-import cn.fintecher.pangolin.entity.Product;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by ChenChang on 2017/7/10.
  */
 @Entity
-@Table(name = "case_info")
+@Table(name = "case_info_history")
 @Data
-public class CaseInfo extends BaseEntity {
+public class CaseInfoHistory extends BaseEntity {
+    private String caseId;
     private String batchNumber;
     private String caseNumber;
     private Integer collectionType;
@@ -37,12 +36,14 @@ public class CaseInfo extends BaseEntity {
     private Integer hasPayPeriods;
     private Date latelyPayDate;
     private BigDecimal latelyPayAmount;
+    @ApiModelProperty("协催标识：0-未协催，1-协催")
     private Integer assistFlag;
     private Integer assistStatus;
     private Integer assistWay;
     private Integer holdDays;
     private Integer leftDays;
     private Integer caseType;
+    @ApiModelProperty("协催标识：0-未留案，1-留案")
     private Integer leaveCaseFlag = 0;
     private Date leaveDate;
     private Integer hasLeaveDays;
@@ -76,17 +77,43 @@ public class CaseInfo extends BaseEntity {
     private Date promiseTime; //承诺还款日期
     private BigDecimal creditAmount; //授信金额
     private Integer circulationStatus; //流转审批状态
+
     private Date operatorTime;
-    private Integer caseMark;
-    @Transient
-    private Product product;
-    @Transient
-    private Principal principalId;
-    @Transient
+    private Integer caseMark = 126;
+    @ManyToOne
+    @JoinColumn(name = "personal_id")
     private Personal personalInfo;
 
+    @ManyToOne
+    @JoinColumn(name = "depart_id")
+    private Department department;
+    @ManyToOne
+    @JoinColumn(name = "area_id")
+    private AreaCode area;
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
+    @ManyToOne
+    @JoinColumn(name = "lately_collector")
+    private User latelyCollector;
+    @ManyToOne
+    @JoinColumn(name = "current_collector")
+    private User currentCollector;
+    @ManyToOne
+    @JoinColumn(name = "assist_collector")
+    private User assistCollector;
 
+    @ManyToOne
+    @JoinColumn(name = "principal_id")
+    private Principal principalId;
 
+    @ManyToOne
+    @JoinColumn(name = "operator")
+    private User operator;
+
+    @OneToMany
+    @JoinColumn(name = "caseId")
+    private List<CaseRepairRecord> caseRepairRecordList;
 
     /**
      * @Description 催收类型枚举类
@@ -136,8 +163,13 @@ public class CaseInfo extends BaseEntity {
         //已结案
         CASE_OVER(24, "已结案"),
         //待分配
-        WAIT_FOR_DIS(25, "待分配");
-
+        WAIT_FOR_DIS(25, "待分配"),
+        //已委外
+        CASE_OUT(166, "已委外"),
+        //已还款
+        REPAID(171, "已还款"),
+        //部分已还款
+        PART_REPAID(172, "部分已还款");
 
         private Integer value;
         private String remark;
@@ -166,7 +198,8 @@ public class CaseInfo extends BaseEntity {
         ASSIST_COLLECTING(28, "协催催收中"),
         ASSIST_COMPLATED(29, "协催完成"),
         ASSIST_WAIT_ASSIGN(117, "协催待分配"),
-        ASSIST_WAIT_ACC(118, "协催待催收");
+        ASSIST_WAIT_ACC(118, "协催待催收"),
+        FAILURE(30,"协催审批失效");
 
         private Integer value;
         private String remark;
@@ -214,7 +247,7 @@ public class CaseInfo extends BaseEntity {
     /**
      * @Description 结案方式枚举类
      */
-    public enum CupoEndtype {
+    public enum EndType {
         //已还款
         REPAID(110, "已还款"),
         //司法结案
@@ -229,7 +262,7 @@ public class CaseInfo extends BaseEntity {
 
         private String remark;
 
-        CupoEndtype(Integer value, String remark) {
+        EndType(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }
@@ -248,13 +281,13 @@ public class CaseInfo extends BaseEntity {
      */
     public enum Color {
         //无色
-        no_color(126, "无色"),
+        NO_COLOR(126, "无色"),
         //红色
-        red(127, "红色"),
+        RED(127, "红色"),
         //蓝色
-        blue(128, "蓝色"),
-        //黄色
-        yellow(129, "黄色");
+        BLUE(128, "蓝色"),
+        //绿色
+        GREEN(129, "绿色");
 
         private Integer value;
 
@@ -284,6 +317,126 @@ public class CaseInfo extends BaseEntity {
         private String remark;
 
         AssistFlag(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
+    /**
+     * 案件流转类型
+     */
+    public enum CaseType {
+        DISTRIBUTE(173, "案件分配"), PHNONESMALLTURN(174, "电催小流转"), PHNONEFORCETURN(175, "电催强制流转"), PHNONEFAHEADTURN(176, "电催提前流转"),
+        PHNONELEAVETURN(177, "电催保留流转"), OUTSMALLTURN(178, "外访小流转"), OUTFAHEADTURN(179, "外访提前流转"), OUTFORCETURN(180, "外访强制流"),
+        OUTLEAVETURN(181, "外访保留流转");
+        private Integer value;
+
+        private String remark;
+
+        CaseType(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
+    /**
+     * @还款状态枚举类
+     */
+    public enum PayStatus {
+        //M1
+        M1(190, "M1"),
+        //M2
+        M2(191, "M2"),
+        //M3
+        M3(192, "M3"),
+        //M4
+        M4(193, "M4"),
+        //M5
+        M5(194, "M5"),
+        //M6+
+        M6_PLUS(195, "M6");
+        private Integer value;
+
+        private String remark;
+
+        PayStatus(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
+    /**
+     * 留案标志
+     */
+    public enum leaveCaseFlagEnum {
+        //非留案
+        NO_LEAVE(0, "非留案"),
+        //留案
+        YES_LEAVE(1, "留案");
+        private Integer value;
+
+        private String remark;
+
+        leaveCaseFlagEnum(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+
+    }
+
+    /**
+     * @Description 流转审批状态
+     */
+    public enum CirculationStatus {
+        //电催流转待审批
+        PHONE_WAITING(197, "电催流转待审批"),
+        //电催流转通过
+        PHONE_PASS(198, "电催流转通过"),
+        //电催流转拒绝
+        PHONE_REFUSE(199, "电催流转拒绝"),
+        //外访流转待审批
+        VISIT_WAITING(200, "外访流转待审批"),
+        //外访流转通过
+        VISIT_PASS(201, "外访流转通过"),
+        //外访流转拒绝
+        VISIT_REFUSE(202, "外访流转拒绝");
+        private Integer value;
+
+        private String remark;
+
+        CirculationStatus(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }

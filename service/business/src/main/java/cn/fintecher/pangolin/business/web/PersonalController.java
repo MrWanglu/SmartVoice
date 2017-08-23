@@ -334,6 +334,9 @@ public class PersonalController extends BaseController {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.equals(tokenUser.getUserName(), "administrator")) {
+                if(Objects.isNull(companyCode)){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseRepair", "", "请选择公司")).body(null);
+                }
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
@@ -376,8 +379,12 @@ public class PersonalController extends BaseController {
     @GetMapping("/getMapInfo")
     @ApiOperation(value = "查询客户地图", notes = "查询客户地图")
     public ResponseEntity<MapModel> getMapInfo(@RequestParam @ApiParam(value = "客户地址", required = true) String address){
-        MapModel model = accMapService.getAddLngLat(address);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功",null)).body(model);
-    }
+        try {
+            MapModel model = accMapService.getAddLngLat(address);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功",null)).body(model);
+        }catch(Exception e){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("RepairCaseDistributeController", "error", e.getMessage())).body(null);
+        }
 
+    }
 }

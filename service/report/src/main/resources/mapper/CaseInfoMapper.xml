@@ -1,5 +1,138 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="cn.fintecher.pangolin.report.mapper.CaseInfoMapper">
+    <resultMap id="caseInfoBean" type="cn.fintecher.pangolin.report.entity.CaseInfo">
+        <id column="id" property="id"/>
+        <result column="batch_number" property="batchNumber"/>
+        <result column="case_number" property="caseNumber"/>
+        <result column="contract_amount" property="contractAmount"/>
+        <result column="collection_type" property="collectionType"/>
+        <result column="overdue_fine" property="overdueFine"/>
+        <result column="overdue_delay_fine" property="overdueDelayFine"/>
+        <result column="periods" property="periods"/>
+        <result column="per_due_date" property="perDueDate"/>
+        <result column="per_pay_amount" property="perPayAmount"/>
+        <result column="overdue_days" property="overdueDays"/>
+        <result column="overdue_periods" property="overduePeriods"/>
+        <result column="lately_pay_amount" property="latelyPayAmount"/>
+        <result column="overdue_amount" property="overdueAmount"/>
+        <result column="overdue_capital" property="overdueCapital"/>
+        <result column="overdue_interest" property="overdueInterest"/>
+        <result column="has_pay_amount" property="hasPayAmount"/>
+        <result column="has_pay_periods" property="hasPayPeriods"/>
+        <result column="leave_date" property="leaveDate"/>
+        <result column="lately_pay_date" property="latelyPayDate"/>
+        <result column="assist_flag" property="assistFlag"/>
+        <result column="assist_status" property="assistStatus"/>
+        <result column="has_leave_days" property="hasLeaveDays"/>
+        <result column="assist_way" property="assistWay"/>
+        <result column="hold_days" property="holdDays"/>
+        <result column="operator_time" property="operatorTime"/>
+        <result column="left_days" property="leftDays"/>
+        <result column="leave_case_flag" property="leaveCaseFlag"/>
+        <result column="has_leave_days" property="hasLeaveDays"/>
+        <result column="promise_amt" property="promiseAmt"/>
+        <result column="promise_time" property="promise_time"/>
+        <result column="case_follow_in_time" property="caseFollowInTime"/>
+        <result column="pay_status" property="payStatus"/>
+        <result column="collection_status" property="collectionStatus"/>
+        <result column="overdue_manage_fee" property="overdueManageFee"/>
+        <result column="derate_amt" property="derateAmt"/>
+        <result column="real_pay_amount" property="realPayAmount"/>
+        <result column="early_settle_amt" property="earlySettleAmt"/>
+        <result column="other_amt" property="otherAmt"/>
+        <result column="left_capital" property="leftCapital"/>
+        <result column="left_interest" property="leftInterest"/>
+        <result column="followup_back" property="followupBack"/>
+        <association property="personalInfo" column="personal_id" select="selectPersonal">
+        </association>
+        <association property="product" javaType="cn.fintecher.pangolin.entity.Product">
+            <id column="product_id" property="id"/>
+            <result column="prodcut_name" property="prodcutName"/>
+        </association>
+        <association property="principalId" javaType="cn.fintecher.pangolin.entity.Principal">
+            <id column="principal_id" property="id"/>
+            <result column="name" property="name"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="personalMap" type="cn.fintecher.pangolin.entity.Personal">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="sex" property="sex"/>
+        <result column="mobile_no" property="mobileNo"/>
+        <result column="mobile_status" property="mobileStatus"/>
+        <result column="id_card" property="idCard"/>
+        <result column="local_home_address" property="localHomeAddress"/>
+        <result column="longitude" property="longitude"/>
+        <result column="latitude" property="latitude"/>
+        <collection property="personalJobs" column="personal_id"
+                    ofType="cn.fintecher.pangolin.entity.PersonalJob">
+            <id column="id" property="id"/>
+            <result column="company_name" property="companyName"/>
+            <result column="department" property="department"/>
+            <result column="position" property="position"/>
+            <result column="phone" property="phone"/>
+        </collection>
+    </resultMap>
+
+    <select id="queryWaitCollectCase" parameterType="cn.fintecher.pangolin.report.model.CaseInfoParams"
+            resultMap="caseInfoBean">
+       select b.id,b.batch_number,b.case_number,b.contract_amount,b.overdue_fine,b.collection_type,b.overdue_amount,b.left_capital,b.left_interest,b.overdue_capital,
+        b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
+        b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
+        b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,pr.prodcut_name,b.overdue_periods,b.overdue_days,
+        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.has_leave_days,b.operator_time,b.promise_amt,b.promise_time,
+         pri.id,pri.name,b.personal_id from
+      (
+      select a.*
+      from case_info a ,department b
+      where a.depart_id=b.id
+      and b.code like CONCAT(#{deptCode}, '%')
+      and a.company_code = #{companyCode}
+      and a.collection_type=16
+      and a.collection_status = 20
+      UNION ALL
+      select b.*
+      from case_assist a ,case_info b,department c
+      where a.case_id=b.id
+      and a.depart_id=c.id
+      and c.code like CONCAT(#{deptCode}, '%')
+      and a.company_code = #{companyCode}
+      and a.assist_status = 118
+      ) as b,product pr,principal pri
+      where
+       b.product_id = pr.id
+       and b.principal_id = pri.id
+  </select>
+
+  <select id="queryWaitOwnCollectCase" parameterType="cn.fintecher.pangolin.report.model.CaseInfoParams"
+            resultMap="caseInfoBean">
+        select b.id,b.batch_number,b.case_number,b.contract_amount,b.collection_type,b.overdue_fine,b.overdue_amount,b.left_capital,b.left_interest,b.overdue_capital,
+        b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
+        b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
+        b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,pr.prodcut_name,b.overdue_periods,b.overdue_days,
+        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.has_leave_days,b.operator_time,b.promise_amt,b.promise_time,
+        pri.id,pri.name,b.personal_id from
+        (
+        select a.*
+        from case_info a
+        where a.current_collector = #{collector}
+        or a.assist_collector = #{collector}
+        and a.company_code = #{companyCode}
+        and a.collection_type=16
+        and a.collection_status = 20
+        ) as b,product pr,principal pri
+        where
+        b.product_id = pr.id
+        and b.principal_id = pri.id
+        ORDER BY b.operator_time desc
+  </select>
+
+  <select id="selectPersonal" parameterType="String" resultMap="personalMap">
+    select p.id,p.name,p.sex,p.mobile_no,p.mobile_status,p.id_card,p.local_home_address,p.longitude,p.latitude,
+      pj.personal_id,pj.company_name,pj.department,pj.position,pj.phone
+    from personal p,personal_job pj where p.id = #{personal_id} and pj.personal_id = #{personal_id}
+  </select>
 
 </mapper>

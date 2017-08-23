@@ -312,10 +312,10 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        //type  15 电催  16 外访
-        booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue()));
-        // 电催的小流转和提前流转
-        booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONESMALLTURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue()));
+        List<Integer> list = new ArrayList<>();
+        list.add(CaseInfo.CaseType.PHNONESMALLTURN.getValue());
+        list.add(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue());
+        booleanBuilder.and(QCaseInfo.caseInfo.caseType.in(list));
         booleanBuilder.and(QCaseInfo.caseInfo.circulationStatus.eq(CaseInfo.CirculationStatus.PHONE_PASS.getValue()));
         Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "electricSmallCirculation")).body(page);
@@ -341,9 +341,10 @@ public class CaseInfoController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
-        booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue()));
-        booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONEFORCETURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.PHNONELEAVETURN.getValue()));
-        booleanBuilder.and(QCaseInfo.caseInfo.circulationStatus.eq(CaseInfo.CirculationStatus.PHONE_PASS.getValue()));
+        List<Integer> list = new ArrayList<>();
+        list.add(CaseInfo.CaseType.PHNONEFORCETURN.getValue());
+        list.add(CaseInfo.CaseType.PHNONELEAVETURN.getValue());
+        booleanBuilder.and(QCaseInfo.caseInfo.caseType.in(list));
         Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "electricForceCirculation")).body(page);
     }
@@ -369,9 +370,10 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
-        // 外访的小流转和保留流转
-        booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTSMALLTURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTFAHEADTURN.getValue()));
+        List<Integer> list = new ArrayList<>();
+        list.add(CaseInfo.CaseType.OUTSMALLTURN.getValue());
+        list.add(CaseInfo.CaseType.OUTFAHEADTURN.getValue());
+        booleanBuilder.and(QCaseInfo.caseInfo.caseType.in(list));
         booleanBuilder.and(QCaseInfo.caseInfo.circulationStatus.eq(CaseInfo.CirculationStatus.VISIT_PASS.getValue()));
         Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "outSmallCirculation")).body(page);
@@ -397,14 +399,13 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
-        // 外访的强制流转和保留流转
-        booleanBuilder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTFORCETURN.getValue())).or(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTLEAVETURN.getValue()));
-        booleanBuilder.and(QCaseInfo.caseInfo.circulationStatus.eq(CaseInfo.CirculationStatus.VISIT_PASS.getValue()));
+        List<Integer> list = new ArrayList<>();
+        list.add(CaseInfo.CaseType.OUTFORCETURN.getValue());
+        list.add(CaseInfo.CaseType.OUTLEAVETURN.getValue());
+        booleanBuilder.and(QCaseInfo.caseInfo.caseType.in(list));
         Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "outForceCirculation")).body(page);
     }
-
 
     @GetMapping("/exportCaseInfoFollowRecord")
     @ApiOperation(value = "导出跟进记录", notes = "导出跟进记录")

@@ -2,16 +2,14 @@ package cn.fintecher.pangolin.business.repository;
 
 
 import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.QCaseInfo;
+import cn.fintecher.pangolin.entity.CaseInfoHistory;
+import cn.fintecher.pangolin.entity.QCaseInfoHistory;
 import com.querydsl.core.types.dsl.StringPath;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
-import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -19,9 +17,9 @@ import java.util.*;
 /**
  * Created by ChenChang on 2017/7/11.
  */
-public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>, JpaRepository<CaseInfo, String>, QuerydslBinderCustomizer<QCaseInfo> {
+public interface CaseInfoHistoryRepository extends QueryDslPredicateExecutor<CaseInfoHistory>, JpaRepository<CaseInfoHistory, String>, QuerydslBinderCustomizer<QCaseInfoHistory> {
     @Override
-    default void customize(final QuerydslBindings bindings, final QCaseInfo root) {
+    default void customize(final QuerydslBindings bindings, final QCaseInfoHistory root) {
 
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
         bindings.bind(root.product.prodcutName).first((path, value) -> path.eq(value));
@@ -112,7 +110,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
         //客户姓名
         bindings.bind(root.personalInfo.name).first((path, value) -> path.contains(value));
         //客户手机号
-        bindings.bind(root.personalInfo.mobileNo).first((path, value) -> path.eq(value).or(root.personalInfo.personalContacts.any().phone.eq(value)));
+        bindings.bind(root.personalInfo.mobileNo).first((path, value) -> path.eq(value));
         //批次号
         bindings.bind(root.batchNumber).first((path, value) -> path.eq(value));
         //申请省份
@@ -138,43 +136,4 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
         //催收反馈
         bindings.bind(root.followupBack).first((path, value) -> path.eq(value));
     }
-
-    /**
-     * @Description 获得指定用户所持有的未结案案件总数
-     */
-    @Query(value = "select count(*) from case_info where current_collector = :userId and collection_status in (20,21,22,23,25)", nativeQuery = true)
-    Integer getCaseCount(@Param("userId") String userId);
-
-    /**
-     * @Description 获得指定用户的待催收金额
-     */
-    @Query(value = "select sum(overdue_amount) from case_info where current_collector = :id or assist_collector = :id and collection_status = :collectionStatus", nativeQuery = true)
-    BigDecimal getCollectionAmt(@Param("id") String id, @Param("collectionStatus") Integer collectionStatus);
-
-    /**
-     * 获取所有批次号
-     *
-     * @param companyCode
-     * @return
-     */
-    @Query(value = "select distinct(batch_number) from case_info where company_code = ?1 and batch_number is not null", nativeQuery = true)
-    List<String> findDistinctByBatchNumber(@Param("companyCode") String companyCode);
-
-    /**
-     * 根据案件编号查询案件
-     *
-     * @param caseNumber
-     * @return
-     */
-    List<CaseInfo> findByCaseNumber(String caseNumber);
-
-    /**
-     * 设置案件协催状态为审批失效
-     *
-     * @param cupoIds
-     */
-    @Modifying
-    @Query("update CaseInfo acc set acc.assistStatus=212 where acc.collectionStatus not in(24,166) and acc.id in ?1")
-    void updateCaseStatusToCollectioning(Set<String> cupoIds);
-
 }

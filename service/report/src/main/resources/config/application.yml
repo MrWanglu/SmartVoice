@@ -40,3 +40,8 @@ pagehelper:
     reasonable: true
     supportMethodsArguments: true
     params: count=countSql
+
+cuibei:
+  baiduMap:
+    webUrl: http://api.map.baidu.com/place/v2/search?region=全国&ak=
+    webAk: lHaYCXlRADlhW0fnv8tpIhCfqD85pTSr

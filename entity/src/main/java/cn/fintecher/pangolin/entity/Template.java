@@ -46,7 +46,7 @@ public class Template extends BaseEntity {
     @ApiModelProperty(notes = "模板形式 29: 短信 30: 语音 31: 电子邮件 32: 信函 33: 电催话术")
     private Integer templateStyle;
 
-    @ApiModelProperty(notes = "模板类别 34: 提醒 35: 催收 ")
+    @ApiModelProperty(notes = "模板类别 106: 提醒 107: 催收 ")
     private Integer templateType;
 
     @ApiModelProperty(notes = "状态 0: 启用 1: 停用")
@@ -63,5 +63,6 @@ public class Template extends BaseEntity {
 
     @ApiModelProperty(notes = "更新时间")
     private Date updateTime;
-
+    @ApiModelProperty(notes = "公司编码")
+    private String companyCode;
 }

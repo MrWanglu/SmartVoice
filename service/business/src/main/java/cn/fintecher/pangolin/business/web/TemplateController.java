@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.repository.TemplateRepository;
+import cn.fintecher.pangolin.entity.QTemplate;
 import cn.fintecher.pangolin.entity.Template;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Status;
@@ -9,6 +10,7 @@ import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +27,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by luqiang on 2017/7/24.
@@ -65,9 +68,20 @@ public class TemplateController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity getTemplatesByCondition(@QuerydslPredicate(root = Template.class) com.querydsl.core.types.Predicate predicate, @ApiIgnore Pageable pageable) {
+    public ResponseEntity getTemplatesByCondition(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                  @QuerydslPredicate(root = Template.class)Predicate predicate,
+                                                  @RequestHeader(value = "X-UserToken") String token,@ApiIgnore Pageable pageable) {
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
+            User user = getUserByToken(token);
+            if(Objects.isNull(user.getCompanyCode())){
+                if(Objects.isNull(companyCode)){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("templateDataModel", "TemplateDataModel", "请选择公司")).body(null);
+                }
+                builder.and(QTemplate.template.companyCode.eq(companyCode));
+            }else{
+                builder.and(QTemplate.template.companyCode.eq(user.getCompanyCode()));
+            }
             Page<Template> page = templateRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/templateController/getTemplatesByCondition");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
@@ -90,10 +104,15 @@ public class TemplateController extends BaseController {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "默认模板不可停用")).body(null);
             }
             User user = getUserByToken(token);
+            if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
+                template.setCompanyCode("");
+            }else{
+                template.setCompanyCode(user.getCompanyCode());
+            }
             template.setCreator(user.getUserName());
             List<Template> templateList = templateRepository.findByTemplateNameOrTemplateCode(template.getTemplateName().trim(), template.getTemplateCode().trim());
             if (ZWStringUtils.isNotEmpty(templateList)) {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "该模板名称和编号已被占用")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "该模板名称和编号已被占用")).body(null);
             }
             Template t = addTemplate(template);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "新增模块信息成功成功")).body(t);
@@ -117,17 +136,15 @@ public class TemplateController extends BaseController {
         try {
             Template existTemplate = templateRepository.findOne(template.getId());
             if (ZWStringUtils.isEmpty(existTemplate)) {
-                String message = "该模板已被删除";
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "该模板已被删除")).body(message);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该模板已被删除")).body(null);
             }
             User user = getUserByToken(token);
             template.setCreator(user.getUserName());
             Template result = updateTemplate(template);
             if (result == null) {
-                String message = "默认模板不可停用、取消默认、更改类别";
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "默认模板不可停用、取消默认、更改类别")).body(message);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "默认模板不可停用、取消默认、更改类别")).body(null);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "更新模板信息成功")).body(result);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("更新模板信息成功","template")).body(result);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
@@ -139,7 +156,7 @@ public class TemplateController extends BaseController {
     public ResponseEntity getTemplateById(@RequestParam(required = true) @ApiParam("模板ID") String id) {
         try {
             Template template = templateRepository.findOne(id);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "查询模板信息成功")).body(template);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询模板信息成功","template")).body(template);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
@@ -158,12 +175,10 @@ public class TemplateController extends BaseController {
         try {
             Template template = templateRepository.findOne(id);
             if (template.getIsDefault()) {
-                String message = "默认模板不可删除";
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "默认模板不可停用、取消默认、更改类别")).body(message);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "默认模板不可删除")).body(null);
             }
             templateRepository.delete(id);
-            String message = "删除成功";
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "删除成功")).body(message);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功","template")).body(null);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
@@ -177,13 +192,11 @@ public class TemplateController extends BaseController {
         try {
             List<Template> templateNames = templateRepository.findByTemplateNameOrTemplateCode(name + "", "");
             if (!templateNames.isEmpty()) {
-                String message = "该名称已存在";
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "该名称已存在")).body(message);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该名称已存在")).body(null);
             }
             List<Template> templateCodes = templateRepository.findByTemplateNameOrTemplateCode("", code + "");
             if (!templateCodes.isEmpty()) {
-                String message = "该编号已存在";
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "该编号已存在")).body(message);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该编号已存在")).body(null);
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "")).body(null);
         } catch (Exception e) {
@@ -199,7 +212,7 @@ public class TemplateController extends BaseController {
                                                      @RequestParam(required = false) @ApiParam("模板名称") String name) {
         try {
             List<Template> list = templateRepository.findTemplatesByTemplateStyleAndTemplateTypeAndTemplateName(style, type, name);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "查询模板形式成功成功")).body(list);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询模板形式成功成功","ENTITY_TEMPLATE")).body(list);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);

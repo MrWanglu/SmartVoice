@@ -83,9 +83,9 @@ public class TotalPageAppController extends BaseController {
         userStatisAppModel.setCommissionAmt(casePayApplyRepository.queryCommission(user.getUserName(),CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDayOfMonth, endDate));
         userStatisAppModel.setWeekCollectionNum(userStatisAppModel.getWeekVisitNum()+userStatisAppModel.getWeekAssistNum());
         userStatisAppModel.setMonthCollectionNum(userStatisAppModel.getMonthAssistNum()+userStatisAppModel.getMonthVisitNum());
-        payList = parseRank(casePayApplyRepository.queryPayList(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDate,endDate,User.Type.VISIT.getValue()),user.getId());
-        followList = parseRank(caseFollowupRecordRepository.getFlowupCaseList(startDate,endDate,User.Type.VISIT.getValue()),user.getId());
-        collList = parseRank(caseFollowupRecordRepository.getCollectionList(startDate,endDate,User.Type.VISIT.getValue()),user.getId());
+        payList = parseRank(casePayApplyRepository.queryPayList(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDate,endDate,User.Type.VISIT.getValue(),user.getCompanyCode()),user.getId());
+        followList = parseRank(caseFollowupRecordRepository.getFlowupCaseList(startDate,endDate,User.Type.VISIT.getValue(),user.getCompanyCode()),user.getId());
+        collList = parseRank(caseFollowupRecordRepository.getCollectionList(startDate,endDate,User.Type.VISIT.getValue(),user.getCompanyCode()),user.getId());
         if(payList.size() > 0){
             userStatisAppModel.setPersonalPayRank(payList.get(0));
             userStatisAppModel.setPayList(payList.subList(1,payList.size()));

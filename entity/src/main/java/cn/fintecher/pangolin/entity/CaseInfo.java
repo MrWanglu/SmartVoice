@@ -198,7 +198,7 @@ public class CaseInfo extends BaseEntity {
         ASSIST_COMPLATED(29, "协催完成"),
         ASSIST_WAIT_ASSIGN(117, "协催待分配"),
         ASSIST_WAIT_ACC(118, "协催待催收"),
-        FAILURE(30,"协催审批失效");
+        FAILURE(212,"协催审批失效");
 
         private Integer value;
         private String remark;

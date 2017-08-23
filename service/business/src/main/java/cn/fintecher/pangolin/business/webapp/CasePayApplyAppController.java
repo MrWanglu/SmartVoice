@@ -117,6 +117,7 @@ public class CasePayApplyAppController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
+        payApplyParams.setPayAmt(payApplyParams.getPayAmt().add(payApplyParams.getDerateFee()));
         caseInfoService.doPay(payApplyParams, user);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("申请还款成功", "CasePayApply")).body(null);
     }

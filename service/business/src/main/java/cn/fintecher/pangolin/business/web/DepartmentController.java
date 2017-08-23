@@ -39,7 +39,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/api/departmentController")
 @Api(value = "部门信息管理", description = "部门信息管理")
-public class DepartmentController extends BaseController {
+public class  DepartmentController extends BaseController {
     private final Logger log = LoggerFactory.getLogger(DepartmentController.class);
     private static final String ENTITY_NAME = "Department";
     @Autowired
