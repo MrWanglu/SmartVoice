@@ -146,4 +146,21 @@ public class BatchManageController extends BaseController{
         jobDataMap.put("sysParamCode",Constants.SYSPARAM_OVERNIGHT_STATUS);
         overNightBatchService.doOverNightTask(jobDataMap);
     }
+
+    /**
+     * @Description 批量查询
+     */
+    @GetMapping("/queryBatchManage")
+    @ApiOperation(value = "查询批量处理", notes = "查询批量处理")
+    public ResponseEntity<Object[]> queryBatchManage(@RequestParam String companyCode) {
+//        User user;
+//        try {
+//            user = getUserByToken(token);
+//        }catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"user not login","用户未登录")).body(null);
+//        }
+        Object[] objects = batchManageRepository.batchManageFind(companyCode);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","batchManageController")).body(objects);
+    }
 }
