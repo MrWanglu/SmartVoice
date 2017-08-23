@@ -152,10 +152,6 @@ public class CaseInfoService {
                 caseInfo.setAssistCollector(null); //协催员置空
                 caseInfo.setAssistWay(null); //协催方式置空
                 caseInfo.setAssistFlag(0); //协催标识 0-否
-                caseInfo.setFollowupBack(null); //催收反馈置空
-                caseInfo.setFollowupTime(null); //跟进时间置空
-                caseInfo.setPromiseAmt(null); //承诺还款金额置空
-                caseInfo.setPromiseTime(null); //承诺还款时间置空
                 caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
             }
         } else { //是协催案件
@@ -680,10 +676,6 @@ public class CaseInfoService {
                             caseInfo.setAssistCollector(null); //协催员置空
                             caseInfo.setAssistWay(null); //协催方式置空
                             caseInfo.setAssistFlag(0); //协催标识 0-否
-                            caseInfo.setFollowupBack(null); //催收反馈置空
-                            caseInfo.setFollowupTime(null); //跟进时间置空
-                            caseInfo.setPromiseAmt(null); //承诺还款金额置空
-                            caseInfo.setPromiseTime(null); //承诺还款时间置空
                             caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
 
                             //协催结束新增一条流转记录
@@ -779,6 +771,11 @@ public class CaseInfoService {
         caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态 20-待催收
         caseInfo.setLeaveCaseFlag(0); //留案标识置0
+        caseInfo.setFollowupBack(null); //催收反馈置空
+        caseInfo.setFollowupTime(null); //跟进时间置空
+        caseInfo.setPromiseAmt(null); //承诺还款金额置空
+        caseInfo.setPromiseTime(null); //承诺还款时间置空
+        caseInfo.setCirculationStatus(null); //流转审批状态置空
         caseInfo.setDepartment(user.getDepartment());
         if (Objects.equals(user.getType(), User.Type.TEL.getValue())) {
             caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
