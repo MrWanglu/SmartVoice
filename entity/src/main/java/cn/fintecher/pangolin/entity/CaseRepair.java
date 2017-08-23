@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Entity
@@ -19,6 +20,10 @@ public class CaseRepair extends BaseEntity{
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "case_id")
   private CaseInfo caseId;
+
+  @OneToMany
+  @JoinColumn(name = "repair_id")
+  private List<CaseRepairRecord> caseRepairRecordList;
 
 
   /**

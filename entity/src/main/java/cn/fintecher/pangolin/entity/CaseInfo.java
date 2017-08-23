@@ -110,10 +110,6 @@ public class CaseInfo extends BaseEntity {
     @JoinColumn(name = "operator")
     private User operator;
 
-    @OneToMany
-    @JoinColumn(name = "caseId")
-    private List<CaseRepairRecord> caseRepairRecordList;
-
     /**
      * @Description 催收类型枚举类
      */

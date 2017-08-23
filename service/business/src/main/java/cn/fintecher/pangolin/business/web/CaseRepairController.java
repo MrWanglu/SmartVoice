@@ -61,8 +61,7 @@ public class CaseRepairController extends BaseController{
             // 案件修复表的id
             CaseRepair caseRepair = caseRepairRepository.findOne(request.getId());
             // 待修复上传的文件集合
-            List<CaseRepairRecord> caseRepairRecordList = caseRepair.getCaseId().getCaseRepairRecordList();
-            //List<CaseRepairRecord> caseRepairRecordList = new ArrayList<>();
+            List<CaseRepairRecord> caseRepairRecordList = caseRepair.getCaseRepairRecordList();
             for(String fileId : fileIds) {
                 CaseRepairRecord caseRepairRecord = new CaseRepairRecord();
                 caseRepairRecord.setCaseId(caseRepair.getCaseId().getId());
@@ -73,11 +72,8 @@ public class CaseRepairController extends BaseController{
             }
             // 修改状态为已修复
             caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRED.getValue());
-            CaseInfo caseInfo = caseRepair.getCaseId();
             // 设置操作时间为现在时间
             caseRepair.setOperatorTime(ZWDateUtil.getNowDateTime());
-            caseRepair.setCaseId(caseInfo);
-            caseInfo.setCaseRepairRecordList(caseRepairRecordList);
             caseRepairRepository.save(caseRepair);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("修改状态成功","toRepair")).body(null);
         }catch (Exception e) {
@@ -238,7 +234,8 @@ public class CaseRepairController extends BaseController{
             StringBuilder fileIds = new StringBuilder();
             CaseRepair caseRepair = caseRepairRepository.findOne(id);
             CaseInfo caseInfo = caseRepair.getCaseId();
-            List<CaseRepairRecord> caseRepairRecordList = caseInfo.getCaseRepairRecordList();
+            List<CaseRepairRecord> caseRepairRecordList = caseRepair.getCaseRepairRecordList();
+            //List<CaseRepairRecord> caseRepairRecordList = caseInfo.getCaseRepairRecordList();
             for(CaseRepairRecord caseRepairRecord : caseRepairRecordList) {
                 String fileId = caseRepairRecord.getFileId();
                 fileIds.append(fileId).append(",");
