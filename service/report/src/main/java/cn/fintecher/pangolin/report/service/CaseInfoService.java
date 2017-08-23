@@ -1,7 +1,10 @@
 package cn.fintecher.pangolin.report.service;
 
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.entity.CaseInfo;
+
 import cn.fintecher.pangolin.report.mapper.CaseInfoMapper;
+import cn.fintecher.pangolin.report.model.CaseInfoParams;
 import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,4 +30,18 @@ public class CaseInfoService {
        return caseInfoMapper.selectAll();
     }
 
+    public List<CaseInfo> queryWaitCollectCase(User user,Integer page, Integer size){
+        List<CaseInfo> list = null;
+        CaseInfoParams caseInfoParams = new CaseInfoParams();
+        caseInfoParams.setCompanyCode(user.getCompanyCode());
+        caseInfoParams.setCollector(user.getId());
+        caseInfoParams.setDeptCode(user.getDepartment().getCode());
+        PageHelper.startPage(page, size);
+        if (user.getManager() == 1) {
+            list = caseInfoMapper.queryWaitCollectCase(caseInfoParams);
+        }else{
+            list = caseInfoMapper.queryWaitOwnCollectCase(caseInfoParams);
+        }
+        return list;
+    }
 }

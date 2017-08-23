@@ -55,13 +55,14 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
             "( " +
             "select id,real_name,photo,user_name from `user` " +
             "where type = :type " +
+            "and companyCode = :companyCode " +
             ") as u " +
             "on u.user_name = c.operator " +
             "group by " +
             "u.id " +
             "order by " +
             "rank desc",nativeQuery = true)
-    List<Object[]> getFlowupCaseList(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type);
+    List<Object[]> getFlowupCaseList(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type, @Param("companyCode") String companyCode);
 
     /**
      @Description 获得周催计榜
@@ -76,13 +77,14 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
             "( " +
             "select id,real_name,photo,user_name from `user` " +
             "where type = :type " +
+            "and companyCode = :companyCode " +
             ") as u " +
             "on u.user_name = c.operator " +
             "group by " +
             "u.id " +
             "order by " +
             "rank desc",nativeQuery = true)
-    List<Object[]> getCollectionList(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type);
+    List<Object[]> getCollectionList(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type, @Param("companyCode") String companyCode);
     /**
      @Description 获得指定用户催计数
      */

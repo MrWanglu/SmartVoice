@@ -23,12 +23,10 @@ import org.springframework.data.domain.*;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-
 import javax.inject.Inject;
-
 import com.querydsl.core.types.Predicate;
+import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Objects;
@@ -55,7 +53,7 @@ public class CaseInfoAppController extends BaseController {
     SysParamRepository sysParamRepository;
 
     @GetMapping("/queryAssistDetail")
-    @ApiOperation(value = "协催案件查询", notes = "协催案件查询")
+    @ApiOperation(value = "协催*案件查询", notes = "协催案件查询")
     public ResponseEntity<Page<CaseAssist>> getAssistDetail(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
                                                             Pageable pageable,
                                                             @RequestHeader(value = "X-UserToken") String token) throws Exception {
@@ -131,46 +129,6 @@ public class CaseInfoAppController extends BaseController {
         });
         caseInfoRepository.save(page);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/queryVisitDetail");
-        return new ResponseEntity<>(page, headers, HttpStatus.OK);
-    }
-
-    @GetMapping("/queryCaseDetail")
-    @ApiOperation(value = "案件查询", notes = "案件查询")
-    public ResponseEntity<Page<CaseInfo>> getCaseDetail(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
-                                                        Pageable pageable,
-                                                        @RequestHeader(value = "X-UserToken") String token) throws Exception {
-        User user = null;
-        try {
-            user = getUserByToken(token);
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
-        }
-        BooleanBuilder builder = new BooleanBuilder(predicate);
-        if (user.getManager() == 1) {
-            builder.and(QCaseInfo.caseInfo.currentCollector.department.code.like(user.getDepartment().getCode()+"%")
-                    .or(QCaseInfo.caseInfo.assistCollector.department.code.like(user.getDepartment().getCode()+"%")));
-        } else {
-            builder.andAnyOf(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()), QCaseInfo.caseInfo.assistCollector.id.eq(user.getId()));
-        }
-        builder.andAnyOf(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()),
-                QCaseInfo.caseInfo.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue()));
-        builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.DISTRIBUTE.getValue()));
-        Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
-        page.forEach(e->{
-            if(Objects.isNull(e.getPersonalInfo().getLongitude())
-                    || Objects.isNull(e.getPersonalInfo().getLatitude())){
-                try {
-                    MapModel model = accMapService.getAddLngLat(e.getPersonalInfo().getLocalHomeAddress());
-                    e.getPersonalInfo().setLatitude(BigDecimal.valueOf(model.getLatitude()));
-                    e.getPersonalInfo().setLongitude(BigDecimal.valueOf(model.getLongitude()));
-                }catch(Exception e1){
-                    e1.getMessage();
-                }
-            }
-        });
-        caseInfoRepository.save(page);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/queryCaseDetail");
         return new ResponseEntity<>(page, headers, HttpStatus.OK);
     }
 
@@ -293,16 +251,24 @@ public class CaseInfoAppController extends BaseController {
 
     @GetMapping("/getPersonalCase")
     @ApiOperation(value = "客户查询", notes = "客户查询（分页、条件）")
-    public ResponseEntity<Page<CaseInfo>> getPersonalCase(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
-                                                              @ApiIgnore Pageable pageable,
-                                                              @RequestHeader(value = "X-UserToken") String token
+    public ResponseEntity<Page<CaseInfo>> getPersonalCase(@RequestParam(required = false) @ApiParam(value = "客户名称") String name,
+                                                          @RequestParam(required = false) @ApiParam(value = "地址") String address,
+                                                          @ApiIgnore Pageable pageable,
+                                                          @RequestHeader(value = "X-UserToken") String token
     ){
         try {
             User tokenUser = getUserByToken(token);
-            BooleanBuilder builder = new BooleanBuilder(predicate);
+            BooleanBuilder builder = new BooleanBuilder();
             builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
-            builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CollectionType.VISIT.getValue()));
-            Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);
+            builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
+            builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
+            if(Objects.nonNull(name)) {
+                builder.and(QCaseInfo.caseInfo.personalInfo.name.startsWith(name));
+            }
+            if(Objects.nonNull(address)) {
+                builder.and(QCaseInfo.caseInfo.personalInfo.localHomeAddress.contains(address));
+            }
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseInfoAppController/getPersonalCase");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {

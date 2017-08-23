@@ -376,8 +376,12 @@ public class PersonalController extends BaseController {
     @GetMapping("/getMapInfo")
     @ApiOperation(value = "查询客户地图", notes = "查询客户地图")
     public ResponseEntity<MapModel> getMapInfo(@RequestParam @ApiParam(value = "客户地址", required = true) String address){
-        MapModel model = accMapService.getAddLngLat(address);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功",null)).body(model);
+        try {
+            MapModel model = accMapService.getAddLngLat(address);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功",null)).body(model);
+        }catch(Exception e){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "地址无效")).body(null);
+        }
     }
 
 }

@@ -1,9 +1,12 @@
 package cn.fintecher.pangolin.report.entity;
 
+import cn.fintecher.pangolin.entity.Personal;
+import cn.fintecher.pangolin.entity.Principal;
+import cn.fintecher.pangolin.entity.Product;
 import lombok.Data;
-
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -25,12 +28,12 @@ public class CaseInfo extends BaseEntity {
     private BigDecimal overdueFine;
     private BigDecimal overdueDelayFine;
     private Integer periods;
-    private Date perDueDate;
+    private Date perDueDate; //逾期日期
     private BigDecimal perPayAmount;
     private Integer overduePeriods;
     private Integer overdueDays;
     private Date overDueDate;
-    private BigDecimal hasPayAmount;
+    private BigDecimal hasPayAmount = new BigDecimal(0); //逾期已还款金额
     private Integer hasPayPeriods;
     private Date latelyPayDate;
     private BigDecimal latelyPayAmount;
@@ -40,10 +43,10 @@ public class CaseInfo extends BaseEntity {
     private Integer holdDays;
     private Integer leftDays;
     private Integer caseType;
-    private Integer leaveCaseFlag;
+    private Integer leaveCaseFlag = 0;
     private Date leaveDate;
     private Integer hasLeaveDays;
-    private Integer followUpNum;
+    private Integer followUpNum = 0;
     private Date caseFollowInTime;
     private String payStatus;
     private String orderId;
@@ -55,24 +58,33 @@ public class CaseInfo extends BaseEntity {
     private Date loanDate;
     private BigDecimal overdueManageFee;
     private Integer handUpFlag;
-    private BigDecimal derateAmt;
-    private BigDecimal realPayAmount;
-    private BigDecimal earlySettleAmt;
-    private BigDecimal earlyRealSettleAmt;
-    private BigDecimal earlyDerateAmt;
+    private BigDecimal derateAmt = new BigDecimal(0); //逾期减免金额
+    private BigDecimal realPayAmount = new BigDecimal(0); //逾期实际还款金额
+    private BigDecimal earlySettleAmt = new BigDecimal(0); //提前结清已还款金额
+    private BigDecimal earlyRealSettleAmt = new BigDecimal(0); //提前结清实际还款金额
+    private BigDecimal earlyDerateAmt = new BigDecimal(0); //提前结清减免金额
     private BigDecimal otherAmt;
     private BigDecimal score;
     private String companyCode;
     private BigDecimal leftCapital; //剩余本金
     private BigDecimal leftInterest; //剩余利息
     private String endRemark; //结案说明
+    private Integer endType; //结案方式
     private Date followupTime; //最新跟进时间
     private Integer followupBack; //催收反馈
     private BigDecimal promiseAmt; //承诺还款金额
     private Date promiseTime; //承诺还款日期
-
+    private BigDecimal creditAmount; //授信金额
+    private Integer circulationStatus; //流转审批状态
     private Date operatorTime;
     private Integer caseMark;
+    @Transient
+    private Product product;
+    @Transient
+    private Principal principalId;
+    @Transient
+    private Personal personalInfo;
+
 
 
 
