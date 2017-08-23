@@ -5,10 +5,7 @@ import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CaseRepairRepository;
 import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
-import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.CaseInfoDistributed;
-import cn.fintecher.pangolin.entity.CaseRepair;
-import cn.fintecher.pangolin.entity.CaseTurnRecord;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -77,6 +74,22 @@ public class CaseInfoResource {
                     "id is null", "id is null")).body(null);
         }
         caseInfoDistributedRepository.delete(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+    @GetMapping("/getCaseInfoList")
+    @ApiOperation(value = "查询案件信息", notes = "查询案件信息")
+    public ResponseEntity<Iterable<CaseInfo>> getCaseInfoList(){
+        Iterable<CaseInfo> caseInfoIterable = caseInfoRepository.findAll(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.COLLECTIONING.getValue())
+                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.EARLY_PAYING.getValue()))
+                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.OVER_PAYING.getValue()))
+                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()))
+                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue())));//待催收
+        return new ResponseEntity<>(caseInfoIterable, HttpStatus.OK);
+    }
+    @PostMapping("/saveCaseScore")
+    @ApiOperation(value = "保存案件评分", notes = "保存案件评分")
+    public ResponseEntity<CaseInfo> saveCaseScore(@RequestBody CaseInfo caseInfo) throws URISyntaxException {
+        caseInfoRepository.save(caseInfo);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
