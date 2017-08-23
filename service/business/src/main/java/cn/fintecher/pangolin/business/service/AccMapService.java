@@ -34,7 +34,7 @@ public class AccMapService {
      * @return
      * @throws Exception
      */
-    public MapModel getAddLngLat(String address) {
+    public MapModel getAddLngLat(String address) throws Exception{
         MapModel model = new MapModel();
         model.setAddress(address);
             String url = String.format(webUrl.concat(webAk).concat("&output=json&q=%s"), address);
@@ -63,25 +63,25 @@ public class AccMapService {
                                         model.setLongitude(Double.valueOf(jsonObject2.getString("lng")));
                                         model.setLatitude(Double.valueOf(jsonObject2.getString("lat")));
                                     } else {
-                                        throw new RuntimeException("地址信息无效");
+                                        throw new Exception("地址无效");
                                     }
                                 } else {
-                                    throw new RuntimeException("地址信息无效");
+                                    throw new Exception("地址无效");
                                 }
                             } else {
-                                throw new RuntimeException("地址信息无效");
+                                throw new Exception("地址无效");
                             }
                         } else {
-                            throw new RuntimeException("地址信息无效");
+                            throw new Exception("地址无效");
                         }
                     } else {
-                        throw new RuntimeException("获取地址信息失败");
+                        throw new Exception("地址无效");
                     }
                 } else {
-                    throw new RuntimeException("地址信息无效");
+                    throw new Exception("地址无效");
                 }
             } else {
-                throw new RuntimeException("获取地址信息失败");
+                throw new Exception("地址无效");
             }
         return model;
     }

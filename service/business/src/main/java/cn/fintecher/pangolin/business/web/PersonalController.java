@@ -380,8 +380,8 @@ public class PersonalController extends BaseController {
             MapModel model = accMapService.getAddLngLat(address);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功",null)).body(model);
         }catch(Exception e){
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "地址无效")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("RepairCaseDistributeController", "error", e.getMessage())).body(null);
         }
-    }
 
+    }
 }
