@@ -193,7 +193,6 @@ public class TemplateDataModelController {
             }else{
                 excelTemplateData.setCompanyCode(user.getCompanyCode());
             }
-            excelTemplateData.setCompanyCode(user.getCompanyCode());
             String templateId = excelTemplateData.getId();
             if (ZWStringUtils.isEmpty(templateId)) {
                 excelTemplateData.setId(null);
