@@ -152,6 +152,8 @@ public class CaseInfoService {
                 caseInfo.setAssistCollector(null); //协催员置空
                 caseInfo.setAssistWay(null); //协催方式置空
                 caseInfo.setAssistFlag(0); //协催标识 0-否
+                caseInfo.setFollowupBack(null); //催收反馈置空
+                caseInfo.setFollowupTime(null); //跟进时间置空
                 caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
             }
         } else { //是协催案件
@@ -676,6 +678,8 @@ public class CaseInfoService {
                             caseInfo.setAssistCollector(null); //协催员置空
                             caseInfo.setAssistWay(null); //协催方式置空
                             caseInfo.setAssistFlag(0); //协催标识 0-否
+                            caseInfo.setFollowupBack(null); //催收反馈置空
+                            caseInfo.setFollowupTime(null); //跟进时间置空
                             caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
 
                             //协催结束新增一条流转记录
@@ -958,7 +962,7 @@ public class CaseInfoService {
         }
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
         sendReminderMessage.setTitle("案件提前流转申请");
-        sendReminderMessage.setContent("您有 ["+caseIds.size()+"] 条提前流转案件申请需要审批");
+        sendReminderMessage.setContent("您有 [" + caseIds.size() + "] 条提前流转案件申请需要审批");
         sendReminderMessage.setType(ReminderType.CIRCULATION);
         sendReminderMessage.setCcUserIds(managerIdList.toArray(new String[managerIdList.size()]));
         reminderService.sendReminder(sendReminderMessage);
@@ -1018,6 +1022,8 @@ public class CaseInfoService {
             caseInfo.setAssistCollector(null); //协催员置空
             caseInfo.setAssistWay(null); //协催方式置空
             caseInfo.setAssistFlag(0); //协催标识 0-否
+            caseInfo.setFollowupBack(null); //催收反馈置空
+            caseInfo.setFollowupTime(null); //跟进时间置空
             caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上一个催收员变为当前催收员
             caseInfo.setCurrentCollector(null); //当前催收员变为审批人
             caseInfo.setHoldDays(0); //持案天数归0
@@ -1562,24 +1568,26 @@ public class CaseInfoService {
 
     /**
      * 获取所有即将强制流转案件List
+     *
      * @return
      */
     public List<CaseInfo> getAllForceTurnCase() {
         List<CaseInfo> caseInfoList = new ArrayList<>();
         //电催案件
-        caseInfoList.addAll(getForceTurnCase(Constants.SYS_PHNOEFLOW_BIGDAYSREMIND,Constants.SYS_PHNOEFLOW_BIGDAYS));
+        caseInfoList.addAll(getForceTurnCase(Constants.SYS_PHNOEFLOW_BIGDAYSREMIND, Constants.SYS_PHNOEFLOW_BIGDAYS));
         //外访案件
-        caseInfoList.addAll(getForceTurnCase(Constants.SYS_OUTBOUNDFLOW_BIGDAYSREMIND,Constants.SYS_PHNOEFLOW_BIGDAYS));
+        caseInfoList.addAll(getForceTurnCase(Constants.SYS_OUTBOUNDFLOW_BIGDAYSREMIND, Constants.SYS_PHNOEFLOW_BIGDAYS));
         return caseInfoList;
     }
 
     /**
      * 获取强制流转案件
+     *
      * @param bigDaysRemind
      * @param bigDays
      * @return
      */
-    public List<CaseInfo> getForceTurnCase(String bigDaysRemind , String bigDays){
+    public List<CaseInfo> getForceTurnCase(String bigDaysRemind, String bigDays) {
         List<CaseInfo> caseInfoList = new ArrayList<>();
         //遍历所有公司
         List<Company> companyList = companyRepository.findAll();
@@ -1591,10 +1599,10 @@ public class CaseInfoService {
             SysParam sysParam1 = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
                     .and(qSysParam.code.eq(bigDays))
                     .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
-            if(Objects.nonNull(sysParam)&&Objects.nonNull(sysParam1)){
+            if (Objects.nonNull(sysParam) && Objects.nonNull(sysParam1)) {
                 QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
                 BooleanBuilder builder = new BooleanBuilder();
-                builder.and(qCaseInfo.holdDays.between(Integer.valueOf(sysParam1.getValue())-Integer.valueOf(sysParam.getValue()),
+                builder.and(qCaseInfo.holdDays.between(Integer.valueOf(sysParam1.getValue()) - Integer.valueOf(sysParam.getValue()),
                         Integer.valueOf(sysParam1.getValue())).
                         and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())));
                 caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
