@@ -163,7 +163,7 @@ public class PrincipalController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "The outsourcename is not allowed to be used", "该名字不允许被使用")).body(null);
             }
-            BeanUtils.copyProperties(principal, request);
+            BeanUtils.copyProperties(request, principal);
             Principal principalReturn = principalRepository.save(principal);
             return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(principalReturn);
         }
