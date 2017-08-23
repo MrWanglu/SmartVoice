@@ -157,10 +157,7 @@ public class BatchManageController extends BaseController {
             jobDataMap.put("companyCode",user.getCompanyCode());
         }
         jobDataMap.put("sysParamCode",Constants.SYSPARAM_OVERNIGHT_STATUS);
-        jobDataMap.put("companyCode", "0001");
-        jobDataMap.put("sysParamCode", Constants.SYSPARAM_OVERNIGHT_STATUS);
         overNightBatchService.doOverNightTask(jobDataMap);
-        //sysParamService.findByCode(jobDataMap.getString("sysParamCode"));
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","batchManageController")).body(null);
     }
 
