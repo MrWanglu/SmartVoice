@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.report.model;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * @author : xiaqun
@@ -16,6 +17,8 @@ public class GroupLeaderModel {
     private String groupName; //组别名称
     private Integer caseNum = 0; //案件数量
     private Integer manageNum = 0; //管理人数
+    private String manageName; //组长
+    private Date nowDate; //报表日期
     private BigDecimal dayBackMoney = new BigDecimal(0); //当日回款金额
     private BigDecimal monthBackMoney = new BigDecimal(0); //月累计金额
     private BigDecimal averageMoney = new BigDecimal(0); //人均回款金额
