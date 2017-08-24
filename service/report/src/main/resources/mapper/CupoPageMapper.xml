@@ -6,20 +6,23 @@
     <select id="getTodyTashFinished" parameterType="string" resultType="double">
         select m.pamt/n.back_cash from
         (
-        select sum(apply.apply_pay_amt) as pamt,apply.apply_user_name from case_pay_apply as apply
-        where (apply.approve_result = 62 OR apply.approve_status = 58)
-        and apply.apply_user_name = #{username}
-        and year(apply.apply_date) = year(NOW())
-        and month(apply.apply_date) = month(NOW())
-        ) as m
-        left join
+            SELECT SUM(case_pay_apply.apply_pay_amt) AS pamt,case_info.current_collector AS userid FROM case_pay_apply
+            LEFT JOIN case_info ON case_pay_apply.case_id = case_info.id
+            where (case_pay_apply.approve_result = 62 OR case_pay_apply.approve_status = 58)
+            AND year(case_pay_apply.approve_pay_datetime) = year(NOW())
+            AND month(case_pay_apply.approve_pay_datetime) = month(NOW())
+            AND (case_info.current_collector = #{userId} OR case_info.assist_collector = #{userId})
+            GROUP BY case_info.current_collector
+        ) AS m
+        LEFT JOIN
         (
-        select plan.user_name,plan.back_cash from user_backcash_plan as plan
-        where plan.user_name = #{username}
-        and plan.year = year(now())
-        and plan.month = month(now())
+            select `user`.id AS userid,plan.back_cash from user_backcash_plan as plan
+            LEFT JOIN `user` ON `user`.user_name = plan.user_name
+            where `user`.id = #{userId}
+            and plan.year = year(now())
+            and plan.month = month(now())
         ) as n
-        on m.apply_user_name = n.user_name
+        on m.userid = n.userid
     </select>
 
     <!--案件情况/案件金额总计-->
@@ -32,7 +35,8 @@
     <!--本周回款-->
     <select id="getRepayWeek" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
         SELECT sum(apply_pay_amt) AS amount,WEEKDAY(approve_pay_datetime) AS dayOfWeek FROM case_pay_apply
-        WHERE apply_user_name = #{username}
+        LEFT JOIN case_info ON case_pay_apply.case_id = case_info.id
+        WHERE (case_info.current_collector = #{userId} OR case_info.assist_collector = #{userId})
         AND YEARWEEK(date_format(approve_pay_datetime,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
         AND (approve_result = 62 OR approve_status = 58)
         GROUP BY WEEKDAY(approve_pay_datetime)
@@ -92,23 +96,28 @@
 
     <!--催收员回款总额-->
     <select id="getMoneySumResult" parameterType="string" resultType="java.math.BigDecimal">
-        SELECT SUM(apply_pay_amt) FROM case_pay_apply WHERE (approve_result = 62 OR approve_status = 58) AND apply_user_name = #{username}
+        SELECT SUM(apply_pay_amt) FROM case_pay_apply
+        LEFT JOIN case_info ON case_pay_apply.case_id = case_info.id
+        WHERE (approve_result = 62 OR approve_status = 58)
+        AND (case_info.current_collector = #{userId} OR case_info.assist_collector = #{userId})
     </select>
 
     <!--本月回款总额-->
     <select id="getMonthMoneyResult" parameterType="string" resultType="java.math.BigDecimal">
         SELECT SUM(apply_pay_amt) FROM case_pay_apply
+        LEFT JOIN case_info ON case_pay_apply.case_id = case_info.id
         WHERE (approve_result = 62 OR approve_status = 58)
         AND DATE_FORMAT(approve_pay_datetime, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m')
-        AND apply_user_name = #{username}
+        AND (case_info.current_collector = #{userId} OR case_info.assist_collector = #{userId})
     </select>
 
     <!--今天回款总额-->
     <select id="getDayMoneyResult" parameterType="string" resultType="java.math.BigDecimal">
         SELECT SUM(apply_pay_amt) FROM case_pay_apply
+        LEFT JOIN case_info ON case_pay_apply.case_id = case_info.id
         WHERE (approve_result = 62 OR approve_status = 58)
         AND to_days(approve_pay_datetime) = to_days(now())
-        AND apply_user_name = #{username}
+        AND (case_info.current_collector = #{userId} OR case_info.assist_collector = #{userId})
     </select>
 
     <!--今日累计催收次数-->
