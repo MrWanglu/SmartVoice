@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
 import cn.fintecher.pangolin.business.model.CaseRepairRequest;
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CaseRepairRecordRepository;
 import cn.fintecher.pangolin.business.repository.CaseRepairRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
@@ -54,7 +55,15 @@ public class CaseRepairController extends BaseController{
      */
     @PostMapping("/toRepair")
     @ApiOperation(value = "修改案件状态",notes = "修改案件状态")
-    public ResponseEntity toRepair(@RequestBody CaseRepairRequest request){
+    public ResponseEntity toRepair(@RequestBody CaseRepairRequest request,
+                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token){
+        User userByToken;
+        try {
+            userByToken = getUserByToken(token);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User is not login", "用户未登录")).body(null);
+        }
         try {
             // 获取文件的id集合
             List<String> fileIds = request.getFileIds();
@@ -62,13 +71,26 @@ public class CaseRepairController extends BaseController{
             CaseRepair caseRepair = caseRepairRepository.findOne(request.getId());
             // 待修复上传的文件集合
             List<CaseRepairRecord> caseRepairRecordList = caseRepair.getCaseRepairRecordList();
-            for(String fileId : fileIds) {
-                CaseRepairRecord caseRepairRecord = new CaseRepairRecord();
-                caseRepairRecord.setCaseId(caseRepair.getCaseId().getId());
-                caseRepairRecord.setFileId(fileId);
-                caseRepairRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
-                caseRepairRecord.setRepairMemo(request.getRepairMemo());
-                caseRepairRecordList.add(caseRepairRecordRepository.saveAndFlush(caseRepairRecord));
+            String fileId = "";
+            for (String str : fileIds) {
+                fileId += str + ",";
+            }
+            ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>(){};
+            ResponseEntity<List<UploadFile>> resp = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(fileId.toString()),
+                    HttpMethod.GET, null, responseType);
+            List<UploadFile> uploadFiles = resp.getBody();
+            for (UploadFile uploadFile : uploadFiles) {
+                for(String fileId1 : fileIds) {
+                    CaseRepairRecord caseRepairRecord = new CaseRepairRecord();
+                    caseRepairRecord.setFileId(fileId1);
+                    caseRepairRecord.setCaseId(caseRepair.getCaseId().getId());
+                    caseRepairRecord.setOperator(userByToken.getUserName());
+                    caseRepairRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
+                    caseRepairRecord.setRepairMemo(request.getRepairMemo());
+                    caseRepairRecord.setFileUrl(uploadFile.getUrl());
+                    caseRepairRecord.setFileType(uploadFile.getType());
+                    caseRepairRecordList.add(caseRepairRecordRepository.saveAndFlush(caseRepairRecord));
+                }
             }
             // 修改状态为已修复
             caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRED.getValue());
@@ -228,23 +250,38 @@ public class CaseRepairController extends BaseController{
      */
     @GetMapping("/viewCaseRepair")
     @ApiOperation(value = "查看已修复案件信息",notes = "查看已修复案件信息")
-    public ResponseEntity<List<UploadFile>> viewCaseRepair(String id) {
+    public ResponseEntity<List<String>> viewCaseRepair(String id) {
         try{
-            List<UploadFile> uploadFiles = null;
-            StringBuilder fileIds = new StringBuilder();
             CaseRepair caseRepair = caseRepairRepository.findOne(id);
-            CaseInfo caseInfo = caseRepair.getCaseId();
             List<CaseRepairRecord> caseRepairRecordList = caseRepair.getCaseRepairRecordList();
-            //List<CaseRepairRecord> caseRepairRecordList = caseInfo.getCaseRepairRecordList();
+            List<String> fileUrls = new ArrayList<>();
             for(CaseRepairRecord caseRepairRecord : caseRepairRecordList) {
-                String fileId = caseRepairRecord.getFileId();
-                fileIds.append(fileId).append(",");
+                String fileUrl = caseRepairRecord.getFileUrl();
+                fileUrls.add(fileUrl);
             }
-            ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>(){};
-            ResponseEntity<List<UploadFile>> resp = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(fileIds.toString()),
-                    HttpMethod.GET, null, responseType);
-            uploadFiles = resp.getBody();
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查看信息成功","CaseRepairController")).body(uploadFiles);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查看信息成功","CaseRepairController")).body(fileUrls);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","exception","系统异常")).body(null);
+        }
+    }
+
+    /**
+     * @Description ：修复附件查看
+     */
+    @GetMapping("/viewCaseRepairRecord")
+    @ApiOperation(value = "修复附件查看",notes = "修复附件查看")
+    public ResponseEntity<List<String>> viewCaseRepairRecord(String id) {
+        try{
+            Iterable<CaseRepairRecord> caseRepairRecordList = caseRepairRecordRepository.findAll(QCaseRepairRecord.caseRepairRecord.caseId.eq(id));
+            List<CaseRepairRecord> list = new ArrayList<>();
+            List<String> fileUrls = new ArrayList<>();
+            caseRepairRecordList.forEach(single ->list.add(single));
+            for(CaseRepairRecord caseRepairRecord : list) {
+                String fileUrl = caseRepairRecord.getFileUrl();
+                fileUrls.add(fileUrl);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查看信息成功","CaseRepairController")).body(fileUrls);
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","exception","系统异常")).body(null);
