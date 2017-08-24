@@ -260,7 +260,8 @@ public class CaseInfoAppController extends BaseController {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder();
             builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
-            builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
+            builder.andAnyOf(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()),
+                    QCaseInfo.caseInfo.assistCollector.isNotNull());
             builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
             if(Objects.nonNull(name)) {
                 builder.and(QCaseInfo.caseInfo.personalInfo.name.startsWith(name));
