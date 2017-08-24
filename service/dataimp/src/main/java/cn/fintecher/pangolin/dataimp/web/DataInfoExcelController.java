@@ -14,6 +14,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -310,5 +311,13 @@ public class DataInfoExcelController {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("DataInfoExcelController", "loadTemplate", "下载失败")).body(null);
         }
+    }
+
+    @GetMapping("/findUpload")
+    @ApiOperation(value = "查看附件", notes = "查看附件")
+    public ResponseEntity<List<DataInfoExcelFile>> findUpload(@RequestParam(value = "caseId", required = true) @ApiParam("案件ID") String caseId) {
+        Iterable<DataInfoExcelFile> all = dataInfoExcelFileRepository.findAll(QDataInfoExcelFile.dataInfoExcelFile.caseId.eq(caseId));
+        List<DataInfoExcelFile> dataInfoExcelFiles = IterableUtils.toList(all);
+        return ResponseEntity.ok().body(dataInfoExcelFiles);
     }
 }

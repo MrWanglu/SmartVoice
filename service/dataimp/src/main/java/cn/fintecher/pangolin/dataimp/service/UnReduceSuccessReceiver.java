@@ -100,6 +100,7 @@ public class UnReduceSuccessReceiver {
                         } else {
                             for (DataInfoExcel obj : dataInfoExcelList) {
                                 dataInfoExcelFile.setCaseId(obj.getId());
+                                dataInfoExcelFile.setCaseNumber(obj.getCaseNumber());
                                 dataInfoExcelFileRepository.save(dataInfoExcelFile);
                             }
                         }
