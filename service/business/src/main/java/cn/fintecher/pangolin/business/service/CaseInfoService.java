@@ -1603,89 +1603,118 @@ public class CaseInfoService {
     }
 
     /**
-     * 获取所有即将强制流转案件List
-     *
-     * @return
-     */
-    public List<CaseInfo> getAllForceTurnCase() {
-        List<CaseInfo> caseInfoList = new ArrayList<>();
-        //电催案件
-        caseInfoList.addAll(getForceTurnCase(Constants.SYS_PHNOEFLOW_BIGDAYSREMIND, Constants.SYS_PHNOEFLOW_BIGDAYS));
-        //外访案件
-        caseInfoList.addAll(getForceTurnCase(Constants.SYS_OUTBOUNDFLOW_BIGDAYSREMIND, Constants.SYS_PHNOEFLOW_BIGDAYS));
-        return caseInfoList;
-    }
-
-    /**
      * 获取强制流转案件
      *
-     * @param bigDaysRemind
-     * @param bigDays
+     * @param companyCode
      * @return
      */
-    public List<CaseInfo> getForceTurnCase(String bigDaysRemind, String bigDays) {
+    public List<CaseInfo> getForceTurnCase(String companyCode) {
         List<CaseInfo> caseInfoList = new ArrayList<>();
-        //遍历所有公司
-        List<Company> companyList = companyRepository.findAll();
-        for (Company company : companyList) {
-            QSysParam qSysParam = QSysParam.sysParam;
-            SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
-                    .and(qSysParam.code.eq(bigDaysRemind))
-                    .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
-            SysParam sysParam1 = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
-                    .and(qSysParam.code.eq(bigDays))
-                    .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
-            if (Objects.nonNull(sysParam) && Objects.nonNull(sysParam1)) {
-                QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-                BooleanBuilder builder = new BooleanBuilder();
-                builder.and(qCaseInfo.holdDays.between(Integer.valueOf(sysParam1.getValue()) - Integer.valueOf(sysParam.getValue()),
-                        Integer.valueOf(sysParam1.getValue())).
-                        and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
-                        and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
-                caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
-            }
+        QSysParam qSysParam = QSysParam.sysParam;
+        //电催案件
+        SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                .and(qSysParam.code.eq(Constants.SYS_PHNOEFLOW_BIGDAYSREMIND))
+                .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+        SysParam sysParam1 = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                .and(qSysParam.code.eq(Constants.SYS_PHNOEFLOW_BIGDAYS))
+                .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+        if (Objects.nonNull(sysParam) && Objects.nonNull(sysParam1)) {
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(qCaseInfo.holdDays.between(Integer.valueOf(sysParam1.getValue()) - Integer.valueOf(sysParam.getValue()),
+                    Integer.valueOf(sysParam1.getValue())).
+                    and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
+                    and(qCaseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())).
+                    and(qCaseInfo.companyCode.eq(companyCode)).
+                    and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
+            caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
         }
+        //外访案件
+        SysParam sysParam2 = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                .and(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_BIGDAYSREMIND))
+                .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+        SysParam sysParam3 = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                .and(qSysParam.code.eq(Constants.SYS_PHNOEFLOW_BIGDAYS))
+                .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+        if (Objects.nonNull(sysParam2) && Objects.nonNull(sysParam3)) {
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(qCaseInfo.holdDays.between(Integer.valueOf(sysParam1.getValue()) - Integer.valueOf(sysParam.getValue()),
+                    Integer.valueOf(sysParam1.getValue())).
+                    and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
+                    and(qCaseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())).
+                    and(qCaseInfo.companyCode.eq(companyCode)).
+                    and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
+            caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
+        }
+
+
         return caseInfoList;
     }
 
-    /**
-     * 获取所有若干天无进展案件List
-     *
-     * @return
-     */
-    public List<CaseInfo> getAllNowhereCase() {
-        List<CaseInfo> caseInfoList = new ArrayList<>();
-        //电催案件
-        caseInfoList.addAll(getNowhereCase(Constants.SYS_PHONEREMIND_DAYS));
-        //外访案件
-        caseInfoList.addAll(getNowhereCase(Constants.SYS_OUTREMIND_DAYS));
-        return caseInfoList;
-    }
 
     /**
      * 获取若干天无进展案件
      *
-     * @param remindDays
+     * @param companyCode
      * @return
      */
-    public List<CaseInfo> getNowhereCase(String remindDays) {
+    public List<CaseInfo> getNowhereCase(String companyCode) {
         List<CaseInfo> caseInfoList = new ArrayList<>();
-        //遍历所有公司
-        List<Company> companyList = companyRepository.findAll();
-        for (Company company : companyList) {
-            QSysParam qSysParam = QSysParam.sysParam;
-            SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
-                    .and(qSysParam.code.eq(remindDays))
-                    .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
-            if (Objects.nonNull(sysParam)) {
-                QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-                BooleanBuilder builder = new BooleanBuilder();
-                builder.and(qCaseInfo.followupTime.isNull().
-                        and((qCaseInfo.caseFollowInTime.lt(new Date(System.currentTimeMillis() - Constants.ONE_DAY_MILLIS * Integer.valueOf(sysParam.getValue()))))).
-                        and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
-                        and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
-            }
+        QSysParam qSysParam = QSysParam.sysParam;
+        //电催案件
+        SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                .and(qSysParam.code.eq(Constants.SYS_PHONEREMIND_DAYS))
+                .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+        if (Objects.nonNull(sysParam)) {
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(qCaseInfo.followupTime.isNull().
+                    and(qCaseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())).
+                    and(qCaseInfo.holdDays.gt(Integer.valueOf(sysParam.getValue()))).
+                    and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
+                    and(qCaseInfo.companyCode.eq(companyCode)).
+                    and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
+            caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
+        }
+        //外访案件
+        SysParam sysParam1 = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                .and(qSysParam.code.eq(Constants.SYS_OUTREMIND_DAYS))
+                .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+        if (Objects.nonNull(sysParam1)) {
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(qCaseInfo.followupTime.isNull().
+                    and(qCaseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())).
+                    and(qCaseInfo.holdDays.gt(Integer.valueOf(sysParam.getValue()))).
+                    and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
+                    and(qCaseInfo.companyCode.eq(companyCode)).
+                    and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
+            caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
         }
         return caseInfoList;
+    }
+
+    /**
+     * 获取若干天无进展的协催案件
+     *
+     * @return
+     */
+    public List<CaseAssist> getNowhereCaseAssist(String companyCode) {
+        List<CaseAssist> caseAssistList = new ArrayList<>();
+        QSysParam qSysParam = QSysParam.sysParam;
+        SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                .and(qSysParam.code.eq(Constants.SYS_ASSISTREMIND_DAYS))
+                .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+        if (Objects.nonNull(sysParam)) {
+            QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue()).
+                    and(qCaseAssist.caseFlowinTime.lt(new Date(System.currentTimeMillis()-Constants.ONE_DAY_MILLIS * Integer.valueOf(sysParam.getValue())))).
+                    and(qCaseAssist.companyCode.eq(companyCode)).
+                    and(qCaseAssist.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
+            caseAssistList.addAll(IterableUtils.toList(caseAssistRepository.findAll(builder)));
+        }
+        return caseAssistList;
     }
 }

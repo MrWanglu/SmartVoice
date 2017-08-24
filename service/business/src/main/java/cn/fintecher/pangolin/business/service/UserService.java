@@ -87,7 +87,7 @@ public class UserService {
     public List<User> getManagerByUser(String userId) {
         BooleanBuilder builder = new BooleanBuilder();
         QUser qUser = QUser.user;
-        User user = userRepository.getOne(userId);
+        User user = userRepository.findOne(userId);
         builder.and(qUser.department.id.eq(user.getDepartment().getId()).
                 and(qUser.manager.eq(1)).
                 and(qUser.companyCode.eq(user.getCompanyCode())));
@@ -100,8 +100,8 @@ public class UserService {
      * @param userId
      * @return
      */
-    public List<User> getAllHigherLevelManagerByUser(String userId) {
-        Department department = userRepository.getOne(userId).getDepartment();
+    public List<User> getAllHigherLevelManagerByUser(String userId){
+        Department department = userRepository.findOne(userId).getDepartment();
         Department departmentTemp = department;
         List<Department> departmentList = new ArrayList<>();
         departmentList.add(department);

@@ -59,22 +59,24 @@ public class ReminderTimingJob implements Job{
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         try {
-        //案件即将强制流转提醒
-        List<CaseInfo> forceTurnCaseList = caseInfoService.getAllForceTurnCase();
-        if(Objects.nonNull(forceTurnCaseList)){
-            for(CaseInfo caseInfo : forceTurnCaseList){
-                SendReminderMessage sendReminderMessage = new SendReminderMessage();
-                sendReminderMessage.setUserId(caseInfo.getCurrentCollector().getId());
-                sendReminderMessage.setType(ReminderType.FORCE_TURN);
-                sendReminderMessage.setTitle("案件强制流转提醒");
-                sendReminderMessage.setContent("您持有的案件 ["+caseInfo.getCaseNumber()+"] 即将强制流转,请及时留案");
-                sendReminderMessage.setMode(ReminderMode.POPUP);
-                ReminderService.sendReminder(sendReminderMessage);
+            JobDataMap jobDataMap = jobExecutionContext.getTrigger().getJobDataMap();
+            String companyCode = jobDataMap.get("companyCode").toString();
+            //案件即将强制流转提醒
+            List<CaseInfo> forceTurnCaseList = caseInfoService.getForceTurnCase(companyCode);
+            if(Objects.nonNull(forceTurnCaseList)){
+                for(CaseInfo caseInfo : forceTurnCaseList){
+                    SendReminderMessage sendReminderMessage = new SendReminderMessage();
+                    sendReminderMessage.setUserId(Objects.nonNull(caseInfo.getCurrentCollector())?caseInfo.getCurrentCollector().getId():null);
+                    sendReminderMessage.setType(ReminderType.FORCE_TURN);
+                    sendReminderMessage.setTitle("案件强制流转提醒");
+                    sendReminderMessage.setContent("您持有的案件 ["+caseInfo.getCaseNumber()+"] 即将强制流转,请及时留案");
+                    sendReminderMessage.setMode(ReminderMode.POPUP);
+                    ReminderService.sendReminder(sendReminderMessage);
             }
         }
 
         //持案天数逾期无进展提醒
-        List<CaseInfo>  nowhereCaseList = caseInfoService.getAllNowhereCase();
+        List<CaseInfo>  nowhereCaseList = caseInfoService.getNowhereCase(companyCode);
         if(Objects.nonNull(nowhereCaseList)){
             for(CaseInfo caseInfo : nowhereCaseList){
                 List<User> managers = userService.getManagerByUser(caseInfo.getCurrentCollector().getId());
@@ -95,8 +97,19 @@ public class ReminderTimingJob implements Job{
             }
         }
 
-        //
-
+            //协催案件若干天无进展提醒
+            List<CaseAssist>  nowhereCaseAssist = caseInfoService.getNowhereCaseAssist(companyCode);
+            if(Objects.nonNull(nowhereCaseAssist)){
+                for(CaseAssist caseAssist : nowhereCaseAssist){
+                    SendReminderMessage sendReminderMessage = new SendReminderMessage();
+                    sendReminderMessage.setUserId(caseAssist.getOperator().getId());
+                    sendReminderMessage.setType(ReminderType.FLLOWUP);
+                    sendReminderMessage.setTitle("协催案件跟进提醒");
+                    sendReminderMessage.setContent("协催案件 ["+caseAssist.getCaseId().getCaseNumber()+"] 长时间无跟进记录,请及时处理");
+                    sendReminderMessage.setMode(ReminderMode.POPUP);
+                    ReminderService.sendReminder(sendReminderMessage);
+                }
+            }
 
             restTemplate.execute("http://reminder-service/api/reminderTiming/sendReminderTiming", HttpMethod.GET,null,null);
         } catch (RestClientException e) {

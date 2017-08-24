@@ -172,7 +172,7 @@ public class SysParamController extends BaseController {
                     .and(qSysParam.code.eq(Constants.SYSPARAM_REMINDER_STATUS)));
             if(one.getValue().equals(Constants.BatchStatus.RUNING.getValue())){
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                        "syspram value is illegitmacy", "晚间批量正在执行不允许修改调度时间")).body(null);
+                        "syspram value is illegitmacy", "消息定时提醒正在执行不允许修改调度时间")).body(null);
             }
             //验证输入的参数是否合规
             String  value=sysParam.getValue();
