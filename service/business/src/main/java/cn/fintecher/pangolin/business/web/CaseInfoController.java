@@ -210,7 +210,11 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "distributeCeaseInfoAgain", e.getMessage())).body(null);
         }
         try {
-            caseInfoService.distributeCeaseInfoAgain(accCaseInfoDisModel, user);
+            try {
+                caseInfoService.distributeCeaseInfoAgain(accCaseInfoDisModel, user);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"",e.getMessage())).body(null);
+            }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

@@ -59,7 +59,11 @@ public class CaseInfoDistributeController extends BaseController {
                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         try {
             User user=getUserByToken(token);
-            caseInfoDistributedService.distributeCeaseInfo(accCaseInfoDisModel, user);
+            try {
+                caseInfoDistributedService.distributeCeaseInfo(accCaseInfoDisModel, user);
+            } catch (final Exception e) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"",e.getMessage())).body(null);
+            }
             return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功",ENTITY_NAME)).body(null);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

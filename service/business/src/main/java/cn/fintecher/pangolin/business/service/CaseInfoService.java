@@ -1399,14 +1399,22 @@ public class CaseInfoService {
                     caseInfo.setDepartment(department); //部门
                     caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上个催收员
                     caseInfo.setCurrentCollector(null); //当前催收员置空
-                    setCollectionType(caseInfo, department, null);
+                    try {
+                        setCollectionType(caseInfo, department, null);
+                    } catch (final Exception e) {
+                        throw new RuntimeException(e.getMessage());
+                    }
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
                 }
                 //按照用户分
                 if (Objects.nonNull(targetUser)) {
                     caseInfo.setDepartment(targetUser.getDepartment());
                     caseInfo.setCurrentCollector(targetUser);
-                    setCollectionType(caseInfo, null, targetUser);
+                    try {
+                        setCollectionType(caseInfo, null, targetUser);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e.getMessage());
+                    }
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
                 }
                 //处理协催案件
@@ -1480,7 +1488,7 @@ public class CaseInfoService {
      * @param department
      * @param user
      */
-    public void setCollectionType(CaseInfo caseInfo, Department department, User user) {
+    public void setCollectionType(CaseInfo caseInfo, Department department, User user) throws Exception {
         Integer type = null;
         if (Objects.nonNull(department)) {
             type = department.getType();
@@ -1495,17 +1503,17 @@ public class CaseInfoService {
             case 2: //外访催收
                 caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
                 break;
-            case 3: //司法催收
-                caseInfo.setCollectionType(CaseInfo.CollectionType.JUDICIAL.getValue());
-                break;
-            case 4: //委外催收
-                caseInfo.setCollectionType(CaseInfo.CollectionType.outside.getValue());
-                break;
-            case 6: //提醒催收
-                caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
-                break;
+//            case 3: //司法催收
+//                caseInfo.setCollectionType(CaseInfo.CollectionType.JUDICIAL.getValue());
+//                break;
+//            case 4: //委外催收
+//                caseInfo.setCollectionType(CaseInfo.CollectionType.outside.getValue());
+//                break;
+//            case 6: //提醒催收
+//                caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
+//                break;
             default:
-                return;
+                throw new RuntimeException("不允许向该部门下分配案件!");
         }
     }
 

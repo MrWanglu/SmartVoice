@@ -142,14 +142,22 @@ public class CaseInfoDistributedService {
                         caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型-案件分配
                         if (Objects.nonNull(department)) {
                             caseInfo.setDepartment(department); //部门
-                            caseInfoService.setCollectionType(caseInfo, department, null);
+                            try {
+                                caseInfoService.setCollectionType(caseInfo, department, null);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e.getMessage());
+                            }
                             caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //案件流入时间
                             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
                         }
                         if (Objects.nonNull(targetUser)) {
                             caseInfo.setDepartment(targetUser.getDepartment());
                             caseInfo.setCurrentCollector(targetUser);
-                            caseInfoService.setCollectionType(caseInfo, null, targetUser);
+                            try {
+                                caseInfoService.setCollectionType(caseInfo, null, targetUser);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e.getMessage());
+                            }
                             caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());
                             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
                         }
