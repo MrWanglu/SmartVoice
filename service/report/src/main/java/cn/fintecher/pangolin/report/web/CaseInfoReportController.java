@@ -8,6 +8,7 @@ import cn.fintecher.pangolin.report.model.MapModel;
 import cn.fintecher.pangolin.report.service.AccMapService;
 import cn.fintecher.pangolin.report.service.CaseInfoService;
 import cn.fintecher.pangolin.web.HeaderUtil;
+import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -52,7 +53,7 @@ public class CaseInfoReportController extends BaseController{
 
     @GetMapping("/queryCaseDetail")
     @ApiOperation(value = "待催收案件查询", notes = "待催收案件查询")
-    public ResponseEntity<List<CaseInfo>> getCaseDetail(@RequestHeader(value = "X-UserToken") String token,
+    public ResponseEntity<PageInfo>  getCaseDetail(@RequestHeader(value = "X-UserToken") String token,
                                                         @RequestParam(required = true)@ApiParam(value = "页数") Integer page,
                                                         @RequestParam(required = true)@ApiParam(value = "大小") Integer size,
                                                         @RequestParam(required = false) @ApiParam(value = "客户名称") String name,
@@ -92,7 +93,8 @@ public class CaseInfoReportController extends BaseController{
                 }
             }
         }
-        return ResponseEntity.ok().body(list);
+        PageInfo pageInfo = new PageInfo(list);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","测试")).body(pageInfo);
     }
 
 }
