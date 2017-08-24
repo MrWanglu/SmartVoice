@@ -48,7 +48,7 @@
         (SELECT user_name,`year`,`month`,back_cash as target from user_backcash_plan where DATE_FORMAT(NOW(),'%Y') =
         `year` and DATE_FORMAT(NOW(),'%c') = `month`) d
         on m.userName = d.user_name
-        ) b on a.current_collector = b.id where n.parentDeptCode LIKE CONCAT(#{deptCode},'%') AND b.companyCode =
+        ) b on a.current_collector = b.id where b.parentDeptCode LIKE CONCAT(#{deptCode},'%') AND b.companyCode =
         #{companyCode}
         <if test="code != null">
             AND n.parentDeptCode LIKE CONCAT(#{code},'%')

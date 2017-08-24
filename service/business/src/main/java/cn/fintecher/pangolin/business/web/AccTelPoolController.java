@@ -264,7 +264,6 @@ public class AccTelPoolController extends BaseController {
                                                         @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get all tel case");
         List<Integer> list = new ArrayList<>();
-        list.add(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //待分配
         list.add(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //待催收
         list.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue()); //催收中
         list.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue()); //逾期还款中
