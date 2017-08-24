@@ -273,8 +273,8 @@ public class AccTelPoolController extends BaseController {
         list.add(CaseInfo.CollectionStatus.REPAID.getValue()); //已还款
 
         Sort.Order followupBackOrder = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
-        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "", Sort.NullHandling.NULLS_LAST); //跟进时间正序
-        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.ASC, "", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
+        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
+        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);

@@ -97,8 +97,8 @@ public class AccVisitPoolController extends BaseController {
                                                           @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("REST request to get all Visit case");
         Sort.Order followupBackOrder = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
-        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "", Sort.NullHandling.NULLS_LAST); //跟进时间正序
-        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.ASC, "", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
+        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
+        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
