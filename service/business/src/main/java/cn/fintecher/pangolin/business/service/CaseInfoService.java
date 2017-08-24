@@ -366,7 +366,7 @@ public class CaseInfoService {
         caseFollowupRecordRepository.saveAndFlush(caseFollowupRecord);
 
         //同步更新案件
-        if (CaseInfo.CollectionStatus.WAITCOLLECTION.getValue().equals(caseInfo.getCollectionStatus())){
+        if (Objects.equals(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue(), caseInfo.getCollectionStatus())) {
             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue());//首次跟进将催收状态变为催收中
         }
         caseInfo.setFollowupTime(caseFollowupRecord.getOperatorTime()); //最新跟进时间

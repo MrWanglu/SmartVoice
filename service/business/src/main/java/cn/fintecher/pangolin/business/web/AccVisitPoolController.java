@@ -17,7 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -94,6 +96,9 @@ public class AccVisitPoolController extends BaseController {
                                                           @ApiIgnore Pageable pageable,
                                                           @RequestHeader(value = "X-UserToken") String token) throws Exception {
         log.debug("REST request to get all Visit case");
+        Sort.Order followupBackOrder = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "", Sort.NullHandling.NULLS_LAST); //跟进时间正序
+        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.ASC, "", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
@@ -113,6 +118,15 @@ public class AccVisitPoolController extends BaseController {
             builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(), CaseInfo.CaseType.OUTLEAVETURN.getValue())); //只查案件类型为案件分配的
             builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //不查询已结案案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); //只查询外访案件
+            if (pageable.getSort().toString().contains("followupBack")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime1));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime2));
+            }
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/accVisitPoolController/getAllVisitCase");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
