@@ -108,6 +108,7 @@
             ) AS apply
             LEFT JOIN case_info ON apply.case_id = case_info.id
             GROUP BY case_info.current_collector
+            HAVING current_collector IS NOT NULL
         ) AS m
         LEFT JOIN (
                 SELECT sum(case_info.overdue_amount) AS amt,`user`.id AS userid,`user`.real_name AS realname FROM case_info
