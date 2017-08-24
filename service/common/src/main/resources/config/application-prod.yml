@@ -11,13 +11,13 @@ spring:
         serialization.indent_output: true
     data:
         mongodb:
-            uri: mongodb://192.168.1.5:27017
+            uri: mongodb://172.19.28.134:27017
             database: common_db
     rabbitmq:
-        username: dev
-        password: dev
-        host: localhost
-        virtual-host: dev
+        username: cuidaren
+        password: CuiDaRen!23456
+        host: 172.19.28.135
+        virtual-host: cuidaren
         port: 5672
     mail:
         host:  smtp.yeah.net
