@@ -3,7 +3,6 @@ package cn.fintecher.pangolin.business.service;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.entity.CaseFollowupRecord;
 import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.Personal;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.springframework.stereotype.Service;
 
@@ -18,8 +17,8 @@ import java.util.*;
 @Service
 public class FollowRecordExportService {
 
-    private static final String[] TITLE_LIST = {"案件编号", "批次号", "委托方", "跟进时间", "跟进方式", "客户姓名", "客户身份证", "催收对象", "姓名", "电话/地址状态", "电话/地址", "催收反馈", "跟进内容"};
-    private static final String[] PRO_NAMES = {"caseNumber", "batchNumber", "principalName", "follTime", "follType", "personalName", "idcard", "follTarget", "follTargetName", "follContype", "follPhoneNum", "follFeedback", "follContent"};
+    private static final String[] TITLE_LIST = {"案件编号", "批次号", "委托方", "跟进时间", "跟进方式", "客户姓名", "客户身份证", "催收对象", "姓名", "电话/地址", "定位地址","催收反馈", "跟进内容"};
+    private static final String[] PRO_NAMES = {"caseNumber", "batchNumber", "principalName", "follTime", "follType", "personalName", "idcard", "follTarget", "follTargetName", "follPhoneNum", "location","follFeedback", "follContent"};
 
     @Inject
     private CaseInfoRepository caseInfoRepository;
@@ -60,26 +59,27 @@ public class FollowRecordExportService {
             }
             // 电话催收
             if (Objects.equals(record.getType(),CaseFollowupRecord.Type.TEL.getValue())) {
-                CaseFollowupRecord.ContactState[] values2 = CaseFollowupRecord.ContactState.values();
-                for (int i = 0; i < values2.length; i++) {
-                    if (Objects.equals(record.getContactState(), values2[i].getValue())) {
-                        dataMap.put("follContype", values2[i].getRemark());  //电话/地址状态
-                        break;
-                    }
-                }
+//                CaseFollowupRecord.ContactState[] values2 = CaseFollowupRecord.ContactState.values();
+//                for (int i = 0; i < values2.length; i++) {
+//                    if (Objects.equals(record.getContactState(), values2[i].getValue())) {
+//                        dataMap.put("follContype", values2[i].getRemark());  //电话/地址状态
+//                        break;
+//                    }
+//                }
                 dataMap.put("follPhoneNum", record.getContactPhone()); //电话/地址
             }
             // 外访/协催
             if (!Objects.equals(record.getType(),CaseFollowupRecord.Type.TEL.getValue())) {
-                Personal.AddrStatus[] values2 = Personal.AddrStatus.values();
-                for (int i = 0; i < values2.length; i++) {
-                    if (Objects.equals(record.getAddrStatus(), values2[i].getValue())) {
-                        dataMap.put("follContype", values2[i].getRemark()); //电话/地址状态
-                        break;
-                    }
-                }
+//                Personal.AddrStatus[] values2 = Personal.AddrStatus.values();
+//                for (int i = 0; i < values2.length; i++) {
+//                    if (Objects.equals(record.getAddrStatus(), values2[i].getValue())) {
+//                        dataMap.put("follContype", values2[i].getRemark()); //电话/地址状态
+//                        break;
+//                    }
+//                }
                 dataMap.put("follPhoneNum", record.getDetail()); //电话/地址
             }
+            dataMap.put("location", record.getCollectionLocation());//定位地址
             CaseFollowupRecord.EffectiveCollection[] values2 = CaseFollowupRecord.EffectiveCollection.values(); //催收反馈
             for (int i = 0; i < values2.length; i++) {
                 if (Objects.equals(record.getCollectionFeedback(), values2[i].getValue())) {
