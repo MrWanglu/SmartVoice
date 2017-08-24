@@ -73,6 +73,7 @@ public class CaseInfoReportController extends BaseController{
                     MapModel model = accMapService.getAddLngLat(caseInfo.getPersonalInfo().getLocalHomeAddress());
                     caseInfo.getPersonalInfo().setLatitude(BigDecimal.valueOf(model.getLatitude()));
                     caseInfo.getPersonalInfo().setLongitude(BigDecimal.valueOf(model.getLongitude()));
+                    caseInfoService.updateLngLat(caseInfo.getPersonalInfo());
                 }catch(Exception e1){
                     e1.getMessage();
                 }
@@ -80,4 +81,5 @@ public class CaseInfoReportController extends BaseController{
         }
         return ResponseEntity.ok().body(list);
     }
+
 }

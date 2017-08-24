@@ -141,4 +141,9 @@
     from personal p,personal_job pj where p.id = #{personal_id} and pj.personal_id = #{personal_id}
   </select>
 
+  <update id="updateLngLat"  parameterType="cn.fintecher.pangolin.entity.Personal">
+      update personal
+      set longitude = #{longitude},latitude = #{latitude}
+      where id = "id"
+  </update>
 </mapper>

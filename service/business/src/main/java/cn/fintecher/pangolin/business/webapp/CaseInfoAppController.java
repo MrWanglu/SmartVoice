@@ -23,10 +23,13 @@ import org.springframework.data.domain.*;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+
 import javax.inject.Inject;
+
 import com.querydsl.core.types.Predicate;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Objects;
@@ -73,15 +76,15 @@ public class CaseInfoAppController extends BaseController {
         }
         builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue()));
         Page<CaseAssist> page = caseAssistRepository.findAll(builder, pageable);
-        for(int i=0; i<page.getContent().size(); i++){
+        for (int i = 0; i < page.getContent().size(); i++) {
             CaseAssist caseAssist = page.getContent().get(i);
-            if(Objects.isNull(caseAssist.getCaseId().getPersonalInfo().getLongitude())
-                    || Objects.isNull(caseAssist.getCaseId().getPersonalInfo().getLatitude())){
+            if (Objects.isNull(caseAssist.getCaseId().getPersonalInfo().getLongitude())
+                    || Objects.isNull(caseAssist.getCaseId().getPersonalInfo().getLatitude())) {
                 try {
                     MapModel model = accMapService.getAddLngLat(caseAssist.getCaseId().getPersonalInfo().getLocalHomeAddress());
                     caseAssist.getCaseId().getPersonalInfo().setLatitude(BigDecimal.valueOf(model.getLatitude()));
                     caseAssist.getCaseId().getPersonalInfo().setLongitude(BigDecimal.valueOf(model.getLongitude()));
-                }catch(Exception e1){
+                } catch (Exception e1) {
                     e1.getMessage();
                 }
             }
@@ -106,23 +109,22 @@ public class CaseInfoAppController extends BaseController {
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
         builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
-        builder.and(QCaseInfo.caseInfo.assistFlag.eq(CaseInfo.AssistFlag.NO_ASSIST.getValue()));
         if (user.getManager() == 1) {
             builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(user.getDepartment().getCode()));
         } else {
             builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
         }
         builder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.COLLECTIONING.getValue()));
-        builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(),CaseInfo.CaseType.OUTLEAVETURN.getValue()));
+        builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(), CaseInfo.CaseType.OUTLEAVETURN.getValue()));
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
-        page.forEach(e->{
-            if(Objects.isNull(e.getPersonalInfo().getLongitude())
-                    || Objects.isNull(e.getPersonalInfo().getLatitude())){
+        page.forEach(e -> {
+            if (Objects.isNull(e.getPersonalInfo().getLongitude())
+                    || Objects.isNull(e.getPersonalInfo().getLatitude())) {
                 try {
                     MapModel model = accMapService.getAddLngLat(e.getPersonalInfo().getLocalHomeAddress());
                     e.getPersonalInfo().setLatitude(BigDecimal.valueOf(model.getLatitude()));
                     e.getPersonalInfo().setLongitude(BigDecimal.valueOf(model.getLongitude()));
-                }catch(Exception e1){
+                } catch (Exception e1) {
                     e1.getMessage();
                 }
             }
@@ -181,33 +183,6 @@ public class CaseInfoAppController extends BaseController {
     @PostMapping("/nearbyCase")
     @ApiOperation(value = "附近协催抢单", notes = "附近协催抢单")
     public ResponseEntity<Page<CaseAssist>> nearbyCase(@RequestBody MapModel model,
-                                         @RequestHeader(value = "X-UserToken") String token,
-                                         Pageable pageable) {
-        log.debug("REST request to apply payment");
-        User user = null;
-        try {
-            user = getUserByToken(token);
-        } catch (final Exception e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
-        }
-        BooleanBuilder exp = new BooleanBuilder();
-        exp.and(QSysParam.sysParam.code.eq(Constants.SYS_QIANGDAN_RADIUS));
-        int radius = Integer.valueOf(sysParamRepository.findOne(exp).getValue());
-        Map<String,Double> resultMap = MapUtil.computeOrigin4Position(model.getLatitude(),model.getLongitude(), radius);
-        BooleanBuilder builder = new BooleanBuilder();
-        builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
-        builder.and(QCaseAssist.caseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue()));
-        builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue()));
-        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.latitude.between(resultMap.get("maxlng"),resultMap.get("minlng")));
-        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.longitude.between(resultMap.get("minlat"),resultMap.get("maxlat")));
-        Page<CaseAssist> page = caseAssistRepository.findAll(builder,pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("附近案件查询成功", "CaseAssist")).body(page);
-    }
-
-    @PostMapping("/nearbyOwnCase")
-    @ApiOperation(value = "附近协催", notes = "附近协催")
-    public ResponseEntity<Page<CaseAssist>> nearbyOwnCase(@RequestBody MapModel model,
                                                        @RequestHeader(value = "X-UserToken") String token,
                                                        Pageable pageable) {
         log.debug("REST request to apply payment");
@@ -220,16 +195,47 @@ public class CaseInfoAppController extends BaseController {
         }
         BooleanBuilder exp = new BooleanBuilder();
         exp.and(QSysParam.sysParam.code.eq(Constants.SYS_QIANGDAN_RADIUS));
-        int radius = Integer.valueOf(sysParamRepository.findOne(exp).getValue());
-        Map<String,Double> resultMap = MapUtil.computeOrigin4Position(model.getLatitude(),model.getLongitude(), radius);
+        exp.and(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()));
+        exp.and(QSysParam.sysParam.status.eq(SysParam.StatusEnum.Start.getValue()));
+        double radius = Double.valueOf(sysParamRepository.findOne(exp).getValue());
+        Map<String, Double> resultMap = MapUtil.computeOrigin4Position(model.getLatitude(), model.getLongitude(), radius);
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
+        builder.and(QCaseAssist.caseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue()));
+        builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue()));
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.latitude.between(resultMap.get("maxlng"), resultMap.get("minlng")));
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.longitude.between(resultMap.get("minlat"), resultMap.get("maxlat")));
+        Page<CaseAssist> page = caseAssistRepository.findAll(builder, pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("附近案件查询成功", "CaseAssist")).body(page);
+    }
+
+    @PostMapping("/nearbyOwnCase")
+    @ApiOperation(value = "附近协催", notes = "附近协催")
+    public ResponseEntity<Page<CaseAssist>> nearbyOwnCase(@RequestBody MapModel model,
+                                                          @RequestHeader(value = "X-UserToken") String token,
+                                                          Pageable pageable) {
+        log.debug("REST request to apply payment");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+        }
+        BooleanBuilder exp = new BooleanBuilder();
+        exp.and(QSysParam.sysParam.code.eq(Constants.SYS_QIANGDAN_RADIUS));
+        exp.and(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()));
+        exp.and(QSysParam.sysParam.status.eq(SysParam.StatusEnum.Start.getValue()));
+        Double radius = Double.valueOf(sysParamRepository.findOne(exp).getValue());
+        Map<String, Double> resultMap = MapUtil.computeOrigin4Position(model.getLatitude(), model.getLongitude(), radius);
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
         builder.and(QCaseAssist.caseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue()));
         builder.and(QCaseAssist.caseAssist.assistCollector.id.eq(user.getId()));
         builder.and(QCaseAssist.caseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
-        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.latitude.between(resultMap.get("maxlng"),resultMap.get("minlng")));
-        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.longitude.between(resultMap.get("minlat"),resultMap.get("maxlat")));
-        Page<CaseAssist> page = caseAssistRepository.findAll(builder,pageable);
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.latitude.between(resultMap.get("maxlng"), resultMap.get("minlng")));
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.longitude.between(resultMap.get("minlat"), resultMap.get("maxlat")));
+        Page<CaseAssist> page = caseAssistRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("附近案件查询成功", "CaseAssist")).body(page);
     }
 
@@ -246,7 +252,7 @@ public class CaseInfoAppController extends BaseController {
         }
         caseInfoService.receiveCaseAssist(id, user);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("抢单成功", "CaseAssist")).body(null);
-        }
+    }
 
 
     @GetMapping("/getPersonalCase")
@@ -255,7 +261,7 @@ public class CaseInfoAppController extends BaseController {
                                                           @RequestParam(required = false) @ApiParam(value = "地址") String address,
                                                           @ApiIgnore Pageable pageable,
                                                           @RequestHeader(value = "X-UserToken") String token
-    ){
+    ) {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder();
@@ -263,10 +269,10 @@ public class CaseInfoAppController extends BaseController {
             builder.andAnyOf(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()),
                     QCaseInfo.caseInfo.assistCollector.isNotNull());
             builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
-            if(Objects.nonNull(name)) {
+            if (Objects.nonNull(name)) {
                 builder.and(QCaseInfo.caseInfo.personalInfo.name.startsWith(name));
             }
-            if(Objects.nonNull(address)) {
+            if (Objects.nonNull(address)) {
                 builder.and(QCaseInfo.caseInfo.personalInfo.localHomeAddress.contains(address));
             }
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);

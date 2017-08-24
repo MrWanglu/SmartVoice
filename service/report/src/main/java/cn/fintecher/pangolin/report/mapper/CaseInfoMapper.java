@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.report.mapper;
 
+import cn.fintecher.pangolin.entity.Personal;
 import cn.fintecher.pangolin.report.entity.CaseInfo;
 import cn.fintecher.pangolin.report.model.CaseInfoParams;
 import cn.fintecher.pangolin.report.util.MyMapper;
@@ -17,5 +18,7 @@ public interface CaseInfoMapper extends MyMapper<CaseInfo> {
     List<CaseInfo> queryWaitCollectCase(CaseInfoParams caseInfoParams);
 
     List<CaseInfo> queryWaitOwnCollectCase(CaseInfoParams caseInfoParams);
+
+    void updateLngLat(Personal personal);
 
 }
