@@ -88,7 +88,7 @@ public class CaseInfoResource {
     }
     @PostMapping("/saveCaseScore")
     @ApiOperation(value = "保存案件评分", notes = "保存案件评分")
-    public ResponseEntity<CaseInfo> saveCaseScore(@RequestBody CaseInfo caseInfo) throws URISyntaxException {
+    public ResponseEntity<CaseInfo> saveCaseScore(@RequestBody List<CaseInfo> caseInfo) throws URISyntaxException {
         caseInfoRepository.save(caseInfo);
         return new ResponseEntity<>(HttpStatus.OK);
     }
