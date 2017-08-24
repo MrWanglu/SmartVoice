@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.report.service;
 
+import cn.fintecher.pangolin.entity.Personal;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.entity.CaseInfo;
 
@@ -43,5 +44,9 @@ public class CaseInfoService {
             list = caseInfoMapper.queryWaitOwnCollectCase(caseInfoParams);
         }
         return list;
+    }
+
+    public void updateLngLat(Personal personal){
+        caseInfoMapper.updateLngLat(personal);
     }
 }
