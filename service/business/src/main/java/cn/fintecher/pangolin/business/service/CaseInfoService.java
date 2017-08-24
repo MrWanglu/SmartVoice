@@ -920,7 +920,7 @@ public class CaseInfoService {
             if (Objects.isNull(caseInfo)) {
                 throw new RuntimeException("所选案件未找到");
             }
-            if (!Objects.equals(caseInfo.getCurrentCollector(), tokenUser)) {
+            if (Objects.equals(caseInfo.getCurrentCollector(), tokenUser)) {
                 throw new RuntimeException("只能对自己所持有的案件进行留案操作");
             }
             if (Objects.equals(caseInfo.getLeaveCaseFlag(), 1)) {
