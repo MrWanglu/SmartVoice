@@ -39,7 +39,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/api/departmentController")
 @Api(value = "部门信息管理", description = "部门信息管理")
-public class  DepartmentController extends BaseController {
+public class DepartmentController extends BaseController {
     private final Logger log = LoggerFactory.getLogger(DepartmentController.class);
     private static final String ENTITY_NAME = "Department";
     @Autowired
@@ -321,6 +321,7 @@ public class  DepartmentController extends BaseController {
         if (Objects.nonNull(user.getCompanyCode())) {
             builder.and(QDepartment.department.companyCode.eq(user.getCompanyCode()));
         }
+        builder.and(QDepartment.department.type.in(Department.Type.TELEPHONE_COLLECTION.getValue(), Department.Type.OUTBOUND_COLLECTION.getValue(), Department.Type.SYNTHESIZE_MANAGEMENT.getValue()));
         Iterator<Department> departmentIterator = departmentRepository.findAll(builder).iterator();
         List<Department> departmentList = IteratorUtils.toList(departmentIterator);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);

@@ -13,7 +13,7 @@ import java.util.Date;
 @Entity
 @Table(name = "department")
 @Data
-@ApiModel(value = "department",description = "组织机构信息管理")
+@ApiModel(value = "department", description = "组织机构信息管理")
 public class Department extends BaseEntity {
     @ApiModelProperty("所属公司的特定标识")
     private String companyCode;
@@ -51,8 +51,8 @@ public class Department extends BaseEntity {
         OUTSOURCING_COLLECTION(4, "委外催收"),
         INTELLIGENCE_COLLECTION(5, "智能催收"),
         REMIND_COLLECTION(6, "提醒催收"),
-        REPAIR_MANAGEMENT(7, "修复管理");
-
+        REPAIR_MANAGEMENT(7, "修复管理"),
+        SYNTHESIZE_MANAGEMENT(196, "综合管理");
         private Integer value;
         private String remark;
 
