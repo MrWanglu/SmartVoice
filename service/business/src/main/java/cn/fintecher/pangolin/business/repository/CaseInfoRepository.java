@@ -137,6 +137,10 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
         });
         //催收反馈
         bindings.bind(root.followupBack).first((path, value) -> path.eq(value));
+        //协催
+        bindings.bind(root.assistFlag).first((path, value) -> path.eq(value));
+        //协催方式
+        bindings.bind(root.assistWay).first((path, value) -> path.eq(value));
     }
 
     /**
