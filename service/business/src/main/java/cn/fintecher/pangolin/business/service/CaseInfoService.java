@@ -366,7 +366,9 @@ public class CaseInfoService {
         caseFollowupRecordRepository.saveAndFlush(caseFollowupRecord);
 
         //同步更新案件
-        if (Objects.equals(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue(), caseInfo.getCollectionStatus())) {
+        if (Objects.equals(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue(), caseInfo.getCollectionStatus())
+                || Objects.equals(CaseInfo.CollectionStatus.PART_REPAID.getValue(), caseInfo.getCollectionStatus())
+                || Objects.equals(CaseInfo.CollectionStatus.REPAID.getValue(), caseInfo.getCollectionStatus())) {
             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue());//首次跟进将催收状态变为催收中
         }
         caseInfo.setFollowupTime(caseFollowupRecord.getOperatorTime()); //最新跟进时间
@@ -1671,7 +1673,7 @@ public class CaseInfoService {
                 QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
                 BooleanBuilder builder = new BooleanBuilder();
                 builder.and(qCaseInfo.followupTime.isNull().
-                        and((qCaseInfo.caseFollowInTime.lt(new Date(System.currentTimeMillis()-Constants.ONE_DAY_MILLIS * Integer.valueOf(sysParam.getValue()))))).
+                        and((qCaseInfo.caseFollowInTime.lt(new Date(System.currentTimeMillis() - Constants.ONE_DAY_MILLIS * Integer.valueOf(sysParam.getValue()))))).
                         and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
                         and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
             }
