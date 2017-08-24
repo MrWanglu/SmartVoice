@@ -2,7 +2,11 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.ApplyAssistModel;
 import cn.fintecher.pangolin.business.model.AssistApplyApproveModel;
-import cn.fintecher.pangolin.business.repository.*;
+import cn.fintecher.pangolin.business.repository.CaseAssistApplyRepository;
+import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.service.ReminderService;
 import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.message.SendReminderMessage;
@@ -12,6 +16,7 @@ import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +31,6 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -55,6 +59,8 @@ public class CaseAssistApplyController extends BaseController {
     private CaseAssistRepository caseAssistRepository;
     @Inject
     private UserService userService;
+    @Inject
+    private ReminderService reminderService;
 
     @GetMapping("/findAllTelPassedApply")
     @ApiOperation(value = "外访审批协催申请页面条件查询", notes = "外访审批协催申请页面条件查询")
@@ -164,7 +170,8 @@ public class CaseAssistApplyController extends BaseController {
 
             String title = null;
             String content = null;
-            List<String> userIds = new ArrayList<>();
+            String userId = null; //提醒人id
+            String[] ccUserIds = {};//抄送人id
             // 审批拒绝
             if (approveResult == CaseAssistApply.ApproveResult.VISIT_REJECT.getValue()) {
                 //修该原案件
@@ -174,10 +181,9 @@ public class CaseAssistApplyController extends BaseController {
                 //提醒
                 title = "协催申请审批未通过!";
                 content = "案件["+apply.getCaseNumber()+"]申请的协催被外访拒绝!";
-                String applyUserId = userRepository.findByUserName(apply.getApplyUserName()).getId();
+                userId = userRepository.findByUserName(apply.getApplyUserName()).getId();
                 String telUserId = userRepository.findByUserName(apply.getApprovePhoneUser()).getId();
-                userIds.add(applyUserId);
-                userIds.add(telUserId);
+                ccUserIds = ArrayUtils.add(ccUserIds, telUserId);
             }
             // 审批通过
             CaseAssist caseAssist = new CaseAssist();
@@ -200,8 +206,8 @@ public class CaseAssistApplyController extends BaseController {
                 content = "案件["+apply.getCaseNumber()+"]申请的协催已审批通过!";
                 String applyUserId = userRepository.findByUserName(apply.getApplyUserName()).getId();
                 String telUserId = userRepository.findByUserName(apply.getApprovePhoneUser()).getId();
-                userIds.add(applyUserId);
-                userIds.add(telUserId);
+                userId = applyUserId;
+                ccUserIds = ArrayUtils.add(ccUserIds, telUserId);
             }
             // 修改申请表信息
             caseAssistApplyRepository.save(apply);
@@ -213,9 +219,7 @@ public class CaseAssistApplyController extends BaseController {
                 caseAssistRepository.save(caseAssist);
             }
             // 提醒
-            for (String userId : userIds) {
-                sendAssistApproveReminder(title,content,userId);
-            }
+            sendAssistApproveReminder(title, content, userId, ccUserIds);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功!","")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -266,7 +270,8 @@ public class CaseAssistApplyController extends BaseController {
 
             String title = null;
             String content = null;
-            List<String> userIds = new ArrayList<>();
+            String userId = null; //提醒人id
+            String[] ccUserIds = {};//抄送人id
             // 审批拒绝
             if (approveResult == CaseAssistApply.ApproveResult.TEL_REJECT.getValue()) {
                 apply.setApproveStatus(CaseAssistApply.ApproveStatus.TEL_COMPLETE.getValue()); //审批状态修改为电催审批完成
@@ -277,25 +282,26 @@ public class CaseAssistApplyController extends BaseController {
                 // 提醒申请人
                 title = "协催申请被拒绝!";
                 content = "你于["+apply.getApplyDate()+"]申请协催案件["+apply.getCaseNumber()+"]被电催主管["+user.getRealName()+"]拒绝!";
-                String userId = userRepository.findByUserName(apply.getApplyUserName()).getId();
-                userIds.add(userId);
+                userId = userRepository.findByUserName(apply.getApplyUserName()).getId();
             }
             // 审批通过
             if (approveResult == CaseAssistApply.ApproveResult.TEL_PASS.getValue()) {
                 apply.setApproveStatus(CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue()); //审批状态修改为外访待审批
                 title = "有协催申请需要审批!";
                 content = "电催组申请对案件["+apply.getCaseNumber()+"]进行协催，请及时审批!";
-                List<User> allUser = userService.getAllUser(user.getCompanyCode(), 2, 0, 0);//公司Code 电催 启用 管理者
-                allUser.forEach(u -> userIds.add(u.getId()));
+                List<User> allUser = userService.getAllUser(user.getCompanyCode(), 2, 0, 1);//公司Code 外访 启用 管理者
+                if (!allUser.isEmpty()) {
+                    for (User user1 : allUser) {
+                        ccUserIds = ArrayUtils.add(ccUserIds, user1.getId());
+                    }
+                }
             }
             // 修改申请表信息
             caseAssistApplyRepository.save(apply);
             // 修改原案件
             caseInfoRepository.save(caseInfo);
             // 提醒
-            for (String userId : userIds) {
-                sendAssistApproveReminder(title,content,userId);
-            }
+            sendAssistApproveReminder(title, content, userId, ccUserIds);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功!","")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -360,13 +366,15 @@ public class CaseAssistApplyController extends BaseController {
         }
     }
 
-    private void sendAssistApproveReminder(String title,String content,String userId) {
+    private void sendAssistApproveReminder(String title, String content, String userId, String[] ccUserIds) {
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
         sendReminderMessage.setTitle(title);
         sendReminderMessage.setContent(content);
         sendReminderMessage.setType(ReminderType.ASSIST_APPROVE);
+        sendReminderMessage.setMode(ReminderMode.POPUP);
         sendReminderMessage.setCreateTime(new Date());
         sendReminderMessage.setUserId(userId);
-        restTemplate.postForLocation("http://reminder-service/api/reminderMessages",sendReminderMessage);
+        sendReminderMessage.setCcUserIds(ccUserIds);
+        reminderService.sendReminder(sendReminderMessage);
     }
 }
