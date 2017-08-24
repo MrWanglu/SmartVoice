@@ -17,7 +17,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
@@ -88,12 +87,12 @@ public class BatchManageController extends BaseController {
                     sb.append(one.getChinaName().concat("、"));
                 }
             }
-            String sbn = sb.substring(0, sb.length() - 1);
-            if (StringUtils.length(sbn) == 0) {
+            if (sb.length() == 0) {
                 sysNotice.setTitle("批量完成");
                 sysNotice.setContent("各公司的批量完成");
                 return ResponseEntity.ok().body(sysNotice);
             }
+            String sbn = sb.substring(0, sb.length() - 1);
             sysNotice.setTitle("批量失败");
             sysNotice.setContent("公司" + sbn + "的批量失败");
             return ResponseEntity.ok().body(sysNotice);
