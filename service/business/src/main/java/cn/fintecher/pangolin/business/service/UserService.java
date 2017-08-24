@@ -15,6 +15,8 @@ import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
@@ -78,10 +80,11 @@ public class UserService {
 
     /**
      * 获取用户所在部门主管
+     *
      * @param userId
      * @return
      */
-    public List<User> getManagerByUser(String userId){
+    public List<User> getManagerByUser(String userId) {
         BooleanBuilder builder = new BooleanBuilder();
         QUser qUser = QUser.user;
         User user = userRepository.getOne(userId);
@@ -93,15 +96,16 @@ public class UserService {
 
     /**
      * 通过userId获取所有上级领导
+     *
      * @param userId
      * @return
      */
-    public List<User> getAllHigherLevelManagerByUser(String userId){
+    public List<User> getAllHigherLevelManagerByUser(String userId) {
         Department department = userRepository.getOne(userId).getDepartment();
         Department departmentTemp = department;
         List<Department> departmentList = new ArrayList<>();
         departmentList.add(department);
-        while(Objects.nonNull(departmentTemp.getParent())){
+        while (Objects.nonNull(departmentTemp.getParent())) {
             departmentTemp = departmentTemp.getParent();
             departmentList.add(departmentTemp);
         }
@@ -204,13 +208,13 @@ public class UserService {
         userRepository.flush();
     }
 
-//    @Cacheable(value = "userCache", key = "'petstore:user:'+#user.userName", unless = "#result==null")
-    public User save(User user) {
-        return userRepository.save(user);
-    }
-
-//    @Cacheable(value = "userCache", key = "'petstore:user:all'", unless = "#result==null")
+    @Cacheable(value = "userCache", key = "'petstore:user:all'")
     public Iterable<User> findAll() {
         return userRepository.findAll();
+    }
+
+    @CacheEvict(value = "userCache", key = "'petstore:user:'+#user.userName")
+    public User save(User user) {
+        return userRepository.save(user);
     }
 }
