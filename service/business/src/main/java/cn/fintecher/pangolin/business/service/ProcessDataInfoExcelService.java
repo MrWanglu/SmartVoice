@@ -143,7 +143,7 @@ public class ProcessDataInfoExcelService {
         QCaseInfo qCaseInfo=QCaseInfo.caseInfo;
         Iterable<CaseInfo> caseInfoIterable = caseInfoRepository.findAll(qCaseInfo.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
                 .and(qCaseInfo.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
-                .and(qCaseInfo.principalId.id.eq(dataInfoExcelModel.getPrinCode()))
+                .and(qCaseInfo.principalId.code.eq(dataInfoExcelModel.getPrinCode()))
                 .and(qCaseInfo.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
                 .and(qCaseInfo.companyCode.eq(dataInfoExcelModel.getCompanyCode()))
                 .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())));
