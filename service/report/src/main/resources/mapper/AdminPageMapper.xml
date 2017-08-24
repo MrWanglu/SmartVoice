@@ -121,7 +121,7 @@
                 GROUP BY case_info.assist_collector
         ) AS n
         ON m.current_collector = n.userid
-        ORDER BY rate
+        ORDER BY rate DESC
         LIMIT 0,3
     </select>
 
