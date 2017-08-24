@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.BatchManageContent;
 import cn.fintecher.pangolin.business.model.BatchManageList;
 import cn.fintecher.pangolin.business.model.SysNotice;
 import cn.fintecher.pangolin.business.repository.BatchManageRepository;
@@ -166,11 +167,11 @@ public class BatchManageController extends BaseController {
      */
     @GetMapping("/queryBatchManage")
     @ApiOperation(value = "查询批量处理", notes = "查询批量处理")
-    public ResponseEntity<List<BatchManageList>> queryBatchManage(@RequestParam String companyCode) {
+    public ResponseEntity<BatchManageContent> queryBatchManage(@RequestParam String companyCode) {
         Object[] objects = batchManageRepository.batchManageFind(companyCode);
         List<BatchManageList> batchManageLists = new ArrayList<>();
         if (objects.length == 1 && Objects.isNull(((Object[]) objects[0])[0])) {
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(batchManageLists);
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
         }
         for (int i = 0; i < objects.length; i++) {
             Object[] object = (Object[]) objects[i];
@@ -206,6 +207,8 @@ public class BatchManageController extends BaseController {
             }
             batchManageLists.add(batchManageList);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "batchManageController")).body(batchManageLists);
+        BatchManageContent batchManageContent = new BatchManageContent();
+        batchManageContent.setContent(batchManageLists);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "batchManageController")).body(batchManageContent);
     }
 }
