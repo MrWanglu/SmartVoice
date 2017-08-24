@@ -1,18 +1,16 @@
 package cn.fintecher.pangolin.business.repository;
 
 import cn.fintecher.pangolin.entity.QRole;
-import cn.fintecher.pangolin.entity.Resource;
 import cn.fintecher.pangolin.entity.Role;
 import com.querydsl.core.types.dsl.StringPath;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * @Author: PeiShouWen
@@ -29,6 +27,8 @@ public interface RoleRepository extends QueryDslPredicateExecutor<Role>, JpaRepo
         bindings.bind(root.companyCode).first((path, value) -> path.eq(value));
     }
 
+    @Modifying
+    @Transactional
     @Query(value = "delete from role_resource where role_id=:roleId", nativeQuery = true)
-    List<Resource> deleteResoByRoleId(@Param("roleId") String roleId);
+    int deleteResoByRoleId(@Param("roleId") String roleId);
 }

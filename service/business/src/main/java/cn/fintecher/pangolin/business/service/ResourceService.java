@@ -36,7 +36,7 @@ public class ResourceService {
     }
 
     @CacheEvict(value = "resourceCache", key = "'petstore:resource:all'")
-    public List<Resource> deleteResoByRoleId(String id) {
+    public int deleteResoByRoleId(String id) {
         return roleRepository.deleteResoByRoleId(id);
     }
 }
