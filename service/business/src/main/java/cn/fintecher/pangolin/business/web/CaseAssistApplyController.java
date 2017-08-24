@@ -2,10 +2,12 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.ApplyAssistModel;
 import cn.fintecher.pangolin.business.model.AssistApplyApproveModel;
+import cn.fintecher.pangolin.business.model.MapModel;
 import cn.fintecher.pangolin.business.repository.CaseAssistApplyRepository;
 import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.service.AccMapService;
 import cn.fintecher.pangolin.business.service.ReminderService;
 import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
@@ -31,6 +33,7 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -61,6 +64,8 @@ public class CaseAssistApplyController extends BaseController {
     private UserService userService;
     @Inject
     private ReminderService reminderService;
+    @Inject
+    AccMapService accMapService;
 
     @GetMapping("/findAllTelPassedApply")
     @ApiOperation(value = "外访审批协催申请页面条件查询", notes = "外访审批协催申请页面条件查询")
@@ -202,6 +207,20 @@ public class CaseAssistApplyController extends BaseController {
                 caseAssist.setOperator(user); // 操作员
                 //修该案件中的案件协催状态为协催待分配
                 caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue());
+                if(Objects.equals(caseAssist.getAssistWay(),CaseAssist.AssistWay.ONCE_ASSIST.getValue())){
+                    Personal personal = caseInfo.getPersonalInfo();
+                    if (Objects.isNull(personal.getLongitude())
+                            || Objects.isNull(personal.getLatitude())) {
+                        try {
+                            MapModel model = accMapService.getAddLngLat(personal.getLocalHomeAddress());
+                            personal.setLatitude(BigDecimal.valueOf(model.getLatitude()));
+                            personal.setLongitude(BigDecimal.valueOf(model.getLongitude()));
+                            caseInfo.setPersonalInfo(personal);
+                        } catch (Exception e1) {
+                            e1.getMessage();
+                        }
+                    }
+                }
                 title = "协催申请审批未通过!";
                 content = "案件["+apply.getCaseNumber()+"]申请的协催已审批通过!";
                 String applyUserId = userRepository.findByUserName(apply.getApplyUserName()).getId();
