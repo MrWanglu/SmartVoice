@@ -54,6 +54,10 @@
             <id column="principal_id" property="id"/>
             <result column="name" property="name"/>
         </association>
+        <association property="area" javaType="cn.fintecher.pangolin.entity.AreaCode">
+            <id column="area_id" property="id"/>
+            <result column="area_name" property="areaName"/>
+        </association>
     </resultMap>
 
     <resultMap id="personalMap" type="cn.fintecher.pangolin.entity.Personal">
@@ -82,7 +86,7 @@
         b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
         b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
         b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,pr.prodcut_name,b.overdue_periods,b.overdue_days,
-        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.has_leave_days,b.operator_time,b.promise_amt,b.promise_time,
+        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.has_leave_days,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,
          pri.id,pri.name,b.personal_id from
       (
       select a.*
@@ -100,10 +104,11 @@
       and c.code like CONCAT(#{deptCode}, '%')
       and a.company_code = #{companyCode}
       and a.assist_status = 118
-      ) as b,product pr,principal pri
+      ) as b,product pr,principal pri,area_code ar
       where
        b.product_id = pr.id
        and b.principal_id = pri.id
+       and b.area_id = ar.id
   </select>
 
   <select id="queryWaitOwnCollectCase" parameterType="cn.fintecher.pangolin.report.model.CaseInfoParams"
@@ -112,7 +117,7 @@
         b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
         b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
         b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,pr.prodcut_name,b.overdue_periods,b.overdue_days,
-        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.has_leave_days,b.operator_time,b.promise_amt,b.promise_time,
+        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.has_leave_days,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,
         pri.id,pri.name,b.personal_id from
         (
         select a.*
@@ -126,6 +131,7 @@
         where
         b.product_id = pr.id
         and b.principal_id = pri.id
+        and b.area_id = ar.id
         ORDER BY b.operator_time desc
   </select>
 

@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.report.entity;
 
+import cn.fintecher.pangolin.entity.AreaCode;
 import cn.fintecher.pangolin.entity.Personal;
 import cn.fintecher.pangolin.entity.Principal;
 import cn.fintecher.pangolin.entity.Product;
@@ -84,6 +85,8 @@ public class CaseInfo extends BaseEntity {
     private Principal principalId;
     @Transient
     private Personal personalInfo;
+    @Transient
+    private AreaCode area;
 
 
 

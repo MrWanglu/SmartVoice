@@ -753,6 +753,28 @@ public class AccTelPoolController extends BaseController {
         }
     }
 
+    @PostMapping(value = "/distributeTurnCeaseAgain")
+    @ApiOperation(value = "案件重新分配", notes = "案件重新分配")
+    public ResponseEntity distributeTurnCeaseAgain(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
+                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        log.debug("REST request to distributeCeaseInfoAgain");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "distributeCeaseInfoAgain", e.getMessage())).body(null);
+        }
+        try {
+            caseInfoService.distributeCeaseInfoAgain(accCaseInfoDisModel, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfo")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "distributeCeaseInfoAgain", "系统错误!")).body(null);
+        }
+
+    }
+
     @PostMapping("/turnCaseVisitDistribution")
     @ApiOperation(value = "流转案件分配", notes = "流转案件分配")
     public ResponseEntity batchTurnCase(@RequestBody BatchDistributeModel batchDistributeModel,
