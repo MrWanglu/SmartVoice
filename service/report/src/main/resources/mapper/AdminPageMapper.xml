@@ -98,38 +98,30 @@
 
     <!--催收员排名-->
     <select id="getCupoSort" parameterType="string" resultType="cn.fintecher.pangolin.report.model.PageSortResult">
-        select n.uname as uname,n.rname as name,m.amt as amount,n.pamt as payed,pamt/amt as rate from
-        (
-            select apply.apply_user_name as uname,apply.apply_real_name as rname,sum(apply.apply_pay_amt) as pamt from case_pay_apply as apply
-            left join department
-            on apply.depart_id = department.id
-            where (apply.approve_status = 58 OR apply.approve_result =62)
-            and department.code like concat(#{deptCode},'%')
-            and year(apply.approve_pay_datetime) = year(NOW())
-            and month(apply.approve_pay_datetime) = month(NOW())
-            group by apply.apply_user_name,apply.apply_real_name
-        ) as n
-        left join
-        (
-            select sum(amt) as amt,coll from (
-                    (
-                            select sum(case_info.overdue_amount) as amt,`user`.user_name as coll from case_info
-                            left join `user`
-                            on `user`.id = case_info.current_collector
-                            group by case_info.current_collector
-                    )
-                    union all
-                    (
-                            select sum(case_info.overdue_amount) as amt,`user`.user_name as coll from case_info
-                            left join `user`
-                            on `user`.id = case_info.assist_collector
-                            group by case_info.assist_collector
-                    )
-            ) as c
-            group by c.coll
-        ) as m
-        on n.uname = m.coll
-        order by rate desc
+        SELECT n.userid AS userid,n.realname AS name,n.amt AS amount,m.amt AS payed,m.amt/n.amt AS rate FROM (
+            SELECT SUM(apply.apply_pay_amt) AS amt,case_info.current_collector AS current_collector FROM (
+                SELECT case_pay_apply.* FROM case_pay_apply
+                LEFT JOIN department ON case_pay_apply.depart_id = department.id
+                WHERE (case_pay_apply.approve_status = 58 OR case_pay_apply.approve_result = 62)
+                AND year(case_pay_apply.approve_pay_datetime) = year(NOW())
+                AND month(case_pay_apply.approve_pay_datetime) = month(NOW())
+            ) AS apply
+            LEFT JOIN case_info ON apply.case_id = case_info.id
+            GROUP BY case_info.current_collector
+        ) AS m
+        LEFT JOIN (
+                SELECT sum(case_info.overdue_amount) AS amt,`user`.id AS userid,`user`.real_name AS realname FROM case_info
+                LEFT JOIN `user`
+                ON case_info.current_collector = `user`.id
+                GROUP BY case_info.current_collector
+                UNION ALL
+                SELECT sum(case_info.overdue_amount) AS amt,`user`.id AS userid,`user`.real_name from case_info
+                LEFT JOIN `user`
+                ON `user`.id = case_info.assist_collector
+                GROUP BY case_info.assist_collector
+        ) AS n
+        ON m.current_collector = n.userid
+        ORDER BY rate
         LIMIT 0,3
     </select>
 
