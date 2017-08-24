@@ -4,7 +4,10 @@ import cn.fintecher.pangolin.business.model.UserDeviceReset;
 import cn.fintecher.pangolin.business.repository.DepartmentRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.session.SessionStore;
-import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.Department;
+import cn.fintecher.pangolin.entity.QUser;
+import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.UserDevice;
 import cn.fintecher.pangolin.entity.util.Constants;
 import com.querydsl.core.BooleanBuilder;
 import org.apache.commons.collections4.IterableUtils;
@@ -12,7 +15,6 @@ import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
@@ -202,12 +204,12 @@ public class UserService {
         userRepository.flush();
     }
 
-    @Cacheable(value = "userCache", key = "'petstore:user:'+#user.userName", unless = "#result==null")
+//    @Cacheable(value = "userCache", key = "'petstore:user:'+#user.userName", unless = "#result==null")
     public User save(User user) {
         return userRepository.save(user);
     }
 
-    @Cacheable(value = "userCache", key = "'petstore:user:all'", unless = "#result==null")
+//    @Cacheable(value = "userCache", key = "'petstore:user:all'", unless = "#result==null")
     public Iterable<User> findAll() {
         return userRepository.findAll();
     }
