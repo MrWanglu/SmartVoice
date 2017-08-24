@@ -1101,8 +1101,8 @@ public class CaseInfoService {
         }
         List<PersonalContact> personalContactList = IteratorUtils.toList(personalContacts1.iterator());
         List<PersonalContact> personalContactList1 = IteratorUtils.toList(personalContacts2.iterator());
-        personalContactList.addAll(personalContactList1);
-        return personalContactList;
+        personalContactList1.addAll(personalContactList);
+        return personalContactList1;
     }
 
     /**
@@ -1138,8 +1138,8 @@ public class CaseInfoService {
         }
         List<PersonalAddress> personalAddressList = IteratorUtils.toList(personalAddresses1.iterator());
         List<PersonalAddress> personalAddressList1 = IteratorUtils.toList(personalAddresses2.iterator());
-        personalAddressList.addAll(personalAddressList1);
-        return personalAddressList;
+        personalAddressList1.addAll(personalAddressList);
+        return personalAddressList1;
     }
 
     /**
