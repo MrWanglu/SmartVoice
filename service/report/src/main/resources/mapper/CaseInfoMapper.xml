@@ -32,7 +32,7 @@
         <result column="leave_case_flag" property="leaveCaseFlag"/>
         <result column="has_leave_days" property="hasLeaveDays"/>
         <result column="promise_amt" property="promiseAmt"/>
-        <result column="promise_time" property="promise_time"/>
+        <result column="promise_time" property="promiseTime"/>
         <result column="case_follow_in_time" property="caseFollowInTime"/>
         <result column="pay_status" property="payStatus"/>
         <result column="collection_status" property="collectionStatus"/>

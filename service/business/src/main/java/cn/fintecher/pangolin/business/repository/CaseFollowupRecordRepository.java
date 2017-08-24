@@ -55,7 +55,7 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
             "( " +
             "select id,real_name,photo,user_name from `user` " +
             "where type = :type " +
-            "and companyCode = :companyCode " +
+            "and company_code =:companyCode " +
             ") as u " +
             "on u.user_name = c.operator " +
             "group by " +
@@ -77,7 +77,7 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
             "( " +
             "select id,real_name,photo,user_name from `user` " +
             "where type = :type " +
-            "and companyCode = :companyCode " +
+            "and company_code =:companyCode " +
             ") as u " +
             "on u.user_name = c.operator " +
             "group by " +

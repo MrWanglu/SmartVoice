@@ -78,7 +78,7 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
             "( " +
             "select id,real_name,photo,user_name from `user` " +
             "where type = :type " +
-            "and companyCode = :companyCode " +
+            "and company_code =:companyCode " +
             ") as u " +
             "on u.user_name = a.apply_user_name " +
             "GROUP BY " +

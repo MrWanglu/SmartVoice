@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.business.webapp;
 
 import cn.fintecher.pangolin.business.model.CaseFollowupParams;
+import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseFlowupFileRepository;
 import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
@@ -51,6 +52,9 @@ public class CaseFollowupAppController extends BaseController {
     @Inject
     CaseInfoRepository caseInfoRepository;
 
+    @Inject
+    CaseAssistRepository caseAssistRepository;
+
     @GetMapping("/getAllFollowupsForApp")
     @ApiOperation(value = "APP查询案件跟进记录", notes = "APP查询案件跟进记录")
     public ResponseEntity<Page<CaseFollowupRecord>> getAllFollowupsForApp(@ApiParam(value = "案件ID", required = true) @RequestParam String id, Pageable pageable) throws Exception{
@@ -100,6 +104,12 @@ public class CaseFollowupAppController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
         CaseInfo caseInfo = caseInfoRepository.findOne(caseFollowupParams.getCaseId());
+        CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.id.eq(caseFollowupParams.getCaseId())
+                .and(QCaseAssist.caseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
+        if (Objects.equals(one.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue())) {
+            one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
+            caseAssistRepository.save(one);
+        }
         if(Objects.equals(caseInfo.getAssistFlag(),CaseInfo.AssistFlag.NO_ASSIST.getValue())){
             caseFollowupParams.setSource(CaseFollowupRecord.Source.VISIT.getValue());
             caseFollowupParams.setType(CaseFollowupRecord.Type.VISIT.getValue());

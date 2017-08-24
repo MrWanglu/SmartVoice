@@ -71,21 +71,21 @@ public class CaseInfoAppController extends BaseController {
         } else {
             builder.and(QCaseAssist.caseAssist.assistCollector.id.eq(user.getId()));
         }
-        builder.and(QCaseAssist.caseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
-        builder.and(QCaseAssist.caseAssist.caseId.caseType.eq(CaseInfo.CaseType.DISTRIBUTE.getValue()));
+        builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue()));
         Page<CaseAssist> page = caseAssistRepository.findAll(builder, pageable);
-        page.forEach(e->{
-            if(Objects.isNull(e.getCaseId().getPersonalInfo().getLongitude())
-                    || Objects.isNull(e.getCaseId().getPersonalInfo().getLatitude())){
+        for(int i=0; i<page.getContent().size(); i++){
+            CaseAssist caseAssist = page.getContent().get(i);
+            if(Objects.isNull(caseAssist.getCaseId().getPersonalInfo().getLongitude())
+                    || Objects.isNull(caseAssist.getCaseId().getPersonalInfo().getLatitude())){
                 try {
-                    MapModel model = accMapService.getAddLngLat(e.getCaseId().getPersonalInfo().getLocalHomeAddress());
-                    e.getCaseId().getPersonalInfo().setLatitude(BigDecimal.valueOf(model.getLatitude()));
-                    e.getCaseId().getPersonalInfo().setLongitude(BigDecimal.valueOf(model.getLongitude()));
+                    MapModel model = accMapService.getAddLngLat(caseAssist.getCaseId().getPersonalInfo().getLocalHomeAddress());
+                    caseAssist.getCaseId().getPersonalInfo().setLatitude(BigDecimal.valueOf(model.getLatitude()));
+                    caseAssist.getCaseId().getPersonalInfo().setLongitude(BigDecimal.valueOf(model.getLongitude()));
                 }catch(Exception e1){
                     e1.getMessage();
                 }
             }
-        });
+        }
         caseAssistRepository.save(page);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/queryAssistDetail");
         return new ResponseEntity<>(page, headers, HttpStatus.OK);
@@ -112,8 +112,8 @@ public class CaseInfoAppController extends BaseController {
         } else {
             builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
         }
-        builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
-        builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.DISTRIBUTE.getValue()));
+        builder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.COLLECTIONING.getValue()));
+        builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(),CaseInfo.CaseType.OUTLEAVETURN.getValue()));
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
         page.forEach(e->{
             if(Objects.isNull(e.getPersonalInfo().getLongitude())
