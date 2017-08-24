@@ -10,4 +10,6 @@ public class CaseInfoParams {
     private String deptCode;
     private String companyCode;
     private String collector;
+    private String name;
+    private String address;
 }

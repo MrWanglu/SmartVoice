@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.report.web;
 
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.entity.CaseInfo;
+import cn.fintecher.pangolin.report.model.CaseInfoParams;
 import cn.fintecher.pangolin.report.model.MapModel;
 import cn.fintecher.pangolin.report.service.AccMapService;
 import cn.fintecher.pangolin.report.service.CaseInfoService;
@@ -53,7 +54,9 @@ public class CaseInfoReportController extends BaseController{
     @ApiOperation(value = "待催收案件查询", notes = "待催收案件查询")
     public ResponseEntity<List<CaseInfo>> getCaseDetail(@RequestHeader(value = "X-UserToken") String token,
                                                         @RequestParam(required = true)@ApiParam(value = "页数") Integer page,
-                                                        @RequestParam(required = true)@ApiParam(value = "大小") Integer size) throws Exception {
+                                                        @RequestParam(required = true)@ApiParam(value = "大小") Integer size,
+                                                        @RequestParam(required = false) @ApiParam(value = "客户名称") String name,
+                                                        @RequestParam(required = false) @ApiParam(value = "地址") String address) throws Exception {
         User user = null;
         try {
             user = getUserByToken(token);
@@ -64,7 +67,17 @@ public class CaseInfoReportController extends BaseController{
             return ResponseEntity.ok().body(null);
         }
         List<CaseInfo> list = new ArrayList<>();
-        list = caseInfoService.queryWaitCollectCase(user,page,size);
+        CaseInfoParams caseInfoParams = new CaseInfoParams();
+        caseInfoParams.setCompanyCode(user.getCompanyCode());
+        caseInfoParams.setCollector(user.getId());
+        caseInfoParams.setDeptCode(user.getDepartment().getCode());
+        if(Objects.nonNull(name)){
+            caseInfoParams.setName(name);
+        }
+        if(Objects.nonNull(address)){
+            caseInfoParams.setAddress(address);
+        }
+        list = caseInfoService.queryWaitCollectCase(caseInfoParams,page,size,user);
         for(int i=0; i<list.size(); i++){
             CaseInfo caseInfo = list.get(i);
             if(Objects.isNull(caseInfo.getPersonalInfo().getLongitude())

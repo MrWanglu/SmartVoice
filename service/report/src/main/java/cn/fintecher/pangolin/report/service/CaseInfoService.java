@@ -31,12 +31,8 @@ public class CaseInfoService {
        return caseInfoMapper.selectAll();
     }
 
-    public List<CaseInfo> queryWaitCollectCase(User user,Integer page, Integer size){
+    public List<CaseInfo> queryWaitCollectCase(CaseInfoParams caseInfoParams,int page, int size,User user){
         List<CaseInfo> list = null;
-        CaseInfoParams caseInfoParams = new CaseInfoParams();
-        caseInfoParams.setCompanyCode(user.getCompanyCode());
-        caseInfoParams.setCollector(user.getId());
-        caseInfoParams.setDeptCode(user.getDepartment().getCode());
         PageHelper.startPage(page, size);
         if (user.getManager() == 1) {
             list = caseInfoMapper.queryWaitCollectCase(caseInfoParams);

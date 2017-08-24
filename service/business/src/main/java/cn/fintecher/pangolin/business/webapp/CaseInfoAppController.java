@@ -56,10 +56,12 @@ public class CaseInfoAppController extends BaseController {
     SysParamRepository sysParamRepository;
 
     @GetMapping("/queryAssistDetail")
-    @ApiOperation(value = "协催*案件查询", notes = "协催案件查询")
+    @ApiOperation(value = "协催案件查询", notes = "协催案件查询")
     public ResponseEntity<Page<CaseAssist>> getAssistDetail(@QuerydslPredicate(root = CaseAssist.class) Predicate predicate,
                                                             Pageable pageable,
-                                                            @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                            @RequestHeader(value = "X-UserToken") String token,
+                                                            @RequestParam(required = false) @ApiParam(value = "客户名称") String name,
+                                                            @RequestParam(required = false) @ApiParam(value = "地址") String address) throws Exception {
         User user = null;
         try {
             user = getUserByToken(token);
@@ -75,6 +77,12 @@ public class CaseInfoAppController extends BaseController {
             builder.and(QCaseAssist.caseAssist.assistCollector.id.eq(user.getId()));
         }
         builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue()));
+        if (Objects.nonNull(name)) {
+            builder.and(QCaseAssist.caseAssist.caseId.personalInfo.name.startsWith(name));
+        }
+        if (Objects.nonNull(address)) {
+            builder.and(QCaseAssist.caseAssist.caseId.personalInfo.localHomeAddress.contains(address));
+        }
         Page<CaseAssist> page = caseAssistRepository.findAll(builder, pageable);
         for (int i = 0; i < page.getContent().size(); i++) {
             CaseAssist caseAssist = page.getContent().get(i);
@@ -98,7 +106,9 @@ public class CaseInfoAppController extends BaseController {
     @ApiOperation(value = "外访案件查询", notes = "外访案件查询")
     public ResponseEntity<Page<CaseInfo>> getVisitDetail(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                          Pageable pageable,
-                                                         @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                         @RequestHeader(value = "X-UserToken") String token,
+                                                         @RequestParam(required = false) @ApiParam(value = "客户名称") String name,
+                                                         @RequestParam(required = false) @ApiParam(value = "地址") String address) throws Exception {
         User user = null;
         try {
             user = getUserByToken(token);
@@ -116,6 +126,12 @@ public class CaseInfoAppController extends BaseController {
         }
         builder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.COLLECTIONING.getValue()));
         builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(), CaseInfo.CaseType.OUTLEAVETURN.getValue()));
+        if (Objects.nonNull(name)) {
+            builder.and(QCaseInfo.caseInfo.personalInfo.name.startsWith(name));
+        }
+        if (Objects.nonNull(address)) {
+            builder.and(QCaseInfo.caseInfo.personalInfo.localHomeAddress.contains(address));
+        }
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
         page.forEach(e -> {
             if (Objects.isNull(e.getPersonalInfo().getLongitude())
