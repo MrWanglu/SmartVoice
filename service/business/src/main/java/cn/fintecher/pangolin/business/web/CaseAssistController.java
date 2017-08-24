@@ -589,7 +589,7 @@ public class CaseAssistController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "findAllCaseAssist", e.getMessage())).body(null);
         }
         try {
-            List<Department> departments = departmentService.querySonDepartment(user); //是否有子部门
+//            List<Department> departments = departmentService.querySonDepartment(user); //是否有子部门
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
@@ -603,7 +603,7 @@ public class CaseAssistController extends BaseController {
             exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
             exp.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())); //协催完成
             Page<CaseAssist> page = null;
-            if (departments.isEmpty()) {
+            if (Objects.equals(user.getManager(),0) && Objects.equals(user.getType(),User.Type.VISIT.getValue())) {
                 // 协催员智能看见自己的协催案件
                 exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
                 page = caseAssistRepository.findAll(exp, pageable);
@@ -633,7 +633,7 @@ public class CaseAssistController extends BaseController {
         }
         try {
 
-            List<Department> departments = departmentService.querySonDepartment(user); //是否有子部门
+//            List<Department> departments = departmentService.querySonDepartment(user); //是否有子部门
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
@@ -646,7 +646,7 @@ public class CaseAssistController extends BaseController {
             }
             exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
             Page<CaseAssist> page = null;
-            if (departments.isEmpty()) {
+            if (Objects.equals(user.getManager(),0) && Objects.equals(user.getType(),User.Type.VISIT.getValue())) {
                 // 过滤掉协催结束的协催案件
                 exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
                 // 协催员智能看见自己的协催案件
