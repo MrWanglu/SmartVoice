@@ -6,7 +6,6 @@ import cn.fintecher.pangolin.entity.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,17 +23,17 @@ public class ResourceService {
     @Autowired
     private RoleRepository roleRepository;
 
-    @Cacheable(value = "resourceCache", key = "'petstore:resource:all'", unless = "#result==null")
+//    @Cacheable(value = "resourceCache", key = "'petstore:resource:all'", unless = "#result==null")
     public List<Resource> findAll() {
         return resourceRepository.findAll();
     }
 
-    @Cacheable(value = "resourceCache", key = "'petstore:resource:all'", unless = "#result==null")
+//    @Cacheable(value = "resourceCache", key = "'petstore:resource:all'", unless = "#result==null")
     public void save(Resource object) {
         resourceRepository.save(object);
     }
 
-    @Cacheable(value = "resourceCache", key = "'petstore:resource:all'", unless = "#result==null")
+//    @Cacheable(value = "resourceCache", key = "'petstore:resource:all'", unless = "#result==null")
     public List<Resource> deleteResoByRoleId(String id) {
         return roleRepository.deleteResoByRoleId(id);
     }
