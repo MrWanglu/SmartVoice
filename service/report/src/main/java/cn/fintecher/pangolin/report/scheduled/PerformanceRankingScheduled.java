@@ -32,7 +32,7 @@ public class PerformanceRankingScheduled {
     @Inject
     PerformanceRankingReportMapper performanceRankingReportMapper;
 
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0 0 * * ?")
     void savePerformanceRanking() {
         log.debug("定时调度 生成催收员业绩排名报表{}", ZWDateUtil.getNowDateTime());
 
