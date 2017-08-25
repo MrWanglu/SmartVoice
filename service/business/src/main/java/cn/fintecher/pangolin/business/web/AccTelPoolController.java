@@ -221,7 +221,7 @@ public class AccTelPoolController extends BaseController {
     /**
      * @Description 电催页面多条件查询跟进记录
      */
-    @GetMapping("/getFollowupRecord/{caseId}")
+    @GetMapping("/getFollowupRecord/{caseNumber}")
     @ApiOperation(value = "电催页面多条件查询跟进记录", notes = "电催页面多条件查询跟进记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -231,13 +231,13 @@ public class AccTelPoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@PathVariable @ApiParam(value = "案件ID", required = true) String caseId,
+    public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@PathVariable @ApiParam(value = "案件编号", required = true) String caseNumber,
                                                                       @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
                                                                       @ApiIgnore Pageable pageable) {
-        log.debug("REST request to get case followup records by {caseId}", caseId);
+        log.debug("REST request to get case followup records by {caseNumber}", caseNumber);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseId.eq(caseId));
+            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(caseNumber));
             builder.and(QCaseFollowupRecord.caseFollowupRecord.collectionWay.eq(1)); //只查催记方式为手动的
             Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getFollowupRecord");

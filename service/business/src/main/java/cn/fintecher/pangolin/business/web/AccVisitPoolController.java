@@ -220,15 +220,15 @@ public class AccVisitPoolController extends BaseController {
     /**
      * @Description 外访页面多条件查询跟进记录
      */
-    @GetMapping("/getFollowupRecord/{caseId}")
+    @GetMapping("/getFollowupRecord/{caseNumber}")
     @ApiOperation(value = "外访页面多条件查询跟进记录", notes = "外访页面多条件查询跟进记录")
-    public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@PathVariable @ApiParam(value = "案件ID", required = true) String caseId,
+    public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@PathVariable @ApiParam(value = "案件编号", required = true) String caseNumber,
                                                                       @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
                                                                       @ApiIgnore Pageable pageable) throws URISyntaxException {
-        log.debug("REST request to get case followup records by {caseId}", caseId);
+        log.debug("REST request to get case followup records by {caseNumber}", caseNumber);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseId.eq(caseId));
+            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(caseNumber));
             Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/accVisitPoolController/getFollowupRecord");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);

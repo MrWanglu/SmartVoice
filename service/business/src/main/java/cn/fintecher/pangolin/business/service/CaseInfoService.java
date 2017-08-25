@@ -363,6 +363,7 @@ public class CaseInfoService {
         CaseFollowupRecord caseFollowupRecord = new CaseFollowupRecord();
         BeanUtils.copyProperties(caseFollowupParams, caseFollowupRecord);
         caseFollowupRecord.setCaseId(caseFollowupParams.getCaseId());
+        caseFollowupRecord.setCaseNumber(caseFollowupParams.getCaseNumber());
         caseFollowupRecord.setPersonalId(caseFollowupParams.getPersonalId());
         caseFollowupRecord.setOperator(tokenUser.getUserName()); //操作人
         caseFollowupRecord.setOperatorName(tokenUser.getRealName()); //操作人姓名

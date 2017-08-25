@@ -27,6 +27,9 @@ public class CaseFollowupRecord extends BaseEntity {
     @ApiModelProperty(notes = "案件信息ID")
     private String caseId;
 
+    @ApiModelProperty(notes = "案件编号")
+    private String caseNumber;
+
     @ApiModelProperty(notes = "跟进对象")
     private Integer target;
 
