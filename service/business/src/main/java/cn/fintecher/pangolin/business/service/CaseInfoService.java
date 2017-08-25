@@ -909,7 +909,6 @@ public class CaseInfoService {
             companyCode = tokenUser.getCompanyCode();
         }
         if (Objects.equals(leaveCaseParams.getType(), 0)) { //电催
-
             sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_PHNOEFLOW_LEAVERATE).and(qSysParam.companyCode.eq(companyCode)));
         } else { //外访
             sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_LEAVERATE).and(qSysParam.companyCode.eq(companyCode)));
@@ -937,7 +936,11 @@ public class CaseInfoService {
             if (Objects.equals(tokenUser.getType(), User.Type.TEL.getValue())) {
                 caseInfo.setCaseType(CaseInfo.CaseType.PHNONELEAVETURN.getValue()); //案件类型 177-电催保留流转
             } else if (Objects.equals(tokenUser.getType(), User.Type.VISIT.getValue())) {
-                caseInfo.setCaseType(CaseInfo.CaseType.OUTLEAVETURN.getValue()); //案件类型 181-外访保留流转
+                if (1 == leaveCaseParams.getType()) {
+                    caseInfo.setCaseType(CaseInfo.CaseType.OUTLEAVETURN.getValue()); //案件类型 181-外访保留流转
+                } else if (2 == leaveCaseParams.getType()) {
+                    caseInfo.setCaseType(CaseInfo.CaseType.ASSISTTURN.getValue()); //案件类型 216-协催保留流转
+                }
             }
             caseInfo.setOperator(tokenUser); //操作人
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
@@ -969,7 +972,7 @@ public class CaseInfoService {
             caseInfoRepository.saveAndFlush(caseInfo);
             //将数据插入到流转申请表中
             CaseAdvanceTurnApplay caseAdvanceTurnApplay = new CaseAdvanceTurnApplay();
-            BeanUtils.copyProperties(caseInfo,caseAdvanceTurnApplay);
+            BeanUtils.copyProperties(caseInfo, caseAdvanceTurnApplay);
             if (Objects.equals(advanceCirculationParams.getType(), 0)) {
                 caseAdvanceTurnApplay.setCollectionType(0);//电催
             } else {

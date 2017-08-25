@@ -3,10 +3,12 @@ package cn.fintecher.pangolin.entity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Created by ChenChang on 2017/7/10.
@@ -194,7 +196,7 @@ public class CaseInfo extends BaseEntity {
         ASSIST_COMPLATED(29, "协催完成"),
         ASSIST_WAIT_ASSIGN(117, "协催待分配"),
         ASSIST_WAIT_ACC(118, "协催待催收"),
-        FAILURE(212,"协催审批失效");
+        FAILURE(212, "协催审批失效");
 
         private Integer value;
         private String remark;
@@ -331,7 +333,7 @@ public class CaseInfo extends BaseEntity {
     public enum CaseType {
         DISTRIBUTE(173, "案件分配"), PHNONESMALLTURN(174, "电催小流转"), PHNONEFORCETURN(175, "电催强制流转"), PHNONEFAHEADTURN(176, "电催提前流转"),
         PHNONELEAVETURN(177, "电催保留流转"), OUTSMALLTURN(178, "外访小流转"), OUTFAHEADTURN(179, "外访提前流转"), OUTFORCETURN(180, "外访强制流"),
-        OUTLEAVETURN(181, "外访保留流转");
+        OUTLEAVETURN(181, "外访保留流转"), ASSISTTURN(216, "协催保留流转");
         private Integer value;
 
         private String remark;
