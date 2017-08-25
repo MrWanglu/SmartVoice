@@ -8,7 +8,7 @@
     <appender name="FILE"  class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">">
             <!--日志文件输出的文件名-->
-            <FileNamePattern>${LOG_HOME}/business.log.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+            <FileNamePattern>${LOG_HOME}/dataimp.log.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
             <!--日志文件保留天数-->
             <!-- 单个日志文件最多 500MB, 60天的日志周期，最大不能超过10GB -->
             <maxFileSize>500MB</maxFileSize>

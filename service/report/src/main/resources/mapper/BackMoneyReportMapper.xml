@@ -55,7 +55,7 @@
         (SELECT b.deptCode as parentDeptCode,b.deptName as parentDeptName,b.groupCode as deptCode,b.groupName as deptName,b.userName,b.realName,a.backMoney,a.companyCode,DATE_FORMAT(NOW(),'%Y-%m-%d') as backDate from
         (SELECT apply_user_name as userName,apply_real_name as realName,sum(case when apply_pay_amt is null then 0 else apply_pay_amt end + case when apply_derate_amt is null then 0 else apply_derate_amt end) as
         backMoney,company_code as companyCode from case_pay_apply where approve_status = 58 and DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d') GROUP BY userName,realName,companyCode) a
-        eft join
+        left join
         (SELECT l.deptCode,l.deptName,l.groupCode,l.groupName,k.userName,k.realName from
         (SELECT user_name as userName,dept_id as deptId,real_name as realName from user) k
         LEFT JOIN
