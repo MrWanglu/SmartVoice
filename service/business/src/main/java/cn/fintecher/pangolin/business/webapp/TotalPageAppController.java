@@ -86,17 +86,23 @@ public class TotalPageAppController extends BaseController {
         payList = parseRank(casePayApplyRepository.queryPayList(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDate,endDate,User.Type.VISIT.getValue(),user.getCompanyCode()),user.getId());
         followList = parseRank(caseFollowupRecordRepository.getFlowupCaseList(startDate,endDate,User.Type.VISIT.getValue(),user.getCompanyCode()),user.getId());
         collList = parseRank(caseFollowupRecordRepository.getCollectionList(startDate,endDate,User.Type.VISIT.getValue(),user.getCompanyCode()),user.getId());
-        if(payList.size() > 0){
+        if(payList.size() > 0 && Objects.equals(payList.get(0).getUserId(),user.getId())){
             userStatisAppModel.setPersonalPayRank(payList.get(0));
             userStatisAppModel.setPayList(payList.subList(1,payList.size()));
+        }else{
+            userStatisAppModel.setPayList(payList);
         }
-        if(followList.size() > 0){
+        if(followList.size() > 0 && Objects.equals(followList.get(0).getUserId(),user.getId())){
             userStatisAppModel.setPersonalFollowRank(followList.get(0));
             userStatisAppModel.setFollowList(followList.subList(1,followList.size()));
+        }else{
+            userStatisAppModel.setFollowList(followList);
         }
-        if(collList.size() > 0){
+        if(collList.size() > 0 && Objects.equals(collList.get(0).getUserId(),user.getId())){
             userStatisAppModel.setPersonalCollectionRank(collList.get(0));
             userStatisAppModel.setCollectionList(collList.subList(1,collList.size()));
+        }else{
+            userStatisAppModel.setCollectionList(collList);
         }
         return new ResponseEntity<>(userStatisAppModel, HttpStatus.OK);
     }

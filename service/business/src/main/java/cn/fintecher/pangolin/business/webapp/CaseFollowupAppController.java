@@ -105,8 +105,8 @@ public class CaseFollowupAppController extends BaseController {
         }
         CaseInfo caseInfo = caseInfoRepository.findOne(caseFollowupParams.getCaseId());
         CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.id.eq(caseFollowupParams.getCaseId())
-                .and(QCaseAssist.caseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
-        if (Objects.equals(one.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue())) {
+                .and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue())));
+        if (Objects.nonNull(one)) {
             one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
             caseAssistRepository.save(one);
         }
