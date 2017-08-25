@@ -82,7 +82,7 @@ public class JobTaskService {
      * @param sysParamCode
      */
     @Transactional
-    public void updateSysparam(String companyCode,String sysParamCode,String value){
+    public void updateSysparam(String companyCode,String sysParamCode,String value) throws Exception{
         SysParam sysParam=new SysParam();
         sysParam.setCompanyCode(companyCode);
         sysParam.setCode(sysParamCode);
