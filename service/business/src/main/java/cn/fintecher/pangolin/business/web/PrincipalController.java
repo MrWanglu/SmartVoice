@@ -91,6 +91,7 @@ public class PrincipalController extends BaseController {
         if (Objects.nonNull(companyCode)) {
             builder.and(qPrincipal.companyCode.eq(companyCode));
         }
+        builder.and(qPrincipal.flag.eq(0));
         Iterator<Principal> principalIterator = principalRepository.findAll(builder).iterator();
         List<Principal> principalList = IteratorUtils.toList(principalIterator);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "ENTITY_NAME")).body(principalList);
