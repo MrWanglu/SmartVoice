@@ -606,7 +606,7 @@ public class ReportService {
      */
     public List<CollectorPerformanceModel> getPerformanceRankingReport(PerformanceRankingParams performanceRankingParams, User tokenUser) {
         //获得催收员业绩排名报表
-        List<PerformanceRankingReport> performanceRankingReports = getRankingReport(performanceRankingParams, tokenUser);
+        List<PerformanceRankingReport> performanceRankingReports = getRankingReport(performanceRankingParams, tokenUser, 0);
         if (Objects.isNull(performanceRankingReports)) {
             return null;
         }
@@ -622,6 +622,9 @@ public class ReportService {
             if (Objects.nonNull(collectorPerformanceModel.getDeptCode())
                     || Objects.equals(collectorPerformanceModel.getDeptCode(), performanceRankingReport.getDeptCode())) { //如果部门code码不为空
                 List<PerformanceRankingReport> performanceRankingReports1 = collectorPerformanceModel.getPerformanceRankingReports();
+                if (Objects.isNull(performanceRankingReports1)) {
+                    performanceRankingReports1 = new ArrayList<>();
+                }
                 performanceRankingReports1.add(performanceRankingReport);
             } else { //部门code码为空
                 collectorPerformanceModel = new CollectorPerformanceModel();
@@ -783,7 +786,7 @@ public class ReportService {
     /**
      * @Description 查询催收员业绩排名报表
      */
-    private List<PerformanceRankingReport> getRankingReport(PerformanceRankingParams performanceRankingParams, User tokenUser) {
+    private List<PerformanceRankingReport> getRankingReport(PerformanceRankingParams performanceRankingParams, User tokenUser, Integer flag) {
         List<PerformanceRankingReport> performanceRankingReports;
         if (Objects.equals(performanceRankingParams.getType(), 0)) { //实时报表
             Calendar cal = Calendar.getInstance();
@@ -795,22 +798,42 @@ public class ReportService {
                 if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
                     throw new RuntimeException("请选择公司");
                 }
-                performanceRankingReports = performanceRankingReportMapper.getRealtimeReport(startDate, endDate, performanceRankingParams.getCompanyCode(),
-                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                if (0 == flag) {
+                    performanceRankingReports = performanceRankingReportMapper.getRealtimeReport(startDate, endDate, performanceRankingParams.getCompanyCode(),
+                            tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                } else {
+                    performanceRankingReports = performanceRankingReportMapper.getRealtimeSummaryReport(startDate, endDate, performanceRankingParams.getCompanyCode(),
+                            tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                }
             } else {
-                performanceRankingReports = performanceRankingReportMapper.getRealtimeReport(startDate, endDate, tokenUser.getCompanyCode(),
-                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                if (0 == flag) {
+                    performanceRankingReports = performanceRankingReportMapper.getRealtimeReport(startDate, endDate, tokenUser.getCompanyCode(),
+                            tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                } else {
+                    performanceRankingReports = performanceRankingReportMapper.getRealtimeSummaryReport(startDate, endDate, tokenUser.getCompanyCode(),
+                            tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                }
             }
         } else { //历史报表
             if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
                 if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
                     throw new RuntimeException("请选择公司");
                 }
-                performanceRankingReports = performanceRankingReportMapper.getHistoryReport(performanceRankingParams.getDate(), performanceRankingParams.getCompanyCode(),
-                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                if (0 == flag) {
+                    performanceRankingReports = performanceRankingReportMapper.getHistoryReport(performanceRankingParams.getDate(), performanceRankingParams.getCompanyCode(),
+                            tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                } else {
+                    performanceRankingReports = performanceRankingReportMapper.getHistorySummayReport(performanceRankingParams.getDate(), performanceRankingParams.getCompanyCode(),
+                            tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                }
             } else {
-                performanceRankingReports = performanceRankingReportMapper.getHistoryReport(performanceRankingParams.getDate(), tokenUser.getCompanyCode(),
-                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                if (0 == flag) {
+                    performanceRankingReports = performanceRankingReportMapper.getHistoryReport(performanceRankingParams.getDate(), tokenUser.getCompanyCode(),
+                            tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                } else {
+                    performanceRankingReports = performanceRankingReportMapper.getHistorySummayReport(performanceRankingParams.getDate(), tokenUser.getCompanyCode(),
+                            tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                }
             }
         }
         if (performanceRankingReports.isEmpty()) {
@@ -871,7 +894,7 @@ public class ReportService {
     private List<PerformanceRankingReport> saveGroupLeader(List<PerformanceRankingReport> performanceRankingReports) {
         PerformanceRankingReport report = null;
         for (PerformanceRankingReport performanceRankingReport1 : performanceRankingReports) {
-            Integer manage = performanceRankingReportMapper.getManage(performanceRankingReport1.getUserName());
+            Integer manage = performanceRankingReportMapper.getManage(performanceRankingReport1.getUserName(), performanceRankingReport1.getCompanyCode());
             if (1 == manage) { //是管理者
                 report = performanceRankingReport1;
                 break;
@@ -898,7 +921,7 @@ public class ReportService {
      */
     public List<GroupLeaderModel> getGroupLeaderReport(PerformanceRankingParams performanceRankingParams, User tokenUser) {
         //获得催收员业绩排名报表
-        List<PerformanceRankingReport> performanceRankingReportList = getRankingReport(performanceRankingParams, tokenUser);
+        List<PerformanceRankingReport> performanceRankingReportList = getRankingReport(performanceRankingParams, tokenUser, 1);
         if (Objects.isNull(performanceRankingReportList)) {
             return null;
         }
@@ -910,7 +933,7 @@ public class ReportService {
         Map<String, List<PerformanceRankingReport>> map = new HashMap<>();
         for (PerformanceRankingReport performanceRankingReport : performanceRankingReportList) {
             //过滤管理人员
-            Integer manage = performanceRankingReportMapper.getManage(performanceRankingReport.getUserName());
+            Integer manage = performanceRankingReportMapper.getManage(performanceRankingReport.getUserName(), performanceRankingReport.getCompanyCode());
             if (1 == manage) { //是管理者
                 continue;
             }

@@ -3,6 +3,8 @@ package cn.fintecher.pangolin.report.entity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -13,6 +15,8 @@ import java.util.Date;
  * @Date : 9:54 2017/8/21
  */
 
+@Entity
+@Table(name = "performance_ranking_report")
 @Data
 public class PerformanceRankingReport extends BaseEntity {
     @ApiModelProperty(notes = "部门code码")
