@@ -408,10 +408,10 @@ public class UserController extends BaseController {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(qUser.roles.any().id.eq(id));
         if (Objects.nonNull(userName)) {
-            builder.and(qUser.userName.like("%"+userName.concat("%")));
+            builder.and(qUser.userName.like(userName.concat("%")));
         }
         if (Objects.nonNull(realName)) {
-            builder.and(qUser.realName.like("%"+realName.concat("%")));
+            builder.and(qUser.realName.like(realName.concat("%")));
         }
         if (Objects.nonNull(user.getCompanyCode())) {
             builder.and(qUser.companyCode.eq(user.getCompanyCode()));
