@@ -274,16 +274,16 @@ public class UserController extends BaseController {
             builder.and(qUser.department.code.like(deptCode.concat("%")));
         }
         if (Objects.nonNull(userName)) {
-            builder.and(qUser.userName.like(userName.concat("%")));
+            builder.and(qUser.userName.like("%".concat(userName).concat("%")));
         }
         if (Objects.nonNull(realName)) {
-            builder.and(qUser.realName.like(realName.concat("%")));
+            builder.and(qUser.realName.like("%".concat(realName).concat("%")));
         }
         if (Objects.nonNull(roleId)) {
             builder.and(qUser.roles.any().id.eq(roleId));
         }
         if (Objects.nonNull(roleName)) {
-            builder.and(qUser.roles.any().name.like(roleName.concat("%")));
+            builder.and(qUser.roles.any().name.like("%".concat(roleName).concat("%")));
         }
         if (Objects.nonNull(user.getCompanyCode())) {
             builder.and(qUser.companyCode.eq(user.getCompanyCode()));
