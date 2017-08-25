@@ -513,7 +513,7 @@ public class CaseInfoExceptionService {
             PersonalAddress personalAddress=new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation1()));
-            personalAddress.setName(caseInfoException.getPersonalName());
+            personalAddress.setName(caseInfoException.getContactName1());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
             personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
@@ -528,7 +528,7 @@ public class CaseInfoExceptionService {
             PersonalAddress personalAddress=new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation2()));
-            personalAddress.setName(caseInfoException.getPersonalName());
+            personalAddress.setName(caseInfoException.getContactName2());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
             personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
@@ -543,7 +543,7 @@ public class CaseInfoExceptionService {
             PersonalAddress personalAddress=new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation3()));
-            personalAddress.setName(caseInfoException.getPersonalName());
+            personalAddress.setName(caseInfoException.getContactName3());
             personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
@@ -559,7 +559,7 @@ public class CaseInfoExceptionService {
             PersonalAddress personalAddress=new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation4()));
-            personalAddress.setName(caseInfoException.getPersonalName());
+            personalAddress.setName(caseInfoException.getContactName4());
             personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
@@ -640,7 +640,7 @@ public class CaseInfoExceptionService {
         if(Objects.isNull(caseInfoException.getCity())){
             city="";
         } else {
-            city =caseInfoException.getProvince();
+            city =caseInfoException.getCity();
         }
         //现居住地地址
         if(addr.startsWith(province)){

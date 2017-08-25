@@ -454,7 +454,7 @@ public class ProcessDataInfoExcelService {
             PersonalAddress personalAddress=new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation1()));
-            personalAddress.setName(dataInfoExcelModel.getPersonalName());
+            personalAddress.setName(dataInfoExcelModel.getContactName1());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
             personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
@@ -469,7 +469,7 @@ public class ProcessDataInfoExcelService {
             PersonalAddress personalAddress=new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation2()));
-            personalAddress.setName(dataInfoExcelModel.getPersonalName());
+            personalAddress.setName(dataInfoExcelModel.getContactName2());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
             personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
@@ -484,7 +484,7 @@ public class ProcessDataInfoExcelService {
             PersonalAddress personalAddress=new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation3()));
-            personalAddress.setName(dataInfoExcelModel.getPersonalName());
+            personalAddress.setName(dataInfoExcelModel.getContactName3());
             personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
@@ -500,7 +500,7 @@ public class ProcessDataInfoExcelService {
             PersonalAddress personalAddress=new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation4()));
-            personalAddress.setName(dataInfoExcelModel.getPersonalName());
+            personalAddress.setName(dataInfoExcelModel.getContactName4());
             personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
             personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
             personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
@@ -581,7 +581,7 @@ public class ProcessDataInfoExcelService {
         if(Objects.isNull(dataInfoExcelModel.getCity())){
             city="";
         } else {
-            city =dataInfoExcelModel.getProvince();
+            city =dataInfoExcelModel.getCity();
         }
         //现居住地地址
         if(addr.startsWith(province)){
