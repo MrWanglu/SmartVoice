@@ -69,7 +69,7 @@ public class OverNightBatchService {
         try {
             logger.info("开始晚间批量_{} ", jobDataMap.get("sysParamCode"));
             if (jobTaskService.checkJobIsRunning(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"))) {
-                logger.info("晚间批量正在执行_{}", jobDataMap.get("sysParamCode"));
+                logger.info("晚间批量正在执行_{}", jobDataMap.get("companyCode"));
             } else {
                 //获取超级管理员信息
                 User user = userRepository.findOne(Constants.ADMINISTRATOR_ID);
@@ -107,7 +107,11 @@ public class OverNightBatchService {
             logger.error(e.getMessage(), e);
         } finally {
             //批量状态修改为未执行
-            jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"), Constants.BatchStatus.STOP.getValue());
+            try {
+                jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"), Constants.BatchStatus.STOP.getValue());
+            }catch (Exception e){
+                logger.info("结束晚间批量 {} ,修改批量执行状态失败 {}", jobDataMap.get("companyCode"),jobDataMap.getString("sysParamCode"),e);
+            }
             watch.stop();
             logger.info("结束晚间批量 {} ,耗时: {} 毫秒", jobDataMap.get("companyCode"), watch.getTotalTimeMillis());
         }

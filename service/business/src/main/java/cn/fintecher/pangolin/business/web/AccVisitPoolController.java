@@ -86,6 +86,8 @@ public class AccVisitPoolController extends BaseController {
     @Inject
     SendMessageRecordRepository sendMessageRecordRepository;
 
+    @Inject
+    CaseAdvanceTurnApplayRepository caseAdvanceTurnApplayRepository;
     /**
      * @Description 外访主页面多条件查询外访案件
      */
@@ -558,35 +560,38 @@ public class AccVisitPoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CaseInfo>> getVisitPendingCase(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                                              @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
-                                                              @ApiIgnore Pageable pageable,
-                                                              @RequestHeader(value = "X-UserToken") String token) {
-        log.debug("REST request to get visit pending case");
-        List<Integer> list = new ArrayList<>();
-        list.add(CaseInfo.CirculationStatus.VISIT_WAITING.getValue()); //200-外访流转待审批
-//        list.add(CaseInfo.CirculationStatus.VISIT_PASS.getValue()); //201-外访流转通过
-//        list.add(CaseInfo.CirculationStatus.VISIT_REFUSE.getValue()); //202-外访流转拒绝
+    public ResponseEntity<Page<CaseAdvanceTurnApplay>> getCaseAdvanceTurnApplay(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                                @RequestParam(required = false) @ApiParam(value = "客户名称") String custName,
+                                                                                @RequestParam(required = false) @ApiParam(value = "审核状态") Integer approveState,
+                                                                                @ApiIgnore Pageable pageable,
+                                                                                @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to getCaseAdvanceTurnApplay");
         try {
             User tokenUser = getUserByToken(token);
-            BooleanBuilder builder = new BooleanBuilder(predicate);
+            QCaseAdvanceTurnApplay qCaseAdvanceTurnApplay = QCaseAdvanceTurnApplay.caseAdvanceTurnApplay;
+            BooleanBuilder builder = new BooleanBuilder();
             if (Objects.isNull(tokenUser.getCompanyCode())) {
                 if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAdvanceTurnApplay", "CaseAdvanceTurnApplay", "请选择公司")).body(null);
                 }
-                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+                builder.and(qCaseAdvanceTurnApplay.companyCode.eq(companyCode));
             } else {
-                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+                builder.and(qCaseAdvanceTurnApplay.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
-            builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
-            builder.and(QCaseInfo.caseInfo.caseType.eq(CaseInfo.CaseType.OUTFAHEADTURN.getValue())); //只查案件类型为外访提前流转的
-            builder.and(QCaseInfo.caseInfo.circulationStatus.in(list)); //只查限定的小流转审批状态的案件
-            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
-            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getVisitPendingCase");
+            builder.and(qCaseAdvanceTurnApplay.collectionType.eq(1)); //外访
+            if (Objects.nonNull(custName)){
+                builder.and(qCaseAdvanceTurnApplay.personalName.like(custName.concat("%")));
+            }
+            if (Objects.nonNull(approveState)){
+                builder.and(qCaseAdvanceTurnApplay.approveResult.eq(approveState));
+            }
+            builder.and(qCaseAdvanceTurnApplay.departId.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            Page<CaseAdvanceTurnApplay> page = caseAdvanceTurnApplayRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccVisitPoolController/getVisitPendingCase");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "查询失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAdvanceTurnApplay", "CaseAdvanceTurnApplay", "查询失败")).body(null);
         }
     }
 
