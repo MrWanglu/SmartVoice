@@ -178,6 +178,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "修改用户", notes = "修改用户")
     public ResponseEntity<User> updateUser(@Validated @ApiParam("用户对象") @RequestBody User user,
                                            @RequestHeader(value = "X-UserToken") String token) {
+        logger.debug("REST request to save user : {}", user);
         //修改用户状态或者修改部门的类型 首先处理案件
         User userOld = userRepository.findOne(user.getId());
         if (Objects.equals(Status.Disable.getValue(), user.getStatus()) || !(Objects.equals(user.getDepartment().getType(), userOld.getDepartment().getType()))) {
@@ -324,10 +325,10 @@ public class UserController extends BaseController {
             builder.and(qUser.department.code.like(deptCode.concat("%")));
         }
         if (Objects.nonNull(userName)) {
-            builder.and(qUser.userName.like(userName.concat("%")));
+            builder.and(qUser.userName.like("%".concat(userName).concat("%")));
         }
         if (Objects.nonNull(realName)) {
-            builder.and(qUser.realName.like(realName.concat("%")));
+            builder.and(qUser.realName.like("%".concat(realName).concat("%")));
         }
         if (Objects.nonNull(state)) {
             builder.and(qUser.status.eq(state));
@@ -407,10 +408,10 @@ public class UserController extends BaseController {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(qUser.roles.any().id.eq(id));
         if (Objects.nonNull(userName)) {
-            builder.and(qUser.userName.like(userName.concat("%")));
+            builder.and(qUser.userName.like("%"+userName.concat("%")));
         }
         if (Objects.nonNull(realName)) {
-            builder.and(qUser.realName.like(realName.concat("%")));
+            builder.and(qUser.realName.like("%"+realName.concat("%")));
         }
         if (Objects.nonNull(user.getCompanyCode())) {
             builder.and(qUser.companyCode.eq(user.getCompanyCode()));
