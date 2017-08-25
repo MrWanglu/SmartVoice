@@ -210,17 +210,12 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "distributeCeaseInfoAgain", e.getMessage())).body(null);
         }
         try {
-            try {
-                caseInfoService.distributeCeaseInfoAgain(accCaseInfoDisModel, user);
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"",e.getMessage())).body(null);
-            }
+            caseInfoService.distributeCeaseInfoAgain(accCaseInfoDisModel, user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "distributeCeaseInfoAgain", "系统错误!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
-
     }
 
     @GetMapping("/getCaseInfoDetails")
@@ -306,12 +301,12 @@ public class CaseInfoController extends BaseController {
     })
     public ResponseEntity electricSmallCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                    @ApiIgnore Pageable pageable,
-                                                   @RequestHeader(value = "X-UserToken") String token){
+                                                   @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
@@ -320,9 +315,10 @@ public class CaseInfoController extends BaseController {
         list.add(CaseInfo.CaseType.PHNONESMALLTURN.getValue());
         list.add(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue());
         booleanBuilder.and(QCaseInfo.caseInfo.caseType.in(list));
-        Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
+        Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "electricSmallCirculation")).body(page);
     }
+
     @GetMapping("/electricForceCirculation")
     @ApiOperation(value = "电催强制流转池", notes = "电催强制流转池")
     @ApiImplicitParams({
@@ -340,7 +336,7 @@ public class CaseInfoController extends BaseController {
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
         try {
             user = getUserByToken(token);
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
@@ -348,7 +344,7 @@ public class CaseInfoController extends BaseController {
         list.add(CaseInfo.CaseType.PHNONEFORCETURN.getValue());
         list.add(CaseInfo.CaseType.PHNONELEAVETURN.getValue());
         booleanBuilder.and(QCaseInfo.caseInfo.caseType.in(list));
-        Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
+        Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "electricForceCirculation")).body(page);
     }
 
@@ -364,11 +360,11 @@ public class CaseInfoController extends BaseController {
     })
     public ResponseEntity outSmallCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                               @ApiIgnore Pageable pageable,
-                                              @RequestHeader(value = "X-UserToken") String token){
+                                              @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
@@ -377,9 +373,10 @@ public class CaseInfoController extends BaseController {
         list.add(CaseInfo.CaseType.OUTSMALLTURN.getValue());
         list.add(CaseInfo.CaseType.OUTFAHEADTURN.getValue());
         booleanBuilder.and(QCaseInfo.caseInfo.caseType.in(list));
-        Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
+        Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "outSmallCirculation")).body(page);
     }
+
     @GetMapping("/outForceCirculation")
     @ApiOperation(value = "外访强制流转池", notes = "外访强制流转池")
     @ApiImplicitParams({
@@ -392,11 +389,11 @@ public class CaseInfoController extends BaseController {
     })
     public ResponseEntity outForceCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                               @ApiIgnore Pageable pageable,
-                                              @RequestHeader(value = "X-UserToken") String token){
+                                              @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
@@ -405,7 +402,7 @@ public class CaseInfoController extends BaseController {
         list.add(CaseInfo.CaseType.OUTFORCETURN.getValue());
         list.add(CaseInfo.CaseType.OUTLEAVETURN.getValue());
         booleanBuilder.and(QCaseInfo.caseInfo.caseType.in(list));
-        Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder,pageable);
+        Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "outForceCirculation")).body(page);
     }
 
@@ -436,7 +433,7 @@ public class CaseInfoController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "跟进记录数据为空!")).body(null);
             }
             List<CaseFollowupRecord> caseFollowupRecords = new ArrayList<>();
-            for (CaseInfo caseInfo :caseInfos) {
+            for (CaseInfo caseInfo : caseInfos) {
                 Iterable<CaseFollowupRecord> all1 = caseFollowupRecordRepository.findAll(QCaseFollowupRecord.caseFollowupRecord.caseId.eq(caseInfo.getId()));
                 List<CaseFollowupRecord> records = IterableUtils.toList(all1);
                 caseFollowupRecords.addAll(records);
@@ -446,7 +443,7 @@ public class CaseInfoController extends BaseController {
             out = new ByteArrayOutputStream();
             Map<String, String> head = followRecordExportService.createHead();
             List<Map<String, Object>> data = followRecordExportService.createData(caseFollowupRecords);
-            ExcelExportHelper.createExcel(workbook, sheet, head,data,0,0);
+            ExcelExportHelper.createExcel(workbook, sheet, head, data, 0, 0);
             workbook.write(out);
             String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xls");
             file = new File(filePath);
@@ -457,14 +454,14 @@ public class CaseInfoController extends BaseController {
             param.add("file", resource);
             ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
             if (url == null) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController","exportCaseInfoFollowRecord","系统错误!")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "系统错误!")).body(null);
             } else {
                 return ResponseEntity.ok().body(url.getBody());
             }
         } catch (Exception ex) {
             ex.printStackTrace();
             log.error(ex.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController","exportCaseInfoFollowRecord","上传文件服务器失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
         } finally {
             // 关闭流
             if (workbook != null) {
@@ -528,7 +525,7 @@ public class CaseInfoController extends BaseController {
             out = new ByteArrayOutputStream();
             Map<String, String> head = followRecordExportService.createHead();
             List<Map<String, Object>> data = followRecordExportService.createData(caseFollowupRecords);
-            ExcelExportHelper.createExcel(workbook, sheet, head,data,0,0);
+            ExcelExportHelper.createExcel(workbook, sheet, head, data, 0, 0);
             workbook.write(out);
             String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xls");
             file = new File(filePath);
@@ -539,14 +536,14 @@ public class CaseInfoController extends BaseController {
             param.add("file", resource);
             ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
             if (url == null) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController","exportCaseInfoFollowRecord","系统错误!")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "系统错误!")).body(null);
             } else {
                 return ResponseEntity.ok().body(url.getBody());
             }
         } catch (Exception ex) {
             ex.printStackTrace();
             log.error(ex.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController","exportCaseInfoFollowRecord","上传文件服务器失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
         } finally {
             // 关闭流
             if (workbook != null) {
