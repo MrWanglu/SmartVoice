@@ -46,7 +46,21 @@ public class SmaRequestService {
                 for (Iterator it = LinkedHashMap.keySet().iterator(); it.hasNext(); ) {
                     Object key = it.next().toString();
                     Object value = LinkedHashMap.get(key);
-                    map.put(key.toString(), value.toString());
+                    if (Objects.equals("taskData", key)) {
+                        Map<String, String> LinkedHashMap1 = (LinkedHashMap) value;
+                        for (Iterator it1 = LinkedHashMap1.keySet().iterator(); it1.hasNext(); ) {
+                            Object key1 = it1.next().toString();
+                            Object value1;
+                            if (Objects.nonNull(LinkedHashMap1.get(key1))) {
+                                value1 = LinkedHashMap1.get(key1);
+                            } else {
+                                value1 = "未获取";
+                            }
+                            map.put(key1.toString(), value1.toString());
+                        }
+                    } else {
+                        map.put(key.toString(), value.toString());
+                    }
                 }
 
                 if (Objects.equals(map.get("responseCode"), "1")) {
