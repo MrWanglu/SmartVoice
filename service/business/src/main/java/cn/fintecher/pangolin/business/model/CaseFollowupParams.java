@@ -14,6 +14,7 @@ import java.util.List;
 
 @Data
 public class CaseFollowupParams {
+    private String id;
     private String caseId; //案件ID
     private String personalId; //客户信息ID
     private Integer collectionFeedback; //催收反馈
