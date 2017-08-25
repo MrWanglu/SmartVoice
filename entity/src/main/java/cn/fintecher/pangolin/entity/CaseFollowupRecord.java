@@ -2,8 +2,11 @@ package cn.fintecher.pangolin.entity;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -61,6 +64,7 @@ public class CaseFollowupRecord extends BaseEntity {
     private String operatorDeptName;
 
     @ApiModelProperty(notes = "操作时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date operatorTime;
 
     @ApiModelProperty(notes = "承诺还款标识 0-没有承诺 1-有承诺")
