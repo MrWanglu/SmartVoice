@@ -316,7 +316,7 @@ public class DataInfoExcelController {
     @GetMapping("/findUpload")
     @ApiOperation(value = "查看附件", notes = "查看附件")
     public ResponseEntity<List<DataInfoExcelFile>> findUpload(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
-                                                              @RequestParam(value = "caseId", required = true) @ApiParam("案件编号") String caseNumber,
+                                                              @RequestParam(value = "caseNumber", required = true) @ApiParam("案件编号") String caseNumber,
                                                               @RequestParam(value = "companyCode",required = false) String companyCode) {
         ResponseEntity<User> userResponseEntity=null;
         try {
