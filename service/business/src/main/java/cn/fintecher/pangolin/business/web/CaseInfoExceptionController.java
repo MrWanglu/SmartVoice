@@ -60,7 +60,7 @@ public class CaseInfoExceptionController extends BaseController {
     public ResponseEntity<Page<CaseInfoException>> getAllCaseInfoException(@QuerydslPredicate(root = CaseInfoException.class) Predicate predicate,
                                                                            @ApiIgnore Pageable pageable){
         log.debug("REST request to get all CaseInfoExceptions");
-        Page<CaseInfoException> page = caseInfoExceptionRepository.findAll(pageable);
+        Page<CaseInfoException> page = caseInfoExceptionRepository.findAll(predicate,pageable);
         return ResponseEntity.ok().body(page);
     }
 
