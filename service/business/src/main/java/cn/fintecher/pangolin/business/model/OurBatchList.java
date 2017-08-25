@@ -10,5 +10,5 @@ import java.util.List;
 @Data
 public class OurBatchList {
     private List<String> ourBatchList;
-
+    private String companyCode; //公司code码
 }

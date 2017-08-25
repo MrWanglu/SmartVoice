@@ -43,10 +43,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Created by  baizhangyu.
@@ -280,10 +277,8 @@ public class OutsourcePoolController extends BaseController {
     @ResponseBody
     @ApiOperation(value = "委外案件导出", notes = "委外案件导出")
     //多条件查询领取案件
-    public ResponseEntity getAccOutsourcePoolByToken(
-            @RequestBody OurBatchList ourBatchList,
-            @RequestParam(required = false) String companyCode,
-            @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+    public ResponseEntity<String> getAccOutsourcePoolByToken(@RequestBody OurBatchList ourBatchList,
+                                                             @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
         HSSFWorkbook workbook = null;
         File file = null;
         ByteArrayOutputStream out = null;
@@ -296,10 +291,10 @@ public class OutsourcePoolController extends BaseController {
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
+                if (Objects.isNull(ourBatchList.getCompanyCode())) {
+                   return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
                 }
-                builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
+                builder.and(qOutsourcePool.caseInfo.companyCode.eq(ourBatchList.getCompanyCode()));
             } else {
                 builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
             }
@@ -315,32 +310,71 @@ public class OutsourcePoolController extends BaseController {
                 accOutsourcePoolModel.setCaseCode(caseInfo.getCaseNumber());
                 accOutsourcePoolModel.setCommissionRate(caseInfo.getCommissionRate().toString());
                 accOutsourcePoolModel.setContractAmount(caseInfo.getContractAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
-                accOutsourcePoolModel.setCurrentAmount(caseInfo.getPerPayAmount().toString());//每期还款金额
+                if (Objects.nonNull(caseInfo.getPerPayAmount())) {
+                    accOutsourcePoolModel.setCurrentAmount(caseInfo.getPerPayAmount().toString());//每期还款金额
+                }
                 accOutsourcePoolModel.setCurrentPayDate(ZWDateUtil.fomratterDate(caseInfo.getPerDueDate(),"yyyy-MM-dd"));//每期还款日
                 accOutsourcePoolModel.setCustName(caseInfo.getPersonalInfo().getName());
-                PersonalJob personalJob = caseInfo.getPersonalInfo().getPersonalJobs().iterator().next();
+                Set set = caseInfo.getPersonalInfo().getPersonalJobs();
+                PersonalJob personalJob = null;
+                if (!set.isEmpty()){
+                    personalJob = (PersonalJob)set.iterator().next();
+                }
+
                 if (Objects.nonNull(personalJob)){
                     accOutsourcePoolModel.setEmployerAddress(personalJob.getAddress());
                     accOutsourcePoolModel.setEmployerName(personalJob.getCompanyName());
                     accOutsourcePoolModel.setEmployerPhone(personalJob.getPhone());
                 }
-                accOutsourcePoolModel.setHasPayAmount(caseInfo.getHasPayAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
-                accOutsourcePoolModel.setHasPayPeriods(caseInfo.getHasPayPeriods().toString());
+                if (Objects.nonNull(caseInfo.getHasPayAmount())) {
+                    accOutsourcePoolModel.setHasPayAmount(caseInfo.getHasPayAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
+                }
+                if (Objects.nonNull(caseInfo.getHasPayPeriods())) {
+                    accOutsourcePoolModel.setHasPayPeriods(caseInfo.getHasPayPeriods().toString());
+                }
                 accOutsourcePoolModel.setHomeAddress(caseInfo.getPersonalInfo().getLocalHomeAddress());
                 accOutsourcePoolModel.setIdCardNumber(caseInfo.getPersonalInfo().getIdCard());
-                accOutsourcePoolModel.setLastPayAmount(caseInfo.getLatelyPayAmount().toString());//最近还款金额
-                accOutsourcePoolModel.setLastPayDate(ZWDateUtil.fomratterDate(caseInfo.getLatelyPayDate(),"yyyy-MM-dd"));//最近还款日期
-                accOutsourcePoolModel.setOverDueAmount(caseInfo.getOverdueAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
-                accOutsourcePoolModel.setOverDueCapital(caseInfo.getOverdueCapital().toString());//逾期本金
-                accOutsourcePoolModel.setOverDueDays(caseInfo.getOverdueDays().toString());
-                accOutsourcePoolModel.setOverDueDisincentive(caseInfo.getOverdueFine().toString());//逾期罚息
-                accOutsourcePoolModel.setOverDueFine(caseInfo.getOverdueDelayFine().toString());//逾期滞纳金
-                accOutsourcePoolModel.setOverDueInterest(caseInfo.getOverdueInterest().toString());//逾期利息
-                accOutsourcePoolModel.setOverDuePeriods(caseInfo.getOverduePeriods().toString());//逾期期数
-                accOutsourcePoolModel.setPhoneNumber(caseInfo.getPersonalInfo().getMobileNo());
-                accOutsourcePoolModel.setProductSeries(caseInfo.getProduct().getProductSeries().getSeriesName());
-                accOutsourcePoolModel.setProductName(caseInfo.getProduct().getProdcutName());
-                accOutsourcePoolModel.setPayPeriods(caseInfo.getPeriods().toString());//还款总期数
+                if (Objects.nonNull(caseInfo.getLatelyPayAmount())) {
+                    accOutsourcePoolModel.setLastPayAmount(caseInfo.getLatelyPayAmount().toString());//最近还款金额
+                }
+                if (Objects.nonNull(caseInfo.getLatelyPayDate())) {
+                    accOutsourcePoolModel.setLastPayDate(ZWDateUtil.fomratterDate(caseInfo.getLatelyPayDate(),"yyyy-MM-dd"));//最近还款日期
+                }
+                if (Objects.nonNull(caseInfo.getOverdueAmount())) {
+                    accOutsourcePoolModel.setOverDueAmount(caseInfo.getOverdueAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
+                }
+                if (Objects.nonNull(caseInfo.getOverdueCapital())) {
+                    accOutsourcePoolModel.setOverDueCapital(caseInfo.getOverdueCapital().toString());//逾期本金
+                }
+                if (Objects.nonNull(caseInfo.getOverdueDays())) {
+                    accOutsourcePoolModel.setOverDueDays(caseInfo.getOverdueDays().toString());
+                }
+                if (Objects.nonNull(caseInfo.getOverdueFine())) {
+                    accOutsourcePoolModel.setOverDueDisincentive(caseInfo.getOverdueFine().toString());//逾期罚息
+                }
+                if (Objects.nonNull(caseInfo.getOverdueDelayFine())) {
+                    accOutsourcePoolModel.setOverDueFine(caseInfo.getOverdueDelayFine().toString());//逾期滞纳金
+                }
+                if (Objects.nonNull(caseInfo.getOverdueInterest())) {
+                    accOutsourcePoolModel.setOverDueInterest(caseInfo.getOverdueInterest().toString());//逾期利息
+                }
+                if (Objects.nonNull(caseInfo.getOverduePeriods())) {
+                    accOutsourcePoolModel.setOverDuePeriods(caseInfo.getOverduePeriods().toString());//逾期期数
+                }
+                if (Objects.nonNull(caseInfo.getPersonalInfo())) {
+                    accOutsourcePoolModel.setPhoneNumber(caseInfo.getPersonalInfo().getMobileNo());
+                }
+                if (Objects.nonNull(caseInfo.getProduct())) {
+                    if (Objects.nonNull(caseInfo.getProduct().getProductSeries())) {
+                        accOutsourcePoolModel.setProductSeries(caseInfo.getProduct().getProductSeries().getSeriesName());
+                    }
+                }
+                if (Objects.nonNull(caseInfo.getProduct())) {
+                    accOutsourcePoolModel.setProductName(caseInfo.getProduct().getProdcutName());
+                }
+                if (Objects.nonNull(caseInfo.getPeriods())) {
+                    accOutsourcePoolModel.setPayPeriods(caseInfo.getPeriods().toString());//还款总期数
+                }
                 accOutsourcePoolModels.add(accOutsourcePoolModel);
             }
             if (null == accOutsourcePoolModels || accOutsourcePoolModels.isEmpty()) {
@@ -362,10 +396,11 @@ public class OutsourcePoolController extends BaseController {
             MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
             param.add("file", resource);
             ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
+            String body = url.getBody();
             if (url == null) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("上传服务器失败", "", "上传服务器失败")).body(null);
             } else {
-                return ResponseEntity.ok().body(url.getBody());
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","OutsourcePoolController")).body(body);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
