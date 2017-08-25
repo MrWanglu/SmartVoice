@@ -131,6 +131,21 @@ public interface CaseInfoDistributedRepository extends QueryDslPredicateExecutor
         bindings.bind(root.collectionType).first((path, value) -> path.eq(value));
         //产品系列
         bindings.bind(root.product.productSeries.id).first((path, value) -> path.eq(value));
+
+        bindings.bind(root.id).all((path, value) -> {
+            Set<String> idSets = new HashSet<>();
+            if(value.iterator().hasNext()){
+                StringBuilder sb = new StringBuilder(value.iterator().next());
+                sb.deleteCharAt(0);
+                sb.deleteCharAt(sb.length() - 1);
+                List<String> idArray = Arrays.asList(sb.toString().split(","));
+                Iterator<? extends String> it = idArray.iterator();
+                while (it.hasNext()) {
+                    idSets.add(it.next());
+                }
+            }
+                return path.in(idSets);
+         });
     }
 
     @Query(value = "SELECT COUNT(id) FROM case_info " +

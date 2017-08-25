@@ -123,7 +123,7 @@ public class ProcessDataInfoExcelService {
                 caseInfoFileRepository.save(caseInfoFileList);
             }else{
                 //异常池
-                caseInfoExceptionRepository.save(addCaseInfoException(dataInfoExcelModel,user,null,caseInfoSets));
+                caseInfoExceptionRepository.save(addCaseInfoException(dataInfoExcelModel,user,new HashSet<>(),caseInfoSets));
                 caseInfoFileRepository.save(caseInfoFileList);
             }
         }
