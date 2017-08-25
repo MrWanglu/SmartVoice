@@ -59,10 +59,8 @@
     <logger name="io.undertow.websockets.jsr" level="ERROR"/>
     <logger name="org.mongodb.driver" level="WARN"/>
     <logger name="org.reflections" level="WARN"/>
-    <!--
     <logger name="org.hibernate.type.descriptor.sql.BasicBinder"  level="TRACE" />
     <logger name="org.hibernate.type.descriptor.sql.BasicExtractor"  level="DEBUG" />
-    -->
     <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
         <resetJUL>true</resetJUL>
     </contextListener>

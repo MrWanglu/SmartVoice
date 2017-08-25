@@ -72,7 +72,7 @@ public class OverNightBatchService {
                 logger.info("晚间批量正在执行_{}", jobDataMap.get("companyCode"));
             } else {
                 //获取超级管理员信息
-                User user = userRepository.findOne(Constants.ADMINISTRATOR_ID);
+                User user = userRepository.findOne(QUser.user.userName.eq(Constants.ADMIN_USER_NAME));
                 //批量状态修改为正在执行
                 jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"), Constants.BatchStatus.RUNING.getValue());
                 //批量步骤
