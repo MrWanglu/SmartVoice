@@ -7,7 +7,9 @@
     <artifactId>pangolin-service-business</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
-
+    <properties>
+        <drools.version>7.0.0.CR3</drools.version>
+    </properties>
     <name>pangolin-service-business</name>
     <description>穿山甲业务主服务</description>
 
@@ -140,6 +142,16 @@
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz-jobs</artifactId>
             <version>${org.quartz-scheduler}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kie</groupId>
+            <artifactId>kie-api</artifactId>
+            <version>${drools.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.fintecher</groupId>
+            <artifactId>pangolin-service-dataimp</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

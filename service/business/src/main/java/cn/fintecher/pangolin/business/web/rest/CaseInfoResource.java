@@ -76,20 +76,4 @@ public class CaseInfoResource {
         caseInfoDistributedRepository.delete(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-    @GetMapping("/getCaseInfoList")
-    @ApiOperation(value = "查询案件信息", notes = "查询案件信息")
-    public ResponseEntity<Iterable<CaseInfo>> getCaseInfoList(){
-        Iterable<CaseInfo> caseInfoIterable = caseInfoRepository.findAll(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.COLLECTIONING.getValue())
-                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.EARLY_PAYING.getValue()))
-                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.OVER_PAYING.getValue()))
-                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()))
-                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue())));//待催收
-        return new ResponseEntity<>(caseInfoIterable, HttpStatus.OK);
-    }
-    @PostMapping("/saveCaseScore")
-    @ApiOperation(value = "保存案件评分", notes = "保存案件评分")
-    public ResponseEntity<CaseInfo> saveCaseScore(@RequestBody List<CaseInfo> caseInfo) throws URISyntaxException {
-        caseInfoRepository.save(caseInfo);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
 }

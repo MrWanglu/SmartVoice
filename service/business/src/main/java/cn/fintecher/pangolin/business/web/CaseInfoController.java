@@ -1,24 +1,36 @@
 package cn.fintecher.pangolin.business.web;
 
-import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
+import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
+import cn.fintecher.pangolin.business.repository.PersonalRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.FollowRecordExportService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.IdcardUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.joda.time.DateTime;
+import org.kie.api.KieServices;
+import org.kie.api.builder.KieBuilder;
+import org.kie.api.builder.KieFileSystem;
+import org.kie.api.builder.Results;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -28,21 +40,20 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-
 /**
  * Created by ChenChang on 2017/5/23.
  */
@@ -65,6 +76,10 @@ public class CaseInfoController extends BaseController {
     private RestTemplate restTemplate;
     @Inject
     private FollowRecordExportService followRecordExportService;
+    @Inject
+    private Configuration freemarkerConfiguration;
+    @Inject
+    private PersonalRepository personalRepository;
 
     public CaseInfoController(CaseInfoRepository caseInfoRepository) {
         this.caseInfoRepository = caseInfoRepository;
@@ -604,5 +619,104 @@ public class CaseInfoController extends BaseController {
         }
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+    }
+    @GetMapping("/updateAllScoreStrategyManual")
+    @ApiOperation(value = "更新案件评分", notes = "更新案件评分")
+    public ResponseEntity updateAllScoreStrategyManual() throws IOException {
+        try {
+            StopWatch watch1 = new StopWatch();
+            watch1.start();
+            KieSession  kieSession = null;
+            try {
+                kieSession = createSorceRule();
+            } catch (TemplateException e) {
+                e.printStackTrace();
+            }
+            Iterable<CaseInfo> caseInfoList = caseInfoRepository.findAll(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.COLLECTIONING.getValue())
+                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.EARLY_PAYING.getValue()))
+                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.OVER_PAYING.getValue()))
+                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()))
+                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue())));//待催收
+            List<CaseInfo> accCaseInfoList = new ArrayList<>();
+            List<CaseInfo> caseInfoList1 = new ArrayList<>();
+            caseInfoList.forEach(single ->accCaseInfoList.add(single));
+            if (accCaseInfoList.size() > 0) {
+                for(CaseInfo caseInfo : accCaseInfoList){
+                    ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
+                    int age = IdcardUtils.getAgeByIdCard(caseInfo.getPersonalInfo().getIdCard());
+                    scoreRuleModel.setAge(age);
+                    scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
+                    scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
+                    scoreRuleModel.setProId(caseInfo.getArea().getId());//省份id
+                    Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
+                    if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
+                        scoreRuleModel.setIsWork(1);
+                    } else {
+                        scoreRuleModel.setIsWork(0);
+                    }
+                    kieSession.insert(scoreRuleModel);//插入
+                    kieSession.fireAllRules();//执行规则
+                    caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                    caseInfoList1.add(caseInfo);
+                }
+                kieSession.dispose();
+                caseInfoRepository.save(caseInfoList1);
+                watch1.stop();
+                //log.info("耗时："+watch1.getTotalTimeMillis());
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(null);
+            }
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo","failure","案件为空")).body(null);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    /**
+     * 动态生成规则
+     * @return
+     * @throws IOException
+     * @throws
+     */
+    private  KieSession createSorceRule() throws IOException, TemplateException {
+       Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
+       Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
+        ResponseEntity<ScoreRules> responseEntity=restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules"),ScoreRules.class);
+        List<ScoreRule> rules=null;
+        if(responseEntity.hasBody()){
+            ScoreRules scoreRules=responseEntity.getBody();
+            rules=scoreRules.getScoreRules();
+        }
+        StringBuilder sb = new StringBuilder();
+        if(Objects.nonNull(rules)){
+            for (ScoreRule rule : rules) {
+                for (int i = 0; i < rule.getFormulas().size(); i++) {
+                    ScoreFormula scoreFormula = rule.getFormulas().get(i);
+                    Map<String, String> map = new HashMap<>();
+                    map.put("id", rule.getId());
+                    map.put("index", String.valueOf(i));
+                    map.put("strategy", scoreFormula.getStrategy());
+                    map.put("score", String.valueOf(scoreFormula.getScore()));
+                    map.put("weight", String.valueOf(rule.getWeight()));
+                    sb.append(FreeMarkerTemplateUtils.processTemplateIntoString(scoreFormulaTemplate, map));
+                }
+            }
+        }
+        KieServices kieServices = KieServices.Factory.get();
+        KieFileSystem kfs = kieServices.newKieFileSystem();
+        Map<String, String> map = new HashMap<>();
+        map.put("allRules", sb.toString());
+        String text = FreeMarkerTemplateUtils.processTemplateIntoString(scoreRuleTemplate, map);
+        kfs.write("src/main/resources/simple.drl",
+                kieServices.getResources().newReaderResource(new StringReader(text)));
+        KieBuilder kieBuilder = kieServices.newKieBuilder(kfs).buildAll();
+        Results results = kieBuilder.getResults();
+        if (results.hasMessages(org.kie.api.builder.Message.Level.ERROR)) {
+            System.out.println(results.getMessages());
+            throw new IllegalStateException("### errors ###");
+        }
+        KieContainer kieContainer =
+                kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
+        KieSession kieSession = kieContainer.newKieSession();
+        return  kieSession;
     }
 }
