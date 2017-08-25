@@ -132,10 +132,10 @@ public class CaseRepairController extends BaseController{
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CaseRepair>> getAllTelCase(@QuerydslPredicate(root = CaseRepair.class) Predicate predicate,
-                                                          @ApiIgnore Pageable pageable,
-                                                          @RequestHeader(value = "X-UserToken") String token,
-                                                          @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
+    public ResponseEntity<Page<CaseRepair>> getAllRepairingCase(@QuerydslPredicate(root = CaseRepair.class) Predicate predicate,
+                                                                @ApiIgnore Pageable pageable,
+                                                                @RequestHeader(value = "X-UserToken") String token,
+                                                                @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         User user = null;
         try {
             user = getUserByToken(token);
