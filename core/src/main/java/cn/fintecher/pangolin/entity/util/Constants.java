@@ -240,6 +240,10 @@ public final class Constants {
 
     /**协催无进展提醒天数**/
     public final static String SYS_ASSISTREMIND_DAYS="sys.assistRemind.days";
+    /**协催强制流转提醒天数**/
+    public final static String SYS_ASSISTREMIND_BIGDAYSREMIND="sys.assistRemind.bigDaysRemind";
+    /**协催强制流转天数**/
+    public final static String SYS_ASSISTREMIND_BIGDAYS="sys.assistRemind.bigDays";
 
     /**抢单半径（公里）**/
     public final static String SYS_QIANGDAN_RADIUS="sys.qiangdan.radius";

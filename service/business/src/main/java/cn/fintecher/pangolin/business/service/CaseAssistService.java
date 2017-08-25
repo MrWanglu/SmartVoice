@@ -3,8 +3,12 @@ package cn.fintecher.pangolin.business.service;
 import cn.fintecher.pangolin.business.model.AssistingStatisticsModel;
 import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.DepartmentRepository;
+import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.util.Constants;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import org.apache.commons.collections4.IterableUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -24,6 +28,8 @@ public class CaseAssistService {
     private CaseAssistRepository caseAssistRepository;
     @Inject
     private DepartmentRepository departmentRepository;
+    @Inject
+    private SysParamRepository sysParamRepository;
 
     /**
      * 获取机构下待协催、协催中的协催案件
@@ -82,5 +88,33 @@ public class CaseAssistService {
         model.setNum(assistId.size());
         model.setAssistList(assistId);
         return model;
+    }
+
+    /**
+     * 获取强制流转的协催案件
+     * @param companyCode
+     * @return
+     */
+    public List<CaseAssist> getForceTurnAssistCase(String companyCode){
+        List<CaseAssist> caseAssistList = new ArrayList<>();
+        QSysParam qSysParam = QSysParam.sysParam;
+        SysParam assistBigDaysRemind = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                .and(qSysParam.code.eq(Constants.SYS_ASSISTREMIND_BIGDAYSREMIND))
+                .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+        SysParam assistBigDays = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                .and(qSysParam.code.eq(Constants.SYS_ASSISTREMIND_BIGDAYS))
+                .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+        if (Objects.nonNull(assistBigDaysRemind) && Objects.nonNull(assistBigDays)) {
+            QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(qCaseAssist.holdDays.between(Integer.valueOf(assistBigDays.getValue()) - Integer.valueOf(assistBigDaysRemind.getValue()),
+                    Integer.valueOf(assistBigDays.getValue())).
+                    and(qCaseAssist.assistWay.eq(CaseAssist.AssistWay.WHOLE_ASSIST.getValue())).
+                    and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())).
+                    and(qCaseAssist.companyCode.eq(companyCode)).
+                    and(qCaseAssist.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
+            caseAssistList.addAll(IterableUtils.toList(caseAssistRepository.findAll(builder)));
+        }
+        return caseAssistList;
     }
 }

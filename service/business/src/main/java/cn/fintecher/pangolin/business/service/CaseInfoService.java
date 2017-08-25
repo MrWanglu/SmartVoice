@@ -1679,7 +1679,6 @@ public class CaseInfoService {
             caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
         }
 
-
         return caseInfoList;
     }
 
@@ -1727,7 +1726,7 @@ public class CaseInfoService {
     }
 
     /**
-     * 获取若干天无进展的协催案件
+     * 获取若干天无进展的单次协催案件
      *
      * @return
      */
@@ -1742,6 +1741,7 @@ public class CaseInfoService {
             BooleanBuilder builder = new BooleanBuilder();
             builder.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue()).
                     and(qCaseAssist.holdDays.gt(Integer.valueOf(sysParam.getValue()))).
+                    and(qCaseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue())).
                     and(qCaseAssist.companyCode.eq(companyCode)));
             caseAssistList.addAll(IterableUtils.toList(caseAssistRepository.findAll(builder)));
         }
