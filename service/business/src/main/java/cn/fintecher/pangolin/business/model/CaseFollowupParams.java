@@ -38,4 +38,8 @@ public class CaseFollowupParams {
     private Integer contactState; //联系电话状态
     private String contactPhone; //联系电话
     private Integer addrStatus; //地址状态
+    private String taskId;
+    private String recoderId;
+    private String taskcallerId;
+    private Integer callType;
 }

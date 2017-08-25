@@ -83,7 +83,7 @@ public class UploadFileServiceImpl implements UploadFileService {
     }
 
     @Override
-    public void uploadCaseFileReduce(InputStream inputStream, String userId, String userName, String batchNum, String companyCode) {
+    public void uploadCaseFileReduce(InputStream inputStream, String userId, String userName, String batchNum, String companyCode, String caseNumber) {
         String targetTempFilePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(userName).
                 concat(File.separator).concat(ShortUUID.generateShortUuid()).concat(File.separator);
 
@@ -126,6 +126,7 @@ public class UploadFileServiceImpl implements UploadFileService {
                         message.setUserId(userId);
                         message.setUploadFile(uploadFile);
                         message.setBatchNum(batchNum);
+                        message.setCaseNumber(caseNumber);
                         message.setPath(directoryName);
                         current = current + 1;
                         message.setCurrent(current);
