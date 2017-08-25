@@ -960,10 +960,8 @@ public class CaseInfoService {
                 throw new RuntimeException("所选案件未找到");
             }
             if (Objects.equals(advanceCirculationParams.getType(), 0)) {
-                caseInfo.setCaseType(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue()); //案件类型 176-电催提前流转
                 caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.PHONE_WAITING.getValue()); //小流转审批状态 197-电催流转待审批
             } else {
-                caseInfo.setCaseType(CaseInfo.CaseType.OUTFAHEADTURN.getValue()); //案件类型 17-外访提前流转
                 caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.VISIT_WAITING.getValue()); //小流转审批状态 200-外访流转待审批
             }
             caseInfo.setOperator(tokenUser); //操作人
