@@ -246,16 +246,11 @@ public class CaseRepairController extends BaseController{
      */
     @GetMapping("/viewCaseRepair")
     @ApiOperation(value = "查看已修复案件信息",notes = "查看已修复案件信息")
-    public ResponseEntity<List<String>> viewCaseRepair(String id) {
+    public ResponseEntity<List<CaseRepairRecord>> viewCaseRepair(String id) {
         try{
             CaseRepair caseRepair = caseRepairRepository.findOne(id);
             List<CaseRepairRecord> caseRepairRecordList = caseRepair.getCaseRepairRecordList();
-            List<String> fileUrls = new ArrayList<>();
-            for(CaseRepairRecord caseRepairRecord : caseRepairRecordList) {
-                String fileUrl = caseRepairRecord.getFileUrl();
-                fileUrls.add(fileUrl);
-            }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查看信息成功","CaseRepairController")).body(fileUrls);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查看信息成功","CaseRepairController")).body(caseRepairRecordList);
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","exception","系统异常")).body(null);
@@ -267,17 +262,12 @@ public class CaseRepairController extends BaseController{
      */
     @GetMapping("/viewCaseRepairRecord")
     @ApiOperation(value = "修复附件查看",notes = "修复附件查看")
-    public ResponseEntity<List<String>> viewCaseRepairRecord(String id) {
+    public ResponseEntity<List<CaseRepairRecord>> viewCaseRepairRecord(String id) {
         try{
             Iterable<CaseRepairRecord> caseRepairRecordList = caseRepairRecordRepository.findAll(QCaseRepairRecord.caseRepairRecord.caseId.eq(id));
             List<CaseRepairRecord> list = new ArrayList<>();
-            List<String> fileUrls = new ArrayList<>();
             caseRepairRecordList.forEach(single ->list.add(single));
-            for(CaseRepairRecord caseRepairRecord : list) {
-                String fileUrl = caseRepairRecord.getFileUrl();
-                fileUrls.add(fileUrl);
-            }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查看信息成功","CaseRepairController")).body(fileUrls);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查看信息成功","CaseRepairController")).body(list);
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","exception","系统异常")).body(null);
