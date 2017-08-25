@@ -66,7 +66,8 @@
         count(case when op_url is not null then id end) as effectiveCallNum from case_followup_record where DATE_FORMAT(operator_time,'%Y-%m-%d') = DATE_FORMAT(#{historyDate},'%Y-%m-%d')
         GROUP BY operator) b on a.current_collector = b.operator
         LEFT JOIN
-        (SELECT m.id,n.deptCode,n.deptName,o.parentDeptCode,o.parentDeptName,m.companyCode from (SELECT id,dept_id as deptId,company_code as companyCode from user) m
+        (SELECT m.id,n.deptCode,n.deptName,o.parentDeptCode,o.parentDeptName,m.companyCode,m.userName,m.realName
+        from (SELECT id,dept_id as deptId,company_code as companyCode,user_name as userName,real_name as realName from user) m
         LEFT JOIN
         (SELECT id,code as deptCode,`name` as deptName from department) n on m.deptId = n.id
         LEFT JOIN
