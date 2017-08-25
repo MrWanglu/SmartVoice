@@ -58,6 +58,7 @@ public class SmaRequestService {
                             }
                             map.put(key1.toString(), value1.toString());
                         }
+                        map.put(key.toString(), value.toString());
                     } else {
                         map.put(key.toString(), value.toString());
                     }
