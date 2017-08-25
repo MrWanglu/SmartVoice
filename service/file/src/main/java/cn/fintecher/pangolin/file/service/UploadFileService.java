@@ -15,7 +15,7 @@ public interface UploadFileService {
 
     UploadFile uploadFile(InputStream inputStream, long fileSize, String fileName, String fileExtName, String creator);
 
-    void uploadCaseFileReduce(InputStream inputStream, String userId, String userName, String batchNum, String companyCode);
+    void uploadCaseFileReduce(InputStream inputStream, String userId, String userName, String batchNum, String companyCode, String caseNumber);
 
     String uploadFileUrl(MultipartFile file) throws IOException;
 }
