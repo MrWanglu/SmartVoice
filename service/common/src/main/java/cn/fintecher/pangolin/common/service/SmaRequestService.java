@@ -62,6 +62,22 @@ public class SmaRequestService {
                     } else {
                         map.put(key.toString(), value.toString());
                     }
+                    if (Objects.equals("taskRecoder", key)) {
+                        Map<String, String> LinkedHashMap2 = (LinkedHashMap) value;
+                        for (Iterator it2 = LinkedHashMap2.keySet().iterator(); it2.hasNext(); ) {
+                            Object key2 = it2.next().toString();
+                            Object value2;
+                            if (Objects.nonNull(LinkedHashMap2.get(key2))) {
+                                value2 = LinkedHashMap2.get(key2);
+                            } else {
+                                value2 = "未获取";
+                            }
+                            map.put(key2.toString(), value2.toString());
+                        }
+                        map.put(key.toString(), value.toString());
+                    } else {
+                        map.put(key.toString(), value.toString());
+                    }
                 }
 
                 if (Objects.equals(map.get("responseCode"), "1")) {
