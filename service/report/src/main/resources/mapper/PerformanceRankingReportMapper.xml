@@ -56,7 +56,7 @@
     </select>
 
     <!-- 生成历史报表 -->
-    <select id="saveHistoryReport" parameterType="Date"
+    <select id="saveHistoryReport"
             resultType="cn.fintecher.pangolin.report.entity.PerformanceRankingReport">
         SELECT x.parentDeptCode,x.parentDeptName,x.deptCode,x.deptName,x.userName,x.realName,
         case when x.dayBackMoney is null then 0 else x.dayBackMoney end as dayBackMoney,
@@ -64,7 +64,7 @@
         (case when x.target is null then 0 else x.target end - case when x.monthBackMoney is null then 0 else x.monthBackMoney end) as targetDisparity,x.companyCode from
         (SELECT current_collector,count(id) as caseNum from case_info where current_collector is not null
         and current_collector in (SELECT id from `user` where dept_id in (SELECT id from department where `level` =
-        (SELECT max(`level`) from department where id in (SELECT dept_id from user)))) GROUP BY current_collector) w
+        (SELECT max(`level`) from department where id in (SELECT dept_id from user where company_code = #{companyCode})))) GROUP BY current_collector) w
         LEFT JOIN
         (SELECT u.id,u.companyCode,u.userName,u.realName,v.parentDeptCode,v.parentDeptName,v.deptCode,v.deptName,e.dayBackMoney,e.monthBackMoney,q.target from
         (SELECT id,dept_id,company_code as companyCode,user_name as userName,real_name as realName from user) u
@@ -180,5 +180,10 @@
             AND parent_dept_code LIKE CONCAT(#{cope},'%')
         </if>
         order by monthBackMoney desc,dept_code asc
+    </select>
+
+    <!-- 查询所有公司code码 -->
+    <select id="getCompanyCode" resultType="String">
+        select code from pangolin_business.company;
     </select>
 </mapper>

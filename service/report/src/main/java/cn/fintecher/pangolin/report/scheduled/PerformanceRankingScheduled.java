@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -43,7 +44,12 @@ public class PerformanceRankingScheduled {
         cal = Calendar.getInstance();
         cal.add(Calendar.DATE, -1);
         Date endDate = cal.getTime();
-        List<PerformanceRankingReport> performanceRankingReports = performanceRankingReportMapper.saveHistoryReport(startDate, endDate, endDate);
+        List<PerformanceRankingReport> performanceRankingReports = new ArrayList<>();
+        List<String> companyCodeList = performanceRankingReportMapper.getCompanyCode();
+        for (String companyCode : companyCodeList) {
+            List<PerformanceRankingReport> performanceRankingReportList = performanceRankingReportMapper.saveHistoryReport(startDate, endDate, endDate, companyCode);
+            performanceRankingReports.addAll(performanceRankingReportList);
+        }
         for (PerformanceRankingReport performanceRankingReport : performanceRankingReports) {
             performanceRankingReport.setNowDate(ZWDateUtil.getNowDateTime());
             performanceRankingReport.setOperatorDate(ZWDateUtil.getNowDateTime()); //操作时间

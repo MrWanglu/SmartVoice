@@ -29,7 +29,8 @@ public interface PerformanceRankingReportMapper extends BaseMapper<PerformanceRa
      */
     List<PerformanceRankingReport> saveHistoryReport(@Param("startDate") Date startDate,
                                                      @Param("endDate") Date endDate,
-                                                     @Param("historyDate") Date historyDate);
+                                                     @Param("historyDate") Date historyDate,
+                                                     @Param("companyCode") String companyCode);
 
     /**
      * @Description 查询历史报表
@@ -63,4 +64,9 @@ public interface PerformanceRankingReportMapper extends BaseMapper<PerformanceRa
                                                           @Param("deptCode") String deptCode,
                                                           @Param("realName") String realName,
                                                           @Param("code") String code);
+
+    /**
+     * @Description 查询所有的公司code码
+     */
+    List<String> getCompanyCode();
 }

@@ -43,6 +43,7 @@ public class PerformanceRankingReport extends BaseEntity {
     private BigDecimal monthBackMoney = new BigDecimal(0);
 
     @ApiModelProperty(notes = "排名")
+    @Transient
     private Integer rank;
 
     @ApiModelProperty(notes = "月度回款金额目标")
