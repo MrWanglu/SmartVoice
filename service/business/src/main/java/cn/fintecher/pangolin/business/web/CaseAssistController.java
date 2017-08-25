@@ -580,6 +580,8 @@ public class CaseAssistController extends BaseController {
                     caseAssist.setCaseFlowinTime(new Date());
                     caseAssist.setOperatorTime(new Date());
                     caseAssist.setOperator(user);
+                    caseAssist.setHasLeaveDays(0);
+                    caseAssist.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());
                     caseAssist.setHoldDays(0);
                     caseAssist.setMarkId(CaseInfo.Color.NO_COLOR.getValue());
                     caseAssistList.add(caseAssist);

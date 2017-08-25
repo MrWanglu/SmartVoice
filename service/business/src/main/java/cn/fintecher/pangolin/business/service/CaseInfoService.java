@@ -173,6 +173,8 @@ public class CaseInfoService {
             caseAssist.setCaseFlowinTime(ZWDateUtil.getNowDateTime()); //流入时间
             caseAssist.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseAssist.setHoldDays(0); //持案天数归0
+            caseAssist.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());
+            caseAssist.setHasLeaveDays(0);
             caseAssist.setMarkId(CaseInfo.Color.NO_COLOR.getValue());//打标
             caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue());//协催待催收
             caseAssist.setCaseFlowinTime(new Date());
