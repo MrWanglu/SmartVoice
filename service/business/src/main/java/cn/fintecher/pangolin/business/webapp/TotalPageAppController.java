@@ -12,6 +12,7 @@ import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -131,5 +132,21 @@ public class TotalPageAppController extends BaseController {
             }
         }
         return rankModelList;
+    }
+
+    @GetMapping(value = "/updatePhoto")
+    @ApiOperation(value = "修改用户头像", notes = "修改用户头像")
+    public ResponseEntity<User> updatePhoto(@RequestHeader(value = "X-UserToken") String token,
+                                            @RequestParam(required = true) @ApiParam(value = "头像ID") String photoUrl){
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+        }
+        user.setPhoto(photoUrl);
+        userRepository.saveAndFlush(user);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert("User", "", "修改头像成功")).body(user);
     }
 }

@@ -51,7 +51,7 @@ public class PerformanceRankingScheduled {
             performanceRankingReports.addAll(performanceRankingReportList);
         }
         for (PerformanceRankingReport performanceRankingReport : performanceRankingReports) {
-            performanceRankingReport.setNowDate(ZWDateUtil.getNowDateTime());
+            performanceRankingReport.setNowDate(endDate);
             performanceRankingReport.setOperatorDate(ZWDateUtil.getNowDateTime()); //操作时间
             performanceRankingReportMapper.insert(performanceRankingReport);
         }

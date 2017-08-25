@@ -99,7 +99,7 @@
 
     <!-- 查询催收员每日催收结果历史报表 -->
     <select id="getHistoryReport" parameterType="cn.fintecher.pangolin.report.model.GeneralParams"
-            resultType="cn.fintecher.pangolin.report.entity.DailyResultReport">
+            resultMap="dailyResultReport">
         SELECT * from daily_result_report where dept_code LIKE CONCAT(#{deptCode},'%') AND company_code = #{companyCode}
         <if test="startDate != null and endDate != null">
             AND <![CDATA[DATE_FORMAT(now_date,'%Y-%m-%d') >= DATE_FORMAT(#{startDate},'%Y-%m-%d')]]>
@@ -113,4 +113,29 @@
         </if>
         order by now_date DESC,dept_code asc
     </select>
+
+    <resultMap id="dailyResultReport" type="cn.fintecher.pangolin.report.entity.DailyResultReport">
+        <id column="id" property="id"/>
+        <result column="dept_code" property="deptCode"/>
+        <result column="dept_name" property="deptName"/>
+        <result column="parent_dept_code" property="parentDeptCode"/>
+        <result column="parent_dept_name" property="parentDeptName"/>
+        <result column="user_name" property="userName"/>
+        <result column="real_name" property="realName"/>
+        <result column="case_num" property="caseNum"/>
+        <result column="case_amt" property="caseAmt"/>
+        <result column="day_num" property="dayNum"/>
+        <result column="day_amt" property="dayAmt"/>
+        <result column="month_num" property="monthNum"/>
+        <result column="month_amt" property="monthAmt"/>
+        <result column="day_num_rate" property="dayNumRate"/>
+        <result column="day_amt_rate" property="dayAmtRate"/>
+        <result column="back_money_rate" property="backMoneyRate"/>
+        <result column="target" property="target"/>
+        <result column="now_date" property="nowDate"/>
+        <result column="operator_user_name" property="operatorUserName"/>
+        <result column="operator_real_name" property="operatorRealName"/>
+        <result column="operator_date" property="operatorDate"/>
+        <result column="company_code" property="companyCode"/>
+    </resultMap>
 </mapper>

@@ -315,8 +315,26 @@ public class DataInfoExcelController {
 
     @GetMapping("/findUpload")
     @ApiOperation(value = "查看附件", notes = "查看附件")
-    public ResponseEntity<List<DataInfoExcelFile>> findUpload(@RequestParam(value = "caseId", required = true) @ApiParam("案件ID") String caseId) {
-        Iterable<DataInfoExcelFile> all = dataInfoExcelFileRepository.findAll(QDataInfoExcelFile.dataInfoExcelFile.caseId.eq(caseId));
+    public ResponseEntity<List<DataInfoExcelFile>> findUpload(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                              @RequestParam(value = "caseId", required = true) @ApiParam("案件编号") String caseNumber,
+                                                              @RequestParam(value = "companyCode",required = false) String companyCode) {
+        ResponseEntity<User> userResponseEntity=null;
+        try {
+            userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+        }catch (final Exception e){
+            logger.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert( "DataInfoExcelController","findUpload", e.getMessage())).body(null);
+        }
+        User user = userResponseEntity.getBody();
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (StringUtils.isNotBlank(companyCode)) {
+                user.setCompanyCode(companyCode);
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "casesConfirmByBatchNum", "请先选择公司!")).body(null);
+            }
+        }
+        Iterable<DataInfoExcelFile> all = dataInfoExcelFileRepository.findAll(QDataInfoExcelFile.dataInfoExcelFile.caseNumber.eq(caseNumber)
+                .and(QDataInfoExcelFile.dataInfoExcelFile.companyCode.eq(user.getCompanyCode())));
         List<DataInfoExcelFile> dataInfoExcelFiles = IterableUtils.toList(all);
         return ResponseEntity.ok().body(dataInfoExcelFiles);
     }

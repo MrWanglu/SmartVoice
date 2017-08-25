@@ -88,7 +88,6 @@ public class FileUploadController {
         message.setUserName(user.getUserName());
         message.setUserId(user.getId());
         message.setCompanyCode(user.getCompanyCode());
-        message.setCaseNumber(request.getCaseNumber());
         rabbitTemplate.convertAndSend("mr.cui.file.import.upload.success", message);
         return ResponseEntity.ok(uploadFile);
     }

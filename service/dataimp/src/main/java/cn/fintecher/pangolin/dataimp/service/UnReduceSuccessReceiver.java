@@ -50,7 +50,6 @@ public class UnReduceSuccessReceiver {
             log.debug("收到附件上传成功消息 {}", message);
             UploadFile uploadFile = message.getUploadFile();
             String batchNum = message.getBatchNum();
-            String caseNumber = message.getCaseNumber();
             String path = message.getPath();
             String userId = message.getUserId();
             ResponseEntity<User> forEntity = null;
@@ -76,7 +75,6 @@ public class UnReduceSuccessReceiver {
                 dataInfoExcelFile.setFileUrl(uploadFile.getUrl());
                 dataInfoExcelFile.setOperatorName(user.getRealName());
                 dataInfoExcelFile.setCompanyCode(user.getCompanyCode());
-                dataInfoExcelFile.setCaseNumber(caseNumber);
                 //解析文件文件路径
                 //通过文件名字获取案件信息(客户姓名身份证号产品名称)
                 String[] fileNameArr = path.split("_");

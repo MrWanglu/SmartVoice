@@ -91,9 +91,9 @@
 
     <!-- 查询历史报表 -->
     <select id="getHistoryReport" parameterType="cn.fintecher.pangolin.report.model.PerformanceRankingParams"
-            resultType="cn.fintecher.pangolin.report.entity.PerformanceRankingReport">
+            resultMap="performanceRankingReport">
         SELECT * from performance_ranking_report
-        where company_code = #{companyCode} and parent_dept_code like CONCAT(#{deptCode},'%') ORDER BY month_back_money
+        where company_code = #{companyCode} and parent_dept_code like CONCAT(#{deptCode},'%')
         <if test="date != null">
             AND DATE_FORMAT(now_date,'%Y-%m-%d') = #{date}
         </if>
@@ -103,12 +103,12 @@
         <if test="code != null">
             AND parent_dept_code LIKE CONCAT(#{cope},'%')
         </if>
-        order by monthBackMoney desc
+        ORDER BY month_back_money desc
     </select>
 
     <!-- 查询是否是管理者 -->
     <select id="getManage" parameterType="String" resultType="Integer">
-        SELECT manager from user where user_name = #{userName}
+        SELECT manager from `user` where user_name = #{userName} and company_code = #{companyCode}
     </select>
 
     <!-- 查询催收员业绩排名汇总实时报表 -->
@@ -167,9 +167,9 @@
 
     <!-- 查询汇总历史报表 -->
     <select id="getHistorySummayReport" parameterType="cn.fintecher.pangolin.report.model.PerformanceRankingParams"
-            resultType="cn.fintecher.pangolin.report.entity.PerformanceRankingReport">
+            resultMap="performanceRankingReport">
         SELECT * from performance_ranking_report
-        where company_code = #{companyCode} and parent_dept_code like CONCAT(#{deptCode},'%') ORDER BY month_back_money
+        where company_code = #{companyCode} and parent_dept_code like CONCAT(#{deptCode},'%')
         <if test="date != null">
             AND DATE_FORMAT(now_date,'%Y-%m-%d') = #{date}
         </if>
@@ -179,11 +179,31 @@
         <if test="code != null">
             AND parent_dept_code LIKE CONCAT(#{cope},'%')
         </if>
-        order by monthBackMoney desc,dept_code asc
+        ORDER BY month_back_money desc,dept_code asc
     </select>
 
     <!-- 查询所有公司code码 -->
     <select id="getCompanyCode" resultType="String">
         select code from pangolin_business.company;
     </select>
+
+    <resultMap id="performanceRankingReport" type="cn.fintecher.pangolin.report.entity.PerformanceRankingReport">
+        <id column="id" property="id"/>
+        <result column="dept_code" property="deptCode"/>
+        <result column="dept_name" property="deptName"/>
+        <result column="parent_dept_code" property="parentDeptCode"/>
+        <result column="parent_dept_name" property="parentDeptName"/>
+        <result column="user_name" property="userName"/>
+        <result column="real_name" property="realName"/>
+        <result column="case_num" property="caseNum"/>
+        <result column="day_back_money" property="dayBackMoney"/>
+        <result column="month_back_money" property="monthBackMoney"/>
+        <result column="target" property="target"/>
+        <result column="target_disparity" property="targetDisparity"/>
+        <result column="now_date" property="nowDate"/>
+        <result column="operator_user_name" property="operatorUserName"/>
+        <result column="operator_real_name" property="operatorRealName"/>
+        <result column="operator_date" property="operatorDate"/>
+        <result column="company_code" property="companyCode"/>
+    </resultMap>
 </mapper>
