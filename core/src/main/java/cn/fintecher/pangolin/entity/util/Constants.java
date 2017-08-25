@@ -246,7 +246,4 @@ public final class Constants {
     /**地球半径**/
     public final static double EARTH_RADIUS=6371;
 
-    /**每日毫秒数**/
-    public final static long ONE_DAY_MILLIS=86400000;
-
 }

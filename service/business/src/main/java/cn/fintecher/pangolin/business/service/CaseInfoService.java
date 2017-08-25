@@ -1710,9 +1710,8 @@ public class CaseInfoService {
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder builder = new BooleanBuilder();
             builder.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue()).
-                    and(qCaseAssist.caseFlowinTime.lt(new Date(System.currentTimeMillis()-Constants.ONE_DAY_MILLIS * Integer.valueOf(sysParam.getValue())))).
-                    and(qCaseAssist.companyCode.eq(companyCode)).
-                    and(qCaseAssist.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
+                    and(qCaseAssist.holdDays.gt(Integer.valueOf(sysParam.getValue()))).
+                    and(qCaseAssist.companyCode.eq(companyCode)));
             caseAssistList.addAll(IterableUtils.toList(caseAssistRepository.findAll(builder)));
         }
         return caseAssistList;
