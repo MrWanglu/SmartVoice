@@ -89,7 +89,7 @@
 
     <!-- 查询回款历史报表 -->
     <select id="getHistoryReport" parameterType="cn.fintecher.pangolin.report.model.GeneralParams"
-            resultType="cn.fintecher.pangolin.report.entity.BackMoneyReport">
+            resultMap="backMoneyReport">
         SELECT * from back_money_report where dept_code like CONCAT(#{deptCode},'%') and company_code = #{companyCode}
         <if test="startDate != null and endDate != null">
             AND <![CDATA[DATE_FORMAT(back_date,'%Y-%m-%d') >= DATE_FORMAT(#{startDate},'%Y-%m-%d')]]>
@@ -103,4 +103,20 @@
         </if>
         order by back_date DESC,dept_code asc
     </select>
+
+    <resultMap id="backMoneyReport" type="cn.fintecher.pangolin.report.entity.BackMoneyReport">
+        <id column="id" property="id"/>
+        <result column="dept_code" property="deptCode"/>
+        <result column="dept_name" property="deptName"/>
+        <result column="parent_dept_code" property="parentDeptCode"/>
+        <result column="parent_dept_name" property="parentDeptName"/>
+        <result column="user_name" property="userName"/>
+        <result column="real_name" property="realName"/>
+        <result column="back_money" property="backMoney"/>
+        <result column="back_date" property="backDate"/>
+        <result column="operator_user_name" property="operatorUserName"/>
+        <result column="operator_real_name" property="operatorRealName"/>
+        <result column="operator_date" property="operatorDate"/>
+        <result column="company_code" property="companyCode"/>
+    </resultMap>
 </mapper>
