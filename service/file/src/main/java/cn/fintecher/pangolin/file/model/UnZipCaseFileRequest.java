@@ -14,6 +14,4 @@ public class UnZipCaseFileRequest {
     private String uploadFile;
     @ApiModelProperty("公司Code")
     private String companyCode;
-    @ApiModelProperty("案件编号")
-    private String caseNumber;
 }
