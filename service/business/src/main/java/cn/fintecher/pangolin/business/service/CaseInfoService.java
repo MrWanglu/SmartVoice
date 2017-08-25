@@ -95,6 +95,9 @@ public class CaseInfoService {
     @Inject
     CompanyRepository companyRepository;
 
+    @Inject
+    CaseAdvanceTurnApplayRepository caseAdvanceTurnApplayRepository;
+
     /**
      * @Description 重新分配
      */
@@ -773,7 +776,6 @@ public class CaseInfoService {
         caseInfo.setFollowupTime(null); //跟进时间置空
         caseInfo.setPromiseAmt(new BigDecimal(0)); //承诺还款金额置0
         caseInfo.setPromiseTime(null); //承诺还款时间置空
-        caseInfo.setCirculationStatus(null); //流转审批状态置空
         caseInfo.setDepartment(user.getDepartment());
         if (Objects.equals(user.getType(), User.Type.TEL.getValue())) {
             caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
@@ -967,6 +969,24 @@ public class CaseInfoService {
             caseInfo.setOperator(tokenUser); //操作人
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseInfoRepository.saveAndFlush(caseInfo);
+            //将数据插入到流转申请表中
+            CaseAdvanceTurnApplay caseAdvanceTurnApplay = new CaseAdvanceTurnApplay();
+            BeanUtils.copyProperties(caseInfo,caseAdvanceTurnApplay);
+            if (Objects.equals(advanceCirculationParams.getType(), 0)) {
+                caseAdvanceTurnApplay.setCollectionType(0);//电催
+            } else {
+                caseAdvanceTurnApplay.setCollectionType(1);//外访
+            }
+            caseAdvanceTurnApplay.setDepartId(caseInfo.getDepartment().getCode());
+            caseAdvanceTurnApplay.setCaseId(caseInfo.getId());
+            caseAdvanceTurnApplay.setPersonalName(caseInfo.getPersonalInfo().getName());
+            caseAdvanceTurnApplay.setApplayRealName(tokenUser.getRealName());
+            caseAdvanceTurnApplay.setApplayUserName(tokenUser.getUserName());
+            caseAdvanceTurnApplay.setApplayDeptName(tokenUser.getDepartment().getName());
+            //caseAdvanceTurnApplay.setApplayReason();
+            caseAdvanceTurnApplay.setApplayDate(ZWDateUtil.getNowDateTime());
+            caseAdvanceTurnApplay.setApproveResult(CaseAdvanceTurnApplay.CirculationStatus.PHONE_WAITING.getValue());//待审批
+            caseAdvanceTurnApplayRepository.save(caseAdvanceTurnApplay);
         }
         //消息提醒
         List<User> userList = userService.getAllHigherLevelManagerByUser(tokenUser.getId());
@@ -986,7 +1006,11 @@ public class CaseInfoService {
      * @Description 审批小流转案件
      */
     public void approvalCirculation(CirculationApprovalParams circulationApprovalParams, User tokenUser) {
-        CaseInfo caseInfo = caseInfoRepository.findOne(circulationApprovalParams.getCaseId()); //获取案件信息
+        CaseAdvanceTurnApplay caseAdvanceTurnApplay = caseAdvanceTurnApplayRepository.findOne(circulationApprovalParams.getApproveId());//审核申请信息
+        if (Objects.isNull(caseAdvanceTurnApplay)) {
+            throw new RuntimeException("该申请未找到");
+        }
+        CaseInfo caseInfo = caseInfoRepository.findOne(caseAdvanceTurnApplay.getCaseId()); //获取案件信息
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
@@ -1065,6 +1089,7 @@ public class CaseInfoService {
             caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
             caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
+            caseAdvanceTurnApplay.setApproveResult(CaseAdvanceTurnApplay.CirculationStatus.PHONE_PASS.getValue());//通过
         } else { //审批拒绝
             if (Objects.equals(circulationApprovalParams.getType(), 0)) { //电催小流转
                 caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.PHONE_REFUSE.getValue()); //199-电催流转拒绝
@@ -1072,7 +1097,12 @@ public class CaseInfoService {
                 caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.VISIT_REFUSE.getValue()); //202-外访流转拒绝
             }
             caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型恢复为193-案件分配
+            caseAdvanceTurnApplay.setApproveResult(CaseAdvanceTurnApplay.CirculationStatus.PHONE_REFUSE.getValue());//拒绝
         }
+        caseAdvanceTurnApplay.setApproveRealName(tokenUser.getRealName());
+        caseAdvanceTurnApplay.setApproveDatetime(ZWDateUtil.getNowDateTime());
+        caseAdvanceTurnApplay.setApproveUserName(tokenUser.getUserName());
+        caseAdvanceTurnApplayRepository.save(caseAdvanceTurnApplay);
         caseInfo.setOperator(tokenUser); //操作人
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         caseInfoRepository.saveAndFlush(caseInfo);
