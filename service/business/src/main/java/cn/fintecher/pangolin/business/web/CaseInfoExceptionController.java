@@ -6,12 +6,14 @@ import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.CaseInfoDistributed;
 import cn.fintecher.pangolin.entity.CaseInfoException;
 import cn.fintecher.pangolin.web.HeaderUtil;
+import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -55,7 +57,8 @@ public class CaseInfoExceptionController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CaseInfoException>> getAllCaseInfoException(@ApiIgnore Pageable pageable){
+    public ResponseEntity<Page<CaseInfoException>> getAllCaseInfoException(@QuerydslPredicate(root = CaseInfoException.class) Predicate predicate,
+                                                                           @ApiIgnore Pageable pageable){
         log.debug("REST request to get all CaseInfoExceptions");
         Page<CaseInfoException> page = caseInfoExceptionRepository.findAll(pageable);
         return ResponseEntity.ok().body(page);
