@@ -227,9 +227,6 @@ public class CaseRepairController extends BaseController{
         } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
-        List<Integer> list = new ArrayList<>();
-        list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
-        list.add(CaseInfo.CollectionStatus.CASE_OUT.getValue());
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if(Objects.equals(user.getUserName(),"administrator")){
             if(Objects.isNull(companyCode)){
@@ -239,7 +236,6 @@ public class CaseRepairController extends BaseController{
         }else{
             builder.and(QCaseRepair.caseRepair.caseId.companyCode.eq(user.getCompanyCode()));
         }
-        builder.and(QCaseRepair.caseRepair.caseId.collectionStatus.notIn(list));
         builder.and(QCaseRepair.caseRepair.repairStatus.eq(CaseRepair.CaseRepairStatus.DISTRIBUTE.getValue()));
         Page<CaseRepair> page = caseRepairRepository.findAll(builder,pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "RepairCaseDistributeController")).body(page);
