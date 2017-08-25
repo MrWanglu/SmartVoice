@@ -77,7 +77,7 @@ public class SysParamController extends BaseController {
         QSysParam qSysParam = QSysParam.sysParam;
         BooleanBuilder builder = new BooleanBuilder();
         if (Objects.nonNull(name)) {
-            builder.and(qSysParam.name.like(name.concat("%")));
+            builder.and(qSysParam.name.like("%".concat(name).concat("%")));
         }
         if (Objects.nonNull(code)) {
             builder.and(qSysParam.code.like(code.concat("%")));
@@ -89,7 +89,7 @@ public class SysParamController extends BaseController {
             builder.and(qSysParam.type.like(type.concat("%")));
         }
         if (Objects.nonNull(value)) {
-            builder.and(qSysParam.value.eq(value));
+            builder.and(qSysParam.value.eq("%".concat(value).concat("%")));
         }
         if (Objects.nonNull(sign)) {
             builder.and(qSysParam.sign.eq(sign));
