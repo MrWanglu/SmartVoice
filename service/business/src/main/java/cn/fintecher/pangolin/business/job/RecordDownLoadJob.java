@@ -71,7 +71,7 @@ public class RecordDownLoadJob implements Job {
         //erpv3 的录音下载
         logger.info("erpv3 的录音下载" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
         dateTime = new DateTime();
-        caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.collectionType.eq(User.Type.TEL.getValue()).and(qCaseFollowupRecord.opUrl.isNull()).or(qCaseFollowupRecord.opUrl.eq("")).and(qCaseFollowupRecord.operatorTime.gt(dateTime.minusWeeks(1).toDate())).and(qCaseFollowupRecord.callType.eq(CaseFollowupRecord.CallType.ERPV3.getValue()))).iterator();
+        caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.opUrl.isNull().and(qCaseFollowupRecord.operatorTime.gt(dateTime.minusWeeks(1).toDate())).and(qCaseFollowupRecord.callType.eq(CaseFollowupRecord.CallType.ERPV3.getValue())).and(qCaseFollowupRecord.taskId.isNotNull()).and(qCaseFollowupRecord.recoderId.isNotNull()).and(qCaseFollowupRecord.taskcallerId.isNotNull())).iterator();
         caseFollowupRecordList = IteratorUtils.toList(caseFollowupRecords);
         HttpHeaders headers = new HttpHeaders();
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -120,7 +120,7 @@ public class RecordDownLoadJob implements Job {
         logger.info("定时调度 中通天鸿的录音调度" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
         try {
             dateTime = new DateTime();
-            caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.collectionType.eq(User.Type.TEL.getValue()).and(qCaseFollowupRecord.opUrl.isNull()).or(qCaseFollowupRecord.opUrl.eq("")).and(qCaseFollowupRecord.operatorTime.gt(dateTime.minusWeeks(1).toDate())).and(qCaseFollowupRecord.callType.eq(CaseFollowupRecord.CallType.TIANHONG.getValue()))).iterator();
+            caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.opUrl.isNull().and(qCaseFollowupRecord.operatorTime.gt(dateTime.minusWeeks(1).toDate())).and(qCaseFollowupRecord.callType.eq(CaseFollowupRecord.CallType.TIANHONG.getValue())).and(qCaseFollowupRecord.taskId.isNotNull())).iterator();
             caseFollowupRecordList = IteratorUtils.toList(caseFollowupRecords);
             if (Objects.nonNull(caseFollowupRecordList)) {
                 for (CaseFollowupRecord caseFollowupRecord : caseFollowupRecordList) {
