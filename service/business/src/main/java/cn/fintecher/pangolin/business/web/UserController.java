@@ -393,7 +393,6 @@ public class UserController extends BaseController {
                                                         @RequestParam(required = false) String realName,
                                                         @ApiIgnore Pageable pageable,
                                                         @RequestHeader(value = "X-UserToken") String token) {
-        logger.info("REST request to query real name", realName);
         User user;
         try {
             user = getUserByToken(token);
