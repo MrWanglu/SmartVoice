@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -55,7 +56,7 @@ public class ReportController extends BaseController {
             User tokenUser = getUserByToken(token);
             List<BackMoneyModel> backMoneyModels = reportService.getBackMoneyReport(generalParams, tokenUser);
             if (Objects.equals(backMoneyModels, null)) {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_BACKMONEY_REPORT)).body(null);
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_BACKMONEY_REPORT)).body(new ArrayList<>());
             } else {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_BACKMONEY_REPORT)).body(backMoneyModels);
             }
@@ -77,7 +78,7 @@ public class ReportController extends BaseController {
             User tokenUser = getUserByToken(token);
             List<PerformanceModel> performanceModels = reportService.getPerformanceReport(performanceParams, tokenUser);
             if (Objects.equals(performanceModels, null)) {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_REPORT)).body(null);
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_REPORT)).body(new ArrayList<>());
             } else {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_PERFORMANCE_REPORT)).body(performanceModels);
             }
@@ -99,7 +100,7 @@ public class ReportController extends BaseController {
             User tokenUser = getUserByToken(token);
             List<DailyProcessModel> dailyProcessModels = reportService.getDailyProcessReport(generalParams, tokenUser);
             if (Objects.isNull(dailyProcessModels)) {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_DAILY_PROCESS_REPORT)).body(null);
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_DAILY_PROCESS_REPORT)).body(new ArrayList<>());
             } else {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_DAILY_PROCESS_REPORT)).body(dailyProcessModels);
             }
@@ -121,7 +122,7 @@ public class ReportController extends BaseController {
             User tokenUser = getUserByToken(token);
             List<DailyResultModel> dailyResultModels = reportService.getDailyResultReport(generalParams, tokenUser);
             if (Objects.isNull(dailyResultModels)) {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_DAILY_RESULT_REPORT)).body(null);
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_DAILY_RESULT_REPORT)).body(new ArrayList<>());
             } else {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_DAILY_RESULT_REPORT)).body(dailyResultModels);
             }
@@ -143,7 +144,7 @@ public class ReportController extends BaseController {
             User tokenUser = getUserByToken(token);
             List<CollectorPerformanceModel> collectorPerformanceModels = reportService.getPerformanceRankingReport(performanceRankingParams, tokenUser);
             if (Objects.isNull(collectorPerformanceModels)) {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_RANKING_REPORT)).body(null);
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_RANKING_REPORT)).body(new ArrayList<>());
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_PERFORMANCE_RANKING_REPORT)).body(collectorPerformanceModels);
         } catch (Exception e) {
@@ -164,7 +165,7 @@ public class ReportController extends BaseController {
             User tokenUser = getUserByToken(token);
             List<PerformanceSummaryModel> performanceSummaryModels = reportService.getSummaryReport(performanceRankingParams, tokenUser);
             if (Objects.isNull(performanceSummaryModels)) {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_RANKING_REPORT)).body(null);
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_RANKING_REPORT)).body(new ArrayList<>());
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_PERFORMANCE_RANKING_REPORT)).body(performanceSummaryModels);
         } catch (Exception e) {
@@ -185,7 +186,7 @@ public class ReportController extends BaseController {
             User tokenUser = getUserByToken(token);
             List<GroupLeaderModel> groupLeaderModels = reportService.getGroupLeaderReport(performanceRankingParams, tokenUser);
             if (Objects.isNull(groupLeaderModels)) {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_RANKING_REPORT)).body(null);
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_RANKING_REPORT)).body(new ArrayList<>());
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_PERFORMANCE_RANKING_REPORT)).body(groupLeaderModels);
         } catch (Exception e) {

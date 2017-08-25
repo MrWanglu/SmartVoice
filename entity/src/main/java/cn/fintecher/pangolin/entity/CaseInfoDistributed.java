@@ -1,6 +1,8 @@
 package cn.fintecher.pangolin.entity;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -49,7 +51,11 @@ public class CaseInfoDistributed extends BaseEntity {
     private String payStatus;
     private String orderId;
     private Integer collectionStatus;
+    @ApiModelProperty("委案日期")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date delegationDate;
+    @ApiModelProperty("结案日期")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date closeDate;
     private BigDecimal commissionRate = new BigDecimal(0);
     private Integer handNumber;

@@ -14,7 +14,8 @@ import java.util.List;
 @Data
 public class BackPlanImportParams {
     private String localUrl;
-    private String token;
+    private String operator;
+    private String CompanyCode;
     private List<String> usernameList;
     private List<UserBackcashPlan> userPlan;
     private int[] startRow;

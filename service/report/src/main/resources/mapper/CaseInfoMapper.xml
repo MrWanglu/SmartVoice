@@ -10,6 +10,7 @@
         <result column="overdue_fine" property="overdueFine"/>
         <result column="overdue_delay_fine" property="overdueDelayFine"/>
         <result column="periods" property="periods"/>
+        <result column="loan_date" property="loanDate"/>
         <result column="per_due_date" property="perDueDate"/>
         <result column="per_pay_amount" property="perPayAmount"/>
         <result column="overdue_days" property="overdueDays"/>
@@ -85,7 +86,7 @@
         b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
         b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
         b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,pr.prodcut_name,b.overdue_periods,b.overdue_days,
-        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,
+        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,b.loan_date,
          pri.id,pri.name,b.personal_id from
       (
       select a.*
@@ -130,7 +131,7 @@
         b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
         b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
         b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,pr.prodcut_name,b.overdue_periods,b.overdue_days,
-        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,
+        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,b.loan_date,
         pri.id,pri.name,b.personal_id from
         (
         select a.*
