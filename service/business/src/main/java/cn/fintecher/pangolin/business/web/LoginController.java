@@ -34,8 +34,6 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
 
-import static cn.fintecher.pangolin.entity.util.Constants.ADMIN_ROLE_ID;
-
 /**
  * @Author: PeiShouWen
  * @Description:
@@ -248,7 +246,7 @@ public class LoginController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "To reset the password parameter abnormalities", "重置密码参数异常")).body(null);
         }
         if (Objects.nonNull(sysParamsPassword) && Objects.equals(Status.Enable.getValue(), sysParamsPassword.getStatus())) {
-            user.setPassword(passwordEncoder.encode(MD5.MD5Encode(sysParamsPassword.getValue())));
+            userOld.setPassword(passwordEncoder.encode(MD5.MD5Encode(sysParamsPassword.getValue())));
         } else {
             userOld.setPassword(passwordEncoder.encode(Constants.LOGIN_RET_PASSWORD));
         }
