@@ -468,10 +468,10 @@ public class UserController extends BaseController {
             userModel.setType(type);
             String manager = null;
             switch (user.getManager()) {
-                case 0:
+                case 1:
                     manager = "是";
                     break;
-                case 1:
+                case 0:
                     manager = "否";
                     break;
                 default:
