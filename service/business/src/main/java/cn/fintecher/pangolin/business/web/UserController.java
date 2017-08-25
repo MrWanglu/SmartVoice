@@ -178,7 +178,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "修改用户", notes = "修改用户")
     public ResponseEntity<User> updateUser(@Validated @ApiParam("用户对象") @RequestBody User user,
                                            @RequestHeader(value = "X-UserToken") String token) {
-        logger.debug("REST request to save user : {}", user);
+
         //修改用户状态或者修改部门的类型 首先处理案件
         User userOld = userRepository.findOne(user.getId());
         if (Objects.equals(Status.Disable.getValue(), user.getStatus()) || !(Objects.equals(user.getDepartment().getType(), userOld.getDepartment().getType()))) {
