@@ -67,7 +67,7 @@ public class OverNightBatchService {
         StopWatch watch = new StopWatch();
         watch.start();
         try {
-            logger.info("开始晚间批量_{} ", jobDataMap.get("sysParamCode"));
+            logger.info("开始晚间批量_{} ", jobDataMap.get("companyCode"));
             if (jobTaskService.checkJobIsRunning(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"))) {
                 logger.info("晚间批量正在执行_{}", jobDataMap.get("companyCode"));
             } else {
