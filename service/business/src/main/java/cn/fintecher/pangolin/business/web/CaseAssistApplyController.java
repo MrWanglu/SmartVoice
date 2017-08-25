@@ -195,12 +195,14 @@ public class CaseAssistApplyController extends BaseController {
             if (approveResult == CaseAssistApply.ApproveResult.VISIT_PASS.getValue()) {
                 // 案件协催表增加记录
                 caseAssist.setCaseId(caseInfo); //案件信息
-                //caseAssist.setLeftDays(); //剩余天数
+                caseAssist.setHoldDays(0); //协催持案天数
+                caseAssist.setHasLeaveDays(0);//已留案天数
                 caseAssist.setMarkId(CaseInfo.Color.NO_COLOR.getValue()); //打标标记-默认无色
 //                caseAssist.setHandupFlag(caseInfo.getHandUpFlag()); //挂起表示
                 caseAssist.setCompanyCode(caseInfo.getCompanyCode()); //公司Code
                 caseAssist.setAssistWay(apply.getAssistWay()); //协催方式
                 caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue()); //协催状态（协催待分配）
+                caseAssist.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());//留案标识-非留案
                 caseAssist.setCaseFlowinTime(new Date()); //流入时间
                 caseAssist.setOperatorTime(new Date()); // 操作时间
                 caseAssist.setCurrentCollector(caseInfo.getCurrentCollector()); //当前催收员

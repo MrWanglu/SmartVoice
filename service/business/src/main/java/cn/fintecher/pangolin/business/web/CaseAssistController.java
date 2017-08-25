@@ -122,6 +122,9 @@ public class CaseAssistController extends BaseController {
                 if (Objects.equals(one.getLeaveCaseFlag(), CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo","所选案件存在已经留案的案件!")).body(null);
                 }
+                if (Objects.equals(one.getAssistWay(), CaseAssist.AssistWay.ONCE_ASSIST.getValue())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo","单次协催的案件不允许留案!")).body(null);
+                }
                 if (count1 >= leaveNum) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo","所选案件数量超过可留案案件数!")).body(null);
                 }
