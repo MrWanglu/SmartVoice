@@ -52,6 +52,8 @@ public interface CaseInfoExceptionRepository extends QueryDslPredicateExecutor<C
         //委托方
         bindings.bind(root.prinName).first((path, value) -> path.eq(value));
 
+        //客户姓名
+        bindings.bind(root.personalName).first((path, value) -> path.contains(value));
     }
 
 }

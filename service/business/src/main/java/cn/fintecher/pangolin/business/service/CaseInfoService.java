@@ -1640,17 +1640,17 @@ public class CaseInfoService {
         List<CaseInfo> caseInfoList = new ArrayList<>();
         QSysParam qSysParam = QSysParam.sysParam;
         //电催案件
-        SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+        SysParam phoneFlowBigDaysRemind = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
                 .and(qSysParam.code.eq(Constants.SYS_PHNOEFLOW_BIGDAYSREMIND))
                 .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
-        SysParam sysParam1 = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+        SysParam phoneFlowBigDays = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
                 .and(qSysParam.code.eq(Constants.SYS_PHNOEFLOW_BIGDAYS))
                 .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
-        if (Objects.nonNull(sysParam) && Objects.nonNull(sysParam1)) {
+        if (Objects.nonNull(phoneFlowBigDaysRemind) && Objects.nonNull(phoneFlowBigDays)) {
             QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
             BooleanBuilder builder = new BooleanBuilder();
-            builder.and(qCaseInfo.holdDays.between(Integer.valueOf(sysParam1.getValue()) - Integer.valueOf(sysParam.getValue()),
-                    Integer.valueOf(sysParam1.getValue())).
+            builder.and(qCaseInfo.holdDays.between(Integer.valueOf(phoneFlowBigDays.getValue()) - Integer.valueOf(phoneFlowBigDaysRemind.getValue()),
+                    Integer.valueOf(phoneFlowBigDays.getValue())).
                     and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
                     and(qCaseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())).
                     and(qCaseInfo.companyCode.eq(companyCode)).
@@ -1658,17 +1658,17 @@ public class CaseInfoService {
             caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
         }
         //外访案件
-        SysParam sysParam2 = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+        SysParam outBoundBigDaysRemind = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
                 .and(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_BIGDAYSREMIND))
                 .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
-        SysParam sysParam3 = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
-                .and(qSysParam.code.eq(Constants.SYS_PHNOEFLOW_BIGDAYS))
+        SysParam outBoundBigDays = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                .and(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_BIGDAYS))
                 .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
-        if (Objects.nonNull(sysParam2) && Objects.nonNull(sysParam3)) {
+        if (Objects.nonNull(outBoundBigDaysRemind) && Objects.nonNull(outBoundBigDays)) {
             QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
             BooleanBuilder builder = new BooleanBuilder();
-            builder.and(qCaseInfo.holdDays.between(Integer.valueOf(sysParam1.getValue()) - Integer.valueOf(sysParam.getValue()),
-                    Integer.valueOf(sysParam1.getValue())).
+            builder.and(qCaseInfo.holdDays.between(Integer.valueOf(outBoundBigDays.getValue()) - Integer.valueOf(outBoundBigDaysRemind.getValue()),
+                    Integer.valueOf(outBoundBigDays.getValue())).
                     and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
                     and(qCaseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())).
                     and(qCaseInfo.companyCode.eq(companyCode)).
