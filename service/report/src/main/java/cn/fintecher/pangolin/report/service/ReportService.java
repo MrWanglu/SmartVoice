@@ -890,6 +890,7 @@ public class ReportService {
     private List<PerformanceRankingReport> saveGroupLeader(List<PerformanceRankingReport> performanceRankingReports) {
         PerformanceRankingReport report = null;
         for (PerformanceRankingReport performanceRankingReport1 : performanceRankingReports) {
+
             Integer manage = performanceRankingReportMapper.getManage(performanceRankingReport1.getUserName(), performanceRankingReport1.getCompanyCode());
             if (1 == manage) { //是管理者
                 report = performanceRankingReport1;
@@ -2030,7 +2031,7 @@ public class ReportService {
     }
 
     /**
-     * @Description
+     * @Description 导出催收员业绩小组汇总排名报表
      */
     public String exportSummaryReport(PerformanceRankingParams performanceRankingParams, User tokenUser) throws IOException {
         //获得报表展示模型
@@ -2088,8 +2089,9 @@ public class ReportService {
                             }
                         } else if (1 == i) {
                             Object obj = ExcelUtil.getProValue("deptName", performanceRankingReport); //通过字段映射获取相应的数据
-                            if (Objects.equals(obj, "累计")) {
-                                cell = setCellValue(obj, row, i); //给单元格set值
+                            if (Objects.isNull(obj)) {
+                                cell = row.createCell(i, CellType.STRING);
+                                cell.setCellValue("");
                             } else {
                                 cell = setCellValue(obj, row, i); //给单元格set值
                                 cell.setCellValue(obj + "(" + performanceRankingReport.getManageName() + ")");
@@ -2101,7 +2103,7 @@ public class ReportService {
                     //给该行每一列设置数据
                     for (int i = 2; i < 10; i++) { //i为报表模版数据列数,从第[2]列姓名开始
                         Object obj = ExcelUtil.getProValue(paramArray[paramIndex], performanceRankingReport); //通过字段映射获取相应的数据
-                        if (2 == i || 3 == i || 7 == i) {
+                        if (3 == i || 7 == i) {
                             if (Objects.isNull(obj)) {
                                 cell = row.createCell(i, CellType.STRING);
                                 cell.setCellValue("");
@@ -2119,7 +2121,7 @@ public class ReportService {
                 }
                 //合并组别
                 if (userIndex - groupIndex > 1) {
-                    CellRangeAddress cra = new CellRangeAddress(groupIndex, userIndex - 2, 1, 1); // 四个参数分别是：起始行，结束行,起始列，结束列
+                    CellRangeAddress cra = new CellRangeAddress(groupIndex, userIndex - 1, 1, 1); // 四个参数分别是：起始行，结束行,起始列，结束列
                     hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
                 }
                 groupIndex = userIndex;
