@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -40,7 +39,7 @@ public class UserBackcashPlanExcelImportService {
             cellErrorList = excelSheetObj.getCellErrorList();
             if (cellErrorList.isEmpty()) {
                 //临时回款计划信息
-                goalExcelImportStrategic(dataList, params.getUsernameList(), params.getUserPlan(), params.getToken(), cellErrorList);
+                goalExcelImportStrategic(dataList, params.getUsernameList(), params.getUserPlan(), params.getOperator(), params.getCompanyCode(),cellErrorList);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -52,7 +51,7 @@ public class UserBackcashPlanExcelImportService {
     /**
      * Excel导入策略
      */
-    public void goalExcelImportStrategic(List dataList, List<String> userList, List<UserBackcashPlan> userPlan, String token, List<CellError> cellErrorList) throws Exception {
+    public void goalExcelImportStrategic(List dataList, List<String> userList, List<UserBackcashPlan> userPlan, String operator,String companyCode,List<CellError> cellErrorList) throws Exception {
 
         // 将数据验证通过的存在List中（不存在计划的）
         List<UserBackcashPlan> passList = new ArrayList<>();
@@ -78,7 +77,7 @@ public class UserBackcashPlanExcelImportService {
                     UserBackcashPlan userBackcashPlan = userBackcashPlanRepository.findOne(qUserBackcashPlan.userName.eq(data.getUserName()).and(qUserBackcashPlan.year.eq(data.getYear())).and(qUserBackcashPlan.month.eq(data.getMonth())));
                     // 要导入的某个用户已经存在
                     if (Objects.isNull(userBackcashPlan)) {
-                        add(passList, data, token);
+                        add(passList, data, operator,companyCode);
                     } else {
                         // 要导入的用户名、年份、月份已经存在就是修改
                         UserBackcashPlan userBackcashPlan1 = new UserBackcashPlan();
@@ -89,11 +88,12 @@ public class UserBackcashPlanExcelImportService {
                         userBackcashPlan1.setMonth(data.getMonth());
                         userBackcashPlan1.setBackCash(data.getBackCash());
                         userBackcashPlan1.setOperateTime(new Date());
-                        userBackcashPlan1.setOperator(token);
+                        userBackcashPlan1.setOperator(operator);
+                        userBackcashPlan1.setCompanyCode(companyCode);
                         passPlanList.add(userBackcashPlan1);
                     }
                 } else {
-                    add(passList, data, token);
+                    add(passList, data, operator,companyCode);
                 }
             }
         } catch (Exception e) {
@@ -191,7 +191,7 @@ public class UserBackcashPlanExcelImportService {
     /**
      * 向List中添加数据
      */
-    private void add(List passList, UploadUserBackcashPlanExcelModel data, String token) {
+    private void add(List passList, UploadUserBackcashPlanExcelModel data, String operator,String companyCode) {
         UserBackcashPlan userBackcashPlan = new UserBackcashPlan();
         userBackcashPlan.setUserName(data.getUserName());
         userBackcashPlan.setRealName(data.getRealName());
@@ -199,7 +199,9 @@ public class UserBackcashPlanExcelImportService {
         userBackcashPlan.setMonth(data.getMonth());
         userBackcashPlan.setBackCash(data.getBackCash());
         userBackcashPlan.setOperateTime(new Date());
-        userBackcashPlan.setOperator(token);
+        userBackcashPlan.setOperator(operator);
+        userBackcashPlan.setCompanyCode(companyCode);
         passList.add(userBackcashPlan);
     }
+
 }

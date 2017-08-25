@@ -73,7 +73,7 @@ public class RoleController extends BaseController {
             builder.and(qRole.companyCode.eq(companyCode));
         }
         if (Objects.nonNull(name)) {
-            builder.and(qRole.name.like(name.concat("%")));
+            builder.and(qRole.name.like("%".concat(name).concat("%")));
         }
         if (Objects.nonNull(status)) {
             builder.and(qRole.status.eq(status));

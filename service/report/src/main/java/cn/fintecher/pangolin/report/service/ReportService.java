@@ -647,7 +647,7 @@ public class ReportService {
         //添加累计,排名
         for (CollectorPerformanceModel collectorPerformanceModel1 : collectorPerformanceModels) {
             List<PerformanceRankingReport> performanceRankingReports1 = collectorPerformanceModel1.getPerformanceRankingReports();
-            doCalculate(performanceRankingReports1, 0);
+            doCalculate(performanceRankingReports1);
         }
         return collectorPerformanceModels;
     }
@@ -777,7 +777,7 @@ public class ReportService {
             List<PerformanceSummarySecModel> performanceSummarySecModels = performanceSummaryModel1.getPerformanceSummarySecModels();
             for (PerformanceSummarySecModel performanceSummarySecModel1 : performanceSummarySecModels) {
                 List<PerformanceRankingReport> performanceRankingReportList = performanceSummarySecModel1.getPerformanceRankingReports();
-                doCalculate(performanceRankingReportList, 1);
+                doCalculate(performanceRankingReportList);
             }
         }
         return performanceSummaryModels;
@@ -846,7 +846,7 @@ public class ReportService {
     /**
      * @Description 计算累计，排名
      */
-    private List<PerformanceRankingReport> doCalculate(List<PerformanceRankingReport> performanceRankingReports, Integer flag) {
+    private List<PerformanceRankingReport> doCalculate(List<PerformanceRankingReport> performanceRankingReports) {
         Integer caseNumSum = 0; //案件总数
         BigDecimal dayAmtSum = new BigDecimal(0); //当日回款总金额
         BigDecimal monthAmtSum = new BigDecimal(0); //月累计回款金额
@@ -873,11 +873,7 @@ public class ReportService {
             month = report.getMonthBackMoney();
         }
         PerformanceRankingReport performanceRankingReport = new PerformanceRankingReport();
-        if (0 == flag) {
-            performanceRankingReport.setRealName("累计");
-        } else {
-            performanceRankingReport.setDeptName("累计");
-        }
+        performanceRankingReport.setRealName("累计");
         performanceRankingReport.setCaseNum(caseNumSum);
         performanceRankingReport.setDayBackMoney(dayAmtSum);
         performanceRankingReport.setMonthBackMoney(monthAmtSum);

@@ -221,7 +221,7 @@ public class UserBackcashPlanController extends BaseController {
     @PostMapping(value = "/importBackAmtGoalExcel")
     @ApiOperation(value = "导入月度回款Excel数据", notes = "导入月度回款Excel数据")
     public ResponseEntity<String> importBackAmtGoalExcel(@RequestBody UploadUserBackcashPlanExcelInfo request,
-                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                                         @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         logger.debug("REST request to import UploadUserBackcashPlanExcelInfo");
         User user;
         try {
@@ -267,6 +267,7 @@ public class UserBackcashPlanController extends BaseController {
         try {
             List<UserBackcashPlan> all = userBackcashPlanRepository.findAll();
             for (UserBackcashPlan accPaybackPlan : all) {
+                accPaybackPlan.setCompanyCode(user.getCompanyCode());
                 userPlan.add(accPaybackPlan);
             }
         } catch (Exception e) {
@@ -277,7 +278,8 @@ public class UserBackcashPlanController extends BaseController {
         // 将要传递的参数进行封装
         BackPlanImportParams backPlanImportParams = new BackPlanImportParams();
         backPlanImportParams.setLocalUrl(uploadFile.getLocalUrl());
-        backPlanImportParams.setToken(user.getUserName());
+        backPlanImportParams.setOperator(user.getUserName());
+        backPlanImportParams.setCompanyCode(user.getCompanyCode());
         backPlanImportParams.setUsernameList(usernameList);
         backPlanImportParams.setUserPlan(userPlan);
         backPlanImportParams.setStartRow(startRow);
@@ -287,7 +289,7 @@ public class UserBackcashPlanController extends BaseController {
         List<CellError> cellErrorList = new ArrayList<>();
         try {
             cellErrorList = userBackcashPlanExcelImportService.importExcelDataInfo(backPlanImportParams);
-            if (Objects.isNull(cellErrorList)) {
+            if (Objects.nonNull(cellErrorList)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败")).body(cellErrorList.get(0).getErrorMsg());
             }
         } catch (Exception e) {
