@@ -50,13 +50,13 @@ public class MobilePositionServiceImpl implements MobilePositionService {
                 query.addCriteria(Criteria.where("realName").regex(mobilePositionParams.getName()));
             }
             if (Objects.nonNull(mobilePositionParams.getStartDate()) && Objects.nonNull(mobilePositionParams.getEndDate())) {
-                query.addCriteria(Criteria.where("datetime").gte(mobilePositionParams.getStartDate()).lte(new Date(mobilePositionParams.getEndDate().getTime())));
+ //               query.addCriteria(Criteria.where("datetime").gte(mobilePositionParams.getStartDate()).lte(new Date(mobilePositionParams.getEndDate().getTime())));
             } else {
                 if (Objects.nonNull(mobilePositionParams.getStartDate())) {
                     query.addCriteria(Criteria.where("datetime").gte(mobilePositionParams.getStartDate()));
                 }
                 if (Objects.nonNull(mobilePositionParams.getEndDate())) {
-                    query.addCriteria(Criteria.where("datetime").lte(new Date(mobilePositionParams.getEndDate().getTime())));
+   //                 query.addCriteria(Criteria.where("datetime").lte(new Date(mobilePositionParams.getEndDate().getTime())));
                 }
             }
             return mongoTemplate.find(query.with(new Sort(Sort.Direction.DESC, "datetime")), MobilePosition.class);
