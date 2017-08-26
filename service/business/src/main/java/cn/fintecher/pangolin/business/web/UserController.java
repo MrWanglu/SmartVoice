@@ -6,10 +6,7 @@ import cn.fintecher.pangolin.business.service.CaseAssistService;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
-import cn.fintecher.pangolin.entity.util.Constants;
-import cn.fintecher.pangolin.entity.util.ExcelUtil;
-import cn.fintecher.pangolin.entity.util.MD5;
-import cn.fintecher.pangolin.entity.util.Status;
+import cn.fintecher.pangolin.entity.util.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
@@ -77,6 +74,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "增加用户", notes = "增加用户")
     public ResponseEntity<User> createUser(@Validated @ApiParam("用户对象") @RequestBody User user,
                                            @RequestHeader(value = "X-UserToken") String token) {
+        user=(User) EntityUtil.emptyValueToNull(user);
         //前端的限制 一级部门普通管理员不能添加用户
         User userToken;
         try {
