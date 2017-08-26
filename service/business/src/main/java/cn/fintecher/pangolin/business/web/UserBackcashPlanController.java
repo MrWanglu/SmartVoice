@@ -98,7 +98,7 @@ public class UserBackcashPlanController extends BaseController {
         }
         if(Objects.isNull(user.getCompanyCode())){
             if(Objects.isNull(companyCode)){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "UserBackcashPlanController", "请先选择公司code码")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "UserBackcashPlan", "请选择公司")).body(null);
             }
             builder.and(qUserBackcashPlan.companyCode.eq(companyCode));
         }else{
