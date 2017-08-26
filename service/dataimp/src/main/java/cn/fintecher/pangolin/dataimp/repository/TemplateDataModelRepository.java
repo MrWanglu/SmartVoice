@@ -12,5 +12,5 @@ import java.util.List;
  * @Date 16:15 2017/7/18
  */
 public interface TemplateDataModelRepository extends MongoRepository<TemplateDataModel, String>,QueryDslPredicateExecutor<TemplateDataModel> {
-    public List<TemplateDataModel> findTemplateDataModelByPrincipalName(String principalName);
+    public List<TemplateDataModel> findTemplateByPrincipalNameAndCompanyCode(String principalName,String companyCode);
 }

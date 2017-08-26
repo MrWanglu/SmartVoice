@@ -240,13 +240,22 @@ public class TemplateDataModelController {
     }
     @GetMapping("/getExcelTempleByPrincipalName")
     @ApiOperation(value = "获取Excel模板", notes = "获取Excel模板")
-    public ResponseEntity getExcelTempleByTemplateName(@RequestParam String principalName) {
+    public ResponseEntity getExcelTempleByTemplateName(@RequestParam String principalName, @RequestHeader(value = "X-UserToken") String token) {
+        ResponseEntity<User> userResponseEntity=null;
+        try {
+            userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+        }catch (Exception e){
+            logger.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user",ENTITY_NAME)).body(null);
+        }
+        User user=userResponseEntity.getBody();
+        String companyCode = user.getCompanyCode();
         if (ZWStringUtils.isEmpty(principalName)) {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("没有委托方信息",ENTITY_TEMPLATE)).body(null);
         }
         logger.debug("委托方编号为：{}", principalName);
         try {
-            List<TemplateDataModel> templateDataModels = templateDataModelRepository.findTemplateDataModelByPrincipalName(principalName);
+            List<TemplateDataModel> templateDataModels = templateDataModelRepository.findTemplateByPrincipalNameAndCompanyCode(principalName,companyCode);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "")).body(templateDataModels);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
