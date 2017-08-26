@@ -53,16 +53,18 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
             ") as c " +
             "inner join " +
             "( " +
-            "select id,real_name,photo,user_name from `user` " +
-            "where type = :type " +
-            "and company_code =:companyCode " +
+            "select u.id,u.real_name,u.photo,u.user_name from user u,department d " +
+            "where u.type = :type " +
+            "and u.company_code =:companyCode " +
+            "and u.dept_id = d.id " +
+            "and d.code like concat(:deptCode,'%') " +
             ") as u " +
             "on u.user_name = c.operator " +
             "group by " +
             "u.id " +
             "order by " +
-            "rank desc",nativeQuery = true)
-    List<Object[]> getFlowupCaseList(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type, @Param("companyCode") String companyCode);
+            "rank desc ",nativeQuery = true)
+    List<Object[]> getFlowupCaseList(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type, @Param("companyCode") String companyCode,@Param("deptCode") String deptCode);
 
     /**
      @Description 获得周催计榜
@@ -75,16 +77,18 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
             ") as c " +
             "inner join " +
             "( " +
-            "select id,real_name,photo,user_name from `user` " +
-            "where type = :type " +
-            "and company_code =:companyCode " +
+            "select u.id,u.real_name,u.photo,u.user_name from user u,department d " +
+            "where u.type = :type " +
+            "and u.company_code =:companyCode " +
+            "and u.dept_id = d.id " +
+            "and d.code like concat(:deptCode,'%') " +
             ") as u " +
             "on u.user_name = c.operator " +
             "group by " +
             "u.id " +
             "order by " +
-            "rank desc",nativeQuery = true)
-    List<Object[]> getCollectionList(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type, @Param("companyCode") String companyCode);
+            "rank desc ",nativeQuery = true)
+    List<Object[]> getCollectionList(@Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type, @Param("companyCode") String companyCode,@Param("deptCode") String deptCode);
     /**
      @Description 获得指定用户催计数
      */

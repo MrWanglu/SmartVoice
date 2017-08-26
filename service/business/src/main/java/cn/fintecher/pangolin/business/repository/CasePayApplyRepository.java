@@ -76,16 +76,18 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
             ") as a " +
             "inner join " +
             "( " +
-            "select id,real_name,photo,user_name from `user` " +
-            "where type = :type " +
-            "and company_code =:companyCode " +
+            "select u.id,u.real_name,u.photo,u.user_name from user u,department d " +
+            "where u.type = :type " +
+            "and u.company_code =:companyCode " +
+            "and u.dept_id = d.id " +
+            "and d.code like concat(:deptCode,'%') " +
             ") as u " +
             "on u.user_name = a.apply_user_name " +
             "GROUP BY " +
             "id " +
             "order by " +
             "amt desc",nativeQuery = true)
-    List<Object[]> queryPayList(@Param("approveStatu") Integer approveStatu, @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type,@Param("companyCode") String companyCode);
+    List<Object[]> queryPayList(@Param("approveStatu") Integer approveStatu, @Param("startDate") Date startDate, @Param("endDate") Date endDate, @Param("type") Integer type,@Param("companyCode") String companyCode,@Param("deptCode") String deptCode);
 
     /**
      * @Description 本月催收佣金
