@@ -246,7 +246,7 @@ public class UserBackcashPlanController extends BaseController {
      */
     @PostMapping(value = "/importBackAmtGoalExcel")
     @ApiOperation(value = "导入月度回款Excel数据", notes = "导入月度回款Excel数据")
-    public ResponseEntity<String> importBackAmtGoalExcel(@RequestBody UploadUserBackcashPlanExcelInfo request,
+    public ResponseEntity<List<CellError>> importBackAmtGoalExcel(@RequestBody UploadUserBackcashPlanExcelInfo request,
                                                          @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         request = (UploadUserBackcashPlanExcelInfo) EntityUtil.emptyValueToNull(request);
         logger.debug("REST request to import UploadUserBackcashPlanExcelInfo");
@@ -326,7 +326,7 @@ public class UserBackcashPlanController extends BaseController {
         try {
             cellErrorList = userBackcashPlanExcelImportService.importExcelDataInfo(backPlanImportParams);
             if (cellErrorList.size() != 0 ) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败"+cellErrorList.get(0).getErrorMsg())).body(cellErrorList.get(0).getErrorMsg());
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败")).body(cellErrorList);
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -134,14 +134,14 @@ public class UserBackcashPlanExcelImportService {
             // 导入的用户都应该是存在该系统中的
             if (!usernameList.contains(username)) {
                 CellError cellError = new CellError();
-                cellError.setErrorMsg("检测到导入的用户 [" + username + "] 不存在该系统中！");
+                cellError.setErrorMsg("导入的用户 [" + username + "] 不存在！");
                 cellErrorList.add(cellError);
                 return false;
             }
             // 姓名也不能为空
             if (StringUtils.isBlank(username)) {
                 CellError cellError = new CellError();
-                cellError.setErrorMsg("检测到导入的用户 [" + username + "] 的姓名为空！");
+                cellError.setErrorMsg("导入的用户 [" + username + "] 的姓名为空！");
                 cellErrorList.add(cellError);
                 return false;
             }
@@ -149,7 +149,7 @@ public class UserBackcashPlanExcelImportService {
             Integer goalYear = data.getYear();
             if (Objects.isNull(goalYear)) {
                 CellError cellError = new CellError();
-                cellError.setErrorMsg("检测到导入的用户 [" + username + "] 的年份为空！");
+                cellError.setErrorMsg("导入的用户 [" + username + "] 的年份为空！");
                 cellErrorList.add(cellError);
                 return false;
             } else {
@@ -157,7 +157,7 @@ public class UserBackcashPlanExcelImportService {
                 String yearReq = "[0-9]{4}";
                 if (!(String.valueOf(goalYear)).matches(yearReq)) {
                     CellError cellError = new CellError();
-                    cellError.setErrorMsg("检测到导入的用户 [" + username + "] 的年份 [" + goalYear + "] 不符合规则！");
+                    cellError.setErrorMsg("导入的用户 [" + username + "] 的年份 [" + goalYear + "] 不符合规则！");
                     cellErrorList.add(cellError);
                     return false;
                 }
@@ -166,21 +166,21 @@ public class UserBackcashPlanExcelImportService {
             Integer goalMonth = data.getMonth();
             if (Objects.isNull(goalMonth)) {
                 CellError cellError = new CellError();
-                cellError.setErrorMsg("检测到导入的用户 [" + username + "] 的月份为空！");
+                cellError.setErrorMsg("导入的用户 [" + username + "] 的月份为空！");
                 cellErrorList.add(cellError);
                 return false;
             } else {
                 // 月份必须是1-12的数字
                 if (!(goalMonth instanceof Number) || goalMonth < 1 || goalMonth > 12) {
                     CellError cellError = new CellError();
-                    cellError.setErrorMsg("检测到导入的用户 [" + username + "] 的月份 [" + goalMonth + "] 不符合规则！");
+                    cellError.setErrorMsg("导入的用户 [" + username + "] 的月份 [" + goalMonth + "] 不符合规则！");
                     cellErrorList.add(cellError);
                     return false;
                 }
             }
             if (!(data.getBackCash() instanceof Number)) {
                 CellError cellError = new CellError();
-                cellError.setErrorMsg("检测到导入的用户 [" + username + "] 的目标金额不是数字！");
+                cellError.setErrorMsg("导入的用户 [" + username + "] 的目标金额不是数字！");
                 cellErrorList.add(cellError);
                 return false;
             }
