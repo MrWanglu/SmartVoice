@@ -449,7 +449,7 @@ public class CaseInfoController extends BaseController {
             }
             List<CaseFollowupRecord> caseFollowupRecords = new ArrayList<>();
             for (CaseInfo caseInfo : caseInfos) {
-                Iterable<CaseFollowupRecord> all1 = caseFollowupRecordRepository.findAll(QCaseFollowupRecord.caseFollowupRecord.caseId.eq(caseInfo.getId()));
+                Iterable<CaseFollowupRecord> all1 = caseFollowupRecordRepository.findAll(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(caseInfo.getCaseNumber()));
                 List<CaseFollowupRecord> records = IterableUtils.toList(all1);
                 caseFollowupRecords.addAll(records);
             }
@@ -510,7 +510,7 @@ public class CaseInfoController extends BaseController {
     @GetMapping("/exportFollowRecord")
     @ApiOperation(value = "导出跟进记录(单案件)", notes = "导出跟进记录(单案件)")
     public ResponseEntity exportFollowRecord(@QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
-                                             @RequestParam("caseId") @ApiParam("案件ID") String caseId,
+                                             @RequestParam("caseNumber") @ApiParam("案件编号") String caseNumber,
                                              @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         HSSFWorkbook workbook = null;
         File file = null;
@@ -529,7 +529,7 @@ public class CaseInfoController extends BaseController {
             QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
             BooleanBuilder builder = new BooleanBuilder(predicate);
 //            builder.and(qCaseFollowupRecord.companyCode.eq(user.getCompanyCode()));
-            builder.and(qCaseFollowupRecord.caseId.eq(caseId));
+            builder.and(qCaseFollowupRecord.caseNumber.eq(caseNumber));
             Iterable<CaseFollowupRecord> all = caseFollowupRecordRepository.findAll(builder);
             List<CaseFollowupRecord> caseFollowupRecords = IterableUtils.toList(all);
             if (caseFollowupRecords.isEmpty()) {
