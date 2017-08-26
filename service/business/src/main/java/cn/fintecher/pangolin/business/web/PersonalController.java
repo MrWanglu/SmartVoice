@@ -357,14 +357,14 @@ public class PersonalController extends BaseController {
      */
     @GetMapping("/getCaseTurnRecord")
     @ApiOperation(value = "查询案件流转记录", notes = "查询案件流转记录")
-    public ResponseEntity<List<CaseTurnRecord>> getCaseTurnRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+    public ResponseEntity<List<CaseTurnRecord>> getCaseTurnRecord(@RequestParam("caseNumber") @ApiParam(value = "案件编号", required = true) String caseNumber,
                                                                   @RequestHeader(value = "X-UserToken") String token) {
-        log.debug("REST request to get case turn record by {caseId}", caseId);
+        log.debug("REST request to get case turn record by {caseNumber}", caseNumber);
         try {
             User tokenUser = getUserByToken(token);
             OrderSpecifier<Integer> sortOrder = QCaseTurnRecord.caseTurnRecord.id.asc();
             QCaseTurnRecord qCaseTurnRecord = QCaseTurnRecord.caseTurnRecord;
-            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseId.eq(caseId)
+            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseNumber.eq(caseNumber)
                     .and(qCaseTurnRecord.companyCode.eq(tokenUser.getCompanyCode())), sortOrder);
             List<CaseTurnRecord> caseTurnRecordList = IterableUtils.toList(caseTurnRecords);
             //过滤掉接收部门为为空的数据

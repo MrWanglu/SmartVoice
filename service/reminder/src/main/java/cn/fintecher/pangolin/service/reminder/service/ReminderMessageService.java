@@ -13,7 +13,7 @@ import java.util.Map;
 public interface ReminderMessageService {
     List<ReminderMessage> findByUser(String userId);
 
-    Page<ReminderMessage> findByUser(String userId, Pageable pageable);
+    Page<ReminderMessage> findByUser(String userId, Pageable pageable,ReminderMessage.ReadStatus readStatus);
 
     Page<ReminderMessage> findByUser(String userId, Map<String, Object> params, Pageable pageable);
 

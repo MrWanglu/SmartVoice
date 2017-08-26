@@ -109,13 +109,22 @@ public class CaseStrategyController {
     @ResponseBody
     @PostMapping("/queryCaseInfoByCondition")
     @ApiOperation(value = "预览案件生成规则", notes = "预览案件生成规则")
-    public ResponseEntity queryCaseInfoByCondition(@RequestBody CaseStrategy caseStrategy) throws IOException, TemplateException {
+    public ResponseEntity queryCaseInfoByCondition(@RequestBody CaseStrategy caseStrategy,@RequestHeader(value = "X-UserToken") String token) throws IOException, TemplateException {
         if (Objects.isNull(caseStrategy)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no message", "没有分配策略信息")).body(null);
         }
         if (ZWStringUtils.isEmpty(caseStrategy.getStrategyJson())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no message", "没有分配策略信息")).body(null);
         }
+        ResponseEntity<User> userResponseEntity=null;
+        try {
+            userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+        }catch (Exception e){
+            logger.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user",ENTITY_NAME)).body(null);
+        }
+        User user=userResponseEntity.getBody();
+        String companyCode = user.getCompanyCode();
         try {
             StringBuilder sb = new StringBuilder();
             analysisRule(caseStrategy.getStrategyJson(), sb);
@@ -125,7 +134,7 @@ public class CaseStrategyController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "解析分配策略失败")).body(null);
         }
         caseStrategy.setId(UUID.randomUUID().toString());
-        List<CaseInfoDistributed> caseInfoLsit = runCaseRun(caseStrategy, true);
+        List<CaseInfoDistributed> caseInfoLsit = runCaseRun(caseStrategy, true,companyCode);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "预览成功")).body(caseInfoLsit);
     }
 
@@ -186,18 +195,20 @@ public class CaseStrategyController {
         //计算平均分配案件数
         // List<Integer> disNumList = new ArrayList<>();
         for (CaseStrategy caseStrategy : caseStrategies) {
+            ResponseEntity<User> userResult = null;
+            userResult = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+            if (!userResult.hasBody()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "用户未登录")).body(null);
+            }
+            User user = userResult.getBody();
+            String companyCode = user.getCompanyCode();
             //得到符合分配策略的案件 caseInfos
-            List<CaseInfoDistributed> caseInfos = runCaseRun(caseStrategy, false);
+            List<CaseInfoDistributed> caseInfos = runCaseRun(caseStrategy, false,companyCode);
             if (Objects.isNull(caseInfos) || caseInfos.isEmpty()) {
                 continue;
             } else {
                 //走案件分配流程
-                ResponseEntity<User> userResult = null;
-                userResult = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-                if (!userResult.hasBody()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "用户未登录")).body(null);
-                }
-                User user = userResult.getBody();
+
                 //流转记录列表
                 List<CaseTurnRecord> caseTurnRecordList = new ArrayList<>();
                 List<CaseRepair> caseRepairList = new ArrayList<>();
@@ -404,7 +415,7 @@ public class CaseStrategyController {
      * @throws IOException
      * @throws TemplateException
      */
-    public List<CaseInfoDistributed> runCaseRun(CaseStrategy caseStrategy, boolean flag) throws IOException, TemplateException {
+    public List<CaseInfoDistributed> runCaseRun(CaseStrategy caseStrategy, boolean flag,String companyCode) throws IOException, TemplateException {
         List<CaseInfoDistributed> checkedList = new ArrayList<>();
         Template template = freemarkerConfiguration.getTemplate("caseInfo.ftl", "UTF-8");
         Map<String, String> map = new HashMap<>();
@@ -431,7 +442,7 @@ public class CaseStrategyController {
         ParameterizedTypeReference<List<CaseInfoDistributed>> responseType = new ParameterizedTypeReference<List<CaseInfoDistributed>>() {
         };
         ResponseEntity<List<CaseInfoDistributed>> resp = restTemplate.exchange(Constants.BUSINESS_SERVICE_URL.concat("getAllCaseInfo"),
-                HttpMethod.GET, null, responseType);
+                HttpMethod.GET, null, responseType,companyCode);
         caseInfoList = resp.getBody();
         for (CaseInfoDistributed caseInfoDistributed : caseInfoList) {
             kieSession.insert(caseInfoDistributed);//插入

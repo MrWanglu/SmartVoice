@@ -42,9 +42,9 @@ public class CaseInfoResource {
 
     @GetMapping("/getAllCaseInfo")
     @ApiOperation(value = "查询所有已确认案件", notes = "查询所有已确认案件")
-    public ResponseEntity<List<CaseInfoDistributed>> getAllCaseInfo() throws URISyntaxException {
+    public ResponseEntity<Iterable<CaseInfoDistributed>> getAllCaseInfo(@RequestParam String companyCode) throws URISyntaxException {
         log.debug("REST request to get all of CaseInfo");
-        List<CaseInfoDistributed> caseInfoList = caseInfoDistributedRepository.findAll();
+        Iterable<CaseInfoDistributed> caseInfoList = caseInfoDistributedRepository.findAll(QCaseInfoDistributed.caseInfoDistributed.companyCode.eq(companyCode));
         return new ResponseEntity<>(caseInfoList, HttpStatus.OK);
     }
     @PostMapping("/saveCaseInfo")

@@ -153,8 +153,13 @@ public class OutsourceController extends BaseController {
         }
         QOutsource qOutsource = QOutsource.outsource;
         BooleanBuilder builder = new BooleanBuilder();
-        if (Objects.nonNull(companyCode)) {
+        if(Objects.isNull(user.getCompanyCode())){
+            if(Objects.isNull(companyCode)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "Outsource", "请选择公司")).body(null);
+            }
             builder.and(qOutsource.companyCode.eq(companyCode));
+        }else{
+            builder.and(qOutsource.companyCode.eq(user.getCompanyCode()));
         }
         if (Objects.nonNull(outsCode)) {
             builder.and(qOutsource.outsCode.like(outsCode.concat("%")));
