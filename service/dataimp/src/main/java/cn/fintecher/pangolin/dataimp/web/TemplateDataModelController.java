@@ -238,15 +238,15 @@ public class TemplateDataModelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
         }
     }
-    @GetMapping("/getExcelTempleByTemplateName")
+    @GetMapping("/getExcelTempleByPrincipalName")
     @ApiOperation(value = "获取Excel模板", notes = "获取Excel模板")
-    public ResponseEntity getExcelTempleByTemplateName(@RequestParam String templateName) {
-        if (ZWStringUtils.isEmpty(templateName)) {
+    public ResponseEntity getExcelTempleByTemplateName(@RequestParam String principalName) {
+        if (ZWStringUtils.isEmpty(principalName)) {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("没有委托方信息",ENTITY_TEMPLATE)).body(null);
         }
-        logger.debug("委托方编号为：{}", templateName);
+        logger.debug("委托方编号为：{}", principalName);
         try {
-            List<TemplateDataModel> templateDataModels = templateDataModelRepository.findTemplateDataModelByPrincipalName(templateName);
+            List<TemplateDataModel> templateDataModels = templateDataModelRepository.findTemplateDataModelByPrincipalName(principalName);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "")).body(templateDataModels);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
