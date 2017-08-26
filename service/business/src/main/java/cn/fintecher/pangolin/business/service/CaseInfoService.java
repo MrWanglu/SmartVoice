@@ -1061,18 +1061,17 @@ public class CaseInfoService {
                         caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
                     }
                     //更新原案件状态
-                    caseInfo.setAssistCollector(null); //协催员置空
-                    caseInfo.setAssistWay(null); //协催方式置空
-                    caseInfo.setAssistFlag(0); //协催标识 0-否
-                    caseInfo.setAssistStatus(null); //协催状态置空
+                    caseInfo.setCaseType(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue());
                 }
             } else { //外访小流转
                 caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.VISIT_PASS.getValue()); //201-外访流转通过
+                caseInfo.setCaseType(CaseInfo.CaseType.OUTFAHEADTURN.getValue());
             }
             //更新原案件
             caseInfo.setAssistCollector(null); //协催员置空
             caseInfo.setAssistWay(null); //协催方式置空
             caseInfo.setAssistFlag(0); //协催标识 0-否
+            caseInfo.setAssistStatus(null); //协催状态置空
             caseInfo.setFollowupBack(null); //催收反馈置空
             caseInfo.setFollowupTime(null); //跟进时间置空
             caseInfo.setPromiseAmt(null); //承诺还款金额置空
