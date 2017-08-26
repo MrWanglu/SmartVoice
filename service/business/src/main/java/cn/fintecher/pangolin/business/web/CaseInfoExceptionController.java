@@ -90,8 +90,7 @@ public class CaseInfoExceptionController extends BaseController {
      */
     @PostMapping("/updateCaseInfoException")
     @ApiOperation(value = "更新案件", notes = "更新案件")
-    public ResponseEntity<CaseInfo> updateCaseInfo(@RequestParam @ApiParam(value = "异常案件id") String caseInfoExceptionId,
-                                                   @RequestBody List<String> caseInfoIds,
+    public ResponseEntity<CaseInfo> updateCaseInfoException(@RequestBody String caseInfoExceptionId,List<String> caseInfoIds,
                                                    @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
         log.debug("REST request to update CaseInfo");
         List<CaseInfo> caseInfoList = caseInfoExceptionService.updateCaseInfoException(caseInfoExceptionId, caseInfoIds, getUserByToken(token));
