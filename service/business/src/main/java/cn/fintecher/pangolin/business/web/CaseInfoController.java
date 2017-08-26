@@ -22,6 +22,7 @@ import freemarker.template.TemplateException;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.joda.time.DateTime;
@@ -458,9 +459,9 @@ public class CaseInfoController extends BaseController {
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "outForceCirculation")).body(page);
     }
 
-    @GetMapping("/exportCaseInfoFollowRecord")
+    @PostMapping("/exportCaseInfoFollowRecord")
     @ApiOperation(value = "导出跟进记录", notes = "导出跟进记录")
-    public ResponseEntity exportCaseInfoFollowRecord(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+    public ResponseEntity exportCaseInfoFollowRecord(@RequestBody ExportCaseNum exportCaseNum,
                                                      @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         HSSFWorkbook workbook = null;
         File file = null;
@@ -474,22 +475,33 @@ public class CaseInfoController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", e.getMessage())).body(null);
         }
-
         try {
-            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-            BooleanBuilder builder = new BooleanBuilder(predicate);
-//            builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
-            Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
-            List<CaseInfo> caseInfos = IterableUtils.toList(all);
-            if (caseInfos.isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "跟进记录数据为空!")).body(null);
+            if (Objects.isNull(user.getCompanyCode())) {
+                if(StringUtils.isBlank(exportCaseNum.getCompanyCode())){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司")).body(null);
+                }
+                user.setCompanyCode(exportCaseNum.getCompanyCode());
             }
-            List<CaseFollowupRecord> caseFollowupRecords = new ArrayList<>();
-            for (CaseInfo caseInfo : caseInfos) {
-                Iterable<CaseFollowupRecord> all1 = caseFollowupRecordRepository.findAll(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(caseInfo.getCaseNumber()));
-                List<CaseFollowupRecord> records = IterableUtils.toList(all1);
-                caseFollowupRecords.addAll(records);
+            QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
+            List<String> caseNumberList = exportCaseNum.getCaseNumberList();
+            if (caseNumberList.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择案件!")).body(null);
             }
+            BooleanBuilder exp = new BooleanBuilder();
+            exp.and(qCaseFollowupRecord.caseNumber.in(caseNumberList));
+            exp.and(qCaseFollowupRecord.companyCode.eq(user.getCompanyCode()));
+            exp.and(qCaseFollowupRecord.collectionWay.notIn(0)); //自动添加的排除
+            Iterable<CaseFollowupRecord> all2 = caseFollowupRecordRepository.findAll(exp);
+            List<CaseFollowupRecord> caseFollowupRecords = IterableUtils.toList(all2);
+//            if (caseInfos.isEmpty()) {
+//                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "跟进记录数据为空!")).body(null);
+//            }
+//            List<CaseFollowupRecord> caseFollowupRecords = new ArrayList<>();
+//            for (CaseInfo caseInfo : caseInfos) {
+//                Iterable<CaseFollowupRecord> all1 = caseFollowupRecordRepository.findAll(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(caseInfo.getCaseNumber()));
+//                List<CaseFollowupRecord> records = IterableUtils.toList(all1);
+//                caseFollowupRecords.addAll(records);
+//            }
             if (caseFollowupRecords.size() > 10000) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "不支持导出数据超过10000条!")).body(null);
             }
