@@ -968,6 +968,10 @@ public class CaseInfoService {
             if (Objects.isNull(caseInfo)) {
                 throw new RuntimeException("所选案件未找到");
             }
+            if (Objects.equals(caseInfo.getCirculationStatus(), CaseInfo.CirculationStatus.PHONE_WAITING.getValue())
+                    || Objects.equals(caseInfo.getCirculationStatus(), CaseInfo.CirculationStatus.VISIT_WAITING.getValue())) {
+                throw new RuntimeException("所选案件已提交提前流转申请");
+            }
             if (Objects.equals(advanceCirculationParams.getType(), 0)) {
                 caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.PHONE_WAITING.getValue()); //小流转审批状态 197-电催流转待审批
             } else {
@@ -1270,20 +1274,20 @@ public class CaseInfoService {
                         caseInfo.setDepartment(department);
                         caseInfo.setCaseFollowInTime(null);
                         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
-                        if(Objects.equals(department.getType(),Department.Type.TELEPHONE_COLLECTION.getValue())){
+                        if (Objects.equals(department.getType(), Department.Type.TELEPHONE_COLLECTION.getValue())) {
                             caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
                         }
-                        if(Objects.equals(department.getType(),Department.Type.OUTBOUND_COLLECTION.getValue())){
+                        if (Objects.equals(department.getType(), Department.Type.OUTBOUND_COLLECTION.getValue())) {
                             caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
                         }
                     }
                     if (Objects.nonNull(targetUser)) {
                         caseInfo.setDepartment(targetUser.getDepartment());
                         caseInfo.setCurrentCollector(targetUser);
-                        if(Objects.equals(targetUser.getType(),User.Type.TEL.getValue())) {
+                        if (Objects.equals(targetUser.getType(), User.Type.TEL.getValue())) {
                             caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
                         }
-                        if(Objects.equals(targetUser.getType(),User.Type.VISIT.getValue())){
+                        if (Objects.equals(targetUser.getType(), User.Type.VISIT.getValue())) {
                             caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
                         }
                         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收

@@ -90,7 +90,7 @@ public class CaseAssistController extends BaseController {
             //获得所持有未结案的案件总数
             QCaseInfo qCaseInfo = caseInfo;
             long count = caseInfoRepository.count((qCaseInfo.currentCollector.id.eq(user.getId()).or(qCaseInfo.assistCollector.id.eq(user.getId()))
-                    .and(qCaseInfo.collectionStatus.in(20, 21, 22, 23, 25))));
+                    .and(qCaseInfo.collectionStatus.in(20, 21, 22, 23, 25, 171, 172))));
 
             //查询已留案案件数
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
@@ -102,7 +102,7 @@ public class CaseAssistController extends BaseController {
             QSysParam qSysParam = QSysParam.sysParam;
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(leaveCaseParams.getCompanyCode())) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo","请选择公司!")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "请选择公司!")).body(null);
                 }
                 user.setCompanyCode(leaveCaseParams.getCompanyCode());
             }
@@ -114,19 +114,19 @@ public class CaseAssistController extends BaseController {
             for (String caseId : caseIds) {
                 CaseAssist one = caseAssistRepository.findOne(caseId);
                 if (Objects.isNull(one)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo","所选案件未找到!")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "所选案件未找到!")).body(null);
                 }
                 if (Objects.nonNull(one.getAssistCollector()) && !Objects.equals(one.getAssistCollector().getId(), user.getId())) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "只能对自己所持有的案件进行留案操作!")).body(null);
                 }
                 if (Objects.equals(one.getLeaveCaseFlag(), CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo","所选案件存在已经留案的案件!")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "所选案件存在已经留案的案件!")).body(null);
                 }
                 if (Objects.equals(one.getAssistWay(), CaseAssist.AssistWay.ONCE_ASSIST.getValue())) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo","单次协催的案件不允许留案!")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "单次协催的案件不允许留案!")).body(null);
                 }
                 if (count1 >= leaveNum) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo","所选案件数量超过可留案案件数!")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "所选案件数量超过可留案案件数!")).body(null);
                 }
                 one.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue()); //留案标志
                 one.setLeaveDate(new Date()); //留案日期
@@ -134,7 +134,7 @@ public class CaseAssistController extends BaseController {
                 count1++;
             }
             LeaveCaseModel leaveCaseModel = new LeaveCaseModel();
-            leaveCaseModel.setCaseNum( (int)(leaveNum - count1));
+            leaveCaseModel.setCaseNum((int) (leaveNum - count1));
             return ResponseEntity.ok().body(leaveCaseModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -189,9 +189,9 @@ public class CaseAssistController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseAssistApply>> findCaseInfoAssistRecord(@QuerydslPredicate(root = CaseAssistApply.class) Predicate predicate,
-                                                                     @RequestParam @ApiParam("案件ID") String caseId,
-                                                                     @ApiIgnore Pageable pageable,
-                                                                     @RequestHeader(value = "X-UserToken") String token) {
+                                                                          @RequestParam @ApiParam("案件ID") String caseId,
+                                                                          @ApiIgnore Pageable pageable,
+                                                                          @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to findCaseInfoAssistRecord");
         User user = null;
         try {
@@ -269,7 +269,7 @@ public class CaseAssistController extends BaseController {
     @PutMapping("/assistCaseMarkColor")
     @ApiOperation(value = "协催案件颜色打标", notes = "协催案件颜色打标")
     public ResponseEntity<Void> assistCaseMarkColor(@RequestBody AssistCaseMarkParams caseMarkParams,
-                                                          @RequestHeader(value = "X-UserToken") String token) {
+                                                    @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to mark color");
         User user = null;
         try {
@@ -301,7 +301,7 @@ public class CaseAssistController extends BaseController {
     @GetMapping("/assistWithdraw")
     @ApiOperation(value = "协催页面还款撤回", notes = "协催页面还款撤回")
     public ResponseEntity<Void> assistWithdraw(@RequestParam @ApiParam(value = "还款审批ID", required = true) String payApplyId,
-                                               @RequestHeader(value = "X-UserToken") String token ) {
+                                               @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to withdraw by {}", payApplyId);
         User user = null;
         try {
@@ -604,7 +604,7 @@ public class CaseAssistController extends BaseController {
                     caseTurnRecord.setCurrentCollector(batchInfoModel.getCollectionUser().getId());
                     caseTurnRecordList.add(caseTurnRecord);
 
-                    total ++;
+                    total++;
                 }
             }
             caseAssistRepository.save(caseAssistList);
@@ -632,7 +632,7 @@ public class CaseAssistController extends BaseController {
             CaseAssist caseAssist = caseAssistRepository.findOne(assignAssistParam.getCaseAssistId());
             User assistor = userRepository.findOne(assignAssistParam.getAssistorId());
 
-            if (!Objects.equals(assistor.getType(),User.Type.VISIT.getValue())) {
+            if (!Objects.equals(assistor.getType(), User.Type.VISIT.getValue())) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "getBatchInfo", assistor.getUserName().concat("不是外访人员"))).body(null);
             }
             // 协催分配
@@ -682,7 +682,7 @@ public class CaseAssistController extends BaseController {
             exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
             exp.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())); //协催完成
             Page<CaseAssist> page = null;
-            if (Objects.equals(user.getManager(),0) && Objects.equals(user.getType(),User.Type.VISIT.getValue())) {
+            if (Objects.equals(user.getManager(), 0) && Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
                 // 协催员智能看见自己的协催案件
                 exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
                 page = caseAssistRepository.findAll(exp, pageable);
@@ -725,17 +725,12 @@ public class CaseAssistController extends BaseController {
             }
             exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
             Page<CaseAssist> page = null;
-            if (Objects.equals(user.getManager(),0) && Objects.equals(user.getType(),User.Type.VISIT.getValue())) {
-                // 过滤掉协催结束的协催案件
-                exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
+            exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
+            if (Objects.equals(user.getManager(), 0) && Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
                 // 协催员智能看见自己的协催案件
                 exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
-                page = caseAssistRepository.findAll(exp, pageable);
-            } else {
-                // 过滤掉协催结束的协催案件
-                exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
-                page = caseAssistRepository.findAll(exp, pageable);
             }
+            page = caseAssistRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
