@@ -727,13 +727,13 @@ public class AccTelPoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CaseFollowupRecord>> getPhoneRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+    public ResponseEntity<Page<CaseFollowupRecord>> getPhoneRecord(@RequestParam @ApiParam(value = "案件编号", required = true) String caseNumber,
                                                                    @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                                    @ApiIgnore Pageable pageable) {
-        log.debug("REST request to get phone record by {caseId}", caseId);
+        log.debug("REST request to get phone record by {caseId}", caseNumber);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseId.eq(caseId)); //制定案件ID
+            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(caseNumber)); //案件编号
             builder.and(QCaseFollowupRecord.caseFollowupRecord.opUrl.isNotNull()); //录音地址不为空
             Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getPhoneRecord");
