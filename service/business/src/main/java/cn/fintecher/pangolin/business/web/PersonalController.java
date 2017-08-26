@@ -2,7 +2,10 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.MapModel;
 import cn.fintecher.pangolin.business.model.PersonalInfoExportModel;
-import cn.fintecher.pangolin.business.repository.*;
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
+import cn.fintecher.pangolin.business.repository.DepartmentRepository;
+import cn.fintecher.pangolin.business.repository.PersonalRepository;
 import cn.fintecher.pangolin.business.service.AccMapService;
 import cn.fintecher.pangolin.business.service.PersonalInfoExportService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
@@ -41,7 +44,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -334,7 +336,7 @@ public class PersonalController extends BaseController {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.equals(tokenUser.getUserName(), "administrator")) {
-                if(Objects.isNull(companyCode)){
+                if (Objects.isNull(companyCode)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseRepair", "", "请选择公司")).body(null);
                 }
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
@@ -365,6 +367,12 @@ public class PersonalController extends BaseController {
             Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseId.eq(caseId)
                     .and(qCaseTurnRecord.companyCode.eq(tokenUser.getCompanyCode())), sortOrder);
             List<CaseTurnRecord> caseTurnRecordList = IterableUtils.toList(caseTurnRecords);
+            //过滤掉接收部门为为空的数据
+            caseTurnRecordList.forEach(e -> {
+                if (Objects.isNull(e.getReceiveDeptName())) {
+                    e.setReceiveDeptName("未知");
+                }
+            });
             if (caseTurnRecordList.isEmpty()) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("该案件跟进记录为空", ENTITY_CASE_TURN_RECORD)).body(new ArrayList<>());
             } else {
@@ -378,11 +386,11 @@ public class PersonalController extends BaseController {
 
     @GetMapping("/getMapInfo")
     @ApiOperation(value = "查询客户地图", notes = "查询客户地图")
-    public ResponseEntity<MapModel> getMapInfo(@RequestParam @ApiParam(value = "客户地址", required = true) String address){
+    public ResponseEntity<MapModel> getMapInfo(@RequestParam @ApiParam(value = "客户地址", required = true) String address) {
         try {
             MapModel model = accMapService.getAddLngLat(address);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功",null)).body(model);
-        }catch(Exception e){
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", null)).body(model);
+        } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("RepairCaseDistributeController", "error", e.getMessage())).body(null);
         }
 
