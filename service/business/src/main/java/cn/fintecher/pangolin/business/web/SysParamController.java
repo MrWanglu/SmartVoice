@@ -8,6 +8,7 @@ import cn.fintecher.pangolin.entity.QSysParam;
 import cn.fintecher.pangolin.entity.SysParam;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.Api;
@@ -108,6 +109,7 @@ public class SysParamController extends BaseController {
     @ApiOperation(value = "新增/修改系统参数", notes = "新增系统参数")
     public ResponseEntity<SysParam> createSysParam(@Validated @RequestBody SysParam sysParam,
                                                    @RequestHeader(value = "X-UserToken") String token) {
+        sysParam = (SysParam) EntityUtil.emptyValueToNull(sysParam);
         User user;
         try {
             user = getUserByToken(token);

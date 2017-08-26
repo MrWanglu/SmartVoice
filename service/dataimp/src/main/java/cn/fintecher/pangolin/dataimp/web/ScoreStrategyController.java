@@ -7,6 +7,7 @@ import cn.fintecher.pangolin.dataimp.repository.ScoreRuleRepository;
 import cn.fintecher.pangolin.entity.QTemplate;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.alibaba.fastjson.JSONArray;
@@ -30,7 +31,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -96,6 +96,7 @@ public class ScoreStrategyController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "no login", "用户没有登录")).body(null);
             }
             User user = userResult.getBody();
+            jsonStr = (JsonObj) EntityUtil.emptyValueToNull(jsonStr);
             scoreRuleRepository.deleteAll();//保存之前删除已有数据
             List<ScoreRule> sorceRules = new ArrayList<>();//属性集合
             String str = jsonStr.getJsonStr();//取json字符串

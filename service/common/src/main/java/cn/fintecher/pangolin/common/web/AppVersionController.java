@@ -5,8 +5,10 @@ import cn.fintecher.pangolin.common.model.AppVersion;
 import cn.fintecher.pangolin.common.model.AppVersionSaveCondition;
 import cn.fintecher.pangolin.common.model.QAppVersion;
 import cn.fintecher.pangolin.common.respository.AppVersionRepository;
+import cn.fintecher.pangolin.entity.Role;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
@@ -56,6 +58,7 @@ public class AppVersionController {
     @ApiOperation(value = "添加app版本", notes = "添加app版本")
     public ResponseEntity<List<AppVersion>> createAppVersion(@Validated @RequestBody AppVersionSaveCondition condition,
                                                              @RequestHeader(value = "X-UserToken") String token) {
+        condition = (AppVersionSaveCondition) EntityUtil.emptyValueToNull(condition);
         User user = userClient.getUserByToken(token).getBody();
 
         if (!(Objects.equals(user.getId(), Constants.ADMINISTRATOR_ID))) {

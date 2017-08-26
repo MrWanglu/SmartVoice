@@ -6,6 +6,7 @@ import cn.fintecher.pangolin.dataimp.model.CaseInfoDisModel;
 import cn.fintecher.pangolin.dataimp.repository.CaseStrategyRepository;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -132,6 +133,7 @@ public class CaseStrategyController {
     @PostMapping("/addCaseStrategy")
     @ApiOperation(value = "生成案件分配策略", notes = "生成案件分配策略")
     public ResponseEntity addCaseStrategy(@RequestBody CaseStrategy caseStrategy, @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws IOException, TemplateException {
+        caseStrategy = (CaseStrategy) EntityUtil.emptyValueToNull(caseStrategy);
         if (Objects.isNull(caseStrategy)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no message", "没有分配策略信息")).body(null);
         }

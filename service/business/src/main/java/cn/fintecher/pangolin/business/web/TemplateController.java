@@ -1,9 +1,11 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.repository.TemplateRepository;
+import cn.fintecher.pangolin.dataimp.entity.TemplateDataModel;
 import cn.fintecher.pangolin.entity.QTemplate;
 import cn.fintecher.pangolin.entity.Template;
 import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.util.ZWStringUtils;
@@ -100,6 +102,7 @@ public class TemplateController extends BaseController {
     @ApiOperation(value = "新增模板信息", notes = "新增模板信息")
     public ResponseEntity createTemplate(@Validated @RequestBody Template template, @RequestHeader(value = "X-UserToken") String token) {
         try {
+            template = (Template) EntityUtil.emptyValueToNull(template);
             if (template.getIsDefault() && template.getTemplateStatus() == Status.Disable.getValue()) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "默认模板不可停用")).body(null);
             }
@@ -134,6 +137,7 @@ public class TemplateController extends BaseController {
     @ApiOperation(value = "更新模板信息", notes = "更新模板信息")
     public ResponseEntity updateTemplate(@Validated @RequestBody Template template, @RequestHeader(value = "X-UserToken") String token) {
         try {
+            template = (Template) EntityUtil.emptyValueToNull(template);
             Template existTemplate = templateRepository.findOne(template.getId());
             if (ZWStringUtils.isEmpty(existTemplate)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该模板已被删除")).body(null);

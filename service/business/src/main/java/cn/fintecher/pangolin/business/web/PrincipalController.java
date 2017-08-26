@@ -7,16 +7,14 @@ import cn.fintecher.pangolin.business.repository.PrincipalRepository;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +26,7 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -142,8 +141,9 @@ public class PrincipalController extends BaseController {
      */
     @PostMapping("/createPrincipal")
     @ApiOperation(value = "新增/修改委托方信息", notes = "新增/修改委托方信息")
-    public ResponseEntity<Principal> createOutsource(@RequestBody Principal request,
+    public ResponseEntity<Principal> createOutsource(@Validated @ApiParam("委托方对象") @RequestBody Principal request,
                                                      @RequestHeader(value = "X-UserToken") String token) {
+        request = (Principal) EntityUtil.emptyValueToNull(request);
         User user;
         try {
             user = getUserByToken(token);

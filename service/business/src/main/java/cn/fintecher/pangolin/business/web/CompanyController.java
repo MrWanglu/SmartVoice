@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.entity.Company;
 import cn.fintecher.pangolin.entity.QCompany;
 import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.*;
@@ -41,6 +42,7 @@ public class CompanyController extends BaseController {
     @ApiOperation(value = "新增注册公司", notes = "新增注册公司")
     public ResponseEntity<Company> createCompany(@Validated @ApiParam("公司对象") @RequestBody Company company,
                                                  @RequestHeader(value = "X-UserToken") String token) {
+        company = (Company) EntityUtil.emptyValueToNull(company);
         User user;
         try {
             user = getUserByToken(token);
@@ -64,6 +66,7 @@ public class CompanyController extends BaseController {
     @ApiOperation(value = "更新注册公司", notes = "更新注册公司")
     public ResponseEntity<Company> updateCompany(@Validated @ApiParam("公司对象") @RequestBody Company company,
                                                  @RequestHeader(value = "X-UserToken") String token) {
+        company = (Company) EntityUtil.emptyValueToNull(company);
         logger.debug("REST request to update company : {}", company);
         User user;
         try {

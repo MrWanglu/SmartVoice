@@ -74,7 +74,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "增加用户", notes = "增加用户")
     public ResponseEntity<User> createUser(@Validated @ApiParam("用户对象") @RequestBody User user,
                                            @RequestHeader(value = "X-UserToken") String token) {
-        user=(User) EntityUtil.emptyValueToNull(user);
+        user = (User) EntityUtil.emptyValueToNull(user);
         //前端的限制 一级部门普通管理员不能添加用户
         User userToken;
         try {
@@ -176,7 +176,7 @@ public class UserController extends BaseController {
     @ApiOperation(value = "修改用户", notes = "修改用户")
     public ResponseEntity<User> updateUser(@Validated @ApiParam("用户对象") @RequestBody User user,
                                            @RequestHeader(value = "X-UserToken") String token) {
-
+        user = (User) EntityUtil.emptyValueToNull(user);
         //修改用户状态或者修改部门的类型 首先处理案件
         User userOld = userRepository.findOne(user.getId());
         if (Objects.equals(Status.Disable.getValue(), user.getStatus()) || !(Objects.equals(user.getDepartment().getType(), userOld.getDepartment().getType()))) {
