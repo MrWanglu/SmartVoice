@@ -490,6 +490,9 @@ public class CaseInfoController extends BaseController {
                 List<CaseFollowupRecord> records = IterableUtils.toList(all1);
                 caseFollowupRecords.addAll(records);
             }
+            if (caseFollowupRecords.size() > 10000) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "不支持导出数据超过10000条!")).body(null);
+            }
             workbook = new HSSFWorkbook();
             HSSFSheet sheet = workbook.createSheet("sheet1");
             out = new ByteArrayOutputStream();
