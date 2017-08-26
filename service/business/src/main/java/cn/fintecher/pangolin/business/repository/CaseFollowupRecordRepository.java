@@ -2,17 +2,17 @@ package cn.fintecher.pangolin.business.repository;
 
 import cn.fintecher.pangolin.entity.CaseFollowupRecord;
 import cn.fintecher.pangolin.entity.QCaseFollowupRecord;
+import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.SimpleExpression;
-import com.querydsl.core.types.dsl.StringExpression;
 import com.querydsl.core.types.dsl.StringPath;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
-import org.springframework.data.querydsl.binding.SingleValueBinding;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -30,7 +30,7 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
         bindings.bind(root.collectionFeedback).first(SimpleExpression::eq); //催收反馈
         bindings.bind(root.type).first(SimpleExpression::eq); //跟进方式
         bindings.bind(root.source).first(SimpleExpression::eq); //跟进来源
-        bindings.bind(root.operatorTime).all((path, value) -> { //跟进时间
+        bindings.bind(root.operatorTime).all((DateTimePath<Date> path, Collection<? extends Date> value) -> { //跟进时间
             Iterator<? extends Date> it = value.iterator();
             Date operatorMinTime = it.next();
             if (it.hasNext()) {

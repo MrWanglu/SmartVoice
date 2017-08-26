@@ -519,6 +519,9 @@ public class CaseAssistController extends BaseController {
             Integer caseNum = 0; //登录用户部门下的所有启用用户持有未结案案件总数
             List<BatchInfoModel> batchInfoModels = new ArrayList<>();
             for (User u : allUser) {
+                if (!Objects.equals(u.getType(),User.Type.VISIT.getValue())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "getBatchInfo", u.getUserName().concat("不是外访人员"))).body(null);
+                }
                 BatchInfoModel batchInfoModel = new BatchInfoModel();
                 Integer caseCount = caseInfoRepository.getCaseCount(u.getId());
                 batchInfoModel.setCaseCount(caseCount); //持有案件数

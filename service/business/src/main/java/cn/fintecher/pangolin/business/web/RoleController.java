@@ -6,6 +6,7 @@ import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.service.ResourceService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -92,6 +93,7 @@ public class RoleController extends BaseController {
     @ApiOperation(value = "增加角色", notes = "增加角色")
     public ResponseEntity<Role> createRole(@Validated @ApiParam("角色对象") @RequestBody Role role,
                                            @RequestHeader(value = "X-UserToken") String token) {
+        role = (Role) EntityUtil.emptyValueToNull(role);
         logger.debug("REST request to save caseInfo : {}", role);
         if (role.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
@@ -124,6 +126,7 @@ public class RoleController extends BaseController {
     @ApiOperation(value = "更新角色", notes = "更新角色")
     public ResponseEntity<Role> updateRole(@Validated @ApiParam("需更新的角色对象") @RequestBody Role role,
                                            @RequestHeader(value = "X-UserToken") String token) {
+        role = (Role) EntityUtil.emptyValueToNull(role);
         User user;
         try {
             user = getUserByToken(token);

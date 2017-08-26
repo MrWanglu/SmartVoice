@@ -112,6 +112,9 @@ public class CaseInfoService {
         if (Objects.equals(user.getStatus(), 1)) {
             throw new RuntimeException("该用户已停用");
         }
+        if (Objects.equals(user.getType(), User.Type.SYNTHESIZE.getValue())) {
+            throw new RuntimeException("只能给电催或者外访人员分案");
+        }
         CaseInfo caseInfo = caseInfoRepository.findOne(reDistributionParams.getCaseId());
         QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
         if (Objects.equals(reDistributionParams.getIsAssist(), false)) { //不是协催案件
@@ -767,6 +770,15 @@ public class CaseInfoService {
      * @Description 重新分配案件字段复制
      */
     private CaseInfo setAttribute(CaseInfo caseInfo, User user, User tokenUser) {
+        if (Objects.isNull(user)) {
+            throw new RuntimeException("查不到该用户");
+        }
+        if (Objects.equals(user.getStatus(), 1)) {
+            throw new RuntimeException("该用户已停用");
+        }
+        if (Objects.equals(user.getType(), User.Type.SYNTHESIZE.getValue())) {
+            throw new RuntimeException("只能给电催或者外访人员分案");
+        }
         caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上一个催收员
         caseInfo.setCurrentCollector(user); //当前催收员
         caseInfo.setHoldDays(0); //持案天数归0

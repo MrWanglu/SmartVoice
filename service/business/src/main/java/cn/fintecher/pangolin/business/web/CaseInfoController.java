@@ -316,7 +316,8 @@ public class CaseInfoController extends BaseController {
     })
     public ResponseEntity electricSmallCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                    @ApiIgnore Pageable pageable,
-                                                   @RequestHeader(value = "X-UserToken") String token) {
+                                                   @RequestHeader(value = "X-UserToken") String token,
+                                                   @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         User user;
         try {
             user = getUserByToken(token);
@@ -326,6 +327,14 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+        if(Objects.isNull(user.getCompanyCode())){
+            if(Objects.isNull(companyCode)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("electricSmallCirculation", "", "请选择公司")).body(null);
+            }
+            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+        }else{
+            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+        }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CaseType.PHNONESMALLTURN.getValue());
         list.add(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue());
@@ -346,7 +355,8 @@ public class CaseInfoController extends BaseController {
     })
     public ResponseEntity electricForceCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                    @ApiIgnore Pageable pageable,
-                                                   @RequestHeader(value = "X-UserToken") String token) {
+                                                   @RequestHeader(value = "X-UserToken") String token,
+                                                   @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         User user;
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
         try {
@@ -355,12 +365,20 @@ public class CaseInfoController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
+        if(Objects.isNull(user.getCompanyCode())){
+            if(Objects.isNull(companyCode)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("electricSmallCirculation", "", "请选择公司")).body(null);
+            }
+            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+        }else{
+            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+        }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CaseType.PHNONEFORCETURN.getValue());
         list.add(CaseInfo.CaseType.PHNONELEAVETURN.getValue());
         booleanBuilder.and(QCaseInfo.caseInfo.caseType.in(list));
         Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "electricForceCirculation")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "electricSmallCirculation")).body(page);
     }
 
     @GetMapping("/outSmallCirculation")
@@ -375,7 +393,8 @@ public class CaseInfoController extends BaseController {
     })
     public ResponseEntity outSmallCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                               @ApiIgnore Pageable pageable,
-                                              @RequestHeader(value = "X-UserToken") String token) {
+                                              @RequestHeader(value = "X-UserToken") String token,
+                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         User user;
         try {
             user = getUserByToken(token);
@@ -383,7 +402,16 @@ public class CaseInfoController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
+
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+        if(Objects.isNull(user.getCompanyCode())){
+            if(Objects.isNull(companyCode)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("outSmallCirculation", "", "请选择公司")).body(null);
+            }
+            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+        }else{
+            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+        }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CaseType.OUTSMALLTURN.getValue());
         list.add(CaseInfo.CaseType.OUTFAHEADTURN.getValue());
@@ -404,7 +432,8 @@ public class CaseInfoController extends BaseController {
     })
     public ResponseEntity outForceCirculation(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                               @ApiIgnore Pageable pageable,
-                                              @RequestHeader(value = "X-UserToken") String token) {
+                                              @RequestHeader(value = "X-UserToken") String token,
+                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         User user;
         try {
             user = getUserByToken(token);
@@ -413,6 +442,14 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+        if(Objects.isNull(user.getCompanyCode())){
+            if(Objects.isNull(companyCode)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("outSmallCirculation", "", "请选择公司")).body(null);
+            }
+            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+        }else{
+            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+        }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CaseType.OUTFORCETURN.getValue());
         list.add(CaseInfo.CaseType.OUTLEAVETURN.getValue());
@@ -621,7 +658,7 @@ public class CaseInfoController extends BaseController {
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
     @GetMapping("/updateAllScoreStrategyManual")
-    @ApiOperation(value = "更新案件评分", notes = "更新案件评分")
+    @ApiOperation(value = "更新案件评分(手动)", notes = "更新案件评分(手动)")
     public ResponseEntity updateAllScoreStrategyManual() throws IOException {
         try {
             StopWatch watch1 = new StopWatch();
@@ -663,6 +700,46 @@ public class CaseInfoController extends BaseController {
                 caseInfoRepository.save(caseInfoList1);
                 watch1.stop();
                 //log.info("耗时："+watch1.getTotalTimeMillis());
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(null);
+            }
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo","failure","案件为空")).body(null);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @GetMapping("/updateAllScoreStrategyAuto")
+    @ApiOperation(value = "更新案件评分(自动)", notes = "更新案件评分(自动)")
+    public ResponseEntity updateAllScoreStrategyAuto() throws IOException {
+        try {
+            KieSession  kieSession = null;
+            try {
+                kieSession = createSorceRule();
+            } catch (TemplateException e) {
+                e.printStackTrace();
+            }
+            List<CaseInfo> caseInfoList = caseInfoRepository.findAll();
+            List<CaseInfo> caseInfoList1 = new ArrayList<>();
+            if (caseInfoList.size() > 0) {
+                for(CaseInfo caseInfo : caseInfoList){
+                    ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
+                    int age = IdcardUtils.getAgeByIdCard(caseInfo.getPersonalInfo().getIdCard());
+                    scoreRuleModel.setAge(age);
+                    scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
+                    scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
+                    scoreRuleModel.setProId(caseInfo.getArea().getId());//省份id
+                    Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
+                    if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
+                        scoreRuleModel.setIsWork(1);
+                    } else {
+                        scoreRuleModel.setIsWork(0);
+                    }
+                    kieSession.insert(scoreRuleModel);//插入
+                    kieSession.fireAllRules();//执行规则
+                    caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                    caseInfoList1.add(caseInfo);
+                }
+                caseInfoRepository.save(caseInfoList1);
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(null);
             }
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo","failure","案件为空")).body(null);

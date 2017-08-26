@@ -4,6 +4,10 @@ import cn.fintecher.pangolin.dataimp.entity.ScoreFormula;
 import cn.fintecher.pangolin.dataimp.entity.ScoreRule;
 import cn.fintecher.pangolin.dataimp.model.JsonObj;
 import cn.fintecher.pangolin.dataimp.repository.ScoreRuleRepository;
+import cn.fintecher.pangolin.entity.QTemplate;
+import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.alibaba.fastjson.JSONArray;
@@ -13,6 +17,7 @@ import com.querydsl.core.types.Predicate;
 import freemarker.template.Configuration;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +31,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by luqiang on 2017/8/10.
@@ -47,9 +52,27 @@ public class ScoreStrategyController {
 
     @GetMapping("/query")
     @ApiOperation(value = "查询所有规则属性", notes = "查询所有规则属性")
-    public ResponseEntity query(@QuerydslPredicate(root = ScoreRule.class) Predicate predicate, @ApiIgnore Pageable pageable){
+    public ResponseEntity query(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                @QuerydslPredicate(root = ScoreRule.class) Predicate predicate,
+                                @RequestHeader(value = "X-UserToken") String token,@ApiIgnore Pageable pageable){
         try {
+            ResponseEntity<User> userResponseEntity=null;
+            try {
+                userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+            }catch (Exception e){
+                logger.error(e.getMessage(),e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user","请登录")).body(null);
+            }
+            User user=userResponseEntity.getBody();
             BooleanBuilder builder = new BooleanBuilder(predicate);
+            if(Objects.isNull(user.getCompanyCode())){
+                if(Objects.isNull(companyCode)){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStrategy", "scoreStrategy", "请选择公司")).body(null);
+                }
+                builder.and(QTemplate.template.companyCode.eq(companyCode));
+            }else{
+                builder.and(QTemplate.template.companyCode.eq(user.getCompanyCode()));
+            }
             Page<ScoreRule> page = scoreRuleRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/scoreStrategyController/query");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
@@ -60,8 +83,20 @@ public class ScoreStrategyController {
     }
     @PostMapping("/saveScoreStrategy")
     @ApiOperation(value = "新增评分记录", notes = "新增评分记录")
-    public ResponseEntity saveScoreStrategy(@RequestBody JsonObj jsonStr){
+    public ResponseEntity saveScoreStrategy(@RequestBody JsonObj jsonStr, @RequestHeader(value = "X-UserToken") String token){
         try {
+            ResponseEntity<User> userResult = null;
+            try {
+                userResult = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "system error", "系统异常")).body(null);
+            }
+            if (!userResult.hasBody()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "no login", "用户没有登录")).body(null);
+            }
+            User user = userResult.getBody();
+            jsonStr = (JsonObj) EntityUtil.emptyValueToNull(jsonStr);
             scoreRuleRepository.deleteAll();//保存之前删除已有数据
             List<ScoreRule> sorceRules = new ArrayList<>();//属性集合
             String str = jsonStr.getJsonStr();//取json字符串
@@ -71,6 +106,11 @@ public class ScoreStrategyController {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
                 scoreRule.setName(jsonObject.getString("name"));
                 scoreRule.setWeight(jsonObject.getDouble("weight"));
+                if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
+                    scoreRule.setCompanyCode(null);
+                }else{
+                    scoreRule.setCompanyCode(user.getCompanyCode());
+                }
                 JSONArray formulas = jsonObject.getJSONArray("formulas");
                 List<ScoreFormula> formulaList = new ArrayList<>();
                 for (int j = 0; j < formulas.size(); j++) {

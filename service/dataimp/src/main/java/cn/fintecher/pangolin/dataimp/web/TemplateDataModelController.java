@@ -10,6 +10,7 @@ import cn.fintecher.pangolin.dataimp.util.ExcelUtil;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -38,7 +39,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -177,6 +177,7 @@ public class TemplateDataModelController {
     @ApiOperation(value = "新增Excel模板配置保存操作", notes = "新增Excel模板配置保存操作")
     public ResponseEntity importExcelTemplateData(@RequestBody TemplateDataModel excelTemplateData, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
         try {
+            excelTemplateData = (TemplateDataModel) EntityUtil.emptyValueToNull(excelTemplateData);
             ResponseEntity<User> userResponseEntity=null;
             try {
                 userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
@@ -189,7 +190,7 @@ public class TemplateDataModelController {
             excelTemplateData.setOperator(user.getUserName());
             excelTemplateData.setOperatorName(user.getRealName());
             if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
-                excelTemplateData.setCompanyCode("");
+                excelTemplateData.setCompanyCode(null);
             }else{
                 excelTemplateData.setCompanyCode(user.getCompanyCode());
             }

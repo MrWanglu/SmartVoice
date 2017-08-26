@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.business.repository.OutsourceRepository;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -53,6 +54,7 @@ public class OutsourceController extends BaseController {
     @ApiOperation(value = "新增/修改委外方管理", notes = "新增/修改委外方管理")
     public ResponseEntity<Outsource> createOutsource(@RequestBody Outsource outsource,
                                                      @RequestHeader(value = "X-UserToken") String token) {
+        outsource = (Outsource) EntityUtil.emptyValueToNull(outsource);
         log.debug("REST request to save department : {}", outsource);
         if (Objects.isNull(outsource.getCompanyCode())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The company logo cannot be empty", "公司标识不能为空")).body(null);

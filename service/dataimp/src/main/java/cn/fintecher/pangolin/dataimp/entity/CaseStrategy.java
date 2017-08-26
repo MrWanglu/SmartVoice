@@ -39,4 +39,6 @@ public class CaseStrategy {
     private List<String> departments;
     //优先级
     private Integer priority;
+    //公司code码
+    private String companyCode;
 }

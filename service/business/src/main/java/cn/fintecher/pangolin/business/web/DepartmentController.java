@@ -10,6 +10,7 @@ import cn.fintecher.pangolin.business.service.DataDictService;
 import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.entity.util.ShortUUID;
 import cn.fintecher.pangolin.entity.util.Status;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -82,6 +83,7 @@ public class DepartmentController extends BaseController {
     @ApiOperation(value = "增加部门", notes = "增加部门")
     public ResponseEntity<Department> createDepartment(@RequestBody Department department,
                                                        @RequestHeader(value = "X-UserToken") String token) {
+        department = (Department) EntityUtil.emptyValueToNull(department);
         log.debug("REST request to save department : {}", department);
         if (department.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "新增部门不应该含有ID")).body(null);
@@ -132,6 +134,7 @@ public class DepartmentController extends BaseController {
     @PostMapping("/updateDepartment")
     @ApiOperation(value = "修改部门", notes = "修改部门")
     public ResponseEntity<Department> updateDepartment(@RequestBody Department department, @RequestHeader(value = "X-UserToken") String token) {
+        department = (Department) EntityUtil.emptyValueToNull(department);
         log.debug("REST request to update Department : {}", department);
         if (department.getId() == null) {
             return createDepartment(department, token);

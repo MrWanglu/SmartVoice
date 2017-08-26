@@ -10,6 +10,9 @@ import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+import org.springframework.data.repository.query.Param;
+
 
 /**
  * @author : xiaqun
@@ -38,4 +41,16 @@ public interface CaseAssistRepository extends QueryDslPredicateExecutor<CaseAssi
             "AND assist_status IN (28,118) " +
             ") AS b ", nativeQuery = true)
     long leaveCaseAssistCount(@Param("userId") String userId);
+
+    /**
+     * 查询协催案件流转
+     * @param holdDays
+     * @param companyCode
+     * @return
+     */
+    @Query(value = "SELECT a.* FROM case_assist a LEFT JOIN case_followup_record b ON a.case_id = b.case_id  WHERE " +
+            " a.assist_way = ?1 AND (b.type is null or b.type = 186) AND a.hold_days >= ?2 AND (b.operator_time is null or b.operator_time >= a.case_flowin_time)" +
+            " AND a.company_code=?3 AND a.assist_collector is NOT NULL AND a.leave_case_flag=?4 AND b.id IS NULL AND a.assist_status in (28,117,118)", nativeQuery = true)
+    List<CaseAssist> queryAssitForce(@Param("assistWay") Integer assistWay, @Param("holdDays")Integer holdDays, @Param("companyCode") String companyCode,
+                                     @Param("leaveCaseFlag") Integer leaveCaseFlag);
 }
