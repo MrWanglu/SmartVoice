@@ -223,7 +223,7 @@ public class CaseAssistApplyController extends BaseController {
                         }
                     }
                 }
-                title = "协催申请审批未通过!";
+                title = "协催申请审批已通过!";
                 content = "案件["+apply.getCaseNumber()+"]申请的协催已审批通过!";
                 String applyUserId = userRepository.findByUserName(apply.getApplyUserName()).getId();
                 String telUserId = userRepository.findByUserName(apply.getApprovePhoneUser()).getId();
