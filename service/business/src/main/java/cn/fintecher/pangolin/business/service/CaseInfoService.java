@@ -948,15 +948,6 @@ public class CaseInfoService {
                 throw new RuntimeException("所选案件数量超过可留案案件数");
             }
             caseInfo.setLeaveCaseFlag(1); //留案标志
-            if (Objects.equals(tokenUser.getType(), User.Type.TEL.getValue())) {
-                caseInfo.setCaseType(CaseInfo.CaseType.PHNONELEAVETURN.getValue()); //案件类型 177-电催保留流转
-            } else if (Objects.equals(tokenUser.getType(), User.Type.VISIT.getValue())) {
-                if (1 == leaveCaseParams.getType()) {
-                    caseInfo.setCaseType(CaseInfo.CaseType.OUTLEAVETURN.getValue()); //案件类型 181-外访保留流转
-                } else if (2 == leaveCaseParams.getType()) {
-                    caseInfo.setCaseType(CaseInfo.CaseType.ASSISTTURN.getValue()); //案件类型 216-协催保留流转
-                }
-            }
             caseInfo.setOperator(tokenUser); //操作人
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseInfoRepository.saveAndFlush(caseInfo);
