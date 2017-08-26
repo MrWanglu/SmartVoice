@@ -55,6 +55,11 @@ public class CompanyController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "idexists", "新增不应该含有ID")).body(null);
         }
+        QCompany qCompany = QCompany.company;
+        boolean exist = companyRepository.exists(qCompany.chinaName.eq(company.getChinaName()).or(qCompany.code.eq(company.getCode())).or(qCompany.engName.eq(company.getEngName())));
+        if (exist) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User name cannot be repeated", "公司名，公司英文名，公司code不能与其他公司重复")).body(null);
+        }
         Company result = companyRepository.save(company);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(result);
     }
@@ -78,6 +83,11 @@ public class CompanyController extends BaseController {
         if (company.getId() == null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "idexists", "修改应该含有ID")).body(null);
+        }
+        QCompany qCompany = QCompany.company;
+        boolean exist = companyRepository.exists(qCompany.chinaName.eq(company.getChinaName()).or(qCompany.code.eq(company.getCode())).or(qCompany.engName.eq(company.getEngName())).and(qCompany.id.ne(company.getId())));
+        if (exist) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User name cannot be repeated", "公司名，公司英文名，公司code不能与其他公司重复")).body(null);
         }
         Company result = companyRepository.save(company);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(result);

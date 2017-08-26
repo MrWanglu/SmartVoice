@@ -177,6 +177,17 @@ public class UserController extends BaseController {
     public ResponseEntity<User> updateUser(@Validated @ApiParam("用户对象") @RequestBody User user,
                                            @RequestHeader(value = "X-UserToken") String token) {
         user = (User) EntityUtil.emptyValueToNull(user);
+        User userToken;
+        try {
+            userToken = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        if (user.getDepartment().getLevel() <= 9 && !Objects.equals(Constants.ADMIN_USER_NAME, userToken.getUserName())) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                    "New user institutions must be greater than the first class", "修改用户，用户机构等级必须大于一级")).body(null);
+        }
         //修改用户状态或者修改部门的类型 首先处理案件
         User userOld = userRepository.findOne(user.getId());
         if (Objects.equals(Status.Disable.getValue(), user.getStatus()) || !(Objects.equals(user.getDepartment().getType(), userOld.getDepartment().getType()))) {
@@ -485,7 +496,7 @@ public class UserController extends BaseController {
             userModelList.add(userModel);
         }
         try {
-            String[] titleList = {"用户名", "姓名", "所属部门", "催收类型", "是否管理员", "电话", "邮箱", "备注", "创建人"};
+            String[] titleList = {"用户名", "姓名", "所属机构", "催收类型", "是否管理员", "电话", "邮箱", "备注", "创建人"};
             String[] proNames = {"userName", "realName", "department", "type", "manager", "phone", "email", "remark", "operator"};
             workbook = new HSSFWorkbook();
             HSSFSheet sheet = workbook.createSheet("sheet1");

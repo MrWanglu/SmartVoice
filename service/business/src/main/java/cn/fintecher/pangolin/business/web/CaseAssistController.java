@@ -362,7 +362,7 @@ public class CaseAssistController extends BaseController {
         return accVisitPoolController.getVisitFiles(follId);
     }
 
-    @GetMapping("/getFollowupRecord/{caseId}")
+    @GetMapping("/getFollowupRecord/{caseNumber}")
     @ApiOperation(value = "协催页面多条件查询跟进记录", notes = "协催页面多条件查询跟进记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -373,13 +373,13 @@ public class CaseAssistController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
-                                                                      @PathVariable @ApiParam(value = "案件ID", required = true) String caseId,
+                                                                      @PathVariable @ApiParam(value = "案件编号", required = true) String caseNumber,
                                                                       @ApiIgnore Pageable pageable) {
-        log.debug("REST request to get case followup records by {caseId}", caseId);
+        log.debug("REST request to get case followup records by {caseNumber}", caseNumber);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
             QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
-            builder.and(qCaseFollowupRecord.caseId.eq(caseId));
+            builder.and(qCaseFollowupRecord.caseNumber.eq(caseNumber));
             /*builder.and(qCaseFollowupRecord.caseId.id.eq(caseId));*/
             Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseAssistController/getFollowupRecord");
