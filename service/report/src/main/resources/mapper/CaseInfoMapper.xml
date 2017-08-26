@@ -127,21 +127,22 @@
 
   <select id="queryWaitOwnCollectCase" parameterType="cn.fintecher.pangolin.report.model.CaseInfoParams"
             resultMap="caseInfoBean">
-        select b.id,b.batch_number,b.case_number,b.contract_amount,b.collection_type,b.overdue_fine,b.overdue_amount,b.left_capital,b.left_interest,b.overdue_capital,
-        b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
-        b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
-        b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,pr.prodcut_name,b.overdue_periods,b.overdue_days,
-        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,b.loan_date,
-        pri.id,pri.name,b.personal_id from
+      select b.id,b.batch_number,b.case_number,b.contract_amount,b.overdue_fine,b.collection_type,b.overdue_amount,b.left_capital,b.left_interest,b.overdue_capital,
+      b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
+      b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
+      b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,pr.prodcut_name,b.overdue_periods,b.overdue_days,
+      b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,b.loan_date,
+      pri.id,pri.name,b.personal_id from
         (
-        select a.*
-        from case_info a,personal p
-        where a.current_collector = #{collector}
-        or a.assist_collector = #{collector}
-        and a.company_code = #{companyCode}
-        and a.collection_type=16
-        and a.collection_status = 20
-        and a.personal_id = p.id
+      SELECT
+      a.*
+      FROM
+      case_info as a LEFT JOIN personal as p on a.personal_id = p.id where
+      (a.current_collector = #{collector}
+      OR a.assist_collector = #{collector})
+      AND a.company_code = #{companyCode}
+      AND a.collection_type = 16
+      AND a.collection_status = 20
         <if test="name != null">
           and p.name like CONCAT(#{name}, '%')
         </if>
