@@ -8,6 +8,7 @@ import cn.fintecher.pangolin.service.reminder.model.MobilePositionParams;
 import cn.fintecher.pangolin.service.reminder.model.QMobilePosition;
 import cn.fintecher.pangolin.service.reminder.repository.MobilePositionRepository;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -77,38 +78,42 @@ public class MobilePositionController{
         builder.and(QMobilePosition.mobilePosition.companyCode.eq(user.getCompanyCode()));
         builder.and(QMobilePosition.mobilePosition.depCode.startsWith(user.getDepartment().getCode()));
         builder.and(QMobilePosition.mobilePosition.userName.ne("administrator"));
-        if (null != mobilePositionParams.getName()
-                || null != mobilePositionParams.getDepCode()
-                || null != mobilePositionParams.getStartDate()
-                || null != mobilePositionParams.getEndDate()) {
-            if (StringUtils.isNotBlank(mobilePositionParams.getDepCode())) {
-                builder.and(QMobilePosition.mobilePosition.depCode.eq(mobilePositionParams.getDepCode()));
-            }
-            if (StringUtils.isNotBlank(mobilePositionParams.getName())) {
-                builder.and(QMobilePosition.mobilePosition.userName.eq(mobilePositionParams.getName()));
-            }
-            if (Objects.nonNull(mobilePositionParams.getStartDate()) && Objects.nonNull(mobilePositionParams.getEndDate())) {
-                builder.and(QMobilePosition.mobilePosition.datetime.between(mobilePositionParams.getStartDate(), mobilePositionParams.getEndDate()));
-            } else {
-                if (Objects.nonNull(mobilePositionParams.getStartDate())) {
-                    builder.and(QMobilePosition.mobilePosition.datetime.after(mobilePositionParams.getStartDate()));
+        try {
+            if (null != mobilePositionParams.getName()
+                    || null != mobilePositionParams.getDepCode()
+                    || null != mobilePositionParams.getStartDate()
+                    || null != mobilePositionParams.getEndDate()) {
+                if (StringUtils.isNotBlank(mobilePositionParams.getDepCode())) {
+                    builder.and(QMobilePosition.mobilePosition.depCode.startsWith(mobilePositionParams.getDepCode()));
                 }
-                if (Objects.nonNull(mobilePositionParams.getEndDate())) {
-                    builder.and(QMobilePosition.mobilePosition.datetime.before(mobilePositionParams.getEndDate()));
+                if (StringUtils.isNotBlank(mobilePositionParams.getName())) {
+                    builder.and(QMobilePosition.mobilePosition.userName.eq(mobilePositionParams.getName()));
                 }
-            }
-            Iterable<MobilePosition> mobilePositionIterable = mobilePositionRepository.findAll(builder, new Sort(Sort.Direction.DESC, "datetime"));
-            mobilePositionIterable.forEach(e->{
-                mobilePositionList.add(e);
-            });
-        } else {
-            builder.and(QMobilePosition.mobilePosition.datetime.after(ZWDateUtil.getNightTime(-1)));
-            Iterable<MobilePosition> mobilePositionIterable = mobilePositionRepository.findAll(builder, new Sort(Sort.Direction.DESC, "datetime"));
-            List<String> nameList = new ArrayList<>();
-            mobilePositionIterable.forEach(e->{
-                String userName = e.getUserName();
+                if (Objects.nonNull(mobilePositionParams.getStartDate()) && Objects.nonNull(mobilePositionParams.getEndDate())) {
+                    builder.and(QMobilePosition.mobilePosition.datetime.between(ZWDateUtil.getFormatDate(mobilePositionParams.getStartDate()), ZWDateUtil.getFormatDate(mobilePositionParams.getEndDate())));
+                } else {
+                    if (Objects.nonNull(mobilePositionParams.getStartDate())) {
+                        builder.and(QMobilePosition.mobilePosition.datetime.after(ZWDateUtil.getFormatDate(mobilePositionParams.getStartDate())));
+                    }
+                    if (Objects.nonNull(mobilePositionParams.getEndDate())) {
+                        builder.and(QMobilePosition.mobilePosition.datetime.before(ZWDateUtil.getFormatDate(mobilePositionParams.getEndDate())));
+                    }
+                }
+                Iterable<MobilePosition> mobilePositionIterable = mobilePositionRepository.findAll(builder, new Sort(Sort.Direction.DESC, "datetime"));
+                mobilePositionIterable.forEach(e -> {
                     mobilePositionList.add(e);
-            });
+                });
+            } else {
+                builder.and(QMobilePosition.mobilePosition.datetime.after(ZWDateUtil.getNightTime(-1)));
+                Iterable<MobilePosition> mobilePositionIterable = mobilePositionRepository.findAll(builder, new Sort(Sort.Direction.DESC, "datetime"));
+                List<String> nameList = new ArrayList<>();
+                mobilePositionIterable.forEach(e -> {
+                    String userName = e.getUserName();
+                    mobilePositionList.add(e);
+                });
+            }
+        }catch(Exception e){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "MobilePosition", e.getMessage())).body(null);
         }
         return new ResponseEntity<>(mobilePositionList, HttpStatus.OK);
     }

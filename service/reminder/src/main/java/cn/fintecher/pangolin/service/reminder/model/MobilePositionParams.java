@@ -13,6 +13,6 @@ import java.util.Date;
 public class MobilePositionParams {
     private String name; //催收员姓名
     private String depCode; //部门
-    private Date startDate; //起始时间
-    private Date endDate; //终止时间
+    private String startDate; //起始时间
+    private String endDate; //终止时间
 }
