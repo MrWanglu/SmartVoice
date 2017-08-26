@@ -990,7 +990,7 @@ public class CaseInfoService {
             caseAdvanceTurnApplay.setApplayRealName(tokenUser.getRealName());
             caseAdvanceTurnApplay.setApplayUserName(tokenUser.getUserName());
             caseAdvanceTurnApplay.setApplayDeptName(tokenUser.getDepartment().getName());
-            //caseAdvanceTurnApplay.setApplayReason();
+            caseAdvanceTurnApplay.setApplayReason(advanceCirculationParams.getReason());
             caseAdvanceTurnApplay.setApplayDate(ZWDateUtil.getNowDateTime());
             caseAdvanceTurnApplay.setApproveResult(CaseAdvanceTurnApplay.CirculationStatus.PHONE_WAITING.getValue());//待审批
             caseAdvanceTurnApplayRepository.save(caseAdvanceTurnApplay);
