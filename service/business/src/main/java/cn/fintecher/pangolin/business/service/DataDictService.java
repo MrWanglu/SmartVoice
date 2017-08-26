@@ -39,4 +39,12 @@ public class DataDictService {
         return dataDictList;
     }
 
+    /**
+     * @Description 通过数据字典ID获取字典name
+     */
+    public String getDataDictName(@RequestParam Integer id) {
+        QDataDict qDataDict = QDataDict.dataDict;
+        DataDict dataDict = dataDictRepository.findOne(qDataDict.id.eq(id));
+        return dataDict.getName();
+    }
 }
