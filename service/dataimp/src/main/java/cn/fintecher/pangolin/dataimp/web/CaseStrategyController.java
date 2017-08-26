@@ -441,8 +441,8 @@ public class CaseStrategyController {
         List<CaseInfoDistributed> caseInfoList = null;
         ParameterizedTypeReference<List<CaseInfoDistributed>> responseType = new ParameterizedTypeReference<List<CaseInfoDistributed>>() {
         };
-        ResponseEntity<List<CaseInfoDistributed>> resp = restTemplate.exchange(Constants.BUSINESS_SERVICE_URL.concat("getAllCaseInfo"),
-                HttpMethod.GET, null, responseType,companyCode);
+        ResponseEntity<List<CaseInfoDistributed>> resp = restTemplate.exchange(Constants.BUSINESS_SERVICE_URL.concat("getAllCaseInfo").concat("?companyCode=").concat(companyCode),
+                HttpMethod.GET, null, responseType);
         caseInfoList = resp.getBody();
         for (CaseInfoDistributed caseInfoDistributed : caseInfoList) {
             kieSession.insert(caseInfoDistributed);//插入

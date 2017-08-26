@@ -776,7 +776,7 @@ public class CaseInfoController extends BaseController {
     private  KieSession createSorceRule(String comanyCode) throws IOException, TemplateException {
        Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
        Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
-        ResponseEntity<ScoreRules> responseEntity=restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules"),ScoreRules.class,comanyCode);
+        ResponseEntity<ScoreRules> responseEntity=restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode),ScoreRules.class);
         List<ScoreRule> rules=null;
         if(responseEntity.hasBody()){
             ScoreRules scoreRules=responseEntity.getBody();
