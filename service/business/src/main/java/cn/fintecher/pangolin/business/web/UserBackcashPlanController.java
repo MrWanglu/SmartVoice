@@ -301,7 +301,7 @@ public class UserBackcashPlanController extends BaseController {
         try {
             cellErrorList = userBackcashPlanExcelImportService.importExcelDataInfo(backPlanImportParams);
             if (cellErrorList.size() != 0 ) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败")).body(cellErrorList.get(0).getErrorMsg());
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败,"+cellErrorList.get(0).getErrorMsg())).body(cellErrorList.get(0).getErrorMsg());
             }
         } catch (Exception e) {
             e.printStackTrace();
