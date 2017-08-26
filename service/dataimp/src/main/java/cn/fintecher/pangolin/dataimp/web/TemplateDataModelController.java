@@ -189,7 +189,7 @@ public class TemplateDataModelController {
             excelTemplateData.setOperator(user.getUserName());
             excelTemplateData.setOperatorName(user.getRealName());
             if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
-                excelTemplateData.setCompanyCode("");
+                excelTemplateData.setCompanyCode(null);
             }else{
                 excelTemplateData.setCompanyCode(user.getCompanyCode());
             }

@@ -105,7 +105,7 @@ public class TemplateController extends BaseController {
             }
             User user = getUserByToken(token);
             if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
-                template.setCompanyCode("");
+                template.setCompanyCode(null);
             }else{
                 template.setCompanyCode(user.getCompanyCode());
             }

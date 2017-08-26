@@ -658,7 +658,7 @@ public class CaseInfoController extends BaseController {
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
     @GetMapping("/updateAllScoreStrategyManual")
-    @ApiOperation(value = "更新案件评分", notes = "更新案件评分")
+    @ApiOperation(value = "更新案件评分(手动)", notes = "更新案件评分(手动)")
     public ResponseEntity updateAllScoreStrategyManual() throws IOException {
         try {
             StopWatch watch1 = new StopWatch();
@@ -700,6 +700,46 @@ public class CaseInfoController extends BaseController {
                 caseInfoRepository.save(caseInfoList1);
                 watch1.stop();
                 //log.info("耗时："+watch1.getTotalTimeMillis());
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(null);
+            }
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo","failure","案件为空")).body(null);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    @GetMapping("/updateAllScoreStrategyAuto")
+    @ApiOperation(value = "更新案件评分(自动)", notes = "更新案件评分(自动)")
+    public ResponseEntity updateAllScoreStrategyAuto() throws IOException {
+        try {
+            KieSession  kieSession = null;
+            try {
+                kieSession = createSorceRule();
+            } catch (TemplateException e) {
+                e.printStackTrace();
+            }
+            List<CaseInfo> caseInfoList = caseInfoRepository.findAll();
+            List<CaseInfo> caseInfoList1 = new ArrayList<>();
+            if (caseInfoList.size() > 0) {
+                for(CaseInfo caseInfo : caseInfoList){
+                    ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
+                    int age = IdcardUtils.getAgeByIdCard(caseInfo.getPersonalInfo().getIdCard());
+                    scoreRuleModel.setAge(age);
+                    scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
+                    scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
+                    scoreRuleModel.setProId(caseInfo.getArea().getId());//省份id
+                    Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
+                    if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
+                        scoreRuleModel.setIsWork(1);
+                    } else {
+                        scoreRuleModel.setIsWork(0);
+                    }
+                    kieSession.insert(scoreRuleModel);//插入
+                    kieSession.fireAllRules();//执行规则
+                    caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                    caseInfoList1.add(caseInfo);
+                }
+                caseInfoRepository.save(caseInfoList1);
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(null);
             }
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo","failure","案件为空")).body(null);

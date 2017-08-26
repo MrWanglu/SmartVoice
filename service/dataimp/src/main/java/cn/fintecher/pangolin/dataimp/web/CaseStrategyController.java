@@ -75,9 +75,27 @@ public class CaseStrategyController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity getCaseStrategy(@QuerydslPredicate(root = CaseStrategy.class) Predicate predicate, @ApiIgnore Pageable pageable) {
+    public ResponseEntity getCaseStrategy(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                           @QuerydslPredicate(root = CaseStrategy.class) Predicate predicate, @ApiIgnore Pageable pageable,
+                                          @RequestHeader(value = "X-UserToken") String token) {
         try {
+            ResponseEntity<User> userResponseEntity=null;
+            try {
+                userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+            }catch (Exception e){
+                logger.error(e.getMessage(),e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user",ENTITY_NAME)).body(null);
+            }
+            User user=userResponseEntity.getBody();
             BooleanBuilder builder = new BooleanBuilder(predicate);
+            if(Objects.isNull(user.getCompanyCode())){
+                if(Objects.isNull(companyCode)){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseStrategy", "caseStrategy", "请选择公司")).body(null);
+                }
+                builder.and(QTemplate.template.companyCode.eq(companyCode));
+            }else{
+                builder.and(QTemplate.template.companyCode.eq(user.getCompanyCode()));
+            }
             Page<CaseStrategy> page = caseStrategyRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseStrategyController/getCaseStrategy");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
@@ -138,6 +156,12 @@ public class CaseStrategyController {
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
 
+        }
+        User user = userResult.getBody();
+        if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
+            caseStrategy.setCompanyCode(null);
+        }else{
+            caseStrategy.setCompanyCode(user.getCompanyCode());
         }
         caseStrategy.setCreateTime(ZWDateUtil.getNowDateTime());
         caseStrategy.setCreator(userResult.getBody().getRealName());
