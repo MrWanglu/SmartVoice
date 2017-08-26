@@ -1270,10 +1270,22 @@ public class CaseInfoService {
                         caseInfo.setDepartment(department);
                         caseInfo.setCaseFollowInTime(null);
                         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
+                        if(Objects.equals(department.getType(),Department.Type.TELEPHONE_COLLECTION.getValue())){
+                            caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
+                        }
+                        if(Objects.equals(department.getType(),Department.Type.OUTBOUND_COLLECTION.getValue())){
+                            caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
+                        }
                     }
                     if (Objects.nonNull(targetUser)) {
                         caseInfo.setDepartment(targetUser.getDepartment());
                         caseInfo.setCurrentCollector(targetUser);
+                        if(Objects.equals(targetUser.getType(),User.Type.TEL.getValue())) {
+                            caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
+                        }
+                        if(Objects.equals(targetUser.getType(),User.Type.VISIT.getValue())){
+                            caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
+                        }
                         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
                         caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());
                     }
