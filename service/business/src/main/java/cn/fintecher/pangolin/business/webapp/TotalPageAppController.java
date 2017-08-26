@@ -59,7 +59,7 @@ public class TotalPageAppController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("USER", "user", "用户不存在")).
                     body(null);
         }
-        userStatisAppModel.setApplyPayAmt(casePayApplyRepository.queryApplyAmtByUserName(user.getUserName(), CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue()));
+        userStatisAppModel.setApplyPayAmt(casePayApplyRepository.queryApplyAmtByUserName(user.getUserName(), CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue(),CasePayApply.ApproveStatus.DERATE_TO_AUDIT.getValue()));
         userStatisAppModel.setCollectionAmt(caseInfoRepository.getCollectionAmt(user.getId(), CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()));
         Calendar cal = Calendar.getInstance();
         cal.setTime(ZWDateUtil.getNowDate());

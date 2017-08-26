@@ -61,8 +61,8 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
     /**
      @Description 获得指定用户的待审核回款金额
      */
-    @Query(value = "select sum(applyPayAmt) from CasePayApply where applyUserName = :username and  approveStatus=:approveStatu")
-    BigDecimal queryApplyAmtByUserName(@Param("username") String username, @Param("approveStatu") Integer approveStatu);
+    @Query(value = "select sum(applyPayAmt) from CasePayApply where applyUserName = :username and  approveStatus in(:approveStatu1,:approveStatu2)")
+    BigDecimal queryApplyAmtByUserName(@Param("username") String username, @Param("approveStatu1") Integer approveStatu1,@Param("approveStatu2") Integer approveStatu2);
 
     /**
      @Description 获得周回款榜

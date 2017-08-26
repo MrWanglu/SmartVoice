@@ -31,6 +31,8 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -116,6 +118,12 @@ public class CaseInfoAppController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
+        List<Integer> status = new ArrayList<>();
+        status.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue());
+        status.add(CaseInfo.CollectionStatus.PART_REPAID.getValue());
+        status.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue());
+        status.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue());
+        status.add(CaseInfo.CollectionStatus.REPAID.getValue());
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
         builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));

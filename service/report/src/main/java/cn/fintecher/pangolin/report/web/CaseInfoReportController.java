@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.report.web;
 
 
+import cn.fintecher.pangolin.entity.Personal;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.entity.CaseInfo;
 import cn.fintecher.pangolin.report.model.CaseInfoParams;
@@ -79,21 +80,26 @@ public class CaseInfoReportController extends BaseController{
             caseInfoParams.setAddress(address);
         }
         list = caseInfoService.queryWaitCollectCase(caseInfoParams,page,size,user);
+        List<CaseInfo> lists = new ArrayList<>();
+
         for(int i=0; i<list.size(); i++){
             CaseInfo caseInfo = list.get(i);
-            if(Objects.isNull(caseInfo.getPersonalInfo().getLongitude())
-                    || Objects.isNull(caseInfo.getPersonalInfo().getLatitude())){
+            Personal personal = caseInfo.getPersonalInfo();
+            if(Objects.isNull(personal.getLongitude())
+                    || Objects.isNull(personal.getLatitude())){
                 try{
-                    MapModel model = accMapService.getAddLngLat(caseInfo.getPersonalInfo().getLocalHomeAddress());
-                    caseInfo.getPersonalInfo().setLatitude(BigDecimal.valueOf(model.getLatitude()));
-                    caseInfo.getPersonalInfo().setLongitude(BigDecimal.valueOf(model.getLongitude()));
-                    caseInfoService.updateLngLat(caseInfo.getPersonalInfo());
+                    MapModel model = accMapService.getAddLngLat(personal.getLocalHomeAddress());
+                    personal.setLatitude(BigDecimal.valueOf(model.getLatitude()));
+                    personal.setLongitude(BigDecimal.valueOf(model.getLongitude()));
+                    caseInfoService.updateLngLat(personal);
+                    caseInfo.setPersonalInfo(personal);
                 }catch(Exception e1){
                     e1.getMessage();
                 }
             }
+         lists.add(caseInfo);
         }
-        PageInfo pageInfo = new PageInfo(list);
+        PageInfo pageInfo = new PageInfo(lists);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","测试")).body(pageInfo);
     }
 

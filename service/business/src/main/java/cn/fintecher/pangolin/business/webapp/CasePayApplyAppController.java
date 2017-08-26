@@ -86,22 +86,6 @@ public class CasePayApplyAppController extends BaseController {
         }
     }
 
-    @GetMapping(value = "/getBackMoneyForApp")
-    @ApiOperation(value = "获取催收员回款总额信息", notes = "获取催收员回款总额信息")
-    @ResponseBody
-    public ResponseEntity<BigDecimal> getBackMoneyForApp(@RequestHeader(value = "X-UserToken") String token) {
-        User user = null;
-        try {
-            user = getUserByToken(token);
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("USER", "user", "用户不存在")).
-                    body(null);
-        }
-        BigDecimal sum = casePayApplyRepository.queryApplyAmtByUserName(user.getUserName(),CasePayApply.ApproveStatus.AUDIT_AGREE.getValue());
-        return ResponseEntity.ok().body(sum);
-    }
-
     /**
      * @Description APP申请还款
      */
