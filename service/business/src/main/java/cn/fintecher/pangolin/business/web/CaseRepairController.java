@@ -155,8 +155,9 @@ public class CaseRepairController extends BaseController{
         list.add(CaseInfo.CollectionStatus.CASE_OUT.getValue());
         builder.and(QCaseRepair.caseRepair.caseId.collectionStatus.notIn(list));
         List<Integer> list1 = new ArrayList<>();
-        list1.add(CaseRepair.CaseRepairStatus.REPAIRING.getValue());
-        list1.add(CaseRepair.CaseRepairStatus.REPAIRED.getValue());
+        list1.add(CaseRepair.CaseRepairStatus.REPAIRING.getValue()); // 待修复
+        list1.add(CaseRepair.CaseRepairStatus.REPAIRED.getValue()); // 已修复
+        list1.add(CaseRepair.CaseRepairStatus.DISTRIBUTE.getValue()); // 已分配
         builder.and(QCaseRepair.caseRepair.repairStatus.in(list1));
         Page<CaseRepair> page = caseRepairRepository.findAll(builder,pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "RepairCaseDistributeController")).body(page);
