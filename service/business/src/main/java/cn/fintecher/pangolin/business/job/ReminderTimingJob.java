@@ -60,76 +60,86 @@ public class ReminderTimingJob implements Job{
     private UserService userService;
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        QSysParam qSysParam = QSysParam.sysParam;
+        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYSPARAM_REMINDER_STATUS));
         try {
-            JobDataMap jobDataMap = jobExecutionContext.getTrigger().getJobDataMap();
-            String companyCode = jobDataMap.get("companyCode").toString();
-            //案件即将强制流转提醒
-            List<CaseInfo> forceTurnCaseList = caseInfoService.getForceTurnCase(companyCode);
-            if(Objects.nonNull(forceTurnCaseList)){
-                for(CaseInfo caseInfo : forceTurnCaseList){
-                    SendReminderMessage sendReminderMessage = new SendReminderMessage();
-                    sendReminderMessage.setUserId(Objects.nonNull(caseInfo.getCurrentCollector())?caseInfo.getCurrentCollector().getId():null);
-                    sendReminderMessage.setType(ReminderType.FORCE_TURN);
-                    sendReminderMessage.setTitle("案件强制流转提醒");
-                    sendReminderMessage.setContent("您持有的案件 ["+caseInfo.getCaseNumber()+"] 即将强制流转,请及时留案");
-                    sendReminderMessage.setMode(ReminderMode.POPUP);
-                    ReminderService.sendReminder(sendReminderMessage);
-                }
-            }
-
-            //协催案件即将强制流转提醒
-            List<CaseAssist> forceTurnAssistCaseList = caseAssistService.getForceTurnAssistCase(companyCode);
-            if(Objects.nonNull(forceTurnAssistCaseList)){
-                for(CaseAssist caseAssist : forceTurnAssistCaseList){
-                    SendReminderMessage sendReminderMessage = new SendReminderMessage();
-                    sendReminderMessage.setUserId(Objects.nonNull(caseAssist.getAssistCollector())?caseAssist.getAssistCollector().getId():null);
-                    sendReminderMessage.setType(ReminderType.FORCE_TURN);
-                    sendReminderMessage.setTitle("协催案件强制流转提醒");
-                    sendReminderMessage.setContent("您参与协催的案件 ["+caseAssist.getCaseId().getCaseNumber()+"] 即将强制流转,请及时留案");
-                    sendReminderMessage.setMode(ReminderMode.POPUP);
-                    ReminderService.sendReminder(sendReminderMessage);
-                }
-            }
-
-            //持案天数逾期无进展提醒
-            List<CaseInfo>  nowhereCaseList = caseInfoService.getNowhereCase(companyCode);
-            if(Objects.nonNull(nowhereCaseList)){
-                for(CaseInfo caseInfo : nowhereCaseList){
-                    List<User> managers = userService.getManagerByUser(caseInfo.getCurrentCollector().getId());
-                    SendReminderMessage sendReminderMessage = new SendReminderMessage();
-                    sendReminderMessage.setUserId(managers.get(0).getId());
-                    sendReminderMessage.setType(ReminderType.FLLOWUP);
-                    sendReminderMessage.setTitle("案件跟进提醒");
-                    sendReminderMessage.setContent("案件 ["+caseInfo.getCaseNumber()+"] 长时间无跟进记录,请及时处理");
-                    sendReminderMessage.setMode(ReminderMode.POPUP);
-                    if(managers.size()>1){
-                        List<String> managerIds = new ArrayList<>();
-                        for(int i=1;i<managers.size();i++){
-                            managerIds.add(managers.get(i).getId());
-                        }
-                    sendReminderMessage.setCcUserIds(managerIds.toArray(new String[managerIds.size()]));
+            if (Objects.equals("0", sysParam.getValue())) {
+                sysParam.setValue("1");
+                sysParamRepository.save(sysParam);
+                logger.info("案件提醒批量发送中.......");
+                JobDataMap jobDataMap = jobExecutionContext.getTrigger().getJobDataMap();
+                String companyCode = jobDataMap.get("companyCode").toString();
+                //案件即将强制流转提醒
+                List<CaseInfo> forceTurnCaseList = caseInfoService.getForceTurnCase(companyCode);
+                if (Objects.nonNull(forceTurnCaseList)) {
+                    for (CaseInfo caseInfo : forceTurnCaseList) {
+                        SendReminderMessage sendReminderMessage = new SendReminderMessage();
+                        sendReminderMessage.setUserId(Objects.nonNull(caseInfo.getCurrentCollector()) ? caseInfo.getCurrentCollector().getId() : null);
+                        sendReminderMessage.setType(ReminderType.FORCE_TURN);
+                        sendReminderMessage.setTitle("案件强制流转提醒");
+                        sendReminderMessage.setContent("您持有的案件 [" + caseInfo.getCaseNumber() + "] 即将强制流转,请及时留案");
+                        sendReminderMessage.setMode(ReminderMode.POPUP);
+                        ReminderService.sendReminder(sendReminderMessage);
                     }
-                    ReminderService.sendReminder(sendReminderMessage);
                 }
-            }
 
-            //单次协催案件若干天无进展提醒
-            List<CaseAssist>  nowhereCaseAssist = caseInfoService.getNowhereCaseAssist(companyCode);
-            if(Objects.nonNull(nowhereCaseAssist)){
-                for(CaseAssist caseAssist : nowhereCaseAssist){
-                    SendReminderMessage sendReminderMessage = new SendReminderMessage();
-                    sendReminderMessage.setUserId(caseAssist.getOperator().getId());
-                    sendReminderMessage.setType(ReminderType.FLLOWUP);
-                    sendReminderMessage.setTitle("协催案件跟进提醒");
-                    sendReminderMessage.setContent("协催案件 ["+caseAssist.getCaseId().getCaseNumber()+"] 长时间无跟进记录,请及时处理");
-                    sendReminderMessage.setMode(ReminderMode.POPUP);
-                    ReminderService.sendReminder(sendReminderMessage);
+                //协催案件即将强制流转提醒
+                List<CaseAssist> forceTurnAssistCaseList = caseAssistService.getForceTurnAssistCase(companyCode);
+                if (Objects.nonNull(forceTurnAssistCaseList)) {
+                    for (CaseAssist caseAssist : forceTurnAssistCaseList) {
+                        SendReminderMessage sendReminderMessage = new SendReminderMessage();
+                        sendReminderMessage.setUserId(Objects.nonNull(caseAssist.getAssistCollector()) ? caseAssist.getAssistCollector().getId() : null);
+                        sendReminderMessage.setType(ReminderType.FORCE_TURN);
+                        sendReminderMessage.setTitle("协催案件强制流转提醒");
+                        sendReminderMessage.setContent("您参与协催的案件 [" + caseAssist.getCaseId().getCaseNumber() + "] 即将强制流转,请及时留案");
+                        sendReminderMessage.setMode(ReminderMode.POPUP);
+                        ReminderService.sendReminder(sendReminderMessage);
+                    }
                 }
-            }
 
-            restTemplate.execute("http://reminder-service/api/reminderTiming/sendReminderTiming", HttpMethod.GET,null,null);
+                //持案天数逾期无进展提醒
+                List<CaseInfo> nowhereCaseList = caseInfoService.getNowhereCase(companyCode);
+                if (Objects.nonNull(nowhereCaseList)) {
+                    for (CaseInfo caseInfo : nowhereCaseList) {
+                        List<User> managers = userService.getManagerByUser(caseInfo.getCurrentCollector().getId());
+                        SendReminderMessage sendReminderMessage = new SendReminderMessage();
+                        sendReminderMessage.setUserId(managers.get(0).getId());
+                        sendReminderMessage.setType(ReminderType.FLLOWUP);
+                        sendReminderMessage.setTitle("案件跟进提醒");
+                        sendReminderMessage.setContent("案件 [" + caseInfo.getCaseNumber() + "] 长时间无跟进记录,请及时处理");
+                        sendReminderMessage.setMode(ReminderMode.POPUP);
+                        if (managers.size() > 1) {
+                            List<String> managerIds = new ArrayList<>();
+                            for (int i = 1; i < managers.size(); i++) {
+                                managerIds.add(managers.get(i).getId());
+                            }
+                            sendReminderMessage.setCcUserIds(managerIds.toArray(new String[managerIds.size()]));
+                        }
+                        ReminderService.sendReminder(sendReminderMessage);
+                    }
+                }
+
+                //单次协催案件若干天无进展提醒
+                List<CaseAssist> nowhereCaseAssist = caseInfoService.getNowhereCaseAssist(companyCode);
+                if (Objects.nonNull(nowhereCaseAssist)) {
+                    for (CaseAssist caseAssist : nowhereCaseAssist) {
+                        SendReminderMessage sendReminderMessage = new SendReminderMessage();
+                        sendReminderMessage.setUserId(caseAssist.getOperator().getId());
+                        sendReminderMessage.setType(ReminderType.FLLOWUP);
+                        sendReminderMessage.setTitle("协催案件跟进提醒");
+                        sendReminderMessage.setContent("协催案件 [" + caseAssist.getCaseId().getCaseNumber() + "] 长时间无跟进记录,请及时处理");
+                        sendReminderMessage.setMode(ReminderMode.POPUP);
+                        ReminderService.sendReminder(sendReminderMessage);
+                    }
+                }
+
+                restTemplate.execute("http://reminder-service/api/reminderTiming/sendReminderTiming", HttpMethod.GET, null, null);
+            }
         } catch (RestClientException e) {
             logger.error(e.getMessage(),e);
+        }finally {
+            sysParam.setValue("0");
+            sysParamRepository.save(sysParam);
         }
     }
 
