@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.CaseUpdateParams;
 import cn.fintecher.pangolin.business.repository.CaseInfoExceptionRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoExceptionService;
 import cn.fintecher.pangolin.entity.CaseInfo;
@@ -82,18 +83,17 @@ public class CaseInfoExceptionController extends BaseController {
     /**
      * 更新案件
      *
-     * @param caseInfoExceptionId
-     * @param caseInfoIds
+     * @param caseUpdateParams
      * @param token
      * @return
      * @throws URISyntaxException
      */
     @PostMapping("/updateCaseInfoException")
     @ApiOperation(value = "更新案件", notes = "更新案件")
-    public ResponseEntity<CaseInfo> updateCaseInfoException(@RequestBody String caseInfoExceptionId,List<String> caseInfoIds,
-                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
+    public ResponseEntity<CaseInfo> updateCaseInfoException(@RequestBody CaseUpdateParams caseUpdateParams,
+                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
         log.debug("REST request to update CaseInfo");
-        List<CaseInfo> caseInfoList = caseInfoExceptionService.updateCaseInfoException(caseInfoExceptionId, caseInfoIds, getUserByToken(token));
+        List<CaseInfo> caseInfoList = caseInfoExceptionService.updateCaseInfoException(caseUpdateParams.getCaseInfoExceptionId(),caseUpdateParams.getCaseIds(), getUserByToken(token));
         if (caseInfoList.size() > 0) {
             return ResponseEntity.ok().body(null);
         }
