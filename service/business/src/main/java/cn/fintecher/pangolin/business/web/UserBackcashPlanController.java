@@ -99,7 +99,7 @@ public class UserBackcashPlanController extends BaseController {
         }
         if(Objects.isNull(user.getCompanyCode())){
             if(Objects.isNull(companyCode)){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("userBackcashPlan", "userBackcashPlan", "请选择公司")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userBackcashPlan", "请选择公司")).body(null);
             }
             builder.and(qUserBackcashPlan.companyCode.eq(companyCode));
         }else{
@@ -236,7 +236,7 @@ public class UserBackcashPlanController extends BaseController {
         }
         if (Objects.isNull(user.getCompanyCode())) {
             if (Objects.isNull(request.getCompanyCode())) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("userBackcashPlan", "userBackcashPlan", "请选择公司")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userBackcashPlan", "请选择公司")).body(null);
             }else {
                 booleanBuilder.and(qUser.companyCode.eq(request.getCompanyCode()));
             }
