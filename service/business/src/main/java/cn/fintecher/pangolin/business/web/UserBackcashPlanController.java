@@ -73,7 +73,7 @@ public class UserBackcashPlanController extends BaseController {
                                                         @RequestParam(required = false) String realName,
                                                         @RequestParam(required = false) Integer year,
                                                         @RequestParam(required = false) Integer month,
-                                                        @RequestParam String companyCode,
+                                                        @RequestParam(required = false) String companyCode,
                                                         @ApiIgnore Pageable pageable,
                                                         @RequestHeader(value = "X-UserToken") String token) {
         User user;
@@ -99,7 +99,7 @@ public class UserBackcashPlanController extends BaseController {
         }
         if(Objects.isNull(user.getCompanyCode())){
             if(Objects.isNull(companyCode)){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("userBackcashPlan", "userBackcashPlan", "请选择公司")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userBackcashPlan", "请选择公司")).body(null);
             }
             builder.and(qUserBackcashPlan.companyCode.eq(companyCode));
         }else{
@@ -236,7 +236,7 @@ public class UserBackcashPlanController extends BaseController {
         }
         if (Objects.isNull(user.getCompanyCode())) {
             if (Objects.isNull(request.getCompanyCode())) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("userBackcashPlan", "userBackcashPlan", "请选择公司")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userBackcashPlan", "请选择公司")).body(null);
             }else {
                 booleanBuilder.and(qUser.companyCode.eq(request.getCompanyCode()));
             }
@@ -301,7 +301,7 @@ public class UserBackcashPlanController extends BaseController {
         try {
             cellErrorList = userBackcashPlanExcelImportService.importExcelDataInfo(backPlanImportParams);
             if (cellErrorList.size() != 0 ) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败")).body(cellErrorList.get(0).getErrorMsg());
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败,"+cellErrorList.get(0).getErrorMsg())).body(cellErrorList.get(0).getErrorMsg());
             }
         } catch (Exception e) {
             e.printStackTrace();

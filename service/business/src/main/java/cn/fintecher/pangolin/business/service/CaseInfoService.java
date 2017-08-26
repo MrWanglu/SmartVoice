@@ -721,7 +721,7 @@ public class CaseInfoService {
                     caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                     caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                     caseTurnRecords.add(caseTurnRecord);
-                    caseIds.remove(0);
+//                    caseIds.remove(0);
                 }
             }
             caseInfoRepository.save(caseInfos);
