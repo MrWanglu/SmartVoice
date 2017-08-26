@@ -16,11 +16,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.net.URISyntaxException;
-import java.util.Objects;
+import java.util.List;
 
 /**
  * @author : DuChao
@@ -30,7 +29,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/CaseInfoExceptionController")
-@Api(value = "CaseInfoExceptionController",description = "异常案件操作")
+@Api(value = "CaseInfoExceptionController", description = "异常案件操作")
 public class CaseInfoExceptionController extends BaseController {
 
     private final Logger log = LoggerFactory.getLogger(CaseInfoController.class);
@@ -39,12 +38,11 @@ public class CaseInfoExceptionController extends BaseController {
     @Autowired
     private CaseInfoExceptionService caseInfoExceptionService;
     @Autowired
-    private RestTemplate restTemplate;
-    @Autowired
     private CaseInfoExceptionRepository caseInfoExceptionRepository;
 
     /**
      * 获取所有异常案件
+     *
      * @return CaseInfoExceptionList
      */
     @GetMapping("/findAllCaseInfoException")
@@ -58,14 +56,15 @@ public class CaseInfoExceptionController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseInfoException>> getAllCaseInfoException(@QuerydslPredicate(root = CaseInfoException.class) Predicate predicate,
-                                                                           @ApiIgnore Pageable pageable){
+                                                                           @ApiIgnore Pageable pageable) {
         log.debug("REST request to get all CaseInfoExceptions");
-        Page<CaseInfoException> page = caseInfoExceptionRepository.findAll(predicate,pageable);
+        Page<CaseInfoException> page = caseInfoExceptionRepository.findAll(predicate, pageable);
         return ResponseEntity.ok().body(page);
     }
 
     /**
      * 新增案件
+     *
      * @param caseInfoExceptionId
      * @param token
      * @return
@@ -73,40 +72,45 @@ public class CaseInfoExceptionController extends BaseController {
      */
     @GetMapping("/addCaseInfoException")
     @ApiOperation(value = "新增案件", notes = "新增案件")
-    public ResponseEntity<CaseInfoDistributed> addCaseInfo(@RequestParam @ApiParam(value ="异常案件id") String caseInfoExceptionId,
-                                                           @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception{
+    public ResponseEntity<CaseInfoDistributed> addCaseInfo(@RequestParam @ApiParam(value = "异常案件id") String caseInfoExceptionId,
+                                                           @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
         log.debug("REST request to add case to CaseInfoDistributed");
-        CaseInfoDistributed caseInfoDistributed = caseInfoExceptionService.addCaseInfoDistributed(caseInfoExceptionId,getUserByToken(token));
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert(CASE_INFO_ENTITY,caseInfoDistributed.getId())).body(caseInfoDistributed);
+        CaseInfoDistributed caseInfoDistributed = caseInfoExceptionService.addCaseInfoDistributed(caseInfoExceptionId, getUserByToken(token));
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert(CASE_INFO_ENTITY, caseInfoDistributed.getId())).body(caseInfoDistributed);
     }
+
     /**
      * 更新案件
+     *
      * @param caseInfoExceptionId
+     * @param caseInfoIds
      * @param token
      * @return
      * @throws URISyntaxException
      */
-    @GetMapping("/updateCaseInfoException")
+    @PostMapping("/updateCaseInfoException")
     @ApiOperation(value = "更新案件", notes = "更新案件")
-    public ResponseEntity<CaseInfo> updateCaseInfo(@RequestParam @ApiParam(value="异常案件id") String caseInfoExceptionId,
+    public ResponseEntity<CaseInfo> updateCaseInfo(@RequestParam @ApiParam(value = "异常案件id") String caseInfoExceptionId,
+                                                   @RequestBody List<String> caseInfoIds,
                                                    @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
         log.debug("REST request to update CaseInfo");
-        CaseInfo caseInfo= caseInfoExceptionService.updateCaseInfoException(caseInfoExceptionId,getUserByToken(token));
-        if(Objects.nonNull(caseInfo)){
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityUpdateAlert(CASE_INFO_ENTITY,caseInfo.getId().toString())).body(caseInfo);
+        List<CaseInfo> caseInfoList = caseInfoExceptionService.updateCaseInfoException(caseInfoExceptionId, caseInfoIds, getUserByToken(token));
+        if (caseInfoList.size() > 0) {
+            return ResponseEntity.ok().body(null);
         }
         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseNotFound", "不存在相同案件，无法更新")).body(null);
     }
 
     /**
      * 删除异常池案件
+     *
      * @param caseInfoExceptionId
      * @return
      */
     @DeleteMapping("/deleteCaseInfoException")
     @ApiOperation(value = "删除异常池案件", notes = "删除异常池案件")
-    public ResponseEntity<Void> deleteCaseInfoException(@RequestParam @ApiParam(value="异常案件id") String caseInfoExceptionId) {
-        log.debug("REST request to delete caseInfoException : {}",caseInfoExceptionId);
+    public ResponseEntity<Void> deleteCaseInfoException(@RequestParam @ApiParam(value = "异常案件id") String caseInfoExceptionId) {
+        log.debug("REST request to delete caseInfoException : {}", caseInfoExceptionId);
         caseInfoExceptionService.deleteCaseInfoException(caseInfoExceptionId);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, caseInfoExceptionId)).build();
     }
