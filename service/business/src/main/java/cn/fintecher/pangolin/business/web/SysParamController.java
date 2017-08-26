@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.job.OverNightJob;
+import cn.fintecher.pangolin.business.job.RecordDownLoadJob;
 import cn.fintecher.pangolin.business.job.ReminderTimingJob;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.service.JobTaskService;
@@ -123,7 +124,37 @@ public class SysParamController extends BaseController {
         }
         QSysParam qSysParam=QSysParam.sysParam;
 
-        //修改系统参数
+        //修改录音下载参数
+        if(Constants.SYSPARAM_RECORD.equals(sysParam.getCode())){
+            SysParam one = sysParamRepository.findOne(qSysParam.companyCode.eq(sysParam.getCompanyCode()).
+                    and(qSysParam.code.eq(Constants.SYSPARAM_RECORD_STATUS)));
+            if(one.getValue().equals(Constants.BatchStatus.RUNING.getValue())){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                        "syspram value is illegitmacy", "录音批量处理正在执行不允许修改调度时间")).body(null);
+            }
+            //验证输入的参数是否合规
+            String value = sysParam.getValue();
+            if(StringUtils.isBlank(value)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                        "syspram value is illegitmacy", "参数值为空")).body(null);
+            }
+            if(!value.matches("/^([1-9]|[1-5][0-9]|60)$/")){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                        "syspram value is illegitmacy", "参数输入不合法")).body(null);
+            }
+            String cron = "0 ".concat("0").concat("/").concat(value).concat(" * * * ?");
+            try{
+                jobTaskService.updateJobTask(cron,sysParam.getCompanyCode(),Constants.SYSPARAM_RECORD_STATUS,Constants.RECORD_TRIGGER_NAME.concat("_").concat(sysParam.getCompanyCode())
+                        ,Constants.RECORD_TRIGGER_GROUP,Constants.RECORD_TRIGGER_DESC.concat("_").concat(sysParam.getCompanyCode())
+                        ,Constants.RECORD_JOB_NAME.concat("_").concat(sysParam.getCompanyCode()), Constants.RECORD_JOB_GROUP
+                        ,Constants.RECORD_JOB_DESC.concat("_").concat(sysParam.getCompanyCode()), RecordDownLoadJob.class,
+                        "RecordDownLoadJobBean".concat("_").concat(sysParam.getCompanyCode()));
+            }catch (Exception e){
+                logger.error("更新录音下载调度失败",e);
+            }
+        }
+
+        //修改晚间批量参数
         if(Constants.SYSPARAM_OVERNIGHT.equals(sysParam.getCode())){
             //修改系统批量参数
             //验证批量是否正在执行
@@ -134,7 +165,7 @@ public class SysParamController extends BaseController {
                        "syspram value is illegitmacy", "晚间批量正在执行不允许修改调度时间")).body(null);
            }
             //验证输入的参数是否合规
-            String  value=sysParam.getValue();
+           String value=sysParam.getValue();
            if(StringUtils.isBlank(value)){
                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                        "syspram value is illegitmacy", "参数值为空")).body(null);
@@ -166,7 +197,7 @@ public class SysParamController extends BaseController {
                logger.error("更新晚间批量调度失败",e);
            }
         }
-        //修改系统参数
+        //修改消息提醒系统参数
         if(Constants.SYSPARAM_REMINDER.equals(sysParam.getCode())){
             //修改系统批量参数
             //验证批量是否正在执行
