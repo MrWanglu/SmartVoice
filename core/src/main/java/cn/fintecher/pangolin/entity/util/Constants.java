@@ -205,8 +205,6 @@ public final class Constants {
     public final static String SYS_PHNOEFLOW_LEAVEDAYS="sys.phnoeFlow.leaveDays";
     /**电催留案比例**/
     public final static String SYS_PHNOEFLOW_LEAVERATE="sys.phnoeFlow.leaveRate";
-    /**电催审批失效天数**/
-    public final static String SYS_PHNOEFLOW_ADVANCEDAYS="sys.phnoeFlow.advanceDays";
     /**电催强制流转提醒天数**/
     public final static String SYS_PHNOEFLOW_BIGDAYSREMIND="sys.phnoeFlow.bigDaysRemind";
     /**电催无进展提醒天数**/
@@ -227,8 +225,6 @@ public final class Constants {
     public final static String SYS_OUTBOUNDFLOW_LEAVEDAYS="sys.outboundFlow.leaveDays";
     /**外访留案比例**/
     public final static String SYS_OUTBOUNDFLOW_LEAVERATE="sys.outboundflow.leaveRate";
-    /**外访审批失效天数**/
-    public final static String SYS_OUTBOUNDFLOW_ADVANCEDAYS="sys.outboundFlow.advanceDays";
     /**外访强制流转提醒天数**/
     public final static String SYS_OUTBOUNDFLOW_BIGDAYSREMIND="sys.outboundFlow.bigDaysRemind";
     /**外访无进展提醒天数**/

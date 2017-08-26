@@ -325,7 +325,7 @@ public class OverNightBatchService {
         Set<String> idset = new HashSet<>();
         try {
             //电催审批失效配置参数
-            SysParam sysParam1 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYS_PHNOEFLOW_ADVANCEDAYS);
+            SysParam sysParam1 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.ASSIST_APPLY_CODE);
             List<CaseAssistApply> caseInfoList1 = approvePhoneCase(qCaseAssistApply, sysParam1, CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue());
             for(CaseAssistApply caseAssistApply:caseInfoList1){
                 idset.add(caseAssistApply.getCaseId());
@@ -334,7 +334,7 @@ public class OverNightBatchService {
             updatePhoneCase(caseInfoList1,nowDate);
 
             //外访审批失效配置参数
-            SysParam sysParam2 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYS_OUTBOUNDFLOW_ADVANCEDAYS);
+            SysParam sysParam2 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.ASSIST_APPLY_CODE);
             List<CaseAssistApply> caseInfoList2 = approvePhoneCase(qCaseAssistApply, sysParam2, CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue());
             for(CaseAssistApply caseAssistApply:caseInfoList2){
                 idset.add(caseAssistApply.getCaseId());
@@ -343,7 +343,14 @@ public class OverNightBatchService {
             updateOutCase(caseInfoList2,nowDate);
             //修改案件协催状态
             if (!idset.isEmpty()) {
-                caseInfoRepository.updateCaseStatusToCollectioning(idset);
+             List<CaseInfo> caseInfoList=   caseInfoRepository.findAll(idset);
+             for(CaseInfo caseInfo:caseInfoList){
+                 caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
+                 caseInfo.setAssistWay(null);
+                 caseInfo.setAssistStatus(null);
+                 caseInfo.setAssistCollector(null);
+             }
+             caseInfoRepository.save(caseInfoList);
             }
             //更新批量步骤
             jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
@@ -420,8 +427,11 @@ public class OverNightBatchService {
      */
     private void updateCaseInfo(User user, List<CaseInfo> caseInfoList, Integer caseType, String trunDeptName) {
         List<CaseTurnRecord> caseTurnRecordList = new ArrayList<>();
+        Set<String> idSets=new HashSet<>();//记录有协催案件
+        Set<String> caseIdSets=new HashSet<>();//重置案件协催标识
         //更新案件属性
         for (CaseInfo caseInfo : caseInfoList) {
+            idSets.add(caseInfo.getId());
             Department department=caseInfo.getDepartment();
             //部门ID置空
             caseInfo.setDepartment(null);
@@ -446,6 +456,7 @@ public class OverNightBatchService {
             caseInfo.setHandUpFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());//是否挂起
             caseInfo.setOperator(user);
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+
             //案件流转记录
             CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
             BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
@@ -459,9 +470,32 @@ public class OverNightBatchService {
             caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseTurnRecordList.add(caseTurnRecord);
         }
+        //协催审批结束
+        Iterable<CaseAssistApply> caseAssistApplyList=caseAssistApplyRepository.findAll(QCaseAssistApply.caseAssistApply.approveStatus.in(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue(),CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue())
+                .and(QCaseAssistApply.caseAssistApply.caseId.in(idSets)));
+        for(Iterator<CaseAssistApply> it=caseAssistApplyList.iterator();it.hasNext();){
+            CaseAssistApply obj=it.next();
+            obj.setApproveStatus(CaseAssistApply.ApproveStatus.FAILURE.getValue());
+            obj.setApprovePhoneResult(CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
+            caseIdSets.add(obj.getCaseId());
+        }
+        List<CaseInfo> caseInfoList1=caseInfoRepository.findAll(caseIdSets);
+        updateCaseInfoAssit(caseInfoList1);
+        caseInfoRepository.save(caseInfoList1);
+        caseAssistApplyRepository.save(caseAssistApplyList);
         caseTurnRecordRepository.save(caseTurnRecordList);
         caseInfoRepository.save(caseInfoList);
     }
+
+    private void updateCaseInfoAssit(List<CaseInfo> caseInfoList1) {
+        for(CaseInfo caseInfo:caseInfoList1){
+            caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());//协催标志
+            caseInfo.setAssistCollector(null);//协催员
+            caseInfo.setAssistStatus(null);//协催状态
+            caseInfo.setAssistWay(null);//协催方式
+        }
+    }
+
     /**
      * 电催/外访待审批
      */
@@ -516,13 +550,7 @@ public class OverNightBatchService {
         }
         caseAssistRepository.save(caseAssistList);
         List<CaseInfo> caseInfoList1= caseInfoRepository.findAll(caseIds);
-        for(CaseInfo caseInfo:caseInfoList1){
-            //原案件结束
-            caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());//协催标志
-            caseInfo.setAssistCollector(null);//协催员
-            caseInfo.setAssistStatus(null);//协催状态
-            caseInfo.setAssistWay(null);//协催方式
-        }
+        updateCaseInfoAssit(caseInfoList1);
         caseInfoRepository.save(caseInfoList1);
     }
 }
