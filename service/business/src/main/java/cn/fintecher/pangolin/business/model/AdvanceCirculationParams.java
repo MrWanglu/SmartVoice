@@ -14,4 +14,5 @@ import java.util.List;
 public class AdvanceCirculationParams {
     private List<String> caseIds; //案件ID列表
     private Integer type; //案件类型 0-电催 1-外访
+    private String reason; //申请原因
 }
