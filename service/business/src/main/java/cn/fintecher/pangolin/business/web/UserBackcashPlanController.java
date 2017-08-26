@@ -28,7 +28,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -195,6 +194,19 @@ public class UserBackcashPlanController extends BaseController {
     }
 
     /**
+     * @Description : 删除用户计划回款
+     */
+    @PostMapping("/deleteUserBackcashPlan")
+    @ApiOperation(value = "删除用户计划回款", notes = "删除用户计划回款")
+    public ResponseEntity<Void> deleteUserBackcashPlan(String id) {
+        if (Objects.isNull(id)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Select delete object", "请选择删除对象")).body(null);
+        }
+        userBackcashPlanRepository.delete(id);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(null);
+    }
+
+    /**
      * @Description : 下载月度回款目标Excel模板
      */
     @GetMapping("/downloadUserBackcashPlanExcelTemplate")
@@ -314,7 +326,7 @@ public class UserBackcashPlanController extends BaseController {
         try {
             cellErrorList = userBackcashPlanExcelImportService.importExcelDataInfo(backPlanImportParams);
             if (cellErrorList.size() != 0 ) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败,"+cellErrorList.get(0).getErrorMsg())).body(cellErrorList.get(0).getErrorMsg());
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败"+cellErrorList.get(0).getErrorMsg())).body(cellErrorList.get(0).getErrorMsg());
             }
         } catch (Exception e) {
             e.printStackTrace();
