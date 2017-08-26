@@ -166,6 +166,6 @@
   <update id="updateLngLat"  parameterType="cn.fintecher.pangolin.entity.Personal">
       update personal
       set longitude = #{longitude},latitude = #{latitude}
-      where id = "id"
+      where id = #{id}
   </update>
 </mapper>
