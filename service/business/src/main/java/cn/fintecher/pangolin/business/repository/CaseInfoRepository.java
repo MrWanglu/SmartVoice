@@ -161,7 +161,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
     /**
      * @Description 获得指定用户所持有的未结案案件总数
      */
-    @Query(value = "select count(*) from case_info where current_collector = :userId and collection_status in (20,21,22,23,25)", nativeQuery = true)
+    @Query(value = "select count(*) from case_info where current_collector = :userId and collection_status in (20,21,22,23,25,171,172)", nativeQuery = true)
     Integer getCaseCount(@Param("userId") String userId);
 
     /**
