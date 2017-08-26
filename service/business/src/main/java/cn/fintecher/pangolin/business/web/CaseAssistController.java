@@ -576,6 +576,7 @@ public class CaseAssistController extends BaseController {
                     caseAssist.setLatelyCollector(caseAssist.getAssistCollector());
                     caseId.setAssistCollector(batchInfoModel.getCollectionUser());
                     caseAssist.setCaseId(caseId);
+                    caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue());
                     caseAssist.setDepartId(batchInfoModel.getCollectionUser().getDepartment().getId());
                     caseAssist.setAssistCollector(batchInfoModel.getCollectionUser());
                     caseAssist.setCaseFlowinTime(new Date());
