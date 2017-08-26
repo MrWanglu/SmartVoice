@@ -1,11 +1,13 @@
 package cn.fintecher.pangolin.business.webapp;
 
 
+import cn.fintecher.pangolin.business.model.MapModel;
 import cn.fintecher.pangolin.business.model.PersonalRepairInfo;
 import cn.fintecher.pangolin.business.repository.CaseFileRepository;
 import cn.fintecher.pangolin.business.repository.PersonalAddressRepository;
 import cn.fintecher.pangolin.business.repository.PersonalContactRepository;
 import cn.fintecher.pangolin.business.repository.PersonalRepository;
+import cn.fintecher.pangolin.business.service.AccMapService;
 import cn.fintecher.pangolin.business.web.BaseController;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
@@ -24,6 +26,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import javax.inject.Inject;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -53,6 +56,9 @@ public class PersonalAppController extends BaseController {
 
     @Inject
     CaseFileRepository caseFileRepository;
+
+    @Inject
+    AccMapService accMapService;
 
     @GetMapping("/getPersonalForApp")
     @ApiOperation(value = "查询客户信息for APP", notes = "查询客户信息for APP")
@@ -86,6 +92,21 @@ public class PersonalAppController extends BaseController {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(QPersonalAddress.personalAddress.personalId.eq(id));
         List<PersonalAddress> personalAddressList = IterableUtils.toList(personalAddressRepository.findAll(builder, new Sort(Sort.Direction.DESC, "source")));
+
+        for(int i=0; i<personalAddressList.size(); i++){
+            PersonalAddress personalAddress = personalAddressList.get(i);
+            if (Objects.isNull(personalAddress.getLongitude())
+                    || Objects.isNull(personalAddress.getLatitude())) {
+                try{
+                    MapModel model = accMapService.getAddLngLat(personalAddress.getDetail());
+                    personalAddress.setLatitude(BigDecimal.valueOf(model.getLatitude()));
+                    personalAddress.setLongitude(BigDecimal.valueOf(model.getLongitude()));
+                }catch(Exception e1){
+                    e1.getMessage();
+                }
+            }
+        }
+        personalAddressRepository.save(personalAddressList);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "PersonalAddressList")).body(personalAddressList);
     }
 
