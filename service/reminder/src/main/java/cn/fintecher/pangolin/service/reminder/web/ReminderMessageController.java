@@ -14,6 +14,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,10 +60,18 @@ public class ReminderMessageController {
                     value = "依据什么排序: 属性名(,asc|desc). ", defaultValue = "createTime,desc")
     })
     @ApiOperation(value = "通过登陆用户token查询消息列表", notes = "通过登陆用户token查询消息列表")
-    public ResponseEntity<Page<ReminderMessage>> getReminderMessages(@RequestHeader(value = "X-UserToken") String token, Pageable pageable) {
+    public ResponseEntity<Page<ReminderMessage>> getReminderMessages(@RequestHeader(value = "X-UserToken") String token,@RequestParam("state") String state, Pageable pageable) {
         ResponseEntity<User> userResult = userClient.getUserByToken(token);
         User user = userResult.getBody();
-        return ResponseEntity.ok(reminderMessageService.findByUser(user.getId(), pageable));
+        ReminderMessage.ReadStatus readStatus=null;
+        if(StringUtils.isNotBlank(state)){
+            if(ReminderMessage.ReadStatus.Read.toString().equals(state)){
+                readStatus=ReminderMessage.ReadStatus.Read;
+            }else if(ReminderMessage.ReadStatus.UnRead.toString().equals(state)){
+                readStatus=ReminderMessage.ReadStatus.UnRead;
+            }
+        }
+        return ResponseEntity.ok(reminderMessageService.findByUser(user.getId(), pageable,readStatus));
     }
 
     @GetMapping("/getReminderMessage/{id}")
@@ -97,7 +106,7 @@ public class ReminderMessageController {
         long count = reminderMessageService.countUnRead(user.getId());
         Sort sort = new Sort(Sort.Direction.DESC, "state").and(new Sort(Sort.Direction.DESC, "createTime"));
         Pageable pageable = new PageRequest(0, 3, sort);
-        List<ReminderMessage> list = reminderMessageService.findByUser(user.getId(), pageable).getContent();
+        List<ReminderMessage> list = reminderMessageService.findByUser(user.getId(), pageable, ReminderMessage.ReadStatus.UnRead).getContent();
         ReminderWebMessage reminderWebMessage = new ReminderWebMessage();
         reminderWebMessage.setUnReadeCount(count);
         reminderWebMessage.setMessageList(new PageImpl<>(list));

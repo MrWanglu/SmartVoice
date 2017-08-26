@@ -57,14 +57,18 @@ public class ReminderMessageServiceImpl implements ReminderMessageService {
     }
 
     @Override
-    public Page<ReminderMessage> findByUser(String userId, Pageable pageable) {
+    public Page<ReminderMessage> findByUser(String userId, Pageable pageable,ReminderMessage.ReadStatus readStatus) {
         Query query = new Query();
         query.addCriteria(Criteria.where("userId").is(userId));
+        if(Objects.nonNull(readStatus)){
+            query.addCriteria(Criteria.where("state").is(readStatus));
+        }
         query.with(pageable);
         long count = mongoTemplate.count(query, ReminderMessage.class);
         Page<ReminderMessage> page = new PageImpl<>(mongoTemplate.find(query, ReminderMessage.class), pageable, count);
         return page;
     }
+
 
     @Override
     public Page<ReminderMessage> findByUser(String userId, Map<String, Object> params, Pageable pageable) {
