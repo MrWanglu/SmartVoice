@@ -1678,6 +1678,7 @@ public class CaseInfoService {
                     and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
                     and(qCaseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())).
                     and(qCaseInfo.companyCode.eq(companyCode)).
+                    and(qCaseInfo.currentCollector.isNotNull()).
                     and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
             caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
         }
@@ -1696,6 +1697,7 @@ public class CaseInfoService {
                     and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
                     and(qCaseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())).
                     and(qCaseInfo.companyCode.eq(companyCode)).
+                    and(qCaseInfo.currentCollector.isNotNull()).
                     and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
             caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
         }
@@ -1725,6 +1727,7 @@ public class CaseInfoService {
                     and(qCaseInfo.holdDays.gt(Integer.valueOf(sysParam.getValue()))).
                     and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
                     and(qCaseInfo.companyCode.eq(companyCode)).
+                    and(qCaseInfo.currentCollector.isNotNull()).
                     and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
             caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
         }
@@ -1740,6 +1743,7 @@ public class CaseInfoService {
                     and(qCaseInfo.holdDays.gt(Integer.valueOf(sysParam.getValue()))).
                     and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
                     and(qCaseInfo.companyCode.eq(companyCode)).
+                    and(qCaseInfo.currentCollector.isNotNull()).
                     and(qCaseInfo.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
             caseInfoList.addAll(IterableUtils.toList(caseInfoRepository.findAll(builder)));
         }
@@ -1760,9 +1764,10 @@ public class CaseInfoService {
         if (Objects.nonNull(sysParam)) {
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder builder = new BooleanBuilder();
-            builder.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue()).
+            builder.and((qCaseAssist.assistStatus.in(28,117,118)).
                     and(qCaseAssist.holdDays.gt(Integer.valueOf(sysParam.getValue()))).
                     and(qCaseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue())).
+                    and(qCaseAssist.assistCollector.isNotNull()).
                     and(qCaseAssist.companyCode.eq(companyCode)));
             caseAssistList.addAll(IterableUtils.toList(caseAssistRepository.findAll(builder)));
         }

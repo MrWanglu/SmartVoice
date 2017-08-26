@@ -110,8 +110,9 @@ public class CaseAssistService {
             builder.and(qCaseAssist.holdDays.between(Integer.valueOf(assistBigDays.getValue()) - Integer.valueOf(assistBigDaysRemind.getValue()),
                     Integer.valueOf(assistBigDays.getValue())).
                     and(qCaseAssist.assistWay.eq(CaseAssist.AssistWay.WHOLE_ASSIST.getValue())).
-                    and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())).
+                    and(qCaseAssist.assistStatus.in(28,117,118)).
                     and(qCaseAssist.companyCode.eq(companyCode)).
+                    and(qCaseAssist.assistCollector.isNotNull()).
                     and(qCaseAssist.leaveCaseFlag.ne(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())));
             caseAssistList.addAll(IterableUtils.toList(caseAssistRepository.findAll(builder)));
         }
