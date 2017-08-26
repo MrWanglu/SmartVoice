@@ -659,13 +659,20 @@ public class CaseInfoController extends BaseController {
     }
     @GetMapping("/updateAllScoreStrategyManual")
     @ApiOperation(value = "更新案件评分(手动)", notes = "更新案件评分(手动)")
-    public ResponseEntity updateAllScoreStrategyManual() throws IOException {
+    public ResponseEntity updateAllScoreStrategyManual(@RequestHeader(value = "X-UserToken") String token) throws IOException {
         try {
+            User user = null;
+            try {
+                user = getUserByToken(token);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            String comanyCode = user.getCompanyCode();
             StopWatch watch1 = new StopWatch();
             watch1.start();
             KieSession  kieSession = null;
             try {
-                kieSession = createSorceRule();
+                kieSession = createSorceRule(comanyCode);
             } catch (TemplateException e) {
                 e.printStackTrace();
             }
@@ -673,7 +680,9 @@ public class CaseInfoController extends BaseController {
                 .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.EARLY_PAYING.getValue()))
                 .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.OVER_PAYING.getValue()))
                 .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()))
-                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue())));//待催收
+                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()))
+                .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())));
+
             List<CaseInfo> accCaseInfoList = new ArrayList<>();
             List<CaseInfo> caseInfoList1 = new ArrayList<>();
             caseInfoList.forEach(single ->accCaseInfoList.add(single));
@@ -710,18 +719,28 @@ public class CaseInfoController extends BaseController {
     }
     @GetMapping("/updateAllScoreStrategyAuto")
     @ApiOperation(value = "更新案件评分(自动)", notes = "更新案件评分(自动)")
-    public ResponseEntity updateAllScoreStrategyAuto() throws IOException {
+    public ResponseEntity updateAllScoreStrategyAuto(@RequestHeader(value = "X-UserToken") String token) throws IOException {
+        User user =null;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        String comanyCode = user.getCompanyCode();
         try {
             KieSession  kieSession = null;
             try {
-                kieSession = createSorceRule();
+                kieSession = createSorceRule(comanyCode);
             } catch (TemplateException e) {
                 e.printStackTrace();
             }
-            List<CaseInfo> caseInfoList = caseInfoRepository.findAll();
+
+            Iterable<CaseInfo> caseInfoLists = caseInfoRepository.findAll(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
             List<CaseInfo> caseInfoList1 = new ArrayList<>();
-            if (caseInfoList.size() > 0) {
-                for(CaseInfo caseInfo : caseInfoList){
+            List<CaseInfo> accCaseInfoList = new ArrayList<>();
+            caseInfoLists.forEach(single ->accCaseInfoList.add(single));
+            if (accCaseInfoList.size() > 0) {
+                for(CaseInfo caseInfo : accCaseInfoList){
                     ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
                     int age = IdcardUtils.getAgeByIdCard(caseInfo.getPersonalInfo().getIdCard());
                     scoreRuleModel.setAge(age);
@@ -754,10 +773,10 @@ public class CaseInfoController extends BaseController {
      * @throws IOException
      * @throws
      */
-    private  KieSession createSorceRule() throws IOException, TemplateException {
+    private  KieSession createSorceRule(String comanyCode) throws IOException, TemplateException {
        Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
        Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
-        ResponseEntity<ScoreRules> responseEntity=restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules"),ScoreRules.class);
+        ResponseEntity<ScoreRules> responseEntity=restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules"),ScoreRules.class,comanyCode);
         List<ScoreRule> rules=null;
         if(responseEntity.hasBody()){
             ScoreRules scoreRules=responseEntity.getBody();

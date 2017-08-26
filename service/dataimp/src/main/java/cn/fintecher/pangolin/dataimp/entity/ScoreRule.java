@@ -25,6 +25,6 @@ public class ScoreRule {
     private Double weight;
     @ApiModelProperty(notes = "公式与分值集合")
     private List<ScoreFormula> formulas;
-    @ApiModelProperty(notes = "公式与分值集合")
+    @ApiModelProperty(notes = "公司code码")
     private String companyCode;
 }
