@@ -1,7 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.repository.TemplateRepository;
-import cn.fintecher.pangolin.dataimp.entity.TemplateDataModel;
 import cn.fintecher.pangolin.entity.QTemplate;
 import cn.fintecher.pangolin.entity.Template;
 import cn.fintecher.pangolin.entity.User;
