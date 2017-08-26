@@ -73,7 +73,7 @@ public class UserBackcashPlanController extends BaseController {
                                                         @RequestParam(required = false) String realName,
                                                         @RequestParam(required = false) Integer year,
                                                         @RequestParam(required = false) Integer month,
-                                                        @RequestParam String companyCode,
+                                                        @RequestParam(required = false) String companyCode,
                                                         @ApiIgnore Pageable pageable,
                                                         @RequestHeader(value = "X-UserToken") String token) {
         User user;
