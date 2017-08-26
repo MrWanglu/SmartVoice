@@ -240,6 +240,13 @@ public final class Constants {
     /**外访留案流转部门**/
     public final static String SYS_OUTTURN_LEAVEDEPTNAME="外访留案流转";
 
+    /**全程协催案件强制流转天数**/
+    public final static String SYS_ASSIST_BIGDAYS="sys.assist.bigdays";
+    /**单次协催小流转天数**/
+    public final static String SYS_ASSIST_SMALLDAYS="sys.assist.smalldays";
+    /**协催留案天数**/
+    public final static String SYS_ASSIST_LEAVEDAYS="sys.assist.leavedays";
+
     /**协催无进展提醒天数**/
     public final static String SYS_ASSISTREMIND_DAYS="sys.assistRemind.days";
     /**协催强制流转提醒天数**/

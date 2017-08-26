@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.util;
 
 import cn.fintecher.pangolin.entity.util.Constants;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,5 +47,9 @@ public class MapUtil {
         resultMap.put("minlat",minlat);//最小纬度
         resultMap.put("maxlat",maxlat);//最大纬度
         return resultMap;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new Date(1503474300000L));
     }
 }
