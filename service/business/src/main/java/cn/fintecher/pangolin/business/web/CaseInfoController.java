@@ -284,10 +284,10 @@ public class CaseInfoController extends BaseController {
     })
     public ResponseEntity<Page<CaseFollowupRecord>> getCaseInfoFollowRecord(@QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
                                                                             @ApiIgnore Pageable pageable,
-                                                                            @RequestParam("caseId") @ApiParam("案件ID") String caseId) {
+                                                                            @RequestParam("caseNumber") @ApiParam("案件ID") String caseNumber) {
         QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
         BooleanBuilder builder = new BooleanBuilder(predicate);
-        builder.and(qCaseFollowupRecord.caseId.eq(caseId));
+        builder.and(qCaseFollowupRecord.caseNumber.eq(caseNumber));
         Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
         return ResponseEntity.ok().body(page);
     }
