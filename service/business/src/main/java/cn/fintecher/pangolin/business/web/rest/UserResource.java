@@ -64,6 +64,9 @@ public class UserResource {
     public ResponseEntity<Integer> getUsersOnCompany(@RequestParam @ApiParam("ids") List<String> ids,
                                                      @RequestParam @ApiParam("token")String token) {
         ResponseEntity<User> userBody = getUserByToken(token);
+        if (Objects.isNull(userBody)) {
+            return ResponseEntity.ok().body(0);
+        }
         User user = userBody.getBody();
         Set<String> setIds = new HashSet<>();
         for (String idstr : ids) {
