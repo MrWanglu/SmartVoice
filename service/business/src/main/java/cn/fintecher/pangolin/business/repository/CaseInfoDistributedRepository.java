@@ -131,7 +131,7 @@ public interface CaseInfoDistributedRepository extends QueryDslPredicateExecutor
         bindings.bind(root.collectionType).first((path, value) -> path.eq(value));
         //产品系列
         bindings.bind(root.product.productSeries.id).first((path, value) -> path.eq(value));
-
+        //根据id数组获取查询结果list
         bindings.bind(root.id).all((path, value) -> {
             Set<String> idSets = new HashSet<>();
             if(value.iterator().hasNext()){

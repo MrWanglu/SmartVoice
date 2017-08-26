@@ -109,7 +109,7 @@ public class CaseInfoExceptionService {
         //产品系列
         Product product=addProducts(caseInfoException, user);
         CaseInfoDistributed caseInfoDistributed=addCaseInfoDistributed(caseInfoException, product, user, personal);
-        caseInfoDistributed = caseInfoDistributedRepository.save(caseInfoDistributed);
+        caseInfoDistributedRepository.save(caseInfoDistributed);
         //附件信息
         saveCaseFile(caseInfoFileList, caseInfoDistributed.getId(), caseInfoDistributed.getCaseNumber());
         caseInfoExceptionRepository.delete(caseInfoException);
@@ -120,24 +120,13 @@ public class CaseInfoExceptionService {
      * 更新异常案件
      */
     public CaseInfo updateCaseInfoException(String caseInfoExceptionId,User user){
-        //List<CaseInfoException> caseInfoExceptionList = caseInfoExceptionRepository.findAll(caseInfoExceptionId);
         List<CaseInfoFile> caseInfoFileList =  findCaseInfoFileById(caseInfoExceptionId);
         CaseInfoException caseInfoException = caseInfoExceptionRepository.getOne(caseInfoExceptionId);
         CaseInfo caseInfo = findSameCase(caseInfoException.getId());
            if(Objects.nonNull(caseInfo)){
-               Personal personal=createPersonal(caseInfoException, user);
-               personal=personalRepository.save(personal);
-               //更新或添加联系人信息
-               addContract(caseInfoException, user, personal);
-               //更新或添加地址信息
-               addAddr(caseInfoException,user,personal);
-               //开户信息
-               addBankInfo(caseInfoException, user, personal);
-               //单位信息
-               addPersonalJob(caseInfoException, user, personal);
                //产品系列
                Product product=addProducts(caseInfoException, user);
-               addCaseInfo(caseInfo,caseInfoException, product, user, personal);
+               addCaseInfo(caseInfo,caseInfoException, product, user);
                caseInfoRepository.save(caseInfo);
                //附件信息
                saveCaseFile(caseInfoFileList, caseInfo.getId(), caseInfo.getCaseNumber());
@@ -255,12 +244,9 @@ public class CaseInfoExceptionService {
      * @param caseInfoException
      * @param product
      * @param user
-     * @param personal
      * @return
      */
-    private CaseInfo addCaseInfo(CaseInfo caseInfo ,CaseInfoException caseInfoException, Product product, User user, Personal personal) {
-        caseInfo.setDepartment(user.getDepartment());
-        caseInfo.setPersonalInfo(personal);
+    private CaseInfo addCaseInfo(CaseInfo caseInfo ,CaseInfoException caseInfoException, Product product, User user) {
         caseInfo.setArea(areaCodeService.queryAreaCodeByName(caseInfoException.getCity()));
         caseInfo.setBatchNumber(caseInfoException.getBatchNumber());
         caseInfo.setCaseNumber(caseInfoException.getCaseNumber());
@@ -286,7 +272,6 @@ public class CaseInfoExceptionService {
         caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());
         caseInfo.setPayStatus(caseInfoException.getPaymentStatus());
         caseInfo.setPrincipalId(principalRepository.findByCode(caseInfoException.getPrinCode()));
-        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue());
         caseInfo.setDelegationDate(caseInfoException.getDelegationDate());
         caseInfo.setCloseDate(caseInfoException.getCloseDate());
         caseInfo.setCommissionRate(caseInfoException.getCommissionRate());

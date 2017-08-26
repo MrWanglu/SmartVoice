@@ -141,6 +141,21 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
         bindings.bind(root.assistFlag).first((path, value) -> path.eq(value));
         //协催方式
         bindings.bind(root.assistWay).first((path, value) -> path.eq(value));
+        //根据id数组获取查询结果list
+        bindings.bind(root.id).all((path, value) -> {
+            Set<String> idSets = new HashSet<>();
+            if(value.iterator().hasNext()){
+                StringBuilder sb = new StringBuilder(value.iterator().next());
+                sb.deleteCharAt(0);
+                sb.deleteCharAt(sb.length() - 1);
+                List<String> idArray = Arrays.asList(sb.toString().split(","));
+                Iterator<? extends String> it = idArray.iterator();
+                while (it.hasNext()) {
+                    idSets.add(it.next());
+                }
+            }
+            return path.in(idSets);
+        });
     }
 
     /**
