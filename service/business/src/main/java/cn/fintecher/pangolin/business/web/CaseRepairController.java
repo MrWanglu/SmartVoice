@@ -150,6 +150,11 @@ public class CaseRepairController extends BaseController{
         }else{
             builder.and(QCaseRepair.caseRepair.companyCode.eq(user.getCompanyCode()));
         }
+        if (Objects.equals(user.getManager(), 1)) {
+            builder.and(QCaseRepair.caseRepair.caseId.currentCollector.department.code.startsWith(user.getDepartment().getCode())); //权限控制
+        } else {
+            builder.and(QCaseRepair.caseRepair.caseId.currentCollector.id.eq(user.getId()));
+        }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
         list.add(CaseInfo.CollectionStatus.CASE_OUT.getValue());
@@ -195,6 +200,11 @@ public class CaseRepairController extends BaseController{
         }else{
             builder.and(QCaseRepair.caseRepair.companyCode.eq(user.getCompanyCode()));
         }
+        if (Objects.equals(user.getManager(), 1)) {
+            builder.and(QCaseRepair.caseRepair.caseId.currentCollector.department.code.startsWith(user.getDepartment().getCode())); //权限控制
+        } else {
+            builder.and(QCaseRepair.caseRepair.caseId.currentCollector.id.eq(user.getId()));
+        }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
         list.add(CaseInfo.CollectionStatus.CASE_OUT.getValue());
@@ -235,6 +245,11 @@ public class CaseRepairController extends BaseController{
             builder.and(QCaseRepair.caseRepair.companyCode.eq(companyCode));
         }else{
             builder.and(QCaseRepair.caseRepair.companyCode.eq(user.getCompanyCode()));
+        }
+        if (Objects.equals(user.getManager(), 1)) {
+            builder.and(QCaseRepair.caseRepair.caseId.currentCollector.department.code.startsWith(user.getDepartment().getCode())); //权限控制
+        } else {
+            builder.and(QCaseRepair.caseRepair.caseId.currentCollector.id.eq(user.getId()));
         }
         builder.and(QCaseRepair.caseRepair.repairStatus.eq(CaseRepair.CaseRepairStatus.DISTRIBUTE.getValue()));
         Page<CaseRepair> page = caseRepairRepository.findAll(builder,pageable);

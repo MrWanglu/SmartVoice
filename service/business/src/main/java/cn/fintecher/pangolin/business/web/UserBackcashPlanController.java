@@ -28,6 +28,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -198,7 +199,7 @@ public class UserBackcashPlanController extends BaseController {
      */
     @GetMapping("/downloadUserBackcashPlanExcelTemplate")
     @ApiOperation(value = "下载月度回款目标Excel模板", notes = "下载月度回款目标Excel模板")
-    public ResponseEntity<String> downloadPaybackExcelTemplate(@RequestParam String companyCode,
+    public ResponseEntity<String> downloadPaybackExcelTemplate(@RequestParam(required = false) String companyCode,
                                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         User user;
         try {
@@ -207,9 +208,21 @@ public class UserBackcashPlanController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
         //登录的密码设定的时间限制
         QSysParam qSysParam = QSysParam.sysParam;
-        SysParam sysParams = sysParamRepository.findOne(qSysParam.code.eq(Constants.BACK_CASH_PLAN_EXCEL_URL_CODE).and(qSysParam.type.eq(Constants.BACK_CASH_PLAN_EXCEL_URL_TYPE)).and(qSysParam.companyCode.eq(companyCode)));
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (Objects.isNull(companyCode)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userBackcashPlan", "请选择公司")).body(null);
+            }else {
+                booleanBuilder.and(qSysParam.companyCode.eq(companyCode));
+            }
+        }else {
+            booleanBuilder.and(qSysParam.companyCode.eq(companyCode));
+        }
+        booleanBuilder.and(qSysParam.code.eq(Constants.BACK_CASH_PLAN_EXCEL_URL_CODE));
+        booleanBuilder.and(qSysParam.type.eq(Constants.BACK_CASH_PLAN_EXCEL_URL_TYPE));
+        SysParam sysParams = sysParamRepository.findOne(booleanBuilder);
         if (Objects.isNull(sysParams)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failure to obtain parameters", "未能获取参数")).body(null);
         }
