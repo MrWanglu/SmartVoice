@@ -93,7 +93,7 @@ public class CaseInfoExceptionController extends BaseController {
     public ResponseEntity<CaseInfo> updateCaseInfoException(@RequestBody CaseUpdateParams caseUpdateParams,
                                                             @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
         log.debug("REST request to update CaseInfo");
-        List<CaseInfo> caseInfoList = caseInfoExceptionService.updateCaseInfoException(caseUpdateParams.getCaseInfoExceptionId(),caseUpdateParams.getCaseIds(), getUserByToken(token));
+        List<CaseInfo> caseInfoList = caseInfoExceptionService.updateCaseInfoException(caseUpdateParams.getCaseInfoExceptionId(),caseUpdateParams.getCaseInfoIds(), getUserByToken(token));
         if (caseInfoList.size() > 0) {
             return ResponseEntity.ok().body(null);
         }
