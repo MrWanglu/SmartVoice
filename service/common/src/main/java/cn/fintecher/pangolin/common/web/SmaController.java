@@ -83,28 +83,33 @@ public class SmaController {
     @GetMapping("/validateTaskIdInEmpId")
     @ApiOperation(value = "验证呼叫ID是否绑定", notes = "验证呼叫ID是否绑定")
     public ResponseEntity<Map<String, String>> validateTaskIdInEmpId(@RequestHeader(value = "X-UserToken") String token) {
-        User user = userClient.getUserByToken(token).getBody();
-        //呼叫中心配置
-        SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + user.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
-        if (Objects.isNull(sysParam)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
-        }
-        // 163 erpv3   164  中通天鸿  165  云羿
-        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
-            Map paramMap = new HashMap();
-            paramMap.put("empId", user.getId());
-            return smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);
-        }
-        //164  中通天鸿 对呼绑定 在user中的callPhone 字段
-        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
-            if (Objects.nonNull(user.getCallPhone())) {
-                Map paramMap = new HashMap();
-                paramMap.put("callPhone", user.getCallPhone());
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Is binding", "已经绑定")).body(paramMap);
+        try {
+            User user = userClient.getUserByToken(token).getBody();
+            //呼叫中心配置
+            SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + user.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
+            if (Objects.isNull(sysParam)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
             }
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unbounded calling number", "未绑定主叫号码")).body(null);
+            // 163 erpv3   164  中通天鸿  165  云羿
+            if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
+                Map paramMap = new HashMap();
+                paramMap.put("empId", user.getId());
+                return smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);
+            }
+            //164  中通天鸿 对呼绑定 在user中的callPhone 字段
+            if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
+                if (Objects.nonNull(user.getCallPhone())) {
+                    Map paramMap = new HashMap();
+                    paramMap.put("callPhone", user.getCallPhone());
+                    return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Is binding", "已经绑定")).body(paramMap);
+                }
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unbounded calling number", "未绑定主叫号码")).body(null);
+            }
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failure", "操作失败")).body(null);
         }
-        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
     }
 
     /**
@@ -113,38 +118,42 @@ public class SmaController {
     @PostMapping("/bindTaskDataByCallerId")
     @ApiOperation(value = "绑定呼叫ID", notes = "呼叫信息")
     public ResponseEntity<Map<String, String>> bindTaskDataByCallerId(@RequestBody BindCallNumberRequest request, @RequestHeader(value = "X-UserToken") String token) {
-        // 是否登录
-        User user = userClient.getUserByToken(token).getBody();
-        //呼叫中心配置
-        SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + user.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
-        if (Objects.isNull(sysParam)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
-        }
-        // 163 erpv3   164  中通天鸿  165  云羿
-        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
-            Map paramMap = new HashMap();
-            paramMap.put("empId", user.getId());
-            paramMap.put("callerid", request.getCallerId());//固定话机ID
-            paramMap.put("salesmanCode", user.getRealName() + user.getUserName());
-            paramMap.put("caller", request.getCaller());//主叫号码选填
-            return smaRequestService.smaRequest("bindTaskDataByCallerid.html", paramMap);
-        }
-        //164  中通天鸿 对呼绑定 在user中的callPhone 字段
-        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
-            if (Objects.nonNull(user.getCallPhone())) {
-                Map paramMap = new HashMap();
-                paramMap.put("callPhone", user.getCallPhone());
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Is binding", "已经绑定")).body(paramMap);
-            } else {
-                user.setCallPhone(request.getCaller());
-                User user1 = userClient.saveUser(user).getBody();
-                Map paramMap1 = new HashMap();
-                paramMap1.put("callPhone", user1.getCallPhone());
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Binding success", "绑定成功")).body(paramMap1);
+        try {
+            // 是否登录
+            User user = userClient.getUserByToken(token).getBody();
+            //呼叫中心配置
+            SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + user.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
+            if (Objects.isNull(sysParam)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
             }
+            // 163 erpv3   164  中通天鸿  165  云羿
+            if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
+                Map paramMap = new HashMap();
+                paramMap.put("empId", user.getId());
+                paramMap.put("callerid", request.getCallerId());//固定话机ID
+                paramMap.put("salesmanCode", user.getRealName() + user.getUserName());
+                paramMap.put("caller", request.getCaller());//主叫号码选填
+                return smaRequestService.smaRequest("bindTaskDataByCallerid.html", paramMap);
+            }
+            //164  中通天鸿 对呼绑定 在user中的callPhone 字段
+            if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
+                if (Objects.nonNull(user.getCallPhone())) {
+                    Map paramMap = new HashMap();
+                    paramMap.put("callPhone", user.getCallPhone());
+                    return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Is binding", "已经绑定")).body(paramMap);
+                } else {
+                    user.setCallPhone(request.getCaller());
+                    User user1 = userClient.saveUser(user).getBody();
+                    Map paramMap1 = new HashMap();
+                    paramMap1.put("callPhone", user1.getCallPhone());
+                    return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Binding success", "绑定成功")).body(paramMap1);
+                }
+            }
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failure", "操作失败")).body(null);
         }
-        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
-
     }
 
     /**
@@ -154,86 +163,91 @@ public class SmaController {
     @ApiOperation(value = "开始电话呼叫", notes = "开始电话呼叫")
     public ResponseEntity<Map<String, String>> addTaskRecorder(@RequestBody AddTaskRecorderRequest request,
                                                                @RequestHeader(value = "X-UserToken") String token) {
-        User user = userClient.getUserByToken(token).getBody();
+        try {
+            User user = userClient.getUserByToken(token).getBody();
 //        呼叫中心配置
-        SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + request.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
-        if (Objects.isNull(sysParam)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
-        }
+            SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + request.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
+            if (Objects.isNull(sysParam)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
+            }
 
 //         163 erpv3     165  云羿
-        if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
-            Map paramMap = new HashMap();
-            paramMap.put("id", request.getTaskId());//呼叫流程id
-            paramMap.put("caller", request.getCaller());//主叫号码
-            paramMap.put("callee", request.getCallee());//被叫号码
-            paramMap.put("empId", user.getId());//业务员ID
-            paramMap.put("applyId", "");//信贷借款id
-            paramMap.put("custInfoId", MD5.MD5Encode(request.getCustomer()));//客户ID
-            paramMap.put("sysTarget", sysTarget);//ACC贷后，Review评审
-            paramMap.put("salesmanCode", user.getRealName() + user.getUserName());
-            return smaRequestService.smaRequest("addTaskRecoder.html", paramMap);
-        }
+            if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
+                Map paramMap = new HashMap();
+                paramMap.put("id", request.getTaskId());//呼叫流程id
+                paramMap.put("caller", request.getCaller());//主叫号码
+                paramMap.put("callee", request.getCallee());//被叫号码
+                paramMap.put("empId", user.getId());//业务员ID
+                paramMap.put("applyId", "");//信贷借款id
+                paramMap.put("custInfoId", MD5.MD5Encode(request.getCustomer()));//客户ID
+                paramMap.put("sysTarget", sysTarget);//ACC贷后，Review评审
+                paramMap.put("salesmanCode", user.getRealName() + user.getUserName());
+                return smaRequestService.smaRequest("addTaskRecoder.html", paramMap);
+            }
 //        164  中通天鸿
-        if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue())) {
-            if (Objects.isNull(user.getCallPhone())) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
-            }
-            request.setCaller(user.getCallPhone());
-            if (Objects.isNull(request.getCallee())) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Get the called number failed", "获取被叫号码失败")).body(null);
-            }
-            HttpClient client = new HttpClient();
-            client.setConnectionTimeout(1000 * 60);
-            client.getHostConfiguration().setHost(cti, 80, "http");
-            HttpMethod method = callService.getPostMethod(request);
-            try {
-                client.executeMethod(method);
-            /* getResponseBodyAsStream start */
-                InputStream inputStream = method.getResponseBodyAsStream();
-                BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-                StringBuffer response = new StringBuffer();
-                String read = "";
-                while ((read = br.readLine()) != null) {
-                    response.append(read);
+            if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue())) {
+                if (Objects.isNull(user.getCallPhone())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
                 }
-                //解析交给前端，这边比较麻烦
-                Map<String, String> map = new HashMap<>();
-                map.put("response", response.toString());
+                request.setCaller(user.getCallPhone());
+                if (Objects.isNull(request.getCallee())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Get the called number failed", "获取被叫号码失败")).body(null);
+                }
+                HttpClient client = new HttpClient();
+                client.setConnectionTimeout(1000 * 60);
+                client.getHostConfiguration().setHost(cti, 80, "http");
+                HttpMethod method = callService.getPostMethod(request);
+                try {
+                    client.executeMethod(method);
+            /* getResponseBodyAsStream start */
+                    InputStream inputStream = method.getResponseBodyAsStream();
+                    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+                    StringBuffer response = new StringBuffer();
+                    String read = "";
+                    while ((read = br.readLine()) != null) {
+                        response.append(read);
+                    }
+                    //解析交给前端，这边比较麻烦
+                    Map<String, String> map = new HashMap<>();
+                    map.put("response", response.toString());
         /* getResponseBodyAsStream start */
-                method.releaseConnection();
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(map);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "be defeated", "失败")).body(null);
+                    method.releaseConnection();
+                    return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(map);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "be defeated", "失败")).body(null);
+                }
             }
-        }
-        //        165 云羿呼叫中心
-        if (Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
-            if (Objects.isNull(user.getCallPhone())) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
-            }
-            try {
-                Socket socket = new Socket("116.236.220.211", 12345);
-                socket.setSoTimeout(10000000);
-                BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
+            //        165 云羿呼叫中心
+            if (Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
+                if (Objects.isNull(user.getCallPhone())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
+                }
+                try {
+                    Socket socket = new Socket("116.236.220.211", 12345);
+                    socket.setSoTimeout(10000000);
+                    BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 
-                //拨打电话
-                String sendData1 = "<request><cmdType>manual_callout</cmdType><agentID>" + user.getCallPhone() + "</agentID><customerNum>" + request.getCallee() + "</customerNum><customerDisplayNum>51300794</customerDisplayNum></request>";
-                String sendDataUtf821 = new String(sendData1.getBytes("UTF-8"), "UTF-8");
-                String head21 = "<<<length=" + sendDataUtf821.getBytes("UTF-8").length + ">>>";
-                sendDataUtf821 = head21 + sendDataUtf821;
-                pw.print(sendDataUtf821);
-                pw.flush();
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "be defeated", "失败")).body(null);
+                    //拨打电话
+                    String sendData1 = "<request><cmdType>manual_callout</cmdType><agentID>" + user.getCallPhone() + "</agentID><customerNum>" + request.getCallee() + "</customerNum><customerDisplayNum>51300794</customerDisplayNum></request>";
+                    String sendDataUtf821 = new String(sendData1.getBytes("UTF-8"), "UTF-8");
+                    String head21 = "<<<length=" + sendDataUtf821.getBytes("UTF-8").length + ">>>";
+                    sendDataUtf821 = head21 + sendDataUtf821;
+                    pw.print(sendDataUtf821);
+                    pw.flush();
+                    return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "be defeated", "失败")).body(null);
+                }
             }
-        }
 
-        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failure", "操作失败")).body(null);
+        }
     }
 
     /**
@@ -242,12 +256,17 @@ public class SmaController {
     @PostMapping("/addTaskVoiceFileByTaskId")
     @ApiOperation(value = "调用sma接口保存录音文件", notes = "调用sma接口保存录音文件")
     public ResponseEntity<Map<String, String>> addTaskVoiceFileByTaskId(@RequestBody AddTaskVoiceFileMessage request) {
-        Map paramMap = new HashMap();
-        paramMap.put("taskid", request.getTaskid());        //获取 下载录音文件的 流程id
-        paramMap.put("recoderId", request.getRecorderId());            //电签呼叫申请任务记录 ID
-        paramMap.put("taskcallerid", request.getTaskcallerId());            //坐席号 ID
-        paramMap.put("salesmanCode", "");
-        return smaRequestService.smaRequest("addTaskVoiceFileBytaskId.html", paramMap);
+        try {
+            Map paramMap = new HashMap();
+            paramMap.put("taskid", request.getTaskid());        //获取 下载录音文件的 流程id
+            paramMap.put("recoderId", request.getRecorderId());            //电签呼叫申请任务记录 ID
+            paramMap.put("taskcallerid", request.getTaskcallerId());            //坐席号 ID
+            paramMap.put("salesmanCode", "");
+            return smaRequestService.smaRequest("addTaskVoiceFileBytaskId.html", paramMap);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failure", "操作失败")).body(null);
+        }
     }
 
     /**
