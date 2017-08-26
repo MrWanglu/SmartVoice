@@ -96,6 +96,7 @@ public class TemplateDataModelService {
                             HSSFCell cell = hssfRow.getCell(colIndex);
                             excelTemplate = new TemplateExcelInfo();
                             excelTemplate.setCellName(getCellValue(cell));
+                            excelTemplate.setCellNum(colIndex);
                             excelTemplate.setColNum(excelColIndexToStr(colIndex + 1));
 
                             if (cell.getCellType() == 0) {
@@ -138,6 +139,7 @@ public class TemplateDataModelService {
                                 excelTemplate.setCellType(mapType.containsKey(cell.getStringCellValue()) ? mapType.get(cell.getStringCellValue()) : null);
                                 excelTemplate.setCellTypeName(mapTypeName.containsKey(cell.getStringCellValue()) ? mapTypeName.get(cell.getStringCellValue()) : null);
                             }
+                            excelTemplate.setCellNum(colIndex);
                             excelTemplate.setColNum(excelColIndexToStr(colIndex + 1));
                             list.add(excelTemplate);
                         }
