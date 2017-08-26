@@ -12,6 +12,7 @@ import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.CellError;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
@@ -222,13 +223,25 @@ public class UserBackcashPlanController extends BaseController {
     @ApiOperation(value = "导入月度回款Excel数据", notes = "导入月度回款Excel数据")
     public ResponseEntity<String> importBackAmtGoalExcel(@RequestBody UploadUserBackcashPlanExcelInfo request,
                                                          @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        request = (UploadUserBackcashPlanExcelInfo) EntityUtil.emptyValueToNull(request);
         logger.debug("REST request to import UploadUserBackcashPlanExcelInfo");
         User user;
+        QUser qUser = QUser.user;
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
         try {
             user = getUserByToken(token);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (Objects.isNull(request.getCompanyCode())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("UserBackcashPlan", "UserBackcashPlan", "请选择公司")).body(null);
+            }else {
+                booleanBuilder.and(qUser.companyCode.eq(request.getCompanyCode()));
+            }
+        }else {
+            booleanBuilder.and(qUser.companyCode.eq(user.getCompanyCode()));
         }
         //excel解析
         int[] startRow = {0};
@@ -249,8 +262,7 @@ public class UserBackcashPlanController extends BaseController {
         List<User> allUser = null;
         List<String> usernameList = new ArrayList<>();
         try {
-            QUser qUser = QUser.user;
-            Iterator<User> userIterator = userRepository.findAll(qUser.companyCode.eq(request.getCompanyCode())).iterator();
+            Iterator<User> userIterator = userRepository.findAll(booleanBuilder).iterator();
             allUser = IteratorUtils.toList(userIterator);
             if (Objects.isNull(allUser)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to get the imported user", "获取导入的用户失败")).body(null);
@@ -267,7 +279,6 @@ public class UserBackcashPlanController extends BaseController {
         try {
             List<UserBackcashPlan> all = userBackcashPlanRepository.findAll();
             for (UserBackcashPlan accPaybackPlan : all) {
-                accPaybackPlan.setCompanyCode(user.getCompanyCode());
                 userPlan.add(accPaybackPlan);
             }
         } catch (Exception e) {
@@ -289,7 +300,7 @@ public class UserBackcashPlanController extends BaseController {
         List<CellError> cellErrorList = new ArrayList<>();
         try {
             cellErrorList = userBackcashPlanExcelImportService.importExcelDataInfo(backPlanImportParams);
-            if (Objects.nonNull(cellErrorList)) {
+            if (cellErrorList.size() != 0 ) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败")).body(cellErrorList.get(0).getErrorMsg());
             }
         } catch (Exception e) {
