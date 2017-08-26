@@ -148,7 +148,7 @@
         <if test="address != null">
           and p.local_home_address like CONCAT('%', #{address}, '%')
         </if>
-        ) as b,product pr,principal pri
+        ) as b,product pr,principal pri,area_code ar
         where
         b.product_id = pr.id
         and b.principal_id = pri.id
