@@ -140,7 +140,7 @@ public class CaseInfoAppController extends BaseController {
         } else {
             builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
         }
-        builder.and(QCaseInfo.caseInfo.collectionStatus.in(CaseInfo.CollectionStatus.COLLECTIONING.getValue()));
+        builder.and(QCaseInfo.caseInfo.collectionStatus.in(status));
         builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(), CaseInfo.CaseType.OUTLEAVETURN.getValue()));
         if (Objects.nonNull(name)) {
             builder.and(QCaseInfo.caseInfo.personalInfo.name.startsWith(name));
