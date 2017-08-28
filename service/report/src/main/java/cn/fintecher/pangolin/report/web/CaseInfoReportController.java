@@ -68,6 +68,10 @@ public class CaseInfoReportController extends BaseController{
         if(Objects.equals(user.getType(),User.Type.TEL.getValue())){
             return ResponseEntity.ok().body(null);
         }
+        if(!Objects.equals(user.getType(),User.Type.VISIT.getValue())
+                && !Objects.equals(user.getType(),User.Type.SYNTHESIZE.getValue())){
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","")).body(null);
+        }
         List<CaseInfo> list = new ArrayList<>();
         CaseInfoParams caseInfoParams = new CaseInfoParams();
         caseInfoParams.setCompanyCode(user.getCompanyCode());

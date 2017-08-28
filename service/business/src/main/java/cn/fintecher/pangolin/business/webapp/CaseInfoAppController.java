@@ -71,6 +71,10 @@ public class CaseInfoAppController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
+        if(!Objects.equals(user.getType(),User.Type.VISIT.getValue())
+                && !Objects.equals(user.getType(),User.Type.SYNTHESIZE.getValue())){
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","")).body(null);
+        }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
         if (user.getManager() == 1) {
@@ -117,6 +121,10 @@ public class CaseInfoAppController extends BaseController {
         } catch (Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+        }
+        if(!Objects.equals(user.getType(),User.Type.VISIT.getValue())
+                && !Objects.equals(user.getType(),User.Type.SYNTHESIZE.getValue())){
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","")).body(null);
         }
         List<Integer> status = new ArrayList<>();
         status.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue());
