@@ -934,7 +934,7 @@ public class CaseInfoService {
 
         //查询已留案案件数
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-        int flagNum = (int) caseInfoRepository.count(qCaseInfo.currentCollector.id.eq(tokenUser.getId()).and(qCaseInfo.leaveCaseFlag.eq(1)));
+        int flagNum = new Long(caseInfoRepository.count(qCaseInfo.currentCollector.id.eq(tokenUser.getId()).and(qCaseInfo.leaveCaseFlag.eq(1)))).intValue();
 
         //获得留案比例
         QSysParam qSysParam = QSysParam.sysParam;
@@ -956,7 +956,7 @@ public class CaseInfoService {
         Double rate = Double.parseDouble(sysParam.getValue()) / 100;
 
         //计算留案案件是否超过比例
-        Integer leaveNum = (int) (caseNum * rate); //可留案的案件数
+        Integer leaveNum = (int) Math.floor(caseNum * rate); //可留案的案件数
         List<String> caseIds = leaveCaseParams.getCaseIds();
         for (String caseId : caseIds) {
             CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
