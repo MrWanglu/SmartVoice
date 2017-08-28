@@ -2,7 +2,6 @@ package cn.fintecher.pangolin.business.service;
 
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.entity.CaseFollowupRecord;
-import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.springframework.stereotype.Service;
 
@@ -17,8 +16,8 @@ import java.util.*;
 @Service
 public class FollowRecordExportService {
 
-    private static final String[] TITLE_LIST = {"案件编号", "批次号", "委托方", "跟进时间", "跟进方式", "客户姓名", "客户身份证", "催收对象", "姓名", "电话/地址", "定位地址","催收反馈", "跟进内容"};
-    private static final String[] PRO_NAMES = {"caseNumber", "batchNumber", "principalName", "follTime", "follType", "personalName", "idcard", "follTarget", "follTargetName", "follPhoneNum", "location","follFeedback", "follContent"};
+    private static final String[] TITLE_LIST = {"案件编号", "跟进时间", "跟进方式", "催收对象", "姓名", "电话/地址", "定位地址","催收反馈", "跟进内容"};
+    private static final String[] PRO_NAMES = {"caseNumber", "follTime", "follType", "follTarget", "follTargetName", "follPhoneNum", "location","follFeedback", "follContent"};
 
     @Inject
     private CaseInfoRepository caseInfoRepository;
@@ -35,13 +34,13 @@ public class FollowRecordExportService {
         List<Map<String, Object>> dataList = new ArrayList<>();
         for (CaseFollowupRecord record : records) {
             Map<String, Object> dataMap = new LinkedHashMap<>();
-            CaseInfo one = caseInfoRepository.findOne(record.getCaseId());
-            dataMap.put("caseNumber", one.getCaseNumber()); //案件编号
-            dataMap.put("batchNumber", one.getBatchNumber()); //批次号
-            dataMap.put("principalName", one.getPrincipalId().getName()); //委托方
+//            CaseInfo one = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(record.getCaseNumber()));
+            dataMap.put("caseNumber", record.getCaseNumber()); //案件编号
+//            dataMap.put("batchNumber", one.getBatchNumber()); //批次号
+//            dataMap.put("principalName", one.getPrincipalId().getName()); //委托方
             dataMap.put("follTime", ZWDateUtil.fomratterDate(record.getOperatorTime(), null)); //跟进时间
-            dataMap.put("personalName", one.getPersonalInfo().getName()); //客户姓名
-            dataMap.put("idcard", one.getPersonalInfo().getIdCard()); //身份证号
+//            dataMap.put("personalName", one.getPersonalInfo().getName()); //客户姓名
+//            dataMap.put("idcard", one.getPersonalInfo().getIdCard()); //身份证号
             CaseFollowupRecord.Target[] values1 = CaseFollowupRecord.Target.values(); //催收对象
             for (int i = 0; i < values1.length; i++) {
                 if (Objects.equals(record.getTarget(), values1[i].getValue())) {
