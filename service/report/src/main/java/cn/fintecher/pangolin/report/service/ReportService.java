@@ -98,7 +98,6 @@ public class ReportService {
                     //回款报表集合
                     List<BackMoneyReport> backMoneyReportList = new ArrayList<>();
                     backMoneyReportList.add(backMoneyReport);
-                    backMoneyThiModelList.add(backMoneyThiModel);
 
                     backMoneyThiModel.setBackMoneyReports(backMoneyReportList); //三级模型中加入报表集合
                     backMoneyThiModelList.add(backMoneyThiModel);
@@ -128,7 +127,6 @@ public class ReportService {
                         //回款报表集合
                         List<BackMoneyReport> backMoneyReportList = new ArrayList<>();
                         backMoneyReportList.add(backMoneyReport);
-                        backMoneyThiModelList.add(backMoneyThiModel);
 
                         backMoneyThiModel.setBackMoneyReports(backMoneyReportList); //三级模型中加入报表集合
                         backMoneyThiModelList.add(backMoneyThiModel);
