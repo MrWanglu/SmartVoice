@@ -561,6 +561,18 @@ public class CaseInfoService {
     }
 
     /**
+     * @Description 判断用户下有没有结案的案件
+     */
+    public CollectionCaseModel haveEndCase(User user) {
+        QCaseInfo qCaseInfo = caseInfo;
+        Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(qCaseInfo.currentCollector.eq(user).
+                and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
+                and(qCaseInfo.companyCode.eq(user.getCompanyCode()))); //获取催收员为该用户并且催收状态为已结案的所有案件
+        Iterator<CaseInfo> it = caseInfos.iterator();
+        return todoIt(it);
+    }
+
+    /**
      * @Description 判断机构下有没有正在催收的案件
      */
     public CollectionCaseModel haveCollectionCase(Department department) {
@@ -568,6 +580,18 @@ public class CaseInfoService {
         Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(qCaseInfo.department.code.startsWith(department.getCode()).
                 and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
                 and(qCaseInfo.companyCode.eq(department.getCompanyCode()))); //获取部门下状态不为结案的所有案件
+        Iterator<CaseInfo> it = caseInfos.iterator();
+        return todoIt(it);
+    }
+
+    /**
+     * @Description 判断机构下有没有结案的案件
+     */
+    public CollectionCaseModel haveEndCase(Department department) {
+        QCaseInfo qCaseInfo = caseInfo;
+        Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(qCaseInfo.department.code.startsWith(department.getCode()).
+                and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.CASE_OVER.getValue())).
+                and(qCaseInfo.companyCode.eq(department.getCompanyCode()))); //获取部门下状态为结案的所有案件
         Iterator<CaseInfo> it = caseInfos.iterator();
         return todoIt(it);
     }
@@ -1765,7 +1789,7 @@ public class CaseInfoService {
         if (Objects.nonNull(sysParam)) {
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder builder = new BooleanBuilder();
-            builder.and((qCaseAssist.assistStatus.in(28,117,118)).
+            builder.and((qCaseAssist.assistStatus.in(28, 117, 118)).
                     and(qCaseAssist.holdDays.gt(Integer.valueOf(sysParam.getValue()))).
                     and(qCaseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue())).
                     and(qCaseAssist.assistCollector.isNotNull()).
