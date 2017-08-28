@@ -146,6 +146,9 @@ public class DepartmentController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
+        if (Objects.equals("1c1cc1c1-1c1c-1111-1111-0ccc000c0c0c", department.getId())) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department is not allowed to modify", "该部门不允许修改")).body(null);
+        }
         QDepartment qDepartment = QDepartment.department;
         QUser qUser = QUser.user;
         Department dept = departmentRepository.findOne(department.getId());
