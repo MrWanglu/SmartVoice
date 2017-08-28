@@ -96,7 +96,11 @@ public class CaseInfoExceptionController extends BaseController {
     public ResponseEntity<CaseInfo> updateCaseInfoException(@RequestBody CaseUpdateParams caseUpdateParams,
                                                             @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
         log.debug("REST request to update CaseInfo");
-        List<CaseInfo> caseInfoList = caseInfoExceptionService.updateCaseInfoException(caseUpdateParams.getCaseInfoExceptionId(),caseUpdateParams.getCaseInfoIds(), getUserByToken(token));
+        CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseUpdateParams.getCaseInfoExceptionId());
+        if (Objects.isNull(caseInfoException)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Exception Case", "异常案件已经被更新")).body(null);
+        }
+        List<CaseInfo> caseInfoList = caseInfoExceptionService.updateCaseInfoException(caseUpdateParams.getCaseInfoExceptionId(), caseUpdateParams.getCaseInfoIds(), getUserByToken(token));
         if (caseInfoList.size() > 0) {
             return ResponseEntity.ok().body(null);
         }
@@ -119,11 +123,11 @@ public class CaseInfoExceptionController extends BaseController {
 
     @GetMapping("/checkExceptionCase")
     @ApiOperation(value = "检查异常案件", notes = "检查异常案件")
-    public ResponseEntity<CaseInfoException> checkExceptionCase(@RequestParam(value = "companyCode",required = false) String companyCode,
-                                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token){
+    public ResponseEntity<CaseInfoException> checkExceptionCase(@RequestParam(value = "companyCode", required = false) String companyCode,
+                                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to checkExceptionCase");
         try {
-            User user=getUserByToken(token);
+            User user = getUserByToken(token);
             if (Objects.isNull(user.getCompanyCode())) {
                 if (StringUtils.isNotBlank(companyCode)) {
                     user.setCompanyCode(companyCode);
@@ -132,12 +136,12 @@ public class CaseInfoExceptionController extends BaseController {
                 }
             }
             if (caseInfoExceptionService.checkCaseExceptionExist(user)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "","异常池有异常案件，请先处理!")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "异常池有异常案件，请先处理!")).body(null);
             }
             return ResponseEntity.ok().body(null);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "","系统异常!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "系统异常!")).body(null);
         }
     }
 }
