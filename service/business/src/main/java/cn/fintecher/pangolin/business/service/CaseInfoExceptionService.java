@@ -126,9 +126,7 @@ public class CaseInfoExceptionService {
         List<CaseInfo> caseInfoList = new ArrayList<>();
         for(String caseInfoId : caseInfoIds){
             CaseInfo caseInfo = caseInfoRepository.findOne(caseInfoId);
-            //产品系列
-            Product product = addProducts(caseInfoException, user);
-            addCaseInfo(caseInfo, caseInfoException, product, user);
+            addCaseInfo(caseInfo, caseInfoException, user);
             caseInfoRepository.save(caseInfo);
             //附件信息
             saveCaseFile(caseInfoFileList, caseInfo.getId(), caseInfo.getCaseNumber());
@@ -158,7 +156,7 @@ public class CaseInfoExceptionService {
      * @param caseNum
      */
     private void saveCaseFile(List<CaseInfoFile> caseInfoFileList, String caseId, String caseNum) {
-        if (Objects.nonNull(caseInfoFileList)) {
+        if (caseInfoFileList.size()>0) {
             for (CaseInfoFile obj : caseInfoFileList) {
                 obj.setCaseId(caseId);
                 obj.setCaseNumber(caseNum);
@@ -233,17 +231,11 @@ public class CaseInfoExceptionService {
      * 案件更新到正常池
      *
      * @param caseInfoException
-     * @param product
      * @param user
      * @return
      */
-    private CaseInfo addCaseInfo(CaseInfo caseInfo, CaseInfoException caseInfoException, Product product, User user) {
+    private CaseInfo addCaseInfo(CaseInfo caseInfo, CaseInfoException caseInfoException, User user) {
         caseInfo.setArea(areaCodeService.queryAreaCodeByName(caseInfoException.getCity()));
-        caseInfo.setBatchNumber(caseInfoException.getBatchNumber());
-        caseInfo.setCaseNumber(caseInfoException.getCaseNumber());
-        caseInfo.setProduct(product);
-        caseInfo.setContractNumber(caseInfoException.getContractNumber());
-        caseInfo.setContractAmount(caseInfoException.getContractAmount());
         caseInfo.setOverdueAmount(caseInfoException.getOverdueAmount());
         caseInfo.setLeftCapital(caseInfoException.getLeftCapital());
         caseInfo.setLeftInterest(caseInfoException.getLeftInterest());
@@ -258,22 +250,11 @@ public class CaseInfoExceptionService {
         caseInfo.setOverdueDays(caseInfoException.getOverDueDays());
         caseInfo.setHasPayAmount(caseInfoException.getHasPayAmount());
         caseInfo.setHasPayPeriods(caseInfoException.getHasPayPeriods());
-        caseInfo.setLatelyPayDate(caseInfoException.getLatelyPayDate());
-        caseInfo.setLatelyPayAmount(caseInfoException.getLatelyPayAmount());
-        caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());
         caseInfo.setPayStatus(caseInfoException.getPaymentStatus());
-        caseInfo.setPrincipalId(principalRepository.findByCode(caseInfoException.getPrinCode()));
-        caseInfo.setDelegationDate(caseInfoException.getDelegationDate());
-        caseInfo.setCloseDate(caseInfoException.getCloseDate());
         caseInfo.setCommissionRate(caseInfoException.getCommissionRate());
-        caseInfo.setHandNumber(caseInfoException.getCaseHandNum());
-        caseInfo.setLoanDate(caseInfoException.getLoanDate());
-        caseInfo.setOverdueManageFee(caseInfoException.getOverdueManageFee());
-        caseInfo.setHandUpFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());
         caseInfo.setOtherAmt(caseInfoException.getOtherAmt());
         caseInfo.setOperator(user);
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
-        caseInfo.setCompanyCode(caseInfoException.getCompanyCode());
         return caseInfo;
     }
 
