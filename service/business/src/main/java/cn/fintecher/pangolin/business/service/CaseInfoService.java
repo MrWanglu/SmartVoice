@@ -1429,7 +1429,7 @@ public class CaseInfoService {
             }
         }
         if (!caseInfoNo.isEmpty()) {
-            throw new RuntimeException("已结案/已委外/提前借清还款中的案件不可重新分配!");
+            throw new RuntimeException("已结案 已委外 提前借清还款中的案件不可重新分配!");
         }
         //案件列表
         List<CaseInfo> caseInfoObjList = new ArrayList<>();
