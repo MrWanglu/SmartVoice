@@ -235,8 +235,8 @@ public class CaseInfoAppController extends BaseController {
         builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
         builder.and(QCaseAssist.caseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue()));
         builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue()));
-        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.latitude.between(BigDecimal.valueOf(resultMap.get("maxlat")), BigDecimal.valueOf(resultMap.get("minlat"))));
-        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.longitude.between(BigDecimal.valueOf(resultMap.get("maxlng")), BigDecimal.valueOf(resultMap.get("minlng"))));
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.latitude.between(BigDecimal.valueOf(resultMap.get("minlat")), BigDecimal.valueOf(resultMap.get("maxlat"))));
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.longitude.between(BigDecimal.valueOf(resultMap.get("minlng")), BigDecimal.valueOf(resultMap.get("maxlng"))));
         Page<CaseAssist> page = caseAssistRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("附近案件查询成功", "CaseAssist")).body(page);
     }
