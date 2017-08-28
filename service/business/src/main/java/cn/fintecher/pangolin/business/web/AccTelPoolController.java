@@ -775,7 +775,7 @@ public class AccTelPoolController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfo")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "distributeCeaseInfoAgain", "系统错误!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "distributeCeaseInfoAgain", e.getMessage())).body(null);
         }
 
     }
