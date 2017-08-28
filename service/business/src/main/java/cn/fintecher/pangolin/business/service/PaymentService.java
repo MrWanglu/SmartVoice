@@ -229,7 +229,7 @@ public class PaymentService {
         ByteArrayOutputStream out = null;
         FileOutputStream fileOutputStream = null;
 
-        Map<String, String> headMap = new HashMap<>(); //excel头
+        Map<String, String> headMap = new LinkedHashMap<>(); //excel头
         List<Map<String, Object>> dataList = new ArrayList<>();
 
         headMap.put("caseNumber", "案件编号");
@@ -249,7 +249,7 @@ public class PaymentService {
         try {
             Map<String, Object> map;
             for (CasePayApply casePayApply : casePayApplyList) {
-                map = new HashMap<>();
+                map = new LinkedHashMap<>();
                 map.put("caseNumber", casePayApply.getCaseNumber());
                 map.put("batchNumber", casePayApply.getBatchNumber());
                 map.put("principalName", casePayApply.getPrincipalName());
