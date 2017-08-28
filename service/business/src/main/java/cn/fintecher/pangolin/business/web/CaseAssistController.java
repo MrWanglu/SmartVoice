@@ -164,7 +164,7 @@ public class CaseAssistController extends BaseController {
             caseAssist.setOperatorTime(new Date()); //操作时间
             caseAssist.setOperator(user); //操作员
             //原案件
-            caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态
+            caseInfo.setAssistStatus(null); //协催状态
             caseInfo.setAssistCollector(null); //协催员
             caseInfo.setAssistWay(null); //协催方式
             caseInfo.setAssistFlag(0); //协催标识

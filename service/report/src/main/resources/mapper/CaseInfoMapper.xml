@@ -137,18 +137,34 @@
       SELECT
       a.*
       FROM
-      case_info as a LEFT JOIN personal as p on a.personal_id = p.id where
-      (a.current_collector = #{collector}
-      OR a.assist_collector = #{collector})
-      AND a.company_code = #{companyCode}
-      AND a.collection_type = 16
-      AND a.collection_status = 20
+      case_info AS a, personal AS p
+      WHERE
+      a.company_code = #{companyCode}
+      and	a.collection_status = 20
+      and a.current_collector = #{collector}
+      and a.personal_id = p.id
         <if test="name != null">
           and p.name like CONCAT(#{name}, '%')
         </if>
         <if test="address != null">
           and p.local_home_address like CONCAT('%', #{address}, '%')
         </if>
+      UNION ALL
+      SELECT
+      b.*
+      from case_info as b, case_assist as a,personal as p
+      WHERE
+      a.company_code = #{companyCode}
+      and a.assist_collector= #{collector}
+      and a.assist_status = 118
+      and a.case_id = b.id
+      and b.personal_id = p.id
+      <if test="name != null">
+          and p.name like CONCAT(#{name}, '%')
+      </if>
+      <if test="address != null">
+          and p.local_home_address like CONCAT('%', #{address}, '%')
+      </if>
         ) as b,product pr,principal pri,area_code ar
         where
         b.product_id = pr.id

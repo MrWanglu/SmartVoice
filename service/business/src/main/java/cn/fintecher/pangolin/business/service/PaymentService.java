@@ -57,6 +57,9 @@ public class PaymentService {
     @Inject
     RestTemplate restTemplate;
 
+    @Inject
+    DataDictService dataDictService;
+
     /**
      * @Description 还款信息展示
      */
@@ -226,7 +229,7 @@ public class PaymentService {
         ByteArrayOutputStream out = null;
         FileOutputStream fileOutputStream = null;
 
-        Map<String, String> headMap = new HashMap<>(); //excel头
+        Map<String, String> headMap = new LinkedHashMap<>(); //excel头
         List<Map<String, Object>> dataList = new ArrayList<>();
 
         headMap.put("caseNumber", "案件编号");
@@ -246,7 +249,7 @@ public class PaymentService {
         try {
             Map<String, Object> map;
             for (CasePayApply casePayApply : casePayApplyList) {
-                map = new HashMap<>();
+                map = new LinkedHashMap<>();
                 map.put("caseNumber", casePayApply.getCaseNumber());
                 map.put("batchNumber", casePayApply.getBatchNumber());
                 map.put("principalName", casePayApply.getPrincipalName());
@@ -254,10 +257,10 @@ public class PaymentService {
                 map.put("personalPhone", casePayApply.getPersonalPhone());
                 map.put("caseAmt", casePayApply.getCaseAmt());
                 map.put("applyPayAmt", casePayApply.getApplyPayAmt());
-                map.put("payType", casePayApply.getPayType());
-                map.put("payWay", casePayApply.getPayWay());
-                map.put("approveStatus", casePayApply.getApproveStatus());
-                map.put("approveResult", casePayApply.getApproveResult());
+                map.put("payType", dataDictService.getDataDictName(casePayApply.getPayType()));
+                map.put("payWay", dataDictService.getDataDictName(casePayApply.getPayWay()));
+                map.put("approveStatus", dataDictService.getDataDictName(casePayApply.getApproveStatus()));
+                map.put("approveResult", dataDictService.getDataDictName(casePayApply.getApproveResult()));
                 map.put("applayDate", casePayApply.getApplyDate());
                 map.put("applayRealName", casePayApply.getApplyRealName());
                 dataList.add(map);
