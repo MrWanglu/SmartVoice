@@ -4,7 +4,7 @@
     <!-- 查询催收员业绩排名实时报表 -->
     <select id="getRealtimeReport" parameterType="cn.fintecher.pangolin.report.model.PerformanceRankingParams"
             resultType="cn.fintecher.pangolin.report.entity.PerformanceRankingReport">
-        SELECT x.parentDeptCode,x.parentDeptName,x.deptCode,x.deptName,x.userName,x.realName,w.caseNum
+        SELECT x.parentDeptCode,x.parentDeptName,x.deptCode,x.deptName,x.userName,x.realName,w.caseNum,
         case when x.dayBackMoney is null then 0 else x.dayBackMoney end as dayBackMoney,
         case when x.monthBackMoney is null then 0 else x.monthBackMoney end as monthBackMoney,
         case when x.target is null then 0 else x.target end as target,
@@ -58,7 +58,7 @@
     <!-- 生成历史报表 -->
     <select id="saveHistoryReport"
             resultType="cn.fintecher.pangolin.report.entity.PerformanceRankingReport">
-        SELECT x.parentDeptCode,x.parentDeptName,x.deptCode,x.deptName,x.userName,x.realName,w.caseNum
+        SELECT x.parentDeptCode,x.parentDeptName,x.deptCode,x.deptName,x.userName,x.realName,w.caseNum,
         case when x.dayBackMoney is null then 0 else x.dayBackMoney end as dayBackMoney,
         case when x.monthBackMoney is null then 0 else x.monthBackMoney end as monthBackMoney,case when x.target is null then 0 else x.target end as target,
         (case when x.target is null then 0 else x.target end - case when x.monthBackMoney is null then 0 else x.monthBackMoney end) as targetDisparity,x.companyCode from
@@ -114,7 +114,7 @@
     <!-- 查询催收员业绩排名汇总实时报表 -->
     <select id="getRealtimeSummaryReport" parameterType="cn.fintecher.pangolin.report.model.PerformanceRankingParams"
             resultType="cn.fintecher.pangolin.report.entity.PerformanceRankingReport">
-        SELECT x.parentDeptCode,x.parentDeptName,x.deptCode,x.deptName,x.userName,x.realName,
+        SELECT x.parentDeptCode,x.parentDeptName,x.deptCode,x.deptName,x.userName,x.realName,w.caseNum,
         case when x.dayBackMoney is null then 0 else x.dayBackMoney end as dayBackMoney,
         case when x.monthBackMoney is null then 0 else x.monthBackMoney end as monthBackMoney,
         case when x.target is null then 0 else x.target end as target,

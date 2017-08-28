@@ -31,7 +31,7 @@
         DATE_FORMAT(operator_time,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d')
         GROUP BY operator) g
         left join
-        (SELECT id,user_name form `user`) f on g.operator = f.user_name
+        (SELECT id,user_name from `user`) f on g.operator = f.user_name
         ) b on a.current_collector = b.id
         LEFT JOIN
         (SELECT m.id,n.deptCode,n.deptName,o.parentDeptCode,o.parentDeptName,m.companyCode,m.userName,m.realName from
@@ -75,7 +75,7 @@
         count(case when op_url is not null then id end) as effectiveCallNum from case_followup_record where DATE_FORMAT(operator_time,'%Y-%m-%d') = DATE_FORMAT(#{historyDate},'%Y-%m-%d')
         GROUP BY operator) g
         left join
-        (SELECT id,user_name form `user`) f on g.operator = f.user_name
+        (SELECT id,user_name from `user`) f on g.operator = f.user_name
         ) b on a.current_collector = b.id
         LEFT JOIN
         (SELECT m.id,n.deptCode,n.deptName,o.parentDeptCode,o.parentDeptName,m.companyCode,m.userName,m.realName
