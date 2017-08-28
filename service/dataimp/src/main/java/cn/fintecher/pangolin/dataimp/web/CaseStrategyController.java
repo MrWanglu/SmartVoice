@@ -265,7 +265,7 @@ public class CaseStrategyController {
                                 } else if (Objects.equals(department.getType(), Department.Type.REMIND_COLLECTION.getValue())) {
                                     caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
                                 }
-                                caseInfo.setCaseFollowInTime(null); //案件流入时间
+                                caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //案件流入时间
                                 caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
                             }
                             if (Objects.nonNull(targetUser)) {
@@ -291,6 +291,8 @@ public class CaseStrategyController {
                             //案件类型
                             caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());
                             caseInfo.setOperator(user);
+                            caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue());//打标标记
+                            caseInfo.setFollowUpNum(0);//流转次数
                             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
                             //案件流转记录
                             CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
@@ -302,6 +304,7 @@ public class CaseStrategyController {
                             if (Objects.nonNull(caseInfo.getCurrentCollector())) {
                                 caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
                                 caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
+                                caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接收人ID
                             } else {
                                 caseTurnRecord.setReceiveDeptName(caseInfo.getDepartment().getName());
                             }
