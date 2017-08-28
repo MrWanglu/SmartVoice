@@ -372,6 +372,9 @@ public class PersonalController extends BaseController {
                 if (Objects.isNull(e.getReceiveDeptName())) {
                     e.setReceiveDeptName("未知");
                 }
+                if (Objects.isNull(e.getReceiveUserRealName())) {
+                    e.setReceiveUserRealName("未知");
+                }
             });
             if (caseTurnRecordList.isEmpty()) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("该案件跟进记录为空", ENTITY_CASE_TURN_RECORD)).body(new ArrayList<>());
