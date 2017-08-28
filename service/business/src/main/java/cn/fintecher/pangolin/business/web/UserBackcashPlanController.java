@@ -332,7 +332,7 @@ public class UserBackcashPlanController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "dmp full", "导入失败")).body(null);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("导入成功", ENTITY_NAME)).body(null);
     }
 
 }

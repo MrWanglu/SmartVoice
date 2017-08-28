@@ -111,11 +111,20 @@ public class LoginController extends BaseController {
             response.setToken(session.getId());
             Set<UserDevice> userDevices = user.getUserDevices();
             for (UserDevice userDevice : userDevices) {
-                // 是否开启验证设备
-                if (Objects.equals(userDevice.getValidate(), Status.Enable.getValue())) {
-                    // 是否启用设备
+                if (Objects.equals(loginRequest.getUsdeType(), userDevice.getType())) {
+                    if (Objects.equals(userDevice.getStatus(), Status.Enable.getValue())){
+                        if (Objects.equals(userDevice.getValidate(), Status.Disable.getValue())) {
+                            break;
+                        }
+                    } else {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "device is disabled", "设备已处于停用状态！")).body(null);
+                    }
+                }
+                if (Objects.equals(loginRequest.getUsdeType(), userDevice.getType())) {
+                    // 启用设备
                     if (Objects.equals(userDevice.getStatus(), Status.Enable.getValue())) {
-                        if (Objects.equals(loginRequest.getUsdeType(),userDevice.getType())) {
+                        // 是否开启验证设备
+                        if (Objects.equals(userDevice.getValidate(), Status.Enable.getValue())) {
                             if (Objects.equals(loginRequest.getUsdeType(), Status.Enable.getValue())) {
                                 String ip = GetClientIp.getIp(request);
                                 if (ZWStringUtils.isEmpty(userDevice.getCode())) {
@@ -124,7 +133,7 @@ public class LoginController extends BaseController {
                                     userDevice.setCode(ip);
                                 } else {
                                     if (!Objects.equals(ip, userDevice.getCode())) {
-                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "deviceKey failure", "本次登录和上次登录地址不一致！")).body(null);
+                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "This login and the last login address are not consistent", "本次登录和上次登录地址不一致！")).body(null);
                                     }
                                 }
                             } else {
@@ -132,7 +141,7 @@ public class LoginController extends BaseController {
                                     userDevice.setCode(loginRequest.getUsdeCode());
                                 } else {
                                     if (!Objects.equals(loginRequest.getUsdeCode(), userDevice.getCode())) {
-                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "deviceKey failure", "本次登录和上次登录地址不一致！")).body(null);
+                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "This login and the last login address are not consistent", "本次登录和上次登录地址不一致！")).body(null);
                                     }
                                 }
                             }
