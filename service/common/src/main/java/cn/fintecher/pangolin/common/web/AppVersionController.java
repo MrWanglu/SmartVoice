@@ -123,7 +123,7 @@ public class AppVersionController {
         return new ResponseEntity<>(page, headers, HttpStatus.OK);
     }
 
-    @GetMapping(value = "publishAppVersion")
+    @GetMapping(value = "/publishAppVersion")
     @ApiOperation(value = "发布新版本", notes = "发布新版本")
     public ResponseEntity<AppVersion> checkUpdate(@RequestParam String os, @RequestParam String version) {
         String regex = "^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$";
