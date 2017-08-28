@@ -73,7 +73,7 @@ public class OutsourcePoolController extends BaseController {
     AccFinanceEntryService accFinanceEntryService;
     @Autowired
     AccFinanceEntryRepository accFinanceEntryRepository;
-    public static final String FINANCEEXCEL_URL = "http://117.36.75.166:8883/group1/M00/01/12/wKgBCFk4wJ6ACoknAAAnUAVwvzk14.xlsx";
+    public static final String FINANCEEXCEL_URL = "http://117.36.75.166:888/group1/M00/00/15/wKgDClmjieeAOeGlAAAmrp2DkmU81.xlsx";
     private static final String ENTITY_NAME = "OutSource";
     private static final String ENTITY_NAME1 = "OutSourcePool";
     private static final String ENTITY_CASEINFO = "CaseInfo";
