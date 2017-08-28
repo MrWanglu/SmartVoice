@@ -159,6 +159,12 @@
       and a.assist_status = 118
       and a.case_id = b.id
       and b.personal_id = p.id
+      <if test="name != null">
+          and p.name like CONCAT(#{name}, '%')
+      </if>
+      <if test="address != null">
+          and p.local_home_address like CONCAT('%', #{address}, '%')
+      </if>
         ) as b,product pr,principal pri,area_code ar
         where
         b.product_id = pr.id
