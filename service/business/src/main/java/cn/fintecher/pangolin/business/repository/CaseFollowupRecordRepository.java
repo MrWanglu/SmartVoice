@@ -12,10 +12,7 @@ import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author : xiaqun
@@ -109,4 +106,40 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
 
     @Query(value = "select sum(conn_secs) a ,operator,operator_name from case_followup_record where operator_time>:startTime and operator_time<:endTime and company_code =:companyCode and call_type ='164' GROUP BY operator,operator_name ORDER BY a DESC",nativeQuery = true)
     List<Object[]> getCountTimeSmaRecord(@Param("startTime") String startTime, @Param("endTime") String endTime,@Param("companyCode") String companyCode);
+
+    /**
+     * 导出跟进记录
+     * @param caseNumberList
+     * @param companyCode
+     * @return
+     */
+    @Query(value = "SELECT a.case_number,b.batch_number,e.`name` AS pname,a.operator_time,a.type,c.`name` AS cname,c.id_card,a.target,a.target_name,a.contact_phone,a.detail,a.collection_location,a.collection_feedback,a.content FROM ( " +
+                    " SELECT * FROM case_followup_record " +
+                    " WHERE case_number IN (:caseNumberList) " +
+                    " AND collection_way != 0 " +
+                    " AND company_code = :companyCode " +
+                    ") AS a " +
+                    "LEFT JOIN case_info b ON a.case_number = b.case_number " +
+                    "LEFT JOIN personal c ON b.personal_id = c.id " +
+                    "LEFT JOIN product d ON b.product_id = d.id " +
+                    "LEFT JOIN principal e ON b.principal_id = e.id", nativeQuery = true)
+    List<Object[]> findFollowup(@Param("caseNumberList") List<String> caseNumberList,@Param("companyCode") String companyCode);
+
+    /**
+     * 单案件导出跟进记录
+     * @param caseNumber
+     * @param companyCode
+     * @return
+     */
+    @Query(value = "SELECT a.case_number,b.batch_number,e.`name` AS pname,a.operator_time,a.type,c.`name` AS cname,c.id_card,a.target,a.target_name,a.contact_phone,a.detail,a.collection_location,a.collection_feedback,a.content FROM ( " +
+            " SELECT * FROM case_followup_record " +
+            " WHERE case_number = :caseNumber " +
+            " AND collection_way != 0 " +
+            " AND company_code = :companyCode " +
+            ") AS a " +
+            "LEFT JOIN case_info b ON a.case_number = b.case_number " +
+            "LEFT JOIN personal c ON b.personal_id = c.id " +
+            "LEFT JOIN product d ON b.product_id = d.id " +
+            "LEFT JOIN principal e ON b.principal_id = e.id", nativeQuery = true)
+    List<Object[]> findFollowupSingl(@Param("caseNumber") String caseNumber,@Param("companyCode") String companyCode);
 }
