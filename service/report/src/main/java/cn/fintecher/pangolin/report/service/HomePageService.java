@@ -117,7 +117,7 @@ public class HomePageService {
         CollectorCaseResult collectorCaseResult = getCollectorCaseResult(user);
 
         // 第一部分 本月完成度
-        Double taskFinished = cupoPageMapper.getTodyTashFinished(user.getId());
+        Double taskFinished = cupoPageMapper.getTodyTashFinished(user.getUserName());
         taskFinished = Objects.isNull(taskFinished) ? 0D : taskFinished >1D ? 1D : taskFinished;
         cupoPage.setTaskFinished(taskFinished);
         // 第二部分 案件情况总计  第三部分 案件金额总计 (饼图部分)
@@ -144,7 +144,7 @@ public class HomePageService {
         cupoPage.setDayFollowCount(collectorCaseResult.getDayFollowCount());
         cupoPage.setMonthFollowCount(collectorCaseResult.getMonthFollowCount());
         // 第五部分 周回款统计
-        List<WeekCountResult> repayWeek = cupoPageMapper.getRepayWeek(user.getId());
+        List<WeekCountResult> repayWeek = cupoPageMapper.getRepayWeek(user.getUserName());
         cupoPage.setWeekRepaySum(addWeekListZero(repayWeek));
 
         // 第六部分 周催计数统计
@@ -217,9 +217,9 @@ public class HomePageService {
         Integer flowInCaseToday = cupoPageMapper.getFlowInCaseToday(user.getId()); //今日流入案件数
         Integer finishCaseToday = cupoPageMapper.getFinishCaseToday(user.getId()); //今日结案数
         Integer flowOutCaseToday = cupoPageMapper.getFlowOutCaseToday(user.getId()); //今日流出案件数
-        BigDecimal moneySumResult = cupoPageMapper.getMoneySumResult(user.getId()); //回款总金额
-        BigDecimal monthMoneyResult = cupoPageMapper.getMonthMoneyResult(user.getId()); // 本月回款金额
-        BigDecimal dayMoneyResult = cupoPageMapper.getDayMoneyResult(user.getId()); // 本天回款金额
+        BigDecimal moneySumResult = cupoPageMapper.getMoneySumResult(user.getUserName()); //回款总金额
+        BigDecimal monthMoneyResult = cupoPageMapper.getMonthMoneyResult(user.getUserName()); // 本月回款金额
+        BigDecimal dayMoneyResult = cupoPageMapper.getDayMoneyResult(user.getUserName()); // 本天回款金额
         Integer dayFollowCount = cupoPageMapper.getDayFollowCount(user.getUserName());//今日累计催收次数
         Integer monthFollowCount = cupoPageMapper.getMonthFollowCount(user.getUserName());// 本月累计催收次数
         collectorCaseResult.setFlowInCaseToday(flowInCaseToday);
