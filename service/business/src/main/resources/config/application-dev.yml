@@ -58,9 +58,9 @@ cuibei:
 threadPool:
   corePoolSize: 10
   maxPoolSize: 200
-  keepAliveSeconds : 60
+  keepAliveSeconds: 60
   queueCapacity: 500
-  allowCoreThreadTimeout : false
+  allowCoreThreadTimeout: false
   threadNamePrefix: pangolin-
 
 
