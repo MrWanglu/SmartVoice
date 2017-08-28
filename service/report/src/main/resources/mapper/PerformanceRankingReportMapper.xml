@@ -162,7 +162,7 @@
         <if test="code != null">
             AND x.parentDeptCode LIKE CONCAT(#{code},'%')
         </if>
-        ORDER BY monthBackMoney desc,x.deptCode asc
+        ORDER BY x.deptCode asc,monthBackMoney desc
     </select>
 
     <!-- 查询汇总历史报表 -->
@@ -179,7 +179,7 @@
         <if test="code != null">
             AND parent_dept_code LIKE CONCAT(#{cope},'%')
         </if>
-        ORDER BY month_back_money desc,dept_code asc
+        ORDER BY dept_code asc,month_back_money desc
     </select>
 
     <!-- 查询所有公司code码 -->
