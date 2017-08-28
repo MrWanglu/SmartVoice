@@ -224,6 +224,9 @@ public class CaseInfoService {
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
+        if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
+            throw new RuntimeException("该案件已结案!");
+        }
         if (Objects.equals(caseInfo.getHandUpFlag(), CaseInfo.HandUpFlag.YES_HANG.getValue())) {
             throw new RuntimeException("挂起案件不允许做还款操作");
         }
@@ -1590,7 +1593,7 @@ public class CaseInfoService {
 //                caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
 //                break;
             default:
-                throw new RuntimeException("不允许向该部门下分配案件!");
+                throw new RuntimeException("只允许向电催或外访分配案件!");
         }
     }
 
