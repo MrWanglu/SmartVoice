@@ -16,10 +16,10 @@ public interface CupoPageMapper {
 
     /**
      * 月度任务完成度
-     * @param userId
+     * @param username
      * @return
      */
-    Double getTodyTashFinished(String userId);
+    Double getTodyTashFinished(String username);
 
     /**
      * 案件情况/案件金额总计
@@ -30,10 +30,10 @@ public interface CupoPageMapper {
 
     /**
      * 本周回款
-     * @param userId
+     * @param userName
      * @return
      */
-    List<WeekCountResult> getRepayWeek(String userId);
+    List<WeekCountResult> getRepayWeek(String userName);
 
     /**
      * 本周催计数
@@ -72,24 +72,24 @@ public interface CupoPageMapper {
 
     /**
      * 催收员回款总额
-     * @param userId
+     * @param username
      * @return
      */
-    BigDecimal getMoneySumResult(String userId);
+    BigDecimal getMoneySumResult(String username);
 
     /**
      * 本月回款总额
-     * @param userId
+     * @param username
      * @return
      */
-    BigDecimal getMonthMoneyResult(String userId);
+    BigDecimal getMonthMoneyResult(String username);
 
     /**
      * 今天回款总额
-     * @param userId
+     * @param username
      * @return
      */
-    BigDecimal getDayMoneyResult(String userId);
+    BigDecimal getDayMoneyResult(String username);
 
     /**
      * 今日累计催收次数
