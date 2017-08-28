@@ -42,15 +42,19 @@ public class CaseAssistService {
         //找到所有协催待催收、协催催收中的协催案件
         BooleanExpression exp = qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue())
                 .or(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue()));
-        Iterable<CaseAssist> all = caseAssistRepository.findAll(exp);
-        if (!all.iterator().hasNext()) {
+        List<CaseAssist> all = IterableUtils.toList(caseAssistRepository.findAll(exp));
+        if (all.isEmpty()) {
             return null;
         }
         List<CaseAssist> caseAssistList = new ArrayList<>();
-        for (CaseAssist caseAssist : all) {
+        for (CaseAssist caseAssist :all) {
             Department one = departmentRepository.findOne(caseAssist.getDepartId());
-            if (one.getCode().startsWith(department.getCode()) && Objects.equals(one.getCompanyCode(), department.getCompanyCode())) {
-                caseAssistList.add(caseAssist);
+            if (Objects.nonNull(one)) {
+                if (one.getCode().startsWith(department.getCode()) && Objects.equals(one.getCompanyCode(), department.getCompanyCode())) {
+                    caseAssistList.add(caseAssist);
+                }
+            } else {
+                throw new RuntimeException("待催收/催收中的协催案件应该归属于某一部门");
             }
         }
         List<String> assistId = new ArrayList<>();
@@ -117,5 +121,67 @@ public class CaseAssistService {
             caseAssistList.addAll(IterableUtils.toList(caseAssistRepository.findAll(builder)));
         }
         return caseAssistList;
+    }
+
+    /**
+     * 获取机构下协催结束的协催案件
+     *
+     * @param department 部门
+     * @return
+     */
+    public AssistingStatisticsModel getDepartmentEndAssist(Department department) {
+        QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+        //找到所有协催结束的协催案件
+        BooleanExpression exp = qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue());
+        List<CaseAssist> all = IterableUtils.toList(caseAssistRepository.findAll(exp));
+        if (all.isEmpty()) {
+            return null;
+        }
+        List<CaseAssist> caseAssistList = new ArrayList<>();
+        for (CaseAssist caseAssist :all) {
+            Department one = departmentRepository.findOne(caseAssist.getDepartId());
+            if (Objects.nonNull(one)) {
+                if (one.getCode().startsWith(department.getCode()) && Objects.equals(one.getCompanyCode(), department.getCompanyCode())) {
+                    caseAssistList.add(caseAssist);
+                }
+            } else {
+                throw new RuntimeException("协催结束的协催案件应该归属于某一部门");
+            }
+        }
+        List<String> assistId = new ArrayList<>();
+        for (CaseAssist c : caseAssistList) {
+            assistId.add(c.getId());
+        }
+        AssistingStatisticsModel model = new AssistingStatisticsModel();
+        model.setNum(caseAssistList.size());
+        model.setAssistList(assistId);
+        return model;
+    }
+
+    /**
+     * 找到某个用户协催结束的案件
+     *
+     * @param user 用户
+     * @return
+     */
+    public AssistingStatisticsModel getCollectorEndAssist(User user) {
+        QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+        // 找到User结束协催的协催案件
+        BooleanBuilder exp = new BooleanBuilder();
+        exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
+        exp.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
+        Iterable<CaseAssist> all = caseAssistRepository.findAll(exp);
+        if (!all.iterator().hasNext()) {
+            return null;
+        }
+        List<String> assistId = new ArrayList<>();
+        while (all.iterator().hasNext()) {
+            CaseAssist next = all.iterator().next();
+            assistId.add(next.getId());
+        }
+        AssistingStatisticsModel model = new AssistingStatisticsModel();
+        model.setNum(assistId.size());
+        model.setAssistList(assistId);
+        return model;
     }
 }

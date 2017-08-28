@@ -196,9 +196,9 @@ public class UserBackcashPlanController extends BaseController {
     /**
      * @Description : 删除用户计划回款
      */
-    @PostMapping("/deleteUserBackcashPlan")
+    @DeleteMapping("/deleteUserBackcashPlan")
     @ApiOperation(value = "删除用户计划回款", notes = "删除用户计划回款")
-    public ResponseEntity<Void> deleteUserBackcashPlan(String id) {
+    public ResponseEntity<Void> deleteUserBackcashPlan(@RequestParam String id) {
         if (Objects.isNull(id)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Select delete object", "请选择删除对象")).body(null);
         }
