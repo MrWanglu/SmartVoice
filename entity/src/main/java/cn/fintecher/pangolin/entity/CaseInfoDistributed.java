@@ -73,6 +73,7 @@ public class CaseInfoDistributed extends BaseEntity {
     private BigDecimal leftCapital = new BigDecimal(0); //剩余本金
     private BigDecimal leftInterest = new BigDecimal(0); //剩余利息
     private String endRemark; //结案说明
+    private Date overDueDate; //逾期日期
 
     private Date operatorTime;
     private Integer caseMark;
