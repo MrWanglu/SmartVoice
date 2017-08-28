@@ -475,7 +475,12 @@ public class OverNightBatchService {
                 .and(QCaseAssistApply.caseAssistApply.caseId.in(idSets)));
         for(Iterator<CaseAssistApply> it=caseAssistApplyList.iterator();it.hasNext();){
             CaseAssistApply obj=it.next();
-            obj.setApproveStatus(CaseAssistApply.ApproveStatus.FAILURE.getValue());
+            if(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue().equals(obj.getApproveStatus())){
+                obj.setApproveStatus(CaseAssistApply.ApproveStatus.TEL_COMPLETE.getValue());
+            }
+            if(CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue().equals(obj.getApproveStatus())){
+                obj.setApproveStatus(CaseAssistApply.ApproveStatus.VISIT_COMPLETE.getValue());
+            }
             obj.setApprovePhoneResult(CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
             caseIdSets.add(obj.getCaseId());
         }
