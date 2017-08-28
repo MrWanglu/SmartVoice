@@ -140,7 +140,7 @@ public class CaseInfoAppController extends BaseController {
         } else {
             builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
         }
-        builder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.COLLECTIONING.getValue()));
+        builder.and(QCaseInfo.caseInfo.collectionStatus.in(CaseInfo.CollectionStatus.COLLECTIONING.getValue()));
         builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(), CaseInfo.CaseType.OUTLEAVETURN.getValue()));
         if (Objects.nonNull(name)) {
             builder.and(QCaseInfo.caseInfo.personalInfo.name.startsWith(name));
@@ -230,13 +230,13 @@ public class CaseInfoAppController extends BaseController {
         exp.and(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()));
         exp.and(QSysParam.sysParam.status.eq(SysParam.StatusEnum.Start.getValue()));
         double radius = Double.valueOf(sysParamRepository.findOne(exp).getValue());
-        Map<String, Double> resultMap = MapUtil.computeOrigin4Position(model.getLatitude(), model.getLongitude(), radius);
+        Map<String, Double> resultMap = MapUtil.computeOrigin4Position( model.getLongitude(),model.getLatitude(), radius);
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
         builder.and(QCaseAssist.caseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue()));
         builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue()));
-        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.latitude.between(resultMap.get("maxlng"), resultMap.get("minlng")));
-        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.longitude.between(resultMap.get("minlat"), resultMap.get("maxlat")));
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.latitude.between(BigDecimal.valueOf(resultMap.get("maxlat")), BigDecimal.valueOf(resultMap.get("minlat"))));
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.longitude.between(BigDecimal.valueOf(resultMap.get("maxlng")), BigDecimal.valueOf(resultMap.get("minlng"))));
         Page<CaseAssist> page = caseAssistRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("附近案件查询成功", "CaseAssist")).body(page);
     }
@@ -259,13 +259,13 @@ public class CaseInfoAppController extends BaseController {
         exp.and(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()));
         exp.and(QSysParam.sysParam.status.eq(SysParam.StatusEnum.Start.getValue()));
         Double radius = Double.valueOf(sysParamRepository.findOne(exp).getValue());
-        Map<String, Double> resultMap = MapUtil.computeOrigin4Position(model.getLatitude(), model.getLongitude(), radius);
+        Map<String, Double> resultMap = MapUtil.computeOrigin4Position(model.getLongitude(),model.getLatitude(), radius);
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
         builder.and(QCaseAssist.caseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue()));
         builder.and(QCaseAssist.caseAssist.assistCollector.id.eq(user.getId()));
         builder.and(QCaseAssist.caseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
-        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.latitude.between(resultMap.get("maxlng"), resultMap.get("minlng")));
+        builder.and(QCaseAssist.caseAssist.caseId.personalInfo.latitude.between(resultMap.get("minlng"), resultMap.get("maxlng")));
         builder.and(QCaseAssist.caseAssist.caseId.personalInfo.longitude.between(resultMap.get("minlat"), resultMap.get("maxlat")));
         Page<CaseAssist> page = caseAssistRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("附近案件查询成功", "CaseAssist")).body(page);
