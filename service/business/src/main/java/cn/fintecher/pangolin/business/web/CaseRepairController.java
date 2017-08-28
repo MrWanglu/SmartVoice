@@ -91,8 +91,10 @@ public class CaseRepairController extends BaseController{
                     caseRepairRecordList.add(caseRepairRecordRepository.saveAndFlush(caseRepairRecord));
                 }
             }
-            // 修改状态为已修复
-            caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRED.getValue());
+            if (!Objects.equals(caseRepair.getRepairStatus(),CaseRepair.CaseRepairStatus.DISTRIBUTE.getValue())) {
+                // 修改状态为已修复
+                caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRED.getValue());
+            }
             // 设置操作时间为现在时间
             caseRepair.setOperatorTime(ZWDateUtil.getNowDateTime());
             caseRepairRepository.save(caseRepair);
@@ -135,7 +137,7 @@ public class CaseRepairController extends BaseController{
                                                                 @ApiIgnore Pageable pageable,
                                                                 @RequestHeader(value = "X-UserToken") String token,
                                                                 @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
-        User user = null;
+        User user;
         try {
             user = getUserByToken(token);
         } catch (Exception e) {
@@ -149,11 +151,6 @@ public class CaseRepairController extends BaseController{
             builder.and(QCaseRepair.caseRepair.companyCode.eq(companyCode));
         }else{
             builder.and(QCaseRepair.caseRepair.companyCode.eq(user.getCompanyCode()));
-        }
-        if (Objects.equals(user.getManager(), 1)) {
-            builder.and(QCaseRepair.caseRepair.caseId.currentCollector.department.code.startsWith(user.getDepartment().getCode())); //权限控制
-        } else {
-            builder.and(QCaseRepair.caseRepair.caseId.currentCollector.id.eq(user.getId()));
         }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
@@ -185,7 +182,7 @@ public class CaseRepairController extends BaseController{
                                                                @ApiIgnore Pageable pageable,
                                                                @RequestHeader(value = "X-UserToken") String token,
                                                                @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
-        User user = null;
+        User user;
         try {
             user = getUserByToken(token);
         } catch (Exception e) {
@@ -199,11 +196,6 @@ public class CaseRepairController extends BaseController{
             builder.and(QCaseRepair.caseRepair.companyCode.eq(companyCode));
         }else{
             builder.and(QCaseRepair.caseRepair.companyCode.eq(user.getCompanyCode()));
-        }
-        if (Objects.equals(user.getManager(), 1)) {
-            builder.and(QCaseRepair.caseRepair.caseId.currentCollector.department.code.startsWith(user.getDepartment().getCode())); //权限控制
-        } else {
-            builder.and(QCaseRepair.caseRepair.caseId.currentCollector.id.eq(user.getId()));
         }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
@@ -245,11 +237,6 @@ public class CaseRepairController extends BaseController{
             builder.and(QCaseRepair.caseRepair.companyCode.eq(companyCode));
         }else{
             builder.and(QCaseRepair.caseRepair.companyCode.eq(user.getCompanyCode()));
-        }
-        if (Objects.equals(user.getManager(), 1)) {
-            builder.and(QCaseRepair.caseRepair.caseId.currentCollector.department.code.startsWith(user.getDepartment().getCode())); //权限控制
-        } else {
-            builder.and(QCaseRepair.caseRepair.caseId.currentCollector.id.eq(user.getId()));
         }
         builder.and(QCaseRepair.caseRepair.repairStatus.eq(CaseRepair.CaseRepairStatus.DISTRIBUTE.getValue()));
         Page<CaseRepair> page = caseRepairRepository.findAll(builder,pageable);
