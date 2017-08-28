@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -68,64 +67,65 @@ public class ProcessDataInfoExcelService {
     @Autowired
     CaseInfoFileRepository caseInfoFileRepository;
 
-    @Async
+//    @Async
     @Transactional
     public void doTask(ConfirmDataInfoMessage confirmDataInfoMessage){
-        logger.info("{}  处理案件信息开始......",Thread.currentThread());
-        //案件数据信息
-        DataInfoExcelModel dataInfoExcelModel=confirmDataInfoMessage.getDataInfoExcelModel();
-        //案件附件信息
-        List<CaseInfoFile> caseInfoFileList=confirmDataInfoMessage.getCaseInfoFileList();
-        //产品信息
-        Product product=null;
-        //用户数据
-        User user=confirmDataInfoMessage.getUser();
-        /**
-         * 首先检查待分配案件是否有该案件，有的话直接进入数据异常表
-         */
-        QCaseInfoDistributed qCaseInfoDistributed=QCaseInfoDistributed.caseInfoDistributed;
-        Iterable<CaseInfoDistributed> caseInfoDistributedIterable=caseInfoDistributedRepository.findAll(qCaseInfoDistributed.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
-                                              .and(qCaseInfoDistributed.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
-                                              .and(qCaseInfoDistributed.principalId.code.eq(dataInfoExcelModel.getPrinCode()))
-                                              .and(qCaseInfoDistributed.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
-                                              .and(qCaseInfoDistributed.companyCode.eq(dataInfoExcelModel.getCompanyCode())));
-        if(caseInfoDistributedIterable.iterator().hasNext()){
-            //数据进入案件异常池
-            Set<String> caseInfoDistributedSets=new HashSet<>();
-            for(Iterator<CaseInfoDistributed> it=caseInfoDistributedIterable.iterator();it.hasNext();){
-                caseInfoDistributedSets.add(it.next().getId());
-            }
-            Set<String> caseInfoSets=checkCaseInfoExist(dataInfoExcelModel);
-            caseInfoExceptionRepository.save(addCaseInfoException(dataInfoExcelModel,user,caseInfoDistributedSets,caseInfoSets));
-        }else{
-            Set<String> caseInfoSets=checkCaseInfoExist(dataInfoExcelModel);
-            if(caseInfoSets.isEmpty()){
-                //进入案件正常池
-                Personal personal=createPersonal(dataInfoExcelModel, user);
-                personal=personalRepository.save(personal);
-                //更新或添加联系人信息
-                addContract(dataInfoExcelModel, user, personal);
-                //更新或添加地址信息
-                addAddr(dataInfoExcelModel,user,personal);
-                //开户信息
-                addBankInfo(dataInfoExcelModel, user, personal);
-                //单位信息
-                addPersonalJob(dataInfoExcelModel, user, personal);
-                //产品系列
-                product=addProducts(dataInfoExcelModel, user);
-                CaseInfoDistributed caseInfoDistributed=addCaseInfoDistributed(dataInfoExcelModel, product, user, personal);
-                caseInfoDistributed=caseInfoDistributedRepository.save(caseInfoDistributed);
-                //附件信息
-                for(CaseInfoFile obj:caseInfoFileList){
-                    obj.setCaseId(caseInfoDistributed.getId());
-                    obj.setCaseNumber(caseInfoDistributed.getCaseNumber());
+            logger.info("{}  处理案件信息开始......",Thread.currentThread());
+            //案件数据信息
+            DataInfoExcelModel dataInfoExcelModel=confirmDataInfoMessage.getDataInfoExcelModel();
+            //案件附件信息
+            List<CaseInfoFile> caseInfoFileList=confirmDataInfoMessage.getCaseInfoFileList();
+            //产品信息
+            Product product=null;
+            //用户数据
+            User user=confirmDataInfoMessage.getUser();
+            /**
+             * 首先检查待分配案件是否有该案件，有的话直接进入数据异常表
+             */
+
+            QCaseInfoDistributed qCaseInfoDistributed = QCaseInfoDistributed.caseInfoDistributed;
+            Iterable<CaseInfoDistributed> caseInfoDistributedIterable = caseInfoDistributedRepository.findAll(qCaseInfoDistributed.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
+                    .and(qCaseInfoDistributed.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
+                    .and(qCaseInfoDistributed.principalId.code.eq(dataInfoExcelModel.getPrinCode()))
+                    .and(qCaseInfoDistributed.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
+                    .and(qCaseInfoDistributed.companyCode.eq(dataInfoExcelModel.getCompanyCode())));
+            if (caseInfoDistributedIterable.iterator().hasNext()) {
+                //数据进入案件异常池
+                Set<String> caseInfoDistributedSets = new HashSet<>();
+                for (Iterator<CaseInfoDistributed> it = caseInfoDistributedIterable.iterator(); it.hasNext(); ) {
+                    caseInfoDistributedSets.add(it.next().getId());
                 }
-                caseInfoFileRepository.save(caseInfoFileList);
-            }else{
-                //异常池
-                caseInfoExceptionRepository.save(addCaseInfoException(dataInfoExcelModel,user,new HashSet<>(),caseInfoSets));
-                caseInfoFileRepository.save(caseInfoFileList);
-            }
+                Set<String> caseInfoSets = checkCaseInfoExist(dataInfoExcelModel);
+                caseInfoExceptionRepository.save(addCaseInfoException(dataInfoExcelModel, user, caseInfoDistributedSets, caseInfoSets));
+            } else {
+                Set<String> caseInfoSets = checkCaseInfoExist(dataInfoExcelModel);
+                if (caseInfoSets.isEmpty()) {
+                    //进入案件正常池
+                    Personal personal = createPersonal(dataInfoExcelModel, user);
+                    personal = personalRepository.save(personal);
+                    //更新或添加联系人信息
+                    addContract(dataInfoExcelModel, user, personal);
+                    //更新或添加地址信息
+                    addAddr(dataInfoExcelModel, user, personal);
+                    //开户信息
+                    addBankInfo(dataInfoExcelModel, user, personal);
+                    //单位信息
+                    addPersonalJob(dataInfoExcelModel, user, personal);
+                    //产品系列
+                    product = addProducts(dataInfoExcelModel, user);
+                    CaseInfoDistributed caseInfoDistributed = addCaseInfoDistributed(dataInfoExcelModel, product, user, personal);
+                    caseInfoDistributed = caseInfoDistributedRepository.save(caseInfoDistributed);
+                    //附件信息
+                    for (CaseInfoFile obj : caseInfoFileList) {
+                        obj.setCaseId(caseInfoDistributed.getId());
+                        obj.setCaseNumber(caseInfoDistributed.getCaseNumber());
+                    }
+                    caseInfoFileRepository.save(caseInfoFileList);
+                } else {
+                    //异常池
+                    caseInfoExceptionRepository.save(addCaseInfoException(dataInfoExcelModel, user, new HashSet<>(), caseInfoSets));
+                    caseInfoFileRepository.save(caseInfoFileList);
+                }
         }
         logger.info("{}  处理案件信息结束.",Thread.currentThread());
     }
