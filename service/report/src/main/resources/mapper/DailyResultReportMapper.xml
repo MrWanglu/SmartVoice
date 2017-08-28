@@ -34,7 +34,7 @@
         (SELECT id,`code` as parentDeptCode,`name` as parentDeptName from department) x on z.pid = x.id
         ) n on m.deptId = n.id
         LEFT JOIN
-        (SELECT approve_pay_user,count(case when DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') =
+        (SELECT apply_user_name,count(case when DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') =
         DATE_FORMAT(NOW(),'%Y-%m-%d') then id end) as dayNum,
         sum(case when DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d') then(case when
         apply_pay_amt is null then 0 else apply_pay_amt end) + (case when apply_derate_amt is null then 0 else
@@ -43,7 +43,7 @@
         sum(case when DATE_FORMAT(approve_pay_datetime,'%Y-%m') = DATE_FORMAT(NOW(),'%Y-%m') then(case when
         apply_pay_amt is null then 0 else apply_pay_amt end) + (case when apply_derate_amt is null then 0 else
         apply_derate_amt end) else 0 end) as monthAmt
-        from case_pay_apply where approve_status = 58 group by approve_pay_user) c on m.userName = c.approve_pay_user
+        from case_pay_apply where approve_status = 58 group by apply_user_name) c on m.userName = c.apply_user_name
         LEFT JOIN
         (SELECT user_name,`year`,`month`,back_cash as target from user_backcash_plan where DATE_FORMAT(NOW(),'%Y') =
         `year` and DATE_FORMAT(NOW(),'%c') = `month`) d
