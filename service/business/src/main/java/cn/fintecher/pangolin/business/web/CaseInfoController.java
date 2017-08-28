@@ -23,8 +23,8 @@ import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.joda.time.DateTime;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
@@ -463,7 +463,7 @@ public class CaseInfoController extends BaseController {
     @ApiOperation(value = "导出跟进记录", notes = "导出跟进记录")
     public ResponseEntity exportCaseInfoFollowRecord(@RequestBody ExportCaseNum exportCaseNum,
                                                      @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
-        HSSFWorkbook workbook = null;
+        XSSFWorkbook workbook = null;
         File file = null;
         ByteArrayOutputStream out = null;
         FileOutputStream fileOutputStream = null;
@@ -505,14 +505,14 @@ public class CaseInfoController extends BaseController {
             if (caseFollowupRecords.size() > 10000) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "不支持导出数据超过10000条!")).body(null);
             }
-            workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet("sheet1");
+            workbook = new XSSFWorkbook();
+            XSSFSheet sheet = workbook.createSheet("sheet1");
             out = new ByteArrayOutputStream();
             Map<String, String> head = followRecordExportService.createHead();
             List<Map<String, Object>> data = followRecordExportService.createData(caseFollowupRecords);
             ExcelExportHelper.createExcel(workbook, sheet, head, data, 0, 0);
             workbook.write(out);
-            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xls");
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xlsx");
             file = new File(filePath);
             fileOutputStream = new FileOutputStream(file);
             fileOutputStream.write(out.toByteArray());
@@ -564,7 +564,7 @@ public class CaseInfoController extends BaseController {
     public ResponseEntity exportFollowRecord(@QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
                                              @RequestParam("caseNumber") @ApiParam("案件编号") String caseNumber,
                                              @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
-        HSSFWorkbook workbook = null;
+        XSSFWorkbook workbook = null;
         File file = null;
         ByteArrayOutputStream out = null;
         FileOutputStream fileOutputStream = null;
@@ -587,14 +587,14 @@ public class CaseInfoController extends BaseController {
             if (caseFollowupRecords.isEmpty()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "跟进记录数据为空!")).body(null);
             }
-            workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet("sheet1");
+            workbook = new XSSFWorkbook();
+            XSSFSheet sheet = workbook.createSheet("sheet1");
             out = new ByteArrayOutputStream();
             Map<String, String> head = followRecordExportService.createHead();
             List<Map<String, Object>> data = followRecordExportService.createData(caseFollowupRecords);
             ExcelExportHelper.createExcel(workbook, sheet, head, data, 0, 0);
             workbook.write(out);
-            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xls");
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xlsx");
             file = new File(filePath);
             fileOutputStream = new FileOutputStream(file);
             fileOutputStream.write(out.toByteArray());

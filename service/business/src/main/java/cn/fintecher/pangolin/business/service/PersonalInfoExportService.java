@@ -191,6 +191,13 @@ public class PersonalInfoExportService {
             //联系人相关
             Iterator<PersonalContact> conIterator = caseInfo.getPersonalInfo().getPersonalContacts().iterator();
             List<PersonalContact> personalContacts = IteratorUtils.toList(conIterator);
+            if (personalContacts.size() > 4) {
+                Collections.sort(personalContacts, (o1, o2) -> {
+                    int i = (int)(o2.getOperatorTime().getTime() - o1.getOperatorTime().getTime());
+                    return i;
+                });
+                personalContacts = personalContacts.subList(0,4);
+            }
             if (Objects.equals(personalContacts.size(), 1)) {
                 PersonalContact personalContact = personalContacts.get(0);
                 Personal.RelationEnum[] values = Personal.RelationEnum.values();
@@ -207,7 +214,7 @@ public class PersonalInfoExportService {
                 map.put("contactWorkAddress", personalContact.getAddress());
                 map.put("contactWorkPhone", personalContact.getWorkPhone());
             } else if (personalContacts.size() > 1) {
-                for (int i = 1; i <= personalContacts.size(); i++) {
+                for (int i = 1; i <= personalContacts.size() && i <=4; i++) {
                     PersonalContact personalContact = personalContacts.get(i - 1);
                     Personal.RelationEnum[] values = Personal.RelationEnum.values();
                     for (int k = 0; k< values.length; k++) {
@@ -261,6 +268,6 @@ public class PersonalInfoExportService {
                 maxNum = personalContacts.size();
             }
         }
-        return maxNum;
+        return maxNum > 4 ? 4 : maxNum;
     }
 }

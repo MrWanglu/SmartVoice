@@ -20,8 +20,8 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +90,7 @@ public class PersonalController extends BaseController {
         Map<String, List<String>> dataInfo = model.getDataInfo(); //数据项
 
 
-        HSSFWorkbook workbook = null;
+        XSSFWorkbook workbook = null;
         File file = null;
         ByteArrayOutputStream out = null;
         FileOutputStream fileOutputStream = null;
@@ -213,12 +213,12 @@ public class PersonalController extends BaseController {
             }
             headMap = personalInfoExportService.createHeadMap(exportType, list, maxNum);
             dataList = personalInfoExportService.createDataList(caseInfos);
-            workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet("客户信息");
+            workbook = new XSSFWorkbook();
+            XSSFSheet sheet = workbook.createSheet("客户信息");
             ExcelExportHelper.createExcel(workbook, sheet, headMap, dataList, 0, 0);
             out = new ByteArrayOutputStream();
             workbook.write(out);
-            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "客户信息表.xls");
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "客户信息表.xlsx");
             file = new File(filePath);
             fileOutputStream = new FileOutputStream(file);
             fileOutputStream.write(out.toByteArray());
