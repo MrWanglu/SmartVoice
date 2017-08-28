@@ -387,7 +387,7 @@ public class CaseInfoService {
         caseInfo.setPromiseTime(caseFollowupRecord.getPromiseDate()); //承诺还款日期
         caseInfo.setOperator(tokenUser); //操作人
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-        caseInfoRepository.saveAndFlush(caseInfo);
+        caseInfoRepository.save(caseInfo);
         return caseFollowupRecord;
     }
 
