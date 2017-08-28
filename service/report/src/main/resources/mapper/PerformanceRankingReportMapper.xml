@@ -52,7 +52,7 @@
         <if test="code != null">
             AND x.parentDeptCode LIKE CONCAT(#{code},'%')
         </if>
-        ORDER BY monthBackMoney desc
+        ORDER BY x.parentDeptCode asc,monthBackMoney desc
     </select>
 
     <!-- 生成历史报表 -->
@@ -103,7 +103,7 @@
         <if test="code != null">
             AND parent_dept_code LIKE CONCAT(#{cope},'%')
         </if>
-        ORDER BY month_back_money desc
+        ORDER BY parent_dept_code asc, month_back_money desc
     </select>
 
     <!-- 查询是否是管理者 -->

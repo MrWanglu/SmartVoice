@@ -617,8 +617,7 @@ public class ReportService {
                     && !Objects.equals(tokenUser.getUserName(), performanceRankingReport.getUserName())) { //过滤同部门
                 continue;
             }
-            if (Objects.nonNull(collectorPerformanceModel.getDeptCode())
-                    || Objects.equals(collectorPerformanceModel.getDeptCode(), performanceRankingReport.getDeptCode())) { //如果部门code码不为空
+            if (Objects.equals(collectorPerformanceModel.getDeptCode(), performanceRankingReport.getParentDeptCode())) { //如果部门code码不为空
                 List<PerformanceRankingReport> performanceRankingReports1 = collectorPerformanceModel.getPerformanceRankingReports();
                 if (Objects.isNull(performanceRankingReports1)) {
                     performanceRankingReports1 = new ArrayList<>();
@@ -922,10 +921,26 @@ public class ReportService {
         }
 
         //添加组长名称
-        saveGroupLeader(performanceRankingReportList);
+        Map<String, List<PerformanceRankingReport>> map1 = new LinkedHashMap<>();
+        for (PerformanceRankingReport performanceRankingReport : performanceRankingReportList) {
+            if (map1.containsKey(performanceRankingReport.getParentDeptCode())) {
+                List<PerformanceRankingReport> performanceRankingReports = map1.get(performanceRankingReport.getParentDeptCode());
+                performanceRankingReports.add(performanceRankingReport);
+                map1.put(performanceRankingReport.getParentDeptCode(), performanceRankingReports);
+            } else {
+                List<PerformanceRankingReport> performanceRankingReports = new ArrayList<>();
+                performanceRankingReports.add(performanceRankingReport);
+                map1.put(performanceRankingReport.getParentDeptCode(), performanceRankingReports);
+            }
+        }
+
+        for(Map.Entry<String,List<PerformanceRankingReport>> entry : map1.entrySet()){
+            List<PerformanceRankingReport> performanceRankingReports = entry.getValue();
+            saveGroupLeader(performanceRankingReports);
+        }
 
         //报表分组
-        Map<String, List<PerformanceRankingReport>> map = new HashMap<>();
+        Map<String, List<PerformanceRankingReport>> map = new LinkedHashMap<>();
         for (PerformanceRankingReport performanceRankingReport : performanceRankingReportList) {
             //过滤管理人员
             Integer manage = performanceRankingReportMapper.getManage(performanceRankingReport.getUserName(), performanceRankingReport.getCompanyCode());
@@ -1996,7 +2011,11 @@ public class ReportService {
                         } else {
                             if (1 == i) {
                                 cell = setCellValue(obj, row, i); //给单元格set值
-                                cell.setCellValue(obj + "(" + performanceRankingReport.getManageName() + ")");
+                                if (Objects.nonNull(performanceRankingReport.getManageName())) {
+                                    cell.setCellValue(obj + "(" + performanceRankingReport.getManageName() + ")");
+                                } else {
+                                    cell.setCellValue(obj + "(无)");
+                                }
                             } else {
                                 cell = setCellValue(obj, row, i); //给单元格set值
                             }
@@ -2092,7 +2111,11 @@ public class ReportService {
                                 cell.setCellValue("");
                             } else {
                                 cell = setCellValue(obj, row, i); //给单元格set值
-                                cell.setCellValue(obj + "(" + performanceRankingReport.getManageName() + ")");
+                                if (Objects.nonNull(performanceRankingReport.getManageName())) {
+                                    cell.setCellValue(obj + "(" + performanceRankingReport.getManageName() + ")");
+                                } else {
+                                    cell.setCellValue(obj + "(无)");
+                                }
                             }
                         }
                         cell.setCellStyle(hssfCellStyle); //给单元格设置格式
@@ -2299,7 +2322,11 @@ public class ReportService {
                         cell = setCellValue(obj, row, i); //给单元格set值
                     } else {
                         cell = setCellValue(obj, row, i); //给单元格set值
-                        cell.setCellValue(obj + "(" + groupLeaderModel.getManageName() + ")");
+                        if (Objects.nonNull(groupLeaderModel.getManageName())) {
+                            cell.setCellValue(obj + "(" + groupLeaderModel.getManageName() + ")");
+                        } else {
+                            cell.setCellValue(obj + "(无)");
+                        }
                     }
                 } else {
                     if (Objects.isNull(obj)) {
