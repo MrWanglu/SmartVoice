@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.entity.Company;
 import cn.fintecher.pangolin.entity.QCompany;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.EntityUtil;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.*;
@@ -60,6 +61,8 @@ public class CompanyController extends BaseController {
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User name cannot be repeated", "公司名，公司英文名，公司code不能与其他公司重复")).body(null);
         }
+        company.setOperator(user.getUserName());
+        company.setOperateTime(ZWDateUtil.getNowDateTime());
         Company result = companyRepository.save(company);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(result);
     }
