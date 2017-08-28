@@ -264,6 +264,14 @@ public class DepartmentController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + num + "个未处理的协催案件，不能删除，请先处理完该机构下的案件")).body(null);
             }
         }
+        //机构下关联的协催已结案的案件
+        AssistingStatisticsModel assistingStatisticsMode1 = caseAssistService.getDepartmentEndAssist(department);
+        if (Objects.nonNull(assistingStatisticsMode1)) {
+            int num = assistingStatisticsMode1.getNum();
+            if (0 != num) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Department level cannot be empty", "该机构下关联" + num + "个已结案的协催案件，不能删除，请先处理完该机构下的案件")).body(null);
+            }
+        }
         //首先的移除部门下面的用户
         QUser qUser = QUser.user;
         int usersNum = (int) userRepository.count(qUser.department.code.like(department.getCode().concat("%")).and(qUser.companyCode.eq(department.getCompanyCode())));
