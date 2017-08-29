@@ -189,6 +189,7 @@ public class TemplateDataModelController {
             excelTemplateData.setOperatorTime(ZWDateUtil.getNowDateTime());
             excelTemplateData.setOperator(user.getUserName());
             excelTemplateData.setOperatorName(user.getRealName());
+            excelTemplateData.setDataRowNum(String.valueOf(Integer.parseInt(excelTemplateData.getDataColNum())-1));
             if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
                 excelTemplateData.setCompanyCode(null);
             }else{

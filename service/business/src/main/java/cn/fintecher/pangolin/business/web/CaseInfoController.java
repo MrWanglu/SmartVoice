@@ -683,13 +683,13 @@ public class CaseInfoController extends BaseController {
             } catch (TemplateException e) {
                 e.printStackTrace();
             }
-            Iterable<CaseInfo> caseInfoList = caseInfoRepository.findAll(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.COLLECTIONING.getValue())
-                    .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.EARLY_PAYING.getValue()))
-                    .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.OVER_PAYING.getValue()))
-                    .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()))
-                    .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.PART_REPAID.getValue()))
-                    .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()))
-                   .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())));
+            Iterable<CaseInfo> caseInfoList = caseInfoRepository.findAll(QCaseInfo.caseInfo.collectionStatus.in(CaseInfo.CollectionStatus.COLLECTIONING.getValue(),
+                    CaseInfo.CollectionStatus.EARLY_PAYING.getValue(),
+                    CaseInfo.CollectionStatus.OVER_PAYING.getValue(),
+                    CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue(),
+                    CaseInfo.CollectionStatus.PART_REPAID.getValue(),
+                    CaseInfo.CollectionStatus.WAITCOLLECTION.getValue())
+                    .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())));
             List<CaseInfo> accCaseInfoList = new ArrayList<>();
             List<CaseInfo> caseInfoList1 = new ArrayList<>();
             caseInfoList.forEach(single ->accCaseInfoList.add(single));
@@ -715,7 +715,7 @@ public class CaseInfoController extends BaseController {
                 kieSession.dispose();
                 caseInfoRepository.save(caseInfoList1);
                 watch1.stop();
-                //log.info("耗时："+watch1.getTotalTimeMillis());
+                log.info("耗时："+watch1.getTotalTimeMillis());
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(null);
             }
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo","failure","案件为空")).body(null);
@@ -724,56 +724,7 @@ public class CaseInfoController extends BaseController {
             return null;
         }
     }
-    @GetMapping("/updateAllScoreStrategyAuto")
-    @ApiOperation(value = "更新案件评分(自动)", notes = "更新案件评分(自动)")
-    public ResponseEntity updateAllScoreStrategyAuto(@RequestHeader(value = "X-UserToken") String token) throws IOException {
-        User user =null;
-        try {
-            user = getUserByToken(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        String comanyCode = user.getCompanyCode();
-        try {
-            KieSession  kieSession = null;
-            try {
-                kieSession = createSorceRule(comanyCode);
-            } catch (TemplateException e) {
-                e.printStackTrace();
-            }
 
-            Iterable<CaseInfo> caseInfoLists = caseInfoRepository.findAll(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
-            List<CaseInfo> caseInfoList1 = new ArrayList<>();
-            List<CaseInfo> accCaseInfoList = new ArrayList<>();
-            caseInfoLists.forEach(single ->accCaseInfoList.add(single));
-            if (accCaseInfoList.size() > 0) {
-                for(CaseInfo caseInfo : accCaseInfoList){
-                    ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
-                    int age = IdcardUtils.getAgeByIdCard(caseInfo.getPersonalInfo().getIdCard());
-                    scoreRuleModel.setAge(age);
-                    scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
-                    scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    scoreRuleModel.setProId(caseInfo.getArea().getId());//省份id
-                    Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
-                    if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
-                        scoreRuleModel.setIsWork(1);
-                    } else {
-                        scoreRuleModel.setIsWork(0);
-                    }
-                    kieSession.insert(scoreRuleModel);//插入
-                    kieSession.fireAllRules();//执行规则
-                    caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
-                    caseInfoList1.add(caseInfo);
-                }
-                caseInfoRepository.save(caseInfoList1);
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(null);
-            }
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo","failure","案件为空")).body(null);
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
     /**
      * 动态生成规则
      * @return
