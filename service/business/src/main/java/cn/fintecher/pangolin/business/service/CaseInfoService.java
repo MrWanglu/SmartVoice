@@ -1088,9 +1088,9 @@ public class CaseInfoService {
                         caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                         caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
                     }
-                    //更新原案件状态
-                    caseInfo.setCaseType(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue());
                 }
+                //更新原案件状态
+                caseInfo.setCaseType(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue());
             } else { //外访小流转
                 caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.VISIT_PASS.getValue()); //201-外访流转通过
                 caseInfo.setCaseType(CaseInfo.CaseType.OUTFAHEADTURN.getValue());
