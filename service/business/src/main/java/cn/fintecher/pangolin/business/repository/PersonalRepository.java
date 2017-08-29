@@ -17,5 +17,7 @@ public interface PersonalRepository extends QueryDslPredicateExecutor<Personal>,
     default void customize(final QuerydslBindings bindings, final QPersonal root) {
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
         bindings.bind(root.name).first((path, value) -> path.startsWith(value));
+
+        bindings.bind(root.id).first((path, value) -> path.eq(value));
     }
 }
