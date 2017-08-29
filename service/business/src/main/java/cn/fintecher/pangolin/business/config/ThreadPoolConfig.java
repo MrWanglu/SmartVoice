@@ -19,22 +19,22 @@ import java.util.concurrent.ThreadPoolExecutor;
 @EnableAsync
 public class ThreadPoolConfig implements AsyncConfigurer {
 
-    @Value("${threadPool.corePoolSize}")
+    @Value("${spring.threadPool.corePoolSize}")
     private int corePoolSize;
 
-    @Value("${threadPool.maxPoolSize}")
+    @Value("${spring.threadPool.maxPoolSize}")
     private int maxPoolSize;
 
-    @Value("${threadPool.keepAliveSeconds}")
+    @Value("${spring.threadPool.keepAliveSeconds}")
     private int keepAliveSeconds;
 
-    @Value("${threadPool.queueCapacity}")
+    @Value("${spring.threadPool.queueCapacity}")
     private int queueCapacity;
 
-    @Value("${threadPool.threadNamePrefix}")
+    @Value("${spring.threadPool.threadNamePrefix}")
     private String threadNamePrefix;
 
-    @Value("${threadPool.allowCoreThreadTimeout}")
+    @Value("${spring.threadPool.allowCoreThreadTimeout}")
     private Boolean allowCoreThreadTimeout;
 
     @Override
