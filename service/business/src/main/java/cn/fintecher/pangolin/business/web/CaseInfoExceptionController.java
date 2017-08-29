@@ -6,9 +6,11 @@ import cn.fintecher.pangolin.business.service.CaseInfoExceptionService;
 import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.CaseInfoDistributed;
 import cn.fintecher.pangolin.entity.CaseInfoException;
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author : DuChao
@@ -114,4 +117,27 @@ public class CaseInfoExceptionController extends BaseController {
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, caseInfoExceptionId)).build();
     }
 
+    @GetMapping("/checkExceptionCase")
+    @ApiOperation(value = "检查异常案件", notes = "检查异常案件")
+    public ResponseEntity<CaseInfoException> checkExceptionCase(@RequestParam(value = "companyCode",required = false) String companyCode,
+                                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token){
+        log.debug("REST request to checkExceptionCase");
+        try {
+            User user=getUserByToken(token);
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    user.setCompanyCode(companyCode);
+                } else {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "checkExceptionCase", "请先选择公司!")).body(null);
+                }
+            }
+            if (caseInfoExceptionService.checkCaseExceptionExist(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "","异常池有异常案件，请先处理!")).body(null);
+            }
+            return ResponseEntity.ok().body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "","系统异常!")).body(null);
+        }
+    }
 }
