@@ -26,7 +26,7 @@
         SELECT g.callNum,g.communicateNum,g.effectiveCallNum,f.id from
         (SELECT operator,
         count(case when `type` = 0 then id end) as callNum,
-        count(id) as communicateNum,
+        count(case when `type` = 1 then id end) as communicateNum,
         count(case when op_url is not null then id end) as effectiveCallNum from case_followup_record where
         DATE_FORMAT(operator_time,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d')
         GROUP BY operator) g
@@ -71,7 +71,7 @@
         SELECT g.callNum,g.communicateNum,g.effectiveCallNum,f.id from
         (SELECT operator,
         count(case when `type` = 0 then id end) as callNum,
-        count(id) as communicateNum,
+        count(case when `type` = 1 then id end) as communicateNum,
         count(case when op_url is not null then id end) as effectiveCallNum from case_followup_record where DATE_FORMAT(operator_time,'%Y-%m-%d') = DATE_FORMAT(#{historyDate},'%Y-%m-%d')
         GROUP BY operator) g
         left join
