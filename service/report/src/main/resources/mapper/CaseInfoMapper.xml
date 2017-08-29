@@ -48,17 +48,12 @@
         <result column="followup_back" property="followupBack"/>
         <association property="personalInfo" column="personal_id" select="selectPersonal">
         </association>
-        <association property="product" javaType="cn.fintecher.pangolin.entity.Product">
-            <id column="product_id" property="id"/>
-            <result column="prodcut_name" property="prodcutName"/>
+        <association property="product" column="product_id" select = "selectProduct">
         </association>
-        <association property="principalId" javaType="cn.fintecher.pangolin.entity.Principal">
-            <id column="principal_id" property="id"/>
-            <result column="name" property="name"/>
+
+        <association property="principalId" column="principal_id" select = "selectPrincipal">
         </association>
-        <association property="area" javaType="cn.fintecher.pangolin.entity.AreaCode">
-            <id column="area_id" property="id"/>
-            <result column="area_name" property="areaName"/>
+        <association property="area" column="area_id" select = "selectArea">
         </association>
     </resultMap>
 
@@ -85,109 +80,128 @@
         <result column="rank" property="rank"/>
     </resultMap>
 
+    <resultMap id="productMap" type="cn.fintecher.pangolin.entity.Product">
+        <id column="id" property="id"/>
+        <result column="prodcut_name" property="prodcutName"/>
+    </resultMap>
+
+    <resultMap id="principalMap" type="cn.fintecher.pangolin.entity.Principal">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+    </resultMap>
+
+    <resultMap id="areaMap" type="cn.fintecher.pangolin.entity.AreaCode">
+        <id column="id" property="id"/>
+        <result column="area_name" property="areaName"/>
+    </resultMap>
+
     <select id="selectJob" parameterType="String" resultMap="personalJobMap">
         select * from personal_job where personal_id = #{id}
     </select>
 
+    <select id="selectProduct" parameterType="String" resultMap="productMap">
+        select id,prodcut_name from product where id = #{product_id}
+    </select>
+
+    <select id="selectPrincipal" parameterType="String" resultMap="principalMap">
+        select id,name from principal where id = #{principal_id}
+    </select>
+
+    <select id="selectArea" parameterType="String" resultMap="areaMap">
+        select id,area_name from area_code where id = #{area_id}
+    </select>
+
     <select id="queryWaitCollectCase" parameterType="cn.fintecher.pangolin.report.model.CaseInfoParams"
             resultMap="caseInfoBean">
-       select b.id,b.batch_number,b.case_number,b.contract_amount,b.overdue_fine,b.collection_type,b.overdue_amount,b.left_capital,b.left_interest,b.overdue_capital,
+        select b.id,b.batch_number,b.case_number,b.contract_amount,b.overdue_fine,b.collection_type,b.overdue_amount,b.left_capital,b.left_interest,b.overdue_capital,
         b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
         b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
-        b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,pr.prodcut_name,b.overdue_periods,b.overdue_days,
-        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,b.loan_date,b.early_derate_amt,
-         pri.id,pri.name,b.personal_id,b.early_real_settle_amt from
-      (
-      select a.*
-      from case_info a ,department b,personal p
-      where a.depart_id=b.id
-      and b.code like CONCAT(#{deptCode}, '%')
-      and a.company_code = #{companyCode}
-      and a.collection_type=16
-      and a.collection_status = 20
-      and a.personal_id = p.id
+        b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,b.overdue_periods,b.overdue_days,
+        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,b.area_id,b.loan_date,b.early_derate_amt,
+        b.principal_id,b.personal_id,b.early_real_settle_amt from
+        (
+        select a.*
+        from case_info a ,department b,personal p
+        where a.depart_id=b.id
+        and b.code like CONCAT(#{deptCode}, '%')
+        and a.company_code = #{companyCode}
+        and a.collection_type=16
+        and a.collection_status = 20
+        and a.personal_id = p.id
         <if test="name != null">
             and p.name like CONCAT('%',#{name}, '%')
         </if>
         <if test="address != null">
             and p.local_home_address like CONCAT('%', #{address}, '%')
         </if>
-      UNION ALL
-      select b.*
-      from case_assist a ,case_info b,department c,personal p
-      where a.case_id=b.id
-      and a.depart_id=c.id
-      and c.code like CONCAT(#{deptCode}, '%')
-      and a.company_code = #{companyCode}
-      and a.assist_status = 118
-      and b.personal_id = p.id
-      <if test="name != null">
-          and p.name like CONCAT('%',#{name}, '%')
-      </if>
-      <if test="address != null">
-          and p.local_home_address like CONCAT('%', #{address}, '%')
-      </if>
-      ) as b,product pr,principal pri,area_code ar
-      where
-       b.product_id = pr.id
-       and b.principal_id = pri.id
-       and b.area_id = ar.id
-  </select>
-
-  <select id="queryWaitOwnCollectCase" parameterType="cn.fintecher.pangolin.report.model.CaseInfoParams"
-            resultMap="caseInfoBean">
-      select b.id,b.batch_number,b.case_number,b.contract_amount,b.overdue_fine,b.collection_type,b.overdue_amount,b.left_capital,b.left_interest,b.overdue_capital,
-      b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
-      b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
-      b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,pr.prodcut_name,b.overdue_periods,b.overdue_days,
-      b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,b.loan_date,b.early_derate_amt,
-      pri.id,pri.name,b.personal_id,b.early_real_settle_amt from
-        (
-      SELECT
-      a.*
-      FROM
-      case_info AS a, personal AS p
-      WHERE
-      a.company_code = #{companyCode}
-      and	a.collection_status = 20
-      and a.current_collector = #{collector}
-      and a.personal_id = p.id
+        UNION ALL
+        select b.*
+        from case_assist a ,case_info b,department c,personal p
+        where a.case_id=b.id
+        and a.depart_id=c.id
+        and c.code like CONCAT(#{deptCode}, '%')
+        and a.company_code = #{companyCode}
+        and a.assist_status = 118
+        and b.personal_id = p.id
         <if test="name != null">
-          and p.name like CONCAT('%',#{name}, '%')
+            and p.name like CONCAT('%',#{name}, '%')
         </if>
         <if test="address != null">
-          and p.local_home_address like CONCAT('%', #{address}, '%')
+            and p.local_home_address like CONCAT('%', #{address}, '%')
         </if>
-      UNION ALL
-      SELECT
-      b.*
-      from case_info as b, case_assist as a,personal as p
-      WHERE
-      a.company_code = #{companyCode}
-      and a.assist_collector= #{collector}
-      and a.assist_status = 118
-      and a.case_id = b.id
-      and b.personal_id = p.id
-      <if test="name != null">
-          and p.name like CONCAT('%',#{name}, '%')
-      </if>
-      <if test="address != null">
-          and p.local_home_address like CONCAT('%', #{address}, '%')
-      </if>
-        ) as b,product pr,principal pri,area_code ar
-        where
-        b.product_id = pr.id
-        and b.principal_id = pri.id
-        and b.area_id = ar.id
-        ORDER BY b.operator_time desc
-  </select>
+        ) as b
+    </select>
 
-  <select id="selectPersonal" parameterType="String" resultMap="personalMap">
+    <select id="queryWaitOwnCollectCase" parameterType="cn.fintecher.pangolin.report.model.CaseInfoParams"
+            resultMap="caseInfoBean">
+        select b.id,b.batch_number,b.case_number,b.contract_amount,b.overdue_fine,b.collection_type,b.overdue_amount,b.left_capital,b.left_interest,b.overdue_capital,
+        b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
+        b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
+        b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,b.overdue_periods,b.overdue_days,
+        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,b.area_id,b.loan_date,b.early_derate_amt,
+        b.principal_id,b.personal_id,b.early_real_settle_amt from
+        (
+        SELECT
+        a.*
+        FROM
+        case_info AS a, personal AS p
+        WHERE
+        a.company_code = #{companyCode}
+        and	a.collection_status = 20
+        and a.current_collector = #{collector}
+        and a.personal_id = p.id
+        <if test="name != null">
+            and p.name like CONCAT('%',#{name}, '%')
+        </if>
+        <if test="address != null">
+            and p.local_home_address like CONCAT('%', #{address}, '%')
+        </if>
+        UNION ALL
+        SELECT
+        b.*
+        from case_info as b, case_assist as a,personal as p
+        WHERE
+        a.company_code = #{companyCode}
+        and a.assist_collector= #{collector}
+        and a.assist_status = 118
+        and a.case_id = b.id
+        and b.personal_id = p.id
+        <if test="name != null">
+            and p.name like CONCAT('%',#{name}, '%')
+        </if>
+        <if test="address != null">
+            and p.local_home_address like CONCAT('%', #{address}, '%')
+        </if>
+        ) as b
+        ORDER BY b.operator_time desc
+    </select>
+
+    <select id="selectPersonal" parameterType="String" resultMap="personalMap">
     select p.id,p.name,p.sex,p.mobile_no,p.mobile_status,p.id_card,p.local_home_address,p.longitude,p.latitude
     from personal p where p.id = #{personal_id}
   </select>
 
-  <update id="updateLngLat"  parameterType="cn.fintecher.pangolin.entity.Personal">
+    <update id="updateLngLat"  parameterType="cn.fintecher.pangolin.entity.Personal">
       update personal
       set longitude = #{longitude},latitude = #{latitude}
       where id = #{id}
