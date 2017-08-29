@@ -150,11 +150,25 @@ public class PersonalInfoExportService {
         List<Map<String, Object>> dataList = new ArrayList<>();
         for (CaseInfo caseInfo : caseInfoList) {
             Map<String, Object> map = new HashMap<>();
-            map.put("deptName", caseInfo.getDepartment().getName()); //部门名称
-            map.put("custName", caseInfo.getPersonalInfo().getName()); //客户姓名
-            map.put("idCard", caseInfo.getPersonalInfo().getIdCard()); //身份证号
-            map.put("phone", caseInfo.getPersonalInfo().getMobileNo()); //联系电话
-            map.put("city", caseInfo.getPersonalInfo().getIdCardAddress()); //归属城市
+            map.put("deptName", Objects.isNull(caseInfo.getDepartment()) ? "": caseInfo.getDepartment().getName()); //部门名称
+            if (Objects.isNull(caseInfo.getPersonalInfo())) {
+                map.put("custName", ""); //客户姓名
+                map.put("idCard",""); //身份证号
+                map.put("phone", ""); //联系电话
+                map.put("city", ""); //归属城市
+                map.put("idCardAddress", ""); //身份证户籍地址
+                map.put("homeAddress", ""); //家庭地址
+                map.put("homePhone", ""); //家庭电话
+            } else {
+                map.put("custName",caseInfo.getPersonalInfo().getName()); //客户姓名
+                map.put("idCard",caseInfo.getPersonalInfo().getIdCard()); //身份证号
+                map.put("phone",caseInfo.getPersonalInfo().getMobileNo()); //联系电话
+                map.put("city",caseInfo.getPersonalInfo().getIdCardAddress()); //归属城市
+                map.put("idCardAddress", caseInfo.getPersonalInfo().getIdCardAddress()); //身份证户籍地址
+                map.put("homeAddress", caseInfo.getPersonalInfo().getLocalHomeAddress()); //家庭地址
+                map.put("homePhone", caseInfo.getPersonalInfo().getLocalPhoneNo()); //家庭电话
+            }
+
             map.put("periods", caseInfo.getPeriods()); //总期数
             map.put("overDays", caseInfo.getOverdueDays()); //逾期天数
             map.put("overAmt", caseInfo.getOverdueAmount()); //逾期金额
@@ -173,9 +187,6 @@ public class PersonalInfoExportService {
             } else {
                 map.put("collector", caseInfo.getCurrentCollector().getRealName()); //催收员
             }
-            map.put("idCardAddress", caseInfo.getPersonalInfo().getIdCardAddress()); //身份证户籍地址
-            map.put("homeAddress", caseInfo.getPersonalInfo().getLocalHomeAddress()); //家庭地址
-            map.put("homePhone", caseInfo.getPersonalInfo().getLocalPhoneNo()); //家庭电话
             // 工作相关
             Iterator<PersonalJob> iterator = caseInfo.getPersonalInfo().getPersonalJobs().iterator();
             if (iterator.hasNext()) {
