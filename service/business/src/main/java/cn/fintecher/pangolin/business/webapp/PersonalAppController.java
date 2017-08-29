@@ -125,41 +125,45 @@ public class PersonalAppController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
-        if (Objects.isNull(personalRepairInfo)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "", "修复内容为空")).body(null);
+        try {
+            if (Objects.isNull(personalRepairInfo)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "", "修复内容为空")).body(null);
+            }
+            if (Objects.isNull(personalRepairInfo.getRelation()) || StringUtils.isBlank(personalRepairInfo.getName())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "", "关系/姓名为必填项")).body(null);
+            }
+            PersonalAddress personalAddress = new PersonalAddress();
+            BeanUtils.copyProperties(personalRepairInfo, personalAddress);
+            BeanUtils.copyProperties(personalRepairInfo.getAddressList().get(0), personalAddress);
+            personalAddress.setSource(Constants.DataSource.REPAIR.getValue());
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressRepository.saveAndFlush(personalAddress);
+            for (int i = 0; i < personalRepairInfo.getSocialList().size(); i++) {
+                PersonalContact personalContact = new PersonalContact();
+                BeanUtils.copyProperties(personalRepairInfo, personalContact);
+                BeanUtils.copyProperties(personalRepairInfo.getPhoneList().get(0), personalContact);
+                BeanUtils.copyProperties(personalRepairInfo.getSocialList().get(i), personalContact);
+                personalContact.setSource(Constants.DataSource.REPAIR.getValue());
+                personalContact.setOperator(user.getId());
+                personalContact.setOperatorTime(ZWDateUtil.getNowDateTime());
+                personalContactRepository.saveAndFlush(personalContact);
+            }
+            List<CaseFile> caseFileList = new ArrayList<>();
+            Iterator<String> iterator = personalRepairInfo.getFileIds().iterator();
+            while (iterator.hasNext()) {
+                CaseFile caseFile = new CaseFile();
+                caseFile.setCompanyCode(user.getCompanyCode());
+                caseFile.setOperatorTime(ZWDateUtil.getNowDateTime());
+                caseFile.setOperator(user.getId());
+                caseFile.setFileId(iterator.next());
+                caseFile.setCaseNumber(personalRepairInfo.getCaseNnumber());
+                caseFileList.add(caseFile);
+            }
+            caseFileRepository.save(caseFileList);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("修复成功", "")).body(null);
+        }catch(Exception e){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "修复失败")).body(null);
         }
-        if (Objects.isNull(personalRepairInfo.getRelation()) || StringUtils.isBlank(personalRepairInfo.getName())) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "", "关系/姓名为必填项")).body(null);
-        }
-        PersonalAddress personalAddress = new PersonalAddress();
-        BeanUtils.copyProperties(personalRepairInfo, personalAddress);
-        BeanUtils.copyProperties(personalRepairInfo.getAddressList().get(0),personalAddress);
-        personalAddress.setSource(Constants.DataSource.REPAIR.getValue());
-        personalAddress.setOperator(user.getId());
-        personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
-        personalAddressRepository.saveAndFlush(personalAddress);
-        for(int i = 0; i < personalRepairInfo.getSocialList().size(); i++){
-            PersonalContact personalContact = new PersonalContact();
-            BeanUtils.copyProperties(personalRepairInfo, personalContact);
-            BeanUtils.copyProperties(personalRepairInfo.getPhoneList().get(0), personalContact);
-            BeanUtils.copyProperties(personalRepairInfo.getSocialList().get(i),personalContact);
-            personalContact.setSource(Constants.DataSource.REPAIR.getValue());
-            personalContact.setOperator(user.getId());
-            personalContact.setOperatorTime(ZWDateUtil.getNowDateTime());
-            personalContactRepository.saveAndFlush(personalContact);
-        }
-        List<CaseFile> caseFileList = new ArrayList<>();
-        Iterator<String> iterator = personalRepairInfo.getFileIds().iterator();
-            while(iterator.hasNext()){
-            CaseFile caseFile = new CaseFile();
-            caseFile.setCompanyCode(user.getCompanyCode());
-            caseFile.setOperatorTime(ZWDateUtil.getNowDateTime());
-            caseFile.setOperator(user.getId());
-            caseFile.setFileId(iterator.next());
-            caseFile.setCaseNumber(personalRepairInfo.getCaseNnumber());
-            caseFileList.add(caseFile);
-        }
-        caseFileRepository.save(caseFileList);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("修复成功", "")).body(null);
     }
 }
