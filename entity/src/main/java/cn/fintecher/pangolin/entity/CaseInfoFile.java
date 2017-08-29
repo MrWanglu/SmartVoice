@@ -41,6 +41,9 @@ public class CaseInfoFile extends BaseEntity {
     @ApiModelProperty("操作人员")
     private String operator;
 
+    @ApiModelProperty("操作人姓名")
+    private String operatorName;
+
     @ApiModelProperty("公司码")
     private String companyCode;
 }
