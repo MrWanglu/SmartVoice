@@ -250,16 +250,16 @@ public class CaseInfoService {
         if (Objects.equals(payApplyParams.getPayaType(), CasePayApply.PayType.DERATEOVERDUE.getValue())
                 || Objects.equals(payApplyParams.getPayaType(), CasePayApply.PayType.ALLOVERDUE.getValue())
                 || Objects.equals(payApplyParams.getPayaType(), CasePayApply.PayType.PARTOVERDUE.getValue())) { //还款类型为减免逾期还款、全额逾期还款、部分逾期还款
-            if (Objects.isNull(caseInfo.getOverdueAmount())
-                    || Objects.equals(BigDecimal.ZERO.compareTo(caseInfo.getOverdueAmount()), 0)) { //如果逾期总金额为空或为0
-                throw new RuntimeException("逾期本期应还金额为0，不允许还款");
-            }
+//            if (Objects.isNull(caseInfo.getOverdueAmount())
+//                    || Objects.equals(BigDecimal.ZERO.compareTo(caseInfo.getOverdueAmount()), 0)) { //如果逾期总金额为空或为0
+//                throw new RuntimeException("逾期本期应还金额为0，不允许还款");
+//            }
             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.OVER_PAYING.getValue()); //催收状态 22-逾期还款中
         } else { //还款类型为减免提前结清、全额提前结清、部分提前结清
-            if (Objects.isNull(caseInfo.getEarlySettleAmt())
-                    || Objects.equals(BigDecimal.ZERO.compareTo(caseInfo.getEarlySettleAmt()), 0)) { //如果提前结清总金额为空或为0
-                throw new RuntimeException("提前结清本期应还金额为0，不允许还款");
-            }
+//            if (Objects.isNull(caseInfo.getEarlySettleAmt())
+//                    || Objects.equals(BigDecimal.ZERO.compareTo(caseInfo.getEarlySettleAmt()), 0)) { //如果提前结清总金额为空或为0
+//                throw new RuntimeException("提前结清本期应还金额为0，不允许还款");
+//            }
             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.EARLY_PAYING.getValue()); //催收状态 23-提前结清中
         }
         caseInfo.setOperator(tokenUser); //操作员
@@ -408,7 +408,7 @@ public class CaseInfoService {
         caseInfoRepository.save(caseInfo);
 
         //消息提醒
-        if(Objects.nonNull(caseFollowupParams.getFollnextDate())) {
+        if (Objects.nonNull(caseFollowupParams.getFollnextDate())) {
             SendReminderMessage sendReminderMessage = new SendReminderMessage();
             sendReminderMessage.setTitle("案件跟进提醒");
             sendReminderMessage.setUserId(userRepository.findByUserName(caseFollowupRecord.getOperator()).getId());
