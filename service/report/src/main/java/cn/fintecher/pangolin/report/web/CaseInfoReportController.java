@@ -84,6 +84,7 @@ public class CaseInfoReportController extends BaseController{
             caseInfoParams.setAddress(address);
         }
         list = caseInfoService.queryWaitCollectCase(caseInfoParams,page,size,user);
+        PageInfo pageInfo = new PageInfo(list);
         List<CaseInfo> lists = new ArrayList<>();
 
         for(int i=0; i<list.size(); i++){
@@ -103,8 +104,10 @@ public class CaseInfoReportController extends BaseController{
             }
          lists.add(caseInfo);
         }
-        PageInfo pageInfo = new PageInfo(lists);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","测试")).body(pageInfo);
+        PageInfo pageInfos = new PageInfo(lists);
+        pageInfos.setPages(pageInfo.getPages());
+        pageInfos.setTotal(pageInfo.getTotal());
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","测试")).body(pageInfos);
     }
 
 }
