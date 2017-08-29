@@ -198,7 +198,7 @@ public class CaseStrategyController {
                 HttpMethod.GET, null, responseType);
         List<CaseInfoException> caseInfoExceptions = resp.getBody();
         if(caseInfoExceptions.size()>0){
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "有异常案件未处理,请先处理")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "有异常案件未处理请先处理")).body(null);
         }
         List<CaseStrategy> caseStrategies = caseStrategyRepository.findAll(new Sort(Sort.Direction.ASC, "priority"));
         if (caseStrategies.isEmpty()) {
