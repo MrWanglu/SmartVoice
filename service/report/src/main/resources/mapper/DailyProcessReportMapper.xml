@@ -49,7 +49,7 @@
         <if test="realName != null">
             AND c.realName LIKE CONCAT('%',#{realName},'%')
         </if>
-        order by c.parentDeptCode asc
+        order by c.deptCode asc
     </select>
 
     <!-- 保存催收员每日催收过程历史报表 -->

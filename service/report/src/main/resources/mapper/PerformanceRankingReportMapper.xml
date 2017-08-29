@@ -52,7 +52,7 @@
         <if test="code != null">
             AND x.parentDeptCode LIKE CONCAT(#{code},'%')
         </if>
-        ORDER BY x.parentDeptCode asc,monthBackMoney desc
+        ORDER BY x.deptCode asc,monthBackMoney desc
     </select>
 
     <!-- 生成历史报表 -->

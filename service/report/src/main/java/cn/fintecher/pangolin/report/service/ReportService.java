@@ -934,7 +934,7 @@ public class ReportService {
             }
         }
 
-        for(Map.Entry<String,List<PerformanceRankingReport>> entry : map1.entrySet()){
+        for (Map.Entry<String, List<PerformanceRankingReport>> entry : map1.entrySet()) {
             List<PerformanceRankingReport> performanceRankingReports = entry.getValue();
             saveGroupLeader(performanceRankingReports);
         }
@@ -984,7 +984,7 @@ public class ReportService {
                 manageName.add(performanceRankingReport.getManageName());
                 nowDate = performanceRankingReport.getNowDate();
             }
-            BigDecimal average = monthBackMoney.divide(new BigDecimal(manageNum)); //人均回款金额
+            BigDecimal average = monthBackMoney.divide(new BigDecimal(manageNum), 4, BigDecimal.ROUND_HALF_DOWN); //人均回款金额
             GroupLeaderModel groupLeaderModel = new GroupLeaderModel();
             groupLeaderModel.setGroupCode(groupCode);
             groupLeaderModel.setGroupName(groupName);
