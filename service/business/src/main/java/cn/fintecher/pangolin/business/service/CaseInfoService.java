@@ -144,7 +144,9 @@ public class CaseInfoService {
                         caseTurnRecord.setDepartId(caseInfo.getCurrentCollector().getDepartment().getId()); //部门ID
                         caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                         caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
-                        caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
+                        if (Objects.nonNull(caseInfo.getLatelyCollector())) {
+                            caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
+                        }
                         caseTurnRecord.setReceiveDeptName(user.getDepartment().getName()); //接收部门名称
                         caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
                         caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员
