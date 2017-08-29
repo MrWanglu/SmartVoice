@@ -72,15 +72,14 @@
         <result column="local_home_address" property="localHomeAddress"/>
         <result column="longitude" property="longitude"/>
         <result column="latitude" property="latitude"/>
-        <collection property="personalJobs" column="personal_id"
-                    ofType="cn.fintecher.pangolin.entity.PersonalJob">
-            <id column="id" property="id"/>
-            <result column="company_name" property="companyName"/>
-            <result column="department" property="department"/>
-            <result column="position" property="position"/>
-            <result column="phone" property="phone"/>
+        <collection property="personalJobs" column="id"
+                    ofType="cn.fintecher.pangolin.entity.PersonalJob" select="selectJob">
         </collection>
     </resultMap>
+
+    <select id="selectJob" parameterType="String" resultType="cn.fintecher.pangolin.entity.PersonalJob">
+        select * from personal_job where personal_id = #{id}
+    </select>
 
     <select id="queryWaitCollectCase" parameterType="cn.fintecher.pangolin.report.model.CaseInfoParams"
             resultMap="caseInfoBean">
@@ -176,9 +175,8 @@
   </select>
 
   <select id="selectPersonal" parameterType="String" resultMap="personalMap">
-    select p.id,p.name,p.sex,p.mobile_no,p.mobile_status,p.id_card,p.local_home_address,p.longitude,p.latitude,
-      pj.personal_id,pj.company_name,pj.department,pj.position,pj.phone
-    from personal p,personal_job pj where p.id = #{personal_id} and pj.personal_id = p.id
+    select p.id,p.name,p.sex,p.mobile_no,p.mobile_status,p.id_card,p.local_home_address,p.longitude,p.latitude
+    from personal p where p.id = #{personal_id}
   </select>
 
   <update id="updateLngLat"  parameterType="cn.fintecher.pangolin.entity.Personal">
