@@ -295,6 +295,7 @@ public class CaseStrategyController {
                                 caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());
                                 caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
                             }
+                            caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
                             caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
                             //案件剩余天数(结案日期-当前日期)
                             caseInfo.setLeftDays(ZWDateUtil.getBetween(ZWDateUtil.getNowDate(), caseInfo.getCloseDate(), ChronoUnit.DAYS));
@@ -362,7 +363,7 @@ public class CaseStrategyController {
         try {
             CaseStrategy caseStrategy = caseStrategyRepository.findOne(QCaseStrategy.caseStrategy.name.eq(name));
            if(Objects.nonNull(caseStrategy)){
-               return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exist", "该策略名称已存在")).body(null);
+               return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exist", "该策略名称已存在")).body(null);
            }
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);

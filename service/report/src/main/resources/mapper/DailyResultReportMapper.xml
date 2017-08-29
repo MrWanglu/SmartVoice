@@ -111,7 +111,7 @@
         <if test="realName != null">
             AND real_name LIKE concat('%',#{realName},'%')
         </if>
-        order by dept_code asc,now_date DESC
+        order by dept_code desc,now_date DESC
     </select>
 
     <resultMap id="dailyResultReport" type="cn.fintecher.pangolin.report.entity.DailyResultReport">

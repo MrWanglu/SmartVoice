@@ -33,7 +33,7 @@ public class PerformanceRankingScheduled {
     @Inject
     PerformanceRankingReportMapper performanceRankingReportMapper;
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 30 23 * * ?")
     void savePerformanceRanking() {
         log.debug("定时调度 生成催收员业绩排名报表{}", ZWDateUtil.getNowDateTime());
 
@@ -42,7 +42,7 @@ public class PerformanceRankingScheduled {
         cal.set(Calendar.DATE, 1);
         Date startDate = cal.getTime();
         cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, -1);
+        cal.add(Calendar.DATE, 0);
         Date endDate = cal.getTime();
         List<PerformanceRankingReport> performanceRankingReports = new ArrayList<>();
         List<String> companyCodeList = performanceRankingReportMapper.getCompanyCode();

@@ -32,12 +32,12 @@ public class DailyProcessScheduled {
     @Inject
     DailyProcessReportMapper dailyProcessReportMapper;
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 30 23 * * ?")
     public void saveDailyProcessReport() {
         log.debug("定时调度 生成催收员每日催收过程报表{}", ZWDateUtil.getNowDateTime());
 
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, -1);
+        cal.add(Calendar.DATE, 0);
         Date date = cal.getTime();
         List<DailyProcessReport> dailyProcessReports = dailyProcessReportMapper.saveHistoryReport(date);
         for (DailyProcessReport dailyProcessReport : dailyProcessReports) {

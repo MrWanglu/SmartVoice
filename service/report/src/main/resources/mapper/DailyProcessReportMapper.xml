@@ -101,14 +101,14 @@
         <if test="realName != null">
             AND real_name LIKE concat('%',#{realName},'%')
         </if>
-        order by dept_code asc,now_date DESC
+        order by dept_code desc,now_date DESC
     </select>
 
     <resultMap id="dailyProcessReport" type="cn.fintecher.pangolin.report.entity.DailyProcessReport">
         <id column="id" property="id"/>
         <result column="dept_code" property="deptCode"/>
         <result column="dept_name" property="deptName"/>
-        <result column="paren_dept_code" property="parentDeptCode"/>
+        <result column="parent_dept_code" property="parentDeptCode"/>
         <result column="parent_dept_name" property="parentDeptName"/>
         <result column="user_name" property="userName"/>
         <result column="real_name" property="realName"/>
