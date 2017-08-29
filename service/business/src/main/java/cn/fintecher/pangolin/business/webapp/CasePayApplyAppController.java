@@ -2,14 +2,12 @@ package cn.fintecher.pangolin.business.webapp;
 
 import cn.fintecher.pangolin.business.model.BackMoneyModel;
 import cn.fintecher.pangolin.business.model.PayApplyParams;
+import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CasePayApplyRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.web.BaseController;
-import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.CasePayApply;
-import cn.fintecher.pangolin.entity.QCasePayApply;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
@@ -53,6 +51,8 @@ public class CasePayApplyAppController extends BaseController {
     @Inject
     CaseInfoService caseInfoService;
 
+    @Inject
+    CaseAssistRepository caseAssistRepository;
     @GetMapping("/getCasePaymentRecordForApp")
     @ApiOperation(value = "根据案件ID获取还款记录", notes = "根据案件ID获取还款记录")
     public ResponseEntity<Page<CasePayApply>> getPaymentRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String id,
@@ -102,6 +102,10 @@ public class CasePayApplyAppController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
         caseInfoService.doPay(payApplyParams, user);
+        CaseAssist caseAssist = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.id.eq(payApplyParams.getCaseId())
+                .and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue())));
+        caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
+        caseAssistRepository.save(caseAssist);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("申请还款成功", "CasePayApply")).body(null);
     }
 
