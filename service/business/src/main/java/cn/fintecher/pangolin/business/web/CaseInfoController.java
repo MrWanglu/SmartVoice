@@ -684,12 +684,12 @@ public class CaseInfoController extends BaseController {
                 e.printStackTrace();
             }
             Iterable<CaseInfo> caseInfoList = caseInfoRepository.findAll(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.COLLECTIONING.getValue())
-                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.EARLY_PAYING.getValue()))
-                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.OVER_PAYING.getValue()))
-                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()))
-                .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()))
-                .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())));
-
+                    .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.EARLY_PAYING.getValue()))
+                    .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.OVER_PAYING.getValue()))
+                    .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()))
+                    .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.PART_REPAID.getValue()))
+                    .or(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()))
+                   .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())));
             List<CaseInfo> accCaseInfoList = new ArrayList<>();
             List<CaseInfo> caseInfoList1 = new ArrayList<>();
             caseInfoList.forEach(single ->accCaseInfoList.add(single));
