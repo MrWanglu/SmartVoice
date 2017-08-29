@@ -762,6 +762,8 @@ public class CaseInfoService {
                         caseInfo.setAssistWay(null); //协催方式置空
                         caseInfo.setAssistFlag(0); //协催标识 0-否
                         caseInfo.setAssistStatus(null); //协催状态置空
+
+                        setAttribute(caseInfo, batchInfoModel.getCollectionUser(), tokenUser);
                     } else { //没有协催标识
                         setAttribute(caseInfo, batchInfoModel.getCollectionUser(), tokenUser);
                     }
