@@ -309,7 +309,11 @@ public class DataInfoExcelService {
             Iterable<DataInfoExcelFile> dataInfoExcelFileIterable=dataInfoExcelFileRepository.findAll(qDataInfoExcelFile.caseId.eq(dataInfoExcel.getId()));
             List<CaseInfoFile> caseInfoFileList=new ArrayList<>();
             List<DataInfoExcelFile> dataInfoExcelFileList= IteratorUtils.toList(dataInfoExcelFileIterable.iterator());
-            BeanUtils.copyProperties(dataInfoExcelFileList,caseInfoFileList);
+            for (DataInfoExcelFile file : dataInfoExcelFileList) {
+                CaseInfoFile caseInfoFile = new CaseInfoFile();
+                BeanUtils.copyProperties(file,caseInfoFile);
+                caseInfoFileList.add(caseInfoFile);
+            }
             msg.setCaseInfoFileList(caseInfoFileList);
             msg.setUser(user);
             rabbitTemplate.convertAndSend(Constants.DATAINFO_CONFIRM_QE, msg);

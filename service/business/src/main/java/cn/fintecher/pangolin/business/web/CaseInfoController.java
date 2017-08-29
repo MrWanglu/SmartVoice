@@ -1,10 +1,7 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.*;
-import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
-import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
-import cn.fintecher.pangolin.business.repository.PersonalRepository;
+import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.FollowRecordExportService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
@@ -81,6 +78,8 @@ public class CaseInfoController extends BaseController {
     private Configuration freemarkerConfiguration;
     @Inject
     private PersonalRepository personalRepository;
+    @Inject
+    private CaseInfoFileRepository caseInfoFileRepository;
 
     public CaseInfoController(CaseInfoRepository caseInfoRepository) {
         this.caseInfoRepository = caseInfoRepository;
@@ -822,5 +821,30 @@ public class CaseInfoController extends BaseController {
                 kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
         KieSession kieSession = kieContainer.newKieSession();
         return  kieSession;
+    }
+
+    @GetMapping("/findUpload")
+    @ApiOperation(value = "查看附件", notes = "查看附件")
+    public ResponseEntity<List<CaseInfoFile>> findUpload(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                              @RequestParam(value = "caseNumber", required = true) @ApiParam("案件编号") String caseNumber,
+                                                              @RequestParam(value = "companyCode",required = false) String companyCode) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (StringUtils.isNotBlank(companyCode)) {
+                user.setCompanyCode(companyCode);
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "findUpload", "请先选择公司!")).body(null);
+            }
+        }
+        Iterable<CaseInfoFile> all = caseInfoFileRepository.findAll(QCaseInfoFile.caseInfoFile.caseNumber.eq(caseNumber)
+                .and(QCaseInfoFile.caseInfoFile.companyCode.eq(user.getCompanyCode())));
+        List<CaseInfoFile> caseInfoFiles = IterableUtils.toList(all);
+        return ResponseEntity.ok().body(caseInfoFiles);
     }
 }

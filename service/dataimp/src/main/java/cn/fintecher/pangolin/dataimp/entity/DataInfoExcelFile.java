@@ -40,6 +40,9 @@ public class DataInfoExcelFile implements Serializable {
     @ApiModelProperty(notes = "文件路径")
     private String fileUrl;
 
+    @ApiModelProperty(notes = "文件类型")
+    private String fileType;
+
     @ApiModelProperty("创建时间")
     private Date operatorTime;
 
