@@ -65,16 +65,6 @@ public class UnReduceSuccessReceiver {
                 if (StringUtils.isBlank(user.getCompanyCode())) {
                     user.setCompanyCode(message.getCompanyCode());
                 }
-                //数据导入附件
-                DataInfoExcelFile dataInfoExcelFile = new DataInfoExcelFile();
-                dataInfoExcelFile.setBatchNumber(batchNum);
-                dataInfoExcelFile.setFileId(uploadFile.getId());
-                dataInfoExcelFile.setFileName(uploadFile.getRealName());
-                dataInfoExcelFile.setOperator(user.getId());
-                dataInfoExcelFile.setOperatorTime(ZWDateUtil.getNowDateTime());
-                dataInfoExcelFile.setFileUrl(uploadFile.getUrl());
-                dataInfoExcelFile.setOperatorName(user.getRealName());
-                dataInfoExcelFile.setCompanyCode(user.getCompanyCode());
                 //解析文件文件路径
                 //通过文件名字获取案件信息(客户姓名身份证号产品名称)
                 String[] fileNameArr = path.split("_");
@@ -99,6 +89,16 @@ public class UnReduceSuccessReceiver {
                             log.warn("未匹配上与文件名称 {}相符的案件", path);
                         } else {
                             for (DataInfoExcel obj : dataInfoExcelList) {
+                                //数据导入附件
+                                DataInfoExcelFile dataInfoExcelFile = new DataInfoExcelFile();
+                                dataInfoExcelFile.setBatchNumber(batchNum);
+                                dataInfoExcelFile.setFileId(uploadFile.getId());
+                                dataInfoExcelFile.setFileName(uploadFile.getRealName());
+                                dataInfoExcelFile.setOperator(user.getId());
+                                dataInfoExcelFile.setOperatorTime(ZWDateUtil.getNowDateTime());
+                                dataInfoExcelFile.setFileUrl(uploadFile.getUrl());
+                                dataInfoExcelFile.setOperatorName(user.getRealName());
+                                dataInfoExcelFile.setCompanyCode(user.getCompanyCode());
                                 dataInfoExcelFile.setCaseId(obj.getId());
                                 dataInfoExcelFile.setCaseNumber(obj.getCaseNumber());
                                 dataInfoExcelFileRepository.save(dataInfoExcelFile);
