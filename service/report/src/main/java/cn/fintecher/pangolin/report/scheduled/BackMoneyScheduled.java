@@ -32,12 +32,12 @@ public class BackMoneyScheduled {
     @Inject
     BackMoneyReportMapper backMoneyReportMapper;
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 30 23 * * ?")
     public void saveBackMoneyReport() {
         log.debug("定时调度 生成回款报表{}", ZWDateUtil.getNowDateTime());
 
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, -1);
+        cal.add(Calendar.DATE, 0);
         Date date = cal.getTime();
         List<BackMoneyReport> backMoneyReports = backMoneyReportMapper.saveHistoryReport(date);
         for (BackMoneyReport backMoneyReport : backMoneyReports) {

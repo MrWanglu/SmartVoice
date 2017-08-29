@@ -32,12 +32,12 @@ public class DailyResultScheduled {
     @Inject
     DailyResultReportMapper dailyResultReportMapper;
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 30 23 * * ?")
     public void saveDailyResultReport() {
         log.debug("定时调度 生成催收员每日催收结果报表{}", ZWDateUtil.getNowDateTime());
 
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, -1);
+        cal.add(Calendar.DATE, 0);
         Date date = cal.getTime();
         List<DailyResultReport> dailyResultReports = dailyResultReportMapper.saveHistoryReport(date);
         for (DailyResultReport dailyResultReport : dailyResultReports) {
