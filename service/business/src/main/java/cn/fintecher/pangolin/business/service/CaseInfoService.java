@@ -813,7 +813,6 @@ public class CaseInfoService {
         caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件标记为无色
         caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1); //流转次数加一
         caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
-        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态 20-待催收
         caseInfo.setLeaveCaseFlag(0); //留案标识置0
         caseInfo.setFollowupBack(null); //催收反馈置空
         caseInfo.setFollowupTime(null); //跟进时间置空
