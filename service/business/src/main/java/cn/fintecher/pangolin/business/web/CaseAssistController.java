@@ -339,6 +339,10 @@ public class CaseAssistController extends BaseController {
         try {
             try {
                 caseInfoService.doPay(payApplyParams, user);
+                CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.id.eq(payApplyParams.getCaseId())
+                        .and(QCaseAssist.caseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
+                one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
+                caseAssistRepository.save(one);
             } catch (final Exception e) {
                 log.debug(e.getMessage());
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "doTelPay", e.getMessage())).body(null);
