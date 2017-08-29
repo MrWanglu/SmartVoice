@@ -20,6 +20,7 @@ public class SendReminderMessage {
     private String title;
     private String content;
     private Date createTime;
+    private Date remindTime;
     private Map<String, Object> params;
     private String[] ccUserIds;
 }

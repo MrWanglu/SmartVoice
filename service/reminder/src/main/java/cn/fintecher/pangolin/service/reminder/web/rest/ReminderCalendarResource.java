@@ -1,11 +1,13 @@
 package cn.fintecher.pangolin.service.reminder.web.rest;
 
+import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.service.reminder.model.ReminderCalendar;
 import cn.fintecher.pangolin.service.reminder.repository.ReminderCalendarRepository;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +34,9 @@ public class ReminderCalendarResource {
     private ReminderCalendarRepository reminderCalendarRepository;
 
     @PostMapping
-    public ResponseEntity<ReminderCalendar> createReminderCalendar(@RequestBody ReminderCalendar reminderCalendar) throws URISyntaxException {
+    public ResponseEntity<ReminderCalendar> createReminderCalendar(@RequestBody SendReminderMessage sendReminderMessage) throws URISyntaxException {
+        ReminderCalendar reminderCalendar = new ReminderCalendar();
+        BeanUtils.copyProperties(sendReminderMessage,reminderCalendar);
         log.debug("REST request to save ReminderCalendar : {}", reminderCalendar);
         if (reminderCalendar.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("ReminderCalendar", "idexists", "A new ReminderCalendar cannot already have an ID")).body(null);
@@ -44,10 +48,12 @@ public class ReminderCalendarResource {
     }
 
     @PutMapping
-    public ResponseEntity<ReminderCalendar> updateReminderCalendar(@RequestBody ReminderCalendar reminderCalendar) throws URISyntaxException {
+    public ResponseEntity<ReminderCalendar> updateReminderCalendar(@RequestBody SendReminderMessage sendReminderMessage) throws URISyntaxException {
+        ReminderCalendar reminderCalendar = new ReminderCalendar();
+        BeanUtils.copyProperties(sendReminderMessage,reminderCalendar);
         log.debug("REST request to update ReminderCalendar : {}", reminderCalendar);
         if (reminderCalendar.getId() == null) {
-            return createReminderCalendar(reminderCalendar);
+            return createReminderCalendar(sendReminderMessage);
         }
         ReminderCalendar result = reminderCalendarRepository.save(reminderCalendar);
         return ResponseEntity.ok()

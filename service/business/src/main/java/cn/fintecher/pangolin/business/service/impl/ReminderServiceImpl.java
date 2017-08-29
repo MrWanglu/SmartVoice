@@ -32,6 +32,12 @@ public class ReminderServiceImpl implements ReminderService{
         restTemplate.postForLocation("http://reminder-service/api/reminderTiming/saveReminderTiming",sendReminderMessage);
     }
 
+
+    @Override
+    public void sendReminderCalendarMessage(SendReminderMessage sendReminderMessage){
+        restTemplate.postForLocation("http://reminder-service/api/reminderCalendars",sendReminderMessage);
+    }
+
     @Override
     public List<SendReminderMessage> getAllReminderMessage(){
         return null;

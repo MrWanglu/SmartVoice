@@ -33,4 +33,10 @@ public interface ReminderService {
      * 审批提醒
      */
     void applyReminder();
+
+    /**
+     * 发送定时提醒
+     * @param sendReminderMessage
+     */
+    void sendReminderCalendarMessage(SendReminderMessage sendReminderMessage);
 }

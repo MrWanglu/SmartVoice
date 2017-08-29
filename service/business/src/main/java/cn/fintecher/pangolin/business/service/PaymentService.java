@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.business.model.PaymentParams;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -60,6 +61,11 @@ public class PaymentService {
     @Inject
     DataDictService dataDictService;
 
+    @Inject
+    UserRepository userRepository;
+
+    @Inject
+    ReminderService reminderService;
     /**
      * @Description 还款信息展示
      */
@@ -100,6 +106,7 @@ public class PaymentService {
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
+        User applyUser = userRepository.findByUserName(casePayApply.getApplyUserName());
         if (Objects.equals(paymentParams.getFlag(), 0)) { //是减免审批
             if (Objects.equals(paymentParams.getResult(), 0)) { //减免审批拒绝
                 //更新还款审批信息
@@ -215,6 +222,14 @@ public class PaymentService {
         }
         caseInfoRepository.saveAndFlush(caseInfo);
         casePayApplyRepository.saveAndFlush(casePayApply);
+
+        //消息提醒
+        SendReminderMessage sendReminderMessage = new SendReminderMessage();
+        sendReminderMessage.setUserId(applyUser.getId());
+        sendReminderMessage.setTitle("案件"+(Objects.equals(paymentParams.getFlag(),0)?"减免":"还款")+"审批申请结果");
+        sendReminderMessage.setContent("您提交的案件 [" + caseInfo.getCaseNumber() + "] "+(Objects.equals(paymentParams.getFlag(),0)?"减免":"还款")+"申请" + (Objects.equals(paymentParams.getResult(), 0) ? "被驳回" : "已入账"));
+        sendReminderMessage.setType(ReminderType.REPAYMENT);
+        reminderService.sendReminder(sendReminderMessage);
     }
 
     /**

@@ -313,6 +313,19 @@ public class CaseInfoService {
                 casePayFileRepository.saveAndFlush(casePayFile);
             }
         }
+
+        //消息提醒
+        List<User> userList = userService.getAllHigherLevelManagerByUser(tokenUser.getId());
+        List<String> managerIdList = new ArrayList<>();
+        for (User user : userList) {
+            managerIdList.add(user.getId());
+        }
+        SendReminderMessage sendReminderMessage = new SendReminderMessage();
+        sendReminderMessage.setTitle("还款申请");
+        sendReminderMessage.setContent("案件 [" + caseInfo.getCaseNumber() + "] 的还款申请需要审批");
+        sendReminderMessage.setType(ReminderType.REPAYMENT);
+        sendReminderMessage.setCcUserIds(managerIdList.toArray(new String[managerIdList.size()]));
+        reminderService.sendReminder(sendReminderMessage);
     }
 
     /**
@@ -393,6 +406,18 @@ public class CaseInfoService {
         caseInfo.setOperator(tokenUser); //操作人
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         caseInfoRepository.save(caseInfo);
+
+        //消息提醒
+        if(Objects.nonNull(caseFollowupParams.getFollnextDate())) {
+            SendReminderMessage sendReminderMessage = new SendReminderMessage();
+            sendReminderMessage.setTitle("案件跟进提醒");
+            sendReminderMessage.setUserId(userRepository.findByUserName(caseFollowupRecord.getOperator()).getId());
+            sendReminderMessage.setRemindTime(caseFollowupParams.getFollnextDate());
+            sendReminderMessage.setContent("案件 [" + caseInfo.getCaseNumber() + "] 需要跟进 \n" + caseFollowupParams.getContent());
+            sendReminderMessage.setType(ReminderType.FLLOWUP);
+            reminderService.sendReminderCalendarMessage(sendReminderMessage);
+        }
+
         return caseFollowupRecord;
     }
 
@@ -1056,7 +1081,7 @@ public class CaseInfoService {
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
-        String userIdForReminde = caseInfo.getCurrentCollector().getId();
+        String userIdForRemind = caseInfo.getCurrentCollector().getId();
         if (Objects.equals(circulationApprovalParams.getResult(), 0)) { //审批通过
             if (Objects.equals(circulationApprovalParams.getType(), 0)) { //电催小流转
                 caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.PHONE_PASS.getValue()); //198-电催流转通过
@@ -1150,7 +1175,7 @@ public class CaseInfoService {
 
         //消息提醒
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
-        sendReminderMessage.setUserId(userIdForReminde);
+        sendReminderMessage.setUserId(userIdForRemind);
         sendReminderMessage.setTitle("案件提前流转申请结果");
         sendReminderMessage.setContent("您申请的提前流转案件 [" + caseInfo.getCaseNumber() + "] 申请" + (Objects.equals(circulationApprovalParams.getResult(), 0) ? "已通过" : "被拒绝"));
         sendReminderMessage.setType(ReminderType.CIRCULATION);

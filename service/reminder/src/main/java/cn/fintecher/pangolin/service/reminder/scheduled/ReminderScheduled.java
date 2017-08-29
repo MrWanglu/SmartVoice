@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.service.reminder.scheduled;
 
+import cn.fintecher.pangolin.entity.ReminderMode;
 import cn.fintecher.pangolin.service.reminder.model.AppMsg;
 import cn.fintecher.pangolin.service.reminder.model.ReminderCalendar;
 import cn.fintecher.pangolin.service.reminder.model.ReminderMessage;
@@ -52,6 +53,7 @@ public class ReminderScheduled {
             BeanUtils.copyProperties(calendar, reminderMessage);
             reminderMessage.setState(ReminderMessage.ReadStatus.UnRead);
             reminderMessage.setCreateTime(new Date());
+            reminderMessage.setMode(ReminderMode.POPUP);
             reminderMessageRepository.save(reminderMessage);
             reminderCalendarRepository.delete(calendar);
             ReminderWebSocketMessage reminderWebSocketMessage = new ReminderWebSocketMessage();
