@@ -1,6 +1,6 @@
 spring:
     profiles:
-        active: dev
+        active: prod
     devtools:
         restart:
             enabled: false
@@ -11,13 +11,16 @@ spring:
     data:
         mongodb:
             uri: mongodb://172.19.28.134:27017
-            database: dataimp_db
+            database: pangolin_dataimp_db
+    jmx:
+      enabled: false
     rabbitmq:
         username: cuidaren
         password: CuiDaRen!23456
         host: 172.19.28.135
         virtual-host: cuidaren
         port: 5672
+
 eureka:
   instance:
     hostname: dataimp-service

@@ -11,7 +11,7 @@ spring:
     data:
         mongodb:
             uri: mongodb://172.19.28.134:27017
-            database: file_db
+            database: pangolin_file_db
     rabbitmq:
         username: cuidaren
         password: CuiDaRen!23456
