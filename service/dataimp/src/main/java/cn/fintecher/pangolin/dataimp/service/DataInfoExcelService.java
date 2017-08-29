@@ -296,14 +296,14 @@ public class DataInfoExcelService {
         //查询该用户下所有未确认的案件
         QDataInfoExcel qDataInfoExcel= dataInfoExcel;
         Iterable<DataInfoExcel> dataInfoExcelIterable= dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId()).and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
+        List<DataInfoExcelModel> dataInfoExcelModelList=new ArrayList<>();
+        List<DataInfoExcelHis> dataInfoExcelHisList=new ArrayList<>();
         int dataTotal=0;
         for (Iterator iterator = dataInfoExcelIterable.iterator(); iterator.hasNext();) {
             dataTotal=dataTotal+1;
             DataInfoExcel dataInfoExcel=(DataInfoExcel) iterator.next();
-            ConfirmDataInfoMessage msg=new ConfirmDataInfoMessage();
             DataInfoExcelModel dataInfoExcelModel=new DataInfoExcelModel();
             BeanUtils.copyProperties(dataInfoExcel,dataInfoExcelModel);
-            msg.setDataInfoExcelModel(dataInfoExcelModel);
             //附件信息
             QDataInfoExcelFile qDataInfoExcelFile=QDataInfoExcelFile.dataInfoExcelFile;
             Iterable<DataInfoExcelFile> dataInfoExcelFileIterable=dataInfoExcelFileRepository.findAll(qDataInfoExcelFile.caseId.eq(dataInfoExcel.getId()));
@@ -314,15 +314,21 @@ public class DataInfoExcelService {
                 BeanUtils.copyProperties(file,caseInfoFile);
                 caseInfoFileList.add(caseInfoFile);
             }
-            msg.setCaseInfoFileList(caseInfoFileList);
-            msg.setUser(user);
-            rabbitTemplate.convertAndSend(Constants.DATAINFO_CONFIRM_QE, msg);
-            logger.info("发送数据第 {} 条数据",dataTotal);
+            dataInfoExcelModel.setCaseInfoFileList(caseInfoFileList);
+            dataInfoExcelModelList.add(dataInfoExcelModel);
             DataInfoExcelHis dataInfoExcelHis=new DataInfoExcelHis();
             BeanUtils.copyProperties(dataInfoExcel,dataInfoExcelHis);
-            dataInfoExcelRepository.delete(dataInfoExcel);
-            dataInfoExcelHisRepository.save(dataInfoExcelHis);
+            dataInfoExcelHisList.add(dataInfoExcelHis);
         }
+        ConfirmDataInfoMessage msg=new ConfirmDataInfoMessage();
+        msg.setDataInfoExcelModelList(dataInfoExcelModelList);
+        msg.setDataCount(dataInfoExcelModelList.size());
+        msg.setUser(user);
+        //发送消息
+        rabbitTemplate.convertAndSend(Constants.DATAINFO_CONFIRM_QE, msg);
+        //移动导入的数据
+        dataInfoExcelRepository.delete(dataInfoExcelIterable);
+        dataInfoExcelHisRepository.save(dataInfoExcelHisList);
     }
 
     public List<DataInfoExcel> queryDataInfoExcelListNoPage(DataInfoExcel dataInfoExcel, User user) throws Exception {

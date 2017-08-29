@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @Author: PeiShouWen
@@ -264,5 +265,8 @@ public class DataInfoExcelModel implements Serializable {
 
     @ApiModelProperty("案件编号")
     private String caseNumber;
+
+    @ApiModelProperty(notes = "附件信息")
+    private List<CaseInfoFile> caseInfoFileList;
 
 }

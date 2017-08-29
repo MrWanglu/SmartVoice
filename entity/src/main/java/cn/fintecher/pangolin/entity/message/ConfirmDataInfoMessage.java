@@ -1,6 +1,5 @@
 package cn.fintecher.pangolin.entity.message;
 
-import cn.fintecher.pangolin.entity.CaseInfoFile;
 import cn.fintecher.pangolin.entity.DataInfoExcelModel;
 import cn.fintecher.pangolin.entity.User;
 import io.swagger.annotations.ApiModelProperty;
@@ -17,10 +16,10 @@ import java.util.List;
 @Data
 public class ConfirmDataInfoMessage implements Serializable{
     @ApiModelProperty(notes = "案件对象")
-    private DataInfoExcelModel dataInfoExcelModel;
+    private List<DataInfoExcelModel> dataInfoExcelModelList;
 
-    @ApiModelProperty(notes = "附件信息")
-    private List<CaseInfoFile> caseInfoFileList;
+    @ApiModelProperty(notes = "数据总数")
+    private int dataCount;
 
     @ApiModelProperty(notes = "操作者信息")
     private User user;

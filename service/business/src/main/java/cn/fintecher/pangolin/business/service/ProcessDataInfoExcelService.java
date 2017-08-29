@@ -3,7 +3,6 @@ package cn.fintecher.pangolin.business.service;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.utils.ZWMathUtil;
 import cn.fintecher.pangolin.entity.*;
-import cn.fintecher.pangolin.entity.message.ConfirmDataInfoMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.IdcardUtils;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -13,10 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @Author: PeiShouWen
@@ -67,29 +68,30 @@ public class ProcessDataInfoExcelService {
     @Autowired
     CaseInfoFileRepository caseInfoFileRepository;
 
-//    @Async
+    @Async
     @Transactional
-    public void doTask(ConfirmDataInfoMessage confirmDataInfoMessage){
-            logger.info("{}  处理案件信息开始......",Thread.currentThread());
+    public void doTask(DataInfoExcelModel dataInfoExcelModel,ConcurrentHashMap<String,DataInfoExcelModel> dataInfoExcelModelMap,
+                       User user,int index){
+            logger.info("{}  处理案件信息开始 {}......",Thread.currentThread(),index);
+
             //案件数据信息
-            DataInfoExcelModel dataInfoExcelModel=confirmDataInfoMessage.getDataInfoExcelModel();
+            String key=dataInfoExcelModel.getPersonalName().concat("_").concat(dataInfoExcelModel.getIdCard()).concat("_")
+                    .concat(dataInfoExcelModel.getPrinCode()).concat("_").concat(dataInfoExcelModel.getProductName())
+                    .concat("_").concat(dataInfoExcelModel.getCompanyCode());
             //案件附件信息
-            List<CaseInfoFile> caseInfoFileList=confirmDataInfoMessage.getCaseInfoFileList();
+            List<CaseInfoFile> caseInfoFileList=dataInfoExcelModel.getCaseInfoFileList();
             //产品信息
             Product product=null;
-            //用户数据
-            User user=confirmDataInfoMessage.getUser();
             /**
              * 首先检查待分配案件是否有该案件，有的话直接进入数据异常表
              */
-
-            QCaseInfoDistributed qCaseInfoDistributed = QCaseInfoDistributed.caseInfoDistributed;
+           QCaseInfoDistributed qCaseInfoDistributed = QCaseInfoDistributed.caseInfoDistributed;
             Iterable<CaseInfoDistributed> caseInfoDistributedIterable = caseInfoDistributedRepository.findAll(qCaseInfoDistributed.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
                     .and(qCaseInfoDistributed.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
                     .and(qCaseInfoDistributed.principalId.code.eq(dataInfoExcelModel.getPrinCode()))
                     .and(qCaseInfoDistributed.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
                     .and(qCaseInfoDistributed.companyCode.eq(dataInfoExcelModel.getCompanyCode())));
-            if (caseInfoDistributedIterable.iterator().hasNext()) {
+            if (dataInfoExcelModelMap.containsKey(key) || caseInfoDistributedIterable.iterator().hasNext()) {
                 //数据进入案件异常池
                 Set<String> caseInfoDistributedSets = new HashSet<>();
                 for (Iterator<CaseInfoDistributed> it = caseInfoDistributedIterable.iterator(); it.hasNext(); ) {
@@ -98,6 +100,7 @@ public class ProcessDataInfoExcelService {
                 Set<String> caseInfoSets = checkCaseInfoExist(dataInfoExcelModel);
                 caseInfoExceptionRepository.save(addCaseInfoException(dataInfoExcelModel, user, caseInfoDistributedSets, caseInfoSets));
             } else {
+                dataInfoExcelModelMap.put(key,dataInfoExcelModel);
                 Set<String> caseInfoSets = checkCaseInfoExist(dataInfoExcelModel);
                 if (caseInfoSets.isEmpty()) {
                     //进入案件正常池
@@ -127,8 +130,9 @@ public class ProcessDataInfoExcelService {
                     caseInfoFileRepository.save(caseInfoFileList);
                 }
         }
-        logger.info("{}  处理案件信息结束.",Thread.currentThread());
+        logger.info("{}  处理案件信息结束 {}.",Thread.currentThread(),index);
     }
+
 
     /**
      * 检查案件是否已存在
