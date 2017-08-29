@@ -33,7 +33,7 @@ public class DailyResultScheduled {
     DailyResultReportMapper dailyResultReportMapper;
 
     @Scheduled(cron = "0 0 0 * * ?")
-    public void saveDailyProcessReport() {
+    public void saveDailyResultReport() {
         log.debug("定时调度 生成催收员每日催收结果报表{}", ZWDateUtil.getNowDateTime());
 
         Calendar cal = Calendar.getInstance();
