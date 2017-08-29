@@ -39,6 +39,8 @@
         <result column="overdue_manage_fee" property="overdueManageFee"/>
         <result column="derate_amt" property="derateAmt"/>
         <result column="real_pay_amount" property="realPayAmount"/>
+        <result column="early_real_settle_amt" property="earlyRealSettleAmt"/>
+        <result column="early_derate_amt" property="earlyDerateAmt"/>
         <result column="early_settle_amt" property="earlySettleAmt"/>
         <result column="other_amt" property="otherAmt"/>
         <result column="left_capital" property="leftCapital"/>
@@ -86,8 +88,8 @@
         b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
         b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
         b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,pr.prodcut_name,b.overdue_periods,b.overdue_days,
-        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,b.loan_date,
-         pri.id,pri.name,b.personal_id from
+        b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,b.loan_date,b.early_derate_amt,
+         pri.id,pri.name,b.personal_id,b.early_real_settle_amt from
       (
       select a.*
       from case_info a ,department b,personal p
@@ -131,8 +133,8 @@
       b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
       b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
       b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,pr.prodcut_name,b.overdue_periods,b.overdue_days,
-      b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,b.loan_date,
-      pri.id,pri.name,b.personal_id from
+      b.has_pay_periods,b.lately_pay_date,b.lately_pay_amount,b.leave_date,b.operator_time,b.promise_amt,b.promise_time,ar.area_name,ar.id,b.loan_date,b.early_derate_amt,
+      pri.id,pri.name,b.personal_id,b.early_real_settle_amt from
         (
       SELECT
       a.*
@@ -176,7 +178,7 @@
   <select id="selectPersonal" parameterType="String" resultMap="personalMap">
     select p.id,p.name,p.sex,p.mobile_no,p.mobile_status,p.id_card,p.local_home_address,p.longitude,p.latitude,
       pj.personal_id,pj.company_name,pj.department,pj.position,pj.phone
-    from personal p,personal_job pj where p.id = #{personal_id} and pj.personal_id = #{personal_id}
+    from personal p,personal_job pj where p.id = #{personal_id} and pj.personal_id = p.id
   </select>
 
   <update id="updateLngLat"  parameterType="cn.fintecher.pangolin.entity.Personal">

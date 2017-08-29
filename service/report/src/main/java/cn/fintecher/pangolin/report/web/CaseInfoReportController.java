@@ -90,6 +90,9 @@ public class CaseInfoReportController extends BaseController{
         for(int i=0; i<list.size(); i++){
             CaseInfo caseInfo = list.get(i);
             Personal personal = caseInfo.getPersonalInfo();
+            if(Objects.isNull(personal)){
+                continue;
+            }
             if(Objects.isNull(personal.getLongitude())
                     || Objects.isNull(personal.getLatitude())){
                 try{
