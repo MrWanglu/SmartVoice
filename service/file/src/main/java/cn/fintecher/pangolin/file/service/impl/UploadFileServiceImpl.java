@@ -52,7 +52,7 @@ public class UploadFileServiceImpl implements UploadFileService {
 
     @Override
     public UploadFile uploadFile(MultipartFile file, String creator) throws IOException {
-        String realName = new String(file.getOriginalFilename().getBytes("iso-8859-1"), "UTF-8");
+        String realName =file.getOriginalFilename();
         if (realName.endsWith(".do")) {
             realName = realName.replaceAll(".do", "");
         }
