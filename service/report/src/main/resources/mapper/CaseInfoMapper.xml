@@ -77,7 +77,15 @@
         </collection>
     </resultMap>
 
-    <select id="selectJob" parameterType="String" resultType="cn.fintecher.pangolin.entity.PersonalJob">
+    <resultMap id = "personalJobMap" type="cn.fintecher.pangolin.entity.PersonalJob">
+        <id column="id" property="id"/>
+        <result column="company_name" property="companyName"/>
+        <result column="department" property="department"/>
+        <result column="phone" property="phone"/>
+        <result column="rank" property="rank"/>
+    </resultMap>
+
+    <select id="selectJob" parameterType="String" resultMap="personalJobMap">
         select * from personal_job where personal_id = #{id}
     </select>
 
