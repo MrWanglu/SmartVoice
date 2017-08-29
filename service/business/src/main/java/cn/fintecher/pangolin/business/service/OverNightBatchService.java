@@ -62,9 +62,10 @@ public class OverNightBatchService {
 
     /**
      * 晚间批量任务
+     *
      * @param jobDataMap
      */
-    public void doOverNightTask(JobDataMap jobDataMap){
+    public void doOverNightTask(JobDataMap jobDataMap) {
         StopWatch watch = new StopWatch();
         watch.start();
         try {
@@ -110,8 +111,8 @@ public class OverNightBatchService {
             //批量状态修改为未执行
             try {
                 jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"), Constants.BatchStatus.STOP.getValue());
-            }catch (Exception e){
-                logger.info("结束晚间批量 {} ,修改批量执行状态失败 {}", jobDataMap.get("companyCode"),jobDataMap.getString("sysParamCode"),e);
+            } catch (Exception e) {
+                logger.info("结束晚间批量 {} ,修改批量执行状态失败 {}", jobDataMap.get("companyCode"), jobDataMap.getString("sysParamCode"), e);
             }
             watch.stop();
             logger.info("结束晚间批量 {} ,耗时: {} 毫秒", jobDataMap.get("companyCode"), watch.getTotalTimeMillis());
@@ -126,7 +127,7 @@ public class OverNightBatchService {
      */
     @Transactional
     public void doOverNightOne(JobDataMap jobDataMap, String step) throws Exception {
-        logger.info("开始重置序列_{}",jobDataMap.getString("companyCode"));
+        logger.info("开始重置序列_{}", jobDataMap.getString("companyCode"));
         ResponseEntity responseEntity = null;
         try {
             responseEntity = restTemplate.getForEntity("http://dataimp-service/api/sequenceController/restSequence?id1=".concat(Constants.ORDER_SEQ)
@@ -141,7 +142,7 @@ public class OverNightBatchService {
             logger.error(e.getMessage(), e);
             throw new Exception(jobDataMap.getString("companyCode").concat("重置序列失败"));
         }
-        logger.info("结束重置序列_{}",jobDataMap.getString("companyCode"));
+        logger.info("结束重置序列_{}", jobDataMap.getString("companyCode"));
     }
 
     /**
@@ -153,7 +154,7 @@ public class OverNightBatchService {
      */
     @Transactional
     public void doOverNightTwo(JobDataMap jobDataMap, String step, User user) throws Exception {
-        logger.info("开始案件强制流转_{}",jobDataMap.getString("companyCode"));
+        logger.info("开始案件强制流转_{}", jobDataMap.getString("companyCode"));
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
         try {
             //获取电催留案天数
@@ -168,8 +169,8 @@ public class OverNightBatchService {
             updateCaseInfo(user, caseInfoList2, CaseInfo.CaseType.OUTFORCETURN.getValue(), Constants.SYS_OUTTURN_BIGDEPTNAME);
             //全程协催案件强制流转
             SysParam sysParam3 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYS_ASSIST_BIGDAYS);
-            List<CaseAssist> caseAssistList=caseAssistRepository.queryAssitForce(CaseAssist.AssistWay.WHOLE_ASSIST.getValue(),Integer.parseInt(sysParam3.getValue()),
-                                                jobDataMap.getString("companyCode"),CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());
+            List<CaseAssist> caseAssistList = caseAssistRepository.queryAssitForce(CaseAssist.AssistWay.WHOLE_ASSIST.getValue(), Integer.parseInt(sysParam3.getValue()),
+                    jobDataMap.getString("companyCode"), CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());
             assitForce(user, caseAssistList);
             //更新批量步骤
             jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
@@ -177,7 +178,7 @@ public class OverNightBatchService {
             logger.error(e.getMessage(), e);
             throw new Exception(jobDataMap.getString("companyCode").concat("案件强制流转批量失败"));
         }
-        logger.info("结束案件强制流转_{}",jobDataMap.getString("companyCode"));
+        logger.info("结束案件强制流转_{}", jobDataMap.getString("companyCode"));
     }
 
 
@@ -189,7 +190,7 @@ public class OverNightBatchService {
      */
     @Transactional
     public void doOverNightThree(JobDataMap jobDataMap, String step, User user) throws Exception {
-        logger.info("开始案件小流转_{}",jobDataMap.getString("companyCode"));
+        logger.info("开始案件小流转_{}", jobDataMap.getString("companyCode"));
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
         //查找非留案、非结案、配置天数类无任何催收反馈的电催案件
         try {
@@ -206,8 +207,8 @@ public class OverNightBatchService {
             updateCaseInfo(user, caseInfoList2, CaseInfo.CaseType.OUTSMALLTURN.getValue(), Constants.SYS_OUTTURN_SMALLDEPTNAME);
             //单次协催案件结束
             SysParam sysParam3 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYS_ASSIST_SMALLDAYS);
-            List<CaseAssist> caseAssistList=caseAssistRepository.queryAssitForce(CaseAssist.AssistWay.ONCE_ASSIST.getValue(),Integer.parseInt(sysParam3.getValue()),
-                    jobDataMap.getString("companyCode"),CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());
+            List<CaseAssist> caseAssistList = caseAssistRepository.queryAssitForce(CaseAssist.AssistWay.ONCE_ASSIST.getValue(), Integer.parseInt(sysParam3.getValue()),
+                    jobDataMap.getString("companyCode"), CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());
             assitForce(user, caseAssistList);
 
             //更新批量步骤
@@ -216,7 +217,7 @@ public class OverNightBatchService {
             logger.error(e.getMessage(), e);
             throw new Exception(jobDataMap.getString("companyCode").concat("案件小流转批量失败"));
         }
-        logger.info("结束案件小流转_{}",jobDataMap.getString("companyCode"));
+        logger.info("结束案件小流转_{}", jobDataMap.getString("companyCode"));
     }
 
     /**
@@ -227,7 +228,7 @@ public class OverNightBatchService {
      */
     @Transactional
     public void doOverNightFour(JobDataMap jobDataMap, String step, User user) throws Exception {
-        logger.info("开始留案案件流转_{}",jobDataMap.getString("companyCode"));
+        logger.info("开始留案案件流转_{}", jobDataMap.getString("companyCode"));
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
         try {
             //电催留案配置参数
@@ -243,11 +244,11 @@ public class OverNightBatchService {
             updateCaseInfo(user, caseInfoList2, CaseInfo.CaseType.OUTLEAVETURN.getValue(), Constants.SYS_OUTTURN_LEAVEDEPTNAME);
             //协催留案
             SysParam sysParam3 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.SYS_ASSIST_LEAVEDAYS);
-            Iterable<CaseAssist> caseAssistList=caseAssistRepository.findAll(QCaseAssist.caseAssist.leaveCaseFlag.eq(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())
-                                            .and(QCaseAssist.caseAssist.assistStatus.in(28,117,118))
-                                            .and(QCaseAssist.caseAssist.assistCollector.isNotNull())
-                                            .and(QCaseAssist.caseAssist.hasLeaveDays.goe(Integer.parseInt(sysParam3.getValue())))
-                                            .and(QCaseAssist.caseAssist.companyCode.eq(jobDataMap.getString("companyCode"))));
+            Iterable<CaseAssist> caseAssistList = caseAssistRepository.findAll(QCaseAssist.caseAssist.leaveCaseFlag.eq(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())
+                    .and(QCaseAssist.caseAssist.assistStatus.in(28, 117, 118))
+                    .and(QCaseAssist.caseAssist.assistCollector.isNotNull())
+                    .and(QCaseAssist.caseAssist.hasLeaveDays.goe(Integer.parseInt(sysParam3.getValue())))
+                    .and(QCaseAssist.caseAssist.companyCode.eq(jobDataMap.getString("companyCode"))));
             assitForce(user, Lists.newArrayList(caseAssistList));
             //更新批量步骤
             jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
@@ -256,7 +257,7 @@ public class OverNightBatchService {
             logger.error(e.getMessage(), e);
             throw new Exception(jobDataMap.getString("companyCode").concat("案件留案流转批量失败"));
         }
-        logger.info("结束留案案件流转_{}",jobDataMap.getString("companyCode"));
+        logger.info("结束留案案件流转_{}", jobDataMap.getString("companyCode"));
     }
 
 
@@ -268,7 +269,7 @@ public class OverNightBatchService {
      */
     @Transactional
     public void doOverNightFive(JobDataMap jobDataMap, String step) throws Exception {
-        logger.info("开始更新案件相关天数更新_{}",jobDataMap.getString("companyCode"));
+        logger.info("开始更新案件相关天数更新_{}", jobDataMap.getString("companyCode"));
         try {
             QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
             JPAQuery<CaseInfo> jpaQuery = new JPAQuery<>(entityManager);
@@ -280,10 +281,10 @@ public class OverNightBatchService {
             List<CaseInfo> caseInfoList = jpaQuery.fetch();
             //更新相关天数
             for (CaseInfo caseInfo : caseInfoList) {
-                caseInfo.setHoldDays(Objects.isNull(caseInfo.getHoldDays()) ? 1 :(caseInfo.getHoldDays()+ 1) );//持案天数
+                caseInfo.setHoldDays(Objects.isNull(caseInfo.getHoldDays()) ? 1 : (caseInfo.getHoldDays() + 1));//持案天数
                 if (Objects.nonNull(caseInfo.getLeaveCaseFlag()) && caseInfo.getLeaveCaseFlag().equals(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())) {
                     //留案天数
-                    caseInfo.setHasLeaveDays(Objects.isNull(caseInfo.getHasLeaveDays())  ? 1 : (caseInfo.getHasLeaveDays()+ 1));
+                    caseInfo.setHasLeaveDays(Objects.isNull(caseInfo.getHasLeaveDays()) ? 1 : (caseInfo.getHasLeaveDays() + 1));
                 }
                 //案件剩余天数
                 Integer leftDays = ZWDateUtil.getBetween(ZWDateUtil.getNowDate(), caseInfo.getCloseDate(), ChronoUnit.DAYS);
@@ -295,14 +296,14 @@ public class OverNightBatchService {
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             caseAssistJPAQuery.select(qCaseAssist)
                     .from(qCaseAssist);
-            caseAssistJPAQuery.where(qCaseAssist.assistStatus.in(28,117,118)//协催未结束
+            caseAssistJPAQuery.where(qCaseAssist.assistStatus.in(28, 117, 118)//协催未结束
                     .and(qCaseAssist.currentCollector.isNotNull())//协催已分配
                     .and(qCaseAssist.companyCode.eq(jobDataMap.getString("companyCode"))));//公司CODE
             List<CaseAssist> caseAssistList = caseAssistJPAQuery.fetch();
             for (CaseAssist caseAssist : caseAssistList) {
-                caseAssist.setHoldDays(Objects.isNull(caseAssist.getHoldDays()) ? 1 :(caseAssist.getHoldDays()+ 1));
-                if(caseAssist.getLeaveCaseFlag().equals(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())){
-                 caseAssist.setHasLeaveDays(Objects.isNull(caseAssist.getHasLeaveDays()) ? 1 : (caseAssist.getHasLeaveDays() + 1));
+                caseAssist.setHoldDays(Objects.isNull(caseAssist.getHoldDays()) ? 1 : (caseAssist.getHoldDays() + 1));
+                if (caseAssist.getLeaveCaseFlag().equals(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())) {
+                    caseAssist.setHasLeaveDays(Objects.isNull(caseAssist.getHasLeaveDays()) ? 1 : (caseAssist.getHasLeaveDays() + 1));
                 }
             }
             caseAssistRepository.save(caseAssistList);
@@ -312,14 +313,15 @@ public class OverNightBatchService {
             logger.error(e.getMessage(), e);
             throw new Exception(jobDataMap.getString("companyCode").concat("案件相关天数更新批量失败"));
         }
-        logger.info("结束更新案件相关天数更新_{}",jobDataMap.getString("companyCode"));
+        logger.info("结束更新案件相关天数更新_{}", jobDataMap.getString("companyCode"));
     }
+
     /**
      * 协催审批失效
      */
     @Transactional
     public void doOverNightSix(JobDataMap jobDataMap, String step) throws Exception {
-        logger.info("开始协催审批失效_{}",jobDataMap.getString("companyCode"));
+        logger.info("开始协催审批失效_{}", jobDataMap.getString("companyCode"));
         QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
         Date nowDate = ZWDateUtil.getNowDate();
         Set<String> idset = new HashSet<>();
@@ -327,30 +329,30 @@ public class OverNightBatchService {
             //电催审批失效配置参数
             SysParam sysParam1 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.ASSIST_APPLY_CODE);
             List<CaseAssistApply> caseInfoList1 = approvePhoneCase(qCaseAssistApply, sysParam1, CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue());
-            for(CaseAssistApply caseAssistApply:caseInfoList1){
+            for (CaseAssistApply caseAssistApply : caseInfoList1) {
                 idset.add(caseAssistApply.getCaseId());
             }
             //电催审批失效更新
-            updatePhoneCase(caseInfoList1,nowDate);
+            updatePhoneCase(caseInfoList1, nowDate);
 
             //外访审批失效配置参数
             SysParam sysParam2 = jobTaskService.getSysparam(jobDataMap.getString("companyCode"), Constants.ASSIST_APPLY_CODE);
             List<CaseAssistApply> caseInfoList2 = approvePhoneCase(qCaseAssistApply, sysParam2, CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue());
-            for(CaseAssistApply caseAssistApply:caseInfoList2){
+            for (CaseAssistApply caseAssistApply : caseInfoList2) {
                 idset.add(caseAssistApply.getCaseId());
             }
             //外访审批失效更新
-            updateOutCase(caseInfoList2,nowDate);
+            updateOutCase(caseInfoList2, nowDate);
             //修改案件协催状态
             if (!idset.isEmpty()) {
-             List<CaseInfo> caseInfoList=   caseInfoRepository.findAll(idset);
-             for(CaseInfo caseInfo:caseInfoList){
-                 caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
-                 caseInfo.setAssistWay(null);
-                 caseInfo.setAssistStatus(null);
-                 caseInfo.setAssistCollector(null);
-             }
-             caseInfoRepository.save(caseInfoList);
+                List<CaseInfo> caseInfoList = caseInfoRepository.findAll(idset);
+                for (CaseInfo caseInfo : caseInfoList) {
+                    caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
+                    caseInfo.setAssistWay(null);
+                    caseInfo.setAssistStatus(null);
+                    caseInfo.setAssistCollector(null);
+                }
+                caseInfoRepository.save(caseInfoList);
             }
             //更新批量步骤
             jobTaskService.updateSysparam(jobDataMap.getString("companyCode"), Constants.SYSPARAM_OVERNIGHT_STEP, step);
@@ -358,7 +360,7 @@ public class OverNightBatchService {
             e.printStackTrace();
             throw new Exception(jobDataMap.getString("companyCode").concat("协催审批更新批量失败"));
         }
-        logger.info("结束协催审批失效_{}",jobDataMap.getString("companyCode"));
+        logger.info("结束协催审批失效_{}", jobDataMap.getString("companyCode"));
     }
 
     /**
@@ -371,12 +373,12 @@ public class OverNightBatchService {
      */
     private List<CaseInfo> leaveTurnCase(QCaseInfo qCaseInfo, SysParam sysParam, Integer collectionType) {
 
-     Iterable<CaseInfo> caseInfoIterable=   caseInfoRepository.findAll(qCaseInfo.leaveCaseFlag.eq(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())//留案
-                                    .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()))//未结案
-                                    .and(qCaseInfo.currentCollector.isNotNull())//催收员不为空
-                                    .and(qCaseInfo.collectionType.eq(collectionType))//催收类型
-                                    .and(qCaseInfo.hasLeaveDays.goe(Integer.parseInt(sysParam.getValue())))//留案天数大于等于配置参数
-                                    .and(qCaseInfo.companyCode.eq(sysParam.getCompanyCode()))); //公司码
+        Iterable<CaseInfo> caseInfoIterable = caseInfoRepository.findAll(qCaseInfo.leaveCaseFlag.eq(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())//留案
+                .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()))//未结案
+                .and(qCaseInfo.currentCollector.isNotNull())//催收员不为空
+                .and(qCaseInfo.collectionType.eq(collectionType))//催收类型
+                .and(qCaseInfo.hasLeaveDays.goe(Integer.parseInt(sysParam.getValue())))//留案天数大于等于配置参数
+                .and(qCaseInfo.companyCode.eq(sysParam.getCompanyCode()))); //公司码
         return Lists.newArrayList(caseInfoIterable);
     }
 
@@ -388,13 +390,13 @@ public class OverNightBatchService {
      * @param collectionType
      */
     private List<CaseInfo> smallTurnCase(SysParam sysParam, QCaseInfo qCaseInfo, Integer collectionType) {
-        Iterable<CaseInfo> caseInfoIterable=caseInfoRepository.findAll(qCaseInfo.leaveCaseFlag.eq(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue())//未留案
-                                    .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()))//未结案
-                                    .and(qCaseInfo.currentCollector.isNotNull())//催收员不为空
-                                    .and(qCaseInfo.collectionType.eq(collectionType))//催收类型
-                                    .and(qCaseInfo.holdDays.goe(Integer.parseInt(sysParam.getValue())))//持有天数大于等于配置参数
-                                    .and(qCaseInfo.followupTime.isNull().or(qCaseInfo.followupTime.lt(qCaseInfo.caseFollowInTime)))//最近跟进日期
-                                    .and(qCaseInfo.companyCode.eq(sysParam.getCompanyCode())));//公司码
+        Iterable<CaseInfo> caseInfoIterable = caseInfoRepository.findAll(qCaseInfo.leaveCaseFlag.eq(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue())//未留案
+                .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()))//未结案
+                .and(qCaseInfo.currentCollector.isNotNull())//催收员不为空
+                .and(qCaseInfo.collectionType.eq(collectionType))//催收类型
+                .and(qCaseInfo.holdDays.goe(Integer.parseInt(sysParam.getValue())))//持有天数大于等于配置参数
+                .and(qCaseInfo.followupTime.isNull().or(qCaseInfo.followupTime.lt(qCaseInfo.caseFollowInTime)))//最近跟进日期
+                .and(qCaseInfo.companyCode.eq(sysParam.getCompanyCode())));//公司码
         return Lists.newArrayList(caseInfoIterable);
     }
 
@@ -407,13 +409,13 @@ public class OverNightBatchService {
      * @return
      */
     private List<CaseInfo> forceTurnCase(SysParam sysParam, QCaseInfo qCaseInfo, Integer collectionType) {
-       Iterable<CaseInfo> caseInfoIterable= caseInfoRepository.findAll(qCaseInfo.leaveCaseFlag.eq(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue())//未留案
-                                    .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()))//未结案
-                                    .and(qCaseInfo.currentCollector.isNotNull())//催收员不为空
-                                    .and(qCaseInfo.collectionType.eq(collectionType))//催收类型
-                                    .and(qCaseInfo.holdDays.goe(Integer.parseInt(sysParam.getValue())))//持案天数
-                                    .and(qCaseInfo.assistFlag.eq(CaseInfo.AssistFlag.NO_ASSIST.getValue()))//协催标志（未协催的）
-                                    .and(qCaseInfo.companyCode.eq(sysParam.getCompanyCode())));//公司码
+        Iterable<CaseInfo> caseInfoIterable = caseInfoRepository.findAll(qCaseInfo.leaveCaseFlag.eq(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue())//未留案
+                .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()))//未结案
+                .and(qCaseInfo.currentCollector.isNotNull())//催收员不为空
+                .and(qCaseInfo.collectionType.eq(collectionType))//催收类型
+                .and(qCaseInfo.holdDays.goe(Integer.parseInt(sysParam.getValue())))//持案天数
+                .and(qCaseInfo.assistFlag.eq(CaseInfo.AssistFlag.NO_ASSIST.getValue()))//协催标志（未协催的）
+                .and(qCaseInfo.companyCode.eq(sysParam.getCompanyCode())));//公司码
         return Lists.newArrayList(caseInfoIterable);
     }
 
@@ -427,12 +429,12 @@ public class OverNightBatchService {
      */
     private void updateCaseInfo(User user, List<CaseInfo> caseInfoList, Integer caseType, String trunDeptName) {
         List<CaseTurnRecord> caseTurnRecordList = new ArrayList<>();
-        Set<String> idSets=new HashSet<>();//记录有协催案件
-        Set<String> caseIdSets=new HashSet<>();//重置案件协催标识
+        Set<String> idSets = new HashSet<>();//记录有协催案件
+        Set<String> caseIdSets = new HashSet<>();//重置案件协催标识
         //更新案件属性
         for (CaseInfo caseInfo : caseInfoList) {
             idSets.add(caseInfo.getId());
-            Department department=caseInfo.getDepartment();
+            Department department = caseInfo.getDepartment();
             //部门ID置空
             caseInfo.setDepartment(null);
             caseInfo.setHoldDays(0);//持案天数
@@ -449,6 +451,7 @@ public class OverNightBatchService {
             caseInfo.setCirculationStatus(null);//小流转状态
             caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());//未协催
             caseInfo.setAssistStatus(null);//协催状态
+            caseInfo.setAssistWay(null); //协催方式
             caseInfo.setAssistCollector(null);//协催员
             caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());//留案标志
             caseInfo.setLeaveDate(null);//留案操作日期
@@ -471,20 +474,20 @@ public class OverNightBatchService {
             caseTurnRecordList.add(caseTurnRecord);
         }
         //协催审批结束
-        Iterable<CaseAssistApply> caseAssistApplyList=caseAssistApplyRepository.findAll(QCaseAssistApply.caseAssistApply.approveStatus.in(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue(),CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue())
+        Iterable<CaseAssistApply> caseAssistApplyList = caseAssistApplyRepository.findAll(QCaseAssistApply.caseAssistApply.approveStatus.in(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue(), CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue())
                 .and(QCaseAssistApply.caseAssistApply.caseId.in(idSets)));
-        for(Iterator<CaseAssistApply> it=caseAssistApplyList.iterator();it.hasNext();){
-            CaseAssistApply obj=it.next();
-            if(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue().equals(obj.getApproveStatus())){
+        for (Iterator<CaseAssistApply> it = caseAssistApplyList.iterator(); it.hasNext(); ) {
+            CaseAssistApply obj = it.next();
+            if (CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue().equals(obj.getApproveStatus())) {
                 obj.setApproveStatus(CaseAssistApply.ApproveStatus.TEL_COMPLETE.getValue());
             }
-            if(CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue().equals(obj.getApproveStatus())){
+            if (CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue().equals(obj.getApproveStatus())) {
                 obj.setApproveStatus(CaseAssistApply.ApproveStatus.VISIT_COMPLETE.getValue());
             }
             obj.setApprovePhoneResult(CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
             caseIdSets.add(obj.getCaseId());
         }
-        List<CaseInfo> caseInfoList1=caseInfoRepository.findAll(caseIdSets);
+        List<CaseInfo> caseInfoList1 = caseInfoRepository.findAll(caseIdSets);
         updateCaseInfoAssit(caseInfoList1);
         caseInfoRepository.save(caseInfoList1);
         caseAssistApplyRepository.save(caseAssistApplyList);
@@ -493,7 +496,7 @@ public class OverNightBatchService {
     }
 
     private void updateCaseInfoAssit(List<CaseInfo> caseInfoList1) {
-        for(CaseInfo caseInfo:caseInfoList1){
+        for (CaseInfo caseInfo : caseInfoList1) {
             caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());//协催标志
             caseInfo.setAssistCollector(null);//协催员
             caseInfo.setAssistStatus(null);//协催状态
@@ -505,32 +508,35 @@ public class OverNightBatchService {
      * 电催/外访待审批
      */
     private List<CaseAssistApply> approvePhoneCase(QCaseAssistApply qCaseAssistApply, SysParam sysParam, Integer type) {
-       Iterable<CaseAssistApply> caseAssistApplyIterable= caseAssistApplyRepository.findAll(qCaseAssistApply.approveStatus.eq(type)
-                                    .and(qCaseAssistApply.applyInvalidTime.loe(ZWDateUtil.getNowDate()))
-                                    .and(qCaseAssistApply.companyCode.eq(sysParam.getCompanyCode())));
+        Iterable<CaseAssistApply> caseAssistApplyIterable = caseAssistApplyRepository.findAll(qCaseAssistApply.approveStatus.eq(type)
+                .and(qCaseAssistApply.applyInvalidTime.loe(ZWDateUtil.getNowDate()))
+                .and(qCaseAssistApply.companyCode.eq(sysParam.getCompanyCode())));
         return Lists.newArrayList(caseAssistApplyIterable);
     }
 
     /**
      * 更新审批状态和审批结果
+     *
      * @param caseInfoList1
      * @param date
      */
-    public void updatePhoneCase(List<CaseAssistApply> caseInfoList1,Date date){
-        for(CaseAssistApply caseAssistApply:caseInfoList1){
+    public void updatePhoneCase(List<CaseAssistApply> caseInfoList1, Date date) {
+        for (CaseAssistApply caseAssistApply : caseInfoList1) {
             caseAssistApply.setApproveStatus(CaseAssistApply.ApproveStatus.FAILURE.getValue());//审批状态
             caseAssistApply.setApprovePhoneResult(CaseAssistApply.ApproveResult.OUT_DATE.getValue());//审批结果
             caseAssistApplyRepository.save(caseAssistApply);
         }
 
     }
+
     /**
      * 更新WAIFANG 审批状态和审批结果
+     *
      * @param caseInfoList2
      * @param date
      */
-    public void updateOutCase(List<CaseAssistApply> caseInfoList2,Date date){
-        for(CaseAssistApply caseAssistApply:caseInfoList2){
+    public void updateOutCase(List<CaseAssistApply> caseInfoList2, Date date) {
+        for (CaseAssistApply caseAssistApply : caseInfoList2) {
             caseAssistApply.setApproveStatus(CaseAssistApply.ApproveStatus.FAILURE.getValue());//审批状态
             caseAssistApply.setApproveOutResult(CaseAssistApply.ApproveResult.OUT_DATE.getValue());//审批结果
             caseAssistApplyRepository.save(caseAssistApply);
@@ -539,12 +545,13 @@ public class OverNightBatchService {
 
     /**
      * 协催案件强制流转
+     *
      * @param user
      * @param caseAssistList
      */
     private void assitForce(User user, List<CaseAssist> caseAssistList) {
-        Set<String> caseIds=new HashSet<>();
-        for(CaseAssist caseAssist:caseAssistList){
+        Set<String> caseIds = new HashSet<>();
+        for (CaseAssist caseAssist : caseAssistList) {
             caseIds.add(caseAssist.getId());
             //协催案件结束
             caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue());
@@ -554,7 +561,7 @@ public class OverNightBatchService {
             caseAssist.setMarkId(CaseInfo.Color.NO_COLOR.getValue());
         }
         caseAssistRepository.save(caseAssistList);
-        List<CaseInfo> caseInfoList1= caseInfoRepository.findAll(caseIds);
+        List<CaseInfo> caseInfoList1 = caseInfoRepository.findAll(caseIds);
         updateCaseInfoAssit(caseInfoList1);
         caseInfoRepository.save(caseInfoList1);
     }
