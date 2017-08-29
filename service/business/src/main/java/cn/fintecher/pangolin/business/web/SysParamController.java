@@ -138,7 +138,7 @@ public class SysParamController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "syspram value is illegitmacy", "参数值为空")).body(null);
             }
-            if(!value.matches("/^[1-5][0-9]$/")){
+            if(!value.matches("^[1-5][0-9]$")){
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                         "syspram value is illegitmacy", "参数输入不合法")).body(null);
             }
