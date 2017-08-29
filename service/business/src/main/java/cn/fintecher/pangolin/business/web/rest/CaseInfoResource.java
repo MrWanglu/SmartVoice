@@ -1,9 +1,6 @@
 package cn.fintecher.pangolin.business.web.rest;
 
-import cn.fintecher.pangolin.business.repository.CaseInfoDistributedRepository;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
-import cn.fintecher.pangolin.business.repository.CaseRepairRepository;
-import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
+import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -39,12 +36,21 @@ public class CaseInfoResource {
     CaseTurnRecordRepository caseTurnRecordRepository;
     @Inject
     private  CaseRepairRepository caseRepairRepository;
+    @Inject
+    private CaseInfoExceptionRepository caseInfoExceptionRepository;
 
     @GetMapping("/getAllCaseInfo")
     @ApiOperation(value = "查询所有已确认案件", notes = "查询所有已确认案件")
     public ResponseEntity<Iterable<CaseInfoDistributed>> getAllCaseInfo(@RequestParam String companyCode) throws URISyntaxException {
         log.debug("REST request to get all of CaseInfo");
         Iterable<CaseInfoDistributed> caseInfoList = caseInfoDistributedRepository.findAll(QCaseInfoDistributed.caseInfoDistributed.companyCode.eq(companyCode));
+        return new ResponseEntity<>(caseInfoList, HttpStatus.OK);
+    }
+    @GetMapping("/getAllExceptionCaseInfo")
+    @ApiOperation(value = "查询异常池案件", notes = "查询异常池案件")
+    public ResponseEntity<Iterable<CaseInfoException>> getAllExceptionCaseInfo(@RequestParam String companyCode) throws URISyntaxException {
+        log.debug("REST request to get all of CaseInfo");
+        Iterable<CaseInfoException> caseInfoList = caseInfoExceptionRepository.findAll(QCaseInfoException.caseInfoException.companyCode.eq(companyCode));
         return new ResponseEntity<>(caseInfoList, HttpStatus.OK);
     }
     @PostMapping("/saveCaseInfo")

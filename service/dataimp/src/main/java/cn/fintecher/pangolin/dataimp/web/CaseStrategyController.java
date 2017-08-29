@@ -184,6 +184,22 @@ public class CaseStrategyController {
     @PostMapping("/smartDistribute")
     @ApiOperation(value = "策略分配案件", notes = "策略分配案件")
     public ResponseEntity smartDistribute(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
+
+        ResponseEntity<User> userResult = null;
+        userResult = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+        if (!userResult.hasBody()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "用户未登录")).body(null);
+        }
+        User user = userResult.getBody();
+        String cmpanyCode = user.getCompanyCode();
+        ParameterizedTypeReference<List<CaseInfoException>> responseType = new ParameterizedTypeReference<List<CaseInfoException>>() {
+        };
+        ResponseEntity<List<CaseInfoException>> resp = restTemplate.exchange(Constants.BUSINESS_SERVICE_URL.concat("getAllExceptionCaseInfo").concat("?companyCode=").concat(cmpanyCode),
+                HttpMethod.GET, null, responseType);
+        List<CaseInfoException> caseInfoExceptions = resp.getBody();
+        if(caseInfoExceptions.size()>0){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "有异常案件未处理,请先处理")).body(null);
+        }
         List<CaseStrategy> caseStrategies = caseStrategyRepository.findAll(new Sort(Sort.Direction.ASC, "priority"));
         if (caseStrategies.isEmpty()) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no strategy", "没有查询到的分配策略")).body("");
@@ -195,12 +211,6 @@ public class CaseStrategyController {
         //计算平均分配案件数
         // List<Integer> disNumList = new ArrayList<>();
         for (CaseStrategy caseStrategy : caseStrategies) {
-            ResponseEntity<User> userResult = null;
-            userResult = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-            if (!userResult.hasBody()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "用户未登录")).body(null);
-            }
-            User user = userResult.getBody();
             String companyCode = user.getCompanyCode();
             //得到符合分配策略的案件 caseInfos
             List<CaseInfoDistributed> caseInfos = runCaseRun(caseStrategy, false,companyCode);
