@@ -52,9 +52,9 @@
     <select id="saveHistoryReport" parameterType="Date"
             resultType="cn.fintecher.pangolin.report.entity.BackMoneyReport">
         SELECT parentDeptCode,parentDeptName,deptCode,deptName,userName,realName,backMoney,companyCode,backDate from
-        (SELECT b.deptCode as parentDeptCode,b.deptName as parentDeptName,b.groupCode as deptCode,b.groupName as deptName,b.userName,b.realName,a.backMoney,a.companyCode,DATE_FORMAT(NOW(),'%Y-%m-%d') as backDate from
+        (SELECT b.deptCode as parentDeptCode,b.deptName as parentDeptName,b.groupCode as deptCode,b.groupName as deptName,b.userName,b.realName,a.backMoney,a.companyCode,DATE_FORMAT(#{historyDate},'%Y-%m-%d') as backDate from
         (SELECT apply_user_name as userName,apply_real_name as realName,sum(case when apply_pay_amt is null then 0 else apply_pay_amt end + case when apply_derate_amt is null then 0 else apply_derate_amt end) as
-        backMoney,company_code as companyCode from case_pay_apply where approve_status = 58 and DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d') GROUP BY userName,realName,companyCode) a
+        backMoney,company_code as companyCode from case_pay_apply where approve_status = 58 and DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') = DATE_FORMAT(#{historyDate},'%Y-%m-%d') GROUP BY userName,realName,companyCode) a
         left join
         (SELECT l.deptCode,l.deptName,l.groupCode,l.groupName,k.userName,k.realName from
         (SELECT user_name as userName,dept_id as deptId,real_name as realName from user) k
@@ -65,7 +65,7 @@
 		(SELECT id,`code` as deptCode,`name` as deptName from department) g on f.pid = g.id)) l on k.deptId = l.id) b
 		on a.userName = b.userName
         UNION
-        SELECT b.deptCode as parentDeptCode,b.deptName as parentDeptName,b.groupCode as deptCode,b.groupName as deptName,a.userName,a.realName,0 as backMoney,a.companyCode,DATE_FORMAT(NOW(),'%Y-%m-%d') as backDate from (SELECT user_name as userName,real_name as realName,company_code
+        SELECT b.deptCode as parentDeptCode,b.deptName as parentDeptName,b.groupCode as deptCode,b.groupName as deptName,a.userName,a.realName,0 as backMoney,a.companyCode,DATE_FORMAT(#{historyDate},'%Y-%m-%d') as backDate from (SELECT user_name as userName,real_name as realName,company_code
         as companyCode from user where id in
         (SELECT current_collector as userId from case_info where current_collector not in(SELECT id from user where
         user_name in
