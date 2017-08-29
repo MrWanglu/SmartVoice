@@ -84,7 +84,7 @@ public class CaseInfoAppController extends BaseController {
         }
         builder.and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue()));
         if (Objects.nonNull(name)) {
-            builder.and(QCaseAssist.caseAssist.caseId.personalInfo.name.startsWith(name));
+            builder.and(QCaseAssist.caseAssist.caseId.personalInfo.name.contains(name));
         }
         if (Objects.nonNull(address)) {
             builder.and(QCaseAssist.caseAssist.caseId.personalInfo.localHomeAddress.contains(address));
@@ -143,7 +143,7 @@ public class CaseInfoAppController extends BaseController {
         builder.and(QCaseInfo.caseInfo.collectionStatus.in(status));
         builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(), CaseInfo.CaseType.OUTLEAVETURN.getValue()));
         if (Objects.nonNull(name)) {
-            builder.and(QCaseInfo.caseInfo.personalInfo.name.startsWith(name));
+            builder.and(QCaseInfo.caseInfo.personalInfo.name.contains(name));
         }
         if (Objects.nonNull(address)) {
             builder.and(QCaseInfo.caseInfo.personalInfo.localHomeAddress.contains(address));
