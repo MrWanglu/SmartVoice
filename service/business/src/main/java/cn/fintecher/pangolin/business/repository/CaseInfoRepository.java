@@ -24,6 +24,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
     default void customize(final QuerydslBindings bindings, final QCaseInfo root) {
 
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
+        bindings.bind(root.id).first((path, value) -> path.eq(value));
         bindings.bind(root.product.prodcutName).first((path, value) -> path.eq(value));
         //机构码搜索
         bindings.bind(root.department.code).first((path, value) -> path.startsWith(value));
