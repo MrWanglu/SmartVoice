@@ -308,72 +308,80 @@ public class OutsourcePoolController extends BaseController {
                 AccOutsourcePoolModel accOutsourcePoolModel = new AccOutsourcePoolModel();
                 CaseInfo caseInfo = outsourcePool.getCaseInfo();
                 accOutsourcePoolModel.setCaseCode(caseInfo.getCaseNumber());
-                accOutsourcePoolModel.setCommissionRate(caseInfo.getCommissionRate().toString());
-                accOutsourcePoolModel.setContractAmount(caseInfo.getContractAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
-                if (Objects.nonNull(caseInfo.getPerPayAmount())) {
-                    accOutsourcePoolModel.setCurrentAmount(caseInfo.getPerPayAmount().toString());//每期还款金额
-                }
-                accOutsourcePoolModel.setCurrentPayDate(ZWDateUtil.fomratterDate(caseInfo.getPerDueDate(),"yyyy-MM-dd"));//每期还款日
-                accOutsourcePoolModel.setCustName(caseInfo.getPersonalInfo().getName());
-                Set set = caseInfo.getPersonalInfo().getPersonalJobs();
-                PersonalJob personalJob = null;
-                if (!set.isEmpty()){
-                    personalJob = (PersonalJob)set.iterator().next();
-                }
-
-                if (Objects.nonNull(personalJob)){
-                    accOutsourcePoolModel.setEmployerAddress(personalJob.getAddress());
-                    accOutsourcePoolModel.setEmployerName(personalJob.getCompanyName());
-                    accOutsourcePoolModel.setEmployerPhone(personalJob.getPhone());
-                }
-                if (Objects.nonNull(caseInfo.getHasPayAmount())) {
-                    accOutsourcePoolModel.setHasPayAmount(caseInfo.getHasPayAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
-                }
-                if (Objects.nonNull(caseInfo.getHasPayPeriods())) {
-                    accOutsourcePoolModel.setHasPayPeriods(caseInfo.getHasPayPeriods().toString());
-                }
-                accOutsourcePoolModel.setHomeAddress(caseInfo.getPersonalInfo().getLocalHomeAddress());
-                accOutsourcePoolModel.setIdCardNumber(caseInfo.getPersonalInfo().getIdCard());
-                if (Objects.nonNull(caseInfo.getLatelyPayAmount())) {
-                    accOutsourcePoolModel.setLastPayAmount(caseInfo.getLatelyPayAmount().toString());//最近还款金额
-                }
-                if (Objects.nonNull(caseInfo.getLatelyPayDate())) {
-                    accOutsourcePoolModel.setLastPayDate(ZWDateUtil.fomratterDate(caseInfo.getLatelyPayDate(),"yyyy-MM-dd"));//最近还款日期
-                }
-                if (Objects.nonNull(caseInfo.getOverdueAmount())) {
-                    accOutsourcePoolModel.setOverDueAmount(caseInfo.getOverdueAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
-                }
-                if (Objects.nonNull(caseInfo.getOverdueCapital())) {
-                    accOutsourcePoolModel.setOverDueCapital(caseInfo.getOverdueCapital().toString());//逾期本金
-                }
-                if (Objects.nonNull(caseInfo.getOverdueDays())) {
-                    accOutsourcePoolModel.setOverDueDays(caseInfo.getOverdueDays().toString());
-                }
-                if (Objects.nonNull(caseInfo.getOverdueFine())) {
-                    accOutsourcePoolModel.setOverDueDisincentive(caseInfo.getOverdueFine().toString());//逾期罚息
-                }
-                if (Objects.nonNull(caseInfo.getOverdueDelayFine())) {
-                    accOutsourcePoolModel.setOverDueFine(caseInfo.getOverdueDelayFine().toString());//逾期滞纳金
-                }
-                if (Objects.nonNull(caseInfo.getOverdueInterest())) {
-                    accOutsourcePoolModel.setOverDueInterest(caseInfo.getOverdueInterest().toString());//逾期利息
-                }
-                if (Objects.nonNull(caseInfo.getOverduePeriods())) {
-                    accOutsourcePoolModel.setOverDuePeriods(caseInfo.getOverduePeriods().toString());//逾期期数
-                }
-                if (Objects.nonNull(caseInfo.getPersonalInfo())) {
-                    accOutsourcePoolModel.setPhoneNumber(caseInfo.getPersonalInfo().getMobileNo());
-                }
-                if (Objects.nonNull(caseInfo.getProduct())) {
-                    if (Objects.nonNull(caseInfo.getProduct().getProductSeries())) {
-                        accOutsourcePoolModel.setProductSeries(caseInfo.getProduct().getProductSeries().getSeriesName());
+                if (Objects.nonNull(caseInfo)) {
+                    if (Objects.nonNull(caseInfo.getCommissionRate())) {
+                        accOutsourcePoolModel.setCommissionRate(caseInfo.getCommissionRate().toString());
                     }
-                }
-                if (Objects.nonNull(caseInfo.getProduct())) {
-                    accOutsourcePoolModel.setProductName(caseInfo.getProduct().getProdcutName());
-                }
-                if (Objects.nonNull(caseInfo.getPeriods())) {
-                    accOutsourcePoolModel.setPayPeriods(caseInfo.getPeriods().toString());//还款总期数
+                    if (Objects.nonNull(caseInfo.getContractAmount())) {
+                        accOutsourcePoolModel.setContractAmount(caseInfo.getContractAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
+                    }
+                    if (Objects.nonNull(caseInfo.getPerPayAmount())) {
+                        accOutsourcePoolModel.setCurrentAmount(caseInfo.getPerPayAmount().toString());//每期还款金额
+                    }
+                    accOutsourcePoolModel.setCurrentPayDate(ZWDateUtil.fomratterDate(caseInfo.getPerDueDate(),"yyyy-MM-dd"));//每期还款日
+                    if (Objects.nonNull(caseInfo.getPersonalInfo())) {
+                        accOutsourcePoolModel.setCustName(caseInfo.getPersonalInfo().getName());
+                    }
+                    Set set = caseInfo.getPersonalInfo().getPersonalJobs();
+                    PersonalJob personalJob = null;
+                    if (!set.isEmpty()){
+                        personalJob = (PersonalJob)set.iterator().next();
+                    }
+
+                    if (Objects.nonNull(personalJob)){
+                        accOutsourcePoolModel.setEmployerAddress(personalJob.getAddress());
+                        accOutsourcePoolModel.setEmployerName(personalJob.getCompanyName());
+                        accOutsourcePoolModel.setEmployerPhone(personalJob.getPhone());
+                    }
+                    if (Objects.nonNull(caseInfo.getHasPayAmount())) {
+                        accOutsourcePoolModel.setHasPayAmount(caseInfo.getHasPayAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
+                    }
+                    if (Objects.nonNull(caseInfo.getHasPayPeriods())) {
+                        accOutsourcePoolModel.setHasPayPeriods(caseInfo.getHasPayPeriods().toString());
+                    }
+                    accOutsourcePoolModel.setHomeAddress(caseInfo.getPersonalInfo().getLocalHomeAddress());
+                    accOutsourcePoolModel.setIdCardNumber(caseInfo.getPersonalInfo().getIdCard());
+                    if (Objects.nonNull(caseInfo.getLatelyPayAmount())) {
+                        accOutsourcePoolModel.setLastPayAmount(caseInfo.getLatelyPayAmount().toString());//最近还款金额
+                    }
+                    if (Objects.nonNull(caseInfo.getLatelyPayDate())) {
+                        accOutsourcePoolModel.setLastPayDate(ZWDateUtil.fomratterDate(caseInfo.getLatelyPayDate(),"yyyy-MM-dd"));//最近还款日期
+                    }
+                    if (Objects.nonNull(caseInfo.getOverdueAmount())) {
+                        accOutsourcePoolModel.setOverDueAmount(caseInfo.getOverdueAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
+                    }
+                    if (Objects.nonNull(caseInfo.getOverdueCapital())) {
+                        accOutsourcePoolModel.setOverDueCapital(caseInfo.getOverdueCapital().toString());//逾期本金
+                    }
+                    if (Objects.nonNull(caseInfo.getOverdueDays())) {
+                        accOutsourcePoolModel.setOverDueDays(caseInfo.getOverdueDays().toString());
+                    }
+                    if (Objects.nonNull(caseInfo.getOverdueFine())) {
+                        accOutsourcePoolModel.setOverDueDisincentive(caseInfo.getOverdueFine().toString());//逾期罚息
+                    }
+                    if (Objects.nonNull(caseInfo.getOverdueDelayFine())) {
+                        accOutsourcePoolModel.setOverDueFine(caseInfo.getOverdueDelayFine().toString());//逾期滞纳金
+                    }
+                    if (Objects.nonNull(caseInfo.getOverdueInterest())) {
+                        accOutsourcePoolModel.setOverDueInterest(caseInfo.getOverdueInterest().toString());//逾期利息
+                    }
+                    if (Objects.nonNull(caseInfo.getOverduePeriods())) {
+                        accOutsourcePoolModel.setOverDuePeriods(caseInfo.getOverduePeriods().toString());//逾期期数
+                    }
+                    if (Objects.nonNull(caseInfo.getPersonalInfo())) {
+                        accOutsourcePoolModel.setPhoneNumber(caseInfo.getPersonalInfo().getMobileNo());
+                    }
+                    if (Objects.nonNull(caseInfo.getProduct())) {
+                        if (Objects.nonNull(caseInfo.getProduct().getProductSeries())) {
+                            accOutsourcePoolModel.setProductSeries(caseInfo.getProduct().getProductSeries().getSeriesName());
+                        }
+                    }
+                    if (Objects.nonNull(caseInfo.getProduct())) {
+                        accOutsourcePoolModel.setProductName(caseInfo.getProduct().getProdcutName());
+                    }
+                    if (Objects.nonNull(caseInfo.getPeriods())) {
+                        accOutsourcePoolModel.setPayPeriods(caseInfo.getPeriods().toString());//还款总期数
+                    }
                 }
                 accOutsourcePoolModels.add(accOutsourcePoolModel);
             }
