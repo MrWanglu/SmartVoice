@@ -101,14 +101,18 @@ public class CasePayApplyAppController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
-        caseInfoService.doPay(payApplyParams, user);
-        CaseAssist caseAssist = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.id.eq(payApplyParams.getCaseId())
-                .and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue())));
-        if(Objects.nonNull(caseAssist)) {
-            caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
+        try {
+            caseInfoService.doPay(payApplyParams, user);
+            CaseAssist caseAssist = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.id.eq(payApplyParams.getCaseId())
+                    .and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue())));
+            if (Objects.nonNull(caseAssist)) {
+                caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
+            }
+            caseAssistRepository.save(caseAssist);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("申请还款成功", "CasePayApply")).body(null);
+        }catch(Exception e){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
-        caseAssistRepository.save(caseAssist);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("申请还款成功", "CasePayApply")).body(null);
     }
 
     /**
