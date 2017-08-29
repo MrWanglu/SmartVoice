@@ -885,29 +885,46 @@ public class ReportService {
      * @Description 添加组长名称
      */
     private List<PerformanceRankingReport> saveGroupLeader(List<PerformanceRankingReport> performanceRankingReports) {
-        PerformanceRankingReport report = null;
+        performanceRankingReports.sort((o1, o2) -> o2.getDeptCode().compareTo(o1.getDeptCode()));
+
+        Map<String, List<PerformanceRankingReport>> map = new LinkedHashMap<>();
         for (PerformanceRankingReport performanceRankingReport1 : performanceRankingReports) {
-
-            Integer manage = performanceRankingReportMapper.getManage(performanceRankingReport1.getUserName(), performanceRankingReport1.getCompanyCode());
-            if (1 == manage) { //是管理者
-                report = performanceRankingReport1;
-                break;
-            }
-        }
-        if (Objects.nonNull(report)) {
-            for (PerformanceRankingReport performanceRankingReport2 : performanceRankingReports) {
-                performanceRankingReport2.setManageName(report.getRealName());
+            if (map.containsKey(performanceRankingReport1.getDeptCode())) {
+                List<PerformanceRankingReport> performanceRankingReportList = map.get(performanceRankingReport1.getDeptCode());
+                performanceRankingReportList.add(performanceRankingReport1);
+                map.put(performanceRankingReport1.getDeptCode(), performanceRankingReportList);
+            } else {
+                List<PerformanceRankingReport> performanceRankingReportList = new ArrayList<>();
+                performanceRankingReportList.add(performanceRankingReport1);
+                map.put(performanceRankingReport1.getDeptCode(), performanceRankingReportList);
             }
         }
 
-        //过滤组长
-        for (PerformanceRankingReport performanceRankingReport : performanceRankingReports) {
-            if (Objects.equals(performanceRankingReport.getRealName(), performanceRankingReport.getManageName())) {
-                performanceRankingReports.remove(performanceRankingReport);
-                break;
+        List<PerformanceRankingReport> list = new ArrayList<>();
+        for (Map.Entry<String, List<PerformanceRankingReport>> entry : map.entrySet()) {
+            PerformanceRankingReport report = null;
+            for (PerformanceRankingReport performanceRankingReport : entry.getValue()) {
+                Integer manage = performanceRankingReportMapper.getManage(performanceRankingReport.getUserName(), performanceRankingReport.getCompanyCode());
+                if (1 == manage) { //是管理者
+                    report = performanceRankingReport;
+                    break;
+                }
             }
+            if (Objects.nonNull(report)) {
+                for (PerformanceRankingReport performanceRankingReport2 : entry.getValue()) {
+                    performanceRankingReport2.setManageName(report.getRealName());
+                }
+            }
+            //过滤组长
+            for (PerformanceRankingReport performanceRankingReport : entry.getValue()) {
+                if (Objects.equals(performanceRankingReport.getRealName(), performanceRankingReport.getManageName())) {
+                    performanceRankingReports.remove(performanceRankingReport);
+                    break;
+                }
+            }
+            list.addAll(performanceRankingReports);
         }
-        return performanceRankingReports;
+        return list;
     }
 
     /**
