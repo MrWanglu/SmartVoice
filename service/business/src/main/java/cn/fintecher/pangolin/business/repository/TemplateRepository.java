@@ -17,7 +17,6 @@ public interface TemplateRepository extends QueryDslPredicateExecutor<Template>,
     @Override
     default void customize(final QuerydslBindings bindings, final QTemplate root) {
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
-        bindings.bind(root.templateName).first((path, value) -> path.eq(value));
     }
 
     List<Template> findByTemplateNameOrTemplateCode(String templateName, String templateCode);

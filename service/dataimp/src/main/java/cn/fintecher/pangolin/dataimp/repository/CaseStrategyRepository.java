@@ -16,6 +16,5 @@ public interface CaseStrategyRepository extends MongoRepository<CaseStrategy, St
     @Override
     default void customize(final QuerydslBindings bindings, final QCaseStrategy root) {
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
-        bindings.bind(root.name).first((path, value) -> path.eq(value));
     }
 }

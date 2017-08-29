@@ -20,7 +20,6 @@ public interface TemplateDataModelRepository extends MongoRepository<TemplateDat
     @Override
     default void customize(final QuerydslBindings bindings, final QTemplateDataModel root) {
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
-        bindings.bind(root.templateName).first((path, value) -> path.eq(value));
     }
     public List<TemplateDataModel> findTemplateByPrincipalNameAndCompanyCode(String principalName,String companyCode);
 }
