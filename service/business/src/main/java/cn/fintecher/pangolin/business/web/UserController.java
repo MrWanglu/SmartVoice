@@ -150,8 +150,8 @@ public class UserController extends BaseController {
         Set<UserDevice> userDevices = new HashSet<>();
         UserDevice userDevicePc = new UserDevice();
         userDevicePc.setUserId(user.getId());
-        userDevicePc.setStatus(Status.Disable.getValue());
-        userDevicePc.setValidate(Status.Disable.getValue());
+        userDevicePc.setStatus(Status.Enable.getValue());
+        userDevicePc.setValidate(Status.Enable.getValue());
         userDevicePc.setType(Status.Enable.getValue());
         userDevicePc.setOperateTime(ZWDateUtil.getNowDateTime());
         userDeviceRepository.saveAndFlush(userDevicePc);
@@ -159,8 +159,8 @@ public class UserController extends BaseController {
 
         UserDevice userDeviceApp = new UserDevice();
         userDeviceApp.setUserId(user.getId());
-        userDeviceApp.setStatus(Status.Disable.getValue());
-        userDeviceApp.setValidate(Status.Disable.getValue());
+        userDeviceApp.setStatus(Status.Enable.getValue());
+        userDeviceApp.setValidate(Status.Enable.getValue());
         userDeviceApp.setType(Status.Disable.getValue());
         userDeviceApp.setOperateTime(ZWDateUtil.getNowDateTime());
         userDeviceRepository.saveAndFlush(userDeviceApp);
