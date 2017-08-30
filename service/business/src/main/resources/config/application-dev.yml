@@ -36,13 +36,13 @@ spring:
         host: 192.168.3.10
         port: 6379
         expireTime: 3600
-    threadPool:
-       corePoolSize: 10
-       maxPoolSize: 200
-       keepAliveSeconds: 60
-       queueCapacity: 500
-       allowCoreThreadTimeout: false
-       threadNamePrefix: pangolin-
+threadPool:
+   corePoolSize: 10
+   maxPoolSize: 200
+   keepAliveSeconds: 60
+   queueCapacity: 500
+   allowCoreThreadTimeout: false
+   threadNamePrefix: pangolin-
 
 eureka:
   instance:
