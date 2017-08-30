@@ -11,7 +11,6 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import org.springframework.data.repository.query.Param;
 
 
 /**
@@ -32,7 +31,7 @@ public interface CaseAssistRepository extends QueryDslPredicateExecutor<CaseAssi
             "SELECT COUNT(*) AS numa FROM case_info " +
             "WHERE current_collector = :userId " +
             "AND leave_case_flag = 1 " +
-            "AND collection_status IN (20, 21, 22, 23, 25) " +
+            "AND collection_status IN (20, 21, 22, 23, 25,171, 172) " +
             ") AS a, " +
             "( " +
             "SELECT COUNT(*) AS numb FROM case_assist " +
