@@ -44,13 +44,13 @@
         LEFT JOIN
         (SELECT id,`code` as parentDeptCode,`name` as parentDeptName from department) t on s.pid = t.id
         ) v on u.dept_id = v.id
-        ) x on w.current_collector = x.id where companyCode = #{companyCode} and x.parentDeptCode LIKE
+        ) x on w.current_collector = x.id where companyCode = #{companyCode} and x.deptCode LIKE
         CONCAT(#{deptCode},'%')
         <if test="realName != null">
             AND x.realName LIKE CONCAT('%',#{realName},'%')
         </if>
         <if test="code != null">
-            AND x.parentDeptCode LIKE CONCAT(#{code},'%')
+            AND x.deptCode LIKE CONCAT(#{code},'%')
         </if>
         ORDER BY x.deptCode asc,monthBackMoney desc
     </select>
@@ -93,7 +93,7 @@
     <select id="getHistoryReport" parameterType="cn.fintecher.pangolin.report.model.PerformanceRankingParams"
             resultMap="performanceRankingReport">
         SELECT * from performance_ranking_report
-        where company_code = #{companyCode} and parent_dept_code like CONCAT(#{deptCode},'%')
+        where company_code = #{companyCode} and dept_code like CONCAT(#{deptCode},'%')
         <if test="date != null">
             AND DATE_FORMAT(now_date,'%Y-%m-%d') = #{date}
         </if>
@@ -101,9 +101,9 @@
             AND real_name LIKE CONCAT('%',#{realName},'%')
         </if>
         <if test="code != null">
-            AND parent_dept_code LIKE CONCAT(#{cope},'%')
+            AND dept_code LIKE CONCAT(#{cope},'%')
         </if>
-        ORDER BY parent_dept_code asc, month_back_money desc
+        ORDER BY dept_code asc, month_back_money desc
     </select>
 
     <!-- 查询是否是管理者 -->
@@ -154,13 +154,13 @@
         LEFT JOIN
         (SELECT id,`code` as parentDeptCode,`name` as parentDeptName from department) t on s.pid = t.id
         ) v on u.dept_id = v.id
-        ) x on w.current_collector = x.id where companyCode = #{companyCode} and x.parentDeptCode LIKE
+        ) x on w.current_collector = x.id where companyCode = #{companyCode} and x.deptCode LIKE
         CONCAT(#{deptCode},'%')
         <if test="realName != null">
             AND x.realName LIKE CONCAT('%',#{realName},'%')
         </if>
         <if test="code != null">
-            AND x.parentDeptCode LIKE CONCAT(#{code},'%')
+            AND x.deptCode LIKE CONCAT(#{code},'%')
         </if>
         ORDER BY x.deptCode asc,monthBackMoney desc
     </select>
@@ -169,7 +169,7 @@
     <select id="getHistorySummayReport" parameterType="cn.fintecher.pangolin.report.model.PerformanceRankingParams"
             resultMap="performanceRankingReport">
         SELECT * from performance_ranking_report
-        where company_code = #{companyCode} and parent_dept_code like CONCAT(#{deptCode},'%')
+        where company_code = #{companyCode} and dept_code like CONCAT(#{deptCode},'%')
         <if test="date != null">
             AND DATE_FORMAT(now_date,'%Y-%m-%d') = #{date}
         </if>
@@ -177,7 +177,7 @@
             AND real_name LIKE CONCAT('%',#{realName},'%')
         </if>
         <if test="code != null">
-            AND parent_dept_code LIKE CONCAT(#{cope},'%')
+            AND dept_code LIKE CONCAT(#{cope},'%')
         </if>
         ORDER BY dept_code desc,month_back_money desc
     </select>
