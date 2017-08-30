@@ -53,7 +53,7 @@ public class CallReportController extends BaseController {
     })
     public ResponseEntity<Page<CaseFollowupRecord>> query(@RequestParam String companyCode,
                                                           @RequestParam Integer callType,
-                                                          @RequestParam(required = false) String userName,
+                                                          @RequestParam(required = false) String operatorName,
                                                           @ApiIgnore Pageable pageable,
                                                           @RequestHeader(value = "X-UserToken") String token) {
         User user;
@@ -68,8 +68,8 @@ public class CallReportController extends BaseController {
         if (Objects.nonNull(companyCode)) {
             builder.and(qCaseFollowupRecord.companyCode.eq(companyCode));
         }
-        if (Objects.nonNull(userName)) {
-            builder.and(qCaseFollowupRecord.operatorName.like(userName.concat("%")));
+        if (Objects.nonNull(operatorName)) {
+            builder.and(qCaseFollowupRecord.operatorName.like(operatorName.concat("%")));
         }
         if (Objects.nonNull(callType)) {
             builder.and(qCaseFollowupRecord.callType.eq(callType));
