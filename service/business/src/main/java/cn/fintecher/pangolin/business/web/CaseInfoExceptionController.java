@@ -116,8 +116,13 @@ public class CaseInfoExceptionController extends BaseController {
     @DeleteMapping("/deleteCaseInfoException")
     @ApiOperation(value = "删除异常池案件", notes = "删除异常池案件")
     public ResponseEntity<Void> deleteCaseInfoException(@RequestParam @ApiParam(value = "异常案件id") String caseInfoExceptionId) {
+        try {
         log.debug("REST request to delete caseInfoException : {}", caseInfoExceptionId);
-        caseInfoExceptionService.deleteCaseInfoException(caseInfoExceptionId);
+            caseInfoExceptionService.deleteCaseInfoException(caseInfoExceptionId);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"delete error","案件删除失败，请检查案件是否已被删除")).body(null);
+        }
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, caseInfoExceptionId)).build();
     }
 
