@@ -13,7 +13,7 @@ server:
     session:
         cookie:
             http-only: true
-
+        timeout: 36000
 
 hystrix:
   command:
