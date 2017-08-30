@@ -2,7 +2,6 @@ package cn.fintecher.pangolin.util;
 
 import cn.fintecher.pangolin.entity.util.Constants;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +49,6 @@ public class MapUtil {
     }
 
     public static void main(String[] args) {
-        System.out.println(new Date(1503474300000L));
+        computeOrigin4Position(118.499127,31.671681,  2);
     }
 }

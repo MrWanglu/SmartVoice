@@ -5,7 +5,9 @@ import cn.fintecher.pangolin.web.BaseObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,9 +17,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -756,4 +756,59 @@ public class ExcelUtil {
         return null;
     }
 
+    /**
+     * 动态导出数据到Excel（只支持最新的xlsx文件,支持多sheet页数据导出）
+     * @param dataList 数据
+     * @param excelTitleMap 文件头 属性：头名称
+     * @param titleFlag 是否写入头文件
+     * @param file 存储文件对象
+     * @param  sheetDataCount 每个sheet页的允许的最大数据量
+     * @param  dataStartCol 写入开始列
+     * @param  dataStartRow 写入开始行
+     */
+    public static void  exportDataToExcel(List<T> dataList, Map<String,String> excelTitleMap, File file,
+                                          boolean titleFlag, String sheetDataCount, int dataStartCol, int dataStartRow) throws Exception {
+        if (dataList.size() > Integer.parseInt(sheetDataCount)) {
+            throw new Exception("数据总条数[".concat(String.valueOf(dataList.size())).concat("] 超过单sheet页允许的最大数据量[".concat(sheetDataCount)).concat("]"));
+        }
+        FileOutputStream fOut =null;
+        try{
+            // 在内存中保持1000行，超过1000行将被刷新到磁盘
+            SXSSFWorkbook wb = new SXSSFWorkbook(1000);
+            int titleCol = dataStartCol;//数据开始列
+            Sheet sheet = wb.createSheet();
+            if (titleFlag) {
+                Row row = sheet.createRow(dataStartRow);//创建一行数据
+                //写入头
+                for (Map.Entry<String, String> entry : excelTitleMap.entrySet()) {
+                    Cell cell = row.createCell(titleCol);
+                    cell.setCellValue(entry.getKey());
+                    titleCol = titleCol + 1;
+                }
+                //开始列重置
+                titleCol = dataStartCol;
+            }
+            //开始写入数据
+            for (int i = 0; i < dataList.size(); i++) {
+                Object obj = dataList.get(i);
+                Row dataRow = sheet.createRow(i + dataStartRow);
+                for (Map.Entry<String, String> entry : excelTitleMap.entrySet()) {//需要导出的字段
+                    Field field = obj.getClass().getDeclaredField(entry.getValue());
+                    dataRow.createCell(titleCol).setCellValue(String.valueOf(field.get(obj)));
+                    titleCol = titleCol + 1;
+                }
+                //开始列重置
+                titleCol = dataStartCol;
+            }
+            fOut = new FileOutputStream(file);
+            wb.write(fOut);
+
+        }catch (Exception e){
+            logger.error(e.getMessage(),e);
+            throw  new Exception("写入Excel文件失败");
+        }finally {
+            fOut.flush();       //刷新缓冲区
+            fOut.close();
+        }
+    }
 }
