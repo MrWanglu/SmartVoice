@@ -51,7 +51,7 @@
         ) b on a.current_collector = b.id where b.deptCode LIKE CONCAT(#{deptCode},'%') AND b.companyCode =
         #{companyCode}
         <if test="code != null">
-            AND n.deptCode LIKE CONCAT(#{code},'%')
+            AND b.deptCode LIKE CONCAT(#{code},'%')
         </if>
         <if test="realName != null">
             AND b.realName LIKE CONCAT('%',#{realName},'%')
