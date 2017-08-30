@@ -197,7 +197,7 @@ public class CaseInfoController extends BaseController {
             BooleanBuilder builder = new BooleanBuilder(predicate);
             builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode())); //公司
 //            builder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //以结案
-//            builder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OUT.getValue())); //已委外
+            builder.and(qCaseInfo.endType.notIn(CaseInfo.EndType.JUDGMENT_CLOSED.getValue(),CaseInfo.EndType.OUTSIDE_CLOSED.getValue())); //不查司法、委外的
             if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) { //管理者
                 builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));
             }
