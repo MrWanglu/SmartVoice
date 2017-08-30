@@ -77,9 +77,11 @@ public class ReportService {
         BackMoneySecModel backMoneySecModel = new BackMoneySecModel();
         BackMoneyThiModel backMoneyThiModel = new BackMoneyThiModel();
         for (BackMoneyReport backMoneyReport : backMoneyReports) {
-            if (Objects.equals(backMoneyReport.getParentDeptCode(), deptModel.getCode())
-                    && !Objects.equals(backMoneyReport.getUserName(), tokenUser.getUserName())) { //过滤同部门
-                continue;
+            if (Objects.equals(tokenUser.getManager(), 0)) {
+                if (Objects.equals(backMoneyReport.getParentDeptCode(), deptModel.getCode())
+                        && !Objects.equals(backMoneyReport.getUserName(), tokenUser.getUserName())) { //过滤同部门
+                    continue;
+                }
             }
             if (Objects.equals(backMoneyModel.getDeptCode(), backMoneyReport.getParentDeptCode())) { //一级模型中有该部门code码
                 List<BackMoneySecModel> backMoneySecModelList = backMoneyModel.getBackMoneySecModels(); //获得二级模型集合
@@ -216,9 +218,11 @@ public class ReportService {
         PerformanceModel performanceModel = new PerformanceModel();
         PerformanceSecModel performanceSecModel = new PerformanceSecModel();
         for (PerformanceBasisModel performanceBasisModel : performanceBasisModels) {
-            if (Objects.equals(deptModel.getCode(), performanceBasisModel.getParentDeptCode())
-                    && !Objects.equals(tokenUser.getUserName(), performanceBasisModel.getUserName())) { //过滤同部门
-                continue;
+            if (Objects.equals(tokenUser.getManager(), 0)) {
+                if (Objects.equals(deptModel.getCode(), performanceBasisModel.getParentDeptCode())
+                        && !Objects.equals(tokenUser.getUserName(), performanceBasisModel.getUserName())) { //过滤同部门
+                    continue;
+                }
             }
             if (Objects.equals(performanceModel.getDeptCode(), performanceBasisModel.getParentDeptCode())) { //一级模型中有该部门code码
                 List<PerformanceSecModel> performanceSecModels = performanceModel.getPerformanceSecModels(); //获得二级模型集合
@@ -325,9 +329,11 @@ public class ReportService {
         DailyProcessSecModel dailyProcessSecModel = new DailyProcessSecModel();
         DailyProcessThiModel dailyProcessThiModel = new DailyProcessThiModel();
         for (DailyProcessReport dailyProcessReport : dailyProcessReports) {
-            if (Objects.equals(deptModel.getCode(), dailyProcessReport.getParentDeptCode())
-                    && !Objects.equals(tokenUser.getUserName(), dailyProcessReport.getUserName())) { //过滤同部门
-                continue;
+            if (Objects.equals(tokenUser.getManager(), 0)) {
+                if (Objects.equals(deptModel.getCode(), dailyProcessReport.getParentDeptCode())
+                        && !Objects.equals(tokenUser.getUserName(), dailyProcessReport.getUserName())) { //过滤同部门
+                    continue;
+                }
             }
             if (Objects.equals(dailyProcessModel.getDeptCode(), dailyProcessReport.getParentDeptCode())) { //一级模型中有该部门code码
                 List<DailyProcessSecModel> dailyProcessSecModels = dailyProcessModel.getDailyProcessSecModels();
@@ -481,9 +487,11 @@ public class ReportService {
         DailyResultSecModel dailyResultSecModel = new DailyResultSecModel();
         DailyResultThiModel dailyResultThiModel = new DailyResultThiModel();
         for (DailyResultReport dailyResultReport : dailyResultReports) {
-            if (Objects.equals(deptModel.getCode(), dailyResultReport.getParentDeptCode())
-                    && !Objects.equals(tokenUser.getUserName(), dailyResultReport.getUserName())) { //过滤同部门
-                continue;
+            if (Objects.equals(tokenUser.getManager(), 0)) {
+                if (Objects.equals(deptModel.getCode(), dailyResultReport.getParentDeptCode())
+                        && !Objects.equals(tokenUser.getUserName(), dailyResultReport.getUserName())) { //过滤同部门
+                    continue;
+                }
             }
             if (Objects.equals(dailyResultModel.getDeptCode(), dailyResultReport.getParentDeptCode())) { //一级模型中有该部门code码
                 List<DailyResultSecModel> dailyResultSecModels = dailyResultModel.getDailyResultSecModels();
@@ -613,9 +621,11 @@ public class ReportService {
         List<CollectorPerformanceModel> collectorPerformanceModels = new ArrayList<>();
         CollectorPerformanceModel collectorPerformanceModel = new CollectorPerformanceModel();
         for (PerformanceRankingReport performanceRankingReport : performanceRankingReports) {
-            if (Objects.equals(tokenUser.getDepartment().getCode(), performanceRankingReport.getDeptCode())
-                    && !Objects.equals(tokenUser.getUserName(), performanceRankingReport.getUserName())) { //过滤同部门
-                continue;
+            if (Objects.equals(tokenUser.getManager(), 0)) {
+                if (Objects.equals(tokenUser.getDepartment().getCode(), performanceRankingReport.getDeptCode())
+                        && !Objects.equals(tokenUser.getUserName(), performanceRankingReport.getUserName())) { //过滤同部门
+                    continue;
+                }
             }
             if (Objects.equals(collectorPerformanceModel.getDeptCode(), performanceRankingReport.getParentDeptCode())) { //如果部门code码不为空
                 List<PerformanceRankingReport> performanceRankingReports1 = collectorPerformanceModel.getPerformanceRankingReports();
@@ -692,9 +702,11 @@ public class ReportService {
         PerformanceSummaryModel performanceSummaryModel = new PerformanceSummaryModel();
         PerformanceSummarySecModel performanceSummarySecModel = new PerformanceSummarySecModel();
         for (PerformanceRankingReport performanceRankingReport : performanceRankingReports) {
-            if (Objects.equals(tokenUser.getDepartment().getCode(), performanceRankingReport.getDeptCode())
-                    && !Objects.equals(tokenUser.getUserName(), performanceRankingReport.getUserName())) { //过滤同部门
-                continue;
+            if (Objects.equals(tokenUser.getManager(), 0)) {
+                if (Objects.equals(tokenUser.getDepartment().getCode(), performanceRankingReport.getDeptCode())
+                        && !Objects.equals(tokenUser.getUserName(), performanceRankingReport.getUserName())) { //过滤同部门
+                    continue;
+                }
             }
             if (Objects.equals(performanceSummaryModel.getDeptCode(), performanceRankingReport.getParentDeptCode())) { //一级模型中有该部门code码
                 List<PerformanceSummarySecModel> performanceSummarySecModels = performanceSummaryModel.getPerformanceSummarySecModels();
