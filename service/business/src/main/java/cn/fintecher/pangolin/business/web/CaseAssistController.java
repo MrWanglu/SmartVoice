@@ -2,11 +2,11 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
+import cn.fintecher.pangolin.business.service.CaseAssistService;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
-import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
@@ -27,12 +27,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-
-import static cn.fintecher.pangolin.entity.QCaseInfo.caseInfo;
+import java.util.*;
 
 /**
  * @Author : sunyanping
@@ -72,6 +67,8 @@ public class CaseAssistController extends BaseController {
     private CaseTurnRecordRepository caseTurnRecordRepository;
     @Inject
     private SysParamRepository sysParamRepository;
+    @Inject
+    private CaseAssistService caseAssistService;
 
     @PostMapping("/cancelLeaveCaseAssist")
     @ApiOperation(value = "协催案件取消留案操作", notes = "协催案件取消留案操作")
@@ -86,13 +83,21 @@ public class CaseAssistController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
         try {
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(leaveCaseParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司!")).body(null);
+                }
+                user.setCompanyCode(leaveCaseParams.getCompanyCode());
+            }
+            Integer num = caseAssistService.leaveCaseAssistNum(user); //可留案案件数
             Iterable<CaseAssist> all = caseAssistRepository.findAll(QCaseAssist.caseAssist.id.in(leaveCaseParams.getCaseIds()));
-            if (!all.iterator().hasNext()) {
+            Iterator<CaseAssist> it = all.iterator();
+            if (!it.hasNext()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","请选择要留案的案件!")).body(null);
             }
             List<CaseAssist> caseAssistList = new ArrayList<>();
-            while (all.iterator().hasNext()) {
-                CaseAssist next = all.iterator().next();
+            while (it.hasNext()) {
+                CaseAssist next = it.next();
                 if (Objects.equals(next.getLeaveCaseFlag(), CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue())) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","未留案的案件不能取消留案!")).body(null);
                 }
@@ -103,27 +108,8 @@ public class CaseAssistController extends BaseController {
                 caseAssistList.add(next);
             }
             caseAssistRepository.save(caseAssistList);
-            //获得所持有未结案的案件总数
-            QCaseInfo qCaseInfo = caseInfo;
-            long count = caseInfoRepository.count((qCaseInfo.currentCollector.id.eq(user.getId()).or(qCaseInfo.assistCollector.id.eq(user.getId()))
-                    .and(qCaseInfo.collectionStatus.in(20, 21, 22, 23, 25, 171, 172))));
-
-            //查询已留案案件数
-            long count1 = caseAssistRepository.leaveCaseAssistCount(user.getId());
-            //获得留案比例
-            QSysParam qSysParam = QSysParam.sysParam;
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(leaveCaseParams.getCompanyCode())) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司!")).body(null);
-                }
-                user.setCompanyCode(leaveCaseParams.getCompanyCode());
-            }
-            SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_LEAVERATE).and(qSysParam.companyCode.eq(user.getCompanyCode())));
-            Double rate = Double.parseDouble(sysParam.getValue()) / 100;
-            //计算留案案件是否超过比例
-            Integer leaveNum = (int) (count * rate); //可留案的案件数
             LeaveCaseModel leaveCaseModel = new LeaveCaseModel();
-            leaveCaseModel.setCaseNum((int) (leaveNum - count1));
+            leaveCaseModel.setCaseNum(num+caseAssistList.size());
             return ResponseEntity.ok().body(leaveCaseModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -144,26 +130,17 @@ public class CaseAssistController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "leaveCaseAssist", e.getMessage())).body(null);
         }
         try {
-            //获得所持有未结案的案件总数
-            QCaseInfo qCaseInfo = caseInfo;
-            long count = caseInfoRepository.count((qCaseInfo.currentCollector.id.eq(user.getId()).or(qCaseInfo.assistCollector.id.eq(user.getId()))
-                    .and(qCaseInfo.collectionStatus.in(20, 21, 22, 23, 25, 171, 172))));
-
-            //查询已留案案件数
-            long count1 = caseAssistRepository.leaveCaseAssistCount(user.getId());
-            //获得留案比例
-            QSysParam qSysParam = QSysParam.sysParam;
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(leaveCaseParams.getCompanyCode())) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司!")).body(null);
                 }
                 user.setCompanyCode(leaveCaseParams.getCompanyCode());
             }
-            SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_LEAVERATE).and(qSysParam.companyCode.eq(user.getCompanyCode())));
-            Double rate = Double.parseDouble(sysParam.getValue()) / 100;
-            //计算留案案件是否超过比例
-            Integer leaveNum = (int) (count * rate); //可留案的案件数
+            Integer num = caseAssistService.leaveCaseAssistNum(user);
             List<String> caseIds = leaveCaseParams.getCaseIds();
+            if (caseIds.size() >= num) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "所选案件数量超过可留案案件数!")).body(null);
+            }
             for (String caseId : caseIds) {
                 CaseAssist one = caseAssistRepository.findOne(caseId);
                 if (Objects.isNull(one)) {
@@ -178,16 +155,12 @@ public class CaseAssistController extends BaseController {
                 if (Objects.equals(one.getAssistWay(), CaseAssist.AssistWay.ONCE_ASSIST.getValue())) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "单次协催的案件不允许留案!")).body(null);
                 }
-                if (count1 >= leaveNum) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "所选案件数量超过可留案案件数!")).body(null);
-                }
                 one.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue()); //留案标志
                 one.setLeaveDate(new Date()); //留案日期
                 caseAssistRepository.save(one);
-                count1++;
             }
             LeaveCaseModel leaveCaseModel = new LeaveCaseModel();
-            leaveCaseModel.setCaseNum((int) (leaveNum - count1));
+            leaveCaseModel.setCaseNum(num-caseIds.size());
             return ResponseEntity.ok().body(leaveCaseModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -209,22 +182,8 @@ public class CaseAssistController extends BaseController {
         }
         try {
             CaseAssist caseAssist = caseAssistRepository.findOne(assistId);
-            CaseInfo caseInfo = caseAssist.getCaseId();
-
-            // 协催案件
-            caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态
-            caseAssist.setAssistCloseFlag(0); //手动结束
-            caseAssist.setOperatorTime(new Date()); //操作时间
-            caseAssist.setOperator(user); //操作员
-            //原案件
-            caseInfo.setAssistStatus(null); //协催状态
-            caseInfo.setAssistCollector(null); //协催员
-            caseInfo.setAssistWay(null); //协催方式
-            caseInfo.setAssistFlag(0); //协催标识
-
-            caseAssist.setCaseId(caseInfo);
-            CaseAssist save = caseAssistRepository.save(caseAssist);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功!", "")).body(save);
+            caseAssistService.endCaseAssist(caseAssist,user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功!", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "closeCaseAssist", "系统异常!")).body(null);

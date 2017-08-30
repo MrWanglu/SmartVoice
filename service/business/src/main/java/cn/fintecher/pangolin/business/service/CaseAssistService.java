@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.business.service;
 
 import cn.fintecher.pangolin.business.model.AssistingStatisticsModel;
 import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.DepartmentRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.entity.*;
@@ -13,8 +14,11 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+
+import static cn.fintecher.pangolin.entity.QCaseInfo.caseInfo;
 
 /**
  * @Author : sunyanping
@@ -30,6 +34,8 @@ public class CaseAssistService {
     private DepartmentRepository departmentRepository;
     @Inject
     private SysParamRepository sysParamRepository;
+    @Inject
+    private CaseInfoRepository caseInfoRepository;
 
     /**
      * 获取机构下待协催、协催中的协催案件
@@ -183,5 +189,48 @@ public class CaseAssistService {
         model.setNum(assistId.size());
         model.setAssistList(assistId);
         return model;
+    }
+
+    /**
+     * 获取用户当前可留案案件数
+     * @param user
+     * @return
+     */
+    public Integer leaveCaseAssistNum(User user) {
+        //获得所持有未结案的案件总数
+        QCaseInfo qCaseInfo = caseInfo;
+        long count = caseInfoRepository.count((qCaseInfo.currentCollector.id.eq(user.getId()).or(qCaseInfo.assistCollector.id.eq(user.getId()))
+                .and(qCaseInfo.collectionStatus.in(20, 21, 22, 23, 25, 171, 172))));
+        //获得留案比例
+        QSysParam qSysParam = QSysParam.sysParam;
+        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_LEAVERATE).and(qSysParam.companyCode.eq(user.getCompanyCode())));
+        Double rate = Double.parseDouble(sysParam.getValue()) / 100;
+        //根据总案件数和留案比例获取总共可留案的案件数
+        Integer leaveNum = (int) (count * rate);
+        //查询已留案案件数
+        long count1 = caseAssistRepository.leaveCaseAssistCount(user.getId());
+        return (int)(leaveNum - count1);
+    }
+
+    /**
+     * 结束协催
+     * @param caseAssist
+     * @param user
+     */
+    public void endCaseAssist(CaseAssist caseAssist, User user) {
+        CaseInfo caseInfo = caseAssist.getCaseId();
+        // 协催案件
+        caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态
+        caseAssist.setAssistCloseFlag(0); //手动结束
+        caseAssist.setOperatorTime(new Date()); //操作时间
+        caseAssist.setOperator(user); //操作员
+        //原案件
+        caseInfo.setAssistStatus(null); //协催状态
+        caseInfo.setAssistCollector(null); //协催员
+        caseInfo.setAssistWay(null); //协催方式
+        caseInfo.setAssistFlag(0); //协催标识
+        caseInfo.setLatelyCollector(caseAssist.getAssistCollector()); //上一个协催员
+        caseAssist.setCaseId(caseInfo);
+        caseAssistRepository.save(caseAssist);
     }
 }
