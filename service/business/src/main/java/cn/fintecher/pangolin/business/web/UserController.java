@@ -184,7 +184,7 @@ public class UserController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
-        if(Objects.equals("0o0oo0o0-0o0o-0000-0000-0ooo000o0o0o",user.getId())){
+        if (Objects.equals("0o0oo0o0-0o0o-0000-0000-0ooo000o0o0o", user.getId())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "This user is not allowed to modify", "该用户不允许修改")).body(null);
         }
@@ -301,6 +301,7 @@ public class UserController extends BaseController {
         if (Objects.nonNull(user.getCompanyCode())) {
             builder.and(qUser.companyCode.eq(user.getCompanyCode()));
         }
+        builder.and(qUser.status.eq(0));
         Page<User> page = userRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
 
