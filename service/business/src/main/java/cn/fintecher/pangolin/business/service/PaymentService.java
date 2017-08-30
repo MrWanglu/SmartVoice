@@ -226,8 +226,8 @@ public class PaymentService {
         //消息提醒
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
         sendReminderMessage.setUserId(applyUser.getId());
-        sendReminderMessage.setTitle("案件"+(Objects.equals(paymentParams.getFlag(),0)?"减免":"还款")+"审批申请结果");
-        sendReminderMessage.setContent("您提交的案件 [" + caseInfo.getCaseNumber() + "] "+(Objects.equals(paymentParams.getFlag(),0)?"减免":"还款")+"申请" + (Objects.equals(paymentParams.getResult(), 0) ? "被驳回" : "已入账"));
+        sendReminderMessage.setTitle("客户 ["+caseInfo.getPersonalInfo().getName()+"] 的"+(Objects.equals(paymentParams.getFlag(),0)?"减免":"还款")+"申请" + (Objects.equals(paymentParams.getResult(), 0) ? "被驳回" : "已入账"));
+        sendReminderMessage.setContent(casePayApply.getApprovePayMemo());
         sendReminderMessage.setType(ReminderType.REPAYMENT);
         reminderService.sendReminder(sendReminderMessage);
     }

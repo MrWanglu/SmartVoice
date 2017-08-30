@@ -321,8 +321,8 @@ public class CaseInfoService {
             managerIdList.add(user.getId());
         }
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
-        sendReminderMessage.setTitle("还款申请");
-        sendReminderMessage.setContent("案件 [" + caseInfo.getCaseNumber() + "] 的还款申请需要审批");
+        sendReminderMessage.setTitle("客户 ["+caseInfo.getPersonalInfo().getName()+"] 还款申请");
+        sendReminderMessage.setContent(payApplyParams.getPayDescripton());
         sendReminderMessage.setType(ReminderType.REPAYMENT);
         sendReminderMessage.setCcUserIds(managerIdList.toArray(new String[managerIdList.size()]));
         reminderService.sendReminder(sendReminderMessage);
@@ -410,10 +410,10 @@ public class CaseInfoService {
         //消息提醒
         if (Objects.nonNull(caseFollowupParams.getFollnextDate())) {
             SendReminderMessage sendReminderMessage = new SendReminderMessage();
-            sendReminderMessage.setTitle("案件跟进提醒");
+            sendReminderMessage.setTitle("客户 ["+caseInfo.getPersonalInfo().getName()+"] 的跟进提醒");
             sendReminderMessage.setUserId(userRepository.findByUserName(caseFollowupRecord.getOperator()).getId());
             sendReminderMessage.setRemindTime(caseFollowupParams.getFollnextDate());
-            sendReminderMessage.setContent("案件 [" + caseInfo.getCaseNumber() + "] 需要跟进 \n" + caseFollowupParams.getContent());
+            sendReminderMessage.setContent(caseFollowupParams.getFollnextContent());
             sendReminderMessage.setType(ReminderType.FLLOWUP);
             reminderService.sendReminderCalendarMessage(sendReminderMessage);
         }
@@ -1231,8 +1231,8 @@ public class CaseInfoService {
         //消息提醒
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
         sendReminderMessage.setUserId(userIdForRemind);
-        sendReminderMessage.setTitle("案件提前流转申请结果");
-        sendReminderMessage.setContent("您申请的提前流转案件 [" + caseInfo.getCaseNumber() + "] 申请" + (Objects.equals(circulationApprovalParams.getResult(), 0) ? "已通过" : "被拒绝"));
+        sendReminderMessage.setTitle("客户 ["+caseInfo.getPersonalInfo().getName()+"] 的案件提前流转申请"+(Objects.equals(circulationApprovalParams.getResult(), 0) ? "已通过" : "被拒绝"));
+        sendReminderMessage.setContent(caseAdvanceTurnApplay.getApproveMemo());
         sendReminderMessage.setType(ReminderType.CIRCULATION);
         reminderService.sendReminder(sendReminderMessage);
     }

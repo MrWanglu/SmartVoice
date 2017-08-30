@@ -76,8 +76,8 @@ public class ReminderTimingJob implements Job{
                         SendReminderMessage sendReminderMessage = new SendReminderMessage();
                         sendReminderMessage.setUserId(Objects.nonNull(caseInfo.getCurrentCollector()) ? caseInfo.getCurrentCollector().getId() : null);
                         sendReminderMessage.setType(ReminderType.FORCE_TURN);
-                        sendReminderMessage.setTitle("案件强制流转提醒");
-                        sendReminderMessage.setContent("您持有的案件 [" + caseInfo.getCaseNumber() + "] 即将强制流转,请及时留案");
+                        sendReminderMessage.setTitle("客户 ["+caseInfo.getPersonalInfo().getName()+"] 的案件强制流转提醒");
+                        sendReminderMessage.setContent("您持有客户 ["+caseInfo.getPersonalInfo().getName()+"] 的案件 [" + caseInfo.getCaseNumber() + "] 即将强制流转,请及时留案");
                         sendReminderMessage.setMode(ReminderMode.POPUP);
                         ReminderService.sendReminder(sendReminderMessage);
                     }
@@ -90,8 +90,8 @@ public class ReminderTimingJob implements Job{
                         SendReminderMessage sendReminderMessage = new SendReminderMessage();
                         sendReminderMessage.setUserId(Objects.nonNull(caseAssist.getAssistCollector()) ? caseAssist.getAssistCollector().getId() : null);
                         sendReminderMessage.setType(ReminderType.FORCE_TURN);
-                        sendReminderMessage.setTitle("协催案件强制流转提醒");
-                        sendReminderMessage.setContent("您参与协催的案件 [" + caseAssist.getCaseId().getCaseNumber() + "] 即将强制流转,请及时留案");
+                        sendReminderMessage.setTitle("客户 ["+caseAssist.getCaseId().getPersonalInfo().getName()+"] 的协催案件强制流转提醒");
+                        sendReminderMessage.setContent("您参与客户 ["+caseAssist.getCaseId().getPersonalInfo().getName()+"] 的协催案件 [" + caseAssist.getCaseId().getCaseNumber() + "] 即将强制流转,请及时留案");
                         sendReminderMessage.setMode(ReminderMode.POPUP);
                         ReminderService.sendReminder(sendReminderMessage);
                     }
@@ -105,8 +105,8 @@ public class ReminderTimingJob implements Job{
                         SendReminderMessage sendReminderMessage = new SendReminderMessage();
                         sendReminderMessage.setUserId(managers.get(0).getId());
                         sendReminderMessage.setType(ReminderType.FLLOWUP);
-                        sendReminderMessage.setTitle("案件跟进提醒");
-                        sendReminderMessage.setContent("案件 [" + caseInfo.getCaseNumber() + "] 长时间无跟进记录,请及时处理");
+                        sendReminderMessage.setTitle("客户 ["+caseInfo.getPersonalInfo().getName()+"] 无跟进记录提醒");
+                        sendReminderMessage.setContent("客户 ["+caseInfo.getPersonalInfo().getName()+"] 案件 [" + caseInfo.getCaseNumber() + "] 长期无跟进记录,请及时处理");
                         sendReminderMessage.setMode(ReminderMode.POPUP);
                         if (managers.size() > 1) {
                             List<String> managerIds = new ArrayList<>();
@@ -126,8 +126,8 @@ public class ReminderTimingJob implements Job{
                         SendReminderMessage sendReminderMessage = new SendReminderMessage();
                         sendReminderMessage.setUserId(caseAssist.getOperator().getId());
                         sendReminderMessage.setType(ReminderType.FLLOWUP);
-                        sendReminderMessage.setTitle("协催案件跟进提醒");
-                        sendReminderMessage.setContent("协催案件 [" + caseAssist.getCaseId().getCaseNumber() + "] 长时间无跟进记录,请及时处理");
+                        sendReminderMessage.setTitle("客户 ["+caseAssist.getCaseId().getPersonalInfo().getName()+"] 协催案件跟进提醒");
+                        sendReminderMessage.setContent("客户 ["+caseAssist.getCaseId().getPersonalInfo().getName()+"] 协催案件 [" + caseAssist.getCaseId().getCaseNumber() + "] 长时间无跟进记录,请及时处理");
                         sendReminderMessage.setMode(ReminderMode.POPUP);
                         ReminderService.sendReminder(sendReminderMessage);
                     }
