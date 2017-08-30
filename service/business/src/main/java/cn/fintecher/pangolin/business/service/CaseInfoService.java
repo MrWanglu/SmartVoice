@@ -1030,8 +1030,13 @@ public class CaseInfoService {
             if (Objects.equals(caseInfo.getLeaveCaseFlag(), CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue())) {
                 throw new RuntimeException("所选案件存在非留案案件");
             }
+            if (!Objects.equals(caseInfo.getCurrentCollector().getId(), tokenUser.getId())) {
+                throw new RuntimeException("只能对自己所持有的案件进行取消留案操作");
+            }
             caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识置为 0-非留案
-            caseInfoRepository.save(caseInfo);
+            caseInfo.setOperator(tokenUser); //操作人
+            caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+            caseInfoRepository.saveAndFlush(caseInfo);
         }
         //获得所持有未结案的案件总数
         Integer caseNum = caseInfoRepository.getCaseCount(tokenUser.getId());
