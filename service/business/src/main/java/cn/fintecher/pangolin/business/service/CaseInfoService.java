@@ -1018,6 +1018,53 @@ public class CaseInfoService {
     }
 
     /**
+     * @Description 取消留案操作
+     */
+    public LeaveCaseModel cancelLeaveCase(LeaveCaseParams leaveCaseParams, User tokenUser) {
+        List<String> caseIds = leaveCaseParams.getCaseIds();
+        for (String caseId : caseIds) {
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+            if (Objects.isNull(caseInfo)) {
+                throw new RuntimeException("所选案件未找到");
+            }
+            if (Objects.equals(caseInfo.getLeaveCaseFlag(), CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue())) {
+                throw new RuntimeException("所选案件存在非留案案件");
+            }
+            caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识置为 0-非留案
+            caseInfoRepository.save(caseInfo);
+        }
+        //获得所持有未结案的案件总数
+        Integer caseNum = caseInfoRepository.getCaseCount(tokenUser.getId());
+
+        //查询已留案案件数
+        QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+        int flagNum = new Long(caseInfoRepository.count(qCaseInfo.currentCollector.id.eq(tokenUser.getId()).and(qCaseInfo.leaveCaseFlag.eq(1)))).intValue();
+
+        //获得留案比例
+        QSysParam qSysParam = QSysParam.sysParam;
+        SysParam sysParam;
+        String companyCode;
+        if (Objects.isNull(tokenUser.getCompanyCode())) {
+            if (Objects.isNull(leaveCaseParams.getCompanyCode())) {
+                throw new RuntimeException("请选择公司");
+            }
+            companyCode = leaveCaseParams.getCompanyCode();
+        } else {
+            companyCode = tokenUser.getCompanyCode();
+        }
+        if (Objects.equals(leaveCaseParams.getType(), 0)) { //电催
+            sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_PHNOEFLOW_LEAVERATE).and(qSysParam.companyCode.eq(companyCode)));
+        } else { //外访
+            sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_LEAVERATE).and(qSysParam.companyCode.eq(companyCode)));
+        }
+        Double rate = Double.parseDouble(sysParam.getValue()) / 100;
+        Integer leaveNum = (int) Math.floor(caseNum * rate); //可留案的案件数
+        LeaveCaseModel leaveCaseModel = new LeaveCaseModel();
+        leaveCaseModel.setCaseNum(leaveNum - flagNum);
+        return leaveCaseModel;
+    }
+
+    /**
      * @Description 申请提前流转
      */
     public void advanceCirculation(AdvanceCirculationParams advanceCirculationParams, User tokenUser) {

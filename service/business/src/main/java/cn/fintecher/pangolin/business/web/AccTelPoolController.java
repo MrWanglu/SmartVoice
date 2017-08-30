@@ -613,6 +613,24 @@ public class AccTelPoolController extends BaseController {
     }
 
     /**
+     * @Description 取消留案操作
+     */
+    @PostMapping("/cancelLeaveCase")
+    @ApiOperation(value = "取消留案操作", notes = "取消留案操作")
+    public ResponseEntity<LeaveCaseModel> cancelLeaveCase(@RequestBody LeaveCaseParams leaveCaseParams,
+                                                          @RequestHeader(value = "x-UserToken") String token) {
+        log.debug("REST request to cancel leave case");
+        try {
+            User tokenUser = getUserByToken(token);
+            LeaveCaseModel leaveCaseModel = caseInfoService.cancelLeaveCase(leaveCaseParams, tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("留案成功", ENTITY_CASEINFO)).body(leaveCaseModel);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    /**
      * @Description 电催申请提前流转
      */
     @PostMapping("/telAdvanceCirculation")
