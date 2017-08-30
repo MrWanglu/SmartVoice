@@ -4,7 +4,6 @@ import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseAssistService;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
-import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -12,10 +11,10 @@ import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
@@ -60,13 +59,9 @@ public class CaseAssistController extends BaseController {
     @Inject
     private CasePayApplyRepository casePayApplyRepository;
     @Inject
-    private UserService userService;
-    @Inject
     private CaseAssistApplyRepository caseAssistApplyRepository;
     @Inject
     private CaseTurnRecordRepository caseTurnRecordRepository;
-    @Inject
-    private SysParamRepository sysParamRepository;
     @Inject
     private CaseAssistService caseAssistService;
 
@@ -525,29 +520,26 @@ public class CaseAssistController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "getBatchInfo", e.getMessage())).body(null);
         }
         try {
-            List<User> allUser = new ArrayList<>();
-            // 如果登录人是属于外访部门
-            if (Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
-                allUser = userService.getAllUser(user.getDepartment().getId(), 0);//0-表示启用的用户
-            } else {
-                allUser = userService.getAllUser(user.getCompanyCode(), User.Type.VISIT.getValue(), 0, null);
-            }
+            // 查询部门下所有外访的用户
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(QUser.user.status.eq(0));//启用用户
+            builder.and(QUser.user.type.eq(User.Type.VISIT.getValue()));//外访
+            builder.and(QUser.user.department.code.startsWith(user.getDepartment().getCode()));  //登录人部门下
+            Iterable<User> all = userRepository.findAll(builder);
+            List<User> userList = IterableUtils.toList(all);
             Integer avgCaseNum = 0; //人均案件数
-            Integer userNum = 0; //登录用户部门下的所有启用用户总数
             Integer caseNum = 0; //登录用户部门下的所有启用用户持有未结案案件总数
             List<BatchInfoModel> batchInfoModels = new ArrayList<>();
-            for (User u : allUser) {
-
-                BatchInfoModel batchInfoModel = new BatchInfoModel();
-                Integer caseCount = caseInfoRepository.getCaseCount(u.getId());
-                batchInfoModel.setCaseCount(caseCount); //持有案件数
-                batchInfoModel.setCollectionUser(u); //催收人
-                batchInfoModels.add(batchInfoModel);
-                userNum++;
-                caseNum = caseNum + caseCount;
-            }
-            if (userNum != 0) {
-                avgCaseNum = (caseNum % userNum == 0) ? caseNum / userNum : (caseNum / userNum + 1);
+            if (Objects.equals(userList.size(),0)) {
+                for (User u : userList) {
+                    BatchInfoModel batchInfoModel = new BatchInfoModel();
+                    Integer caseCount = caseInfoRepository.getCaseCount(u.getId());
+                    batchInfoModel.setCaseCount(caseCount); //持有案件数
+                    batchInfoModel.setCollectionUser(u); //催收人
+                    batchInfoModels.add(batchInfoModel);
+                    caseNum = caseNum + caseCount;
+                }
+                avgCaseNum = (caseNum % userList.size() == 0) ? caseNum / userList.size() : (caseNum / userList.size() + 1);
             }
             BatchDistributeModel batchDistributeModel = new BatchDistributeModel();
             batchDistributeModel.setAverageNum(avgCaseNum);
@@ -590,39 +582,7 @@ public class CaseAssistController extends BaseController {
                 for (int i = 0; i < caseCount; i++) {
                     //修改协催案件和原案件
                     CaseAssist caseAssist = all.get(total);
-                    CaseInfo caseId = caseAssist.getCaseId();
-                    caseAssist.setLatelyCollector(caseAssist.getAssistCollector());
-                    caseId.setAssistCollector(batchInfoModel.getCollectionUser());
-                    caseAssist.setCaseId(caseId);
-                    caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue());
-                    caseAssist.setDepartId(batchInfoModel.getCollectionUser().getDepartment().getId());
-                    caseAssist.setAssistCollector(batchInfoModel.getCollectionUser());
-                    caseAssist.setCaseFlowinTime(new Date());
-                    caseAssist.setOperatorTime(new Date());
-                    caseAssist.setOperator(user);
-                    caseAssist.setHasLeaveDays(0);
-                    caseAssist.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());
-                    caseAssist.setHoldDays(0);
-                    caseAssist.setMarkId(CaseInfo.Color.NO_COLOR.getValue());
-                    caseAssistList.add(caseAssist);
-
-                    //增加流转记录
-                    CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
-                    BeanUtils.copyProperties(caseAssist.getCaseId(), caseTurnRecord);
-                    caseTurnRecord.setCaseId(caseAssist.getCaseId().getId());//案件ID
-                    caseTurnRecord.setCaseNumber(caseAssist.getCaseId().getCaseNumber());//案件编号
-                    caseTurnRecord.setOperatorTime(new Date());
-                    caseTurnRecord.setHoldDays(caseAssist.getHoldDays()); //持案天数
-                    caseTurnRecord.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());//案件流转类型
-                    caseTurnRecord.setCompanyCode(user.getCompanyCode());
-                    caseTurnRecord.setDepartId(user.getDepartment().getId());
-                    caseTurnRecord.setOperatorUserName(user.getUserName());
-                    caseTurnRecord.setReceiveDeptName(batchInfoModel.getCollectionUser().getDepartment().getName());//接收部门
-                    caseTurnRecord.setReceiveUserId(batchInfoModel.getCollectionUser().getId());//接收人ID
-                    caseTurnRecord.setReceiveUserRealName(batchInfoModel.getCollectionUser().getRealName());
-                    caseTurnRecord.setCurrentCollector(batchInfoModel.getCollectionUser().getId());
-                    caseTurnRecordList.add(caseTurnRecord);
-
+                    caseAssistService.distributeCaseAssist(caseAssist,user,batchInfoModel,caseAssistList,caseTurnRecordList);
                     total++;
                 }
             }
@@ -687,7 +647,6 @@ public class CaseAssistController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "findAllCaseAssist", e.getMessage())).body(null);
         }
         try {
-//            List<Department> departments = departmentService.querySonDepartment(user); //是否有子部门
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
@@ -704,10 +663,8 @@ public class CaseAssistController extends BaseController {
             if (Objects.equals(user.getManager(), 0) && Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
                 // 协催员智能看见自己的协催案件
                 exp.and(qCaseAssist.assistCollector.userName.eq(user.getUserName()));
-                page = caseAssistRepository.findAll(exp, pageable);
-            } else {
-                page = caseAssistRepository.findAll(exp, pageable);
             }
+            page = caseAssistRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -731,7 +688,6 @@ public class CaseAssistController extends BaseController {
         }
         try {
 
-//            List<Department> departments = departmentService.querySonDepartment(user); //是否有子部门
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限

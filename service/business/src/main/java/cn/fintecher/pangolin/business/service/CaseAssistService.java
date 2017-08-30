@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.business.service;
 
 import cn.fintecher.pangolin.business.model.AssistingStatisticsModel;
+import cn.fintecher.pangolin.business.model.BatchInfoModel;
 import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.DepartmentRepository;
@@ -10,6 +11,7 @@ import cn.fintecher.pangolin.entity.util.Constants;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import org.apache.commons.collections4.IterableUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
@@ -232,5 +234,49 @@ public class CaseAssistService {
         caseInfo.setLatelyCollector(caseAssist.getAssistCollector()); //上一个协催员
         caseAssist.setCaseId(caseInfo);
         caseAssistRepository.save(caseAssist);
+    }
+
+    /**
+     * 协催分配
+     * @param caseAssist 要分配的协催案件
+     * @param user 操作人
+     * @param batchInfoModel 要分配的数据
+     * @param caseAssistList 要分配的所有协催案件
+     * @param caseTurnRecordList 增加的所有流转记录
+     */
+    public void distributeCaseAssist(CaseAssist caseAssist, User user,BatchInfoModel batchInfoModel,
+                                     List<CaseAssist> caseAssistList, List<CaseTurnRecord> caseTurnRecordList) {
+        CaseInfo caseId = caseAssist.getCaseId();
+        caseAssist.setLatelyCollector(caseAssist.getAssistCollector());
+        caseId.setAssistCollector(batchInfoModel.getCollectionUser());
+        caseAssist.setCaseId(caseId);
+        caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue());
+        caseAssist.setDepartId(batchInfoModel.getCollectionUser().getDepartment().getId());
+        caseAssist.setAssistCollector(batchInfoModel.getCollectionUser());
+        caseAssist.setCaseFlowinTime(new Date());
+        caseAssist.setOperatorTime(new Date());
+        caseAssist.setOperator(user);
+        caseAssist.setHasLeaveDays(0);
+        caseAssist.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());
+        caseAssist.setHoldDays(0);
+        caseAssist.setMarkId(CaseInfo.Color.NO_COLOR.getValue());
+        caseAssistList.add(caseAssist);
+
+        //增加流转记录
+        CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+        BeanUtils.copyProperties(caseAssist.getCaseId(), caseTurnRecord);
+        caseTurnRecord.setCaseId(caseAssist.getCaseId().getId());//案件ID
+        caseTurnRecord.setCaseNumber(caseAssist.getCaseId().getCaseNumber());//案件编号
+        caseTurnRecord.setOperatorTime(new Date());
+        caseTurnRecord.setHoldDays(caseAssist.getHoldDays()); //持案天数
+        caseTurnRecord.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());//案件流转类型
+        caseTurnRecord.setCompanyCode(user.getCompanyCode());
+        caseTurnRecord.setDepartId(user.getDepartment().getId());
+        caseTurnRecord.setOperatorUserName(user.getUserName());
+        caseTurnRecord.setReceiveDeptName(batchInfoModel.getCollectionUser().getDepartment().getName());//接收部门
+        caseTurnRecord.setReceiveUserId(batchInfoModel.getCollectionUser().getId());//接收人ID
+        caseTurnRecord.setReceiveUserRealName(batchInfoModel.getCollectionUser().getRealName());
+        caseTurnRecord.setCurrentCollector(batchInfoModel.getCollectionUser().getId());
+        caseTurnRecordList.add(caseTurnRecord);
     }
 }
