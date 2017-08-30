@@ -148,4 +148,22 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
             "LEFT JOIN product d ON b.product_id = d.id " +
             "LEFT JOIN principal e ON b.principal_id = e.id", nativeQuery = true)
     List<Object[]> findFollowupSingl(@Param("caseNumber") String caseNumber, @Param("companyCode") String companyCode);
+
+    /**
+     * 导出跟进记录
+     * @param caseNumberList
+     * @param companyCode
+     * @return
+     */
+    @Query(value = "SELECT b.case_number,a.batch_number,e.`name` AS pname,b.operator_time,b.type,c.`name` AS cname,c.id_card,b.target," +
+            " b.target_name,b.contact_phone,b.detail,b.collection_location,b.collection_feedback,b.content FROM case_info a, case_followup_record b," +
+            " personal c, product d, principal e WHERE a.case_number = b.case_number AND b.collection_type != 0 AND a.personal_id = c.id " +
+            " AND a.product_id = d.id AND a.principal_id = e.id AND a.case_number in (?1) and a.company_code=?2 " +
+            " LIMIT ?3 ", nativeQuery = true)
+    List<Object[]> findFollowupPage(List<String> caseNumberList, String companyCode,int limit);
+
+    @Query(value = "SELECT count(1) FROM case_info a, case_followup_record b," +
+            " personal c, product d, principal e WHERE a.case_number = b.case_number AND b.collection_type != 0 AND a.personal_id = c.id " +
+            " AND a.product_id = d.id AND a.principal_id = e.id AND a.case_number in (?1) and a.company_code=?2 ", nativeQuery = true)
+    int findFollowupPageTotal(List<String> caseNumberList,String companyCode);
 }
