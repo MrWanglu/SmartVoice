@@ -52,6 +52,7 @@ public class CallReportController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseFollowupRecord>> query(@RequestParam String companyCode,
+                                                          @RequestParam Integer callType,
                                                           @RequestParam(required = false) String userName,
                                                           @ApiIgnore Pageable pageable,
                                                           @RequestHeader(value = "X-UserToken") String token) {
@@ -70,9 +71,11 @@ public class CallReportController extends BaseController {
         if (Objects.nonNull(userName)) {
             builder.and(qCaseFollowupRecord.operatorName.like(userName.concat("%")));
         }
-        builder.and(qCaseFollowupRecord.callType.eq(164));
+        if (Objects.nonNull(callType)) {
+            builder.and(qCaseFollowupRecord.callType.eq(callType));
+        }
         Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "operation successfully")).body(page);
     }
 
     /**
@@ -91,7 +94,7 @@ public class CallReportController extends BaseController {
                 smaRecordReturn.setRealName(objects1[2].toString());
                 smaRecordReturns.add(smaRecordReturn);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(smaRecordReturns);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "operation successfully")).body(smaRecordReturns);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operation failure", "操作失败")).body(null);
