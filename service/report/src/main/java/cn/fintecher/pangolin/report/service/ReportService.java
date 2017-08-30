@@ -911,12 +911,12 @@ public class ReportService {
                 }
             }
             if (Objects.nonNull(report)) {
-                for (PerformanceRankingReport performanceRankingReport2 : performanceRankingReports) {
+                for (PerformanceRankingReport performanceRankingReport2 : entry.getValue()) {
                     performanceRankingReport2.setManageName(report.getRealName());
                 }
             }
             //过滤组长
-            for (PerformanceRankingReport performanceRankingReport : performanceRankingReports) {
+            for (PerformanceRankingReport performanceRankingReport : entry.getValue()) {
                 if (Objects.equals(performanceRankingReport.getRealName(), performanceRankingReport.getManageName())) {
                     performanceRankingReports.remove(performanceRankingReport);
                     break;
