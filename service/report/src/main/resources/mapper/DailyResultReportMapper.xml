@@ -48,10 +48,10 @@
         (SELECT user_name,`year`,`month`,back_cash as target from user_backcash_plan where DATE_FORMAT(NOW(),'%Y') =
         `year` and DATE_FORMAT(NOW(),'%c') = `month`) d
         on m.userName = d.user_name
-        ) b on a.current_collector = b.id where b.parentDeptCode LIKE CONCAT(#{deptCode},'%') AND b.companyCode =
+        ) b on a.current_collector = b.id where b.deptCode LIKE CONCAT(#{deptCode},'%') AND b.companyCode =
         #{companyCode}
         <if test="code != null">
-            AND n.parentDeptCode LIKE CONCAT(#{code},'%')
+            AND n.deptCode LIKE CONCAT(#{code},'%')
         </if>
         <if test="realName != null">
             AND b.realName LIKE CONCAT('%',#{realName},'%')
@@ -106,7 +106,7 @@
             AND <![CDATA[DATE_FORMAT(now_date,'%Y-%m-%d') <= DATE_FORMAT(#{endDate},'%Y-%m-%d')]]>
         </if>
         <if test="code != null">
-            AND parent_dept_code LIKE CONCAT(#{code}, '%')
+            AND dept_code LIKE CONCAT(#{code}, '%')
         </if>
         <if test="realName != null">
             AND real_name LIKE concat('%',#{realName},'%')
