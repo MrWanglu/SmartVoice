@@ -4,6 +4,7 @@ package cn.fintecher.pangolin.business.repository;
 import cn.fintecher.pangolin.entity.CaseInfoException;
 import cn.fintecher.pangolin.entity.QCaseInfoException;
 import com.querydsl.core.types.dsl.StringPath;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -19,13 +20,13 @@ public interface CaseInfoExceptionRepository extends QueryDslPredicateExecutor<C
     @Override
     default void customize(final QuerydslBindings bindings, final QCaseInfoException root) {
 
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
         //客户手机号
-        bindings.bind(root.mobileNo).first((path, value) -> path.eq(value));
+        bindings.bind(root.mobileNo).first((path, value) -> path.eq(StringUtils.trim(value)));
         //批次号
-        bindings.bind(root.batchNumber).first((path, value) -> path.eq(value));
+        bindings.bind(root.batchNumber).first((path, value) -> path.eq(StringUtils.trim(value)));
         //公司码
-        bindings.bind(root.companyCode).first((path, value) -> path.eq(value));
+        bindings.bind(root.companyCode).first((path, value) -> path.eq(StringUtils.trim(value)));
         //案件金额
         bindings.bind(root.overdueAmount).all((path, value) -> {
             Iterator<? extends BigDecimal> it=value.iterator();
@@ -50,10 +51,10 @@ public interface CaseInfoExceptionRepository extends QueryDslPredicateExecutor<C
             }
         });
         //委托方
-        bindings.bind(root.prinName).first((path, value) -> path.eq(value));
+        bindings.bind(root.prinName).first((path, value) -> path.eq(StringUtils.trim(value)));
 
         //客户姓名
-        bindings.bind(root.personalName).first((path, value) -> path.contains(value));
+        bindings.bind(root.personalName).first((path, value) -> path.contains(StringUtils.trim(value)));
     }
 
 }

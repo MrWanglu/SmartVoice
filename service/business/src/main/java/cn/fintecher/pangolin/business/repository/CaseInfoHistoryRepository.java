@@ -21,12 +21,12 @@ public interface CaseInfoHistoryRepository extends QueryDslPredicateExecutor<Cas
     @Override
     default void customize(final QuerydslBindings bindings, final QCaseInfoHistory root) {
 
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
-        bindings.bind(root.product.prodcutName).first((path, value) -> path.eq(value));
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
+        bindings.bind(root.product.prodcutName).first((path, value) -> path.eq(StringUtils.trim(value)));
         //机构码搜索
-        bindings.bind(root.department.code).first((path, value) -> path.startsWith(value));
+        bindings.bind(root.department.code).first((path, value) -> path.startsWith(StringUtils.trim(value)));
         //公司码
-        bindings.bind(root.companyCode).first((path, value) -> path.eq(value));
+        bindings.bind(root.companyCode).first((path, value) -> path.eq(StringUtils.trim(value)));
         //案件金额
         bindings.bind(root.overdueAmount).all((path, value) -> {
             Iterator<? extends BigDecimal> it = value.iterator();
@@ -98,7 +98,7 @@ public interface CaseInfoHistoryRepository extends QueryDslPredicateExecutor<Cas
             }
         });
         //委托方
-        bindings.bind(root.principalId.id).first((path, value) -> path.eq(value));
+        bindings.bind(root.principalId.id).first((path, value) -> path.eq(StringUtils.trim(value)));
         //案件状态
         bindings.bind(root.collectionStatus).first((path, value) -> path.eq(value));
         //案件类型
@@ -106,13 +106,13 @@ public interface CaseInfoHistoryRepository extends QueryDslPredicateExecutor<Cas
         //催收类型
         bindings.bind(root.collectionType).first((path, value) -> path.eq(value));
         //产品系列
-        bindings.bind(root.product.productSeries.id).first((path, value) -> path.eq(value));
+        bindings.bind(root.product.productSeries.id).first((path, value) -> path.eq(StringUtils.trim(value)));
         //客户姓名
-        bindings.bind(root.personalInfo.name).first((path, value) -> path.contains(value));
+        bindings.bind(root.personalInfo.name).first((path, value) -> path.contains(StringUtils.trim(value)));
         //客户手机号
-        bindings.bind(root.personalInfo.mobileNo).first((path, value) -> path.eq(value));
+        bindings.bind(root.personalInfo.mobileNo).first((path, value) -> path.eq(StringUtils.trim(value)));
         //批次号
-        bindings.bind(root.batchNumber).first((path, value) -> path.eq(value));
+        bindings.bind(root.batchNumber).first((path, value) -> path.eq(StringUtils.trim(value)));
         //申请省份
         bindings.bind(root.area.parent.id).first((path, value) -> path.eq(value));
         //申请城市

@@ -4,12 +4,14 @@ import cn.fintecher.pangolin.entity.CasePayApply;
 import cn.fintecher.pangolin.entity.QCasePayApply;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.core.types.dsl.StringPath;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
+
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Iterator;
@@ -24,10 +26,10 @@ import java.util.List;
 public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePayApply>, JpaRepository<CasePayApply, String>, QuerydslBinderCustomizer<QCasePayApply> {
     @Override
     default void customize(final QuerydslBindings bindings, final QCasePayApply root) {
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
-        bindings.bind(root.caseId).first(SimpleExpression::eq); //手机号
-        bindings.bind(root.personalPhone).first(SimpleExpression::eq); //手机号
-        bindings.bind(root.principalId).first((SimpleExpression::eq)); //委托方
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
+        bindings.bind(root.caseId).first((path, value) -> path.like(StringUtils.trim(value))); //手机号
+        bindings.bind(root.personalPhone).first((path, value) -> path.like(StringUtils.trim(value))); //手机号
+        bindings.bind(root.principalId).first((path, value) -> path.like(StringUtils.trim(value))); //委托方
         bindings.bind(root.payType).first(SimpleExpression::eq); //还款类型
         bindings.bind(root.payWay).first(SimpleExpression::eq); //还款方式
         bindings.bind(root.approveStatus).first(SimpleExpression::eq); //还款审批状态
@@ -42,8 +44,8 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
             }
         });
         bindings.bind(root.approveResult).first(SimpleExpression::eq); //审核结果
-        bindings.bind(root.personalName).first(SimpleExpression::eq);//客户姓名
-        bindings.bind(root.batchNumber).first(SimpleExpression::eq);//案件批次号
+        bindings.bind(root.personalName).first((path, value) -> path.like(StringUtils.trim(value)));//客户姓名
+        bindings.bind(root.batchNumber).first((path, value) -> path.like(StringUtils.trim(value)));//案件批次号
         bindings.bind(root.applyDerateAmt).all((path, value) -> { //减免金额
             Iterator<? extends BigDecimal> it = value.iterator();
             BigDecimal applyDerateMinAmt = it.next();
@@ -54,8 +56,8 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
                 return path.goe(applyDerateMinAmt);
             }
         });
-        bindings.bind(root.applyUserName).first(SimpleExpression::eq);//申请人
-        bindings.bind(root.batchNumber).first((SimpleExpression::eq)); //批次号
+        bindings.bind(root.applyUserName).first((path, value) -> path.like(StringUtils.trim(value)));//申请人
+        bindings.bind(root.batchNumber).first((path, value) -> path.like(StringUtils.trim(value))); //批次号
     }
 
     /**

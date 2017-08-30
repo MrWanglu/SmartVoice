@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.dataimp.repository;
 
 import cn.fintecher.pangolin.dataimp.entity.DataInfoExcel;
 import cn.fintecher.pangolin.dataimp.entity.QDataInfoExcel;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -19,9 +20,9 @@ public interface DataInfoExcelRepository extends MongoRepository<DataInfoExcel, 
         QuerydslBinderCustomizer<QDataInfoExcel> {
     @Override
     default void customize(final QuerydslBindings bindings, final QDataInfoExcel root) {
-        bindings.bind(root.prinCode).first((path, value) -> path.eq(value));
-        bindings.bind(root.batchNumber).first((path, value) -> path.eq(value));
-        bindings.bind(root.personalName).first((path, value) -> path.like("%".concat(value).concat("%")));
+        bindings.bind(root.prinCode).first((path, value) -> path.eq(StringUtils.trim(value)));
+        bindings.bind(root.batchNumber).first((path, value) -> path.eq(StringUtils.trim(value)));
+        bindings.bind(root.personalName).first((path, value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
         bindings.bind(root.overDueDays).all((path, value) -> {
             Iterator<? extends Integer> it=value.iterator();
             Integer firstOverDueDays=it.next();
@@ -43,10 +44,10 @@ public interface DataInfoExcelRepository extends MongoRepository<DataInfoExcel, 
             }
         });
 
-        bindings.bind(root.mobileNo).first((path, value) -> path.eq(value));
-        bindings.bind(root.idCard).first((path, value) -> path.eq(value));
-        bindings.bind(root.province).first((path, value) -> path.startsWith(value));
-        bindings.bind(root.city).first((path, value) -> path.startsWith(value));
+        bindings.bind(root.mobileNo).first((path, value) -> path.eq(StringUtils.trim(value)));
+        bindings.bind(root.idCard).first((path, value) -> path.eq(StringUtils.trim(value)));
+        bindings.bind(root.province).first((path, value) -> path.startsWith(StringUtils.trim(value)));
+        bindings.bind(root.city).first((path, value) -> path.startsWith(StringUtils.trim(value)));
     }
 
     /**

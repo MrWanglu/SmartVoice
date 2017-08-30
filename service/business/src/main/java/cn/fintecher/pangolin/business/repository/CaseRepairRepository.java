@@ -23,9 +23,9 @@ import java.util.Objects;
 public interface CaseRepairRepository extends QueryDslPredicateExecutor<CaseRepair>, JpaRepository<CaseRepair, String>, QuerydslBinderCustomizer<QCaseRepair> {
     @Override
     default void customize(final QuerydslBindings bindings, final QCaseRepair root) {
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
         // 客户姓名
-        bindings.bind(root.caseId.personalInfo.name).first((path, value) -> path.contains(value));
+        bindings.bind(root.caseId.personalInfo.name).first((path, value) -> path.contains(StringUtils.trim(value)));
         // 还款状态
         bindings.bind(root.caseId.payStatus).first((path, value) -> {
             List<String> list = new ArrayList<>();
@@ -66,6 +66,6 @@ public interface CaseRepairRepository extends QueryDslPredicateExecutor<CaseRepa
             }
         });
         //委托方
-        bindings.bind(root.caseId.principalId.id).first((path, value) -> path.eq(value));
+        bindings.bind(root.caseId.principalId.id).first((path, value) -> path.eq(StringUtils.trim(value)));
     }
 }

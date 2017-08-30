@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.dataimp.repository;
 import cn.fintecher.pangolin.dataimp.entity.QTemplateDataModel;
 import cn.fintecher.pangolin.dataimp.entity.TemplateDataModel;
 import com.querydsl.core.types.dsl.StringPath;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -19,7 +20,7 @@ public interface TemplateDataModelRepository extends MongoRepository<TemplateDat
         ,QuerydslBinderCustomizer<QTemplateDataModel> {
     @Override
     default void customize(final QuerydslBindings bindings, final QTemplateDataModel root) {
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
     }
     public List<TemplateDataModel> findTemplateByPrincipalNameAndCompanyCode(String principalName,String companyCode);
 }

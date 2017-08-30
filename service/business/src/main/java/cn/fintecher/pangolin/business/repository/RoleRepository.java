@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.repository;
 import cn.fintecher.pangolin.entity.QRole;
 import cn.fintecher.pangolin.entity.Role;
 import com.querydsl.core.types.dsl.StringPath;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,10 +22,10 @@ public interface RoleRepository extends QueryDslPredicateExecutor<Role>, JpaRepo
 
     @Override
     default void customize(final QuerydslBindings bindings, final QRole root) {
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
-        bindings.bind(root.name).first((path, value) -> path.like(value));
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
+        bindings.bind(root.name).first((path, value) -> path.like(StringUtils.trim(value)));
         bindings.bind(root.status).first((path, value) -> path.eq(value));
-        bindings.bind(root.companyCode).first((path, value) -> path.eq(value));
+        bindings.bind(root.companyCode).first((path, value) -> path.eq(StringUtils.trim(value)));
     }
 
     @Modifying

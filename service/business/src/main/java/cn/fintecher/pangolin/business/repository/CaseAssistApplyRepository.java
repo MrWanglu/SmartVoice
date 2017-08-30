@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.repository;
 import cn.fintecher.pangolin.entity.CaseAssistApply;
 import cn.fintecher.pangolin.entity.QCaseAssistApply;
 import com.querydsl.core.types.dsl.StringPath;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -22,7 +23,7 @@ public interface CaseAssistApplyRepository extends QueryDslPredicateExecutor<Cas
 
     @Override
     default void customize(final QuerydslBindings bindings, final QCaseAssistApply root) {
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
+        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
 //        bindings.bind(root.assistWay).first(SimpleExpression::eq); //协催方式
 //        bindings.bind(root.approveStatus).first(SimpleExpression::eq); //协催审批状态
         bindings.bind(root.applyDate).all((path, value) -> { //申请时间

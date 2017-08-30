@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.repository;
 import cn.fintecher.pangolin.entity.Principal;
 import cn.fintecher.pangolin.entity.QPrincipal;
 import com.querydsl.core.types.dsl.StringPath;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -17,7 +18,7 @@ public interface PrincipalRepository extends QueryDslPredicateExecutor<Principal
     @Override
     default void customize(final QuerydslBindings bindings, final QPrincipal root) {
 
-        bindings.bind(String.class).first((StringPath path, String value) -> path.containsIgnoreCase(value));
+        bindings.bind(String.class).first((StringPath path, String value) -> path.containsIgnoreCase(StringUtils.trim(value)));
 //        bindings.bind(root.domain.id).first((path, value) -> path.like(value));
     }
 
