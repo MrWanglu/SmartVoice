@@ -190,15 +190,15 @@ public class RoleController extends BaseController {
             if (Objects.nonNull(id)) {
                 builder.and(qResource.roles.any().id.eq(id));
             }
-            if (Objects.nonNull(companyCode)) {
-                builder.and(qResource.roles.any().companyCode.eq(companyCode));
-            }
+//            if (Objects.nonNull(companyCode)) {
+//                builder.and(qResource.roles.any().companyCode.eq(companyCode));
+//            }
             Iterator<Resource> resources = resourceRepository.findAll(builder).iterator();
             List<Resource> resourceList = IteratorUtils.toList(resources);
             return ResponseEntity.ok().body(resourceList);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createEntityCreationAlert("未查找到资源", ENTITY_NAME)).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取失败", ENTITY_NAME, e.getMessage())).body(null);
         }
     }
 
