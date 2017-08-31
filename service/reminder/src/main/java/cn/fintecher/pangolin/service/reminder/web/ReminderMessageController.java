@@ -2,12 +2,14 @@ package cn.fintecher.pangolin.service.reminder.web;
 
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.service.reminder.client.UserClient;
-import cn.fintecher.pangolin.service.reminder.model.*;
+import cn.fintecher.pangolin.service.reminder.model.DeleteMessages;
+import cn.fintecher.pangolin.service.reminder.model.ReminderListWebSocketMessage;
+import cn.fintecher.pangolin.service.reminder.model.ReminderMessage;
+import cn.fintecher.pangolin.service.reminder.model.ReminderWebMessage;
 import cn.fintecher.pangolin.service.reminder.repository.ReminderMessageRepository;
 import cn.fintecher.pangolin.service.reminder.service.ReminderMessageService;
 import cn.fintecher.pangolin.service.reminder.service.UserService;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -24,8 +26,6 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -186,29 +186,18 @@ public class ReminderMessageController {
 
     }
 
-    @PostMapping("/setSelectedMessageReaded")
+    @GetMapping("/setSelectedMessageRead")
     @ApiOperation(value = "设置已选定消息为已读" ,notes = "设置已选定消息为已读")
-    public ResponseEntity<ReminderMessage> setSelectedMessageReaded(@RequestBody List<String> idList,@RequestHeader(value = "X-UserToken") String token){
-        ResponseEntity<User> userResult = userClient.getUserByToken(token);
-        if (!userResult.hasBody()) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createAlert("无法获取用户", "")).body(null);
+    public ResponseEntity<ReminderMessage> setSelectedMessageRead(@RequestParam String messageId ){
+        ReminderMessage reminderMessage  = null;
+        try {
+            reminderMessage = reminderMessageRepository.findOne(messageId);
+            reminderMessage.setState(ReminderMessage.ReadStatus.Read);
+            reminderMessage = reminderMessageRepository.save(reminderMessage);
+        } catch (Exception e) {
+            log.error("设置消息为已读失败，请联系管理员",e.getMessage());
         }
-        User user = userResult.getBody();
-        BooleanBuilder builder = new BooleanBuilder();
-        QReminderMessage qReminderMessage = QReminderMessage.reminderMessage;
-        builder.and(qReminderMessage.id.in(idList)
-               .and(qReminderMessage.userId.eq(user.getId())));
-        List<ReminderMessage> messageList = new ArrayList<>();
-        Iterator<ReminderMessage> it = reminderMessageRepository.findAll(builder).iterator();
-        while(it.hasNext()){
-            ReminderMessage message = it.next();
-            message.setState(ReminderMessage.ReadStatus.Read);
-            messageList.add(message);
-        }
-        if(messageList.size()>0) {
-            reminderMessageRepository.save(messageList);
-        }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(reminderMessage);
     }
 
 }
