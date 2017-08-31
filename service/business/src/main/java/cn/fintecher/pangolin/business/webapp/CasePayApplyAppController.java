@@ -102,6 +102,9 @@ public class CasePayApplyAppController extends BaseController {
                     .and(QCaseAssist.caseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
             if (Objects.nonNull(one) && !Objects.equals(one.getAssistStatus(),CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue())) {
                 one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
+                CaseInfo caseInfo = one.getCaseId();
+                caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
+                one.setCaseId(caseInfo);
                 caseAssistRepository.save(one);
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("申请还款成功", "CasePayApply")).body(null);

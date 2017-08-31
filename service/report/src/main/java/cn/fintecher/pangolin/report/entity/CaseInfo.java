@@ -87,6 +87,8 @@ public class CaseInfo extends BaseEntity {
     private Personal personalInfo;
     @Transient
     private AreaCode area;
+    @Transient
+    private Integer waitFlag = 1;
 
 
 
