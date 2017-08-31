@@ -78,7 +78,7 @@ public class ReportService {
         BackMoneyThiModel backMoneyThiModel = new BackMoneyThiModel();
         for (BackMoneyReport backMoneyReport : backMoneyReports) {
             if (Objects.equals(tokenUser.getManager(), 0)) {
-                if (Objects.equals(backMoneyReport.getParentDeptCode(), deptModel.getCode())
+                if (Objects.equals(backMoneyReport.getDeptCode(), deptModel.getCode())
                         && !Objects.equals(backMoneyReport.getUserName(), tokenUser.getUserName())) { //过滤同部门
                     continue;
                 }
@@ -219,7 +219,7 @@ public class ReportService {
         PerformanceSecModel performanceSecModel = new PerformanceSecModel();
         for (PerformanceBasisModel performanceBasisModel : performanceBasisModels) {
             if (Objects.equals(tokenUser.getManager(), 0)) {
-                if (Objects.equals(deptModel.getCode(), performanceBasisModel.getParentDeptCode())
+                if (Objects.equals(deptModel.getCode(), performanceBasisModel.getDeptCode())
                         && !Objects.equals(tokenUser.getUserName(), performanceBasisModel.getUserName())) { //过滤同部门
                     continue;
                 }
@@ -330,7 +330,7 @@ public class ReportService {
         DailyProcessThiModel dailyProcessThiModel = new DailyProcessThiModel();
         for (DailyProcessReport dailyProcessReport : dailyProcessReports) {
             if (Objects.equals(tokenUser.getManager(), 0)) {
-                if (Objects.equals(deptModel.getCode(), dailyProcessReport.getParentDeptCode())
+                if (Objects.equals(deptModel.getCode(), dailyProcessReport.getDeptCode())
                         && !Objects.equals(tokenUser.getUserName(), dailyProcessReport.getUserName())) { //过滤同部门
                     continue;
                 }
@@ -488,7 +488,7 @@ public class ReportService {
         DailyResultThiModel dailyResultThiModel = new DailyResultThiModel();
         for (DailyResultReport dailyResultReport : dailyResultReports) {
             if (Objects.equals(tokenUser.getManager(), 0)) {
-                if (Objects.equals(deptModel.getCode(), dailyResultReport.getParentDeptCode())
+                if (Objects.equals(deptModel.getCode(), dailyResultReport.getDeptCode())
                         && !Objects.equals(tokenUser.getUserName(), dailyResultReport.getUserName())) { //过滤同部门
                     continue;
                 }
