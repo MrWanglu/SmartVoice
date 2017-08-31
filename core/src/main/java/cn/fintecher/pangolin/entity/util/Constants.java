@@ -36,7 +36,9 @@ public final class Constants {
     //阅读回款目前excel模板url
     public static final String BACK_CASH_PLAN_EXCEL_URL_CODE = "SysParam.backcashplanexcelurl";
     public static final String BACK_CASH_PLAN_EXCEL_URL_TYPE = "0006";
-
+    //短信发送
+    public static final String SMS_PUSH_CODE = "SysParam.sms.push";
+    public static final String SMS_PUSH_TYPE = "0017";
     //导入批次号最大999(3位)
     public final static String ORDER_SEQ = "orderSeq";
     public final static Integer ORDER_SEQ_LENGTH=3;

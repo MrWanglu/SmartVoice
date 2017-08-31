@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.entity.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
  * Base64编码工具类
@@ -122,5 +123,21 @@ public class Base64 {
 
 			i += 4;
 		}
+	}
+	/**
+	 * JAVA 8自带的BSAE64
+	 * @param str
+	 * @param charSet
+	 * @return
+	 */
+	public static String encodeJava8(String str,String charSet)  {
+		java.util.Base64.Encoder encoder=java.util.Base64.getEncoder();
+		byte[] strByte = new byte[0];
+		try {
+			strByte = str.getBytes(charSet);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		return  encoder.encodeToString(strByte);
 	}
 }

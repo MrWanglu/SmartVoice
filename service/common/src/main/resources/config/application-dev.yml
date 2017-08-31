@@ -69,5 +69,9 @@ pangolin:
     proceedSign: 59715406
     secret: 6b21a1c997dcea6a20c3181677c20744
     recordlist: http://m.icsoc.net/v2/wintelapi/record/recordlist
+  jiguang:
+      appKey: a06c080ce726b538738b18c9
+      masterSecret: 0c1f4c5b6599df23fe1c3f42
+      msgUrl: https://api.sms.jpush.cn/v1/messages
 server:
     port: 9002

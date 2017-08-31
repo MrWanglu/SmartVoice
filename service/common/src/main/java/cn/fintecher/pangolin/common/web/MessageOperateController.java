@@ -1,5 +1,7 @@
 package cn.fintecher.pangolin.common.web;
 
+import cn.fintecher.pangolin.common.model.SMSMessage;
+import cn.fintecher.pangolin.common.service.SmsMessageService;
 import cn.fintecher.pangolin.entity.message.SendSMSMessage;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -26,7 +28,8 @@ public class MessageOperateController {
 
     @Autowired
     RabbitTemplate rabbitTemplate;
-
+    @Autowired
+    SmsMessageService smsMessageService;
 
     @RequestMapping(value = "/sendSmsMessage", method = RequestMethod.POST)
     @ApiOperation(value = "发送短信", notes = "发送短信")
@@ -36,5 +39,10 @@ public class MessageOperateController {
         return ResponseEntity.ok().build();
     }
 
-
+    @RequestMapping(value = "/sendSmsMessageJG", method = RequestMethod.POST)
+    @ApiOperation(value = "极光发送短信", notes = "极光发送短信")
+    public ResponseEntity<Void> sendSmsMessageJG(@RequestBody SMSMessage message) {
+        smsMessageService.sendMessageJiGuang(message);
+        return ResponseEntity.ok().build();
+    }
 }

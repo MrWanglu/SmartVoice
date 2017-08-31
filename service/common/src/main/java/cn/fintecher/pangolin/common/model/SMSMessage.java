@@ -19,5 +19,6 @@ public class SMSMessage {
     private String template;
     private Map<String, String> params;
     private Date sendTime;
-
+    private String userId;
+    private String companyCode;
 }
