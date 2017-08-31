@@ -279,4 +279,17 @@ public class CaseAssistService {
         caseTurnRecord.setCurrentCollector(batchInfoModel.getCollectionUser().getId());
         caseTurnRecordList.add(caseTurnRecord);
     }
+
+    /**
+     * 协催案件取消留案修改状态
+     * @param assist 协催案件
+     * @param user 操作人
+     */
+    public void cancelLeaveCaseAssist(CaseAssist assist, User user) {
+        assist.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //协催标识
+        assist.setHasLeaveDays(0); //留案天数
+        assist.setLeaveDate(null); //留案日期
+        assist.setOperator(user); //操作人
+        assist.setOperatorTime(new Date());//修改时间
+    }
 }

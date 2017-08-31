@@ -99,7 +99,7 @@ public class CaseAssistController extends BaseController {
                 if (!Objects.equals(next.getAssistCollector(), user)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","不能操作不属于协催员自己的案件!")).body(null);
                 }
-                next.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());
+                caseAssistService.cancelLeaveCaseAssist(next, user);
                 caseAssistList.add(next);
             }
             caseAssistRepository.save(caseAssistList);
