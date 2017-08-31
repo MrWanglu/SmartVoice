@@ -61,7 +61,7 @@ public class RecordDownLoadJob implements Job {
         Iterator<CaseFollowupRecord> caseFollowupRecords;
         List<CaseFollowupRecord> caseFollowupRecordList;
         QSysParam qSysParam = QSysParam.sysParam;
-        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYSPARAM_OVERNIGHT_STATUS));
+        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYSPARAM_RECORD_STATUS));
         try {
             if (Objects.equals("0", sysParam.getValue())) {
                 sysParam.setValue("1");
