@@ -1010,6 +1010,7 @@ public class CaseInfoService {
             }
             caseInfo.setLeaveCaseFlag(1); //留案标志
             caseInfo.setOperator(tokenUser); //操作人
+            caseInfo.setLeaveDate(ZWDateUtil.getNowDate());
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseInfoRepository.saveAndFlush(caseInfo);
             flagNum++;
@@ -1036,6 +1037,8 @@ public class CaseInfoService {
                 throw new RuntimeException("只能对自己所持有的案件进行取消留案操作");
             }
             caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识置为 0-非留案
+            caseInfo.setLeaveDate(null);
+            caseInfo.setHasLeaveDays(0); //留案天数归0
             caseInfo.setOperator(tokenUser); //操作人
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseInfoRepository.saveAndFlush(caseInfo);
