@@ -1,7 +1,7 @@
 package cn.fintecher.pangolin.common.service;
 
 
-import cn.fintecher.pangolin.entity.message.SendSMSMessage;
+import cn.fintecher.pangolin.common.model.SMSMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -26,7 +26,7 @@ public class SmsReceiver {
     private SmsMessageService smsMessageService;
 
     @RabbitHandler
-    public void receive(SendSMSMessage message) {
+    public void receive(SMSMessage message) {
         log.debug("entry the send message {}", message);
         message.setSendTime(new Date());
         smsMessageService.sendMessage(message);
