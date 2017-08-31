@@ -350,6 +350,9 @@ public class CaseAssistController extends BaseController {
                         .and(QCaseAssist.caseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
                 if (!Objects.equals(one.getAssistStatus(),CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue())) {
                     one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
+                    CaseInfo caseId = one.getCaseId();
+                    caseId.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
+                    one.setCaseId(caseId);
                     caseAssistRepository.save(one);
                 }
             } catch (final Exception e) {
