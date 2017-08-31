@@ -97,7 +97,7 @@ public class AccVisitPoolController extends BaseController {
     public ResponseEntity<Page<CaseInfo>> getAllVisitCase(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                           @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                           @ApiIgnore Pageable pageable,
-                                                          @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                          @RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to get all Visit case");
         Sort.Order followupBackOrder = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
         Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
@@ -147,7 +147,7 @@ public class AccVisitPoolController extends BaseController {
     public ResponseEntity<Page<CaseInfo>> getAllHandleVisitCase(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                                 @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                                 @ApiIgnore Pageable pageable,
-                                                                @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                                @RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to get all handle Visit case");
         try {
             User tokenUser = getUserByToken(token);
@@ -205,7 +205,7 @@ public class AccVisitPoolController extends BaseController {
     @PostMapping("/saveFollowupRecord")
     @ApiOperation(value = "外访页面添加跟进记录", notes = "外访页面添加跟进记录")
     public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@RequestBody CaseFollowupParams caseFollowupParams,
-                                                                 @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                                 @RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to save {caseFollowupRecord}", caseFollowupParams);
         try {
             User tokenUser = getUserByToken(token);
@@ -224,7 +224,7 @@ public class AccVisitPoolController extends BaseController {
     @ApiOperation(value = "外访页面多条件查询跟进记录", notes = "外访页面多条件查询跟进记录")
     public ResponseEntity<Page<CaseFollowupRecord>> getFollowupRecord(@PathVariable @ApiParam(value = "案件编号", required = true) String caseNumber,
                                                                       @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
-                                                                      @ApiIgnore Pageable pageable) throws URISyntaxException {
+                                                                      @ApiIgnore Pageable pageable) {
         log.debug("REST request to get case followup records by {caseNumber}", caseNumber);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
@@ -280,7 +280,7 @@ public class AccVisitPoolController extends BaseController {
     @PostMapping("/visitCaseDistribution")
     @ApiOperation(value = "外访案件重新分配", notes = "外访案件重新分配")
     public ResponseEntity<Void> visitCaseDistribution(@RequestBody ReDistributionParams reDistributionParams,
-                                                      @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                      @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to reDistribute");
         try {
             User tokenUser = getUserByToken(token);
@@ -314,7 +314,7 @@ public class AccVisitPoolController extends BaseController {
     @PostMapping("/doVisitPay")
     @ApiOperation(value = "外访页面还款操作", notes = "外访页面还款操作")
     public ResponseEntity<Void> doTelPay(@RequestBody PayApplyParams payApplyParams,
-                                         @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                         @RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to apply payment");
         try {
             User tokenUser = getUserByToken(token);
@@ -332,7 +332,7 @@ public class AccVisitPoolController extends BaseController {
     @GetMapping("/visitWithdraw")
     @ApiOperation(value = "外访页面还款撤回", notes = "外访页面还款撤回")
     public ResponseEntity<Void> telWithdraw(@RequestParam @ApiParam(value = "还款审批ID", required = true) String payApplyId,
-                                            @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                            @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to withdraw by {payApplyId}", payApplyId);
         try {
             User tokenUser = getUserByToken(token);
@@ -359,7 +359,7 @@ public class AccVisitPoolController extends BaseController {
     })
     public ResponseEntity<Page<CasePayApply>> getPaymentRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
                                                                @QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
-                                                               @ApiIgnore Pageable pageable) throws URISyntaxException {
+                                                               @ApiIgnore Pageable pageable) {
         log.debug("REST request to get payment records by {caseId}", caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
@@ -379,7 +379,7 @@ public class AccVisitPoolController extends BaseController {
     @GetMapping("/endVisitCase")
     @ApiOperation(value = "外访案件结案", notes = "外访案件结案")
     public ResponseEntity<Void> endVisitCase(EndCaseParams endCaseParams,
-                                             @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                             @RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to end case by {endCaseParams}", endCaseParams);
         try {
             User tokenUser = getUserByToken(token);
@@ -397,7 +397,7 @@ public class AccVisitPoolController extends BaseController {
     @PostMapping("assistApply")
     @ApiOperation(value = "协催申请", notes = "协催申请")
     public ResponseEntity<Void> assistApply(AssistApplyParams assistApplyParams,
-                                            @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                            @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save assist apply");
         try {
             User tokenUser = getUserByToken(token);
@@ -424,7 +424,7 @@ public class AccVisitPoolController extends BaseController {
     })
     public ResponseEntity<Page<CaseAssistApply>> getAllAssistApplyRecord(@QuerydslPredicate(root = CaseAssistApply.class) Predicate predicate,
                                                                          @ApiIgnore Pageable pageable,
-                                                                         @RequestParam @ApiParam(value = "案件ID", required = true) String caseId) throws URISyntaxException {
+                                                                         @RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
         log.debug("REST request to get all assist apply record by {caseId}", caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
@@ -443,7 +443,7 @@ public class AccVisitPoolController extends BaseController {
      */
     @GetMapping("/getBatchInfo")
     @ApiOperation(value = "外访页面获取分配信息", notes = "外访页面获取分配信息")
-    public ResponseEntity<BatchDistributeModel> getBatchInfo(@RequestHeader(value = "X-UserToken") String token) throws Exception {
+    public ResponseEntity<BatchDistributeModel> getBatchInfo(@RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get batch info");
         try {
             User tokenUser = getUserByToken(token);
@@ -461,7 +461,7 @@ public class AccVisitPoolController extends BaseController {
     @PostMapping("/batchVisitCase")
     @ApiOperation(value = "外访页面批量分配", notes = "外访页面批量分配")
     public ResponseEntity<Void> batchVisitCase(@RequestBody BatchDistributeModel batchDistributeModel,
-                                               @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                               @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to batch case");
         try {
             User tokenUser = getUserByToken(token);
@@ -479,7 +479,7 @@ public class AccVisitPoolController extends BaseController {
     @PutMapping("/visitCaseMarkColor")
     @ApiOperation(value = "外访案件颜色打标", notes = "外访案件颜色打标")
     public ResponseEntity<Void> visitCaseMarkColor(@RequestBody CaseMarkParams caseMarkParams,
-                                                   @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                                   @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to mark color");
         try {
             User tokenUser = getUserByToken(token);
@@ -498,7 +498,7 @@ public class AccVisitPoolController extends BaseController {
     @ApiOperation(value = "外访页面多条件查询发送信息记录", notes = "外访页面多条件查询发送信息记录")
     public ResponseEntity<Page<SendMessageRecord>> getAllSendMessageRecord(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                                            @ApiIgnore Pageable pageable,
-                                                                           @RequestParam @ApiParam(value = "案件ID", required = true) String caseId) throws URISyntaxException {
+                                                                           @RequestParam @ApiParam(value = "案件ID", required = true) String caseId){
         log.debug("REST request to get all send message record by {caseId}", caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
