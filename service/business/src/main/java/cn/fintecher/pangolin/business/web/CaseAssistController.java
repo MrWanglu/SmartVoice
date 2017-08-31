@@ -530,7 +530,7 @@ public class CaseAssistController extends BaseController {
             Integer avgCaseNum = 0; //人均案件数
             Integer caseNum = 0; //登录用户部门下的所有启用用户持有未结案案件总数
             List<BatchInfoModel> batchInfoModels = new ArrayList<>();
-            if (Objects.equals(userList.size(),0)) {
+            if (!Objects.equals(userList.size(),0)) {
                 for (User u : userList) {
                     BatchInfoModel batchInfoModel = new BatchInfoModel();
                     Integer caseCount = caseInfoRepository.getCaseCount(u.getId());

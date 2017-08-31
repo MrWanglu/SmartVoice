@@ -1659,7 +1659,7 @@ public class CaseInfoService {
             type = department.getType();
         }
         if (Objects.nonNull(user)) {
-            type = user.getType();
+            type = user.getDepartment().getType();
         }
         switch (type) {
             case 1: //电话催收
@@ -1677,8 +1677,11 @@ public class CaseInfoService {
 //            case 6: //提醒催收
 //                caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
 //                break;
+            case 196: //综合类型
+                caseInfo.setCollectionType(CaseInfo.CollectionType.COMPLEX.getValue());
+                break;
             default:
-                throw new RuntimeException("只允许向电催或外访分配案件!");
+                throw new RuntimeException("只允许向电催/外访/综合部门分配案件!");
         }
     }
 

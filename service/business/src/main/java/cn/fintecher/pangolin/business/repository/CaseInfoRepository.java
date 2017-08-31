@@ -157,6 +157,8 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
             }
             return path.in(idSets);
         });
+        bindings.bind(root.collectionType).first((path, value) -> path.eq(value));
+        bindings.bind(root.department.code).first((path, value) -> path.startsWith(value));
     }
 
     /**
