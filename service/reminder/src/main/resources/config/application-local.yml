@@ -11,7 +11,7 @@ spring:
         serialization.indent_output: true
     data:
         mongodb:
-            uri: mongodb://locahost:27017
+            uri: mongodb://localhost:27017
             database: pangolin_reminder_db
     rabbitmq:
         username: guest
