@@ -195,7 +195,8 @@ public class ReminderMessageController {
             reminderMessage.setState(ReminderMessage.ReadStatus.Read);
             reminderMessage = reminderMessageRepository.save(reminderMessage);
         } catch (Exception e) {
-            log.error("设置消息为已读失败，请联系管理员",e.getMessage());
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().header("errorMassage","设置消息为已读失败，请联系管理员").build();
         }
         return ResponseEntity.ok().body(reminderMessage);
     }
