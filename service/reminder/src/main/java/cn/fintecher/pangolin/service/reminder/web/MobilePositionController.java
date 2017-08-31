@@ -77,7 +77,6 @@ public class MobilePositionController{
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(QMobilePosition.mobilePosition.companyCode.eq(user.getCompanyCode()));
         builder.and(QMobilePosition.mobilePosition.depCode.startsWith(user.getDepartment().getCode()));
-        builder.and(QMobilePosition.mobilePosition.userName.ne("administrator"));
         try {
             if (null != mobilePositionParams.getName()
                     || null != mobilePositionParams.getDepCode()

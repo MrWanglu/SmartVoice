@@ -56,7 +56,7 @@ public class CasePayApplyAppController extends BaseController {
     @GetMapping("/getCasePaymentRecordForApp")
     @ApiOperation(value = "根据案件ID获取还款记录", notes = "根据案件ID获取还款记录")
     public ResponseEntity<Page<CasePayApply>> getPaymentRecord(@RequestParam @ApiParam(value = "案件ID", required = true) String id,
-                                                               @ApiIgnore Pageable pageable) throws URISyntaxException {
+                                                               @ApiIgnore Pageable pageable) {
         try {
             BooleanBuilder builder = new BooleanBuilder();
             builder.and(QCasePayApply.casePayApply.caseId.eq(id));
@@ -72,7 +72,7 @@ public class CasePayApplyAppController extends BaseController {
     @GetMapping("/getCasePaymentForApp")
     @ApiOperation(value = "根据案件ID获取入账还款", notes = "根据案件ID获取入账还款")
     public ResponseEntity<Page<CasePayApply>> getPayment(@RequestParam @ApiParam(value = "案件ID", required = true) String id,
-                                                               @ApiIgnore Pageable pageable) throws URISyntaxException {
+                                                               @ApiIgnore Pageable pageable){
         try {
             BooleanBuilder builder = new BooleanBuilder();
             builder.and(QCasePayApply.casePayApply.caseId.eq(id));
@@ -97,11 +97,6 @@ public class CasePayApplyAppController extends BaseController {
         User user = null;
         try {
             user = getUserByToken(token);
-        } catch (final Exception e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
-        }
-        try {
             caseInfoService.doPay(payApplyParams, user);
             CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.id.eq(payApplyParams.getCaseId())
                     .and(QCaseAssist.caseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
@@ -111,7 +106,7 @@ public class CasePayApplyAppController extends BaseController {
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("申请还款成功", "CasePayApply")).body(null);
         }catch(Exception e){
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "", e.getMessage())).body(null);
         }
     }
 
@@ -126,12 +121,11 @@ public class CasePayApplyAppController extends BaseController {
         User user = null;
         try {
             user = getUserByToken(token);
-        } catch (final Exception e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+            caseInfoService.payWithdraw(id, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款撤回成功", "CasePayApply")).body(null);
+        }catch(Exception e){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "", e.getMessage())).body(null);
         }
-        caseInfoService.payWithdraw(id, user);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("还款撤回成功", "CasePayApply")).body(null);
     }
 
     @GetMapping("/getBackMoneyDetails")

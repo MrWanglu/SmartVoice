@@ -58,7 +58,7 @@ public class CaseFollowupAppController extends BaseController {
 
     @GetMapping("/getAllFollowupsForApp")
     @ApiOperation(value = "APP查询案件跟进记录", notes = "APP查询案件跟进记录")
-    public ResponseEntity<Page<CaseFollowupRecord>> getAllFollowupsForApp(@ApiParam(value = "案件ID", required = true) @RequestParam String id, Pageable pageable) throws Exception {
+    public ResponseEntity<Page<CaseFollowupRecord>> getAllFollowupsForApp(@ApiParam(value = "案件ID", required = true) @RequestParam String id, Pageable pageable) {
         try {
             BooleanBuilder builder = new BooleanBuilder();
             builder.and(QCaseFollowupRecord.caseFollowupRecord.caseId.eq(id));
@@ -104,11 +104,6 @@ public class CaseFollowupAppController extends BaseController {
         User user = null;
         try {
             user = getUserByToken(token);
-        } catch (final Exception e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
-        }
-        try {
             CaseInfo caseInfo = caseInfoRepository.findOne(caseFollowupParams.getCaseId());
             CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.id.eq(caseFollowupParams.getCaseId())
                     .and(QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue())));

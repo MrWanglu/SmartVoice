@@ -42,7 +42,7 @@ public class AppMsgResource {
 
     @PostMapping("/appmsg")
     @ApiOperation(value = "app信息推送", notes = "app信息推送")
-    public ResponseEntity<AppMsg> appmsg(@RequestBody AppMsg request) throws URISyntaxException {
+    public ResponseEntity<AppMsg> appmsg(@RequestBody AppMsg request){
         log.debug("REST request to save Appmsg : {}", request);
         ResponseEntity<User> userResult = userClient.findUserById(request.getUserId());
         User user = userResult.getBody();

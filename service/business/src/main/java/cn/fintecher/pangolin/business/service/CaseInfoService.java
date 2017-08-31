@@ -1355,6 +1355,9 @@ public class CaseInfoService {
                 }
                 String caseId = caseInfoList.get(alreadyCaseNum);
                 CaseRepair caseRepair = caseRepairRepository.findOne(caseId);
+                if(Objects.isNull(Objects.nonNull(targetUser) && Objects.isNull(targetUser.getCompanyCode()))){
+                    throw new Exception("不能把案件分配给超级管理员");
+                }
                 if (Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.TEL.getValue())
                         && !Objects.equals(user.getType(), User.Type.SYNTHESIZE.getValue())
                         && Objects.nonNull(user.getType())) {
@@ -1389,6 +1392,9 @@ public class CaseInfoService {
                         caseInfo.setDepartment(department);
                         caseInfo.setCaseFollowInTime(null);
                         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
+                        if(Objects.equals(department.getType(),Department.Type.SYNTHESIZE_MANAGEMENT.getValue())){
+                            caseInfo.setCollectionType(CaseInfo.CollectionType.COMPLEX.getValue());
+                        }
                         if (Objects.equals(department.getType(), Department.Type.TELEPHONE_COLLECTION.getValue())) {
                             caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
                         }
@@ -1399,6 +1405,9 @@ public class CaseInfoService {
                     if (Objects.nonNull(targetUser)) {
                         caseInfo.setDepartment(targetUser.getDepartment());
                         caseInfo.setCurrentCollector(targetUser);
+                        if(Objects.equals(targetUser.getType(),User.Type.SYNTHESIZE.getValue())){
+                            caseInfo.setCollectionType(CaseInfo.CollectionType.COMPLEX.getValue());
+                        }
                         if (Objects.equals(targetUser.getType(), User.Type.TEL.getValue())) {
                             caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
                         }
@@ -1428,6 +1437,8 @@ public class CaseInfoService {
                     caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                     if (Objects.nonNull(caseInfo.getCurrentCollector())) {
                         caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
+                        caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接收人ID
+                        caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                     } else {
                         caseTurnRecord.setReceiveDeptName(caseInfo.getDepartment().getName());
                     }

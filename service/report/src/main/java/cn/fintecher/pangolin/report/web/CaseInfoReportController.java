@@ -58,7 +58,7 @@ public class CaseInfoReportController extends BaseController{
                                                         @RequestParam(required = true)@ApiParam(value = "页数") Integer page,
                                                         @RequestParam(required = true)@ApiParam(value = "大小") Integer size,
                                                         @RequestParam(required = false) @ApiParam(value = "客户名称") String name,
-                                                        @RequestParam(required = false) @ApiParam(value = "地址") String address) throws Exception {
+                                                        @RequestParam(required = false) @ApiParam(value = "地址") String address) {
         User user = null;
         try {
             user = getUserByToken(token);
@@ -110,7 +110,7 @@ public class CaseInfoReportController extends BaseController{
         PageInfo pageInfos = new PageInfo(lists);
         pageInfos.setPages(pageInfo.getPages());
         pageInfos.setTotal(pageInfo.getTotal());
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","测试")).body(pageInfos);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","")).body(pageInfos);
     }
 
 }

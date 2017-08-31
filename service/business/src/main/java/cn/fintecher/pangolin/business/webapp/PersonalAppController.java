@@ -116,16 +116,11 @@ public class PersonalAppController extends BaseController {
     @PostMapping("/saveRepairInfoForApp")
     @ApiOperation(value = "APP添加修复信息", notes = "APP添加修复信息")
     public ResponseEntity saveRepairInfo(@RequestBody PersonalRepairInfo personalRepairInfo,
-                                         @RequestHeader(value = "X-UserToken") String token) throws Exception {
+                                         @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save repair information");
         User user = null;
         try {
             user = getUserByToken(token);
-        } catch (final Exception e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
-        }
-        try {
             if (Objects.isNull(personalRepairInfo)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "", "修复内容为空")).body(null);
             }

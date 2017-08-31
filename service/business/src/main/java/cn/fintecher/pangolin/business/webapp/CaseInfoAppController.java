@@ -1,10 +1,13 @@
 package cn.fintecher.pangolin.business.webapp;
 
+import cn.fintecher.pangolin.business.model.LeaveCaseModel;
+import cn.fintecher.pangolin.business.model.LeaveCaseParams;
 import cn.fintecher.pangolin.business.model.MapModel;
 import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.service.AccMapService;
+import cn.fintecher.pangolin.business.service.CaseAssistService;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.web.BaseController;
 import cn.fintecher.pangolin.entity.*;
@@ -31,10 +34,9 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+
+import static cn.fintecher.pangolin.entity.QCaseInfo.caseInfo;
 
 /**
  * @author : gaobeibei
@@ -56,6 +58,8 @@ public class CaseInfoAppController extends BaseController {
     AccMapService accMapService;
     @Inject
     SysParamRepository sysParamRepository;
+    @Inject
+    CaseAssistService caseAssistService;
 
     @GetMapping("/queryAssistDetail")
     @ApiOperation(value = "协催案件查询", notes = "协催案件查询")
@@ -71,9 +75,9 @@ public class CaseInfoAppController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
-        if(!Objects.equals(user.getType(),User.Type.VISIT.getValue())
-                && !Objects.equals(user.getType(),User.Type.SYNTHESIZE.getValue())){
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","")).body(null);
+        if (!Objects.equals(user.getType(), User.Type.VISIT.getValue())
+                && !Objects.equals(user.getType(), User.Type.SYNTHESIZE.getValue())) {
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(null);
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
@@ -122,9 +126,9 @@ public class CaseInfoAppController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
-        if(!Objects.equals(user.getType(),User.Type.VISIT.getValue())
-                && !Objects.equals(user.getType(),User.Type.SYNTHESIZE.getValue())){
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","")).body(null);
+        if (!Objects.equals(user.getType(), User.Type.VISIT.getValue())
+                && !Objects.equals(user.getType(), User.Type.SYNTHESIZE.getValue())) {
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(null);
         }
         List<Integer> status = new ArrayList<>();
         status.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue());
@@ -230,7 +234,7 @@ public class CaseInfoAppController extends BaseController {
         exp.and(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()));
         exp.and(QSysParam.sysParam.status.eq(SysParam.StatusEnum.Start.getValue()));
         double radius = Double.valueOf(sysParamRepository.findOne(exp).getValue());
-        Map<String, Double> resultMap = MapUtil.computeOrigin4Position( model.getLongitude(),model.getLatitude(), radius);
+        Map<String, Double> resultMap = MapUtil.computeOrigin4Position(model.getLongitude(), model.getLatitude(), radius);
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
         builder.and(QCaseAssist.caseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue()));
@@ -259,7 +263,7 @@ public class CaseInfoAppController extends BaseController {
         exp.and(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()));
         exp.and(QSysParam.sysParam.status.eq(SysParam.StatusEnum.Start.getValue()));
         Double radius = Double.valueOf(sysParamRepository.findOne(exp).getValue());
-        Map<String, Double> resultMap = MapUtil.computeOrigin4Position(model.getLongitude(),model.getLatitude(), radius);
+        Map<String, Double> resultMap = MapUtil.computeOrigin4Position(model.getLongitude(), model.getLatitude(), radius);
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
         builder.and(QCaseAssist.caseAssist.assistWay.eq(CaseAssist.AssistWay.ONCE_ASSIST.getValue()));
@@ -292,8 +296,7 @@ public class CaseInfoAppController extends BaseController {
     public ResponseEntity<Page<CaseInfo>> getPersonalCase(@RequestParam(required = false) @ApiParam(value = "客户名称") String name,
                                                           @RequestParam(required = false) @ApiParam(value = "地址") String address,
                                                           @ApiIgnore Pageable pageable,
-                                                          @RequestHeader(value = "X-UserToken") String token
-    ) {
+                                                          @RequestHeader(value = "X-UserToken") String token) {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder();
@@ -313,6 +316,147 @@ public class CaseInfoAppController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "CaseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    @GetMapping("/leaveCaseAssistForApp")
+    @ApiOperation(value = "协催案件留案操作", notes = "协催案件留案操作")
+    public ResponseEntity leaveCaseAssistForApp(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+                                                                @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to leave case");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+            QCaseInfo qCaseInfo = caseInfo;
+            long count = caseInfoRepository.count((qCaseInfo.currentCollector.id.eq(user.getId()).or(qCaseInfo.assistCollector.id.eq(user.getId()))
+                    .and(qCaseInfo.collectionStatus.in(20, 21, 22, 23, 25, 171, 172))));
+
+            long count1 = caseAssistRepository.leaveCaseAssistCount(user.getId());
+            //获得留案比例
+            QSysParam qSysParam = QSysParam.sysParam;
+            SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_LEAVERATE).and(qSysParam.companyCode.eq(user.getCompanyCode())));
+            Double rate = Double.parseDouble(sysParam.getValue()) / 100;
+            //计算留案案件是否超过比例
+            Integer leaveNum = (int) (count * rate); //可留案的案件数
+            CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.id.eq(caseId).and(QCaseAssist.caseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
+            if (Objects.isNull(one)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "所选案件未找到!")).body(null);
+            }
+            if (Objects.nonNull(one.getAssistCollector()) && !Objects.equals(one.getAssistCollector().getId(), user.getId())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "只能对自己所持有的案件进行留案操作!")).body(null);
+            }
+            if (Objects.equals(one.getLeaveCaseFlag(), CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "所选案件存在已经留案的案件!")).body(null);
+            }
+            if (Objects.equals(one.getAssistWay(), CaseAssist.AssistWay.ONCE_ASSIST.getValue())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "单次协催的案件不允许留案!")).body(null);
+            }
+            if (count1 >= leaveNum) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "所选案件数量超过可留案案件数!")).body(null);
+            }
+            one.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue()); //留案标志
+            one.setLeaveDate(ZWDateUtil.getNowDateTime()); //留案日期
+            one.setHasLeaveDays(0); //留案天数
+            one.setOperator(user);
+            one.setOperatorTime(ZWDateUtil.getNowDateTime());
+            caseAssistRepository.save(one);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("留案成功", "")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "留案失败")).body(null);
+        }
+    }
+
+    @GetMapping("/leaveVisitCaseForApp")
+    @ApiOperation(value = "外访案件留案操作", notes = "外访案件留案操作")
+    public ResponseEntity leaveVisitCaseForApp(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+                                                               @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to leave case");
+        try {
+            User user = getUserByToken(token);
+            Integer caseNum = caseInfoRepository.getCaseCount(user.getId());
+            //查询已留案案件数
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            int flagNum = new Long(caseInfoRepository.count(qCaseInfo.currentCollector.id.eq(user.getId()).and(qCaseInfo.leaveCaseFlag.eq(1)))).intValue();
+            //获得留案比例
+            QSysParam qSysParam = QSysParam.sysParam;
+            SysParam sysParam;
+            sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_LEAVERATE).and(qSysParam.companyCode.eq(user.getCompanyCode())));
+            Double rate = Double.parseDouble(sysParam.getValue()) / 100;
+            //计算留案案件是否超过比例
+            Integer leaveNum = (int) Math.floor(caseNum * rate); //可留案的案件数
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+            if (Objects.isNull(caseInfo)) {
+                throw new RuntimeException("所选案件未找到");
+            }
+            if (!Objects.equals(caseInfo.getCurrentCollector().getId(), user.getId())) {
+                throw new RuntimeException("只能对自己所持有的案件进行留案操作");
+            }
+            if (Objects.equals(caseInfo.getLeaveCaseFlag(), 1)) {
+                throw new RuntimeException("所选案件存在已经留案的案件");
+            }
+            if (flagNum >= leaveNum) {
+                throw new RuntimeException("所选案件数量超过可留案案件数");
+            }
+            caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue()); //留案标志
+            caseInfo.setOperator(user); //操作人
+            caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+            caseInfo.setLeaveDate(ZWDateUtil.getNowDateTime()); //留案日期
+            caseInfo.setHasLeaveDays(0);
+            caseInfoRepository.saveAndFlush(caseInfo);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("留案成功", "")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    @GetMapping("/cancelLeaveAssistCaseForApp")
+    @ApiOperation(value = "协催取消留案", notes = "协催取消留案")
+    public ResponseEntity<Void> cancelLeaveAssistCaseForApp(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+                                                            @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User tokenUser = getUserByToken(token);
+            CaseAssist caseAssist = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.id.eq(caseId)
+                    .and(QCaseAssist.caseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
+            if (Objects.equals(caseAssist.getLeaveCaseFlag(), CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue())) {
+                throw new RuntimeException("所选案件为非留案案件");
+            }
+            if (!Objects.equals(caseAssist.getAssistCollector().getId(), tokenUser.getId())) {
+                throw new RuntimeException("只能对自己所持有的案件进行取消留案操作");
+            }
+            caseAssistService.cancelLeaveCaseAssist(caseAssist,tokenUser);
+            caseAssistRepository.save(caseAssist);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("取消留案成功", "")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", e.getMessage())).body(null);
+        }
+    }
+
+    @GetMapping("/cancelLeaveVisitCaseForApp")
+    @ApiOperation(value = "外访取消留案", notes = "外访取消留案")
+    public ResponseEntity<Void> cancelLeaveVisitCaseForApp(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+                                                           @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User tokenUser = getUserByToken(token);
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+            if (Objects.equals(caseInfo.getLeaveCaseFlag(), CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue())) {
+                throw new RuntimeException("所选案件为非留案案件");
+            }
+            if (!Objects.equals(caseInfo.getCurrentCollector().getId(), tokenUser.getId())) {
+                throw new RuntimeException("只能对自己所持有的案件进行取消留案操作");
+            }
+            caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());
+            caseInfo.setLeaveDate(null);
+            caseInfo.setHasLeaveDays(0);
+            caseInfo.setOperator(tokenUser);
+            caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+            caseInfoRepository.save(caseInfo);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("取消留案成功", "")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", e.getMessage())).body(null);
         }
     }
 }

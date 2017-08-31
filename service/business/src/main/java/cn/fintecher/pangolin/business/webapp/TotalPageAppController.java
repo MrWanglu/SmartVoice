@@ -45,91 +45,86 @@ public class TotalPageAppController extends BaseController {
 
     @GetMapping(value = "/getTotalPage")
     @ApiOperation(value = "APP首页信息查询", notes = "APP首页信息查询")
-    public ResponseEntity<UserStatisAppModel> getTotalPage(@RequestHeader(value = "X-UserToken") String token) throws ParseException {
-
-        UserStatisAppModel userStatisAppModel = new UserStatisAppModel();
-        List<RankModel> payList = new ArrayList<RankModel>();
-        List<RankModel> followList = new ArrayList<RankModel>();
-        List<RankModel> collList = new ArrayList<RankModel>();
+    public ResponseEntity<UserStatisAppModel> getTotalPage(@RequestHeader(value = "X-UserToken") String token) {
         User user = null;
         try {
             user = getUserByToken(token);
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("USER", "user", "用户不存在")).
-                    body(null);
-        }
-        userStatisAppModel.setApplyPayAmt(casePayApplyRepository.queryApplyAmtByUserName(user.getUserName(), CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue(),CasePayApply.ApproveStatus.DERATE_TO_AUDIT.getValue()));
-        userStatisAppModel.setCollectionAmt(caseInfoRepository.getCollectionAmt(user.getId(), CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()));
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(ZWDateUtil.getNowDate());
-        int dayWeek = cal.get(Calendar.DAY_OF_WEEK)-1;
-        Date endDate = ZWDateUtil.getNowDateTime();
-        Date startDate=null;
-        Date startDayOfMonth = null;
-        if (dayWeek == 1) {
-            startDate = ZWDateUtil.getUtilDate(ZWDateUtil.getDate()+" 00:00:00","yyyy-MM-dd HH:mm:ss");
-        }
-        else
-        {
-            cal.add(Calendar.DATE, cal.getFirstDayOfWeek()-dayWeek);
-            startDate = cal.getTime();
-        }
-        cal.set(Calendar.DAY_OF_MONTH,1);
-        startDayOfMonth = cal.getTime();
-        userStatisAppModel.setWeekVisitNum(caseFollowupRecordRepository.getCollectionNum(user.getUserName(), CaseFollowupRecord.Type.VISIT.getValue(),startDate, endDate));
-        userStatisAppModel.setMonthVisitNum(caseFollowupRecordRepository.getCollectionNum(user.getUserName(), CaseFollowupRecord.Type.VISIT.getValue(),startDayOfMonth, endDate));
-        userStatisAppModel.setWeekAssistNum(caseFollowupRecordRepository.getCollectionNum(user.getUserName(), CaseFollowupRecord.Type.ASSIST.getValue(),startDate, endDate));
-        userStatisAppModel.setMonthAssistNum(caseFollowupRecordRepository.getCollectionNum(user.getUserName(), CaseFollowupRecord.Type.ASSIST.getValue(),startDayOfMonth, endDate));
-        userStatisAppModel.setCommissionAmt(casePayApplyRepository.queryCommission(user.getUserName(),CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDayOfMonth, endDate));
-        userStatisAppModel.setWeekCollectionNum(userStatisAppModel.getWeekVisitNum()+userStatisAppModel.getWeekAssistNum());
-        userStatisAppModel.setMonthCollectionNum(userStatisAppModel.getMonthAssistNum()+userStatisAppModel.getMonthVisitNum());
-        payList = parseRank(casePayApplyRepository.queryPayList(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(),startDate,endDate,User.Type.VISIT.getValue(),user.getCompanyCode(),user.getDepartment().getCode()),user.getId());
-        followList = parseRank(caseFollowupRecordRepository.getFlowupCaseList(startDate,endDate,User.Type.VISIT.getValue(),user.getCompanyCode(),user.getDepartment().getCode()),user.getId());
-        collList = parseRank(caseFollowupRecordRepository.getCollectionList(startDate,endDate,User.Type.VISIT.getValue(),user.getCompanyCode(),user.getDepartment().getCode()),user.getId());
-        if(payList.size() > 0 && Objects.equals(payList.get(0).getUserId(),user.getId())){
-            userStatisAppModel.setPersonalPayRank(payList.get(0));
-            if(payList.size()>=11) {
-                userStatisAppModel.setPayList(payList.subList(1, 11));
-            }else{
-                userStatisAppModel.setPayList(payList.subList(1, payList.size()));
+            UserStatisAppModel userStatisAppModel = new UserStatisAppModel();
+            List<RankModel> payList = new ArrayList<RankModel>();
+            List<RankModel> followList = new ArrayList<RankModel>();
+            List<RankModel> collList = new ArrayList<RankModel>();
+            userStatisAppModel.setApplyPayAmt(casePayApplyRepository.queryApplyAmtByUserName(user.getUserName(), CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue(), CasePayApply.ApproveStatus.DERATE_TO_AUDIT.getValue()));
+            userStatisAppModel.setCollectionAmt(caseInfoRepository.getCollectionAmt(user.getId(), CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()));
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(ZWDateUtil.getNowDate());
+            int dayWeek = cal.get(Calendar.DAY_OF_WEEK) - 1;
+            Date endDate = ZWDateUtil.getNowDateTime();
+            Date startDate = null;
+            Date startDayOfMonth = null;
+            if (dayWeek == 1) {
+                startDate = ZWDateUtil.getUtilDate(ZWDateUtil.getDate() + " 00:00:00", "yyyy-MM-dd HH:mm:ss");
+            } else {
+                cal.add(Calendar.DATE, cal.getFirstDayOfWeek() - dayWeek);
+                startDate = cal.getTime();
             }
-        }else{
-            if(payList.size()>=10) {
-                userStatisAppModel.setPayList(payList.subList(0, 10));
-            }else{
-                userStatisAppModel.setPayList(payList.subList(0, payList.size()));
+            cal.set(Calendar.DAY_OF_MONTH, 1);
+            startDayOfMonth = cal.getTime();
+            userStatisAppModel.setWeekVisitNum(caseFollowupRecordRepository.getCollectionNum(user.getUserName(), CaseFollowupRecord.Type.VISIT.getValue(), startDate, endDate));
+            userStatisAppModel.setMonthVisitNum(caseFollowupRecordRepository.getCollectionNum(user.getUserName(), CaseFollowupRecord.Type.VISIT.getValue(), startDayOfMonth, endDate));
+            userStatisAppModel.setWeekAssistNum(caseFollowupRecordRepository.getCollectionNum(user.getUserName(), CaseFollowupRecord.Type.ASSIST.getValue(), startDate, endDate));
+            userStatisAppModel.setMonthAssistNum(caseFollowupRecordRepository.getCollectionNum(user.getUserName(), CaseFollowupRecord.Type.ASSIST.getValue(), startDayOfMonth, endDate));
+            userStatisAppModel.setCommissionAmt(casePayApplyRepository.queryCommission(user.getUserName(), CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(), startDayOfMonth, endDate));
+            userStatisAppModel.setWeekCollectionNum(userStatisAppModel.getWeekVisitNum() + userStatisAppModel.getWeekAssistNum());
+            userStatisAppModel.setMonthCollectionNum(userStatisAppModel.getMonthAssistNum() + userStatisAppModel.getMonthVisitNum());
+            payList = parseRank(casePayApplyRepository.queryPayList(CasePayApply.ApproveStatus.AUDIT_AGREE.getValue(), startDate, endDate, User.Type.VISIT.getValue(), user.getCompanyCode(), user.getDepartment().getCode()), user.getId());
+            followList = parseRank(caseFollowupRecordRepository.getFlowupCaseList(startDate, endDate, User.Type.VISIT.getValue(), user.getCompanyCode(), user.getDepartment().getCode()), user.getId());
+            collList = parseRank(caseFollowupRecordRepository.getCollectionList(startDate, endDate, User.Type.VISIT.getValue(), user.getCompanyCode(), user.getDepartment().getCode()), user.getId());
+            if (payList.size() > 0 && Objects.equals(payList.get(0).getUserId(), user.getId())) {
+                userStatisAppModel.setPersonalPayRank(payList.get(0));
+                if (payList.size() >= 11) {
+                    userStatisAppModel.setPayList(payList.subList(1, 11));
+                } else {
+                    userStatisAppModel.setPayList(payList.subList(1, payList.size()));
+                }
+            } else {
+                if (payList.size() >= 10) {
+                    userStatisAppModel.setPayList(payList.subList(0, 10));
+                } else {
+                    userStatisAppModel.setPayList(payList.subList(0, payList.size()));
+                }
             }
+            if (followList.size() > 0 && Objects.equals(followList.get(0).getUserId(), user.getId())) {
+                userStatisAppModel.setPersonalFollowRank(followList.get(0));
+                if (followList.size() >= 11) {
+                    userStatisAppModel.setFollowList(followList.subList(1, 11));
+                } else {
+                    userStatisAppModel.setFollowList(followList.subList(1, followList.size()));
+                }
+            } else {
+                if (followList.size() >= 10) {
+                    userStatisAppModel.setFollowList(followList.subList(0, 10));
+                } else {
+                    userStatisAppModel.setFollowList(followList.subList(0, followList.size()));
+                }
+            }
+            if (collList.size() > 0 && Objects.equals(collList.get(0).getUserId(), user.getId())) {
+                userStatisAppModel.setPersonalCollectionRank(collList.get(0));
+                if (collList.size() >= 11) {
+                    userStatisAppModel.setCollectionList(collList.subList(1, 11));
+                } else {
+                    userStatisAppModel.setCollectionList(collList.subList(1, collList.size()));
+                }
+            } else {
+                if (collList.size() >= 10) {
+                    userStatisAppModel.setCollectionList(collList.subList(0, 10));
+                } else {
+                    userStatisAppModel.setCollectionList(collList.subList(0, collList.size()));
+                }
+            }
+            return new ResponseEntity<>(userStatisAppModel, HttpStatus.OK);
+        }catch(Exception e){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
         }
-        if(followList.size() > 0 && Objects.equals(followList.get(0).getUserId(),user.getId())){
-            userStatisAppModel.setPersonalFollowRank(followList.get(0));
-            if(followList.size()>=11) {
-                userStatisAppModel.setFollowList(followList.subList(1, 11));
-            }else{
-                userStatisAppModel.setFollowList(followList.subList(1, followList.size()));
-            }
-        }else{
-            if(followList.size()>=10) {
-                userStatisAppModel.setFollowList(followList.subList(0, 10));
-            }else{
-                userStatisAppModel.setFollowList(followList.subList(0, followList.size()));
-            }
-        }
-        if(collList.size() > 0 && Objects.equals(collList.get(0).getUserId(),user.getId())){
-            userStatisAppModel.setPersonalCollectionRank(collList.get(0));
-            if(collList.size()>=11) {
-                userStatisAppModel.setCollectionList(collList.subList(1, 11));
-            }else{
-                userStatisAppModel.setCollectionList(collList.subList(1, collList.size()));
-            }
-        }else{
-            if(collList.size()>=10) {
-                userStatisAppModel.setCollectionList(collList.subList(0, 10));
-            }else{
-                userStatisAppModel.setCollectionList(collList.subList(0, collList.size()));
-            }
-        }
-        return new ResponseEntity<>(userStatisAppModel, HttpStatus.OK);
     }
 
     private List<RankModel> parseRank(List<Object[]> list, String id){
