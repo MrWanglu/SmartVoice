@@ -130,7 +130,9 @@ public class CaseInfo extends BaseEntity {
         //委外
         outside(18, "委外"),
         //提醒
-        remind(19, "提醒");
+        remind(19, "提醒"),
+        //综合
+        COMPLEX(217, "综合");
 
         private Integer value;
         private String remark;
