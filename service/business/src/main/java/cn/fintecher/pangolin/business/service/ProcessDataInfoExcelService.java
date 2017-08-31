@@ -297,6 +297,7 @@ public class ProcessDataInfoExcelService {
         personal.setOperatorTime(ZWDateUtil.getNowDateTime());
         personal.setCompanyCode(dataInfoExcelModel.getCompanyCode());
         personal.setDataSource(Constants.DataSource.IMPORT.getValue());
+        personal.setMarital(Personal.MARITAL.UNKNOW.getValue());
         return personal;
     }
 

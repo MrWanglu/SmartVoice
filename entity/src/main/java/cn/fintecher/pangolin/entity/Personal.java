@@ -175,4 +175,25 @@ public class Personal extends BaseEntity {
             return remark;
         }
     }
+
+    public enum MARITAL {
+        UNMARRIED(207,"未婚"),
+        MARRIED(208,"已婚"),
+        UNKNOW(209,"未知");
+        private  Integer value;
+        private  String remark;
+
+        MARITAL(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
 }

@@ -311,6 +311,7 @@ public class CaseInfoExceptionService {
         personal.setOperatorTime(ZWDateUtil.getNowDateTime());
         personal.setCompanyCode(caseInfoException.getCompanyCode());
         personal.setDataSource(Constants.DataSource.IMPORT.getValue());
+        personal.setMarital(Personal.MARITAL.UNKNOW.getValue());
         return personal;
     }
 
