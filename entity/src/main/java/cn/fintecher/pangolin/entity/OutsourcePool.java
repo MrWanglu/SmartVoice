@@ -7,6 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Entity
@@ -35,6 +36,9 @@ public class OutsourcePool extends BaseEntity {
 
     @ApiModelProperty("委外批次号")
     private String outBatch;
+
+    @ApiModelProperty("委外回款金额")
+    private BigDecimal outBackAmt;
 
     public enum OutStatus {
 
