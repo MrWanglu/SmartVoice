@@ -81,7 +81,7 @@ public class CaseInfoAppController extends BaseController {
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
-        if (user.getManager() == 1) {
+        if (Objects.equals(user.getManager(),User.MANAGER_TYPE.DATA_AUTH)) {
             builder.and(QCaseAssist.caseAssist.assistCollector.department.code.startsWith(user.getDepartment().getCode()));
         } else {
             builder.and(QCaseAssist.caseAssist.assistCollector.id.eq(user.getId()));
@@ -139,7 +139,7 @@ public class CaseInfoAppController extends BaseController {
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
         builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
-        if (user.getManager() == 1) {
+        if (Objects.equals(user.getManager(),User.MANAGER_TYPE.DATA_AUTH)) {
             builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(user.getDepartment().getCode()));
         } else {
             builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
@@ -328,9 +328,16 @@ public class CaseInfoAppController extends BaseController {
         try {
             user = getUserByToken(token);
             QCaseInfo qCaseInfo = caseInfo;
+            List<Integer> status = new ArrayList<>();
+            status.add(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue());
+            status.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue());
+            status.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue());
+            status.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue());
+            status.add(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue());
+            status.add(CaseInfo.CollectionStatus.REPAID.getValue());
+            status.add(CaseInfo.CollectionStatus.PART_REPAID.getValue());
             long count = caseInfoRepository.count((qCaseInfo.currentCollector.id.eq(user.getId()).or(qCaseInfo.assistCollector.id.eq(user.getId()))
-                    .and(qCaseInfo.collectionStatus.in(20, 21, 22, 23, 25, 171, 172))));
-
+                    .and(qCaseInfo.collectionStatus.in(status))));
             long count1 = caseAssistRepository.leaveCaseAssistCount(user.getId());
             //获得留案比例
             QSysParam qSysParam = QSysParam.sysParam;
