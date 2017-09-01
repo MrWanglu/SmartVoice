@@ -127,6 +127,7 @@
         and a.company_code = #{companyCode}
         and a.collection_type=16
         and a.collection_status = 20
+        and a.case_type in(173,181)
         and a.personal_id = p.id
         <if test="name != null">
             and p.name like CONCAT('%',#{name}, '%')
@@ -169,6 +170,7 @@
         a.company_code = #{companyCode}
         and	a.collection_status = 20
         and a.current_collector = #{collector}
+        and a.case_type in(173,181)
         and a.personal_id = p.id
         <if test="name != null">
             and p.name like CONCAT('%',#{name}, '%')
