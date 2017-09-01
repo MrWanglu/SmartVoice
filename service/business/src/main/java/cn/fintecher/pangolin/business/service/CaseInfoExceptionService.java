@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -186,7 +187,7 @@ public class CaseInfoExceptionService {
         CaseInfoDistributed caseInfoDistributed = new CaseInfoDistributed();
         caseInfoDistributed.setDepartment(user.getDepartment());
         caseInfoDistributed.setPersonalInfo(personal);
-        caseInfoDistributed.setArea(areaCodeService.queryAreaCodeByName(caseInfoException.getCity()));
+        caseInfoDistributed.setArea(areaHandler(caseInfoException));
         caseInfoDistributed.setBatchNumber(caseInfoException.getBatchNumber());
         caseInfoDistributed.setCaseNumber(caseInfoException.getCaseNumber());
         caseInfoDistributed.setProduct(product);
@@ -235,7 +236,7 @@ public class CaseInfoExceptionService {
      * @return
      */
     private CaseInfo addCaseInfo(CaseInfo caseInfo, CaseInfoException caseInfoException, User user) {
-        caseInfo.setArea(areaCodeService.queryAreaCodeByName(caseInfoException.getCity()));
+        caseInfo.setArea(areaHandler(caseInfoException));
         caseInfo.setOverdueAmount(caseInfoException.getOverdueAmount());
         caseInfo.setLeftCapital(caseInfoException.getLeftCapital());
         caseInfo.setLeftInterest(caseInfoException.getLeftInterest());
@@ -628,6 +629,25 @@ public class CaseInfoExceptionService {
                 if (relation.getRemark().equals(relationName)) {
                     return relation.getValue();
                 }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 地址设置(城市--->家庭住址--->身份证地址)
+     * @param caseInfoException
+     * @return
+     */
+    private AreaCode areaHandler(CaseInfoException caseInfoException){
+        List<String> personalAreaList = new LinkedList<>();
+        personalAreaList.add(caseInfoException.getCity());
+        personalAreaList.add(caseInfoException.getHomeAddress());
+        personalAreaList.add(caseInfoException.getIdCardAddress());
+        for(String area : personalAreaList){
+            AreaCode areaCode = areaCodeService.queryAreaCodeByName(area);
+            if(Objects.nonNull(areaCode)){
+                return areaCode;
             }
         }
         return null;

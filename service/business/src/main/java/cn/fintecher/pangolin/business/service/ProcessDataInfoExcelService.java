@@ -203,6 +203,7 @@ public class ProcessDataInfoExcelService {
      */
     private CaseInfoDistributed addCaseInfoDistributed(DataInfoExcelModel dataInfoExcelModel, Product product, User user, Personal personal) {
         CaseInfoDistributed caseInfoDistributed=new CaseInfoDistributed();
+        caseInfoDistributed.setArea(areaHandler(dataInfoExcelModel));
         caseInfoDistributed.setDepartment(user.getDepartment());
         caseInfoDistributed.setPersonalInfo(personal);
         caseInfoDistributed.setArea(areaCodeService.queryAreaCodeByName(dataInfoExcelModel.getCity()));
@@ -609,6 +610,25 @@ public class ProcessDataInfoExcelService {
                 if (relation.getRemark().equals(relationName)) {
                    return relation.getValue();
                 }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 地址设置(城市--->家庭住址--->身份证地址)
+     * @param dataInfoExcelModel
+     * @return
+     */
+    private AreaCode areaHandler(DataInfoExcelModel dataInfoExcelModel){
+        List<String> personalAreaList = new LinkedList<>();
+        personalAreaList.add(dataInfoExcelModel.getCity());
+        personalAreaList.add(dataInfoExcelModel.getHomeAddress());
+        personalAreaList.add(dataInfoExcelModel.getIdCardAddress());
+        for(String area : personalAreaList){
+            AreaCode areaCode = areaCodeService.queryAreaCodeByName(area);
+            if(Objects.nonNull(areaCode)){
+                return areaCode;
             }
         }
         return null;
