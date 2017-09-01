@@ -43,9 +43,9 @@ public class MessageOperateController {
         return ResponseEntity.ok().build();
     }
 
-    @RequestMapping(value = "/sendSmsMessage", method = RequestMethod.POST)
+    @RequestMapping(value = "/sendJGSmsMessage", method = RequestMethod.POST)
     @ApiOperation(value = "极光发送短信", notes = "极光发送短信")
-    public ResponseEntity<Void> sendSmsMessage(@RequestBody SMSMessage message,
+    public ResponseEntity<Void> sendSmsJGMessage(@RequestBody SMSMessage message,
                                                  @RequestHeader(value="X-UserToken") @ApiParam("操作者的token") String token) {
         User user = userClient.getUserByToken(token).getBody();
         message.setCompanyCode(user.getCompanyCode());
