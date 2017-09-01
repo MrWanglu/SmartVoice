@@ -201,11 +201,19 @@ public class CaseAssistService {
     public Integer leaveCaseAssistNum(User user) {
         //获得所持有未结案的案件总数
         QCaseInfo qCaseInfo = caseInfo;
+        List<Integer> status = new ArrayList<>();
+        status.add(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue());
+        status.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue());
+        status.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue());
+        status.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue());
+        status.add(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue());
+        status.add(CaseInfo.CollectionStatus.REPAID.getValue());
+        status.add(CaseInfo.CollectionStatus.PART_REPAID.getValue());
         long count = caseInfoRepository.count((qCaseInfo.currentCollector.id.eq(user.getId()).or(qCaseInfo.assistCollector.id.eq(user.getId()))
-                .and(qCaseInfo.collectionStatus.in(20, 21, 22, 23, 25, 171, 172))));
+                .and(qCaseInfo.collectionStatus.in(status))));
         //获得留案比例
         QSysParam qSysParam = QSysParam.sysParam;
-        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_LEAVERATE).and(qSysParam.companyCode.eq(user.getCompanyCode())));
+        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_ASSIST_LEAVERATE).and(qSysParam.companyCode.eq(user.getCompanyCode())));
         Double rate = Double.parseDouble(sysParam.getValue()) / 100;
         //根据总案件数和留案比例获取总共可留案的案件数
         Integer leaveNum = (int) (count * rate);

@@ -244,6 +244,8 @@ public final class Constants {
     public final static String SYS_ASSIST_SMALLDAYS="sys.assist.smalldays";
     /**协催留案天数**/
     public final static String SYS_ASSIST_LEAVEDAYS="sys.assist.leavedays";
+    /**协催留案比例**/
+    public final static String SYS_ASSIST_LEAVERATE="sys.assist.leaveRate";
 
     /**协催无进展提醒天数**/
     public final static String SYS_ASSISTREMIND_DAYS="sys.assistRemind.days";
