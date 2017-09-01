@@ -141,7 +141,7 @@ public interface CaseInfoDistributedRepository extends QueryDslPredicateExecutor
                 List<String> idArray = Arrays.asList(sb.toString().split(","));
                 Iterator<? extends String> it = idArray.iterator();
                 while (it.hasNext()) {
-                    idSets.add(it.next());
+                    idSets.add(it.next().trim());
                 }
             }
             return path.in(idSets);
