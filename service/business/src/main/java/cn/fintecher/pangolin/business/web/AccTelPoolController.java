@@ -277,6 +277,7 @@ public class AccTelPoolController extends BaseController {
         Sort.Order followupBackOrder = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
         Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
         Sort.Order followupTime2 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
+        Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
@@ -305,6 +306,7 @@ public class AccTelPoolController extends BaseController {
             if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("DESC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime2));
             }
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getAllTelCase");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);

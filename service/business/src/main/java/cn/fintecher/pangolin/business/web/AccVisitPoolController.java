@@ -29,7 +29,6 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -97,11 +96,12 @@ public class AccVisitPoolController extends BaseController {
     public ResponseEntity<Page<CaseInfo>> getAllVisitCase(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                           @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                           @ApiIgnore Pageable pageable,
-                                                          @RequestHeader(value = "X-UserToken") String token){
+                                                          @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get all Visit case");
         Sort.Order followupBackOrder = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
         Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
         Sort.Order followupTime2 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
+        Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
@@ -130,6 +130,7 @@ public class AccVisitPoolController extends BaseController {
             if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("DESC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime2));
             }
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/accVisitPoolController/getAllVisitCase");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
@@ -147,7 +148,7 @@ public class AccVisitPoolController extends BaseController {
     public ResponseEntity<Page<CaseInfo>> getAllHandleVisitCase(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                                 @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                                 @ApiIgnore Pageable pageable,
-                                                                @RequestHeader(value = "X-UserToken") String token){
+                                                                @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get all handle Visit case");
         try {
             User tokenUser = getUserByToken(token);
@@ -205,7 +206,7 @@ public class AccVisitPoolController extends BaseController {
     @PostMapping("/saveFollowupRecord")
     @ApiOperation(value = "外访页面添加跟进记录", notes = "外访页面添加跟进记录")
     public ResponseEntity<CaseFollowupRecord> saveFollowupRecord(@RequestBody CaseFollowupParams caseFollowupParams,
-                                                                 @RequestHeader(value = "X-UserToken") String token){
+                                                                 @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to save {caseFollowupRecord}", caseFollowupParams);
         try {
             User tokenUser = getUserByToken(token);
@@ -314,7 +315,7 @@ public class AccVisitPoolController extends BaseController {
     @PostMapping("/doVisitPay")
     @ApiOperation(value = "外访页面还款操作", notes = "外访页面还款操作")
     public ResponseEntity<Void> doTelPay(@RequestBody PayApplyParams payApplyParams,
-                                         @RequestHeader(value = "X-UserToken") String token){
+                                         @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to apply payment");
         try {
             User tokenUser = getUserByToken(token);
@@ -379,7 +380,7 @@ public class AccVisitPoolController extends BaseController {
     @GetMapping("/endVisitCase")
     @ApiOperation(value = "外访案件结案", notes = "外访案件结案")
     public ResponseEntity<Void> endVisitCase(EndCaseParams endCaseParams,
-                                             @RequestHeader(value = "X-UserToken") String token){
+                                             @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to end case by {endCaseParams}", endCaseParams);
         try {
             User tokenUser = getUserByToken(token);
@@ -498,7 +499,7 @@ public class AccVisitPoolController extends BaseController {
     @ApiOperation(value = "外访页面多条件查询发送信息记录", notes = "外访页面多条件查询发送信息记录")
     public ResponseEntity<Page<SendMessageRecord>> getAllSendMessageRecord(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                                            @ApiIgnore Pageable pageable,
-                                                                           @RequestParam @ApiParam(value = "案件ID", required = true) String caseId){
+                                                                           @RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
         log.debug("REST request to get all send message record by {caseId}", caseId);
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
