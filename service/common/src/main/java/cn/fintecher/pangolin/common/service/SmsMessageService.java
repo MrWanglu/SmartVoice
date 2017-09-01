@@ -20,27 +20,26 @@ import java.util.*;
 /**
  * Created by Administrator on 2017/3/24.
  */
-@Service
+@Service("smsMessageService")
 public class SmsMessageService {
     private final Logger log = LoggerFactory.getLogger(SmsMessageService.class);
-    private static final String ENTITY_NAME = "SmsMessageService";
     //获取配置文件中的值
-    @Value("${pangolin.message.url}")
+    @Value("${cuibei.message.url}")
     private String messageUrl;
-    @Value("${pangolin.message.channel}")
+    @Value("${cuibei.message.channel}")
     private String channel;
-    @Value("${pangolin.message.sysNumber}")
+    @Value("${cuibei.message.sysNumber}")
     private String sysNumber;
-    @Value("${pangolin.message.seed}")
+    @Value("${cuibei.message.seed}")
     private String seed;
-    @Value("${pangolin.message.verificationCode}")
+    @Value("${cuibei.message.verificationCode}")
     private String verificationCode;
     //极光配置
-    @Value("${pangolin.jiguang.appKey}")
-    public String appKey;
-    @Value("${pangolin.jiguang.masterSecret}")
+    @Value("${cuibei.jiguang.appKey}")
+    private String appKey;
+    @Value("${cuibei.jiguang.masterSecret}")
     private String masterSecret;
-    @Value("${pangolin.jiguang.msgUrl}")
+    @Value("${cuibei.jiguang.msgUrl}")
     private String msgUrl;
 
     @Autowired
