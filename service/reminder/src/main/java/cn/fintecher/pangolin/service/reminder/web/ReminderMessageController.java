@@ -188,8 +188,10 @@ public class ReminderMessageController {
 
     @GetMapping("/setSelectedMessageRead")
     @ApiOperation(value = "设置已选定消息为已读" ,notes = "设置已选定消息为已读")
-    public ResponseEntity<ReminderMessage> setSelectedMessageRead(@RequestParam String messageId ){
+    public ResponseEntity<ReminderMessage> setSelectedMessageRead(@RequestParam String messageId ,
+                                                                  @RequestHeader(value = "X-UserToken") String token){
         ReminderMessage reminderMessage  = null;
+        ResponseEntity<User> entity = userClient.getUserByToken(token);
         try {
             reminderMessage = reminderMessageRepository.findOne(messageId);
             reminderMessage.setState(ReminderMessage.ReadStatus.Read);
@@ -198,6 +200,7 @@ public class ReminderMessageController {
             log.error(e.getMessage(),e);
             return ResponseEntity.badRequest().header("errorMassage","设置消息为已读失败，请联系管理员").build();
         }
+        sendWebSocketMessage(token, entity.getBody().getId());
         return ResponseEntity.ok().body(reminderMessage);
     }
 
