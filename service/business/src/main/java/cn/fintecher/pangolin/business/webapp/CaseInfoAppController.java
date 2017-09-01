@@ -328,23 +328,7 @@ public class CaseInfoAppController extends BaseController {
         try {
             user = getUserByToken(token);
             QCaseInfo qCaseInfo = caseInfo;
-            List<Integer> status = new ArrayList<>();
-            status.add(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue());
-            status.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue());
-            status.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue());
-            status.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue());
-            status.add(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue());
-            status.add(CaseInfo.CollectionStatus.REPAID.getValue());
-            status.add(CaseInfo.CollectionStatus.PART_REPAID.getValue());
-            long count = caseInfoRepository.count((qCaseInfo.currentCollector.id.eq(user.getId()).or(qCaseInfo.assistCollector.id.eq(user.getId()))
-                    .and(qCaseInfo.collectionStatus.in(status))));
-            long count1 = caseAssistRepository.leaveCaseAssistCount(user.getId());
-            //获得留案比例
-            QSysParam qSysParam = QSysParam.sysParam;
-            SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYS_OUTBOUNDFLOW_LEAVERATE).and(qSysParam.companyCode.eq(user.getCompanyCode())));
-            Double rate = Double.parseDouble(sysParam.getValue()) / 100;
-            //计算留案案件是否超过比例
-            Integer leaveNum = (int) (count * rate); //可留案的案件数
+            Integer num = caseAssistService.leaveCaseAssistNum(user);
             CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.id.eq(caseId).and(QCaseAssist.caseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
             if (Objects.isNull(one)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "所选案件未找到!")).body(null);
@@ -358,7 +342,7 @@ public class CaseInfoAppController extends BaseController {
             if (Objects.equals(one.getAssistWay(), CaseAssist.AssistWay.ONCE_ASSIST.getValue())) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "单次协催的案件不允许留案!")).body(null);
             }
-            if (count1 >= leaveNum) {
+            if (num < 1 ) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "caseInfo", "所选案件数量超过可留案案件数!")).body(null);
             }
             one.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue()); //留案标志
