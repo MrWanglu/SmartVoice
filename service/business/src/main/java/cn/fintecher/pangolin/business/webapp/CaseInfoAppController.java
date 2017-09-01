@@ -81,7 +81,7 @@ public class CaseInfoAppController extends BaseController {
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
-        if (Objects.equals(user.getManager(),User.MANAGER_TYPE.DATA_AUTH)) {
+        if (Objects.equals(user.getManager(),User.MANAGER_TYPE.DATA_AUTH.getValue())) {
             builder.and(QCaseAssist.caseAssist.assistCollector.department.code.startsWith(user.getDepartment().getCode()));
         } else {
             builder.and(QCaseAssist.caseAssist.assistCollector.id.eq(user.getId()));
@@ -139,7 +139,7 @@ public class CaseInfoAppController extends BaseController {
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
         builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
-        if (Objects.equals(user.getManager(),User.MANAGER_TYPE.DATA_AUTH)) {
+        if (Objects.equals(user.getManager(),User.MANAGER_TYPE.DATA_AUTH.getValue())) {
             builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(user.getDepartment().getCode()));
         } else {
             builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));

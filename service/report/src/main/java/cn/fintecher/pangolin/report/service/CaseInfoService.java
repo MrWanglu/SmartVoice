@@ -34,7 +34,7 @@ public class CaseInfoService {
     public List<CaseInfo> queryWaitCollectCase(CaseInfoParams caseInfoParams,int page, int size,User user){
         List<CaseInfo> list = null;
         PageHelper.startPage(page, size);
-        if (Objects.equals(user.getManager(),User.MANAGER_TYPE.DATA_AUTH)) {
+        if (Objects.equals(user.getManager(),User.MANAGER_TYPE.DATA_AUTH.getValue())) {
             list = caseInfoMapper.queryWaitCollectCase(caseInfoParams);
         }else{
             list = caseInfoMapper.queryWaitOwnCollectCase(caseInfoParams);
