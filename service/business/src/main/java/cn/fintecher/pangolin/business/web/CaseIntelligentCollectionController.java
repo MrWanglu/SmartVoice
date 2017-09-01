@@ -171,6 +171,7 @@ public class CaseIntelligentCollectionController extends BaseController {
                 phoneList.add(personalContacts.iterator().next().getPhone());
                 nameList.add(personalContacts.iterator().next().getName());
                 statusList.add(personalContacts.iterator().next().getPhoneStatus());
+                concatIds.add(personalContacts.iterator().next().getId());
             }
         }
         List<PersonalContact> personalContactList = new ArrayList<>();
