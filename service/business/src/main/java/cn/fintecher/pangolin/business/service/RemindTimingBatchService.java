@@ -137,17 +137,18 @@ public class RemindTimingBatchService {
                 for (CaseInfo caseInfo : nowhereCaseList) {
                     List<User> managers = userService.getManagerByUser(caseInfo.getCurrentCollector().getId());
                     SendReminderMessage sendReminderMessage = new SendReminderMessage();
-                    sendReminderMessage.setUserId(managers.get(0).getId());
                     sendReminderMessage.setType(ReminderType.FLLOWUP);
                     sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 无跟进记录提醒");
                     sendReminderMessage.setContent("客户 [" + caseInfo.getPersonalInfo().getName() + "] 案件 [" + caseInfo.getCaseNumber() + "] 长期无跟进记录,请及时处理");
                     sendReminderMessage.setMode(ReminderMode.POPUP);
-                    if (managers.size() > 1) {
+                    if (managers.size() > 0) {
                         List<String> managerIds = new ArrayList<>();
-                        for (int i = 1; i < managers.size(); i++) {
+                        for (int i = 0; i < managers.size(); i++) {
                             managerIds.add(managers.get(i).getId());
                         }
                         sendReminderMessage.setCcUserIds(managerIds.toArray(new String[managerIds.size()]));
+                    }else{
+                        sendReminderMessage.setUserId(caseInfo.getCurrentCollector().getId());
                     }
                     ReminderService.sendReminder(sendReminderMessage);
                 }

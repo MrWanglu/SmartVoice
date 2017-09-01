@@ -231,7 +231,7 @@ public class SysParamController extends BaseController {
             String second = value.substring(4, 6);
             String  cronStr = second.concat(" ").concat(mis).concat(" ").concat(hours).concat(" * * ?");
             try{
-                jobTaskService.updateJobTask(cronStr,sysParam.getCompanyCode(),Constants.SYSPARAM_REMINDER,Constants.REMINDER_TRIGGER_NAME.concat("_").concat(sysParam.getCompanyCode())
+                jobTaskService.updateJobTask(cronStr,sysParam.getCompanyCode(),Constants.SYSPARAM_REMINDER_STATUS,Constants.REMINDER_TRIGGER_NAME.concat("_").concat(sysParam.getCompanyCode())
                         ,Constants.REMINDER_TRIGGER_GROUP,Constants.REMINDER_TRIGGER_DESC.concat("_").concat(sysParam.getCompanyCode())
                         ,Constants.REMINDER_JOB_NAME.concat("_").concat(sysParam.getCompanyCode()), Constants.REMINDER_JOB_GROUP
                         ,Constants.REMINDER_JOB_DESC.concat("_").concat(sysParam.getCompanyCode()), ReminderTimingJob.class,
