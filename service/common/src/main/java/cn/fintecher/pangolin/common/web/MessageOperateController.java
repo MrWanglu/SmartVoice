@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.common.model.SMSMessage;
 import cn.fintecher.pangolin.common.service.SmsMessageService;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.message.SendSMSMessage;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import com.netflix.discovery.converters.Auto;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -34,13 +35,13 @@ public class MessageOperateController {
     @Autowired
     UserClient userClient;
 
-//    @RequestMapping(value = "/sendSmsMessage", method = RequestMethod.POST)
-//    @ApiOperation(value = "发送短信", notes = "发送短信")
-//    public ResponseEntity<Void> sendSmsMessage(@RequestBody SendSMSMessage message) {
-//        logger.debug("发送短信：{}", message.toString());
-//        rabbitTemplate.convertAndSend("mr.cui.sms.send", message);
-//        return ResponseEntity.ok().build();
-//    }
+    @RequestMapping(value = "/sendSmsMessage", method = RequestMethod.POST)
+    @ApiOperation(value = "发送短信", notes = "发送短信")
+    public ResponseEntity<Void> sendSmsMessage(@RequestBody SendSMSMessage message) {
+        logger.debug("发送短信：{}", message.toString());
+        rabbitTemplate.convertAndSend("mr.cui.sms.send", message);
+        return ResponseEntity.ok().build();
+    }
 
     @RequestMapping(value = "/sendSmsMessage", method = RequestMethod.POST)
     @ApiOperation(value = "极光发送短信", notes = "极光发送短信")
@@ -49,6 +50,7 @@ public class MessageOperateController {
         User user = userClient.getUserByToken(token).getBody();
         message.setCompanyCode(user.getCompanyCode());
         message.setUserId(user.getId());
+        message.setSendTime(ZWDateUtil.getNowDateTime());
         smsMessageService.sendMessageJiGuang(message);
         return ResponseEntity.ok().build();
     }
