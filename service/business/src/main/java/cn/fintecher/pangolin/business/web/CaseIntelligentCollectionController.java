@@ -23,6 +23,7 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -61,7 +62,7 @@ public class CaseIntelligentCollectionController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfo>> queryCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                         @ApiIgnore Pageable pageable,
-                                                        @RequestHeader(value = "X-UserToken") String token){
+                                                        @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
@@ -80,7 +81,7 @@ public class CaseIntelligentCollectionController extends BaseController {
             builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","CaseIntelligentCollectionController")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "CaseIntelligentCollectionController")).body(page);
     }
 
     /**
@@ -93,6 +94,8 @@ public class CaseIntelligentCollectionController extends BaseController {
             List<String> cupoIdlist = request.getCupoIdList(); //获得案件ID集合
             Integer selected = request.getSelected(); //是否选择本人
             List<Integer> selRelations = request.getSelRelationsList(); //客户关系集合
+            List<String> concatIds = new ArrayList<>();
+            QPersonalContact qPersonalContact = QPersonalContact.personalContact;
             List<CaseInfo> caseInfolList = new ArrayList<>();
             for (String cupoId : cupoIdlist) {
                 CaseInfo caseInfo = caseInfoRepository.findOne(cupoId);
@@ -103,12 +106,17 @@ public class CaseIntelligentCollectionController extends BaseController {
                 MessageBatchSendRequest messageBatchSendRequest = batchSend(caseInfo, selected, selRelations);
                 messageBatchSendRequest.setCustId(caseInfo.getPersonalInfo().getId()); // 客户id
                 messageBatchSendRequest.setCustName(caseInfo.getPersonalInfo().getName()); // 客户姓名
+                for (Integer relation : selRelations) {
+                    PersonalContact personalContact = personalContactRepository.findOne(qPersonalContact.personalId.eq(caseInfo.getPersonalInfo().getId()).and(qPersonalContact.relation.eq(relation)));
+                    concatIds.add(personalContact.getId());
+                }
+                messageBatchSendRequest.setConcatIds(concatIds);
                 messageBatchSendRequestList.add(messageBatchSendRequest);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(messageBatchSendRequestList);
-        }catch (Exception e) {
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "operation successfully")).body(messageBatchSendRequestList);
+        } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"operation failure","操作失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operation failure", "操作失败")).body(null);
         }
 
     }
@@ -120,7 +128,7 @@ public class CaseIntelligentCollectionController extends BaseController {
     @ApiOperation(value = "电子邮件群发操作", notes = "电子邮件群发操作")
     public ResponseEntity<List<EmailSendRequest>> handleEmailSend(@RequestBody EmailBatchSendRequest emailBatchSendRequest) {
 
-        try{
+        try {
             List<String> cupoIdlist = emailBatchSendRequest.getEmailBatchSendList(); //获得案件ID集合
             List<CaseInfo> caseInfos = new ArrayList<>();
             for (String cupoId : cupoIdlist) {
@@ -139,14 +147,14 @@ public class CaseIntelligentCollectionController extends BaseController {
                     emailSendRequest.setEmail(personalContacts.iterator().next().getMail()); // 客户邮箱
                     emailSendRequest.setCupoId(caseInfo.getId());// 案件id
                     emailSendRequests.add(emailSendRequest);
-                }else {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"mailAddress is null","此客戶沒有邮箱地址")).body(null);
+                } else {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "mailAddress is null", "此客戶沒有邮箱地址")).body(null);
                 }
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(emailSendRequests);
-        }catch (Exception e) {
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "operation successfully")).body(emailSendRequests);
+        } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"operation failure","操作失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operation failure", "操作失败")).body(null);
         }
 
     }

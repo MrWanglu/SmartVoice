@@ -16,5 +16,6 @@ public class MessageBatchSendRequest {
     private List<Integer> relation; //客户关系人列表
     private List<String> phone; //客户关系人手机号
     private List<Integer> status; //状态 0：未知 1：正常
-    private List<String> nameList; //关系人姓名
+    private List<String> nameList; //关系人姓名\
+    private List<String> concatIds; //关系人ID
 }
