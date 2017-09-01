@@ -23,6 +23,7 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -61,7 +62,7 @@ public class CaseIntelligentCollectionController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfo>> queryCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                         @ApiIgnore Pageable pageable,
-                                                        @RequestHeader(value = "X-UserToken") String token){
+                                                        @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
@@ -80,7 +81,7 @@ public class CaseIntelligentCollectionController extends BaseController {
             builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","CaseIntelligentCollectionController")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "CaseIntelligentCollectionController")).body(page);
     }
 
     /**
@@ -105,10 +106,10 @@ public class CaseIntelligentCollectionController extends BaseController {
                 messageBatchSendRequest.setCustName(caseInfo.getPersonalInfo().getName()); // 客户姓名
                 messageBatchSendRequestList.add(messageBatchSendRequest);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(messageBatchSendRequestList);
-        }catch (Exception e) {
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "operation successfully")).body(messageBatchSendRequestList);
+        } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"operation failure","操作失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operation failure", "操作失败")).body(null);
         }
 
     }
@@ -120,7 +121,7 @@ public class CaseIntelligentCollectionController extends BaseController {
     @ApiOperation(value = "电子邮件群发操作", notes = "电子邮件群发操作")
     public ResponseEntity<List<EmailSendRequest>> handleEmailSend(@RequestBody EmailBatchSendRequest emailBatchSendRequest) {
 
-        try{
+        try {
             List<String> cupoIdlist = emailBatchSendRequest.getEmailBatchSendList(); //获得案件ID集合
             List<CaseInfo> caseInfos = new ArrayList<>();
             for (String cupoId : cupoIdlist) {
@@ -139,14 +140,14 @@ public class CaseIntelligentCollectionController extends BaseController {
                     emailSendRequest.setEmail(personalContacts.iterator().next().getMail()); // 客户邮箱
                     emailSendRequest.setCupoId(caseInfo.getId());// 案件id
                     emailSendRequests.add(emailSendRequest);
-                }else {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"mailAddress is null","此客戶沒有邮箱地址")).body(null);
+                } else {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "mailAddress is null", "此客戶沒有邮箱地址")).body(null);
                 }
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(emailSendRequests);
-        }catch (Exception e) {
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "operation successfully")).body(emailSendRequests);
+        } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"operation failure","操作失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operation failure", "操作失败")).body(null);
         }
 
     }
@@ -160,6 +161,7 @@ public class CaseIntelligentCollectionController extends BaseController {
         List<String> phoneList = new ArrayList<>(); //客户关系的电话列表
         List<Integer> statusList = new ArrayList<>(); //状态列表
         List<String> nameList = new ArrayList<>(); //关系人姓名
+        List<String> concatIds = new ArrayList<>(); //客户关系人ID
         QPersonalContact qPersonalContact = QPersonalContact.personalContact;
         if (1 == selected) { //判断是否选择本人 1：是
             //本人的数字码(relation)是69
@@ -169,6 +171,7 @@ public class CaseIntelligentCollectionController extends BaseController {
                 phoneList.add(personalContacts.iterator().next().getPhone());
                 nameList.add(personalContacts.iterator().next().getName());
                 statusList.add(personalContacts.iterator().next().getPhoneStatus());
+                concatIds.add(personalContacts.iterator().next().getId());
             }
         }
         List<PersonalContact> personalContactList = new ArrayList<>();
@@ -182,8 +185,10 @@ public class CaseIntelligentCollectionController extends BaseController {
                 phoneList.add(personalContact.getPhone());
                 nameList.add(personalContact.getName());
                 statusList.add(personalContact.getPhoneStatus());
+                concatIds.add(personalContact.getId());
             }
         }
+        messageBatchSendRequest.setConcatIds(concatIds);
         messageBatchSendRequest.setRelation(relationList);
         messageBatchSendRequest.setPhone(phoneList);
         messageBatchSendRequest.setStatus(statusList);

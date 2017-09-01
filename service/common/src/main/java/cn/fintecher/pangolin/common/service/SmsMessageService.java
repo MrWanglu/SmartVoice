@@ -24,22 +24,22 @@ import java.util.*;
 public class SmsMessageService {
     private final Logger log = LoggerFactory.getLogger(SmsMessageService.class);
     //获取配置文件中的值
-    @Value("${cuibei.message.url}")
+    @Value("${pangolin.message.url}")
     private String messageUrl;
-    @Value("${cuibei.message.channel}")
+    @Value("${pangolin.message.channel}")
     private String channel;
-    @Value("${cuibei.message.sysNumber}")
+    @Value("${pangolin.message.sysNumber}")
     private String sysNumber;
-    @Value("${cuibei.message.seed}")
+    @Value("${pangolin.message.seed}")
     private String seed;
-    @Value("${cuibei.message.verificationCode}")
+    @Value("${pangolin.message.verificationCode}")
     private String verificationCode;
     //极光配置
-    @Value("${cuibei.jiguang.appKey}")
+    @Value("${pangolin.jiguang.appKey}")
     private String appKey;
-    @Value("${cuibei.jiguang.masterSecret}")
+    @Value("${pangolin.jiguang.masterSecret}")
     private String masterSecret;
-    @Value("${cuibei.jiguang.msgUrl}")
+    @Value("${pangolin.jiguang.msgUrl}")
     private String msgUrl;
 
     @Autowired
