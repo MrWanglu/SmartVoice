@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.business.model.PersonalParams;
 import cn.fintecher.pangolin.business.model.SMSMessageParams;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.message.AddTaskVoiceFileMessage;
 import cn.fintecher.pangolin.entity.message.SMSMessage;
 import cn.fintecher.pangolin.entity.message.SendSMSMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
@@ -16,6 +17,9 @@ import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,6 +52,8 @@ public class SMSMessageController extends BaseController {
     SysParamRepository sysParamRepository;
     @Autowired
     CaseInfoRepository caseInfoRepository;
+    @Autowired
+    RestTemplate restTemplate;
 
 
     /**
@@ -78,51 +84,46 @@ public class SMSMessageController extends BaseController {
         exp.and(QSysParam.sysParam.status.eq(SysParam.StatusEnum.Start.getValue()));
         String type = sysParamRepository.findOne(exp).getValue();
         List<PersonalParams> personalParams = smsMessageParams.getPersonalParamsList();
+        Map<String, String> params = new HashMap<>();
         if (Objects.isNull(personalParams) || personalParams.isEmpty()) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "没有客户信息")).body(null);
         }
+        CaseInfo caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(smsMessageParams.getCaseNumber()));
+//        if (template.getMessageContent().contains("cust_name")) {
+//            template.setMessageContent(template.getMessageContent().replace("cust_name", personal.getName()));
+//            params.put("cust_name", personal.getName());
+//        }
+//        if (template.getMessageContent().contains("date")) {
+//            template.setMessageContent(template.getMessageContent().replace("date", ZWDateUtil.fomratterDate(caseInfo.getPromiseTime(), "yyyy-MM-dd")));
+//            params.put("date", ZWDateUtil.fomratterDate(caseInfo.getPromiseTime(), "yyyy-MM-dd"));
+//        }
+//        if (template.getMessageContent().contains("day")) {
+//            template.setMessageContent(template.getMessageContent().replace("day", caseInfo.getOverdueDays().toString()));
+//            params.put("day", caseInfo.getOverdueDays().toString());
+//        }
+//        if (template.getMessageContent().contains("money")) {
+//            template.setMessageContent(template.getMessageContent().replace("money", caseInfo.getPromiseAmt().toString()));
+//            params.put("money", caseInfo.getPromiseAmt().toString());
+//        }
+        template.setMessageContent(template.getMessageContent().replace("${", "").replace("}", ""));
+
         if (Objects.equals(type, "0")) {
-            CaseInfo caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(smsMessageParams.getCaseNumber()));
-            if (Objects.equals(type, "0")) {
-                if (template.getMessageContent().contains("cust_name")) {
-                    template.setMessageContent(template.getMessageContent().replace("cust_name", personal.getName()));
-                    smsMessageParams.getParams().put("cust_name", personal.getName());
-                }
-                if (template.getMessageContent().contains("date")) {
-                    template.setMessageContent(template.getMessageContent().replace("date", ZWDateUtil.fomratterDate(caseInfo.getPromiseTime(), "yyyy-MM-dd")));
-                    smsMessageParams.getParams().put("date", ZWDateUtil.fomratterDate(caseInfo.getPromiseTime(), "yyyy-MM-dd"));
-                }
-                if (template.getMessageContent().contains("day")) {
-                    template.setMessageContent(template.getMessageContent().replace("day", caseInfo.getOverdueDays().toString()));
-                    smsMessageParams.getParams().put("day", caseInfo.getOverdueDays().toString());
-                }
-                if (template.getMessageContent().contains("money")) {
-                    template.setMessageContent(template.getMessageContent().replace("money", caseInfo.getPromiseAmt().toString()));
-                    smsMessageParams.getParams().put("money", caseInfo.getPromiseAmt().toString());
-                }
-                template.setMessageContent(template.getMessageContent().replace("${", "").replace("}", ""));
+            for (PersonalParams personalParams1 : personalParams) {
+                SendSMSMessage sendSMSMessage = new SendSMSMessage();
+                sendSMSMessage.setPhoneNumber(personalParams1.getPersonalPhone());
+                sendSMSMessage.setTemplate(template.getId());
+                sendSMSMessage.setParams(smsMessageParams.getParams());
+                restTemplate.postForEntity("http://common-service/api/SearchMessageController/sendSmsMessage", sendSMSMessage, Void.class);
             }
-            if(Objects.equals(type,"0")) {
-                for (PersonalParams personalParams1 : personalParams) {
-                    SendSMSMessage sendSMSMessage = new SendSMSMessage();
-                    sendSMSMessage.setPhoneNumber(personalParams1.getPersonalPhone());
-                    sendSMSMessage.setTemplate(template.getId());
-                    sendSMSMessage.setParams(smsMessageParams.getParams());
-                    RestTemplate restTemplate = new RestTemplate();
-                    restTemplate.postForEntity("http://common-service/api/SearchMessageController/sendSmsMessage?", sendSMSMessage, Void.class);
-                }
-            }else{
-                for (PersonalParams personalParams1 : personalParams) {
-                    SMSMessage message = new SMSMessage();
-                    Map<String, String> params = new HashMap<>();
-                    message.setPhoneNumber(personalParams1.getPersonalPhone());
-                    message.setTemplate(template.getId());
-                    params.put("name",personalParams1.getPersonalName());
-                    params.put("business","穿山甲系统");
-                    message.setParams(params);
-                    RestTemplate restTemplate = new RestTemplate();
-                    restTemplate.postForEntity("http://common-service/api/SearchMessageController/sendJGSmsMessage?", message, Void.class);
-                }
+        } else {
+            for (PersonalParams personalParams1 : personalParams) {
+                SMSMessage message = new SMSMessage();
+                message.setPhoneNumber(personalParams1.getPersonalPhone());
+                message.setTemplate(template.getTemplateCode());
+                params.put("name",personal.getName());
+                params.put("business","穿山甲系统");
+                message.setParams(params);
+                restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
             }
         }
         return null;

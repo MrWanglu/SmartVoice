@@ -43,9 +43,9 @@ public class SmsMessageService {
     private String msgUrl;
 
     @Autowired
-    RestTemplate restTemplate;
-    @Autowired
     SMSMessageRepository smsMessageRepository;
+    @Autowired
+    RestTemplate restTemplate;
 
     /**
      * 发送短信
@@ -58,7 +58,6 @@ public class SmsMessageService {
         SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + message.getUserId() + "&companyCode=" + message.getCompanyCode() + "&code=" + Constants.SMS_PUSH_CODE + "&type=" + Constants.SMS_PUSH_TYPE, SysParam.class).getBody();
         // 0 erpv3 1 极光
         if (Objects.equals(sysParam.getValue(), "0")) {
-            RestTemplate restTemplate = new RestTemplate();
             String result;
             try {
                 Map<String, Object> reqMap = new LinkedHashMap<>();
@@ -86,7 +85,6 @@ public class SmsMessageService {
         }
     }
     public void sendMessageJiGuang(SMSMessage message) {
-        RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<String> entity = null;
         try {
             //组装请求头信息
@@ -102,7 +100,7 @@ public class SmsMessageService {
             reqMap.put("temp_para", message.getParams());
             HttpEntity<Object> httpEntity = new HttpEntity<>(reqMap, headers);
             log.info("极光发送短信信息body {} header {}", reqMap, headers);
-            entity = restTemplate.exchange(msgUrl, HttpMethod.POST, httpEntity, String.class);
+            entity = new RestTemplate().exchange(msgUrl, HttpMethod.POST, httpEntity, String.class);
             log.info("极光发送短信信息回执 {}", entity.getBody());
             smsMessageRepository.save(message);
         } catch (Exception e) {
