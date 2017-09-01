@@ -94,8 +94,6 @@ public class CaseIntelligentCollectionController extends BaseController {
             List<String> cupoIdlist = request.getCupoIdList(); //获得案件ID集合
             Integer selected = request.getSelected(); //是否选择本人
             List<Integer> selRelations = request.getSelRelationsList(); //客户关系集合
-            List<String> concatIds = new ArrayList<>();
-            QPersonalContact qPersonalContact = QPersonalContact.personalContact;
             List<CaseInfo> caseInfolList = new ArrayList<>();
             for (String cupoId : cupoIdlist) {
                 CaseInfo caseInfo = caseInfoRepository.findOne(cupoId);
@@ -106,11 +104,6 @@ public class CaseIntelligentCollectionController extends BaseController {
                 MessageBatchSendRequest messageBatchSendRequest = batchSend(caseInfo, selected, selRelations);
                 messageBatchSendRequest.setCustId(caseInfo.getPersonalInfo().getId()); // 客户id
                 messageBatchSendRequest.setCustName(caseInfo.getPersonalInfo().getName()); // 客户姓名
-                for (Integer relation : selRelations) {
-                    PersonalContact personalContact = personalContactRepository.findOne(qPersonalContact.personalId.eq(caseInfo.getPersonalInfo().getId()).and(qPersonalContact.relation.eq(relation)));
-                    concatIds.add(personalContact.getId());
-                }
-                messageBatchSendRequest.setConcatIds(concatIds);
                 messageBatchSendRequestList.add(messageBatchSendRequest);
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "operation successfully")).body(messageBatchSendRequestList);
@@ -168,6 +161,7 @@ public class CaseIntelligentCollectionController extends BaseController {
         List<String> phoneList = new ArrayList<>(); //客户关系的电话列表
         List<Integer> statusList = new ArrayList<>(); //状态列表
         List<String> nameList = new ArrayList<>(); //关系人姓名
+        List<String> concatIds = new ArrayList<>(); //客户关系人ID
         QPersonalContact qPersonalContact = QPersonalContact.personalContact;
         if (1 == selected) { //判断是否选择本人 1：是
             //本人的数字码(relation)是69
@@ -190,8 +184,10 @@ public class CaseIntelligentCollectionController extends BaseController {
                 phoneList.add(personalContact.getPhone());
                 nameList.add(personalContact.getName());
                 statusList.add(personalContact.getPhoneStatus());
+                concatIds.add(personalContact.getId());
             }
         }
+        messageBatchSendRequest.setConcatIds(concatIds);
         messageBatchSendRequest.setRelation(relationList);
         messageBatchSendRequest.setPhone(phoneList);
         messageBatchSendRequest.setStatus(statusList);
