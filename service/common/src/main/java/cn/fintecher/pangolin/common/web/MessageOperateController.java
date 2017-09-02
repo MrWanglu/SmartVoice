@@ -50,4 +50,12 @@ public class MessageOperateController {
         smsMessageService.sendMessageJiGuang(message);
         return ResponseEntity.ok().build();
     }
+
+    @RequestMapping(value = "/sendPaaSMessage",method = RequestMethod.POST)
+    @ApiOperation(value = "发送云通信短息", notes = "发送云通信短息")
+    public ResponseEntity<Void> sendPaaSMessage(@RequestBody SMSMessage message){
+        message.setSendTime(ZWDateUtil.getNowDateTime());
+        smsMessageService.sendMessageJiGuang(message);
+        return ResponseEntity.ok().build();
+    }
 }

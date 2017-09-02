@@ -41,6 +41,13 @@ public class SmsMessageService {
     private String masterSecret;
     @Value("${pangolin.jiguang.msgUrl}")
     private String msgUrl;
+    //PaaS变量短息
+    @Value("${pangolin.smsVariable.account}")
+    private String account;
+    @Value("${pangolin.smsVariable.pswd}")
+    private String pswd;
+    @Value("${pangolin.smsVariable.smsVariableUrl}")
+    private String smsVariableUrl;
 
     @Autowired
     SMSMessageRepository smsMessageRepository;
@@ -85,7 +92,7 @@ public class SmsMessageService {
         }
     }
     public void sendMessageJiGuang(SMSMessage message) {
-        ResponseEntity<String> entity = null;
+        ResponseEntity entity = null;
         try {
             //组装请求头信息
             HttpHeaders headers = new HttpHeaders();
