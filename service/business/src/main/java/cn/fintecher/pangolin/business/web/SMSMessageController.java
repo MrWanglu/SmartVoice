@@ -122,6 +122,12 @@ public class SMSMessageController extends BaseController {
         } else if(Objects.equals(type,"1")){
             for (PersonalParams personalParams1 : personalParams) {
                 SMSMessage message = new SMSMessage();
+                String content = template.getMessageContent();
+                content.replace("userName",personal.getName());
+                content.replace("business",caseInfo.getPrincipalId().getName());
+                content.replace("money",caseInfo.getOverdueAmount().toString());
+                template.setMessageContent(template.getMessageContent().replace("{{", "").replace("}}", ""));
+                template.setMessageContent(content);
                 message.setPhoneNumber(personalParams1.getPersonalPhone());
                 message.setTemplate(template.getTemplateCode());
                 params.put("userName",personal.getName());
