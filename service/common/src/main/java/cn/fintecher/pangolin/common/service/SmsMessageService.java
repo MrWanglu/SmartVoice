@@ -41,13 +41,6 @@ public class SmsMessageService {
     private String masterSecret;
     @Value("${pangolin.jiguang.msgUrl}")
     private String msgUrl;
-    //PaaS变量短息
-    @Value("${pangolin.smsVariable.account}")
-    private String account;
-    @Value("${pangolin.smsVariable.pswd}")
-    private String pswd;
-    @Value("${pangolin.smsVariable.smsVariableUrl}")
-    private String smsVariableUrl;
 
     @Autowired
     SMSMessageRepository smsMessageRepository;
