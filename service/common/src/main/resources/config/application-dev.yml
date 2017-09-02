@@ -73,9 +73,5 @@ pangolin:
     appKey: 79ddc73963c2e534c2bbce00
     masterSecret: 8a7f887494a570e3b4420b11
     msgUrl: https://api.sms.jpush.cn/v1/messages
-  smsVariable:
-    account:
-    pswd:
-    smsVariableUrl:
 server:
     port: 9002
