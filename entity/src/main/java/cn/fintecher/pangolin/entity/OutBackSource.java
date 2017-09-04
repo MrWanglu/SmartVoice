@@ -34,10 +34,10 @@ public class OutBackSource extends BaseEntity {
     private String companyCode;
 
     @ApiModelProperty("回款金额")
-    private BigDecimal backAmt;
+    private BigDecimal backAmt = new BigDecimal(0);
 
     @ApiModelProperty("操作类型")
-    private String operationType;
+    private Integer operationType;
 
 
     /**

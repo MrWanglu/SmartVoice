@@ -1,7 +1,10 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.repository.OutBackSourceRepository;
+import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
+import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.OutBackSource;
+import cn.fintecher.pangolin.entity.OutsourcePool;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -33,6 +36,7 @@ public class OutBackSourceController extends BaseController {
 
     @Autowired
     private OutBackSourceRepository outbackSourceRepository;
+    private OutsourcePoolRepository outsourcePoolRepository;
 
 
     /**
@@ -53,7 +57,21 @@ public class OutBackSourceController extends BaseController {
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
-
+            String outId = outBackSource.getOutId();
+            OutsourcePool outsourcePool = null;
+            if (Objects.nonNull(outId)){
+                outsourcePool = outsourcePoolRepository.findOne(outId);
+            }
+            CaseInfo caseInfo = outsourcePool.getCaseInfo();
+            if (Objects.nonNull(caseInfo)){
+                outBackSource.setOutcaseId(outsourcePool.getCaseInfo().getId());
+            }
+            Integer operationType = outBackSource.getOperationType();
+            if (OutBackSource.operationType.OUTBACKAMT.getCode().equals(operationType)){
+                outsourcePool.setOutBackAmt(outsourcePool.getOutBackAmt().add(outBackSource.getBackAmt()));//累加回款金额
+                outsourcePoolRepository.saveAndFlush(outsourcePool);//保存委外案件
+            }
+            outBackSource.setCompanyCode(user.getCompanyCode());
             outBackSource.setOperator(user.getUserName());
             outBackSource.setOperateTime(ZWDateUtil.getNowDateTime());
             outbackSourceRepository.save(outBackSource);
