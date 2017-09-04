@@ -45,7 +45,6 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
 import javax.inject.Inject;
 import java.io.*;
 import java.math.BigDecimal;
@@ -329,12 +328,12 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (Objects.isNull(companyCode)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("electricSmallCirculation", "", "请选择公司")).body(null);
             }
             booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
-        }else{
+        } else {
             booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
         List<Integer> list = new ArrayList<>();
@@ -367,12 +366,12 @@ public class CaseInfoController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
-        if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (Objects.isNull(companyCode)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("electricSmallCirculation", "", "请选择公司")).body(null);
             }
             booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
-        }else{
+        } else {
             booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
         List<Integer> list = new ArrayList<>();
@@ -406,12 +405,12 @@ public class CaseInfoController extends BaseController {
         }
 
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (Objects.isNull(companyCode)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("outSmallCirculation", "", "请选择公司")).body(null);
             }
             booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
-        }else{
+        } else {
             booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
         List<Integer> list = new ArrayList<>();
@@ -444,12 +443,12 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (Objects.isNull(companyCode)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("outSmallCirculation", "", "请选择公司")).body(null);
             }
             booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
-        }else{
+        } else {
             booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
         List<Integer> list = new ArrayList<>();
@@ -478,7 +477,7 @@ public class CaseInfoController extends BaseController {
         }
         try {
             if (Objects.isNull(user.getCompanyCode())) {
-                if(StringUtils.isBlank(exportCaseNum.getCompanyCode())){
+                if (StringUtils.isBlank(exportCaseNum.getCompanyCode())) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司")).body(null);
                 }
                 user.setCompanyCode(exportCaseNum.getCompanyCode());
@@ -551,7 +550,7 @@ public class CaseInfoController extends BaseController {
     @GetMapping("/exportFollowRecord")
     @ApiOperation(value = "导出跟进记录(单案件)", notes = "导出跟进记录(单案件)")
     public ResponseEntity exportFollowRecord(@QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
-                                             @RequestParam(value = "companyCode",required = false) @ApiParam("公司Code") String companyCode,
+                                             @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode,
                                              @RequestParam("caseNumber") @ApiParam("案件编号") String caseNumber,
                                              @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         XSSFWorkbook workbook = null;
@@ -569,7 +568,7 @@ public class CaseInfoController extends BaseController {
 
         try {
             if (Objects.isNull(user.getCompanyCode())) {
-                if(StringUtils.isBlank(companyCode)){
+                if (StringUtils.isBlank(companyCode)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司")).body(null);
                 }
                 user.setCompanyCode(companyCode);
@@ -666,6 +665,7 @@ public class CaseInfoController extends BaseController {
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
+
     @GetMapping("/updateAllScoreStrategyManual")
     @ApiOperation(value = "更新案件评分(手动)", notes = "更新案件评分(手动)")
     public ResponseEntity updateAllScoreStrategyManual(@RequestHeader(value = "X-UserToken") String token) throws IOException {
@@ -679,7 +679,7 @@ public class CaseInfoController extends BaseController {
             String comanyCode = user.getCompanyCode();
             StopWatch watch1 = new StopWatch();
             watch1.start();
-            KieSession  kieSession = null;
+            KieSession kieSession = null;
             try {
                 kieSession = createSorceRule(comanyCode);
             } catch (TemplateException e) {
@@ -694,9 +694,9 @@ public class CaseInfoController extends BaseController {
                     .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())));
             List<CaseInfo> accCaseInfoList = new ArrayList<>();
             List<CaseInfo> caseInfoList1 = new ArrayList<>();
-            caseInfoList.forEach(single ->accCaseInfoList.add(single));
+            caseInfoList.forEach(single -> accCaseInfoList.add(single));
             if (accCaseInfoList.size() > 0) {
-                for(CaseInfo caseInfo : accCaseInfoList){
+                for (CaseInfo caseInfo : accCaseInfoList) {
                     ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
                     int age = IdcardUtils.getAgeByIdCard(caseInfo.getPersonalInfo().getIdCard());
                     scoreRuleModel.setAge(age);
@@ -717,10 +717,10 @@ public class CaseInfoController extends BaseController {
                 kieSession.dispose();
                 caseInfoRepository.save(caseInfoList1);
                 watch1.stop();
-                log.info("耗时："+watch1.getTotalTimeMillis());
+                log.info("耗时：" + watch1.getTotalTimeMillis());
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(null);
             }
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo","failure","案件为空")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
         } catch (IllegalStateException e) {
             e.printStackTrace();
             return null;
@@ -729,21 +729,22 @@ public class CaseInfoController extends BaseController {
 
     /**
      * 动态生成规则
+     *
      * @return
      * @throws IOException
      * @throws
      */
-    private  KieSession createSorceRule(String comanyCode) throws IOException, TemplateException {
-       Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
-       Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
-        ResponseEntity<ScoreRules> responseEntity=restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode),ScoreRules.class);
-        List<ScoreRule> rules=null;
-        if(responseEntity.hasBody()){
-            ScoreRules scoreRules=responseEntity.getBody();
-            rules=scoreRules.getScoreRules();
+    private KieSession createSorceRule(String comanyCode) throws IOException, TemplateException {
+        Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
+        Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
+        ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode), ScoreRules.class);
+        List<ScoreRule> rules = null;
+        if (responseEntity.hasBody()) {
+            ScoreRules scoreRules = responseEntity.getBody();
+            rules = scoreRules.getScoreRules();
         }
         StringBuilder sb = new StringBuilder();
-        if(Objects.nonNull(rules)){
+        if (Objects.nonNull(rules)) {
             for (ScoreRule rule : rules) {
                 for (int i = 0; i < rule.getFormulas().size(); i++) {
                     ScoreFormula scoreFormula = rule.getFormulas().get(i);
@@ -773,14 +774,14 @@ public class CaseInfoController extends BaseController {
         KieContainer kieContainer =
                 kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
         KieSession kieSession = kieContainer.newKieSession();
-        return  kieSession;
+        return kieSession;
     }
 
     @GetMapping("/findUpload")
     @ApiOperation(value = "查看附件", notes = "查看附件")
     public ResponseEntity<List<CaseInfoFile>> findUpload(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
-                                                              @RequestParam(value = "caseNumber", required = true) @ApiParam("案件编号") String caseNumber,
-                                                              @RequestParam(value = "companyCode",required = false) String companyCode) {
+                                                         @RequestParam(value = "caseNumber", required = true) @ApiParam("案件编号") String caseNumber,
+                                                         @RequestParam(value = "companyCode", required = false) String companyCode) {
         User user;
         try {
             user = getUserByToken(token);
@@ -801,3 +802,5 @@ public class CaseInfoController extends BaseController {
         return ResponseEntity.ok().body(caseInfoFiles);
     }
 }
+
+
