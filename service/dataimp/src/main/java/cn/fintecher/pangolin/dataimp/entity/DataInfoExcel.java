@@ -292,11 +292,12 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("逾期管理费")
     @ExcelAnno(cellName = "逾期管理费")
-    private Double overdueManageFee=new Double(0);;
+    private Double overdueManageFee=new Double(0);
 
     @ApiModelProperty("还款状态")
     private String paymentStatus;
 
+    @ExcelAnno(cellName = "批次")
     @ApiModelProperty(notes = "批次号")
     private String batchNumber;
 

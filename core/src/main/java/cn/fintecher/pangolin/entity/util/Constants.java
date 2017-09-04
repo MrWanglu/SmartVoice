@@ -115,6 +115,9 @@ public final class Constants {
     public static final String ASSIST_APPLY_CODE = "SysParam.assistApplyOverday";
     //批量成功步数
     public static final String BATCH_STEP_SUCCESS = "6";
+    //批次号生成规则 （1-邢台从Excel获取,0-其他自动生成）
+    public static final String BATCH_NUMBER_RULE_CODE = "SysParam.batchnumberrule";
+    public static final String BATCH_NUMBER_RULE_TYPE = "9003";
 
     /**
      * 数据来源

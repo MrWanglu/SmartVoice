@@ -244,6 +244,7 @@ public class ProcessDataInfoExcelService {
         caseInfoDistributed.setOperatorTime(ZWDateUtil.getNowDateTime());
         caseInfoDistributed.setCompanyCode(dataInfoExcelModel.getCompanyCode());
         caseInfoDistributed.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件颜色标记
+        caseInfoDistributed.setMemo(dataInfoExcelModel.getMemo()); //备注
         return caseInfoDistributed;
     }
 
