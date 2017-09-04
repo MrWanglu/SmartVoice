@@ -105,19 +105,19 @@ public class SMSMessageController extends BaseController {
             }
         } else if (Objects.equals(type, "1")) {
             StringBuilder error = new StringBuilder();
+            SMSMessage message = new SMSMessage();
+            template.setMessageContent(template.getMessageContent().replace("userName", personal.getName())
+                    .replace("business", caseInfo.getPrincipalId().getName()).replace("money", caseInfo.getOverdueAmount().setScale(2).toString()));
+            template.setMessageContent(template.getMessageContent().replace("{{", "").replace("}}", ""));
+            message.setTemplate(template.getTemplateCode());
+            params.put("userName", personal.getName());
+            params.put("business", caseInfo.getPrincipalId().getName());
+            params.put("money", caseInfo.getOverdueAmount().toString());
+            message.setCompanyCode(user.getCompanyCode());
+            message.setUserId(user.getId());
+            message.setParams(params);
             for (PersonalParams personalParams1 : personalParams) {
-                SMSMessage message = new SMSMessage();
-                template.setMessageContent(template.getMessageContent().replace("userName", personal.getName())
-                        .replace("business", caseInfo.getPrincipalId().getName()).replace("money", caseInfo.getOverdueAmount().setScale(2).toString()));
-                template.setMessageContent(template.getMessageContent().replace("{{", "").replace("}}", ""));
                 message.setPhoneNumber(personalParams1.getPersonalPhone());
-                message.setTemplate(template.getTemplateCode());
-                params.put("userName", personal.getName());
-                params.put("business", caseInfo.getPrincipalId().getName());
-                params.put("money", caseInfo.getOverdueAmount().toString());
-                message.setCompanyCode(user.getCompanyCode());
-                message.setUserId(user.getId());
-                message.setParams(params);
                 String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
                 if (ZWStringUtils.isNotEmpty(entity)) {
                     error.append(personalParams1.getPersonalName() + ":" + entity + ",");
@@ -134,16 +134,16 @@ public class SMSMessageController extends BaseController {
             }
         } else if (Objects.equals(type, "2")) {
             StringBuilder error = new StringBuilder();
+            PaaSMessage message = new PaaSMessage();
+            template.setMessageContent(template.getMessageContent().replace("userName", personal.getName())
+                    .replace("business", caseInfo.getPrincipalId().getName()).replace("money", caseInfo.getOverdueAmount().setScale(2).toString()));
+            template.setMessageContent(template.getMessageContent().replace("{{", "").replace("}}", ""));
+            message.setTemplate(template.getTemplateCode());
+            message.setCompanyCode(user.getCompanyCode());
+            message.setContent(template.getMessageContent());
+            message.setUserId(user.getId());
             for (PersonalParams personalParams1 : personalParams) {
-                PaaSMessage message = new PaaSMessage();
-                template.setMessageContent(template.getMessageContent().replace("userName", personal.getName())
-                        .replace("business", caseInfo.getPrincipalId().getName()).replace("money", caseInfo.getOverdueAmount().setScale(2).toString()));
-                template.setMessageContent(template.getMessageContent().replace("{{", "").replace("}}", ""));
                 message.setPhoneNumber(personalParams1.getPersonalPhone());
-                message.setTemplate(template.getTemplateCode());
-                message.setCompanyCode(user.getCompanyCode());
-                message.setContent(template.getMessageContent());
-                message.setUserId(user.getId());
                 String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendPaaSMessage", message, String.class);
                 if (ZWStringUtils.isNotEmpty(entity)) {
                     error.append(personalParams1.getPersonalName() + ":" + entity + ",");
