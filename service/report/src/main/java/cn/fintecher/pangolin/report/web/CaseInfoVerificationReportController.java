@@ -11,8 +11,12 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
+import static cn.fintecher.pangolin.util.ZWDateUtil.getUtilDate;
 
 /**
  * @author yuanyanting
@@ -33,13 +37,16 @@ public class CaseInfoVerificationReportController extends BaseController {
             @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "每页大小."),
             @ApiImplicitParam(name = "sort", dataType = "string", paramType = "query", value = "依据什么排序: 属性名(,asc|desc). ", allowMultiple = true)
     })
-    public ResponseEntity getVerificationReport(@RequestHeader(value = "X-UserToken") String token,
+    public ResponseEntity<List<CaseInfoVerModel>> getVerificationReport(@RequestHeader(value = "X-UserToken") String token,
                                                 CaseInfoVerificationParams caseInfoVerificationParams) {
         User user;
+        List<CaseInfoVerModel> caseInfoVerReport;
         try {
+            getUtilDate(caseInfoVerificationParams.getStartTime(),"yyyy-MM-dd");
+            getUtilDate(caseInfoVerificationParams.getEndTime(),"yyyy-MM-dd");
             user = getUserByToken(token);
-            List<CaseInfoVerModel> verificationReport = caseInfoVerificationReportService.getVerificationReport(caseInfoVerificationParams, user);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(verificationReport);
+            caseInfoVerReport = caseInfoVerificationReportService.getVerificationReport(caseInfoVerificationParams, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(caseInfoVerReport);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "查询失败")).body(null);

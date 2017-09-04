@@ -60,18 +60,18 @@ public class ReminderMessageController {
                     value = "依据什么排序: 属性名(,asc|desc). ", defaultValue = "createTime,desc")
     })
     @ApiOperation(value = "通过登陆用户token查询消息列表", notes = "通过登陆用户token查询消息列表")
-    public ResponseEntity<Page<ReminderMessage>> getReminderMessages(@RequestHeader(value = "X-UserToken") String token,@RequestParam("state") String state, Pageable pageable) {
+    public ResponseEntity<Page<ReminderMessage>> getReminderMessages(@RequestHeader(value = "X-UserToken") String token, @RequestParam("state") String state, Pageable pageable) {
         ResponseEntity<User> userResult = userClient.getUserByToken(token);
         User user = userResult.getBody();
-        ReminderMessage.ReadStatus readStatus=null;
-        if(StringUtils.isNotBlank(state)){
-            if(ReminderMessage.ReadStatus.Read.toString().equals(state)){
-                readStatus=ReminderMessage.ReadStatus.Read;
-            }else if(ReminderMessage.ReadStatus.UnRead.toString().equals(state)){
-                readStatus=ReminderMessage.ReadStatus.UnRead;
+        ReminderMessage.ReadStatus readStatus = null;
+        if (StringUtils.isNotBlank(state)) {
+            if (ReminderMessage.ReadStatus.Read.toString().equals(state)) {
+                readStatus = ReminderMessage.ReadStatus.Read;
+            } else if (ReminderMessage.ReadStatus.UnRead.toString().equals(state)) {
+                readStatus = ReminderMessage.ReadStatus.UnRead;
             }
         }
-        return ResponseEntity.ok(reminderMessageService.findByUser(user.getId(), pageable,readStatus));
+        return ResponseEntity.ok(reminderMessageService.findByUser(user.getId(), pageable, readStatus));
     }
 
     @GetMapping("/getReminderMessage/{id}")
@@ -93,7 +93,7 @@ public class ReminderMessageController {
         }
         message.setState(ReminderMessage.ReadStatus.Read);
         reminderMessageRepository.save(message);
-//            sendWebSocketMessage(token, user.getId());
+        sendWebSocketMessage(token, user.getId());
         return ResponseEntity.ok(message);
 
     }
@@ -187,18 +187,18 @@ public class ReminderMessageController {
     }
 
     @GetMapping("/setSelectedMessageRead")
-    @ApiOperation(value = "设置已选定消息为已读" ,notes = "设置已选定消息为已读")
-    public ResponseEntity<ReminderMessage> setSelectedMessageRead(@RequestParam String messageId ,
-                                                                  @RequestHeader(value = "X-UserToken") String token){
-        ReminderMessage reminderMessage  = null;
+    @ApiOperation(value = "设置已选定消息为已读", notes = "设置已选定消息为已读")
+    public ResponseEntity<ReminderMessage> setSelectedMessageRead(@RequestParam String messageId,
+                                                                  @RequestHeader(value = "X-UserToken") String token) {
+        ReminderMessage reminderMessage = null;
         ResponseEntity<User> entity = userClient.getUserByToken(token);
         try {
             reminderMessage = reminderMessageRepository.findOne(messageId);
             reminderMessage.setState(ReminderMessage.ReadStatus.Read);
             reminderMessage = reminderMessageRepository.save(reminderMessage);
         } catch (Exception e) {
-            log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().header("errorMassage","设置消息为已读失败，请联系管理员").build();
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().header("errorMassage", "设置消息为已读失败，请联系管理员").build();
         }
         sendWebSocketMessage(token, entity.getBody().getId());
         return ResponseEntity.ok().body(reminderMessage);
