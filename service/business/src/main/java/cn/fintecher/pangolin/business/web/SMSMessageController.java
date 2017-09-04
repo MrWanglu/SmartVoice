@@ -125,7 +125,7 @@ public class SMSMessageController extends BaseController {
                     templateRepository.saveAndFlush(temp);
                 } else {
                     SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.AUTOMATIC.getValue());
-                    templateRepository.save(temp);
+                    templateRepository.saveAndFlush(temp);
                 }
             }
             if (ZWStringUtils.isNotEmpty(error.toString())) {
