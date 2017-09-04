@@ -38,7 +38,7 @@ public class OutsourcePool extends BaseEntity {
     private String outBatch;
 
     @ApiModelProperty("委外回款金额")
-    private BigDecimal outBackAmt;
+    private BigDecimal outBackAmt = new BigDecimal(0);
 
     @ApiModelProperty("逾期时段")
     private String overduePeriods;
