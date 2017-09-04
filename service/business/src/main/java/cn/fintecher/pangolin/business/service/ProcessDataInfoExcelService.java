@@ -206,7 +206,6 @@ public class ProcessDataInfoExcelService {
         caseInfoDistributed.setArea(areaHandler(dataInfoExcelModel));
         caseInfoDistributed.setDepartment(user.getDepartment());
         caseInfoDistributed.setPersonalInfo(personal);
-        caseInfoDistributed.setArea(areaCodeService.queryAreaCodeByName(dataInfoExcelModel.getCity()));
         caseInfoDistributed.setBatchNumber(dataInfoExcelModel.getBatchNumber());
         caseInfoDistributed.setCaseNumber(dataInfoExcelModel.getCaseNumber());
         caseInfoDistributed.setProduct(product);
