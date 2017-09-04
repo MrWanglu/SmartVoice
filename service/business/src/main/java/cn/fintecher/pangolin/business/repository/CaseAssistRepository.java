@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.repository;
 import cn.fintecher.pangolin.entity.CaseAssist;
 import cn.fintecher.pangolin.entity.QCaseAssist;
 import com.querydsl.core.types.dsl.StringPath;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
@@ -10,6 +11,8 @@ import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -25,6 +28,20 @@ public interface CaseAssistRepository extends QueryDslPredicateExecutor<CaseAssi
     default void customize(final QuerydslBindings bindings, final QCaseAssist root) {
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(value).concat("%")));
         bindings.bind(root.caseId.collectionType).first((path, value) -> path.eq(value));
+        //客户手机号
+        bindings.bind(root.caseId.personalInfo.mobileNo).first((path, value) -> path.eq(StringUtils.trim(value)).or(root.caseId.personalInfo.personalContacts.any().phone.eq(StringUtils.trim(value))));
+        //案件金额
+        bindings.bind(root.caseId.overdueAmount).all((path, value) -> {
+            Iterator<? extends BigDecimal> it = value.iterator();
+            BigDecimal firstOverdueAmount = it.next();
+            if (it.hasNext()) {
+                BigDecimal secondOverDueAmont = it.next();
+                return path.between(firstOverdueAmount, secondOverDueAmont);
+            } else {
+                //大于等于
+                return path.goe(firstOverdueAmount);
+            }
+        });
     }
 
     @Query(value = "SELECT a.numa+b.numb FROM ( " +
