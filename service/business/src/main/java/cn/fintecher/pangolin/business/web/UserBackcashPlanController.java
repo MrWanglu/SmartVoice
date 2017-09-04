@@ -86,10 +86,10 @@ public class UserBackcashPlanController extends BaseController {
         QUserBackcashPlan qUserBackcashPlan = QUserBackcashPlan.userBackcashPlan;
         BooleanBuilder builder = new BooleanBuilder();
         if (Objects.nonNull(userName)) {
-            builder.and(qUserBackcashPlan.userName.eq(userName));
+            builder.and(qUserBackcashPlan.userName.like("%".concat(userName).concat("%")));
         }
         if (Objects.nonNull(realName)) {
-            builder.and(qUserBackcashPlan.realName.like(realName.concat("%")));
+            builder.and(qUserBackcashPlan.realName.like("%".concat(realName).concat("%")));
         }
         if (Objects.nonNull(year)) {
             builder.and(qUserBackcashPlan.year.eq(year));
