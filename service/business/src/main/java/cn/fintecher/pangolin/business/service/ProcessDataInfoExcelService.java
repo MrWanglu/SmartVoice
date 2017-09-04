@@ -623,9 +623,12 @@ public class ProcessDataInfoExcelService {
      */
     private AreaCode areaHandler(DataInfoExcelModel dataInfoExcelModel){
         List<String> personalAreaList = new LinkedList<>();
+        List<String> emptyList = new ArrayList<>();
         personalAreaList.add(dataInfoExcelModel.getCity());
         personalAreaList.add(dataInfoExcelModel.getHomeAddress());
         personalAreaList.add(dataInfoExcelModel.getIdCardAddress());
+        emptyList.add(null);
+        personalAreaList.removeAll(emptyList);
         for(String area : personalAreaList){
             AreaCode areaCode = areaCodeService.queryAreaCodeByName(area);
             if(Objects.nonNull(areaCode)){

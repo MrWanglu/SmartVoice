@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -640,10 +639,13 @@ public class CaseInfoExceptionService {
      * @return
      */
     private AreaCode areaHandler(CaseInfoException caseInfoException){
-        List<String> personalAreaList = new LinkedList<>();
+        List<String> personalAreaList = new ArrayList<>();
+        List<String> emptyList = new ArrayList<>();
         personalAreaList.add(caseInfoException.getCity());
         personalAreaList.add(caseInfoException.getHomeAddress());
         personalAreaList.add(caseInfoException.getIdCardAddress());
+        emptyList.add(null);
+        personalAreaList.removeAll(emptyList);
         for(String area : personalAreaList){
             AreaCode areaCode = areaCodeService.queryAreaCodeByName(area);
             if(Objects.nonNull(areaCode)){
