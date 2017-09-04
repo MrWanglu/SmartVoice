@@ -120,7 +120,7 @@ public class SMSMessageController extends BaseController {
                 message.setPhoneNumber(personalParams1.getPersonalPhone());
                 String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
                 if (ZWStringUtils.isNotEmpty(entity)) {
-                    error.append(personalParams1.getPersonalName() + ":" + entity + ",");
+                    error.append(personalParams1.getPersonalName() + entity + ",");
                     SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
                     templateRepository.saveAndFlush(temp);
                 } else {
@@ -146,7 +146,7 @@ public class SMSMessageController extends BaseController {
                 message.setPhoneNumber(personalParams1.getPersonalPhone());
                 String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendPaaSMessage", message, String.class);
                 if (ZWStringUtils.isNotEmpty(entity)) {
-                    error.append(personalParams1.getPersonalName() + ":" + entity + ",");
+                    error.append(personalParams1.getPersonalName() + entity + ",");
                     SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
                     templateRepository.saveAndFlush(temp);
                 } else {
