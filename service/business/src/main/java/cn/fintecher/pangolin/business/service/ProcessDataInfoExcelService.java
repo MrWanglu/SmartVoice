@@ -622,7 +622,7 @@ public class ProcessDataInfoExcelService {
      * @return
      */
     private AreaCode areaHandler(DataInfoExcelModel dataInfoExcelModel){
-        List<String> personalAreaList = new LinkedList<>();
+        List<String> personalAreaList = new ArrayList<>();
         List<String> emptyList = new ArrayList<>();
         personalAreaList.add(dataInfoExcelModel.getCity());
         personalAreaList.add(dataInfoExcelModel.getHomeAddress());
