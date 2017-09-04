@@ -16,9 +16,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.util.List;
-
+import java.util.Objects;
 import static cn.fintecher.pangolin.util.ZWDateUtil.getUtilDate;
 
 /**
@@ -45,10 +44,14 @@ public class CaseInfoVerificationReportController extends BaseController {
         User user;
         List<CaseInfoVerModel> caseInfoVerReport;
         try {
-            getUtilDate(caseInfoVerificationParams.getStartTime(), "yyyy-MM-dd");
-            getUtilDate(caseInfoVerificationParams.getEndTime(), "yyyy-MM-dd");
-            int page = caseInfoVerificationParams.getPage() * (caseInfoVerificationParams.getSize());
-            caseInfoVerificationParams.setPage(page);
+            getUtilDate(caseInfoVerificationParams.getStartTime(),"yyyy-MM-dd");
+            getUtilDate(caseInfoVerificationParams.getEndTime(),"yyyy-MM-dd");
+            if (Objects.nonNull(caseInfoVerificationParams.getPage())) {
+                if (Objects.nonNull(caseInfoVerificationParams.getSize())) {
+                    int page = caseInfoVerificationParams.getPage() * caseInfoVerificationParams.getSize();
+                    caseInfoVerificationParams.setPage(page);
+                }
+            }
             user = getUserByToken(token);
             caseInfoVerReport = caseInfoVerificationReportService.getVerificationReport(caseInfoVerificationParams, user);
             CaseInfoVer caseInfoVer = new CaseInfoVer();
