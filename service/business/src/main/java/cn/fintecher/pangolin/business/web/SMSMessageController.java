@@ -108,7 +108,7 @@ public class SMSMessageController extends BaseController {
             for (PersonalParams personalParams1 : personalParams) {
                 SMSMessage message = new SMSMessage();
                 template.setMessageContent(template.getMessageContent().replace("userName", personal.getName())
-                        .replace("business", caseInfo.getPrincipalId().getName()).replace("money", caseInfo.getOverdueAmount().toString()));
+                        .replace("business", caseInfo.getPrincipalId().getName()).replace("money", caseInfo.getOverdueAmount().setScale(2).toString()));
                 template.setMessageContent(template.getMessageContent().replace("{{", "").replace("}}", ""));
                 message.setPhoneNumber(personalParams1.getPersonalPhone());
                 message.setTemplate(template.getTemplateCode());
@@ -137,7 +137,7 @@ public class SMSMessageController extends BaseController {
             for (PersonalParams personalParams1 : personalParams) {
                 PaaSMessage message = new PaaSMessage();
                 template.setMessageContent(template.getMessageContent().replace("userName", personal.getName())
-                        .replace("business", caseInfo.getPrincipalId().getName()).replace("money", caseInfo.getOverdueAmount().toString()));
+                        .replace("business", caseInfo.getPrincipalId().getName()).replace("money", caseInfo.getOverdueAmount().setScale(2).toString()));
                 template.setMessageContent(template.getMessageContent().replace("{{", "").replace("}}", ""));
                 message.setPhoneNumber(personalParams1.getPersonalPhone());
                 message.setTemplate(template.getTemplateCode());
