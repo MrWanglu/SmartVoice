@@ -37,13 +37,15 @@ public class CaseInfoVerificationReportController extends BaseController {
             @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "每页大小."),
             @ApiImplicitParam(name = "sort", dataType = "string", paramType = "query", value = "依据什么排序: 属性名(,asc|desc). ", allowMultiple = true)
     })
-    public ResponseEntity<List<CaseInfoVerModel>> getVerificationReport(@RequestHeader(value = "X-UserToken") String token,
-                                                CaseInfoVerificationParams caseInfoVerificationParams) {
+    public ResponseEntity<List<CaseInfoVerModel>> getVerificationReportBycondition(@RequestHeader(value = "X-UserToken") String token,
+                                                                                   CaseInfoVerificationParams caseInfoVerificationParams) {
         User user;
         List<CaseInfoVerModel> caseInfoVerReport;
         try {
             getUtilDate(caseInfoVerificationParams.getStartTime(),"yyyy-MM-dd");
             getUtilDate(caseInfoVerificationParams.getEndTime(),"yyyy-MM-dd");
+            int page = caseInfoVerificationParams.getPage() * (caseInfoVerificationParams.getSize());
+            caseInfoVerificationParams.setPage(page);
             user = getUserByToken(token);
             caseInfoVerReport = caseInfoVerificationReportService.getVerificationReport(caseInfoVerificationParams, user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(caseInfoVerReport);

@@ -18,10 +18,7 @@
         </if>
         group by b.area_name
         <if test="page != null and size != null">
-            limit (#{page}-1)*#{size},#{page}*#{size};
+            limit #{page},#{size}
         </if>
-        /*select count(a.id) cityCount,b.area_name,sum(a.overdue_amount) amount
-        from case_info_verification a LEFT JOIN area_code b on a.area_id = b.id
-        GROUP BY b.area_name;*/
     </select>
 </mapper>
