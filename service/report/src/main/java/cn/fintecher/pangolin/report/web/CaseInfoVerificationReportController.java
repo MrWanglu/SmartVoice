@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.report.web;
 
 import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.report.model.CaseInfoVer;
 import cn.fintecher.pangolin.report.model.CaseInfoVerModel;
 import cn.fintecher.pangolin.report.model.CaseInfoVerificationParams;
 import cn.fintecher.pangolin.report.service.CaseInfoVerificationReportService;
@@ -15,7 +16,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
+
 import static cn.fintecher.pangolin.util.ZWDateUtil.getUtilDate;
 
 /**
@@ -37,18 +40,22 @@ public class CaseInfoVerificationReportController extends BaseController {
             @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query", value = "每页大小."),
             @ApiImplicitParam(name = "sort", dataType = "string", paramType = "query", value = "依据什么排序: 属性名(,asc|desc). ", allowMultiple = true)
     })
-    public ResponseEntity<List<CaseInfoVerModel>> getVerificationReportBycondition(@RequestHeader(value = "X-UserToken") String token,
-                                                                                   CaseInfoVerificationParams caseInfoVerificationParams) {
+    public ResponseEntity<CaseInfoVer> getVerificationReportBycondition(@RequestHeader(value = "X-UserToken") String token,
+                                                                        CaseInfoVerificationParams caseInfoVerificationParams) {
         User user;
         List<CaseInfoVerModel> caseInfoVerReport;
         try {
-            getUtilDate(caseInfoVerificationParams.getStartTime(),"yyyy-MM-dd");
-            getUtilDate(caseInfoVerificationParams.getEndTime(),"yyyy-MM-dd");
+            getUtilDate(caseInfoVerificationParams.getStartTime(), "yyyy-MM-dd");
+            getUtilDate(caseInfoVerificationParams.getEndTime(), "yyyy-MM-dd");
             int page = caseInfoVerificationParams.getPage() * (caseInfoVerificationParams.getSize());
             caseInfoVerificationParams.setPage(page);
             user = getUserByToken(token);
             caseInfoVerReport = caseInfoVerificationReportService.getVerificationReport(caseInfoVerificationParams, user);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(caseInfoVerReport);
+            CaseInfoVer caseInfoVer = new CaseInfoVer();
+            caseInfoVer.setPage(caseInfoVerificationParams.getPage());
+            caseInfoVer.setSize(caseInfoVerificationParams.getSize());
+            caseInfoVer.setContent(caseInfoVerReport);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(caseInfoVer);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "查询失败")).body(null);
@@ -58,7 +65,7 @@ public class CaseInfoVerificationReportController extends BaseController {
     @GetMapping("/exportReport")
     @ApiOperation(value = "导出核销报表", notes = "导出核销报表")
     public ResponseEntity<String> exportReport(CaseInfoVerificationParams caseInfoVerificationParams,
-                                       @RequestHeader(value = "X-UserToken") String token) {
+                                               @RequestHeader(value = "X-UserToken") String token) {
         try {
             User tokenUser = getUserByToken(token);
             ResponseEntity<String> responseEntity = caseInfoVerificationReportService.exportReport(caseInfoVerificationParams, tokenUser);
