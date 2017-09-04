@@ -407,6 +407,17 @@ public class CaseInfoService {
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         caseInfoRepository.save(caseInfo);
 
+        //承诺还款提醒
+        if(caseFollowupParams.getCollectionFeedback().equals(CaseFollowupRecord.EffectiveCollection.PROMISE.getValue())){
+            SendReminderMessage sendReminderMessage = new SendReminderMessage();
+            sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 承诺今日还款");
+            sendReminderMessage.setUserId(userRepository.findByUserName(caseFollowupRecord.getOperator()).getId());
+            sendReminderMessage.setRemindTime(caseFollowupParams.getPromiseDate());
+            sendReminderMessage.setContent("客户 [" + caseInfo.getPersonalInfo().getName() + "] 承诺今日还款 ["+caseFollowupParams.getPromiseAmt()+"] 元");
+            sendReminderMessage.setType(ReminderType.FLLOWUP);
+            reminderService.sendReminderCalendarMessage(sendReminderMessage);
+        }
+
         //消息提醒
         if (Objects.nonNull(caseFollowupParams.getFollnextDate())) {
             SendReminderMessage sendReminderMessage = new SendReminderMessage();
