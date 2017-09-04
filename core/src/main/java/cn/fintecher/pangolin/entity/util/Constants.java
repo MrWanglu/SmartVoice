@@ -103,6 +103,10 @@ public final class Constants {
     public static final String PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_CODE = "SysParam.performancesummaryreportexcelurl";
     public static final String PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_TYPE = "0016";
 
+    //获取短信发送统计报表excel模版url
+    public static final String SMS_REPORT_EXCEL_URL_CODE = "SysParam.smsreportexcelurl";
+    public static final String SMS_REPORT_EXCEL_URL_TYPE = "0018";
+
     //案件导入excel模板url
     public static final String CASE_IMPORT_TEMPLATE_URL_CODE = "SysParam.caseimportexcelurl";
     public static final String CASE_IMPORT_TEMPLATE_URL_TYPE = "9004";

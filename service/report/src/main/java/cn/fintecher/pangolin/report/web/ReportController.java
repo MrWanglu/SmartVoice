@@ -41,6 +41,8 @@ public class ReportController extends BaseController {
 
     private static final String ENTITY_PERFORMANCE_RANKING_REPORT = "PerformanceRankingReport";
 
+    private static final String ENTITY_SMS_REPORT = "SmsReport";
+
     @Inject
     ReportService reportService;
 
@@ -196,6 +198,27 @@ public class ReportController extends BaseController {
     }
 
     /**
+     * @Description 短信发送统计报表
+     */
+    @GetMapping("/getSmsReport")
+    @ApiOperation(value = "短信发送统计报表", notes = "短信发送统计报表")
+    public ResponseEntity<List<SmsModel>> getSmsReport(GeneralParams generalParams,
+                                                       @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get sms report");
+        try {
+            User tokenUser = getUserByToken(token);
+            List<SmsModel> smsModels = reportService.getSmsReport(generalParams, tokenUser);
+            if (Objects.isNull(smsModels)) {
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_SMS_REPORT)).body(new ArrayList<>());
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_SMS_REPORT)).body(smsModels);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_SMS_REPORT, "smsReport", "查询失败")).body(null);
+        }
+    }
+
+    /**
      * @Description 导出催收员回款报表
      */
     @GetMapping("/exportBackMoneyReport")
@@ -300,6 +323,24 @@ public class ReportController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_RANKING_REPORT, "performanceRankingReport", "导出失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 导出短信发送统计报表
+     */
+    @GetMapping("/exportSmsReport")
+    @ApiOperation(value = "导出短信发送统计报表", notes = "导出短信发送统计报表")
+    public ResponseEntity<String> exportSmsReport(GeneralParams generalParams,
+                                                  @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to export sms report");
+        try {
+            User tokenUser = getUserByToken(token);
+            String url = reportService.exportSmsReport(generalParams, tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_SMS_REPORT)).body(url);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_SMS_REPORT, "smsReport", "导出失败")).body(null);
         }
     }
 }

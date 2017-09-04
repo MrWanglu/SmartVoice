@@ -4,10 +4,7 @@ import cn.fintecher.pangolin.entity.SysParam;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.ExcelUtil;
-import cn.fintecher.pangolin.report.entity.BackMoneyReport;
-import cn.fintecher.pangolin.report.entity.DailyProcessReport;
-import cn.fintecher.pangolin.report.entity.DailyResultReport;
-import cn.fintecher.pangolin.report.entity.PerformanceRankingReport;
+import cn.fintecher.pangolin.report.entity.*;
 import cn.fintecher.pangolin.report.mapper.*;
 import cn.fintecher.pangolin.report.model.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -58,6 +55,9 @@ public class ReportService {
 
     @Inject
     PerformanceRankingReportMapper performanceRankingReportMapper;
+
+    @Inject
+    SmsReportMapper smsReportMapper;
 
     @Inject
     RestTemplate restTemplate;
@@ -1104,6 +1104,134 @@ public class ReportService {
             }
         }
         return backMoneyReports;
+    }
+
+    /**
+     * @Description 短信发送统计报表
+     */
+    public List<SmsModel> getSmsReport(GeneralParams generalParams, User tokenUser) throws ParseException {
+        DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName());
+        //获取报表
+        List<SmsReport> smsReports;
+        if (Objects.equals(generalParams.getType(), 0)) { //实时报表
+            if (Objects.isNull(tokenUser.getCompanyCode())) { //是超级管理员
+                smsReports = smsReportMapper.getRealtimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
+            } else { //不是超级管理员
+                smsReports = smsReportMapper.getRealtimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+            }
+        } else { //历史报表
+            Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
+            Date date2 = ZWDateUtil.getFormatDate(generalParams.getEndDate());
+            if (Objects.isNull(tokenUser.getCompanyCode())) { //是超级管理员
+                smsReports = smsReportMapper.getHistoryReport(deptModel.getCode(), date1, date2,
+                        generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
+            } else { //不是超级管理员
+                smsReports = smsReportMapper.getHistoryReport(deptModel.getCode(), date1, date2,
+                        generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+            }
+        }
+
+        //构建报表展示模型
+        if (smsReports.isEmpty()) {
+            return null;
+        }
+        List<SmsModel> smsModels = new ArrayList<>();
+        List<SmsSecModel> smsSecModels;
+        SmsModel smsModel = new SmsModel();
+        SmsSecModel smsSecModel = new SmsSecModel();
+        for (SmsReport smsReport : smsReports) {
+            if (Objects.equals(tokenUser.getManager(), 0)) {
+                if (Objects.equals(smsReport.getDeptCode(), deptModel.getCode())
+                        && !Objects.equals(smsReport.getUserName(), tokenUser.getUserName())) { //过滤同部门
+                    continue;
+                }
+            }
+            if (Objects.equals(smsModel.getDeptCode(), smsReport.getParentDeptCode())) { //一级模型中有该部门code码
+                smsSecModels = smsModel.getSmsSecModels();
+                if (Objects.isNull(smsSecModels)) { //二级模型集合为空
+                    smsSecModels = new ArrayList<>();
+                    smsSecModel = new SmsSecModel();
+                    smsSecModel.setGroupCode(smsReport.getDeptCode()); //组别code码
+                    smsSecModel.setGroupName(smsReport.getDeptName()); //组别名称
+
+                    List<SmsReport> smsReportList = new ArrayList<>();
+                    smsReportList.add(smsReport);
+                    smsSecModel.setSmsReports(smsReportList); //二级模型中加入一级模型
+                    smsSecModels.add(smsSecModel);
+                    smsModel.setSmsSecModels(smsSecModels);
+                } else { //二级模型集合不为空
+                    smsSecModels = smsModel.getSmsSecModels();
+                    int flag = 0; //判断二级模型是否有该组别code码
+                    for (SmsSecModel smsSecModel1 : smsSecModels) {
+                        if (Objects.equals(smsSecModel1.getGroupCode(), smsReport.getDeptCode())) {
+                            flag = 1;
+                            break;
+                        }
+                    }
+                    if (0 == flag) { //不包含
+                        smsSecModel = new SmsSecModel();
+                        smsSecModel.setGroupCode(smsReport.getDeptCode()); //组别code码
+                        smsSecModel.setGroupName(smsReport.getDeptName()); //组别名称
+
+                        List<SmsReport> smsReportLsit = new ArrayList<>();
+                        smsReportLsit.add(smsReport);
+                        smsSecModel.setSmsReports(smsReportLsit); //二级模型中加入基础模型集合
+                    } else { //包含
+                        List<SmsReport> smsReportList = smsSecModel.getSmsReports();
+                        smsSecModel.setSmsReports(smsReportList); //二级模型中加入基础模型集合
+                    }
+                }
+            } else { //一级模型没有该部门code码
+                smsModel = new SmsModel();
+                smsModel.setDeptCode(smsReport.getParentDeptCode()); //部门code码
+                smsModel.setDeptName(smsReport.getParentDeptName()); //部门名称
+
+                smsSecModels = new ArrayList<>();
+                smsSecModel = new SmsSecModel();
+                smsSecModel.setGroupCode(smsReport.getDeptCode()); //组别code码
+                smsSecModel.setGroupName(smsReport.getDeptName()); //组别名称
+
+                List<SmsReport> smsReportList = new ArrayList<>();
+                smsReportList.add(smsReport);
+                smsSecModel.setSmsReports(smsReportList); //二级模型中加入基础模型
+                smsSecModels.add(smsSecModel);
+                smsModel.setSmsSecModels(smsSecModels); //一级模型中加入二级模型
+
+                smsModels.add(smsModel);
+            }
+        }
+
+        //添加排名和累计
+        for (SmsModel smsModel1 : smsModels) {
+            List<SmsSecModel> smsSecModelList = smsModel1.getSmsSecModels();
+            for (SmsSecModel smsSecModel1 : smsSecModelList) {
+                Integer smsSum = 0; //累计发短信数量
+                Integer successSum = 0; //累计发送成功数量
+                Integer failureSum = 0; //累计发送失败数量
+                Integer rank = 1; //排名
+                Integer susNum = 0; //当前发短信数量，用作排名对比
+                List<SmsReport> smsReportList = smsSecModel1.getSmsReports();
+                for (SmsReport smsReport : smsReportList) {
+                    smsSum = smsSum + smsReport.getSmsNum(); //计算发送短信总数量
+                    successSum = successSum + smsReport.getSuccessNum(); //计算发送成功总数量
+                    failureSum = failureSum + smsReport.getFailureNum(); //计算发送失败总数量
+                    if (Objects.equals(smsReport.getSmsNum(), susNum)) { //发送短信数量和上一个人一样的话
+                        smsReport.setRank(rank);
+                    } else { //不一样
+                        rank++;
+                        smsReport.setRank(rank);
+                    }
+                    susNum = smsReport.getSmsNum();
+                }
+                SmsReport smsReport = new SmsReport();
+                smsReport.setRealName("累计");
+                smsReport.setSmsNum(smsSum);
+                smsReport.setSuccessNum(successSum);
+                smsReport.setFailureNum(failureSum);
+                smsReportList.add(smsReport);
+            }
+        }
+        return smsModels;
     }
 
     /**
@@ -2188,6 +2316,40 @@ public class ReportService {
 
         //上传填好数据的报表
         return uploadExcel(hssfWorkbook);
+    }
+
+    /**
+     * @Description 导出短信发送统计报表
+     */
+    public String exportSmsReport(GeneralParams generalParams, User tokenUser) throws ParseException, IOException {
+        //获得报表展示模型
+        List<SmsModel> smsModels = getSmsReport(generalParams, tokenUser);
+
+        //下载短信发送统计报表模版
+        //拼接请求地址
+        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_CODE).
+                concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_TYPE));
+        log.debug(requestUrl);
+        //下载模版
+        HSSFWorkbook hssfWorkbook = downloadTemplate(requestUrl);
+        //设置excel表格样式
+        HSSFCellStyle hssfCellStyle = setStyle(hssfWorkbook);
+        //创建excel表格
+        HSSFSheet hssfSheet = hssfWorkbook.getSheetAt(0);
+
+        //催收员开始行
+        int userIndex = 2;
+
+        //组合并开始行
+        int groupIndex = 2;
+
+        //部门合并开始行
+        int deptIndex = 2;
+
+        //定义excel数据展示顺序
+        String[] paramArray = {"realName", "nowDate", "caseNum", "dayBackMoney", "monthBackMoney", "rank", "target", "targetDisparity"};
+        return null;
     }
 
     /**

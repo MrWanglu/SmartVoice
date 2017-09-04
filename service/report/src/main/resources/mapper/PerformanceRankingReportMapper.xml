@@ -179,7 +179,7 @@
         <if test="code != null">
             AND dept_code LIKE CONCAT(#{cope},'%')
         </if>
-        ORDER BY dept_code desc,month_back_money desc
+        ORDER BY dept_code desc,user_name asc,month_back_money desc
     </select>
 
     <!-- 查询所有公司code码 -->
