@@ -86,6 +86,9 @@ public class CaseInfo extends BaseEntity {
 
     private Date operatorTime;
     private Integer caseMark = 126;
+    @ApiModelProperty("备注")
+    private String memo;
+
     @ManyToOne
     @JoinColumn(name = "personal_id")
     private Personal personalInfo;

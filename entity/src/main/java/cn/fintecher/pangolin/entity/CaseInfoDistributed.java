@@ -77,6 +77,8 @@ public class CaseInfoDistributed extends BaseEntity {
 
     private Date operatorTime;
     private Integer caseMark;
+    @ApiModelProperty("备注")
+    private String memo;
 
 
     @ManyToOne
