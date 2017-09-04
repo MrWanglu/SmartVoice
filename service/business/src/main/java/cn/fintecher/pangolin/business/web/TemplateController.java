@@ -103,7 +103,7 @@ public class TemplateController extends BaseController {
         try {
             template = (Template) EntityUtil.emptyValueToNull(template);
             if (template.getIsDefault() && template.getTemplateStatus() == Status.Disable.getValue()) {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "默认模板不可停用")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "默认模板不可停用")).body(null);
             }
             User user = getUserByToken(token);
             if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
@@ -112,13 +112,12 @@ public class TemplateController extends BaseController {
                 template.setCompanyCode(user.getCompanyCode());
             }
             template.setCreator(user.getUserName());
-            template.setCreateTime(ZWDateUtil.getNowDateTime());
             List<Template> templateList = templateRepository.findByTemplateNameOrTemplateCode(template.getTemplateName().trim(), template.getTemplateCode().trim());
             if (ZWStringUtils.isNotEmpty(templateList)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "该模板名称和编号已被占用")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该模板名称和编号已被占用")).body(null);
             }
             Template t = addTemplate(template);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "新增模块信息成功成功")).body(t);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("新增模块信息成功成功","template")).body(t);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
@@ -144,7 +143,6 @@ public class TemplateController extends BaseController {
             }
             User user = getUserByToken(token);
             template.setCreator(user.getUserName());
-            template.setUpdateTime(ZWDateUtil.getNowDateTime());
             Template result = updateTemplate(template);
             if (result == null) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "默认模板不可停用、取消默认、更改类别")).body(null);

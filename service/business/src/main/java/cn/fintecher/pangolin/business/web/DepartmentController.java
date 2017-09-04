@@ -506,4 +506,37 @@ public class DepartmentController extends BaseController {
         List<Department> departmentList = IteratorUtils.toList(departments);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
     }
+
+    /**
+     * @Description :查询公司下的外访机构   2 外访
+     */
+    @RequestMapping(value = "/querySubdivisions", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    @ApiOperation(value = "查询公司下的外访机构", notes = "查询公司下的外访机构")
+    public ResponseEntity<Page<Department>> querySubdivisions(@RequestParam(required = false) String companyCode,
+                                                             @RequestParam Integer type,@RequestHeader(value = "X-UserToken") String token,
+                                                              @ApiIgnore Pageable pageable) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        QDepartment qDepartment = QDepartment.department;
+        BooleanBuilder builder = new BooleanBuilder();
+        if(Objects.isNull(user.getCompanyCode())){
+            if(Objects.isNull(companyCode)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("department", "please choose company", "请选择公司")).body(null);
+            }
+            builder.and(QDepartment.department.companyCode.eq(companyCode));
+        }else{
+            builder.and(QDepartment.department.companyCode.eq(user.getCompanyCode()));
+        }
+        if(Objects.nonNull(type)){
+            builder.and(qDepartment.type.eq(type));
+        }
+        Page<Department>  page = departmentRepository.findAll(builder,pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(page);
+    }
 }

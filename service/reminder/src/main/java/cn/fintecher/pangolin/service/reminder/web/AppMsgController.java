@@ -1,8 +1,10 @@
 package cn.fintecher.pangolin.service.reminder.web;
 
 
+import cn.fintecher.pangolin.entity.ReminderType;
 import cn.fintecher.pangolin.service.reminder.client.UserClient;
 import cn.fintecher.pangolin.service.reminder.model.AppMsg;
+import cn.fintecher.pangolin.service.reminder.model.ManyAppmsgRequest;
 import cn.fintecher.pangolin.service.reminder.repository.AppMsgRepository;
 import cn.fintecher.pangolin.service.reminder.service.AppMsgService;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -33,6 +35,8 @@ public class AppMsgController{
     @Autowired
     UserClient userClient;
 
+
+
     @PostMapping("/saveAppmsg")
     @ApiOperation(value = "新增app信息推送", notes = "新增app信息推送")
     @ResponseBody
@@ -42,16 +46,25 @@ public class AppMsgController{
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("推送成功", "")).body(null);
     }
 
-//    @PostMapping("/saveAppmsg")
-//    @ApiOperation(value = "新增app信息批量推送", notes = "新增app信息批量推送")
-//    @ResponseBody
-//    public ResponseEntity saveAppmsg(@RequestBody List<AppMsg> requests) {
-//        Iterator<AppMsg> iterator = requests.iterator();
-//        while(iterator.hasNext()){
-//            AppMsg request = iterator.next();
-//            AppMsg returnAppMsg = appMsgRepository.save(request);
-//            appMsgService.sendPush(returnAppMsg);
-//        }
-//        return ResponseEntity.ok().headers(HeaderUtil.createAlert("推送成功", "")).body(null);
-//    }
+    @PostMapping("/batchSaveAppmsg")
+    @ApiOperation(value = "新增app信息批量推送", notes = "新增app信息批量推送")
+    @ResponseBody
+    public ResponseEntity batchSaveAppmsg(@RequestBody ManyAppmsgRequest request) {
+        try {
+            for (String id : request.getIds()) {
+                AppMsg appmsg = new AppMsg();
+                appmsg.setUserId(id);
+                appmsg.setTitle(request.getTitle());
+                appmsg.setContent(request.getContent());
+                appmsg.setType(ReminderType.FLLOWUP);
+                appmsg.setAppMsgUnRead(request.getAppmsgNoRead());
+                AppMsg ReturnAppmsg = appMsgRepository.save(appmsg);
+                appMsgService.sendPush(ReturnAppmsg);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("推送成功", "")).body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("appMsg", "failed", "批量推送消息失败")).body(null);
+        }
+    }
 }

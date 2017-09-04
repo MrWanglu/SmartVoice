@@ -10,6 +10,7 @@ import cn.fintecher.pangolin.entity.util.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.LinkedMultiValueMap;
@@ -432,6 +434,46 @@ public class UserController extends BaseController {
         }
         Page<User> page = userRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+    }
+    /**
+     * @Description : 查询外访机构下的用户
+     */
+    @RequestMapping(value = "/getUserByType", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+    @ApiOperation(value = "查询外访机构下的用户", notes = "查询外访机构下的用户")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<User>> getUserByType(@QuerydslPredicate(root = User.class) Predicate predicate,
+                                                    @RequestParam(required = false) String companyCode, @RequestParam(required = true) Integer type,
+                                                    @RequestHeader(value = "X-UserToken") String token, @ApiIgnore Pageable pageable){
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        QUser qUser = QUser.user;
+        BooleanBuilder builder = new BooleanBuilder(predicate);
+        if(Objects.isNull(user.getCompanyCode())){
+            if(Objects.isNull(companyCode)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("user", "please choose company", "请选择公司")).body(null);
+            }
+            builder.and(QUser.user.companyCode.eq(companyCode));
+        }else{
+            builder.and(QUser.user.companyCode.eq(user.getCompanyCode()));
+        }
+        if (Objects.nonNull(type)) {
+            builder.and(qUser.type.eq(type));
+        }
+        Page<User> page = userRepository.findAll(builder,pageable);
+        return ResponseEntity.ok().body(page);
+
     }
 
     /**

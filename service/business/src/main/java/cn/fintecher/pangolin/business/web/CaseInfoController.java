@@ -603,7 +603,7 @@ public class CaseInfoController extends BaseController {
         } catch (Exception ex) {
             ex.printStackTrace();
             log.error(ex.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseinfo", ex.getMessage())).body(null);
         } finally {
             // 关闭流
             if (workbook != null) {
@@ -723,7 +723,7 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
         } catch (IllegalStateException e) {
             e.printStackTrace();
-            return null;
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
         }
     }
 
