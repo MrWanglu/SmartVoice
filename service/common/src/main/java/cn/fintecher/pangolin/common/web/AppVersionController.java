@@ -5,19 +5,14 @@ import cn.fintecher.pangolin.common.model.AppVersion;
 import cn.fintecher.pangolin.common.model.AppVersionSaveCondition;
 import cn.fintecher.pangolin.common.model.QAppVersion;
 import cn.fintecher.pangolin.common.respository.AppVersionRepository;
-import cn.fintecher.pangolin.entity.Role;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -26,14 +21,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -53,6 +45,8 @@ public class AppVersionController {
     private AppVersionRepository appVersionRepository;
     @Autowired
     private UserClient userClient;
+    @Autowired
+    private RestTemplate restTemplate;
 
     @PostMapping(value = "/createAppVersion")
     @ApiOperation(value = "添加app版本", notes = "添加app版本")
@@ -115,13 +109,31 @@ public class AppVersionController {
     @ApiOperation(value = "分页查询app版本控制", notes = "分页查询app版本控制")
     public ResponseEntity<Page<AppVersion>> queryAppVersion(@QuerydslPredicate(root = AppVersion.class) Predicate predicate,
                                                             @ApiIgnore Pageable pageable,
-                                                            @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
-        logger.debug("REST request to query company : {}");
+                                                            @RequestHeader(value = "X-UserToken") String token,
+                                                            @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code码") String companyCode) {
+
+        User user;
         BooleanBuilder builder = new BooleanBuilder(predicate);
+        try {
+            ResponseEntity<User> userEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+            user = userEntity.getBody();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(QAppVersion.appVersion1.companyCode.eq(companyCode));
+                } else {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "AppVersion", "请选择公司!")).body(null);
+                }
+                builder.and(QAppVersion.appVersion1.companyCode.eq(user.getCompanyCode()));
+            }
+            logger.debug("REST request to query company : {}");
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "AppVersion", "用户未登录!")).body(null);
+        }
         Page<AppVersion> page = appVersionRepository.findAll(builder, pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/appVersionController");
-        return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_NAME)).body(page);
     }
+
 
     @GetMapping(value = "/publishAppVersion")
     @ApiOperation(value = "发布新版本", notes = "发布新版本")

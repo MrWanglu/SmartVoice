@@ -47,6 +47,7 @@ public class AppVersion {
     private Integer size;
     @ApiModelProperty(notes = "更新类型,0-整包，1-应用内")
     private Integer type;
+    private String companyCode;
 
     public enum IsSilentInstall {
         NO(1), YES(0);
