@@ -35,6 +35,9 @@ public class SendMessageRecord extends BaseEntity {
     @ApiModelProperty(notes = "发送对象姓名")
     private String targetName;
 
+    @ApiModelProperty(notes = "发送成功标识")
+    private Integer flag;
+
     @ApiModelProperty(notes = "发送方式")
     private Integer sendWay;
 
@@ -142,6 +145,33 @@ public class SendMessageRecord extends BaseEntity {
         private String remark;
 
         SendWay(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
+    /**
+     * @Description 发送结果枚举类
+     */
+    public enum Flag {
+        //自动
+        AUTOMATIC(0, "成功"),
+        //手动
+        MANUAL(1, "失败");
+
+        private Integer value;
+
+        private String remark;
+
+        Flag(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }

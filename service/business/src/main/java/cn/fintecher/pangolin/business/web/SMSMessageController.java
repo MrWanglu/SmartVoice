@@ -100,7 +100,7 @@ public class SMSMessageController extends BaseController {
                 sendSMSMessage.setPhoneNumber(personalParams1.getPersonalPhone());
                 sendSMSMessage.setTemplate(template.getId());
                 sendSMSMessage.setParams(smsMessageParams.getParams());
-                SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType());
+                SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.AUTOMATIC.getValue());
                 restTemplate.postForEntity("http://common-service/api/SearchMessageController/sendSmsMessage", sendSMSMessage, Void.class);
             }
         } else if (Objects.equals(type, "1")) {
@@ -121,9 +121,10 @@ public class SMSMessageController extends BaseController {
                 String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
                 if (ZWStringUtils.isNotEmpty(entity)) {
                     error.append(personalParams1.getPersonalName() + ":" + entity + ",");
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
                     templateRepository.saveAndFlush(temp);
                 } else {
-                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType());
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.AUTOMATIC.getValue());
                     templateRepository.save(temp);
                 }
             }
@@ -146,9 +147,10 @@ public class SMSMessageController extends BaseController {
                 String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendPaaSMessage", message, String.class);
                 if (ZWStringUtils.isNotEmpty(entity)) {
                     error.append(personalParams1.getPersonalName() + ":" + entity + ",");
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
                     templateRepository.saveAndFlush(temp);
                 } else {
-                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType());
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.AUTOMATIC.getValue());
                     templateRepository.saveAndFlush(temp);
                 }
             }
@@ -194,7 +196,7 @@ public class SMSMessageController extends BaseController {
                     sendSMSMessage.setPhoneNumber(capaMessageParams.getPersonalParamsList().get(i).getPersonalPhone().get(j));
                     sendSMSMessage.setTemplate(template.getTemplateCode());
                     sendSMSMessage.setParams(params);
-                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, capaMessageParams.getPersonalParamsList().get(i).getContId().get(j), user, Integer.valueOf(capaMessageParams.getSendType()));
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, capaMessageParams.getPersonalParamsList().get(i).getContId().get(j), user, Integer.valueOf(capaMessageParams.getSendType()),SendMessageRecord.Flag.AUTOMATIC.getValue());
                     restTemplate.postForEntity("http://common-service/api/SearchMessageController/sendSmsMessage", sendSMSMessage, Void.class);
                 }
             } else {
@@ -212,7 +214,7 @@ public class SMSMessageController extends BaseController {
                     if (Objects.nonNull(entity)) {
                         error.append(capaMessageParams.getPersonalParamsList().get(i).getPersonalName().get(j) + ":" + entity + ",");
                     } else {
-                        SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, capaMessageParams.getPersonalParamsList().get(i).getContId().get(j), user, Integer.valueOf(capaMessageParams.getSendType()));
+                        SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, capaMessageParams.getPersonalParamsList().get(i).getContId().get(j), user, Integer.valueOf(capaMessageParams.getSendType()),SendMessageRecord.Flag.AUTOMATIC.getValue());
                     }
                 }
             }
