@@ -1,11 +1,6 @@
 package cn.fintecher.pangolin.business.service;
 
-import cn.fintecher.pangolin.business.model.PersonModel;
-import cn.fintecher.pangolin.business.model.SMSMessageParams;
-import cn.fintecher.pangolin.business.model.SendMessageModel;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.PersonalContactRepository;
-import cn.fintecher.pangolin.business.repository.PersonalRepository;
 import cn.fintecher.pangolin.business.repository.SendMessageRecordRepository;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -42,6 +37,7 @@ public class MessageService {
         sendMessageRecord.setTarget(personalContact.getRelation());
         sendMessageRecord.setTargetName(personalContact.getName());
         sendMessageRecord.setPersonalContactId(id);
+        sendMessageRecord.setMessageType(SendMessageRecord.MessageType.SMS.getValue());
         SendMessageRecord result = sendMessageRecordRepository.save(sendMessageRecord);
         return result;
     }

@@ -4,8 +4,9 @@ package cn.fintecher.pangolin.common.service;
 import cn.fintecher.pangolin.common.model.SMSMessage;
 import cn.fintecher.pangolin.common.respository.SMSMessageRepository;
 import cn.fintecher.pangolin.entity.SysParam;
+import cn.fintecher.pangolin.entity.message.PaaSMessage;
 import cn.fintecher.pangolin.entity.util.*;
-import net.minidev.json.JSONObject;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,13 @@ public class SmsMessageService {
     private String masterSecret;
     @Value("${pangolin.jiguang.msgUrl}")
     private String msgUrl;
+    //PaaS变量短息
+    @Value("${pangolin.smsVariable.account}")
+    private String account;
+    @Value("${pangolin.smsVariable.pswd}")
+    private String pswd;
+    @Value("${pangolin.smsVariable.smsVariableUrl}")
+    private String smsVariableUrl;
 
     @Autowired
     SMSMessageRepository smsMessageRepository;
@@ -84,7 +92,7 @@ public class SmsMessageService {
             sendMessageJiGuang(message);
         }
     }
-    public void sendMessageJiGuang(SMSMessage message) {
+    public String sendMessageJiGuang(SMSMessage message) {
         ResponseEntity entity = null;
         try {
             //组装请求头信息
@@ -103,8 +111,10 @@ public class SmsMessageService {
             entity = new RestTemplate().exchange(msgUrl, HttpMethod.POST, httpEntity, String.class);
             log.info("极光发送短信信息回执 {}", entity.getBody());
             smsMessageRepository.save(message);
+            return null;
         } catch (Exception e) {
             e.printStackTrace();
+            return message.getPhoneNumber();
         }
     }
     /**
@@ -127,6 +137,32 @@ public class SmsMessageService {
         String str = sb.toString();
         json.put("sign", DigestUtils.sha1Hex(str));
         return json.toJSONString();
+    }
+
+    public String sendMessagePaaS(PaaSMessage message) {
+        try {
+            ResponseEntity entity = null;
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Accept-Charset", "UTF-8");
+            JSONObject object = new JSONObject();
+            object.put("account", account);
+            object.put("password", pswd);
+            object.put("phone", message.getPhoneNumber());
+            object.put("report", true);
+            object.put("msg", message.getContent());
+            HttpEntity<Object> httpEntity = new HttpEntity<>(object, headers);
+            log.info("云通讯发送短信信息body {} header {}", object, headers);
+            entity = new RestTemplate().exchange(smsVariableUrl, HttpMethod.POST, httpEntity, String.class);
+            log.info("云通讯发送短信信息回执 {}", entity.getBody());
+            JSONObject jsonObject = JSONObject.parseObject(entity.getBody().toString());
+            if(Objects.equals(jsonObject.get("code"),"0")){
+                return null;
+            }
+            return message.getPhoneNumber();
+        }catch(Exception e){
+            return message.getPhoneNumber();
+        }
     }
 }
 

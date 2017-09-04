@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.common.client.UserClient;
 import cn.fintecher.pangolin.common.model.SMSMessage;
 import cn.fintecher.pangolin.common.service.SmsMessageService;
 import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.message.PaaSMessage;
 import cn.fintecher.pangolin.entity.message.SendSMSMessage;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import com.netflix.discovery.converters.Auto;
@@ -14,8 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Objects;
 
 /**
  * Created by qijigui on 2017/3/24.
@@ -45,17 +49,17 @@ public class MessageOperateController {
 
     @RequestMapping(value = "/sendJGSmsMessage", method = RequestMethod.POST)
     @ApiOperation(value = "极光发送短信", notes = "极光发送短信")
-    public ResponseEntity<Void> sendSmsJGMessage(@RequestBody SMSMessage message) {
+    public ResponseEntity<String> sendSmsJGMessage(@RequestBody SMSMessage message) {
         message.setSendTime(ZWDateUtil.getNowDateTime());
-        smsMessageService.sendMessageJiGuang(message);
-        return ResponseEntity.ok().build();
+        String result = smsMessageService.sendMessageJiGuang(message);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/sendPaaSMessage",method = RequestMethod.POST)
     @ApiOperation(value = "发送云通信短息", notes = "发送云通信短息")
-    public ResponseEntity<Void> sendPaaSMessage(@RequestBody SMSMessage message){
+    public ResponseEntity<String> sendPaaSMessage(@RequestBody PaaSMessage message){
         message.setSendTime(ZWDateUtil.getNowDateTime());
-        smsMessageService.sendMessageJiGuang(message);
-        return ResponseEntity.ok().build();
+        String result = smsMessageService.sendMessagePaaS(message);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

@@ -1,16 +1,16 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.CapaMessageParams;
-import cn.fintecher.pangolin.business.model.CapaPersons;
 import cn.fintecher.pangolin.business.model.PersonalParams;
 import cn.fintecher.pangolin.business.model.SMSMessageParams;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.MessageService;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.message.PaaSMessage;
 import cn.fintecher.pangolin.entity.message.SMSMessage;
 import cn.fintecher.pangolin.entity.message.SendSMSMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
-import cn.fintecher.pangolin.util.ZWDateUtil;
+import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.Api;
@@ -18,10 +18,10 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -81,6 +81,8 @@ public class SMSMessageController extends BaseController {
         if (Objects.isNull(personal)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "没有客户信息")).body(null);
         }
+        Template temp = new Template();
+        BeanUtils.copyProperties(template,temp);
         BooleanBuilder exp = new BooleanBuilder();
         exp.and(QSysParam.sysParam.code.eq(Constants.SMS_PUSH_CODE));
         exp.and(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()));
@@ -92,52 +94,67 @@ public class SMSMessageController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "没有客户信息")).body(null);
         }
         CaseInfo caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(smsMessageParams.getCaseNumber()));
-//        if (template.getMessageContent().contains("cust_name")) {
-//            template.setMessageContent(template.getMessageContent().replace("cust_name", personal.getName()));
-//            params.put("cust_name", personal.getName());
-//        }
-//        if (template.getMessageContent().contains("date")) {
-//            template.setMessageContent(template.getMessageContent().replace("date", ZWDateUtil.fomratterDate(caseInfo.getPromiseTime(), "yyyy-MM-dd")));
-//            params.put("date", ZWDateUtil.fomratterDate(caseInfo.getPromiseTime(), "yyyy-MM-dd"));
-//        }
-//        if (template.getMessageContent().contains("day")) {
-//            template.setMessageContent(template.getMessageContent().replace("day", caseInfo.getOverdueDays().toString()));
-//            params.put("day", caseInfo.getOverdueDays().toString());
-//        }
-//        if (template.getMessageContent().contains("money")) {
-//            template.setMessageContent(template.getMessageContent().replace("money", caseInfo.getPromiseAmt().toString()));
-//            params.put("money", caseInfo.getPromiseAmt().toString());
-//        }
-//        template.setMessageContent(template.getMessageContent().replace("${", "").replace("}", ""));
-
         if (Objects.equals(type, "0")) {
             for (PersonalParams personalParams1 : personalParams) {
                 SendSMSMessage sendSMSMessage = new SendSMSMessage();
                 sendSMSMessage.setPhoneNumber(personalParams1.getPersonalPhone());
                 sendSMSMessage.setTemplate(template.getId());
                 sendSMSMessage.setParams(smsMessageParams.getParams());
-                SendMessageRecord result = messageService.saveMessage(caseInfo,personal,template,personalParams1.getContId(),user,smsMessageParams.getSendType());
+                SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType());
                 restTemplate.postForEntity("http://common-service/api/SearchMessageController/sendSmsMessage", sendSMSMessage, Void.class);
             }
-        } else if(Objects.equals(type,"1")){
+        } else if (Objects.equals(type, "1")) {
+            StringBuilder error = new StringBuilder();
             for (PersonalParams personalParams1 : personalParams) {
                 SMSMessage message = new SMSMessage();
-                String content = template.getMessageContent();
-                content.replace("userName",personal.getName());
-                content.replace("business",caseInfo.getPrincipalId().getName());
-                content.replace("money",caseInfo.getOverdueAmount().toString());
+                template.setMessageContent(template.getMessageContent().replace("userName", personal.getName())
+                        .replace("business", caseInfo.getPrincipalId().getName()).replace("money", caseInfo.getOverdueAmount().toString()));
                 template.setMessageContent(template.getMessageContent().replace("{{", "").replace("}}", ""));
-                template.setMessageContent(content);
                 message.setPhoneNumber(personalParams1.getPersonalPhone());
                 message.setTemplate(template.getTemplateCode());
-                params.put("userName",personal.getName());
-                params.put("business",caseInfo.getPrincipalId().getName());
-                params.put("money",caseInfo.getOverdueAmount().toString());
+                params.put("userName", personal.getName());
+                params.put("business", caseInfo.getPrincipalId().getName());
+                params.put("money", caseInfo.getOverdueAmount().toString());
                 message.setCompanyCode(user.getCompanyCode());
                 message.setUserId(user.getId());
                 message.setParams(params);
-                SendMessageRecord result = messageService.saveMessage(caseInfo,personal,template,personalParams1.getContId(),user,smsMessageParams.getSendType());
-                restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
+                String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
+                if (ZWStringUtils.isNotEmpty(entity)) {
+                    error.append(personalParams1.getPersonalName() + ":" + entity + ",");
+                    templateRepository.saveAndFlush(temp);
+                } else {
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType());
+                    templateRepository.save(temp);
+                }
+            }
+            if (ZWStringUtils.isNotEmpty(error.toString())) {
+                String result = error.substring(0,error.length()-1)+"未正常发送";
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", result)).body(null);
+            }
+        } else if (Objects.equals(type, "2")) {
+            StringBuilder error = new StringBuilder();
+            for (PersonalParams personalParams1 : personalParams) {
+                PaaSMessage message = new PaaSMessage();
+                template.setMessageContent(template.getMessageContent().replace("userName", personal.getName())
+                        .replace("business", caseInfo.getPrincipalId().getName()).replace("money", caseInfo.getOverdueAmount().toString()));
+                template.setMessageContent(template.getMessageContent().replace("{{", "").replace("}}", ""));
+                message.setPhoneNumber(personalParams1.getPersonalPhone());
+                message.setTemplate(template.getTemplateCode());
+                message.setCompanyCode(user.getCompanyCode());
+                message.setContent(template.getMessageContent());
+                message.setUserId(user.getId());
+                String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendPaaSMessage", message, String.class);
+                if (ZWStringUtils.isNotEmpty(entity)) {
+                    error.append(personalParams1.getPersonalName() + ":" + entity + ",");
+                    templateRepository.saveAndFlush(temp);
+                } else {
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType());
+                    templateRepository.saveAndFlush(temp);
+                }
+            }
+            if (ZWStringUtils.isNotEmpty(error.toString())) {
+                String result = error.substring(0,error.length()-1)+"未正常发送";
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", result)).body(null);
             }
         }
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("发送成功", "")).body(null);
@@ -146,7 +163,7 @@ public class SMSMessageController extends BaseController {
     @PostMapping("/SendCapaMessageSingle")
     @ApiOperation(value = "智能短信记录", notes = "智能短信记录")
     public ResponseEntity<String> sendCapaMessageSingle(@RequestBody @ApiParam("短息信息") CapaMessageParams capaMessageParams,
-                                                         @RequestHeader(value = "X-UserToken") String token) {
+                                                        @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
@@ -164,36 +181,46 @@ public class SMSMessageController extends BaseController {
         exp.and(QSysParam.sysParam.status.eq(SysParam.StatusEnum.Start.getValue()));
         String type = sysParamRepository.findOne(exp).getValue();
         Map<String, String> params = new HashMap<>();
-        for(int i =0; i<capaMessageParams.getCaseNumbers().size();i++){
+        StringBuilder error = new StringBuilder();
+        for (int i = 0; i < capaMessageParams.getCaseNumbers().size(); i++) {
             CaseInfo caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(capaMessageParams.getCaseNumbers().get(i)));
             Personal personal = personalRepository.findOne(capaMessageParams.getPersonalIds().get(i));
             if (Objects.isNull(personal)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "没有客户信息")).body(null);
             }
-            if(Objects.equals(type, "0")){
-                for(int j=0; i < capaMessageParams.getPersonalParamsList().size();j++){
+            if (Objects.equals(type, "0")) {
+                for (int j = 0; i < capaMessageParams.getPersonalParamsList().size(); j++) {
                     SendSMSMessage sendSMSMessage = new SendSMSMessage();
                     sendSMSMessage.setPhoneNumber(capaMessageParams.getPersonalParamsList().get(i).getPersonalPhone().get(j));
                     sendSMSMessage.setTemplate(template.getTemplateCode());
                     sendSMSMessage.setParams(params);
-                    SendMessageRecord result = messageService.saveMessage(caseInfo,personal,template,capaMessageParams.getPersonalParamsList().get(i).getContId().get(j),user,Integer.valueOf(capaMessageParams.getSendType()));
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, capaMessageParams.getPersonalParamsList().get(i).getContId().get(j), user, Integer.valueOf(capaMessageParams.getSendType()));
                     restTemplate.postForEntity("http://common-service/api/SearchMessageController/sendSmsMessage", sendSMSMessage, Void.class);
                 }
-            }else{
-                for(int j=0; i < capaMessageParams.getPersonalParamsList().size();j++){
+            } else {
+                for (int j = 0; i < capaMessageParams.getPersonalParamsList().size(); j++) {
                     SMSMessage message = new SMSMessage();
                     message.setPhoneNumber(capaMessageParams.getPersonalParamsList().get(i).getPersonalPhone().get(j));
                     message.setTemplate(template.getTemplateCode());
-                    params.put("userName",capaMessageParams.getPersonalParamsList().get(i).getPersonalName().get(j));
-                    params.put("business",caseInfo.getPrincipalId().getName());
-                    params.put("money",caseInfo.getOverdueAmount().toString());
+                    params.put("userName", capaMessageParams.getPersonalParamsList().get(i).getPersonalName().get(j));
+                    params.put("business", caseInfo.getPrincipalId().getName());
+                    params.put("money", caseInfo.getOverdueAmount().toString());
                     message.setCompanyCode(user.getCompanyCode());
                     message.setUserId(user.getId());
                     message.setParams(params);
-                    SendMessageRecord result = messageService.saveMessage(caseInfo,personal,template,capaMessageParams.getPersonalParamsList().get(i).getContId().get(j),user,Integer.valueOf(capaMessageParams.getSendType()));
-                    restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
+                    String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
+                    if (Objects.nonNull(entity)) {
+                        error.append(capaMessageParams.getPersonalParamsList().get(i).getPersonalName().get(j) + ":" + entity + ",");
+                    } else {
+                        SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, capaMessageParams.getPersonalParamsList().get(i).getContId().get(j), user, Integer.valueOf(capaMessageParams.getSendType()));
+                    }
                 }
             }
+        }
+        if (Objects.nonNull(error)) {
+            error.substring(0, error.length() - 1);
+            error.append("未正常发送");
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", error.toString())).body(null);
         }
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("发送成功", "")).body(null);
     }
