@@ -11,6 +11,7 @@ import java.util.List;
 @Data
 public class ManyAppmsgRequest {
     List<String> ids;
+    List<String> userNames;
     @ApiModelProperty(notes = "app信息Title")
     private String title;
     @ApiModelProperty(notes = "app信息content")
