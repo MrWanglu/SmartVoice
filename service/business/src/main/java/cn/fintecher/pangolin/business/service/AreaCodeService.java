@@ -1,6 +1,5 @@
 package cn.fintecher.pangolin.business.service;
 
-import cn.fintecher.pangolin.business.repository.AreaCodeRepository;
 import cn.fintecher.pangolin.entity.AreaCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -15,9 +14,6 @@ import java.util.Iterator;
  */
 @Service("areaCodeService")
 public class AreaCodeService {
-
-    @Autowired
-    AreaCodeRepository areaCodeRepository;
 
     @Autowired
     AreaCodeQueryService areaCodeQueryService;
