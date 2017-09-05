@@ -1,16 +1,12 @@
 package cn.fintecher.pangolin.common.web;
 
 import cn.fintecher.pangolin.common.client.UserClient;
-import cn.fintecher.pangolin.common.model.SMSMessage;
 import cn.fintecher.pangolin.common.service.SmsMessageService;
-import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.message.PaaSMessage;
-import cn.fintecher.pangolin.entity.message.SendSMSMessage;
+import cn.fintecher.pangolin.common.model.SMSMessage;
 import cn.fintecher.pangolin.util.ZWDateUtil;
-import com.netflix.discovery.converters.Auto;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -19,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Objects;
 
 /**
  * Created by qijigui on 2017/3/24.
@@ -41,7 +36,7 @@ public class MessageOperateController {
 
     @RequestMapping(value = "/sendSmsMessage", method = RequestMethod.POST)
     @ApiOperation(value = "发送短信", notes = "发送短信")
-    public ResponseEntity<Void> sendSmsMessage(@RequestBody SendSMSMessage message) {
+    public ResponseEntity<Void> sendSmsMessage(@RequestBody SMSMessage message) {
         logger.debug("发送短信：{}", message.toString());
         rabbitTemplate.convertAndSend("mr.cui.sms.send", message);
         return ResponseEntity.ok().build();
