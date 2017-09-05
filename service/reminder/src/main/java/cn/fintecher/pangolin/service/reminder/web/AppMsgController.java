@@ -51,9 +51,10 @@ public class AppMsgController{
     @ResponseBody
     public ResponseEntity batchSaveAppmsg(@RequestBody ManyAppmsgRequest request) {
         try {
-            for (String id : request.getIds()) {
+            for (String userName : request.getUserNames()) {
                 AppMsg appmsg = new AppMsg();
-                appmsg.setUserId(id);
+                appmsg.setUserName(userName);
+                appmsg.setUserId("");
                 appmsg.setTitle(request.getTitle());
                 appmsg.setContent(request.getContent());
                 appmsg.setType(ReminderType.FLLOWUP);
