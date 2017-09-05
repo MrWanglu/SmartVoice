@@ -2,14 +2,13 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.MapModel;
 import cn.fintecher.pangolin.business.model.PersonalInfoExportModel;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
-import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
-import cn.fintecher.pangolin.business.repository.DepartmentRepository;
-import cn.fintecher.pangolin.business.repository.PersonalRepository;
+import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.AccMapService;
 import cn.fintecher.pangolin.business.service.PersonalInfoExportService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
@@ -61,6 +60,7 @@ public class PersonalController extends BaseController {
     private static final String ENTITY_NAME = "personal";
     private static final String ENTITY_CASE_TURN_RECORD = "CaseTurnRecord";
     private static final String ENTITY_CASE_FOLLOWUP_RECORD = "CaseFollowupRecord";
+    private static final String PERSONAL_CONTACT = "PersonalContact";
     private final Logger log = LoggerFactory.getLogger(PersonalController.class);
 
     @Inject
@@ -79,6 +79,8 @@ public class PersonalController extends BaseController {
     EntityManager em;
     @Inject
     AccMapService accMapService;
+    @Inject
+    PersonalContactRepository personalContactRepository;
 
 
     @PostMapping("/personalInfoExport")
@@ -397,5 +399,53 @@ public class PersonalController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("RepairCaseDistributeController", "error", e.getMessage())).body(null);
         }
 
+    }
+
+    @GetMapping("/batchAddPersonContacts")
+    @ApiOperation(value = "根据备注解析联系人信息", notes = "根据备注解析联系人信息")
+    public ResponseEntity<Void> batchAddPersonContacts(@RequestParam @ApiParam(value = "客户ID", required = true) String custId,
+                                                       @RequestParam @ApiParam(value = "案件备注信息", required = true) String memo) {
+        if (Objects.isNull(custId) || Objects.isNull(memo)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PERSONAL_CONTACT", "info", "没有获取到联系人信息")).body(null);
+        }
+        try {
+            char[] charArray = memo.toCharArray();
+            String phoneNumber = "";
+            for (char temp : charArray) {
+                if (((int) temp >= 48 && (int) temp <= 57) || (int) temp == 45) {
+                    phoneNumber += temp;
+                } else {
+                    if (!Objects.equals(phoneNumber, "")) {
+                        setPersonalContacts(custId, phoneNumber);
+                    }
+                    phoneNumber = "";
+                }
+            }
+            if (!Objects.equals(phoneNumber, "")) {
+                setPersonalContacts(custId, phoneNumber);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("", null)).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("RepairCaseDistributeController", "error", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * 增加联系人信息
+     *
+     * @param custId
+     * @param phoneNumber
+     */
+    private void setPersonalContacts(String custId, String phoneNumber) {
+        PersonalContact personalContact = new PersonalContact();
+        personalContact.setPersonalId(custId);
+        personalContact.setPhone(phoneNumber);
+        personalContact.setInformed(0);
+        personalContact.setPhoneStatus(Personal.PhoneStatus.NORMAL.getValue());
+        personalContact.setSource(Constants.DataSource.IMPORT.getValue());
+        //personalContact.setOperator("");
+        personalContact.setOperatorTime(ZWDateUtil.getNowDate());
+        personalContact.setRelation(PersonalContact.relation.OTHER.getValue());
+        personalContactRepository.save(personalContact);
     }
 }
