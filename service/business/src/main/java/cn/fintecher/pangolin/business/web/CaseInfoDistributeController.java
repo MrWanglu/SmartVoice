@@ -3,6 +3,9 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
 import cn.fintecher.pangolin.business.model.UserInfoModel;
 import cn.fintecher.pangolin.business.repository.CaseInfoDistributedRepository;
+import cn.fintecher.pangolin.business.repository.PersonalContactRepository;
+import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoDistributedService;
@@ -39,7 +42,7 @@ import java.util.Objects;
 public class CaseInfoDistributeController extends BaseController {
 
     private static final String ENTITY_NAME = "caseInfoDistributeController";
-    Logger logger=LoggerFactory.getLogger(CaseInfoDistributeController.class);
+    Logger logger = LoggerFactory.getLogger(CaseInfoDistributeController.class);
 
     @Autowired
     CaseInfoService caseInfoService;
@@ -51,6 +54,8 @@ public class CaseInfoDistributeController extends BaseController {
     CaseInfoRepository caseInfoRepository;
     @Inject
     CaseInfoDistributedService caseInfoDistributedService;
+    @Inject
+    PersonalContactRepository personalContactRepository;
 
     @RequestMapping(value = "/distributeCeaseInfo", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
@@ -58,17 +63,17 @@ public class CaseInfoDistributeController extends BaseController {
     public ResponseEntity distributeCeaseInfo(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         try {
-            User user=getUserByToken(token);
+            User user = getUserByToken(token);
             try {
                 caseInfoDistributedService.distributeCeaseInfo(accCaseInfoDisModel, user);
             } catch (final Exception e) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"",e.getMessage())).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功",ENTITY_NAME)).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", ENTITY_NAME)).body(null);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            String msg= Objects.isNull(e.getMessage()) ? "系统异常" : e.getMessage();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"error",msg)).body(null);
+            String msg = Objects.isNull(e.getMessage()) ? "系统异常" : e.getMessage();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "error", msg)).body(null);
         }
 
     }
@@ -86,7 +91,7 @@ public class CaseInfoDistributeController extends BaseController {
     public ResponseEntity<Page<CaseInfoDistributed>> findCaseInfoDistribute(@QuerydslPredicate(root = CaseInfoDistributed.class) Predicate predicate,
                                                                             @ApiIgnore Pageable pageable,
                                                                             @RequestHeader(value = "X-UserToken") String token,
-                                                                            @RequestParam(value = "companyCode",required = false) String companyCode) {
+                                                                            @RequestParam(value = "companyCode", required = false) String companyCode) {
         logger.debug("REST request to findCaseInfoDistribute");
         User user = null;
         try {
@@ -175,8 +180,70 @@ public class CaseInfoDistributeController extends BaseController {
 
     @GetMapping("/getCaseInfoDistributedDetails")
     @ApiOperation(value = "案件详情查询操作", notes = "案件详情查询操作")
-    public ResponseEntity<CaseInfoDistributed> getCaseInfoDistributedDetails(@RequestParam("id") String id){
-        CaseInfoDistributed caseInfoDistributed= caseInfoDistributedRepository.findOne(id);
+    public ResponseEntity<CaseInfoDistributed> getCaseInfoDistributedDetails(@RequestParam("id") String id) {
+        CaseInfoDistributed caseInfoDistributed = caseInfoDistributedRepository.findOne(id);
         return ResponseEntity.ok().body(caseInfoDistributed);
+    }
+
+    @GetMapping("/batchAddPersonContacts")
+    @ApiOperation(value = "根据备注解析联系人信息", notes = "根据备注解析联系人信息")
+    public ResponseEntity<Void> batchAddPersonContacts(@RequestHeader(value = "X-UserToken") String token) {
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest()
+                    .headers(HeaderUtil.createFailureAlert("CaseInfoDistributeController", "batchAddPersonContacts", e.getMessage()))
+                    .body(null);
+        }
+        List<CaseInfoDistributed> caseInfoDistributeds = caseInfoDistributedRepository.findAll();
+        if (Objects.isNull(caseInfoDistributeds) || caseInfoDistributeds.size() == 0) {
+            return ResponseEntity.ok()
+                    .headers(HeaderUtil.createAlert("", "")).body(null);
+        }
+
+        for (CaseInfoDistributed caseInfoDistributed : caseInfoDistributeds) {
+            try {
+                char[] charArray = caseInfoDistributed.getMemo().toCharArray();
+                String phoneNumber = "";
+                for (char temp : charArray) {
+                    if (((int) temp >= 48 && (int) temp <= 57) || (int) temp == 45) {
+                        phoneNumber += temp;
+                    } else {
+                        if (!Objects.equals(phoneNumber, "")) {
+                            setPersonalContacts(caseInfoDistributed.getPersonalInfo().getId(), phoneNumber, user);
+                        }
+                        phoneNumber = "";
+                    }
+                }
+                if (!Objects.equals(phoneNumber, "")) {
+                    setPersonalContacts(caseInfoDistributed.getPersonalInfo().getId(), phoneNumber, user);
+                }
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("", null)).body(null);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("RepairCaseDistributeController", "error", e.getMessage())).body(null);
+            }
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("", null)).body(null);
+    }
+
+    /**
+     * 增加联系人信息
+     *
+     * @param custId
+     * @param phoneNumber
+     */
+    private void setPersonalContacts(String custId, String phoneNumber, User user) {
+        PersonalContact personalContact = new PersonalContact();
+        personalContact.setPersonalId(custId);
+        personalContact.setPhone(phoneNumber);
+        personalContact.setInformed(0);
+        personalContact.setPhoneStatus(Personal.PhoneStatus.NORMAL.getValue());
+        personalContact.setSource(Constants.DataSource.IMPORT.getValue());
+        personalContact.setOperator(user.getUserName());
+        personalContact.setOperatorTime(ZWDateUtil.getNowDate());
+        personalContact.setRelation(PersonalContact.relation.OTHER.getValue());
+        personalContactRepository.save(personalContact);
     }
 }
