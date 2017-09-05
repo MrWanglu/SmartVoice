@@ -197,21 +197,22 @@ public class CaseInfoDistributeController extends BaseController {
                         .headers(HeaderUtil.createAlert("", "")).body(null);
             }
             for (CaseInfoDistributed caseInfoDistributed : caseInfoDistributeds) {
-
-                char[] charArray = caseInfoDistributed.getMemo().toCharArray();
-                String phoneNumber = "";
-                for (char temp : charArray) {
-                    if (((int) temp >= 48 && (int) temp <= 57) || (int) temp == 45) {
-                        phoneNumber += temp;
-                    } else {
-                        if (!Objects.equals(phoneNumber, "")) {
-                            setPersonalContacts(caseInfoDistributed.getPersonalInfo().getId(), phoneNumber, user);
+                if (Objects.nonNull(caseInfoDistributed.getMemo())) {
+                    char[] charArray = caseInfoDistributed.getMemo().toCharArray();
+                    String phoneNumber = "";
+                    for (char temp : charArray) {
+                        if (((int) temp >= 48 && (int) temp <= 57) || (int) temp == 45) {
+                            phoneNumber += temp;
+                        } else {
+                            if (!Objects.equals(phoneNumber, "")) {
+                                setPersonalContacts(caseInfoDistributed.getPersonalInfo().getId(), phoneNumber, user);
+                            }
+                            phoneNumber = "";
                         }
-                        phoneNumber = "";
                     }
-                }
-                if (!Objects.equals(phoneNumber, "")) {
-                    setPersonalContacts(caseInfoDistributed.getPersonalInfo().getId(), phoneNumber, user);
+                    if (!Objects.equals(phoneNumber, "")) {
+                        setPersonalContacts(caseInfoDistributed.getPersonalInfo().getId(), phoneNumber, user);
+                    }
                 }
                 //解析完了将memo 置为空。
                 caseInfoDistributed.setMemo(null);
