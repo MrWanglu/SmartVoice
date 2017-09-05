@@ -120,7 +120,7 @@ public class SMSMessageController extends BaseController {
                 message.setPhoneNumber(personalParams1.getPersonalPhone());
                 String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
                 if (ZWStringUtils.isNotEmpty(entity)) {
-                    error.append(personalParams1.getPersonalName() + entity + ",");
+                    error.append(personalParams1.getPersonalName() +":"+ entity + ",");
                     SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
                     templateRepository.saveAndFlush(temp);
                 } else {
@@ -146,7 +146,7 @@ public class SMSMessageController extends BaseController {
                 message.setPhoneNumber(personalParams1.getPersonalPhone());
                 String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendPaaSMessage", message, String.class);
                 if (ZWStringUtils.isNotEmpty(entity)) {
-                    error.append(personalParams1.getPersonalName() + entity + ",");
+                    error.append(personalParams1.getPersonalName() +":"+ entity + ",");
                     SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
                     templateRepository.saveAndFlush(temp);
                 } else {
@@ -156,7 +156,7 @@ public class SMSMessageController extends BaseController {
             }
             if (ZWStringUtils.isNotEmpty(error.toString())) {
                 String result = error.substring(0,error.length()-1)+"未正常发送";
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", result)).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "发送成功")).body(null);
             }
         }
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("发送成功", "")).body(null);
@@ -217,7 +217,7 @@ public class SMSMessageController extends BaseController {
                     message.setPhoneNumber(capaMessageParams.getPersonalParamsList().get(i).getPersonalPhone().get(j));
                     String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
                     if (ZWStringUtils.isNotEmpty(entity)) {
-                        error.append(capaMessageParams.getPersonalParamsList().get(i).getPersonalName().get(j) + entity + ",");
+                        error.append(capaMessageParams.getPersonalParamsList().get(i).getPersonalName().get(j)+":"+ entity + ",");
                         SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, capaMessageParams.getPersonalParamsList().get(i).getContId().get(j), user, Integer.valueOf(capaMessageParams.getSendType()),SendMessageRecord.Flag.MANUAL.getValue());
                         templateRepository.saveAndFlush(temp);
                     } else {
@@ -242,7 +242,7 @@ public class SMSMessageController extends BaseController {
                     message.setPhoneNumber(capaMessageParams.getPersonalParamsList().get(i).getPersonalPhone().get(j));
                     String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendPaaSMessage", message, String.class);
                     if (ZWStringUtils.isNotEmpty(entity)) {
-                        error.append(capaMessageParams.getPersonalParamsList().get(i).getPersonalName().get(j) + entity + ",");
+                        error.append(capaMessageParams.getPersonalParamsList().get(i).getPersonalName().get(j)+":"+ entity + ",");
                         SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, capaMessageParams.getPersonalParamsList().get(i).getContId().get(j), user, Integer.valueOf(capaMessageParams.getSendType()),SendMessageRecord.Flag.MANUAL.getValue());
                         templateRepository.saveAndFlush(temp);
                     } else {
@@ -254,7 +254,7 @@ public class SMSMessageController extends BaseController {
         }
         if (ZWStringUtils.isNotEmpty(error.toString())) {
             String result = error.substring(0,error.length()-1)+"未正常发送";
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", result)).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "发送成功")).body(null);
         }
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("发送成功", "")).body(null);
     }
