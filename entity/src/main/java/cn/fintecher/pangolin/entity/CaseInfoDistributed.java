@@ -58,6 +58,7 @@ public class CaseInfoDistributed extends BaseEntity {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date closeDate;
     private BigDecimal commissionRate = new BigDecimal(0);
+    @ApiModelProperty("案件手数")
     private Integer handNumber;
     private Date loanDate;
     private BigDecimal overdueManageFee = new BigDecimal(0);
@@ -77,8 +78,17 @@ public class CaseInfoDistributed extends BaseEntity {
 
     private Date operatorTime;
     private Integer caseMark;
-    @ApiModelProperty("备注")
+    @ApiModelProperty("导入案件时Excel中的备注")
     private String memo;
+    @ApiModelProperty("客户号")
+    private String personalNumber;
+    @ApiModelProperty("账户号")
+    private String accountNumber;
+    @ApiModelProperty("首次还款日期")
+    private Date firstPayDate;
+    @ApiModelProperty("账龄")
+    private Integer accountAge;
+
 
 
     @ManyToOne

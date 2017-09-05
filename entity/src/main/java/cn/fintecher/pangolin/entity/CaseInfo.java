@@ -88,6 +88,14 @@ public class CaseInfo extends BaseEntity {
     private Integer caseMark = 126;
     @ApiModelProperty("备注")
     private String memo;
+    @ApiModelProperty("客户号")
+    private String personalNumber;
+    @ApiModelProperty("账户号")
+    private String accountNumber;
+    @ApiModelProperty("首次还款日期")
+    private Date firstPayDate;
+    @ApiModelProperty("账龄")
+    private Integer accountAge;
 
     @ManyToOne
     @JoinColumn(name = "personal_id")
