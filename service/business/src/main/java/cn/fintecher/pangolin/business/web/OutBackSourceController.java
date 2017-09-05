@@ -2,20 +2,24 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.repository.OutBackSourceRepository;
 import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
-import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.OutBackSource;
-import cn.fintecher.pangolin.entity.OutsourcePool;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import cn.fintecher.pangolin.web.PaginationUtil;
+import io.swagger.annotations.*;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
+import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -39,6 +43,8 @@ public class OutBackSourceController extends BaseController {
     private OutBackSourceRepository outbackSourceRepository;
     @Autowired
     private OutsourcePoolRepository outsourcePoolRepository;
+
+    private static final String ENTITY_OUTBACK_FOLLOWUP_RECORD = "OutBackFollowupRecord";
 
 
     /**
@@ -92,6 +98,37 @@ public class OutBackSourceController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("操作失败", "", e.getMessage())).body(null);
         }
 
+    }
+
+    /**
+     * @Description 委外页面多条件查询回款跟进记录
+     */
+    @GetMapping("/getOutbackFollowupRecord/{outId}")
+    @ApiOperation(value = "委外页面多条件查询回款跟进记录", notes = "委外页面多条件查询回款跟进记录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<OutBackSource>> getOutbackFollowupRecord(@PathVariable @ApiParam(value = "委外案件编号", required = true) String outId,
+                                                                        @QuerydslPredicate(root = OutBackSource.class) Predicate predicate,
+                                                                        @ApiIgnore Pageable pageable) {
+        log.debug("REST request to get case followup records by {outId}", outId);
+        try {
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            if(Objects.nonNull(outId)){
+                builder.and(QOutBackSource.outBackSource.outId.eq(outId));
+            }
+            Page<OutBackSource> page = outbackSourceRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/OutBackSourceController/getOutbackFollowupRecord");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_OUTBACK_FOLLOWUP_RECORD, "OutbackFollowupRecord", "查询失败")).body(null);
+        }
     }
 
 }
