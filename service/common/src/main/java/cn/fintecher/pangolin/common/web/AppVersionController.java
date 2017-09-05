@@ -97,7 +97,7 @@ public class AppVersionController {
         return ResponseEntity.ok().body(null);
     }
 
-    @PostMapping("/queryAppVersion")
+    @GetMapping("/queryAppVersion")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
                     value = "页数 (0..N)"),
