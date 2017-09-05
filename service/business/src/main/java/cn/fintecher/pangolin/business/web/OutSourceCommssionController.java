@@ -2,9 +2,12 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.OutSourceCommssionRepository;
+import cn.fintecher.pangolin.entity.OutBackSource;
 import cn.fintecher.pangolin.entity.OutSourceCommssion;
 import cn.fintecher.pangolin.entity.QOutSourceCommssion;
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.ExcelUtil;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
@@ -66,22 +69,43 @@ public class OutSourceCommssionController extends BaseController {
     })
     public ResponseEntity<Page<OutSourceCommssion>> getOutSourceCommission(@RequestParam String outsId,
                                                                            @RequestParam String companyCode,
-                                                                           @ApiIgnore Pageable pageable) {
+                                                                           @ApiIgnore Pageable pageable,
+                                                                           @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get a page of AccOutsource : {}");
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+
         if (Objects.isNull(outsId)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Please select the foreign party", "请选择委外方")).body(null);
         }
         QOutSourceCommssion qOutSourceCommssion = QOutSourceCommssion.outSourceCommssion;
-        Page<OutSourceCommssion> page = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsource.id.eq(outsId).and(qOutSourceCommssion.companyCode.eq(companyCode)), pageable);
+        Page<OutSourceCommssion> page = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outsId).and(qOutSourceCommssion.companyCode.eq(companyCode)), pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
 
     /**
      * @Description : 新增/修改委外佣金
+     * Updated by huyanmin 2017/9/4
+     * Verified the user if log in
      */
     @PostMapping("/createOutSourceCommssion")
     @ApiOperation(value = "新增/修改委外佣金", notes = "新增/修改委外佣金")
-    public ResponseEntity<List<OutSourceCommssion>> createOutSourceCommssion(@RequestBody OutSourceCommssionList request) {
+    public ResponseEntity<List<OutSourceCommssion>> createOutSourceCommssion(@RequestBody OutSourceCommssionList request,
+                                                                             @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+
         if (Objects.isNull(request.getOutsourceCommissionList())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Add new or modified objects", "请添加新增或者修改的对象")).body(null);
         }
@@ -89,13 +113,28 @@ public class OutSourceCommssionController extends BaseController {
         for (OutSourceCommssion outSourceCommssion : request.getOutsourceCommissionList()) {
             QOutSourceCommssion qOutSourceCommssion = QOutSourceCommssion.outSourceCommssion;
             Iterator<OutSourceCommssion> outSourceCommssionList;
+            //判断该佣金案件是否存在
             if (Objects.nonNull(outSourceCommssion.getId())) {
-                outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsource.id.eq(outSourceCommssion.getOutsource().getId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.id.ne(outSourceCommssion.getId())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
+                outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.id.ne(outSourceCommssion.getId())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
             } else {
-                outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsource.id.eq(outSourceCommssion.getOutsource().getId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
+                //该逾期时段不能为空
+                if(outSourceCommssion.getOverdueTime() !=null && !"".equals(outSourceCommssion.getOverdueTime())){
+                    long list = outSourceCommssionRepository.count(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime()));
+                    //该逾期时段已存在
+                    if(list == 0){
+                        outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
+                    }else{
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failed", "该逾期时段已存在")).body(null);
+                    }
+                }else{
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failed", "该逾期时段不能为空")).body(null);
+                }
+
             }
             List<OutSourceCommssion> outSourceCommssionList1 = IteratorUtils.toList(outSourceCommssionList);
             if (outSourceCommssionList1.size() == 0) {
+                outSourceCommssion.setOperateTime(ZWDateUtil.getNowDateTime());
+                outSourceCommssion.setOperator(user.getUserName());
                 outSourceCommssionRepository.save(outSourceCommssion);
             } else {
                 exist.add(outSourceCommssion);
@@ -109,7 +148,15 @@ public class OutSourceCommssionController extends BaseController {
      */
     @PostMapping("/deleteOutsourceCommission")
     @ApiOperation(value = "删除委外佣金", notes = "删除委外佣金")
-    public ResponseEntity<String> addAccOutsourceCommission(@RequestBody @ApiParam("委外佣金id集合") OutSourceCommissionIds request) {
+    public ResponseEntity<String> deleteOutsourceCommission(@RequestBody @ApiParam("委外佣金id集合") OutSourceCommissionIds request,
+                                                            @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
         for (String id : request.getIds()) {
             OutSourceCommssion outSourceCommssion = outSourceCommssionRepository.findOne(id);
             if (Objects.nonNull(outSourceCommssion)) {
@@ -119,6 +166,7 @@ public class OutSourceCommssionController extends BaseController {
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
     }
 
+
     /**
      * @return result对象
      * @function 委外佣金报表 204 回款  205 回退  206 修复
@@ -127,11 +175,20 @@ public class OutSourceCommssionController extends BaseController {
     @ApiOperation(value = "委外佣金报表", notes = "委外佣金报表")
     public ResponseEntity<List> outsourceCommissionForm(@RequestParam String companyCode,
                                                         @RequestParam Integer operationType,
-                                                        @RequestParam String outsName) {
+                                                        @RequestParam String outsName,
+                                                        @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+
         Object[] objects;
-        if (Objects.equals(204, operationType)) {
+        if (Objects.equals(OutBackSource.operationType.OUTBACKAMT, operationType)) {
             objects = outSourceCommssionRepository.outsourceCommissionReturn(companyCode, operationType, outsName);
-        } else if (Objects.equals(205, operationType)) {
+        } else if (Objects.equals(OutBackSource.operationType.OUTBACK, operationType)) {
             objects = outSourceCommssionRepository.outsourceCommissionRollback(companyCode, operationType, outsName);
         } else {
             objects = outSourceCommssionRepository.outsourceCommissionRepair(companyCode, operationType, outsName);
@@ -252,7 +309,15 @@ public class OutSourceCommssionController extends BaseController {
     @ApiOperation(value = "导出佣金报表", notes = "导出佣金报表")
     public ResponseEntity<String> exportReport(@RequestParam String companyCode,
                                                @RequestParam Integer operationType,
-                                               @RequestParam String outsName) {
+                                               @RequestParam String outsName,
+                                               @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
         HSSFWorkbook workbook = null;
         File file = null;
         ByteArrayOutputStream out = null;
