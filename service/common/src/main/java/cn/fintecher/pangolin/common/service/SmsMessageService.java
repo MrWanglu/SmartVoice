@@ -81,7 +81,7 @@ public class SmsMessageService {
                 headers.set("Accept-Charset", "UTF-8");
                 headers.set("Authorization", createSign());
                 HttpEntity<Object> httpEntity = new HttpEntity<>(reqMap, headers);
-                ResponseEntity entity = restTemplate.exchange(messageUrl, HttpMethod.POST, httpEntity, String.class);
+                ResponseEntity entity = new RestTemplate().exchange(messageUrl, HttpMethod.POST, httpEntity, String.class);
                 result = entity.getBody().toString();
                 log.debug(result);
                smsMessageRepository.save(message);
