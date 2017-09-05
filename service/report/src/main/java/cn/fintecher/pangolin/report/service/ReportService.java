@@ -1209,20 +1209,25 @@ public class ReportService {
                 Integer smsSum = 0; //累计发短信数量
                 Integer successSum = 0; //累计发送成功数量
                 Integer failureSum = 0; //累计发送失败数量
-                Integer rank = 1; //排名
+                Integer rank = 0; //排名
                 Integer susNum = 0; //当前发短信数量，用作排名对比
                 List<SmsReport> smsReportList = smsSecModel1.getSmsReports();
-                for (SmsReport smsReport : smsReportList) {
-                    smsSum = smsSum + smsReport.getSmsNum(); //计算发送短信总数量
-                    successSum = successSum + smsReport.getSuccessNum(); //计算发送成功总数量
-                    failureSum = failureSum + smsReport.getFailureNum(); //计算发送失败总数量
-                    if (Objects.equals(smsReport.getSmsNum(), susNum)) { //发送短信数量和上一个人一样的话
-                        smsReport.setRank(rank);
-                    } else { //不一样
+                for (int i = 0; i < smsReportList.size(); i++) {
+                    smsSum = smsSum + smsReportList.get(i).getSmsNum(); //计算发送短信总数量
+                    successSum = successSum + smsReportList.get(i).getSuccessNum(); //计算发送成功总数量
+                    failureSum = failureSum + smsReportList.get(i).getFailureNum(); //计算发送失败总数量
+                    if (0 == i) { //第一次计算排名时
                         rank++;
-                        smsReport.setRank(rank);
+                        smsReportList.get(i).setRank(rank);
+                    } else {
+                        if (Objects.equals(smsReportList.get(i).getSmsNum(), susNum)) { //发送短信数量和上一个人一样的话
+                            smsReportList.get(i).setRank(rank);
+                        } else { //不一样
+                            rank++;
+                            smsReportList.get(i).setRank(rank);
+                        }
                     }
-                    susNum = smsReport.getSmsNum();
+                    susNum = smsReportList.get(i).getSmsNum();
                 }
                 SmsReport smsReport = new SmsReport();
                 smsReport.setRealName("累计");
@@ -2381,20 +2386,47 @@ public class ReportService {
                     }
 
                     //给该行每一列设置数据
-                    for (int i = 2; i < 8; i++) {
-                        Object obj = ExcelUtil.getProValue(paramArray[paramIndex], smsReport); //通过字段映射获取相应的数据
-                        if (i == 3 || i == 7) {
-                            if (Objects.isNull(obj)) {
-                                cell = row.createCell(i, CellType.STRING);
-                                cell.setCellValue("");
+                    if (Objects.equals(generalParams.getType(), 1)) {
+                        for (int i = 2; i < 8; i++) {
+                            Object obj = ExcelUtil.getProValue(paramArray[paramIndex], smsReport); //通过字段映射获取相应的数据
+                            if (3 == i) {
+                                Object obj1 = ExcelUtil.getProValue(paramArray[0], smsReport);
+                                if (Objects.equals(obj1, "累计")) {
+                                    cell = row.createCell(i, CellType.STRING);
+                                    cell.setCellValue("");
+                                } else {
+                                    cell = row.createCell(i, CellType.STRING);
+                                    cell.setCellValue(generalParams.getStartDate() + "~" + generalParams.getEndDate());
+                                }
+                            } else if (i == 7) {
+                                if (Objects.isNull(obj)) {
+                                    cell = row.createCell(i, CellType.STRING);
+                                    cell.setCellValue("");
+                                } else {
+                                    cell = setCellValue(obj, row, i); //给单元格set值
+                                }
                             } else {
                                 cell = setCellValue(obj, row, i); //给单元格set值
                             }
-                        } else {
-                            cell = setCellValue(obj, row, i); //给单元格set值
+                            cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                            paramIndex++;
                         }
-                        cell.setCellStyle(hssfCellStyle); //给单元格设置格式
-                        paramIndex++;
+                    } else {
+                        for (int i = 2; i < 8; i++) {
+                            Object obj = ExcelUtil.getProValue(paramArray[paramIndex], smsReport); //通过字段映射获取相应的数据
+                            if (3 == i || 7 == i) {
+                                if (Objects.isNull(obj)) {
+                                    cell = row.createCell(i, CellType.STRING);
+                                    cell.setCellValue("");
+                                } else {
+                                    cell = setCellValue(obj, row, i); //给单元格set值
+                                }
+                            } else {
+                                cell = setCellValue(obj, row, i); //给单元格set值
+                            }
+                            cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                            paramIndex++;
+                        }
                     }
                     //设置完毕后行数+1,进行下一行设置
                     userIndex++;
@@ -2414,6 +2446,7 @@ public class ReportService {
         //上传填好数据的报表
         return uploadExcel(hssfWorkbook);
     }
+
 
     /**
      * @Description 给报表单元格set值
