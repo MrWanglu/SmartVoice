@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.entity;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -41,6 +42,8 @@ public class Personal extends BaseEntity {
     private String companyCode;
     private BigDecimal longitude;
     private BigDecimal latitude;
+    @ApiModelProperty("客户号")
+    private String number;
 
     @OneToMany(cascade = CascadeType.REFRESH)
     @JoinColumn(name = "personalId", insertable = false, updatable = false)

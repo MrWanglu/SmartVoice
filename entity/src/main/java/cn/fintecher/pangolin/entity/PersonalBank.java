@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.entity;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.persistence.Entity;
@@ -22,5 +23,7 @@ public class PersonalBank extends BaseEntity {
     private String operator;
     private Date operatorTime;
     private String personalId;
+    @ApiModelProperty("账户号")
+    private String accountNumber;
 
 }

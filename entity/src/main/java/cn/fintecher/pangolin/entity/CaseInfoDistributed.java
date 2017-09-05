@@ -80,10 +80,6 @@ public class CaseInfoDistributed extends BaseEntity {
     private Integer caseMark;
     @ApiModelProperty("导入案件时Excel中的备注")
     private String memo;
-    @ApiModelProperty("客户号")
-    private String personalNumber;
-    @ApiModelProperty("账户号")
-    private String accountNumber;
     @ApiModelProperty("首次还款日期")
     private Date firstPayDate;
     @ApiModelProperty("账龄")
