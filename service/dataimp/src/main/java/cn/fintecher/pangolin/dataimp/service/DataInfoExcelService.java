@@ -132,13 +132,13 @@ public class DataInfoExcelService {
             //验证数据的合法性
             validityDataInfoExcel(cellErrorList, dataList, body.getValue());
             if (cellErrorList.isEmpty()) {
+                //导入数据记录
+                dataImportRecord.setOperator(user.getId());
+                dataImportRecord.setOperatorName(user.getRealName());
+                dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
+                dataImportRecord.setCompanyCode(user.getCompanyCode());
+                dataImportRecordRepository.save(dataImportRecord);
                 if (Objects.equals(body.getValue(),"1")) { //邢台
-                    //导入数据记录
-                    dataImportRecord.setOperator(user.getId());
-                    dataImportRecord.setOperatorName(user.getRealName());
-                    dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
-                    dataImportRecord.setCompanyCode(user.getCompanyCode());
-                    dataImportRecordRepository.save(dataImportRecord);
                     //开始保存数据
                     for (Object obj : dataList) {
                         DataInfoExcel tempObj = (DataInfoExcel) obj;
@@ -159,11 +159,6 @@ public class DataInfoExcelService {
                         dataInfoExcelRepository.save(tempObj);
                     }
                 } else {
-                    //导入数据记录
-                    dataImportRecord.setOperator(user.getId());
-                    dataImportRecord.setOperatorName(user.getRealName());
-                    dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
-                    dataImportRecord.setCompanyCode(user.getCompanyCode());
                     //批次号
                     String batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ, user.getCompanyCode(), Constants.ORDER_SEQ_LENGTH);
                     dataImportRecord.setBatchNumber(batchNumber);
@@ -179,7 +174,7 @@ public class DataInfoExcelService {
                         tempObj.setOperatorName(user.getRealName());
                         tempObj.setOperatorTime(ZWDateUtil.getNowDateTime());
                         tempObj.setCompanyCode(user.getCompanyCode());
-                        tempObj.setCaseHandNum(dataImportRecord.getHandNumber());
+//                        tempObj.setCaseHandNum(dataImportRecord.getHandNumber());
                         tempObj.setPaymentStatus("M".concat(String.valueOf(tempObj.getOverDuePeriods() == null ? "M0" : tempObj.getOverDuePeriods())));
                         tempObj.setDelegationDate(dataImportRecord.getDelegationDate());
                         tempObj.setCloseDate(dataImportRecord.getCloseDate());

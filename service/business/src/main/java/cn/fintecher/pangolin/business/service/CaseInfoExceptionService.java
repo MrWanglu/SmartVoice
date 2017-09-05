@@ -312,6 +312,7 @@ public class CaseInfoExceptionService {
         personal.setCompanyCode(caseInfoException.getCompanyCode());
         personal.setDataSource(Constants.DataSource.IMPORT.getValue());
         personal.setMarital(Personal.MARITAL.UNKNOW.getValue());
+        personal.setNumber(caseInfoException.getPersonalNumber()); //客户号
         return personal;
     }
 
@@ -340,9 +341,11 @@ public class CaseInfoExceptionService {
         personalContact.setOperator(user.getId());
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime());
         personalContactList.add(personalContact);
-        if (Objects.nonNull(caseInfoException.getContactName1()) || Objects.nonNull(caseInfoException.getContactPhone1())
-                || Objects.nonNull(caseInfoException.getContactRelation1()) || Objects.nonNull(caseInfoException.getContactHomePhone1())) {
-            PersonalContact obj = new PersonalContact();
+        // 联系人1信息
+        if(Objects.nonNull(caseInfoException.getContactName1())
+                || Objects.nonNull(caseInfoException.getContactPhone1())
+                || Objects.nonNull(caseInfoException.getContactHomePhone1())){
+            PersonalContact obj=new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation1()));
             obj.setName(caseInfoException.getContactName1());
@@ -358,9 +361,11 @@ public class CaseInfoExceptionService {
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
         }
-        if (Objects.nonNull(caseInfoException.getContactName2()) || Objects.nonNull(caseInfoException.getContactPhone2())
-                || Objects.nonNull(caseInfoException.getContactRelation2()) || Objects.nonNull(caseInfoException.getContactHomePhone2())) {
-            PersonalContact obj = new PersonalContact();
+        //联系人2信息
+        if(Objects.nonNull(caseInfoException.getContactName2())
+                || Objects.nonNull(caseInfoException.getContactPhone2())
+                || Objects.nonNull(caseInfoException.getContactHomePhone2())){
+            PersonalContact obj=new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation2()));
             obj.setName(caseInfoException.getContactName2());
@@ -376,9 +381,11 @@ public class CaseInfoExceptionService {
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
         }
-        if (Objects.nonNull(caseInfoException.getContactName3()) || Objects.nonNull(caseInfoException.getContactPhone3())
-                || Objects.nonNull(caseInfoException.getContactRelation3()) || Objects.nonNull(caseInfoException.getContactHomePhone3())) {
-            PersonalContact obj = new PersonalContact();
+        //联系人3信息
+        if(Objects.nonNull(caseInfoException.getContactName3())
+                || Objects.nonNull(caseInfoException.getContactPhone3())
+                || Objects.nonNull(caseInfoException.getContactHomePhone3())){
+            PersonalContact obj=new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation3()));
             obj.setName(caseInfoException.getContactName3());
@@ -394,10 +401,11 @@ public class CaseInfoExceptionService {
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
         }
-
-        if (Objects.nonNull(caseInfoException.getContactName4()) || Objects.nonNull(caseInfoException.getContactPhone4())
-                || Objects.nonNull(caseInfoException.getContactRelation3()) || Objects.nonNull(caseInfoException.getContactHomePhone4())) {
-            PersonalContact obj = new PersonalContact();
+        //联系人4信息
+        if(Objects.nonNull(caseInfoException.getContactName4())
+                || Objects.nonNull(caseInfoException.getContactPhone4())
+                || Objects.nonNull(caseInfoException.getContactHomePhone4())){
+            PersonalContact obj=new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation4()));
             obj.setName(caseInfoException.getContactName4());
@@ -408,6 +416,226 @@ public class CaseInfoExceptionService {
             obj.setWorkPhone(caseInfoException.getContactUnitPhone4());
             obj.setSource(caseInfoException.getDataSources());
             obj.setAddress(caseInfoException.getContactCurrAddress4());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人5信息
+        if(Objects.nonNull(caseInfoException.getContactName5())
+                || Objects.nonNull(caseInfoException.getContactPhone5())
+                || Objects.nonNull(caseInfoException.getContactHomePhone5())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(caseInfoException.getContactRelation5()));
+            obj.setName(caseInfoException.getContactName5());
+            obj.setPhone(caseInfoException.getContactPhone5());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(caseInfoException.getContactHomePhone5());
+            obj.setEmployer(caseInfoException.getContactWorkUnit5());
+            obj.setWorkPhone(caseInfoException.getContactUnitPhone5());
+            obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress5());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人6信息
+        if(Objects.nonNull(caseInfoException.getContactName6())
+                || Objects.nonNull(caseInfoException.getContactPhone6())
+                || Objects.nonNull(caseInfoException.getContactHomePhone6())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(caseInfoException.getContactRelation6()));
+            obj.setName(caseInfoException.getContactName6());
+            obj.setPhone(caseInfoException.getContactPhone6());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(caseInfoException.getContactHomePhone6());
+            obj.setEmployer(caseInfoException.getContactWorkUnit6());
+            obj.setWorkPhone(caseInfoException.getContactUnitPhone6());
+            obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress6());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人7信息
+        if(Objects.nonNull(caseInfoException.getContactName7())
+                || Objects.nonNull(caseInfoException.getContactPhone7())
+                || Objects.nonNull(caseInfoException.getContactHomePhone7())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(caseInfoException.getContactRelation7()));
+            obj.setName(caseInfoException.getContactName7());
+            obj.setPhone(caseInfoException.getContactPhone7());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(caseInfoException.getContactHomePhone7());
+            obj.setEmployer(caseInfoException.getContactWorkUnit7());
+            obj.setWorkPhone(caseInfoException.getContactUnitPhone7());
+            obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress7());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人8信息
+        if(Objects.nonNull(caseInfoException.getContactName8())
+                || Objects.nonNull(caseInfoException.getContactPhone8())
+                || Objects.nonNull(caseInfoException.getContactHomePhone8())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(caseInfoException.getContactRelation8()));
+            obj.setName(caseInfoException.getContactName8());
+            obj.setPhone(caseInfoException.getContactPhone8());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(caseInfoException.getContactHomePhone8());
+            obj.setEmployer(caseInfoException.getContactWorkUnit8());
+            obj.setWorkPhone(caseInfoException.getContactUnitPhone8());
+            obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress8());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人9信息
+        if(Objects.nonNull(caseInfoException.getContactName9())
+                || Objects.nonNull(caseInfoException.getContactPhone9())
+                || Objects.nonNull(caseInfoException.getContactHomePhone9())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(caseInfoException.getContactRelation9()));
+            obj.setName(caseInfoException.getContactName9());
+            obj.setPhone(caseInfoException.getContactPhone9());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(caseInfoException.getContactHomePhone9());
+            obj.setEmployer(caseInfoException.getContactWorkUnit9());
+            obj.setWorkPhone(caseInfoException.getContactUnitPhone9());
+            obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress9());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人10信息
+        if(Objects.nonNull(caseInfoException.getContactName10())
+                || Objects.nonNull(caseInfoException.getContactPhone10())
+                || Objects.nonNull(caseInfoException.getContactHomePhone10())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(caseInfoException.getContactRelation10()));
+            obj.setName(caseInfoException.getContactName10());
+            obj.setPhone(caseInfoException.getContactPhone10());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(caseInfoException.getContactHomePhone10());
+            obj.setEmployer(caseInfoException.getContactWorkUnit10());
+            obj.setWorkPhone(caseInfoException.getContactUnitPhone10());
+            obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress10());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人11信息
+        if(Objects.nonNull(caseInfoException.getContactName11())
+                || Objects.nonNull(caseInfoException.getContactPhone11())
+                || Objects.nonNull(caseInfoException.getContactHomePhone11())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(caseInfoException.getContactRelation11()));
+            obj.setName(caseInfoException.getContactName11());
+            obj.setPhone(caseInfoException.getContactPhone11());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(caseInfoException.getContactHomePhone11());
+            obj.setEmployer(caseInfoException.getContactWorkUnit11());
+            obj.setWorkPhone(caseInfoException.getContactUnitPhone11());
+            obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress11());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人12信息
+        if(Objects.nonNull(caseInfoException.getContactName12())
+                || Objects.nonNull(caseInfoException.getContactPhone12())
+                || Objects.nonNull(caseInfoException.getContactHomePhone12())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(caseInfoException.getContactRelation12()));
+            obj.setName(caseInfoException.getContactName12());
+            obj.setPhone(caseInfoException.getContactPhone12());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(caseInfoException.getContactHomePhone12());
+            obj.setEmployer(caseInfoException.getContactWorkUnit12());
+            obj.setWorkPhone(caseInfoException.getContactUnitPhone12());
+            obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress12());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人13信息
+        if(Objects.nonNull(caseInfoException.getContactName13())
+                || Objects.nonNull(caseInfoException.getContactPhone13())
+                || Objects.nonNull(caseInfoException.getContactHomePhone13())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(caseInfoException.getContactRelation13()));
+            obj.setName(caseInfoException.getContactName13());
+            obj.setPhone(caseInfoException.getContactPhone13());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(caseInfoException.getContactHomePhone13());
+            obj.setEmployer(caseInfoException.getContactWorkUnit13());
+            obj.setWorkPhone(caseInfoException.getContactUnitPhone13());
+            obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress13());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人14信息
+        if(Objects.nonNull(caseInfoException.getContactName14())
+                || Objects.nonNull(caseInfoException.getContactPhone14())
+                || Objects.nonNull(caseInfoException.getContactHomePhone14())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(caseInfoException.getContactRelation14()));
+            obj.setName(caseInfoException.getContactName14());
+            obj.setPhone(caseInfoException.getContactPhone14());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(caseInfoException.getContactHomePhone14());
+            obj.setEmployer(caseInfoException.getContactWorkUnit14());
+            obj.setWorkPhone(caseInfoException.getContactUnitPhone14());
+            obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress14());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人15信息
+        if(Objects.nonNull(caseInfoException.getContactName15())
+                || Objects.nonNull(caseInfoException.getContactPhone15())
+                || Objects.nonNull(caseInfoException.getContactHomePhone15())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(caseInfoException.getContactRelation15()));
+            obj.setName(caseInfoException.getContactName15());
+            obj.setPhone(caseInfoException.getContactPhone15());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(caseInfoException.getContactHomePhone15());
+            obj.setEmployer(caseInfoException.getContactWorkUnit15());
+            obj.setWorkPhone(caseInfoException.getContactUnitPhone15());
+            obj.setSource(caseInfoException.getDataSources());
+            obj.setAddress(caseInfoException.getContactCurrAddress15());
             obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
             obj.setOperator(user.getId());
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
@@ -530,6 +758,160 @@ public class CaseInfoExceptionService {
             personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
+        //居住地址(联系人5)
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress5())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation5()));
+            personalAddress.setName(caseInfoException.getContactName5());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress5()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人6)
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress6())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation6()));
+            personalAddress.setName(caseInfoException.getContactName6());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress6()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人7)
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress7())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation7()));
+            personalAddress.setName(caseInfoException.getContactName7());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress7()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人8)
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress8())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation8()));
+            personalAddress.setName(caseInfoException.getContactName8());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress8()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人9)
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress9())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation9()));
+            personalAddress.setName(caseInfoException.getContactName9());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress9()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人10)
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress10())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation10()));
+            personalAddress.setName(caseInfoException.getContactName10());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress10()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人11)
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress11())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation11()));
+            personalAddress.setName(caseInfoException.getContactName11());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress11()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人12)
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress12())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation12()));
+            personalAddress.setName(caseInfoException.getContactName12());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress12()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人13)
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress13())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation13()));
+            personalAddress.setName(caseInfoException.getContactName13());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress13()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人14)
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress14())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation14()));
+            personalAddress.setName(caseInfoException.getContactName14());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress14()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人15)
+        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress15())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation15()));
+            personalAddress.setName(caseInfoException.getContactName4());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(caseInfoException,caseInfoException.getContactCurrAddress15()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
         persosnalAddressRepository.save(personalAddressList);
     }
 
@@ -549,6 +931,7 @@ public class CaseInfoExceptionService {
             personalBank.setPersonalId(personal.getId());
             personal.setOperatorTime(ZWDateUtil.getNowDateTime());
             personal.setOperator(user.getId());
+            personalBank.setAccountNumber(caseInfoException.getAccountNumber());//开户号
             personalBankRepository.save(personalBank);
         }
     }

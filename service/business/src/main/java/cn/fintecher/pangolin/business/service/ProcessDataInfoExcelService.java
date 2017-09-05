@@ -189,6 +189,7 @@ public class ProcessDataInfoExcelService {
         caseInfoException.setOperatorTime(ZWDateUtil.getNowDateTime());
         caseInfoException.setOperator(user.getId());
         caseInfoException.setOperatorName(user.getRealName());
+        caseInfoException.setCaseHandNum(dataInfoExcelModel.getHandNumber()); //手数
         return caseInfoException;
     }
 
@@ -234,7 +235,8 @@ public class ProcessDataInfoExcelService {
         caseInfoDistributed.setDelegationDate(dataInfoExcelModel.getDelegationDate());
         caseInfoDistributed.setCloseDate(dataInfoExcelModel.getCloseDate());
         caseInfoDistributed.setCommissionRate(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getCommissionRate(),4,null));
-        caseInfoDistributed.setHandNumber(dataInfoExcelModel.getCaseHandNum());
+//        caseInfoDistributed.setHandNumber(dataInfoExcelModel.getCaseHandNum());
+        caseInfoDistributed.setHandNumber(dataInfoExcelModel.getHandNumber());
         caseInfoDistributed.setLoanDate(dataInfoExcelModel.getLoanDate());
         caseInfoDistributed.setOverdueManageFee(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getOverdueManageFee(),null,null));
         caseInfoDistributed.setHandUpFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());
@@ -244,6 +246,8 @@ public class ProcessDataInfoExcelService {
         caseInfoDistributed.setCompanyCode(dataInfoExcelModel.getCompanyCode());
         caseInfoDistributed.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件颜色标记
         caseInfoDistributed.setMemo(dataInfoExcelModel.getMemo()); //备注
+        caseInfoDistributed.setFirstPayDate(dataInfoExcelModel.getFirstPayDate()); //首次还款日期
+        caseInfoDistributed.setAccountAge(dataInfoExcelModel.getAccountAge()); //账龄
         return caseInfoDistributed;
     }
 
@@ -299,6 +303,7 @@ public class ProcessDataInfoExcelService {
         personal.setCompanyCode(dataInfoExcelModel.getCompanyCode());
         personal.setDataSource(Constants.DataSource.IMPORT.getValue());
         personal.setMarital(Personal.MARITAL.UNKNOW.getValue());
+        personal.setNumber(dataInfoExcelModel.getPersonalNumber()); //客户号
         return personal;
     }
 
@@ -310,6 +315,7 @@ public class ProcessDataInfoExcelService {
      */
     private void addContract(DataInfoExcelModel dataInfoExcelModel, User user, Personal personal) {
         List<PersonalContact> personalContactList=new ArrayList<>();
+        // 先添加客户本人的信息
         PersonalContact personalContact=new PersonalContact();
         personalContact.setPersonalId(personal.getId());
         personalContact.setRelation(Personal.RelationEnum.SELF.getValue());
@@ -326,8 +332,10 @@ public class ProcessDataInfoExcelService {
         personalContact.setOperator(user.getId());
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime());
         personalContactList.add(personalContact);
-        if(Objects.nonNull(dataInfoExcelModel.getContactName1()) || Objects.nonNull(dataInfoExcelModel.getContactPhone1())
-                || Objects.nonNull(dataInfoExcelModel.getContactRelation1()) || Objects.nonNull(dataInfoExcelModel.getContactHomePhone1())){
+        // 联系人1信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName1())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone1())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone1())){
             PersonalContact obj=new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation1()));
@@ -344,8 +352,10 @@ public class ProcessDataInfoExcelService {
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
         }
-        if(Objects.nonNull(dataInfoExcelModel.getContactName2()) || Objects.nonNull(dataInfoExcelModel.getContactPhone2())
-                || Objects.nonNull(dataInfoExcelModel.getContactRelation2()) || Objects.nonNull(dataInfoExcelModel.getContactHomePhone2())){
+        //联系人2信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName2())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone2())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone2())){
             PersonalContact obj=new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation2()));
@@ -362,8 +372,10 @@ public class ProcessDataInfoExcelService {
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
         }
-        if(Objects.nonNull(dataInfoExcelModel.getContactName3()) || Objects.nonNull(dataInfoExcelModel.getContactPhone3())
-                || Objects.nonNull(dataInfoExcelModel.getContactRelation3()) || Objects.nonNull(dataInfoExcelModel.getContactHomePhone3())){
+        //联系人3信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName3())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone3())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone3())){
             PersonalContact obj=new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation3()));
@@ -380,9 +392,10 @@ public class ProcessDataInfoExcelService {
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalContactList.add(obj);
         }
-
-        if(Objects.nonNull(dataInfoExcelModel.getContactName4()) || Objects.nonNull(dataInfoExcelModel.getContactPhone4())
-                || Objects.nonNull(dataInfoExcelModel.getContactRelation3()) || Objects.nonNull(dataInfoExcelModel.getContactHomePhone4())){
+        //联系人4信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName4())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone4())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone4())){
             PersonalContact obj=new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation4()));
@@ -394,6 +407,226 @@ public class ProcessDataInfoExcelService {
             obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone4());
             obj.setSource(dataInfoExcelModel.getDataSources());
             obj.setAddress(dataInfoExcelModel.getContactCurrAddress4());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人5信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName5())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone5())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone5())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation5()));
+            obj.setName(dataInfoExcelModel.getContactName5());
+            obj.setPhone(dataInfoExcelModel.getContactPhone5());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(dataInfoExcelModel.getContactHomePhone5());
+            obj.setEmployer(dataInfoExcelModel.getContactWorkUnit5());
+            obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone5());
+            obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress5());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人6信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName6())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone6())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone6())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation6()));
+            obj.setName(dataInfoExcelModel.getContactName6());
+            obj.setPhone(dataInfoExcelModel.getContactPhone6());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(dataInfoExcelModel.getContactHomePhone6());
+            obj.setEmployer(dataInfoExcelModel.getContactWorkUnit6());
+            obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone6());
+            obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress6());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人7信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName7())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone7())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone7())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation7()));
+            obj.setName(dataInfoExcelModel.getContactName7());
+            obj.setPhone(dataInfoExcelModel.getContactPhone7());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(dataInfoExcelModel.getContactHomePhone7());
+            obj.setEmployer(dataInfoExcelModel.getContactWorkUnit7());
+            obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone7());
+            obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress7());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人8信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName8())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone8())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone8())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation8()));
+            obj.setName(dataInfoExcelModel.getContactName8());
+            obj.setPhone(dataInfoExcelModel.getContactPhone8());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(dataInfoExcelModel.getContactHomePhone8());
+            obj.setEmployer(dataInfoExcelModel.getContactWorkUnit8());
+            obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone8());
+            obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress8());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人9信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName9())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone9())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone9())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation9()));
+            obj.setName(dataInfoExcelModel.getContactName9());
+            obj.setPhone(dataInfoExcelModel.getContactPhone9());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(dataInfoExcelModel.getContactHomePhone9());
+            obj.setEmployer(dataInfoExcelModel.getContactWorkUnit9());
+            obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone9());
+            obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress9());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人10信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName10())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone10())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone10())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation10()));
+            obj.setName(dataInfoExcelModel.getContactName10());
+            obj.setPhone(dataInfoExcelModel.getContactPhone10());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(dataInfoExcelModel.getContactHomePhone10());
+            obj.setEmployer(dataInfoExcelModel.getContactWorkUnit10());
+            obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone10());
+            obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress10());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人11信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName11())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone11())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone11())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation11()));
+            obj.setName(dataInfoExcelModel.getContactName11());
+            obj.setPhone(dataInfoExcelModel.getContactPhone11());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(dataInfoExcelModel.getContactHomePhone11());
+            obj.setEmployer(dataInfoExcelModel.getContactWorkUnit11());
+            obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone11());
+            obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress11());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人12信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName12())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone12())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone12())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation12()));
+            obj.setName(dataInfoExcelModel.getContactName12());
+            obj.setPhone(dataInfoExcelModel.getContactPhone12());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(dataInfoExcelModel.getContactHomePhone12());
+            obj.setEmployer(dataInfoExcelModel.getContactWorkUnit12());
+            obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone12());
+            obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress12());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人13信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName13())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone13())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone13())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation13()));
+            obj.setName(dataInfoExcelModel.getContactName13());
+            obj.setPhone(dataInfoExcelModel.getContactPhone13());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(dataInfoExcelModel.getContactHomePhone13());
+            obj.setEmployer(dataInfoExcelModel.getContactWorkUnit13());
+            obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone13());
+            obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress13());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人14信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName14())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone14())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone14())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation14()));
+            obj.setName(dataInfoExcelModel.getContactName14());
+            obj.setPhone(dataInfoExcelModel.getContactPhone14());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(dataInfoExcelModel.getContactHomePhone14());
+            obj.setEmployer(dataInfoExcelModel.getContactWorkUnit14());
+            obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone14());
+            obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress14());
+            obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            obj.setOperator(user.getId());
+            obj.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalContactList.add(obj);
+        }
+        //联系人15信息
+        if(Objects.nonNull(dataInfoExcelModel.getContactName15())
+                || Objects.nonNull(dataInfoExcelModel.getContactPhone15())
+                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone15())){
+            PersonalContact obj=new PersonalContact();
+            obj.setPersonalId(personal.getId());
+            obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation15()));
+            obj.setName(dataInfoExcelModel.getContactName15());
+            obj.setPhone(dataInfoExcelModel.getContactPhone15());
+            obj.setPhoneStatus(Personal.PhoneStatus.UNKNOWN.getValue());
+            obj.setMobile(dataInfoExcelModel.getContactHomePhone15());
+            obj.setEmployer(dataInfoExcelModel.getContactWorkUnit15());
+            obj.setWorkPhone(dataInfoExcelModel.getContactUnitPhone15());
+            obj.setSource(dataInfoExcelModel.getDataSources());
+            obj.setAddress(dataInfoExcelModel.getContactCurrAddress15());
             obj.setAddressStatus(Personal.AddrStatus.UNKNOWN.getValue());
             obj.setOperator(user.getId());
             obj.setOperatorTime(ZWDateUtil.getNowDateTime());
@@ -515,6 +748,160 @@ public class ProcessDataInfoExcelService {
             personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
             personalAddressList.add(personalAddress);
         }
+        //居住地址(联系人5)
+        if(StringUtils.isNotBlank(dataInfoExcelModel.getContactCurrAddress5())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation5()));
+            personalAddress.setName(dataInfoExcelModel.getContactName5());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress5()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人6)
+        if(StringUtils.isNotBlank(dataInfoExcelModel.getContactCurrAddress6())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation6()));
+            personalAddress.setName(dataInfoExcelModel.getContactName6());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress6()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人7)
+        if(StringUtils.isNotBlank(dataInfoExcelModel.getContactCurrAddress7())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation7()));
+            personalAddress.setName(dataInfoExcelModel.getContactName7());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress7()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人8)
+        if(StringUtils.isNotBlank(dataInfoExcelModel.getContactCurrAddress8())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation8()));
+            personalAddress.setName(dataInfoExcelModel.getContactName8());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress8()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人9)
+        if(StringUtils.isNotBlank(dataInfoExcelModel.getContactCurrAddress9())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation9()));
+            personalAddress.setName(dataInfoExcelModel.getContactName9());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress9()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人10)
+        if(StringUtils.isNotBlank(dataInfoExcelModel.getContactCurrAddress10())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation10()));
+            personalAddress.setName(dataInfoExcelModel.getContactName10());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress10()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人11)
+        if(StringUtils.isNotBlank(dataInfoExcelModel.getContactCurrAddress11())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation11()));
+            personalAddress.setName(dataInfoExcelModel.getContactName11());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress11()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人12)
+        if(StringUtils.isNotBlank(dataInfoExcelModel.getContactCurrAddress12())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation12()));
+            personalAddress.setName(dataInfoExcelModel.getContactName12());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress12()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人13)
+        if(StringUtils.isNotBlank(dataInfoExcelModel.getContactCurrAddress13())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation13()));
+            personalAddress.setName(dataInfoExcelModel.getContactName13());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress13()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人14)
+        if(StringUtils.isNotBlank(dataInfoExcelModel.getContactCurrAddress14())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation14()));
+            personalAddress.setName(dataInfoExcelModel.getContactName14());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress14()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
+        //居住地址(联系人15)
+        if(StringUtils.isNotBlank(dataInfoExcelModel.getContactCurrAddress15())){
+            PersonalAddress personalAddress=new PersonalAddress();
+            personalAddress.setPersonalId(personal.getId());
+            personalAddress.setRelation(getRelationType(dataInfoExcelModel.getContactRelation15()));
+            personalAddress.setName(dataInfoExcelModel.getContactName4());
+            personalAddress.setType(Personal.AddrRelationEnum.CURRENTADDR.getValue());
+            personalAddress.setStatus(Personal.AddrStatus.UNKNOWN.getValue());
+            personalAddress.setSource(Constants.DataSource.IMPORT.getValue());
+            personalAddress.setDetail(nowLivingAddr(dataInfoExcelModel,dataInfoExcelModel.getContactCurrAddress15()));
+            personalAddress.setOperator(user.getId());
+            personalAddress.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalAddressList.add(personalAddress);
+        }
         persosnalAddressRepository.save(personalAddressList);
     }
 
@@ -531,8 +918,9 @@ public class ProcessDataInfoExcelService {
             personalBank.setDepositBank(dataInfoExcelModel.getDepositBank());
             personalBank.setCardNumber(dataInfoExcelModel.getCardNumber());
             personalBank.setPersonalId(personal.getId());
-            personal.setOperatorTime(ZWDateUtil.getNowDateTime());
-            personal.setOperator(user.getId());
+            personalBank.setOperatorTime(ZWDateUtil.getNowDateTime());
+            personalBank.setOperator(user.getId());
+            personalBank.setAccountNumber(dataInfoExcelModel.getAccountNumber());//开户号
             personalBankRepository.save(personalBank);
         }
     }
