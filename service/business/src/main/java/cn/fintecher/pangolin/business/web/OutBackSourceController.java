@@ -77,6 +77,7 @@ public class OutBackSourceController extends BaseController {
                     if (OutBackSource.operationType.OUTBACKAMT.getCode().equals(operationType) && amt!=null){
                         outsourcePool.setOutBackAmt(amt);//累加回款金额
                     }
+
                     outsourcePool.setOutoperationStatus(outBackSource.getOperationType());
                     outsourcePoolRepository.saveAndFlush(outsourcePool);//保存委外案件
                 }

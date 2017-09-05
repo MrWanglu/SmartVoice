@@ -46,7 +46,7 @@ public class OutsourcePool extends BaseEntity {
     @ApiModelProperty("合同金额")
     private BigDecimal contractAmt;
 
-    //added by huyanmin 2017/9/5
+    //Added by huyanmin 2017/9/5
     @ApiModelProperty("委外操作状态")
     private Integer outoperationStatus; //回款 204，回退 205，修复 206
 
