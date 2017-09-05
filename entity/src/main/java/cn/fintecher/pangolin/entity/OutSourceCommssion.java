@@ -4,8 +4,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -19,13 +17,17 @@ import java.util.Date;
 @Table(name = "outsource_commission")
 @Data
 public class OutSourceCommssion extends BaseEntity {
+
     @ApiModelProperty("特定公司的标识")
     private String companyCode;
 
-    @ManyToOne
+    /*@ManyToOne
     @JoinColumn(name = "outsId")
     @ApiModelProperty("委外方")
-    private Outsource outsource;
+    private Outsource outsource;*/
+
+    @ApiModelProperty("委外方")
+    private String outsId;
 
     @ApiModelProperty("逾期时段")
     private String overdueTime;
@@ -34,19 +36,19 @@ public class OutSourceCommssion extends BaseEntity {
     private BigDecimal returnMoney = new BigDecimal(0);
 
     @ApiModelProperty("回款户数")
-    private Integer returnHouseholds;
+    private BigDecimal returnHouseholds;
 
     @ApiModelProperty("回退金额")
     private BigDecimal rollbackMoney = new BigDecimal(0);
 
     @ApiModelProperty("回退户数")
-    private Integer rollbackHouseholds;
+    private BigDecimal rollbackHouseholds;
 
     @ApiModelProperty("修复金额")
     private BigDecimal repairMoney = new BigDecimal(0);
 
     @ApiModelProperty("回退户数")
-    private Integer repairHouseholds;
+    private BigDecimal repairHouseholds;
 
     @ApiModelProperty("创建人用户id")
     private String operator;

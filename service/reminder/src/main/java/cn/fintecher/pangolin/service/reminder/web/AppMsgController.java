@@ -67,4 +67,17 @@ public class AppMsgController{
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("appMsg", "failed", "批量推送消息失败")).body(null);
         }
     }
+    @GetMapping("/findById")
+    @ApiOperation(value = "信息推送查询", notes = "信息推送查询")
+    @ResponseBody
+    public ResponseEntity findById(@RequestParam String id) {
+        try {
+            AppMsg ReturnAppmsg = appMsgRepository.findOne(id);
+           // return new Result(Result.ReturnValue.SUCCESS, "", ReturnAppmsg);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("推送成功", "")).body(ReturnAppmsg);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("appMsg", "failed", "查询消息失败")).body(null);
+        }
+    }
 }

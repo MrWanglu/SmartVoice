@@ -408,12 +408,12 @@ public class CaseInfoService {
         caseInfoRepository.save(caseInfo);
 
         //承诺还款提醒
-        if(caseFollowupParams.getCollectionFeedback().equals(CaseFollowupRecord.EffectiveCollection.PROMISE.getValue())){
+        if (Objects.nonNull(caseFollowupParams.getCollectionFeedback()) && caseFollowupParams.getCollectionFeedback().equals(CaseFollowupRecord.EffectiveCollection.PROMISE.getValue())) {
             SendReminderMessage sendReminderMessage = new SendReminderMessage();
             sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 承诺今日还款");
             sendReminderMessage.setUserId(userRepository.findByUserName(caseFollowupRecord.getOperator()).getId());
             sendReminderMessage.setRemindTime(caseFollowupParams.getPromiseDate());
-            sendReminderMessage.setContent("客户 [" + caseInfo.getPersonalInfo().getName() + "] 承诺今日还款 ["+caseFollowupParams.getPromiseAmt()+"] 元");
+            sendReminderMessage.setContent("客户 [" + caseInfo.getPersonalInfo().getName() + "] 承诺今日还款 [" + caseFollowupParams.getPromiseAmt() + "] 元");
             sendReminderMessage.setType(ReminderType.FLLOWUP);
             reminderService.sendReminderCalendarMessage(sendReminderMessage);
         }
@@ -1366,7 +1366,7 @@ public class CaseInfoService {
                 }
                 String caseId = caseInfoList.get(alreadyCaseNum);
                 CaseRepair caseRepair = caseRepairRepository.findOne(caseId);
-                if(Objects.isNull(Objects.nonNull(targetUser) && Objects.isNull(targetUser.getCompanyCode()))){
+                if (Objects.isNull(Objects.nonNull(targetUser) && Objects.isNull(targetUser.getCompanyCode()))) {
                     throw new Exception("不能把案件分配给超级管理员");
                 }
                 if (Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.TEL.getValue())
@@ -1403,7 +1403,7 @@ public class CaseInfoService {
                         caseInfo.setDepartment(department);
                         caseInfo.setCaseFollowInTime(null);
                         caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
-                        if(Objects.equals(department.getType(),Department.Type.SYNTHESIZE_MANAGEMENT.getValue())){
+                        if (Objects.equals(department.getType(), Department.Type.SYNTHESIZE_MANAGEMENT.getValue())) {
                             caseInfo.setCollectionType(CaseInfo.CollectionType.COMPLEX.getValue());
                         }
                         if (Objects.equals(department.getType(), Department.Type.TELEPHONE_COLLECTION.getValue())) {
@@ -1416,7 +1416,7 @@ public class CaseInfoService {
                     if (Objects.nonNull(targetUser)) {
                         caseInfo.setDepartment(targetUser.getDepartment());
                         caseInfo.setCurrentCollector(targetUser);
-                        if(Objects.equals(targetUser.getType(),User.Type.SYNTHESIZE.getValue())){
+                        if (Objects.equals(targetUser.getType(), User.Type.SYNTHESIZE.getValue())) {
                             caseInfo.setCollectionType(CaseInfo.CollectionType.COMPLEX.getValue());
                         }
                         if (Objects.equals(targetUser.getType(), User.Type.TEL.getValue())) {
