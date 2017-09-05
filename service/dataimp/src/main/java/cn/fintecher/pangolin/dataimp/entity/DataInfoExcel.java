@@ -624,7 +624,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("手数")
     @ExcelAnno(cellName = "手数")
-    private Integer handNumber;
+    private Integer caseHandNum;
 
     @ApiModelProperty("还款状态")
     private String paymentStatus;
@@ -652,9 +652,6 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty(notes = "数据来源 0-Excel导入")
     private Integer dataSources;
-
-    @ApiModelProperty("案件手数")
-    private Integer caseHandNum;
 
     @ApiModelProperty("公司码")
     private String companyCode;
