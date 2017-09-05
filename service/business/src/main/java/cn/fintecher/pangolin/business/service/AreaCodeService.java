@@ -1,6 +1,5 @@
 package cn.fintecher.pangolin.business.service;
 
-import cn.fintecher.pangolin.business.repository.AreaCodeRepository;
 import cn.fintecher.pangolin.entity.AreaCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -17,15 +16,15 @@ import java.util.Iterator;
 public class AreaCodeService {
 
     @Autowired
-    AreaCodeRepository areaCodeRepository;
+    AreaCodeQueryService areaCodeQueryService;
+
 
     /**
      * 查询所有的区域信息
      * @return
      */
-    @Cacheable(value = "areaCodes", key = "'pangolin:areaCode:all'", unless = "#result==null")
     public Iterable<AreaCode> queryAllAreaCode(){
-        return areaCodeRepository.findAll();
+        return areaCodeQueryService.queryAllAreaCode();
     }
 
     /**
@@ -33,7 +32,7 @@ public class AreaCodeService {
      * @param areaName
      * @return
      */
-    @Cacheable(value = "areaCode", key = "'pangolin:areaCode:areaName'", unless = "#result==null")
+    @Cacheable(value = "areaCode", key = "'pangolin:areaCode:'+#areaName", unless = "#result==null")
     public AreaCode queryAreaCodeByName(String areaName){
         Iterable<AreaCode> areaCodeIterable=queryAllAreaCode();
         for(Iterator<AreaCode> it=areaCodeIterable.iterator();it.hasNext();){
@@ -50,8 +49,7 @@ public class AreaCodeService {
      * @param id
      * @return
      */
-    @Cacheable(value = "areaCode", key = "'pangolin:areaCode:id'", unless = "#result==null")
     public AreaCode queryAreaCodeById(Integer id){
-      return  areaCodeRepository.findOne(id);
+      return  areaCodeQueryService.queryAreaCodeById(id);
     }
 }

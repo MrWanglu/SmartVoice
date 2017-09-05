@@ -85,8 +85,10 @@ public class SmsMessageService {
                 result = entity.getBody().toString();
                 log.debug(result);
                smsMessageRepository.save(message);
+               return;
             } catch (Exception ex) {
                 log.error(ex.getMessage(), ex);
+                return ;
             }
         } else if (Objects.equals(sysParam.getValue(), "1")) {
             sendMessageJiGuang(message);

@@ -96,7 +96,7 @@ public class SMSMessageController extends BaseController {
         CaseInfo caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(smsMessageParams.getCaseNumber()));
         if (Objects.equals(type, "0")) {
             for (PersonalParams personalParams1 : personalParams) {
-                SendSMSMessage sendSMSMessage = new SendSMSMessage();
+                SMSMessage sendSMSMessage = new SMSMessage();
                 sendSMSMessage.setPhoneNumber(personalParams1.getPersonalPhone());
                 sendSMSMessage.setTemplate(template.getId());
                 sendSMSMessage.setParams(smsMessageParams.getParams());

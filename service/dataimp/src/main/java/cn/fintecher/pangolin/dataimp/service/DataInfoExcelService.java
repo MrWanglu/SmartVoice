@@ -22,6 +22,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -253,14 +254,14 @@ public class DataInfoExcelService {
      */
     public void uploadCaseFileSingle(UpLoadFileModel upLoadFileModel, User user){
         //删除原有的附件信息
-//        DataInfoExcelFile obj=new DataInfoExcelFile();
-//        obj.setCaseNumber(upLoadFileModel.getCaseNum());
-//        obj.setBatchNumber(upLoadFileModel.getBatchNumber());
-//        obj.setOperator(user.getId());
-//        obj.setCompanyCode(user.getCompanyCode());
-//        Example<DataInfoExcelFile> example = Example.of(obj);
-//        List<DataInfoExcelFile> all = dataInfoExcelFileRepository.findAll(example);
-//        dataInfoExcelFileRepository.delete(all);
+        DataInfoExcelFile obj=new DataInfoExcelFile();
+        obj.setCaseNumber(upLoadFileModel.getCaseNum());
+        obj.setBatchNumber(upLoadFileModel.getBatchNumber());
+        obj.setOperator(user.getId());
+        obj.setCompanyCode(user.getCompanyCode());
+        Example<DataInfoExcelFile> example = Example.of(obj);
+        List<DataInfoExcelFile> all = dataInfoExcelFileRepository.findAll(example);
+        dataInfoExcelFileRepository.delete(all);
         List<String> fileIdList = upLoadFileModel.getFileIdList();
         if(!fileIdList.isEmpty()){
             StringBuilder sb=new StringBuilder();
