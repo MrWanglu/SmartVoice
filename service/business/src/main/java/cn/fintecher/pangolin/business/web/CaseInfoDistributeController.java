@@ -191,20 +191,13 @@ public class CaseInfoDistributeController extends BaseController {
         User user = null;
         try {
             user = getUserByToken(token);
-        } catch (final Exception e) {
-            logger.debug(e.getMessage());
-            return ResponseEntity.badRequest()
-                    .headers(HeaderUtil.createFailureAlert("CaseInfoDistributeController", "batchAddPersonContacts", e.getMessage()))
-                    .body(null);
-        }
-        List<CaseInfoDistributed> caseInfoDistributeds = caseInfoDistributedRepository.findAll();
-        if (Objects.isNull(caseInfoDistributeds) || caseInfoDistributeds.size() == 0) {
-            return ResponseEntity.ok()
-                    .headers(HeaderUtil.createAlert("", "")).body(null);
-        }
+            List<CaseInfoDistributed> caseInfoDistributeds = caseInfoDistributedRepository.findAll();
+            if (Objects.isNull(caseInfoDistributeds) || caseInfoDistributeds.size() == 0) {
+                return ResponseEntity.ok()
+                        .headers(HeaderUtil.createAlert("", "")).body(null);
+            }
+            for (CaseInfoDistributed caseInfoDistributed : caseInfoDistributeds) {
 
-        for (CaseInfoDistributed caseInfoDistributed : caseInfoDistributeds) {
-            try {
                 char[] charArray = caseInfoDistributed.getMemo().toCharArray();
                 String phoneNumber = "";
                 for (char temp : charArray) {
@@ -220,10 +213,13 @@ public class CaseInfoDistributeController extends BaseController {
                 if (!Objects.equals(phoneNumber, "")) {
                     setPersonalContacts(caseInfoDistributed.getPersonalInfo().getId(), phoneNumber, user);
                 }
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("", null)).body(null);
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("RepairCaseDistributeController", "error", e.getMessage())).body(null);
+                //解析完了将memo 置为空。
+                caseInfoDistributed.setMemo(null);
             }
+            caseInfoDistributedRepository.save(caseInfoDistributeds);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("RepairCaseDistributeController", "error", e.getMessage())).body(null);
         }
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("", null)).body(null);
     }
