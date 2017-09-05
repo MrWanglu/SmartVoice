@@ -150,7 +150,7 @@ public class TemplateDataModelController {
               //  uploadFileResponseEntity = uploadFileClient.getUploadFile(fileId);
                 ResponseEntity<UploadFile>  uploadFileResponseEntity =restTemplate.getForEntity(Constants.FILEID_SERVICE_URL+"uploadFile/".concat(id), UploadFile.class,id);
                 if (!uploadFileResponseEntity.hasBody()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createEntityCreationAlert("获取上传文件失败", "")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("templateDataNodel", "failure","获取上传文件失败")).body(null);
                 } else {
                     uploadFile = uploadFileResponseEntity.getBody();
                 }
@@ -189,6 +189,7 @@ public class TemplateDataModelController {
             excelTemplateData.setOperatorTime(ZWDateUtil.getNowDateTime());
             excelTemplateData.setOperator(user.getUserName());
             excelTemplateData.setOperatorName(user.getRealName());
+            excelTemplateData.setDataColNum(templateDataModelService.excelColStrToNum(excelTemplateData.getDataColNum()));//将字母转化为数字
             excelTemplateData.setDataRowNum(String.valueOf(Integer.parseInt(excelTemplateData.getDataRowNum())-1));
             if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
                 excelTemplateData.setCompanyCode(null);
@@ -200,8 +201,7 @@ public class TemplateDataModelController {
                 excelTemplateData.setId(null);
             }
             templateDataModelRepository.save(excelTemplateData);
-            String message = "添加成功";
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "")).body(message);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("添加成功", "success")).body(null);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
@@ -215,8 +215,7 @@ public class TemplateDataModelController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询模板形式成功",ENTITY_TEMPLATE)).body(cellList);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            String messgae = "系统错误";
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(messgae);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
         }
     }
     @GetMapping("/checkTemplateName")
@@ -231,8 +230,7 @@ public class TemplateDataModelController {
             if (Objects.nonNull(list) && list.size() == 0) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "")).body(null);
             } else {
-                String message ="模板名称不能重复";
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "")).body(message);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("templateDataNodel", "failure","模板名称不能重复")).body(null);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
