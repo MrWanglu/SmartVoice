@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
@@ -36,6 +37,7 @@ public class OutBackSourceController extends BaseController {
 
     @Autowired
     private OutBackSourceRepository outbackSourceRepository;
+    @Autowired
     private OutsourcePoolRepository outsourcePoolRepository;
 
 
@@ -57,25 +59,33 @@ public class OutBackSourceController extends BaseController {
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
+
             String outId = outBackSource.getOutId();
             OutsourcePool outsourcePool = null;
+
             if (Objects.nonNull(outId)){
                 outsourcePool = outsourcePoolRepository.findOne(outId);
-            }
-            CaseInfo caseInfo = outsourcePool.getCaseInfo();
-            if (Objects.nonNull(caseInfo)){
-                outBackSource.setOutcaseId(outsourcePool.getCaseInfo().getId());
-            }
-            Integer operationType = outBackSource.getOperationType();
-            if (OutBackSource.operationType.OUTBACKAMT.getCode().equals(operationType)){
-                outsourcePool.setOutBackAmt(outsourcePool.getOutBackAmt().add(outBackSource.getBackAmt()));//累加回款金额
-                outsourcePoolRepository.saveAndFlush(outsourcePool);//保存委外案件
+                if(Objects.nonNull(outsourcePool)){
+
+                    CaseInfo caseInfo = outsourcePool.getCaseInfo();
+                    if (Objects.nonNull(caseInfo)){
+                        outBackSource.setOutcaseId(outsourcePool.getCaseInfo().getId());
+                    }
+                    Integer operationType = outBackSource.getOperationType();
+                    BigDecimal amt = outBackSource.getBackAmt();
+                    //累加回款金额和操作状态
+                    if (OutBackSource.operationType.OUTBACKAMT.getCode().equals(operationType) && amt!=null){
+                        outsourcePool.setOutBackAmt(amt);//累加回款金额
+                    }
+                    outsourcePool.setOutoperationStatus(outBackSource.getOperationType());
+                    outsourcePoolRepository.saveAndFlush(outsourcePool);//保存委外案件
+                }
             }
             outBackSource.setCompanyCode(user.getCompanyCode());
             outBackSource.setOperator(user.getUserName());
             outBackSource.setOperateTime(ZWDateUtil.getNowDateTime());
             outbackSourceRepository.save(outBackSource);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", " 操作成功")).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", " 操作成功")).body(outBackSource);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("操作失败", "", e.getMessage())).body(null);
