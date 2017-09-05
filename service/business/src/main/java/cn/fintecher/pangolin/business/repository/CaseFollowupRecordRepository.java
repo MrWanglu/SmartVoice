@@ -118,7 +118,7 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
      * @param companyCode
      * @return
      */
-    @Query(value = "SELECT a.case_number,b.batch_number,e.`name` AS pname,a.operator_time,a.type,c.`name` AS cname,c.id_card,a.target,a.target_name,a.contact_phone,a.detail,a.collection_location,a.collection_feedback,a.content FROM ( " +
+    @Query(value = "SELECT a.case_number,b.batch_number,e.`name` AS pname,a.operator_time,a.type,c.`name` AS cname,c.id_card,a.target,a.target_name,a.contact_phone,a.detail,a.collection_location,a.collection_feedback,a.content,c.number,f.account_number,b.hand_number FROM ( " +
             " SELECT * FROM case_followup_record " +
             " WHERE case_number IN (:caseNumberList) " +
             " AND collection_way != 0 " +
@@ -127,7 +127,8 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
             "LEFT JOIN case_info b ON a.case_number = b.case_number " +
             "LEFT JOIN personal c ON b.personal_id = c.id " +
             "LEFT JOIN product d ON b.product_id = d.id " +
-            "LEFT JOIN principal e ON b.principal_id = e.id", nativeQuery = true)
+            "LEFT JOIN principal e ON b.principal_id = e.id " +
+            "LEFT JOIN personal_bank f ON c.id = f.personal_id", nativeQuery = true)
     List<Object[]> findFollowup(@Param("caseNumberList") List<String> caseNumberList, @Param("companyCode") String companyCode);
 
     /**
@@ -137,7 +138,7 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
      * @param companyCode
      * @return
      */
-    @Query(value = "SELECT a.case_number,b.batch_number,e.`name` AS pname,a.operator_time,a.type,c.`name` AS cname,c.id_card,a.target,a.target_name,a.contact_phone,a.detail,a.collection_location,a.collection_feedback,a.content FROM ( " +
+    @Query(value = "SELECT a.case_number,b.batch_number,e.`name` AS pname,a.operator_time,a.type,c.`name` AS cname,c.id_card,a.target,a.target_name,a.contact_phone,a.detail,a.collection_location,a.collection_feedback,a.content,c.number,f.account_number,b.hand_number  FROM ( " +
             " SELECT * FROM case_followup_record " +
             " WHERE case_number = :caseNumber " +
             " AND collection_way != 0 " +
@@ -146,7 +147,8 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
             "LEFT JOIN case_info b ON a.case_number = b.case_number " +
             "LEFT JOIN personal c ON b.personal_id = c.id " +
             "LEFT JOIN product d ON b.product_id = d.id " +
-            "LEFT JOIN principal e ON b.principal_id = e.id", nativeQuery = true)
+            "LEFT JOIN principal e ON b.principal_id = e.id " +
+            "LEFT JOIN personal_bank f ON c.id = f.personal_id", nativeQuery = true)
     List<Object[]> findFollowupSingl(@Param("caseNumber") String caseNumber, @Param("companyCode") String companyCode);
 
     /**

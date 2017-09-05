@@ -16,8 +16,8 @@ import java.util.*;
 @Service
 public class FollowRecordExportService {
 
-    private static final String[] TITLE_LIST = {"案件编号", "批次号", "委托方", "跟进时间", "跟进方式", "客户姓名", "客户身份证", "催收对象", "姓名", "电话/地址", "定位地址","催收反馈", "跟进内容"};
-    private static final String[] PRO_NAMES = {"caseNumber", "batchNumber", "principalName", "follTime", "follType", "personalName", "idcard", "follTarget", "follTargetName", "follPhoneNum", "location","follFeedback", "follContent"};
+    private static final String[] TITLE_LIST = {"案件编号", "批次号", "委托方", "跟进时间", "跟进方式", "客户姓名", "客户身份证", "催收对象", "姓名", "电话/地址", "定位地址","催收反馈", "跟进内容","客户号","账户号","手数"};
+    private static final String[] PRO_NAMES = {"caseNumber", "batchNumber", "principalName", "follTime", "follType", "personalName", "idcard", "follTarget", "follTargetName", "follPhoneNum", "location","follFeedback", "follContent","personalNum","accountNum","handNum"};
 
     @Inject
     private CaseInfoRepository caseInfoRepository;
@@ -94,6 +94,9 @@ public class FollowRecordExportService {
                 }
             }
             dataMap.put("follContent", record[13]); //跟进内容
+            dataMap.put("personalNum", record[14]); //客户号
+            dataMap.put("accountNum", record[15]); //账户号
+            dataMap.put("handNum", record[16]); //手数
             dataList.add(dataMap);
         }
         return dataList;
