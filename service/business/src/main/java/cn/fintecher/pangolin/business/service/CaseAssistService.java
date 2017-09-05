@@ -114,7 +114,7 @@ public class CaseAssistService {
                 .and(qSysParam.code.eq(Constants.SYS_ASSISTREMIND_BIGDAYSREMIND))
                 .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
         SysParam assistBigDays = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
-                .and(qSysParam.code.eq(Constants.SYS_ASSISTREMIND_BIGDAYS))
+                .and(qSysParam.code.eq(Constants.SYS_ASSIST_BIGDAYS))
                 .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
         if (Objects.nonNull(assistBigDaysRemind) && Objects.nonNull(assistBigDays)) {
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
