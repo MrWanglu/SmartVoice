@@ -11,7 +11,7 @@
         DATE_FORMAT(NOW(),'%Y-%m-%d') as nowDate,a.companyCode FROM
         (SELECT x.deptCode,x.deptName,x.parentDeptCode,x.parentDeptName,z.userName,z.realName,z.companyCode from
         (SELECT user_name as userName,real_name as realName,dept_id,company_code as companyCode from `user` where
-        `status` = 0 and company_code is not null) z
+        `status` = 0 and company_code is not null and id not like concat('0o0oo0o0-0o0o-0000-0000','%')) z
         LEFT JOIN
         (SELECT c.deptCode,c.deptName,v.parentDeptCode,v.parentDeptName,c.id from
         (SELECT id,`code` as deptCode,`name` as deptName,pid from department) c
@@ -43,7 +43,7 @@
 		DATE_FORMAT(#{historyDate},'%Y-%m-%d') as nowDate,a.companyCode FROM
         (SELECT x.deptCode,x.deptName,x.parentDeptCode,x.parentDeptName,z.userName,z.realName,z.companyCode from
         (SELECT user_name as userName,real_name as realName,dept_id,company_code as companyCode from `user` where
-        `status` = 0 and company_code is not null) z
+        `status` = 0 and company_code is not null and id not like concat('0o0oo0o0-0o0o-0000-0000','%')) z
         LEFT JOIN
         (SELECT c.deptCode,c.deptName,v.parentDeptCode,v.parentDeptName,c.id from
         (SELECT id,`code` as deptCode,`name` as deptName,pid from department) c
