@@ -1148,39 +1148,24 @@ public class ReportService {
             }
             if (Objects.equals(smsModel.getDeptCode(), smsReport.getParentDeptCode())) { //一级模型中有该部门code码
                 smsSecModels = smsModel.getSmsSecModels();
-                if (Objects.isNull(smsSecModels)) { //二级模型集合为空
-                    smsSecModels = new ArrayList<>();
+                int flag = 0; //判断二级模型是否有该组别code码
+                for (SmsSecModel smsSecModel1 : smsSecModels) {
+                    if (Objects.equals(smsSecModel1.getGroupCode(), smsReport.getDeptCode())) {
+                        flag = 1;
+                        break;
+                    }
+                }
+                if (0 == flag) { //不包含
                     smsSecModel = new SmsSecModel();
                     smsSecModel.setGroupCode(smsReport.getDeptCode()); //组别code码
                     smsSecModel.setGroupName(smsReport.getDeptName()); //组别名称
 
                     List<SmsReport> smsReportList = new ArrayList<>();
                     smsReportList.add(smsReport);
-                    smsSecModel.setSmsReports(smsReportList); //二级模型中加入一级模型
-                    smsSecModels.add(smsSecModel);
-                    smsModel.setSmsSecModels(smsSecModels);
-                } else { //二级模型集合不为空
-                    smsSecModels = smsModel.getSmsSecModels();
-                    int flag = 0; //判断二级模型是否有该组别code码
-                    for (SmsSecModel smsSecModel1 : smsSecModels) {
-                        if (Objects.equals(smsSecModel1.getGroupCode(), smsReport.getDeptCode())) {
-                            flag = 1;
-                            break;
-                        }
-                    }
-                    if (0 == flag) { //不包含
-                        smsSecModel = new SmsSecModel();
-                        smsSecModel.setGroupCode(smsReport.getDeptCode()); //组别code码
-                        smsSecModel.setGroupName(smsReport.getDeptName()); //组别名称
-
-                        List<SmsReport> smsReportLsit = new ArrayList<>();
-                        smsReportLsit.add(smsReport);
-                        smsSecModel.setSmsReports(smsReportLsit); //二级模型中加入基础模型集合
-                    } else { //包含
-                        List<SmsReport> smsReportList = smsSecModel.getSmsReports();
-                        smsReportList.add(smsReport);
-                        smsSecModel.setSmsReports(smsReportList); //二级模型中加入基础模型集合
-                    }
+                    smsSecModel.setSmsReports(smsReportList); //二级模型中加入基础模型集合
+                } else { //包含
+                    List<SmsReport> smsReportList = smsSecModel.getSmsReports();
+                    smsReportList.add(smsReport);
                 }
             } else { //一级模型没有该部门code码
                 smsModel = new SmsModel();
