@@ -1178,6 +1178,7 @@ public class ReportService {
                         smsSecModel.setSmsReports(smsReportLsit); //二级模型中加入基础模型集合
                     } else { //包含
                         List<SmsReport> smsReportList = smsSecModel.getSmsReports();
+                        smsReportList.add(smsReport);
                         smsSecModel.setSmsReports(smsReportList); //二级模型中加入基础模型集合
                     }
                 }
@@ -2328,8 +2329,8 @@ public class ReportService {
         //下载短信发送统计报表模版
         //拼接请求地址
         String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
-                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_CODE).
-                concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_TYPE));
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.SMS_REPORT_EXCEL_URL_CODE).
+                concat("&").concat("type").concat("=").concat(Constants.SMS_REPORT_EXCEL_URL_TYPE));
         log.debug(requestUrl);
         //下载模版
         HSSFWorkbook hssfWorkbook = downloadTemplate(requestUrl);
@@ -2348,8 +2349,70 @@ public class ReportService {
         int deptIndex = 2;
 
         //定义excel数据展示顺序
-        String[] paramArray = {"realName", "nowDate", "caseNum", "dayBackMoney", "monthBackMoney", "rank", "target", "targetDisparity"};
-        return null;
+        String[] paramArray = {"realName", "nowDate", "smsNum", "successNum", "failureNum", "rank"};
+
+        //给excel中填值
+        for (SmsModel smsModel : smsModels) {
+            List<SmsSecModel> smsSecModels = smsModel.getSmsSecModels();
+            for (SmsSecModel smsSecModel : smsSecModels) {
+                List<SmsReport> smsReportList = smsSecModel.getSmsReports();
+                for (SmsReport smsReport : smsReportList) {
+                    //在excel创建一行
+                    HSSFRow row = hssfSheet.createRow((short) userIndex);
+
+                    //创建单元格
+                    HSSFCell cell = null;
+                    int paramIndex = 0; //excel数据展示顺序数组角标
+
+                    for (int i = 0; i < 2; i++) {
+                        Object obj = null;
+                        if (0 == i) {
+                            obj = ExcelUtil.getProValue("parentDeptName", smsReport); //通过字段映射获取相应的数据
+                        } else if (1 == i) {
+                            obj = ExcelUtil.getProValue("deptName", smsReport); //通过字段映射获取相应的数据
+                        }
+                        if (Objects.isNull(obj)) {
+                            cell = row.createCell(i, CellType.STRING);
+                            cell.setCellValue("");
+                        } else {
+                            cell = setCellValue(obj, row, i); //给单元格set值
+                        }
+                        cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                    }
+
+                    //给该行每一列设置数据
+                    for (int i = 2; i < 8; i++) {
+                        Object obj = ExcelUtil.getProValue(paramArray[paramIndex], smsReport); //通过字段映射获取相应的数据
+                        if (i == 3 || i == 7) {
+                            if (Objects.isNull(obj)) {
+                                cell = row.createCell(i, CellType.STRING);
+                                cell.setCellValue("");
+                            } else {
+                                cell = setCellValue(obj, row, i); //给单元格set值
+                            }
+                        } else {
+                            cell = setCellValue(obj, row, i); //给单元格set值
+                        }
+                        cell.setCellStyle(hssfCellStyle); //给单元格设置格式
+                        paramIndex++;
+                    }
+                    //设置完毕后行数+1,进行下一行设置
+                    userIndex++;
+                }
+                //合并组别
+                if (userIndex - groupIndex > 1) {
+                    CellRangeAddress cra = new CellRangeAddress(groupIndex, userIndex - 1, 1, 1); // 四个参数分别是：起始行，结束行,起始列，结束列
+                    hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+                }
+                groupIndex = userIndex;
+            }
+            //合并部门
+            CellRangeAddress cra = new CellRangeAddress(deptIndex, userIndex - 1, 0, 0); // 四个参数分别是：起始行，结束行,起始列，结束列
+            hssfSheet.addMergedRegion(cra); //在excel里增加合并单元格
+            deptIndex = userIndex;
+        }
+        //上传填好数据的报表
+        return uploadExcel(hssfWorkbook);
     }
 
     /**
