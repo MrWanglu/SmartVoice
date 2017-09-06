@@ -620,7 +620,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("账龄")
     @ExcelAnno(cellName = "账龄")
-    private Integer accountAge;
+    private String accountAge;
 
     @ApiModelProperty("手数")
     @ExcelAnno(cellName = "手数")

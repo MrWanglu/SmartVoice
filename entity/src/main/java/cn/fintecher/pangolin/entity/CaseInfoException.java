@@ -339,7 +339,7 @@ public class CaseInfoException extends BaseEntity {
     private Date firstPayDate;
 
     @ApiModelProperty("账龄")
-    private Integer accountAge;
+    private String accountAge;
 
     /**
      * 异常数据处理类型

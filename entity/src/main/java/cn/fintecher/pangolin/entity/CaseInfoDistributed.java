@@ -83,7 +83,7 @@ public class CaseInfoDistributed extends BaseEntity {
     @ApiModelProperty("首次还款日期")
     private Date firstPayDate;
     @ApiModelProperty("账龄")
-    private Integer accountAge;
+    private String accountAge;
 
 
 

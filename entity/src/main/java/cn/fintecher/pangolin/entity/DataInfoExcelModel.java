@@ -462,7 +462,7 @@ public class DataInfoExcelModel implements Serializable {
     private Date firstPayDate;
 
     @ApiModelProperty("账龄")
-    private Integer accountAge;
+    private String accountAge;
 
     @ApiModelProperty("手数")
     private Integer caseHandNum;
