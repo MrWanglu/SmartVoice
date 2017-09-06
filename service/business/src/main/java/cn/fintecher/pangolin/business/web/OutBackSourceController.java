@@ -109,7 +109,7 @@ public class OutBackSourceController extends BaseController {
     /**
      * @Description 委外页面多条件查询回款跟进记录
      */
-    @GetMapping("/getOutbackFollowupRecord/{outId}")
+    @GetMapping("/getOutbackFollowupRecord")
     @ApiOperation(value = "委外页面多条件查询回款跟进记录", notes = "委外页面多条件查询回款跟进记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -119,7 +119,7 @@ public class OutBackSourceController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<OutBackSource>> getOutbackFollowupRecord(@PathVariable @ApiParam(value = "委外案件编号", required = true) String outId,
+    public ResponseEntity<Page<OutBackSource>> getOutbackFollowupRecord(@RequestParam @ApiParam(value = "委外案件编号", required = true) String outId,
                                                                         @RequestParam String companyCode,
                                                                         @QuerydslPredicate(root = OutBackSource.class) Predicate predicate,
                                                                         @ApiIgnore Pageable pageable,
