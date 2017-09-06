@@ -112,7 +112,7 @@ public class RoleController extends BaseController {
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role name has been occupied", "该角色名已被占用")).body(null);
         } else {
-            role.setOperator(user.getUserName());
+            role.setOperator(user.getRealName());
             role.setOperateTime(ZWDateUtil.getNowDateTime());
             Role role1 = roleRepository.save(role);
             return ResponseEntity.ok().body(role1);

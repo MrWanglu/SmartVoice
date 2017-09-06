@@ -95,7 +95,7 @@ public class OutBackSourceController extends BaseController {
             }else{
                 outBackSource.setCompanyCode(user.getCompanyCode());
             }
-            outBackSource.setOperator(user.getUserName());
+            outBackSource.setOperator(user.getRealName());
             outBackSource.setOperateTime(ZWDateUtil.getNowDateTime());
             outbackSourceRepository.save(outBackSource);
             return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", " 操作成功")).body(outBackSource);
