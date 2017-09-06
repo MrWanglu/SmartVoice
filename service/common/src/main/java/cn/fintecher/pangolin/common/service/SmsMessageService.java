@@ -62,38 +62,33 @@ public class SmsMessageService {
      * @return 返回发送结果
      */
     public void sendMessage(SMSMessage message) {
-        //短信配置
-        SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + message.getUserId() + "&companyCode=" + message.getCompanyCode() + "&code=" + Constants.SMS_PUSH_CODE + "&type=" + Constants.SMS_PUSH_TYPE, SysParam.class).getBody();
-        // 0 erpv3 1 极光
-        if (Objects.equals(sysParam.getValue(), "0")) {
-            String result;
-            try {
-                Map<String, Object> reqMap = new LinkedHashMap<>();
-                reqMap.put("mobile", message.getPhoneNumber());
-                reqMap.put("number", message.getTemplate());
-                reqMap.put("sysNumber", sysNumber);
-                message.getParams().put("channel", channel);
-                message.getParams().put("verification_code", verificationCode);
-                reqMap.put("params", message.getParams());
-                //组装请求头信息
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-                headers.set("Accept-Charset", "UTF-8");
-                headers.set("Authorization", createSign());
-                HttpEntity<Object> httpEntity = new HttpEntity<>(reqMap, headers);
-                ResponseEntity entity = new RestTemplate().exchange(messageUrl, HttpMethod.POST, httpEntity, String.class);
-                result = entity.getBody().toString();
-                log.debug(result);
-               smsMessageRepository.save(message);
-               return;
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
-                return ;
-            }
-        } else if (Objects.equals(sysParam.getValue(), "1")) {
-            sendMessageJiGuang(message);
+
+        String result;
+        try {
+            Map<String, Object> reqMap = new LinkedHashMap<>();
+            reqMap.put("mobile", message.getPhoneNumber());
+            reqMap.put("number", message.getTemplate());
+            reqMap.put("sysNumber", sysNumber);
+            message.getParams().put("channel", channel);
+            message.getParams().put("verification_code", verificationCode);
+            reqMap.put("params", message.getParams());
+            //组装请求头信息
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Accept-Charset", "UTF-8");
+            headers.set("Authorization", createSign());
+            HttpEntity<Object> httpEntity = new HttpEntity<>(reqMap, headers);
+            ResponseEntity entity = new RestTemplate().exchange(messageUrl, HttpMethod.POST, httpEntity, String.class);
+            result = entity.getBody().toString();
+            log.debug(result);
+            smsMessageRepository.save(message);
+            return;
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            return;
         }
     }
+
     public String sendMessageJiGuang(SMSMessage message) {
         ResponseEntity entity = null;
         try {
@@ -119,6 +114,7 @@ public class SmsMessageService {
             return message.getPhoneNumber();
         }
     }
+
     /**
      * 数字签名
      */
@@ -158,11 +154,11 @@ public class SmsMessageService {
             entity = new RestTemplate().exchange(smsVariableUrl, HttpMethod.POST, httpEntity, String.class);
             log.info("云通讯发送短信信息回执 {}", entity.getBody());
             JSONObject jsonObject = JSONObject.parseObject(entity.getBody().toString());
-            if(Objects.equals(jsonObject.get("code"),"0")){
+            if (Objects.equals(jsonObject.get("code"), "0")) {
                 return null;
             }
             return message.getPhoneNumber();
-        }catch(Exception e){
+        } catch (Exception e) {
             return message.getPhoneNumber();
         }
     }
