@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.model;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
@@ -9,7 +10,10 @@ import lombok.Data;
  */
 @Data
 public class PersonalParams {
+    @ApiModelProperty("联系人姓名")
     private String personalName;
+    @ApiModelProperty("联系人手机号")
     private String personalPhone;
+    @ApiModelProperty("联系人ID")
     private String contId;
 }
