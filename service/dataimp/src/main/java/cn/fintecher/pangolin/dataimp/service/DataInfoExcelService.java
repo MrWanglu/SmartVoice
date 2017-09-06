@@ -279,6 +279,7 @@ public class DataInfoExcelService {
                 dataInfoExcelFile.setOperator(user.getId());
                 dataInfoExcelFile.setOperatorName(user.getRealName());
                 dataInfoExcelFile.setOperatorTime(ZWDateUtil.getNowDateTime());
+                dataInfoExcelFile.setFileType(uploadFile.getType());
                 dataInfoExcelFiles.add(dataInfoExcelFile);
             }
             dataInfoExcelFileRepository.save(dataInfoExcelFiles);
