@@ -123,6 +123,18 @@ public final class Constants {
     public static final String BATCH_NUMBER_RULE_CODE = "SysParam.batchnumberrule";
     public static final String BATCH_NUMBER_RULE_TYPE = "9003";
 
+    //录音下载跑批启用状态
+    public static final String RECORD_DOWNLOAD_STATUS_CODE = "Sysparam.recorddownload.status";
+    public static final String RECORD_DOWNLOAD_STATUS_TYPE = "9020";
+
+    //消息提醒跑批启用状态
+    public static final String REMIND_STATUS_CODE = "Sysparam.remind.status";
+    public static final String REMIND_STATUS_TYPE = "9021";
+
+    //夜间跑批启用状态
+    public static final String OVERNIGHTBATCH_STATUS_CODE = "Sysparam.overnightbatch.status";
+    public static final String OVERNIGHTBATCH_STATUS_TYPE = "9022";
+
     /**
      * 数据来源
      */

@@ -117,8 +117,16 @@ public class OverNightJob implements Job {
             //获取公司码
             List<Company> companyList = companyRepository.findAll();
             for (Company company : companyList) {
-                //晚间批量调度
                 QSysParam qSysParam = QSysParam.sysParam;
+                //判断该公司的跑批状态是否为启用状态
+                SysParam status = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
+                        .and(qSysParam.code.eq(Constants.OVERNIGHTBATCH_STATUS_CODE))
+                        .and(qSysParam.type.eq(Constants.OVERNIGHTBATCH_STATUS_TYPE))
+                        .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+                if (Objects.equals(status.getValue(), "1")) {
+                    continue;
+                }
+                //晚间批量调度
                 SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
                         .and(qSysParam.code.eq(Constants.SYSPARAM_OVERNIGHT))
                         .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
@@ -153,7 +161,6 @@ public class OverNightJob implements Job {
         }
         return cronTriggerFactoryBeanList;
     }
-
 
 
 }

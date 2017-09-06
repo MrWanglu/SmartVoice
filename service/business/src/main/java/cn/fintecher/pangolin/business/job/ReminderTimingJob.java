@@ -26,7 +26,7 @@ import java.util.Objects;
 
 @Service("reminderTimingJob")
 @DisallowConcurrentExecution
-public class ReminderTimingJob implements Job{
+public class ReminderTimingJob implements Job {
 
     private final Logger logger = LoggerFactory.getLogger(ReminderTimingJob.class);
 
@@ -52,10 +52,18 @@ public class ReminderTimingJob implements Job{
     public List<CronTriggerFactoryBean> CreateReminderTimingJob() {
         List<CronTriggerFactoryBean> cronTriggerFactoryBeanList = new ArrayList<>();
         try {
+            QSysParam qSysParam = QSysParam.sysParam;
             //获取公司码
             List<Company> companyList = companyRepository.findAll();
             for (Company company : companyList) {
-                QSysParam qSysParam = QSysParam.sysParam;
+                //判断该公司的跑批状态是否为启用状态
+                SysParam status = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
+                        .and(qSysParam.code.eq(Constants.REMIND_STATUS_CODE))
+                        .and(qSysParam.type.eq(Constants.REMIND_STATUS_TYPE))
+                        .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+                if (Objects.equals(status.getValue(), "1")) {
+                    continue;
+                }
                 SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
                         .and(qSysParam.code.eq(Constants.SYSPARAM_REMINDER))
                         .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
@@ -71,22 +79,22 @@ public class ReminderTimingJob implements Job{
                         JobDataMap jobDataMap = new JobDataMap();
                         jobDataMap.put("companyCode", company.getCode());
                         jobDataMap.put("sysParamCode", Constants.SYSPARAM_REMINDER_STATUS);
-                        CronTriggerFactoryBean cronTriggerFactoryBean =ConfigureQuartz.createCronTrigger(Constants.REMINDER_TRIGGER_GROUP.concat("_").concat(company.getCode()),
+                        CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.REMINDER_TRIGGER_GROUP.concat("_").concat(company.getCode()),
                                 Constants.REMINDER_TRIGGER_NAME.concat("_").concat(company.getCode()),
                                 "reminderTimingJobBean".concat("_").concat(company.getCode()),
                                 Constants.REMINDER_TRIGGER_DESC.concat("_").concat(company.getCode()),
-                                jobDetail,cronString,jobDataMap);
+                                jobDetail, cronString, jobDataMap);
                         cronTriggerFactoryBean.afterPropertiesSet();
                         schedFactory.getScheduler().deleteJob(jobDetail.getKey());
-                        schedFactory.getScheduler().scheduleJob(jobDetail,cronTriggerFactoryBean.getObject());
+                        schedFactory.getScheduler().scheduleJob(jobDetail, cronTriggerFactoryBean.getObject());
                         cronTriggerFactoryBeanList.add(cronTriggerFactoryBean);
                     }
                 }
             }
         } catch (SchedulerException e) {
-            logger.error(e.getMessage(),e);
+            logger.error(e.getMessage(), e);
         } catch (ParseException e) {
-            logger.error(e.getMessage(),e);
+            logger.error(e.getMessage(), e);
         }
         return cronTriggerFactoryBeanList;
     }

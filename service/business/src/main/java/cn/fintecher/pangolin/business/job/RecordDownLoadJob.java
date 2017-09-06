@@ -148,10 +148,18 @@ public class RecordDownLoadJob implements Job {
     public List<CronTriggerFactoryBean> CreateRecordDownLoadJob() {
         List<CronTriggerFactoryBean> cronTriggerFactoryBeanList = new ArrayList<>();
         try {
+            QSysParam qSysParam = QSysParam.sysParam;
             //获取公司码
             List<Company> companyList = companyRepository.findAll();
             for (Company company : companyList) {
-                QSysParam qSysParam = QSysParam.sysParam;
+                //判断该公司的跑批状态是否为启用状态
+                SysParam status = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
+                        .and(qSysParam.code.eq(Constants.RECORD_DOWNLOAD_STATUS_CODE))
+                        .and(qSysParam.type.eq(Constants.RECORD_DOWNLOAD_STATUS_TYPE))
+                        .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+                if (Objects.equals(status.getValue(), "1")) {
+                    continue;
+                }
                 SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
                         .and(qSysParam.code.eq(Constants.SYSPARAM_RECORD))
                         .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
