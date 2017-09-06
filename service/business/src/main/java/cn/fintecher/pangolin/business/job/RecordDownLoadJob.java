@@ -80,7 +80,7 @@ public class RecordDownLoadJob implements Job {
                             .and(qSysParam.code.eq(Constants.RECORD_DOWNLOAD_STATUS_CODE)
                                     .and(qSysParam.type.eq(Constants.RECORD_DOWNLOAD_STATUS_TYPE))));
                     if (Objects.equals(StringUtils.trim(sysParam1.getValue()), "1")) {
-                        return;
+                        continue;
                     }
                     try {
                         if (Objects.nonNull(caseFollowupRecord.getTaskcallerId())) {
