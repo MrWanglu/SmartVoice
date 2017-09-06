@@ -56,14 +56,6 @@ public class ReminderTimingJob implements Job {
             //获取公司码
             List<Company> companyList = companyRepository.findAll();
             for (Company company : companyList) {
-                //判断该公司的跑批状态是否为启用状态
-                SysParam status = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
-                        .and(qSysParam.code.eq(Constants.REMIND_STATUS_CODE))
-                        .and(qSysParam.type.eq(Constants.REMIND_STATUS_TYPE))
-                        .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
-                if (Objects.equals(status.getValue(), "1")) {
-                    continue;
-                }
                 SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
                         .and(qSysParam.code.eq(Constants.SYSPARAM_REMINDER))
                         .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));

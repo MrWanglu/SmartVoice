@@ -10,6 +10,7 @@ import cn.fintecher.pangolin.entity.util.Constants;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.quartz.*;
 import org.slf4j.Logger;
@@ -75,6 +76,12 @@ public class RecordDownLoadJob implements Job {
                 HttpHeaders headers = new HttpHeaders();
                 HttpEntity<String> entity = new HttpEntity<>(headers);
                 for (CaseFollowupRecord caseFollowupRecord : caseFollowupRecordList) {
+                    SysParam sysParam1 = sysParamRepository.findOne(qSysParam.companyCode.eq(caseFollowupRecord.getCompanyCode())
+                            .and(qSysParam.code.eq(Constants.RECORD_DOWNLOAD_STATUS_CODE)
+                                    .and(qSysParam.type.eq(Constants.RECORD_DOWNLOAD_STATUS_TYPE))));
+                    if (Objects.equals(StringUtils.trim(sysParam1.getValue()), "1")) {
+                        return;
+                    }
                     try {
                         if (Objects.nonNull(caseFollowupRecord.getTaskcallerId())) {
                             logger.info("定时调度 录音文件开始更新 {} ", caseFollowupRecord.getTaskcallerId());
@@ -152,14 +159,6 @@ public class RecordDownLoadJob implements Job {
             //获取公司码
             List<Company> companyList = companyRepository.findAll();
             for (Company company : companyList) {
-                //判断该公司的跑批状态是否为启用状态
-                SysParam status = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
-                        .and(qSysParam.code.eq(Constants.RECORD_DOWNLOAD_STATUS_CODE))
-                        .and(qSysParam.type.eq(Constants.RECORD_DOWNLOAD_STATUS_TYPE))
-                        .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
-                if (Objects.equals(status.getValue(), "1")) {
-                    continue;
-                }
                 SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
                         .and(qSysParam.code.eq(Constants.SYSPARAM_RECORD))
                         .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));

@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,13 @@ public class RemindTimingBatchService {
         String companyCode = jobDataMap.getString("companyCode");
         String sysParamCode = jobDataMap.getString("sysParamCode");
         try {
+            QSysParam qSysParam = QSysParam.sysParam;
+            SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                    .and(qSysParam.code.eq(Constants.REMIND_STATUS_CODE))
+                    .and(qSysParam.type.eq(Constants.REMIND_STATUS_TYPE)));
+            if (Objects.equals(StringUtils.trim(sysParam.getValue()), "1")) {
+                return;
+            }
             if (jobTaskService.checkJobIsRunning(companyCode, sysParamCode)) {
                 logger.info("案件提醒批量正在执行_{}", jobDataMap.get("companyCode"));
             } else {
@@ -147,7 +155,7 @@ public class RemindTimingBatchService {
                             managerIds.add(managers.get(i).getId());
                         }
                         sendReminderMessage.setCcUserIds(managerIds.toArray(new String[managerIds.size()]));
-                    }else{
+                    } else {
                         sendReminderMessage.setUserId(caseInfo.getCurrentCollector().getId());
                     }
                     ReminderService.sendReminder(sendReminderMessage);

@@ -17,6 +17,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
@@ -148,13 +149,23 @@ public class BatchManageController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "user not login", "用户未登录")).body(null);
         }
         JobDataMap jobDataMap = new JobDataMap();
+        String code;
         if (Objects.isNull(user.getCompanyCode())) {
             if (Objects.isNull(companyCode)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "batchManageController", "请先选择公司")).body(null);
             }
             jobDataMap.put("companyCode", companyCode);
+            code = companyCode;
         } else {
             jobDataMap.put("companyCode", user.getCompanyCode());
+            code = user.getCompanyCode();
+        }
+        QSysParam qSysParam = QSysParam.sysParam;
+        SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(code)
+                .and(qSysParam.code.eq(Constants.OVERNIGHTBATCH_STATUS_CODE))
+                .and(qSysParam.type.eq(Constants.OVERNIGHTBATCH_STATUS_TYPE)));
+        if (Objects.equals(StringUtils.trim(sysParam.getValue()), "1")) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "batchManageController", "晚间批量任务已停用")).body(null);
         }
         jobDataMap.put("sysParamCode", Constants.SYSPARAM_OVERNIGHT_STATUS);
         overNightBatchService.doOverNightTask(jobDataMap);
