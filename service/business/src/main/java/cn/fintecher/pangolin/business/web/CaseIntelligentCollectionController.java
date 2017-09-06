@@ -103,6 +103,7 @@ public class CaseIntelligentCollectionController extends BaseController {
             for (CaseInfo caseInfo : caseInfolList) {
                 MessageBatchSendRequest messageBatchSendRequest = batchSend(caseInfo, selected, selRelations);
                 messageBatchSendRequest.setCustId(caseInfo.getPersonalInfo().getId()); // 客户id
+                messageBatchSendRequest.setCaseNumber(caseInfo.getCaseNumber()); //案件编号
                 messageBatchSendRequest.setCustName(caseInfo.getPersonalInfo().getName()); // 客户姓名
                 messageBatchSendRequestList.add(messageBatchSendRequest);
             }
