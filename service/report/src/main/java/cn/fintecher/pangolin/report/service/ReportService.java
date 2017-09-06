@@ -1163,9 +1163,11 @@ public class ReportService {
                     List<SmsReport> smsReportList = new ArrayList<>();
                     smsReportList.add(smsReport);
                     smsSecModel.setSmsReports(smsReportList); //二级模型中加入基础模型集合
+                    smsSecModels.add(smsSecModel);
                 } else { //包含
                     List<SmsReport> smsReportList = smsSecModel.getSmsReports();
                     smsReportList.add(smsReport);
+                    smsSecModel.setSmsReports(smsReportList);
                 }
             } else { //一级模型没有该部门code码
                 smsModel = new SmsModel();
