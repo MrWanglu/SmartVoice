@@ -1,9 +1,11 @@
 package cn.fintecher.pangolin.business.repository;
 
 
+import cn.fintecher.pangolin.business.model.CaseInfoVerModel;
+import cn.fintecher.pangolin.business.model.CaseInfoVerificationParams;
 import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.CaseInfoVerificationModel;
-import cn.fintecher.pangolin.entity.QCaseInfoVerificationModel;
+import cn.fintecher.pangolin.entity.CaseInfoVerification;
+import cn.fintecher.pangolin.entity.QCaseInfoVerification;
 import com.querydsl.core.types.dsl.StringPath;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,17 +15,14 @@ import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
-
 import java.math.BigDecimal;
 import java.util.*;
 
 /**
  * Created by ChenChang on 2017/7/11.
  */
-public interface CaseInfoVerificationRepository extends QueryDslPredicateExecutor<CaseInfoVerificationModel>, JpaRepository<CaseInfoVerificationModel, String>, QuerydslBinderCustomizer<QCaseInfoVerificationModel> {
-    @Override
-    default void customize(final QuerydslBindings bindings, final QCaseInfoVerificationModel root) {
-
+public interface CaseInfoVerificationRepository extends QueryDslPredicateExecutor<CaseInfoVerification>, JpaRepository<CaseInfoVerification, String>, QuerydslBinderCustomizer<QCaseInfoVerification> {
+    default void customize(final QuerydslBindings bindings, final QCaseInfoVerification root) {
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
         bindings.bind(root.id).first((path, value) -> path.eq(StringUtils.trim(value)));
         bindings.bind(root.product.prodcutName).first((path, value) -> path.eq(StringUtils.trim(value)));
@@ -199,4 +198,25 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
     @Modifying
     @Query("update CaseInfo acc set acc.assistStatus=212 where acc.collectionStatus not in(24,166) and acc.id in ?1")
     void updateCaseStatusToCollectioning(Set<String> cupoIds);
-    }
+
+    /**
+     * 查询核销案件数
+     *
+     * @param
+     * @return
+     */
+    @Query(value = "select count(*) from case_info_verification", nativeQuery = true)
+    Integer getTotalCount();
+
+    /**
+     * 查询核销管理报表
+     *
+     * @param
+     * @return
+     */
+    @Query(value = "select count(a.id) as cityCount,b.area_name as city,sum(a.overdue_amount) as amount from case_info_verification a LEFT JOIN area_code b " +
+            "on a.area_id = b.id where a.company_code = :companyCode and a.case_follow_in_time > :startTime and a.case_follow_in_time < :endTime group by b.area_name", nativeQuery = true)
+   List<CaseInfoVerModel> findCaseInfoVerificationReport(@Param("startTime") Date startTime,
+                                                         @Param("endTime") Date endTime,
+                                                         @Param("companyCode") String companyCode);
+}
