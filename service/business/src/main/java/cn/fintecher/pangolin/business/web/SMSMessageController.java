@@ -1,9 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
-import cn.fintecher.pangolin.business.model.CapaMessageParams;
-import cn.fintecher.pangolin.business.model.CapaPersonals;
-import cn.fintecher.pangolin.business.model.PersonalParams;
-import cn.fintecher.pangolin.business.model.SMSMessageParams;
+import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.MessageService;
 import cn.fintecher.pangolin.entity.*;
@@ -16,6 +13,7 @@ import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -61,7 +59,7 @@ public class SMSMessageController extends BaseController {
      */
     @PostMapping("/SendMessageSingle")
     @ApiOperation(value = "添加短信记录", notes = "添加短信记录")
-    public ResponseEntity<List> addAccSMSMessageByHand(@RequestBody @ApiParam("短息信息") SMSMessageParams smsMessageParams,
+    public ResponseEntity<SendFailModel> addAccSMSMessageByHand(@RequestBody @ApiParam("短息信息") SMSMessageParams smsMessageParams,
                                                          @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
@@ -96,6 +94,10 @@ public class SMSMessageController extends BaseController {
             for (PersonalParams personalParams1 : personalParams) {
                 SMSMessage sendSMSMessage = new SMSMessage();
                 sendSMSMessage.setPhoneNumber(personalParams1.getPersonalPhone());
+                if(ZWStringUtils.isEmpty(sendSMSMessage.getPhoneNumber())){
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
+                    templateRepository.saveAndFlush(temp);
+                }
                 sendSMSMessage.setTemplate(template.getId());
                 sendSMSMessage.setParams(smsMessageParams.getParams());
                 SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.AUTOMATIC.getValue());
@@ -116,6 +118,10 @@ public class SMSMessageController extends BaseController {
             message.setParams(params);
             for (PersonalParams personalParams1 : personalParams) {
                 message.setPhoneNumber(personalParams1.getPersonalPhone());
+                if(ZWStringUtils.isEmpty(message.getPhoneNumber())){
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
+                    templateRepository.saveAndFlush(temp);
+                }
                 String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
                 if (ZWStringUtils.isNotEmpty(entity)) {
                     sendFails.add(entity);
@@ -127,7 +133,9 @@ public class SMSMessageController extends BaseController {
                 }
             }
             if(!sendFails.isEmpty()){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "")).body(sendFails);
+                SendFailModel sendFailModel = new SendFailModel();
+                sendFailModel.setPhoneList(sendFails);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "")).body(sendFailModel);
             }
         } else if (Objects.equals(type, "2")) {
             StringBuilder error = new StringBuilder();
@@ -141,6 +149,10 @@ public class SMSMessageController extends BaseController {
             message.setUserId(user.getId());
             for (PersonalParams personalParams1 : personalParams) {
                 message.setPhoneNumber(personalParams1.getPersonalPhone());
+                if(ZWStringUtils.isEmpty(message.getPhoneNumber())){
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
+                    templateRepository.saveAndFlush(temp);
+                }
                 String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendPaaSMessage", message, String.class);
                 if (ZWStringUtils.isNotEmpty(entity)) {
                     sendFails.add(entity);
@@ -152,7 +164,9 @@ public class SMSMessageController extends BaseController {
                 }
             }
             if(!sendFails.isEmpty()){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "")).body(sendFails);
+                SendFailModel sendFailModel = new SendFailModel();
+                sendFailModel.setPhoneList(sendFails);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "")).body(sendFailModel);
             }
         }
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("发送成功", "")).body(null);
@@ -160,7 +174,7 @@ public class SMSMessageController extends BaseController {
 
     @PostMapping("/SendCapaMessageSingle")
     @ApiOperation(value = "智能短信记录", notes = "智能短信记录")
-    public ResponseEntity<List> sendCapaMessageSingle(@RequestBody @ApiParam("短息信息") CapaMessageParams capaMessageParams,
+    public ResponseEntity<SendFailModel> sendCapaMessageSingle(@RequestBody @ApiParam("短息信息") CapaMessageParams capaMessageParams,
                                                         @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
@@ -195,6 +209,11 @@ public class SMSMessageController extends BaseController {
                 sendSMSMessage.setParams(params);
                 for (int i=0; i<capaPersonals.getConcatIds().size(); i++) {
                     sendSMSMessage.setPhoneNumber(capaPersonals.getConcatPhones().get(i));
+                    if(ZWStringUtils.isEmpty(sendSMSMessage.getPhoneNumber())){
+                        SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, capaPersonals.getConcatIds().get(i), user, Integer.valueOf(capaMessageParams.getSendType()),SendMessageRecord.Flag.MANUAL.getValue());
+                        templateRepository.saveAndFlush(temp);
+                        continue;
+                    }
                     SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, capaPersonals.getConcatIds().get(i), user, Integer.valueOf(capaMessageParams.getSendType()),SendMessageRecord.Flag.AUTOMATIC.getValue());
                     restTemplate.postForEntity("http://common-service/api/SearchMessageController/sendSmsMessage", sendSMSMessage, Void.class);
                 }
@@ -212,6 +231,11 @@ public class SMSMessageController extends BaseController {
                 message.setParams(params);
                 for (int i=0; i<capaPersonals.getConcatIds().size(); i++) {
                     message.setPhoneNumber(capaPersonals.getConcatPhones().get(i));
+                    if(ZWStringUtils.isEmpty(message.getPhoneNumber())){
+                        SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, capaPersonals.getConcatIds().get(i), user, Integer.valueOf(capaMessageParams.getSendType()),SendMessageRecord.Flag.MANUAL.getValue());
+                        templateRepository.saveAndFlush(temp);
+                        continue;
+                    }
                     String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
                     if (ZWStringUtils.isNotEmpty(entity)) {
                         sendFails.add(entity);
@@ -237,6 +261,11 @@ public class SMSMessageController extends BaseController {
                 message.setParams(params);
                 for (int i=0; i<capaPersonals.getConcatIds().size(); i++) {
                     message.setPhoneNumber(capaPersonals.getConcatPhones().get(i));
+                    if(ZWStringUtils.isEmpty(message.getPhoneNumber())){
+                        SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, capaPersonals.getConcatIds().get(i), user, Integer.valueOf(capaMessageParams.getSendType()),SendMessageRecord.Flag.MANUAL.getValue());
+                        templateRepository.saveAndFlush(temp);
+                        continue;
+                    }
                     String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendPaaSMessage", message, String.class);
                     if (ZWStringUtils.isNotEmpty(entity)) {
                         sendFails.add(entity);
@@ -250,7 +279,9 @@ public class SMSMessageController extends BaseController {
             }
         }
         if(!sendFails.isEmpty()){
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "")).body(sendFails);
+            SendFailModel sendFailModel = new SendFailModel();
+            sendFailModel.setPhoneList(sendFails);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "")).body(sendFailModel);
         }
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("发送成功", "")).body(null);
     }
