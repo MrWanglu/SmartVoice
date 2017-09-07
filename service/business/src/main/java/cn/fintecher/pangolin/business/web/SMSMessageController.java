@@ -97,6 +97,7 @@ public class SMSMessageController extends BaseController {
                     sendFails.add(personalParams1);
                     SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
                     templateRepository.saveAndFlush(temp);
+                    continue;
                 }
                 sendSMSMessage.setTemplate(template.getId());
                 sendSMSMessage.setParams(smsMessageParams.getParams());
@@ -122,6 +123,7 @@ public class SMSMessageController extends BaseController {
                     sendFails.add(personalParams1);
                     SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
                     templateRepository.saveAndFlush(temp);
+                    continue;
                 }
                 String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", message, String.class);
                 if (ZWStringUtils.isNotEmpty(entity)) {
@@ -152,6 +154,7 @@ public class SMSMessageController extends BaseController {
                     sendFails.add(personalParams1);
                     SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
                     templateRepository.saveAndFlush(temp);
+                    continue;
                 }
                 String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendPaaSMessage", message, String.class);
                 if (ZWStringUtils.isNotEmpty(entity)) {
