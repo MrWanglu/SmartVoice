@@ -51,10 +51,9 @@ public class AppMsgController{
     @ResponseBody
     public ResponseEntity batchSaveAppmsg(@RequestBody ManyAppmsgRequest request) {
         try {
-            for (String userName : request.getUserNames()) {
+            for (String id : request.getIds()) {
                 AppMsg appmsg = new AppMsg();
-                appmsg.setUserName(userName);
-                appmsg.setUserId("");
+                appmsg.setUserId(id);
                 appmsg.setTitle(request.getTitle());
                 appmsg.setContent(request.getContent());
                 appmsg.setType(ReminderType.FLLOWUP);
@@ -74,8 +73,7 @@ public class AppMsgController{
     public ResponseEntity findById(@RequestParam String id) {
         try {
             AppMsg ReturnAppmsg = appMsgRepository.findOne(id);
-           // return new Result(Result.ReturnValue.SUCCESS, "", ReturnAppmsg);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("推送成功", "")).body(ReturnAppmsg);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(ReturnAppmsg);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("appMsg", "failed", "查询消息失败")).body(null);

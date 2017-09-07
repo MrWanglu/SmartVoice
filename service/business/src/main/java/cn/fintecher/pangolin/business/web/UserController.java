@@ -450,7 +450,9 @@ public class UserController extends BaseController {
     })
     public ResponseEntity<Page<User>> getUserByType(@QuerydslPredicate(root = User.class) Predicate predicate,
                                                     @RequestParam(required = false) String companyCode, @RequestParam(required = true) Integer type,
-                                                    @RequestHeader(value = "X-UserToken") String token, @ApiIgnore Pageable pageable){
+                                                    @RequestHeader(value = "X-UserToken") String token,
+                                                    @RequestParam(required = false) String deptCode,
+                                                    @ApiIgnore Pageable pageable){
         User user;
         try {
             user = getUserByToken(token);
@@ -468,6 +470,10 @@ public class UserController extends BaseController {
         }else{
             builder.and(QUser.user.companyCode.eq(user.getCompanyCode()));
         }
+        if(Objects.nonNull(deptCode)){
+            builder.and(QUser.user.department.code.like(deptCode.concat("%")));
+        }
+
         if (Objects.nonNull(type)) {
             builder.and(qUser.type.eq(type));
         }
