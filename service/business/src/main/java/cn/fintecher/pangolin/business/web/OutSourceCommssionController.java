@@ -216,9 +216,9 @@ public class OutSourceCommssionController extends BaseController {
         }
 
         Object[] objects;
-        if (Objects.equals(OutBackSource.operationType.OUTBACKAMT, operationType)) {
+        if (Objects.equals(OutBackSource.operationType.OUTBACKAMT.getCode(), operationType)) {
             objects = outSourceCommssionRepository.outsourceCommissionReturn(companyCode, operationType, outsName);
-        } else if (Objects.equals(OutBackSource.operationType.OUTBACK, operationType)) {
+        } else if (Objects.equals(OutBackSource.operationType.OUTBACK.getCode(), operationType)) {
             objects = outSourceCommssionRepository.outsourceCommissionRollback(companyCode, operationType, outsName);
         } else {
             objects = outSourceCommssionRepository.outsourceCommissionRepair(companyCode, operationType, outsName);
