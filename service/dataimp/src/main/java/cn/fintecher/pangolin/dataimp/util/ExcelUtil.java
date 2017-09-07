@@ -76,9 +76,9 @@ public class ExcelUtil {
                 String sheetName = (String) entry.getKey();
                 Sheet sheet = (Sheet) entry.getValue();
                 try {
-                    logger.info("开始解析 {} 页数据",sheetName);
-                    excelSheetObj = parseSheet(sheet, startRow[0], startCol[0], dataClass[0],templateExcelInfos);
-                    logger.info("结束解析 {} 页数据",sheetName);
+                    logger.info("开始解析 {} 页数据", sheetName);
+                    excelSheetObj = parseSheet(sheet, startRow[0], startCol[0], dataClass[0], templateExcelInfos);
+                    logger.info("结束解析 {} 页数据", sheetName);
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                 }
@@ -90,7 +90,7 @@ public class ExcelUtil {
             if (inputStream != null) {
                 try {
                     inputStream.close();
-                }catch (Exception e1){
+                } catch (Exception e1) {
                     logger.error(e1.getMessage(), e1);
                 }
             }
@@ -107,7 +107,7 @@ public class ExcelUtil {
      * @param workbook
      * @throws Exception
      */
-    private static void closeWorkBook(Workbook workbook)  {
+    private static void closeWorkBook(Workbook workbook) {
         if (workbook != null) {
             try {
                 workbook.close();
@@ -119,7 +119,8 @@ public class ExcelUtil {
 
     /**
      * 获取Excel中的每个sheet页，
-     *直接解析第一个sheet也页数据
+     * 直接解析第一个sheet也页数据
+     *
      * @param workbook
      * @return 返回按Excel实际顺序的sheet对象
      */
@@ -156,16 +157,16 @@ public class ExcelUtil {
         //获取每个sheet页的头部信息,用于和实体属性匹配(默认模板使用)
         Map<Integer, String> headerMap = null;
         //数据开始列
-        int dataStartRow=0;
+        int dataStartRow = 0;
         //默认数据模板导入
-        if(Objects.isNull(templateExcelInfos)){
-            dataStartRow=startRow + 1;
+        if (Objects.isNull(templateExcelInfos)) {
+            dataStartRow = startRow + 1;
             //读取该sheet页的标题信息
             Row titleRow = sheet.getRow(startRow);
             headerMap = parseExcelHeader(startCol, titleRow);
-        }else{
+        } else {
             //走配置模板
-            dataStartRow=startRow;
+            dataStartRow = startRow;
         }
         //解析数据行
         for (int rowIndex = dataStartRow; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
@@ -174,7 +175,7 @@ public class ExcelUtil {
                 Row dataRow = sheet.getRow(rowIndex);
                 if (!isBlankRow(dataRow)) {
                     //解析一行中每一列数据
-                    Object obj = parseRow(dataClass, dataRow, startCol, headerMap, cellErrorList, sheetName, rowIndex,templateExcelInfos);
+                    Object obj = parseRow(dataClass, dataRow, startCol, headerMap, cellErrorList, sheetName, rowIndex, templateExcelInfos);
                     if (null != obj) {
                         objList.add(obj);
                     }
@@ -188,9 +189,6 @@ public class ExcelUtil {
         excelSheetObj.setCellErrorList(cellErrorList);
         return excelSheetObj;
     }
-
-
-
 
 
     /**
@@ -210,19 +208,17 @@ public class ExcelUtil {
         try {
             obj = dataClass.newInstance();
             //默认数据模板
-            if(Objects.isNull(templateExcelInfos)){
+            if (Objects.isNull(templateExcelInfos)) {
                 for (int colIndex = startCol; colIndex < dataRow.getLastCellNum(); colIndex++) {
                     //获取该列对应的头部信息中文
                     String titleName = headerMap.get(colIndex);
                     Cell cell = dataRow.getCell(colIndex);
-
                     matchFields(dataClass, dataRow, cellErrors, sheetName, rowIndex, obj, colIndex, titleName, cell);
-
                 }
-            }else{
+            } else {
                 //配置模板
-                for(TemplateExcelInfo templateExcelInfo:templateExcelInfos){
-                    if(StringUtils.isNotBlank(templateExcelInfo.getRelateName())){
+                for (TemplateExcelInfo templateExcelInfo : templateExcelInfos) {
+                    if (StringUtils.isNotBlank(templateExcelInfo.getRelateName())) {
                         Cell cell = dataRow.getCell(templateExcelInfo.getCellNum());
                         if (cell != null && !cell.toString().trim().equals("")) {
                             //获取类中所有的字段
@@ -236,13 +232,13 @@ public class ExcelUtil {
                                     field.setAccessible(true);
                                     //实体中变量赋值
                                     try {
-                                      field.set(obj, getObj(field.getType(), cell));
+                                        field.set(obj, getObj(field.getType(), cell));
                                     } catch (Exception e) {
                                         String errorMsg = "第[" + dataRow.getRowNum() + "]行，字段:[" + proName + "]的数据类型不正确";
                                         CellError errorObj = new CellError(sheetName, rowIndex, templateExcelInfo.getCellNum(), proName, null, errorMsg, e);
                                         cellErrors.add(errorObj);
-                                            }
-                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -256,6 +252,7 @@ public class ExcelUtil {
 
     /**
      * 匹配相应的字段
+     *
      * @param dataClass
      * @param dataRow
      * @param cellErrors
@@ -385,6 +382,10 @@ public class ExcelUtil {
                 return ZWDateUtil.getUtilDate(cellValue, "yyyy/MM/dd");
             else if (cellValue.matches("\\d{4}-\\d{2}-\\d{2}"))
                 return ZWDateUtil.getUtilDate(cellValue, "yyyy-MM-dd");
+            else if (cellValue.matches("^\\d{4}\\d{2}\\d{2}"))
+                return ZWDateUtil.getUtilDate(cellValue, "yyyyMMdd");
+            else if (cellValue.matches("\\d{4}.\\d{1,2}.\\d{1,2}"))
+                return ZWDateUtil.getUtilDate(cellValue, "yyyy.MM.dd");
             else
                 throw new RuntimeException("日期格式不合适");
         } else if ("java.lang.Integer".equalsIgnoreCase(clazz.getName())) {
@@ -413,7 +414,7 @@ public class ExcelUtil {
         try {
             int lastCellNum = titleRow.getLastCellNum();
             if (startCol > lastCellNum) {
-                throw  new  Exception("Excel数据模板开始列大于数据总列数");
+                throw new Exception("Excel数据模板开始列大于数据总列数");
             }
             Map<Integer, String> headerMap = new HashMap<>();
             for (int columnIndex = startCol; columnIndex < titleRow.getLastCellNum(); columnIndex++) {
@@ -469,7 +470,7 @@ public class ExcelUtil {
                 break;
             case Cell.CELL_TYPE_NUMERIC:
                 if (DateUtil.isCellDateFormatted(cell)) {
-                    cellValue = String.valueOf(ZWDateUtil.fomratterDate(cell.getDateCellValue(),Constants.DATE_FORMAT));
+                    cellValue = String.valueOf(ZWDateUtil.fomratterDate(cell.getDateCellValue(), Constants.DATE_FORMAT));
                 } else {
                     DecimalFormat df = new DecimalFormat("#.#########");
                     cellValue = df.format(cell.getNumericCellValue());
@@ -477,7 +478,7 @@ public class ExcelUtil {
                 break;
             case Cell.CELL_TYPE_FORMULA:
                 if (DateUtil.isCellDateFormatted(cell)) {
-                    cellValue = String.valueOf(ZWDateUtil.fomratterDate(cell.getDateCellValue(),Constants.DATE_FORMAT));
+                    cellValue = String.valueOf(ZWDateUtil.fomratterDate(cell.getDateCellValue(), Constants.DATE_FORMAT));
                 } else {
                     cellValue = String.valueOf(cell.getNumericCellValue());
                 }
@@ -535,7 +536,7 @@ public class ExcelUtil {
                     String exportItem = proNames[k];
                     String valueStr = null;
                     if ((getProValue(exportItem, obj)) instanceof Date) {
-                        valueStr = ZWDateUtil.fomratterDate((Date) getProValue(exportItem, obj),Constants.DATE_FORMAT);
+                        valueStr = ZWDateUtil.fomratterDate((Date) getProValue(exportItem, obj), Constants.DATE_FORMAT);
                     } else if ((getProValue(exportItem, obj)) instanceof Integer) {
                         valueStr = ((Integer) getProValue(exportItem, obj)).toString();
                     } else if ((getProValue(exportItem, obj)) instanceof Double) {
