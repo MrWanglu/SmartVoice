@@ -140,18 +140,13 @@ public class OutSourceCommssionController extends BaseController {
                 outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.id.ne(outSourceCommssion.getId())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
             } else {
                 //该逾期时段不能为空
-                if(outSourceCommssion.getOverdueTime() !=null && !"".equals(outSourceCommssion.getOverdueTime())){
-                    long list = outSourceCommssionRepository.count(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime()));
-                    //该逾期时段已存在
-                    if(list == 0){
-                        outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
-                    }else{
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failed", "该逾期时段已存在")).body(null);
-                    }
+                if(outSourceCommssion.getOverdueTime() !=null && !"".equals(outSourceCommssion.getOverdueTime())) {
+
+                    outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
                 }else{
+
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failed", "该逾期时段不能为空")).body(null);
                 }
-
             }
             List<OutSourceCommssion> outSourceCommssionList1 = IteratorUtils.toList(outSourceCommssionList);
             if (outSourceCommssionList1.size() == 0) {
