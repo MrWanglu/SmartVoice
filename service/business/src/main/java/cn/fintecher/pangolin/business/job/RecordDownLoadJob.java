@@ -10,6 +10,7 @@ import cn.fintecher.pangolin.entity.util.Constants;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.quartz.*;
 import org.slf4j.Logger;
@@ -75,6 +76,12 @@ public class RecordDownLoadJob implements Job {
                 HttpHeaders headers = new HttpHeaders();
                 HttpEntity<String> entity = new HttpEntity<>(headers);
                 for (CaseFollowupRecord caseFollowupRecord : caseFollowupRecordList) {
+                    SysParam sysParam1 = sysParamRepository.findOne(qSysParam.companyCode.eq(caseFollowupRecord.getCompanyCode())
+                            .and(qSysParam.code.eq(Constants.RECORD_DOWNLOAD_STATUS_CODE)
+                                    .and(qSysParam.type.eq(Constants.RECORD_DOWNLOAD_STATUS_TYPE))));
+                    if (Objects.equals(StringUtils.trim(sysParam1.getValue()), "1")) {
+                        continue;
+                    }
                     try {
                         if (Objects.nonNull(caseFollowupRecord.getTaskcallerId())) {
                             logger.info("定时调度 录音文件开始更新 {} ", caseFollowupRecord.getTaskcallerId());
@@ -148,10 +155,10 @@ public class RecordDownLoadJob implements Job {
     public List<CronTriggerFactoryBean> CreateRecordDownLoadJob() {
         List<CronTriggerFactoryBean> cronTriggerFactoryBeanList = new ArrayList<>();
         try {
+            QSysParam qSysParam = QSysParam.sysParam;
             //获取公司码
             List<Company> companyList = companyRepository.findAll();
             for (Company company : companyList) {
-                QSysParam qSysParam = QSysParam.sysParam;
                 SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(company.getCode())
                         .and(qSysParam.code.eq(Constants.SYSPARAM_RECORD))
                         .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));

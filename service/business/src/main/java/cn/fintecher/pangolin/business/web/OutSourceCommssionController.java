@@ -2,13 +2,11 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.OutSourceCommssionRepository;
-import cn.fintecher.pangolin.entity.OutBackSource;
-import cn.fintecher.pangolin.entity.OutSourceCommssion;
-import cn.fintecher.pangolin.entity.QOutSourceCommssion;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.ExcelUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
+import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
@@ -73,18 +71,33 @@ public class OutSourceCommssionController extends BaseController {
                                                                            @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get a page of AccOutsource : {}");
         User user;
+        BooleanBuilder builder = new BooleanBuilder();
+        QOutSourceCommssion qOutSourceCommssion = QOutSourceCommssion.outSourceCommssion;
         try {
             user = getUserByToken(token);
+            //判断如果是超级管理员companyCode是为null的
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+                }
+                builder.and(qOutSourceCommssion.companyCode.eq(companyCode));
+            } else {
+                builder.and(qOutSourceCommssion.companyCode.eq(user.getCompanyCode()));;//限制公司code码
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
 
+        //判断传入的委外案件是否为空
         if (Objects.isNull(outsId)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Please select the foreign party", "请选择委外方")).body(null);
+        }else{
+
+            builder.and(qOutSourceCommssion.outsId.eq(outsId));
         }
-        QOutSourceCommssion qOutSourceCommssion = QOutSourceCommssion.outSourceCommssion;
-        Page<OutSourceCommssion> page = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outsId).and(qOutSourceCommssion.companyCode.eq(companyCode)), pageable);
+        Page<OutSourceCommssion> page = outSourceCommssionRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
 
@@ -109,10 +122,19 @@ public class OutSourceCommssionController extends BaseController {
         if (Objects.isNull(request.getOutsourceCommissionList())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Add new or modified objects", "请添加新增或者修改的对象")).body(null);
         }
+
         List<OutSourceCommssion> exist = new ArrayList<>();
         for (OutSourceCommssion outSourceCommssion : request.getOutsourceCommissionList()) {
             QOutSourceCommssion qOutSourceCommssion = QOutSourceCommssion.outSourceCommssion;
             Iterator<OutSourceCommssion> outSourceCommssionList;
+            //判断如果是超级管理员companyCode是为null的
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(outSourceCommssion.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+                }
+            } else {
+                outSourceCommssion.setCompanyCode(user.getCompanyCode());//限制公司code码
+            }
             //判断该佣金案件是否存在
             if (Objects.nonNull(outSourceCommssion.getId())) {
                 outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.id.ne(outSourceCommssion.getId())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
@@ -180,6 +202,14 @@ public class OutSourceCommssionController extends BaseController {
         User user;
         try {
             user = getUserByToken(token);
+            //判断如果是超级管理员companyCode是为null的
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+                }
+            } else {
+                companyCode = user.getCompanyCode();//限制公司code码
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
@@ -314,10 +344,19 @@ public class OutSourceCommssionController extends BaseController {
         User user;
         try {
             user = getUserByToken(token);
+            //判断如果是超级管理员companyCode是为null的
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+                }
+            } else {
+                companyCode = user.getCompanyCode();//限制公司code码
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
+
         HSSFWorkbook workbook = null;
         File file = null;
         ByteArrayOutputStream out = null;

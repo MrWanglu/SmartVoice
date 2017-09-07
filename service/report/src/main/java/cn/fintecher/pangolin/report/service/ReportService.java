@@ -1163,9 +1163,11 @@ public class ReportService {
                     List<SmsReport> smsReportList = new ArrayList<>();
                     smsReportList.add(smsReport);
                     smsSecModel.setSmsReports(smsReportList); //二级模型中加入基础模型集合
+                    smsSecModels.add(smsSecModel);
                 } else { //包含
                     List<SmsReport> smsReportList = smsSecModel.getSmsReports();
                     smsReportList.add(smsReport);
+                    smsSecModel.setSmsReports(smsReportList);
                 }
             } else { //一级模型没有该部门code码
                 smsModel = new SmsModel();
@@ -1237,9 +1239,16 @@ public class ReportService {
 
         //下载催收员回款报表模版
         //拼接请求地址
-        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
-                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.BACK_MONEY_REPORT_EXCEL_URL_CODE).
-                concat("&").concat("type").concat("=").concat(Constants.BACK_MONEY_REPORT_EXCEL_URL_TYPE));
+        String requestUrl;
+        if (Objects.isNull(tokenUser.getCompanyCode())) {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(generalParams.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.BACK_MONEY_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.BACK_MONEY_REPORT_EXCEL_URL_TYPE));
+        } else {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.BACK_MONEY_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.BACK_MONEY_REPORT_EXCEL_URL_TYPE));
+        }
         log.debug(requestUrl);
         //下载模版
         HSSFWorkbook hssfWorkbook = downloadTemplate(requestUrl);
@@ -1367,9 +1376,16 @@ public class ReportService {
 
         //下载催收员回款报表模版
         //拼接请求地址
-        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
-                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_REPORT_EXCEL_URL_CODE).
-                concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_REPORT_EXCEL_URL_TYPE));
+        String requestUrl;
+        if (Objects.isNull(tokenUser.getCompanyCode())) {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(performanceParams.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_REPORT_EXCEL_URL_TYPE));
+        } else {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_REPORT_EXCEL_URL_TYPE));
+        }
         log.debug(requestUrl);
         //下载模版
         HSSFWorkbook hssfWorkbook = downloadTemplate(requestUrl);
@@ -1615,9 +1631,16 @@ public class ReportService {
 
         //下载催收员回款报表模版
         //拼接请求地址
-        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
-                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.DAILY_PROCESS_REPORT_EXCEL_URL_CODE).
-                concat("&").concat("type").concat("=").concat(Constants.DAILY_PROCESS_REPORT_EXCEL_URL_TYPE));
+        String requestUrl;
+        if (Objects.isNull(tokenUser.getCompanyCode())) {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(generalParams.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.DAILY_PROCESS_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.DAILY_PROCESS_REPORT_EXCEL_URL_TYPE));
+        } else {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.DAILY_PROCESS_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.DAILY_PROCESS_REPORT_EXCEL_URL_TYPE));
+        }
         log.debug(requestUrl);
         //下载模版
         HSSFWorkbook hssfWorkbook = downloadTemplate(requestUrl);
@@ -1868,9 +1891,16 @@ public class ReportService {
 
         //下载催收员回款报表模版
         //拼接请求地址
-        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
-                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.DAILY_RESULT_REPORT_EXCEL_URL_CODE).
-                concat("&").concat("type").concat("=").concat(Constants.DAILY_RESULT_REPORT_EXCEL_URL_TYPE));
+        String requestUrl;
+        if (Objects.isNull(tokenUser.getCompanyCode())) {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(generalParams.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.DAILY_RESULT_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.DAILY_RESULT_REPORT_EXCEL_URL_TYPE));
+        } else {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.DAILY_RESULT_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.DAILY_RESULT_REPORT_EXCEL_URL_TYPE));
+        }
         log.debug(requestUrl);
         //下载模版
         HSSFWorkbook hssfWorkbook = downloadTemplate(requestUrl);
@@ -2105,9 +2135,16 @@ public class ReportService {
 
         //下载催收员回款报表模版
         //拼接请求地址
-        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
-                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_RANKING_REPORT_EXCEL_URL_CODE).
-                concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_RANKING_REPORT_EXCEL_URL_TYPE));
+        String requestUrl;
+        if (Objects.isNull(tokenUser.getCompanyCode())) {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(performanceRankingParams.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_RANKING_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_RANKING_REPORT_EXCEL_URL_TYPE));
+        } else {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_RANKING_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_RANKING_REPORT_EXCEL_URL_TYPE));
+        }
         log.debug(requestUrl);
         //下载模版
         HSSFWorkbook hssfWorkbook = downloadTemplate(requestUrl);
@@ -2207,9 +2244,16 @@ public class ReportService {
 
         //下载催收员回款报表模版
         //拼接请求地址
-        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
-                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_CODE).
-                concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_TYPE));
+        String requestUrl;
+        if (Objects.isNull(tokenUser.getCompanyCode())) {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(performanceRankingParams.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_TYPE));
+        } else {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_TYPE));
+        }
         log.debug(requestUrl);
         //下载模版
         HSSFWorkbook hssfWorkbook = downloadTemplate(requestUrl);
@@ -2318,9 +2362,16 @@ public class ReportService {
 
         //下载短信发送统计报表模版
         //拼接请求地址
-        String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
-                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.SMS_REPORT_EXCEL_URL_CODE).
-                concat("&").concat("type").concat("=").concat(Constants.SMS_REPORT_EXCEL_URL_TYPE));
+        String requestUrl;
+        if (Objects.isNull(tokenUser.getCompanyCode())) {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(generalParams.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.SMS_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.SMS_REPORT_EXCEL_URL_TYPE));
+        } else {
+            requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId().
+                    concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode()).concat("&").concat("code").concat("=").concat(Constants.SMS_REPORT_EXCEL_URL_CODE).
+                    concat("&").concat("type").concat("=").concat(Constants.SMS_REPORT_EXCEL_URL_TYPE));
+        }
         log.debug(requestUrl);
         //下载模版
         HSSFWorkbook hssfWorkbook = downloadTemplate(requestUrl);

@@ -6,6 +6,7 @@ import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import com.google.common.collect.Lists;
 import com.querydsl.jpa.impl.JPAQuery;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +61,9 @@ public class OverNightBatchService {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    SysParamRepository sysParamRepository;
+
     /**
      * 晚间批量任务
      *
@@ -70,6 +74,14 @@ public class OverNightBatchService {
         watch.start();
         try {
             logger.info("开始晚间批量_{} ", jobDataMap.get("companyCode"));
+            QSysParam qSysParam = QSysParam.sysParam;
+            SysParam sysParam1 = sysParamRepository.findOne(qSysParam.companyCode.eq(jobDataMap.get("companyCode").toString())
+                    .and(qSysParam.code.eq(Constants.OVERNIGHTBATCH_STATUS_CODE))
+                    .and(qSysParam.type.eq(Constants.OVERNIGHTBATCH_STATUS_TYPE)));
+            if (Objects.equals(StringUtils.trim(sysParam1.getValue()), "1")) {
+                logger.info("晚间批量任务为停用状态");
+                return;
+            }
             if (jobTaskService.checkJobIsRunning(jobDataMap.getString("companyCode"), jobDataMap.getString("sysParamCode"))) {
                 logger.info("晚间批量正在执行_{}", jobDataMap.get("companyCode"));
             } else {

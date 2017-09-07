@@ -54,7 +54,6 @@ public class AppVersionController {
                                                              @RequestHeader(value = "X-UserToken") String token) {
         condition = (AppVersionSaveCondition) EntityUtil.emptyValueToNull(condition);
         User user = userClient.getUserByToken(token).getBody();
-
         if (!(Objects.equals(user.getId(), Constants.ADMINISTRATOR_ID))) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "Can't add without permission", "没有权限不能添加")).body(null);
@@ -118,17 +117,17 @@ public class AppVersionController {
             ResponseEntity<User> userEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
             user = userEntity.getBody();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.nonNull(companyCode)) {
-                    builder.and(QAppVersion.appVersion1.companyCode.eq(companyCode));
-                } else {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "AppVersion", "请选择公司!")).body(null);
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "AppVersion", "请选择公司")).body(null);
                 }
+                builder.and(QAppVersion.appVersion1.companyCode.eq(companyCode));
+            } else {
                 builder.and(QAppVersion.appVersion1.companyCode.eq(user.getCompanyCode()));
             }
             logger.debug("REST request to query company : {}");
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "AppVersion", "用户未登录!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "AppVersion", "系统异常!")).body(null);
         }
         Page<AppVersion> page = appVersionRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_NAME)).body(page);

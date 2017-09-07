@@ -30,7 +30,7 @@
         <if test="realName != null">
             AND realName like concat('%',#{realName},'%')
         </if>
-        order by deptCode asc,smsNum desc
+        order by parentDeptCode asc,deptCode asc,smsNum desc
     </select>
 
     <!-- 生成短信统计历史报表 -->
@@ -75,7 +75,7 @@
             AND real_name LIKE CONCAT('%', #{realName}, '%')
         </if>
         GROUP BY dept_code,dept_name,parent_dept_code,parent_dept_name,user_name,real_name
-        ORDER BY dept_code asc,user_name asc,sms_num desc;
+        ORDER BY parent_dept_code asc,dept_code asc,user_name asc,sms_num desc;
     </select>
 
     <resultMap id="smsReport" type="cn.fintecher.pangolin.report.entity.SmsReport">

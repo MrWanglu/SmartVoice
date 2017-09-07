@@ -83,13 +83,19 @@ public class OutBackSourceController extends BaseController {
                     if (OutBackSource.operationType.OUTBACKAMT.getCode().equals(operationType) && amt!=null){
                         outsourcePool.setOutBackAmt(amt);//累加回款金额
                     }
-
                     outsourcePool.setOutoperationStatus(outBackSource.getOperationType());
                     outsourcePoolRepository.saveAndFlush(outsourcePool);//保存委外案件
                 }
             }
-            outBackSource.setCompanyCode(user.getCompanyCode());
-            outBackSource.setOperator(user.getUserName());
+            //判断如果是超级管理员companyCode是为null的
+            if (Objects.isNull(user.getCompanyCode())) {
+                if(Objects.isNull(outBackSource.getCompanyCode())){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+                }
+            }else{
+                outBackSource.setCompanyCode(user.getCompanyCode());
+            }
+            outBackSource.setOperator(user.getRealName());
             outBackSource.setOperateTime(ZWDateUtil.getNowDateTime());
             outbackSourceRepository.save(outBackSource);
             return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", " 操作成功")).body(outBackSource);
@@ -103,7 +109,7 @@ public class OutBackSourceController extends BaseController {
     /**
      * @Description 委外页面多条件查询回款跟进记录
      */
-    @GetMapping("/getOutbackFollowupRecord/{outId}")
+    @GetMapping("/getOutbackFollowupRecord")
     @ApiOperation(value = "委外页面多条件查询回款跟进记录", notes = "委外页面多条件查询回款跟进记录")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -113,12 +119,30 @@ public class OutBackSourceController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<OutBackSource>> getOutbackFollowupRecord(@PathVariable @ApiParam(value = "委外案件编号", required = true) String outId,
+    public ResponseEntity<Page<OutBackSource>> getOutbackFollowupRecord(@RequestParam @ApiParam(value = "委外案件编号", required = true) String outId,
+                                                                        @RequestParam String companyCode,
                                                                         @QuerydslPredicate(root = OutBackSource.class) Predicate predicate,
-                                                                        @ApiIgnore Pageable pageable) {
-        log.debug("REST request to get case followup records by {outId}", outId);
+                                                                        @ApiIgnore Pageable pageable,
+                                                                        @RequestHeader(value = "X-UserToken") String token) {
+
+        log.debug("REST request to get outback source followup records by {outId}", outId);
+        BooleanBuilder builder = new BooleanBuilder(predicate);
         try {
-            BooleanBuilder builder = new BooleanBuilder(predicate);
+            User user = getUserByToken(token);
+            //判断如果是超级管理员companyCode是为null的
+            if (Objects.isNull(user.getCompanyCode())) {
+                if(Objects.isNull(companyCode)){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+                }
+                builder.and(QOutBackSource.outBackSource.companyCode.eq(companyCode));
+            }else{
+                builder.and(QOutBackSource.outBackSource.companyCode.eq(user.getCompanyCode()));
+            }
+
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
+
             if(Objects.nonNull(outId)){
                 builder.and(QOutBackSource.outBackSource.outId.eq(outId));
             }

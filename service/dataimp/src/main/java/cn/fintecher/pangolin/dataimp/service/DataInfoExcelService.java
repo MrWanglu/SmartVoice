@@ -150,7 +150,6 @@ public class DataInfoExcelService {
                         tempObj.setOperatorName(user.getRealName());
                         tempObj.setOperatorTime(ZWDateUtil.getNowDateTime());
                         tempObj.setCompanyCode(user.getCompanyCode());
-                        tempObj.setCaseHandNum(dataImportRecord.getHandNumber());
                         tempObj.setPaymentStatus("M".concat(String.valueOf(tempObj.getOverDuePeriods() == null ? "M0" : tempObj.getOverDuePeriods())));
                         tempObj.setDelegationDate(dataImportRecord.getDelegationDate());
                         tempObj.setCloseDate(dataImportRecord.getCloseDate());
@@ -174,7 +173,6 @@ public class DataInfoExcelService {
                         tempObj.setOperatorName(user.getRealName());
                         tempObj.setOperatorTime(ZWDateUtil.getNowDateTime());
                         tempObj.setCompanyCode(user.getCompanyCode());
-//                        tempObj.setCaseHandNum(dataImportRecord.getHandNumber());
                         tempObj.setPaymentStatus("M".concat(String.valueOf(tempObj.getOverDuePeriods() == null ? "M0" : tempObj.getOverDuePeriods())));
                         tempObj.setDelegationDate(dataImportRecord.getDelegationDate());
                         tempObj.setCloseDate(dataImportRecord.getCloseDate());
@@ -281,6 +279,7 @@ public class DataInfoExcelService {
                 dataInfoExcelFile.setOperator(user.getId());
                 dataInfoExcelFile.setOperatorName(user.getRealName());
                 dataInfoExcelFile.setOperatorTime(ZWDateUtil.getNowDateTime());
+                dataInfoExcelFile.setFileType(uploadFile.getType());
                 dataInfoExcelFiles.add(dataInfoExcelFile);
             }
             dataInfoExcelFileRepository.save(dataInfoExcelFiles);

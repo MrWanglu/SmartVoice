@@ -12,6 +12,7 @@ import java.util.List;
 @Data
 public class MessageBatchSendRequest {
     private String custId; //客户ID
+    private String caseNumber; //案件编号
     private String custName; //客户姓名
     private List<Integer> relation; //客户关系人列表
     private List<String> phone; //客户关系人手机号

@@ -18,10 +18,10 @@ import java.util.Date;
 @Data
 public class OutBackSource extends BaseEntity {
 
-    @ApiModelProperty("委外方ID")
+    @ApiModelProperty("委外案件ID")
     private String outId;
 
-    @ApiModelProperty("委外案件ID")
+    @ApiModelProperty("委外案件case ID")
     private String outcaseId;
 
     @ApiModelProperty("委外案件ID")

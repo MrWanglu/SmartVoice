@@ -1,9 +1,11 @@
-package cn.fintecher.pangolin.report.entity;
+package cn.fintecher.pangolin.entity;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -85,21 +87,35 @@ public class CaseInfoVerification extends BaseEntity{
     private Date operatorTime;
     private Integer caseMark = 126;
 
-    private String personalId;
+    @ManyToOne
+    @JoinColumn(name = "personal_id")
+    private Personal personalInfo;
 
-    private String departId;
+    @ManyToOne
+    @JoinColumn(name = "depart_id")
+    private Department department;
+    @ManyToOne
+    @JoinColumn(name = "area_id")
+    private AreaCode area;
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
+    @ManyToOne
+    @JoinColumn(name = "lately_collector")
+    private User latelyCollector;
+    @ManyToOne
+    @JoinColumn(name = "current_collector")
+    private User currentCollector;
+    @ManyToOne
+    @JoinColumn(name = "assist_collector")
+    private User assistCollector;
 
-    private String area;
+    @ManyToOne
+    @JoinColumn(name = "principal_id")
+    private Principal principalId;
 
-    private String product;
+    @ManyToOne
+    @JoinColumn(name = "operator")
+    private User operator;
 
-    private String latelyCollector;
-
-    private String currentCollector;
-
-    private String assistCollector;
-
-    private String principalId;
-
-    private String operator;
 }

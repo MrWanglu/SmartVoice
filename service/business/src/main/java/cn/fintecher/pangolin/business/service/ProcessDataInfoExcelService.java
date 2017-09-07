@@ -189,7 +189,7 @@ public class ProcessDataInfoExcelService {
         caseInfoException.setOperatorTime(ZWDateUtil.getNowDateTime());
         caseInfoException.setOperator(user.getId());
         caseInfoException.setOperatorName(user.getRealName());
-        caseInfoException.setCaseHandNum(dataInfoExcelModel.getHandNumber()); //手数
+        caseInfoException.setCaseHandNum(dataInfoExcelModel.getCaseHandNum()); //手数
         return caseInfoException;
     }
 
@@ -235,8 +235,7 @@ public class ProcessDataInfoExcelService {
         caseInfoDistributed.setDelegationDate(dataInfoExcelModel.getDelegationDate());
         caseInfoDistributed.setCloseDate(dataInfoExcelModel.getCloseDate());
         caseInfoDistributed.setCommissionRate(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getCommissionRate(),4,null));
-//        caseInfoDistributed.setHandNumber(dataInfoExcelModel.getCaseHandNum());
-        caseInfoDistributed.setHandNumber(dataInfoExcelModel.getHandNumber());
+        caseInfoDistributed.setHandNumber(dataInfoExcelModel.getCaseHandNum());
         caseInfoDistributed.setLoanDate(dataInfoExcelModel.getLoanDate());
         caseInfoDistributed.setOverdueManageFee(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getOverdueManageFee(),null,null));
         caseInfoDistributed.setHandUpFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());

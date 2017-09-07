@@ -513,7 +513,7 @@ public class DepartmentController extends BaseController {
     @RequestMapping(value = "/querySubdivisions", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
     @ResponseBody
     @ApiOperation(value = "查询公司下的外访机构", notes = "查询公司下的外访机构")
-    public ResponseEntity<Page<Department>> querySubdivisions(@RequestParam(required = false) String companyCode,
+    public ResponseEntity<List<Department>> querySubdivisions(@RequestParam(required = false) String companyCode,
                                                              @RequestParam Integer type,@RequestHeader(value = "X-UserToken") String token,
                                                               @ApiIgnore Pageable pageable) {
         User user;
@@ -536,7 +536,8 @@ public class DepartmentController extends BaseController {
         if(Objects.nonNull(type)){
             builder.and(qDepartment.type.eq(type));
         }
-        Page<Department>  page = departmentRepository.findAll(builder,pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(page);
+        Iterator<Department>  departmentList = departmentRepository.findAll(builder).iterator();
+        List<Department> departmentList1 = IteratorUtils.toList(departmentList);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList1);
     }
 }

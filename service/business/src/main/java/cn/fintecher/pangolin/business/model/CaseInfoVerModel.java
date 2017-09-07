@@ -1,4 +1,4 @@
-package cn.fintecher.pangolin.report.model;
+package cn.fintecher.pangolin.business.model;
 
 import lombok.Data;
 
@@ -18,5 +18,7 @@ public class CaseInfoVerModel {
 
     private String city; // 城市
 
-    private String amount; // 累计回款金额
+    private BigDecimal amount; // 累计回款金额
+
+    private String amountStr; //累计回款金额，用于导出
 }

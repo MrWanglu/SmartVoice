@@ -56,6 +56,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to get back money report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(generalParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_BACKMONEY_REPORT, "backMoneyReport", "请选择公司")).body(null);
+                }
+            }
             List<BackMoneyModel> backMoneyModels = reportService.getBackMoneyReport(generalParams, tokenUser);
             if (Objects.equals(backMoneyModels, null)) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_BACKMONEY_REPORT)).body(new ArrayList<>());
@@ -78,6 +83,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to get performance report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(performanceParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_REPORT, "performanceReport", "请选择公司")).body(null);
+                }
+            }
             List<PerformanceModel> performanceModels = reportService.getPerformanceReport(performanceParams, tokenUser);
             if (Objects.equals(performanceModels, null)) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_REPORT)).body(new ArrayList<>());
@@ -100,6 +110,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to get daily process report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(generalParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_DAILY_PROCESS_REPORT, "dailyProcessReport", "请选择公司")).body(null);
+                }
+            }
             List<DailyProcessModel> dailyProcessModels = reportService.getDailyProcessReport(generalParams, tokenUser);
             if (Objects.isNull(dailyProcessModels)) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_DAILY_PROCESS_REPORT)).body(new ArrayList<>());
@@ -122,6 +137,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to get daily result report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(generalParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_DAILY_RESULT_REPORT, "dailyResultReport", "请选择公司")).body(null);
+                }
+            }
             List<DailyResultModel> dailyResultModels = reportService.getDailyResultReport(generalParams, tokenUser);
             if (Objects.isNull(dailyResultModels)) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_DAILY_RESULT_REPORT)).body(new ArrayList<>());
@@ -144,6 +164,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to get performance ranking report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_RANKING_REPORT, "performanceRankingReport", "请选择公司")).body(null);
+                }
+            }
             List<CollectorPerformanceModel> collectorPerformanceModels = reportService.getPerformanceRankingReport(performanceRankingParams, tokenUser);
             if (Objects.isNull(collectorPerformanceModels)) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_RANKING_REPORT)).body(new ArrayList<>());
@@ -165,6 +190,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to get summary report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_RANKING_REPORT, "performanceRankingReport", "请选择公司")).body(null);
+                }
+            }
             List<PerformanceSummaryModel> performanceSummaryModels = reportService.getSummaryReport(performanceRankingParams, tokenUser);
             if (Objects.isNull(performanceSummaryModels)) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_RANKING_REPORT)).body(new ArrayList<>());
@@ -186,6 +216,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to get group leader report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_RANKING_REPORT, "performanceRankingReport", "请选择公司")).body(null);
+                }
+            }
             List<GroupLeaderModel> groupLeaderModels = reportService.getGroupLeaderReport(performanceRankingParams, tokenUser);
             if (Objects.isNull(groupLeaderModels)) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_PERFORMANCE_RANKING_REPORT)).body(new ArrayList<>());
@@ -207,6 +242,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to get sms report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(generalParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_SMS_REPORT, "smsReport", "请选择公司")).body(null);
+                }
+            }
             List<SmsModel> smsModels = reportService.getSmsReport(generalParams, tokenUser);
             if (Objects.isNull(smsModels)) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("报表为空", ENTITY_SMS_REPORT)).body(new ArrayList<>());
@@ -228,6 +268,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to export back money report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(generalParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_BACKMONEY_REPORT, "backMoneyReport", "请选择公司")).body(null);
+                }
+            }
             String url = reportService.exportBackMoneyReport(generalParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_BACKMONEY_REPORT)).body(url);
         } catch (Exception e) {
@@ -246,6 +291,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to export performance report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(performanceParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_REPORT, "performanceReport", "请选择公司")).body(null);
+                }
+            }
             String url = reportService.exportPerformanceReport(performanceParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_PERFORMANCE_REPORT)).body(url);
         } catch (Exception e) {
@@ -264,6 +314,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to export daily process report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(generalParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_DAILY_PROCESS_REPORT, "dailyProcessReport", "请选择公司")).body(null);
+                }
+            }
             String url = reportService.exportDailyProcessReport(generalParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_DAILY_PROCESS_REPORT)).body(url);
         } catch (Exception e) {
@@ -282,6 +337,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to export daily result report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(generalParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_DAILY_RESULT_REPORT, "dailyResultReport", "请选择公司")).body(null);
+                }
+            }
             String url = reportService.exportDailyResultReport(generalParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_DAILY_RESULT_REPORT)).body(url);
         } catch (Exception e) {
@@ -300,6 +360,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to export performance ranking report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_RANKING_REPORT, "performanceRankingReport", "请选择公司")).body(null);
+                }
+            }
             String url = reportService.exportPerformanceRankingReport(performanceRankingParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_PERFORMANCE_RANKING_REPORT)).body(url);
         } catch (Exception e) {
@@ -318,6 +383,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to export summary report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_PERFORMANCE_RANKING_REPORT, "performanceRankingReport", "请选择公司")).body(null);
+                }
+            }
             String url = reportService.exportSummaryReport(performanceRankingParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_PERFORMANCE_RANKING_REPORT)).body(url);
         } catch (Exception e) {
@@ -336,6 +406,11 @@ public class ReportController extends BaseController {
         log.debug("REST request to export sms report");
         try {
             User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.isNull(generalParams.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_SMS_REPORT, "smsReport", "请选择公司")).body(null);
+                }
+            }
             String url = reportService.exportSmsReport(generalParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_SMS_REPORT)).body(url);
         } catch (Exception e) {
