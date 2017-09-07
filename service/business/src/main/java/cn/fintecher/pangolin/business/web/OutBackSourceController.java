@@ -119,13 +119,13 @@ public class OutBackSourceController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<OutBackSource>> getOutbackFollowupRecord(@RequestParam @ApiParam(value = "委外案件编号", required = true) String outId,
+    public ResponseEntity<Page<OutBackSource>> getOutbackFollowupRecord(@RequestParam @ApiParam(value = "委外案件编号", required = true) String outcaseId,
                                                                         @RequestParam String companyCode,
                                                                         @QuerydslPredicate(root = OutBackSource.class) Predicate predicate,
                                                                         @ApiIgnore Pageable pageable,
                                                                         @RequestHeader(value = "X-UserToken") String token) {
 
-        log.debug("REST request to get outback source followup records by {outId}", outId);
+        log.debug("REST request to get outback source followup records by {outId}", outcaseId);
         BooleanBuilder builder = new BooleanBuilder(predicate);
         try {
             User user = getUserByToken(token);
@@ -143,8 +143,8 @@ public class OutBackSourceController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
 
-            if(Objects.nonNull(outId)){
-                builder.and(QOutBackSource.outBackSource.outId.eq(outId));
+            if(Objects.nonNull(outcaseId)){
+                builder.and(QOutBackSource.outBackSource.outId.eq(outcaseId));
             }
             Page<OutBackSource> page = outbackSourceRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/OutBackSourceController/getOutbackFollowupRecord");
