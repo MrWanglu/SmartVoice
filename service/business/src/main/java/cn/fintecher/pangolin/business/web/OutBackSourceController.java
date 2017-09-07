@@ -144,7 +144,7 @@ public class OutBackSourceController extends BaseController {
             }
 
             if(Objects.nonNull(outcaseId)){
-                builder.and(QOutBackSource.outBackSource.outId.eq(outcaseId));
+                builder.and(QOutBackSource.outBackSource.outcaseId.eq(outcaseId));
             }
             Page<OutBackSource> page = outbackSourceRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/OutBackSourceController/getOutbackFollowupRecord");
