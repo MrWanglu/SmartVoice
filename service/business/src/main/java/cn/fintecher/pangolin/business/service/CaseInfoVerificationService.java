@@ -3,11 +3,13 @@ package cn.fintecher.pangolin.business.service;
 import cn.fintecher.pangolin.business.model.CaseInfoVerModel;
 import cn.fintecher.pangolin.business.model.CaseInfoVerificationParams;
 import cn.fintecher.pangolin.business.repository.CaseInfoVerificationRepository;
+import cn.fintecher.pangolin.business.repository.DataDictRepository;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.CaseInfoVerification;
+import cn.fintecher.pangolin.entity.DataDict;
+import cn.fintecher.pangolin.entity.QDataDict;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.ExcelUtil;
-import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -20,17 +22,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
-
 
 /**
  * @author yuanyanting
@@ -50,6 +49,9 @@ public class CaseInfoVerificationService {
     @Inject
     private EntityManager em;
 
+    @Inject
+    private DataDictRepository dataDictRepository;
+
     public String exportCaseInfoVerification(List<CaseInfoVerification> caseInfoVerificationList) {
         HSSFWorkbook workbook = null;
         File file = null;
@@ -64,7 +66,7 @@ public class CaseInfoVerificationService {
         headMap.put("overdueDays", "逾期天数");
         headMap.put("overdueAmount", "逾期总金额");
         headMap.put("principalName", "委托方");
-        headMap.put("assistCollector", "催收员");
+        headMap.put("currentCollector", "催收员");
         headMap.put("collectionStatus", "催收状态");
         List<Map<String, Object>> dataList = new ArrayList<>();
         try {
@@ -83,10 +85,11 @@ public class CaseInfoVerificationService {
                 if (Objects.nonNull(caseInfoVerification.getPrincipalId())) {
                     map.put("principalName", caseInfoVerification.getPrincipalId().getName());
                 }
-                if (Objects.nonNull(caseInfoVerification.getAssistCollector())) {
-                    map.put("assistCollector", caseInfoVerification.getAssistCollector().getUserName());
+                if (Objects.nonNull(caseInfoVerification.getCurrentCollector())) {
+                    map.put("currentCollector", caseInfoVerification.getCurrentCollector().getRealName());
                 }
-                map.put("collectionStatus", caseInfoVerification.getCollectionStatus());
+                DataDict dataDict = dataDictRepository.findOne(QDataDict.dataDict.id.eq(caseInfoVerification.getCollectionStatus()));
+                map.put("collectionStatus", dataDict.getName());
                 dataList.add(map);
             }
             workbook = new HSSFWorkbook();
