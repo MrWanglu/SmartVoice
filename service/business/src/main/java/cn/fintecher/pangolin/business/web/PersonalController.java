@@ -346,7 +346,7 @@ public class PersonalController extends BaseController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", ENTITY_NAME, e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", ENTITY_NAME, "查询失败")).body(null);
         }
     }
 
