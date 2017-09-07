@@ -139,7 +139,14 @@ public class OutSourceCommssionController extends BaseController {
             if (Objects.nonNull(outSourceCommssion.getId())) {
                 outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.id.ne(outSourceCommssion.getId())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
             } else {
-                outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
+                //该逾期时段不能为空
+                if(outSourceCommssion.getOverdueTime() !=null && !"".equals(outSourceCommssion.getOverdueTime())) {
+
+                    outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
+                }else{
+
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failed", "该逾期时段不能为空")).body(null);
+                }
             }
             List<OutSourceCommssion> outSourceCommssionList1 = IteratorUtils.toList(outSourceCommssionList);
             if (outSourceCommssionList1.size() == 0) {
