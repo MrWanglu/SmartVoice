@@ -73,52 +73,54 @@ public class DataInfoExcelService {
     @Autowired
     private DataInfoExcelHisRepository dataInfoExcelHisRepository;
 
-    private  final Logger logger=LoggerFactory.getLogger(DataInfoExcelService.class);
+    private final Logger logger = LoggerFactory.getLogger(DataInfoExcelService.class);
+
     /**
      * Excel数据导入
+     *
      * @param dataImportRecord
      * @param user
      * @throws Exception
      */
-    public List<CellError> importExcelData(DataImportRecord dataImportRecord,User user) throws Exception{
+    public List<CellError> importExcelData(DataImportRecord dataImportRecord, User user) throws Exception {
         //获取上传的文件
-        ResponseEntity<UploadFile> fileResponseEntity=null;
+        ResponseEntity<UploadFile> fileResponseEntity = null;
         try {
-            fileResponseEntity= restTemplate.getForEntity(Constants.FILEID_SERVICE_URL.concat("uploadFile/").concat(dataImportRecord.getFileId()), UploadFile.class);
-        }catch (Exception e){
-            logger.error(e.getMessage(),e);
+            fileResponseEntity = restTemplate.getForEntity(Constants.FILEID_SERVICE_URL.concat("uploadFile/").concat(dataImportRecord.getFileId()), UploadFile.class);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             throw new Exception("获取上传文件失败");
         }
-        UploadFile file=fileResponseEntity.getBody();
-        if(Objects.isNull(file)){
+        UploadFile file = fileResponseEntity.getBody();
+        if (Objects.isNull(file)) {
             throw new Exception("获取Excel数据失败");
         }
         //判断文件类型是否为Excel
-        if(!Constants.EXCEL_TYPE_XLS.equals(file.getType()) && !Constants.EXCEL_TYPE_XLSX.equals(file.getType())){
+        if (!Constants.EXCEL_TYPE_XLS.equals(file.getType()) && !Constants.EXCEL_TYPE_XLSX.equals(file.getType())) {
             throw new Exception("数据文件为非Excel数据");
         }
         //获取模板数据
         TemplateDataModel templateDataModel = null;
         int[] startRow = new int[]{0};
-        int[] startCol =new int[]{0};
+        int[] startCol = new int[]{0};
         //通过模板配置解析Excel数据
-        List<TemplateExcelInfo> templateExcelInfoList=null;
-        if(StringUtils.isNotBlank(dataImportRecord.getTemplateId())){
-            templateDataModel=templateDataModelRepository.findOne(dataImportRecord.getTemplateId());
-            if(Objects.nonNull(templateDataModel)){
+        List<TemplateExcelInfo> templateExcelInfoList = null;
+        if (StringUtils.isNotBlank(dataImportRecord.getTemplateId())) {
+            templateDataModel = templateDataModelRepository.findOne(dataImportRecord.getTemplateId());
+            if (Objects.nonNull(templateDataModel)) {
                 startRow = new int[]{Integer.parseInt(templateDataModel.getDataRowNum())};
                 startCol = new int[]{Integer.parseInt(templateDataModel.getDataColNum())};
-                templateExcelInfoList=templateDataModel.getTemplateExcelInfoList();
-            }else{
+                templateExcelInfoList = templateDataModel.getTemplateExcelInfoList();
+            } else {
                 throw new Exception("导入模板配置信息缺失");
             }
         }
         Class<?>[] dataClass = {DataInfoExcel.class};
-        ExcelSheetObj excelSheetObj= ExcelUtil.parseExcelSingle(file,dataClass,startRow,startCol,templateExcelInfoList);
-        List<CellError> cellErrorList =null;
-        if(Objects.nonNull(excelSheetObj)){
-            cellErrorList=excelSheetObj.getCellErrorList();
-            List dataList=excelSheetObj.getDatasList();
+        ExcelSheetObj excelSheetObj = ExcelUtil.parseExcelSingle(file, dataClass, startRow, startCol, templateExcelInfoList);
+        List<CellError> cellErrorList = null;
+        if (Objects.nonNull(excelSheetObj)) {
+            cellErrorList = excelSheetObj.getCellErrorList();
+            List dataList = excelSheetObj.getDatasList();
 
             //邢台的需要从Excel获取
             String requestUrl = Constants.SYSPARAM_URL.concat("?")
@@ -138,7 +140,7 @@ public class DataInfoExcelService {
                 dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
                 dataImportRecord.setCompanyCode(user.getCompanyCode());
                 dataImportRecordRepository.save(dataImportRecord);
-                if (Objects.equals(body.getValue(),"1")) { //邢台
+                if (Objects.equals(body.getValue(), "1")) { //邢台
                     //开始保存数据
                     for (Object obj : dataList) {
                         DataInfoExcel tempObj = (DataInfoExcel) obj;
@@ -190,36 +192,36 @@ public class DataInfoExcelService {
      * 验证必要数据合法性
      */
     private void validityDataInfoExcel(List<CellError> cellErrorList, List datas, String type) {
-        if(Objects.isNull(cellErrorList)){
-            cellErrorList=new ArrayList<>();
+        if (Objects.isNull(cellErrorList)) {
+            cellErrorList = new ArrayList<>();
         }
-        for(int i=0;i<datas.size();i++ ){
+        for (int i = 0; i < datas.size(); i++) {
             DataInfoExcel tempObj = (DataInfoExcel) datas.get(i);
             if (StringUtils.isBlank(tempObj.getPersonalName())) {
                 CellError cellError = new CellError();
-                cellError.setErrorMsg("第["+i+"]行的客户姓名为空");
+                cellError.setErrorMsg("第[" + (i + 1) + "]行的客户姓名为空");
                 cellErrorList.add(cellError);
             } else {
                 if (StringUtils.isBlank(tempObj.getProductName())) {
                     CellError cellError = new CellError();
-                    cellError.setErrorMsg("客户[".concat(tempObj.getPersonalName()).concat("]的产品名称为空"));
+                    cellError.setErrorMsg("第[" + (i + 1) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的产品名称为空"));
                     cellErrorList.add(cellError);
                 }
                 if (StringUtils.isBlank(tempObj.getIdCard())) {
                     CellError cellError = new CellError();
-                    cellError.setErrorMsg("客户[".concat(tempObj.getPersonalName()).concat("]的身份证号为空"));
+                    cellError.setErrorMsg("第[" + (i + 1) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的身份证号为空"));
                     cellErrorList.add(cellError);
                 } else {
                     if (!IdcardUtils.validateCard(tempObj.getIdCard())) {
                         CellError cellError = new CellError();
-                        cellError.setErrorMsg("客户[".concat(tempObj.getPersonalName()).concat("]的身份证号[").concat(tempObj.getIdCard()).concat("]不合法"));
+                        cellError.setErrorMsg("第[" + (i + 1) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的身份证号[").concat(tempObj.getIdCard()).concat("]不合法"));
                         cellErrorList.add(cellError);
                     }
                 }
                 if (Objects.equals(type, "1")) { // 邢台需要录入批次号
                     if (StringUtils.isBlank(tempObj.getBatchNumber())) {
                         CellError cellError = new CellError();
-                        cellError.setErrorMsg("客户[".concat(tempObj.getPersonalName()).concat("]的批次为空"));
+                        cellError.setErrorMsg("第[" + (i + 1) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的批次为空"));
                         cellErrorList.add(cellError);
                     }
                 }
@@ -229,6 +231,7 @@ public class DataInfoExcelService {
 
     /**
      * 获取导入数据的批次号
+     *
      * @param user
      * @return
      */
@@ -242,12 +245,13 @@ public class DataInfoExcelService {
 
     /**
      * 上传附件
+     *
      * @param upLoadFileModel
      * @param user
      */
-    public void uploadCaseFileSingle(UpLoadFileModel upLoadFileModel, User user){
+    public void uploadCaseFileSingle(UpLoadFileModel upLoadFileModel, User user) {
         //删除原有的附件信息
-        DataInfoExcelFile obj=new DataInfoExcelFile();
+        DataInfoExcelFile obj = new DataInfoExcelFile();
         obj.setCaseNumber(upLoadFileModel.getCaseNum());
         obj.setBatchNumber(upLoadFileModel.getBatchNumber());
         obj.setOperator(user.getId());
@@ -256,19 +260,20 @@ public class DataInfoExcelService {
         List<DataInfoExcelFile> all = dataInfoExcelFileRepository.findAll(example);
         dataInfoExcelFileRepository.delete(all);
         List<String> fileIdList = upLoadFileModel.getFileIdList();
-        if(!fileIdList.isEmpty()){
-            StringBuilder sb=new StringBuilder();
+        if (!fileIdList.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
             for (String id : fileIdList) {
                 sb.append(id).append(",");
             }
-            String ids=sb.toString();
-            ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>(){};
+            String ids = sb.toString();
+            ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>() {
+            };
             ResponseEntity<List<UploadFile>> resp = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(ids),
                     HttpMethod.GET, null, responseType);
-            List<UploadFile> uploadFileList=resp.getBody();
-            List<DataInfoExcelFile> dataInfoExcelFiles=new ArrayList<>();
-            for(UploadFile uploadFile:uploadFileList){
-                DataInfoExcelFile dataInfoExcelFile=new DataInfoExcelFile();
+            List<UploadFile> uploadFileList = resp.getBody();
+            List<DataInfoExcelFile> dataInfoExcelFiles = new ArrayList<>();
+            for (UploadFile uploadFile : uploadFileList) {
+                DataInfoExcelFile dataInfoExcelFile = new DataInfoExcelFile();
                 dataInfoExcelFile.setCompanyCode(user.getCompanyCode());
                 dataInfoExcelFile.setCaseNumber(upLoadFileModel.getCaseNum());
                 dataInfoExcelFile.setCaseId(upLoadFileModel.getCaseId());
@@ -288,11 +293,12 @@ public class DataInfoExcelService {
 
     /**
      * 按批次号删除案件信息
+     *
      * @param batchNumber
      * @param user
      * @throws Exception
      */
-    public void deleteCasesByBatchNum(String batchNumber, User user)  {
+    public void deleteCasesByBatchNum(String batchNumber, User user) {
         //删除案件信息
         List<DataInfoExcel> dataInfoExcels = dataInfoExcelRepository.findByBatchNumberAndCompanyCode(batchNumber, user.getCompanyCode());
         dataInfoExcelRepository.delete(dataInfoExcels);
@@ -303,20 +309,21 @@ public class DataInfoExcelService {
 
     /**
      * 检查附件是否存在
+     *
      * @param user
      * @return
      */
-    public List<DataInfoExcelFileExist> checkCasesFile(User user)  {
-        List<DataInfoExcelFileExist> dataInfoExcelFileExistList=new ArrayList<>();
-        QDataInfoExcel qDataInfoExcel= dataInfoExcel;
-        Iterable<DataInfoExcel> dataInfoExcelIterable=dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId())
+    public List<DataInfoExcelFileExist> checkCasesFile(User user) {
+        List<DataInfoExcelFileExist> dataInfoExcelFileExistList = new ArrayList<>();
+        QDataInfoExcel qDataInfoExcel = dataInfoExcel;
+        Iterable<DataInfoExcel> dataInfoExcelIterable = dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId())
                 .and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
-        for(Iterator<DataInfoExcel> it = dataInfoExcelIterable.iterator(); it.hasNext();){
-            DataInfoExcel dataInfoExcel=it.next();
-            QDataInfoExcelFile qDataInfoExcelFile=QDataInfoExcelFile.dataInfoExcelFile;
-            Iterable<DataInfoExcelFile> dataInfoExcelFileIterable= dataInfoExcelFileRepository.findAll(qDataInfoExcelFile.caseId.eq(dataInfoExcel.getId()));
-            if(Objects.isNull(dataInfoExcelFileIterable) || !(dataInfoExcelFileIterable.iterator().hasNext())){
-                DataInfoExcelFileExist obj=new DataInfoExcelFileExist();
+        for (Iterator<DataInfoExcel> it = dataInfoExcelIterable.iterator(); it.hasNext(); ) {
+            DataInfoExcel dataInfoExcel = it.next();
+            QDataInfoExcelFile qDataInfoExcelFile = QDataInfoExcelFile.dataInfoExcelFile;
+            Iterable<DataInfoExcelFile> dataInfoExcelFileIterable = dataInfoExcelFileRepository.findAll(qDataInfoExcelFile.caseId.eq(dataInfoExcel.getId()));
+            if (Objects.isNull(dataInfoExcelFileIterable) || !(dataInfoExcelFileIterable.iterator().hasNext())) {
+                DataInfoExcelFileExist obj = new DataInfoExcelFileExist();
                 obj.setCaseId(dataInfoExcel.getId());
                 obj.setCaseNumber(dataInfoExcel.getCaseNumber());
                 obj.setBatchNumber(dataInfoExcel.getBatchNumber());
@@ -330,37 +337,38 @@ public class DataInfoExcelService {
 
     /**
      * 案件确认
+     *
      * @param user
      */
-    public void casesConfirmByBatchNum(User user){
+    public void casesConfirmByBatchNum(User user) {
         //查询该用户下所有未确认的案件
-        QDataInfoExcel qDataInfoExcel= dataInfoExcel;
-        Iterable<DataInfoExcel> dataInfoExcelIterable= dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId()).and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
-        List<DataInfoExcelModel> dataInfoExcelModelList=new ArrayList<>();
-        List<DataInfoExcelHis> dataInfoExcelHisList=new ArrayList<>();
-        int dataTotal=0;
-        for (Iterator iterator = dataInfoExcelIterable.iterator(); iterator.hasNext();) {
-            dataTotal=dataTotal+1;
-            DataInfoExcel dataInfoExcel=(DataInfoExcel) iterator.next();
-            DataInfoExcelModel dataInfoExcelModel=new DataInfoExcelModel();
-            BeanUtils.copyProperties(dataInfoExcel,dataInfoExcelModel);
+        QDataInfoExcel qDataInfoExcel = dataInfoExcel;
+        Iterable<DataInfoExcel> dataInfoExcelIterable = dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId()).and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
+        List<DataInfoExcelModel> dataInfoExcelModelList = new ArrayList<>();
+        List<DataInfoExcelHis> dataInfoExcelHisList = new ArrayList<>();
+        int dataTotal = 0;
+        for (Iterator iterator = dataInfoExcelIterable.iterator(); iterator.hasNext(); ) {
+            dataTotal = dataTotal + 1;
+            DataInfoExcel dataInfoExcel = (DataInfoExcel) iterator.next();
+            DataInfoExcelModel dataInfoExcelModel = new DataInfoExcelModel();
+            BeanUtils.copyProperties(dataInfoExcel, dataInfoExcelModel);
             //附件信息
-            QDataInfoExcelFile qDataInfoExcelFile=QDataInfoExcelFile.dataInfoExcelFile;
-            Iterable<DataInfoExcelFile> dataInfoExcelFileIterable=dataInfoExcelFileRepository.findAll(qDataInfoExcelFile.caseId.eq(dataInfoExcel.getId()));
-            List<CaseInfoFile> caseInfoFileList=new ArrayList<>();
-            List<DataInfoExcelFile> dataInfoExcelFileList= IteratorUtils.toList(dataInfoExcelFileIterable.iterator());
+            QDataInfoExcelFile qDataInfoExcelFile = QDataInfoExcelFile.dataInfoExcelFile;
+            Iterable<DataInfoExcelFile> dataInfoExcelFileIterable = dataInfoExcelFileRepository.findAll(qDataInfoExcelFile.caseId.eq(dataInfoExcel.getId()));
+            List<CaseInfoFile> caseInfoFileList = new ArrayList<>();
+            List<DataInfoExcelFile> dataInfoExcelFileList = IteratorUtils.toList(dataInfoExcelFileIterable.iterator());
             for (DataInfoExcelFile file : dataInfoExcelFileList) {
                 CaseInfoFile caseInfoFile = new CaseInfoFile();
-                BeanUtils.copyProperties(file,caseInfoFile);
+                BeanUtils.copyProperties(file, caseInfoFile);
                 caseInfoFileList.add(caseInfoFile);
             }
             dataInfoExcelModel.setCaseInfoFileList(caseInfoFileList);
             dataInfoExcelModelList.add(dataInfoExcelModel);
-            DataInfoExcelHis dataInfoExcelHis=new DataInfoExcelHis();
-            BeanUtils.copyProperties(dataInfoExcel,dataInfoExcelHis);
+            DataInfoExcelHis dataInfoExcelHis = new DataInfoExcelHis();
+            BeanUtils.copyProperties(dataInfoExcel, dataInfoExcelHis);
             dataInfoExcelHisList.add(dataInfoExcelHis);
         }
-        ConfirmDataInfoMessage msg=new ConfirmDataInfoMessage();
+        ConfirmDataInfoMessage msg = new ConfirmDataInfoMessage();
         msg.setDataInfoExcelModelList(dataInfoExcelModelList);
         msg.setDataCount(dataInfoExcelModelList.size());
         msg.setUser(user);
