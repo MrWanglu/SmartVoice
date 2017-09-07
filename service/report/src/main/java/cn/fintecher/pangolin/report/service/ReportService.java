@@ -316,10 +316,10 @@ public class ReportService {
                     throw new RuntimeException("请选择公司");
                 }
                 dailyProcessReports = dailyProcessReportMapper.getHistoryReport(date1, date2,
-                        deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
+                        deptModel.getCode(), generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), generalParams.getCompanyCode());
             } else {
                 dailyProcessReports = dailyProcessReportMapper.getHistoryReport(date1, date2,
-                        deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+                        deptModel.getCode(), generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), tokenUser.getCompanyCode());
             }
         }
         //构建报表展示模型
@@ -474,10 +474,10 @@ public class ReportService {
                     throw new RuntimeException("请选择公司");
                 }
                 dailyResultReports = dailyResultReportMapper.getHistoryReport(date1, date2,
-                        deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
+                        deptModel.getCode(), generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), generalParams.getCompanyCode());
             } else {
                 dailyResultReports = dailyResultReportMapper.getHistoryReport(date1, date2,
-                        deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+                        deptModel.getCode(), generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), tokenUser.getCompanyCode());
             }
         }
         //构建报表展示模型
@@ -677,10 +677,10 @@ public class ReportService {
                     throw new RuntimeException("请选择公司");
                 }
                 performanceRankingReports = performanceRankingReportMapper.getRealtimeSummaryReport(startDate, endDate, performanceRankingParams.getCompanyCode(),
-                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                        tokenUser.getDepartment().getCode(), StringUtils.trim(performanceRankingParams.getRealName()), performanceRankingParams.getCode());
             } else {
                 performanceRankingReports = performanceRankingReportMapper.getRealtimeSummaryReport(startDate, endDate, tokenUser.getCompanyCode(),
-                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                        tokenUser.getDepartment().getCode(), StringUtils.trim(performanceRankingParams.getRealName()), performanceRankingParams.getCode());
             }
         } else { //历史报表
             if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
@@ -688,10 +688,10 @@ public class ReportService {
                     throw new RuntimeException("请选择公司");
                 }
                 performanceRankingReports = performanceRankingReportMapper.getHistorySummayReport(performanceRankingParams.getDate(), performanceRankingParams.getCompanyCode(),
-                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                        tokenUser.getDepartment().getCode(), StringUtils.trim(performanceRankingParams.getRealName()), performanceRankingParams.getCode());
             } else {
                 performanceRankingReports = performanceRankingReportMapper.getHistorySummayReport(performanceRankingParams.getDate(), tokenUser.getCompanyCode(),
-                        tokenUser.getDepartment().getCode(), performanceRankingParams.getRealName(), performanceRankingParams.getCode());
+                        tokenUser.getDepartment().getCode(), StringUtils.trim(performanceRankingParams.getRealName()), performanceRankingParams.getCode());
             }
         }
         if (performanceRankingReports.isEmpty()) {
@@ -1098,10 +1098,10 @@ public class ReportService {
                     throw new RuntimeException("请选择公司");
                 }
                 backMoneyReports = backMoneyReportMapper.getHistoryReport(deptModel.getCode(), date1,
-                        date2, generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
+                        date2, generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), generalParams.getCompanyCode());
             } else {
                 backMoneyReports = backMoneyReportMapper.getHistoryReport(deptModel.getCode(), date1,
-                        date2, generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+                        date2, generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), tokenUser.getCompanyCode());
             }
         }
         return backMoneyReports;
@@ -1116,9 +1116,11 @@ public class ReportService {
         List<SmsReport> smsReports;
         if (Objects.equals(generalParams.getType(), 0)) { //实时报表
             if (Objects.isNull(tokenUser.getCompanyCode())) { //是超级管理员
-                smsReports = smsReportMapper.getRealtimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), generalParams.getCompanyCode());
+                smsReports = smsReportMapper.getRealtimeReport(deptModel.getCode(), generalParams.getCode(),
+                        StringUtils.trim(generalParams.getRealName()), generalParams.getCompanyCode());
             } else { //不是超级管理员
-                smsReports = smsReportMapper.getRealtimeReport(deptModel.getCode(), generalParams.getCode(), generalParams.getRealName(), tokenUser.getCompanyCode());
+                smsReports = smsReportMapper.getRealtimeReport(deptModel.getCode(), generalParams.getCode(),
+                        StringUtils.trim(generalParams.getRealName()), tokenUser.getCompanyCode());
             }
         } else { //历史报表
             Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
