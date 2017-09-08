@@ -58,10 +58,10 @@ public class CaseFollowupAppController extends BaseController {
 
     @GetMapping("/getAllFollowupsForApp")
     @ApiOperation(value = "APP查询案件跟进记录", notes = "APP查询案件跟进记录")
-    public ResponseEntity<Page<CaseFollowupRecord>> getAllFollowupsForApp(@ApiParam(value = "案件ID", required = true) @RequestParam String id, Pageable pageable) {
+    public ResponseEntity<Page<CaseFollowupRecord>> getAllFollowupsForApp(@ApiParam(value = "案件ID", required = true) @RequestParam String number, Pageable pageable) {
         try {
             BooleanBuilder builder = new BooleanBuilder();
-            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseId.eq(id));
+            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(number));
             Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
             for (CaseFollowupRecord caseFollowupRecord : page) {
                 Iterable<CaseFlowupFile> iterable = caseFlowupFileRepository.findAll(new BooleanBuilder().and(QCaseFlowupFile.caseFlowupFile.followupId.id.eq(caseFollowupRecord.getId())));
@@ -118,6 +118,7 @@ public class CaseFollowupAppController extends BaseController {
                 caseFollowupParams.setSource(CaseFollowupRecord.Source.ASSIST.getValue());
                 caseFollowupParams.setType(CaseFollowupRecord.Type.ASSIST.getValue());
             }
+            caseFollowupParams.setCaseNumber(caseInfo.getCaseNumber());
             CaseFollowupRecord result = caseInfoService.saveFollowupRecord(caseFollowupParams, user);
             if (Objects.nonNull(caseFollowupParams.getFileIds())) {
                 List<String> fileIds = caseFollowupParams.getFileIds();
