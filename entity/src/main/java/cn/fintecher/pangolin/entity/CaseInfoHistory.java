@@ -80,6 +80,13 @@ public class CaseInfoHistory extends BaseEntity {
 
     private Date operatorTime;
     private Integer caseMark = 126;
+    @ApiModelProperty("备注")
+    private String memo;
+    @ApiModelProperty("首次还款日期")
+    private Date firstPayDate;
+    @ApiModelProperty("账龄")
+    private String accountAge;
+
     @ManyToOne
     @JoinColumn(name = "personal_id")
     private Personal personalInfo;
