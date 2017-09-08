@@ -430,7 +430,7 @@ public class AccTelPoolController extends BaseController {
      */
     @GetMapping("/getAllSendMessageRecord")
     @ApiOperation(value = "电催页面多条件查询发送信息记录", notes = "电催页面多条件查询发送信息记录")
-    public ResponseEntity<Page<SendMessageRecord>> getAllSendMessageRecord(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+    public ResponseEntity<Page<SendMessageRecord>> getAllSendMessageRecord(@QuerydslPredicate(root = SendMessageRecord.class) Predicate predicate,
                                                                            @ApiIgnore Pageable pageable,
                                                                            @RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
         log.debug("REST request to get all send message record by {caseId}", caseId);
