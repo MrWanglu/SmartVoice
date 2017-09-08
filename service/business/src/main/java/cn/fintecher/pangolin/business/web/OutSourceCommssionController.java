@@ -139,10 +139,15 @@ public class OutSourceCommssionController extends BaseController {
             if (Objects.nonNull(outSourceCommssion.getId())) {
                 outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.id.ne(outSourceCommssion.getId())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
             } else {
+                long list = outSourceCommssionRepository.count(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime()).and(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId())));
                 //该逾期时段不能为空
                 if(outSourceCommssion.getOverdueTime() !=null && !"".equals(outSourceCommssion.getOverdueTime())) {
-
-                    outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
+                   //该逾期时段在同一委托方下不能为空
+                    if(list==0){
+                        outSourceCommssionList = outSourceCommssionRepository.findAll(qOutSourceCommssion.outsId.eq(outSourceCommssion.getOutsId()).and(qOutSourceCommssion.overdueTime.eq(outSourceCommssion.getOverdueTime())).and(qOutSourceCommssion.companyCode.eq(outSourceCommssion.getCompanyCode()))).iterator();
+                    }else{
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failed", "该逾期时段已存在")).body(null);
+                    }
                 }else{
 
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failed", "该逾期时段不能为空")).body(null);
