@@ -20,6 +20,7 @@ spring:
                 prepStmtCacheSize: 250
                 prepStmtCacheSqlLimit: 2048
                 useServerPrepStmts: true
+            maximumPoolSize: 50
     rabbitmq:
         username: cuidaren
         password: CuiDaRen!23456
