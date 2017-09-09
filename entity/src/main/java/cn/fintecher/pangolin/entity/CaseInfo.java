@@ -268,7 +268,10 @@ public class CaseInfo extends BaseEntity {
         //批量结案
         BATCH_CLOSURE(113, "批量结案"),
         //委外结案
-        OUTSIDE_CLOSED(114, "委外结案");
+        OUTSIDE_CLOSED(114, "委外结案"),
+        //核销结案
+        CLOSE_CASE(217,"核销结案");
+
         private Integer value;
 
         private String remark;

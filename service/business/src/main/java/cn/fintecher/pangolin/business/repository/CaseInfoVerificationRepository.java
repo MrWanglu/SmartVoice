@@ -1,15 +1,12 @@
 package cn.fintecher.pangolin.business.repository;
 
-
 import cn.fintecher.pangolin.business.model.CaseInfoVerModel;
-import cn.fintecher.pangolin.business.model.CaseInfoVerificationParams;
 import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.CaseInfoVerification;
 import cn.fintecher.pangolin.entity.QCaseInfoVerification;
 import com.querydsl.core.types.dsl.StringPath;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
@@ -22,16 +19,16 @@ import java.util.*;
  * Created by ChenChang on 2017/7/11.
  */
 public interface CaseInfoVerificationRepository extends QueryDslPredicateExecutor<CaseInfoVerification>, JpaRepository<CaseInfoVerification, String>, QuerydslBinderCustomizer<QCaseInfoVerification> {
+    @Override
     default void customize(final QuerydslBindings bindings, final QCaseInfoVerification root) {
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
-        bindings.bind(root.id).first((path, value) -> path.eq(StringUtils.trim(value)));
-        bindings.bind(root.product.prodcutName).first((path, value) -> path.eq(StringUtils.trim(value)));
+        bindings.bind(root.caseInfo.product.prodcutName).first((path, value) -> path.eq(StringUtils.trim(value)));
         //机构码搜索
-        bindings.bind(root.department.code).first((path, value) -> path.startsWith(StringUtils.trim(value)));
+        bindings.bind(root.caseInfo.department.code).first((path, value) -> path.startsWith(StringUtils.trim(value)));
         //公司码
-        bindings.bind(root.companyCode).first((path, value) -> path.eq(StringUtils.trim(value)));
+        bindings.bind(root.caseInfo.companyCode).first((path, value) -> path.eq(StringUtils.trim(value)));
         //案件金额
-        bindings.bind(root.overdueAmount).all((path, value) -> {
+        bindings.bind(root.caseInfo.overdueAmount).all((path, value) -> {
             Iterator<? extends BigDecimal> it = value.iterator();
             BigDecimal firstOverdueAmount = it.next();
             if (it.hasNext()) {
@@ -43,7 +40,7 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
             }
         });
         //逾期天数
-        bindings.bind(root.overdueDays).all((path, value) -> {
+        bindings.bind(root.caseInfo.overdueDays).all((path, value) -> {
             Iterator<? extends Integer> it = value.iterator();
             Integer firstOverdueDays = it.next();
             if (it.hasNext()) {
@@ -54,7 +51,7 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
             }
         });
         //案件手数
-        bindings.bind(root.handNumber).all((path, value) -> {
+        bindings.bind(root.caseInfo.handNumber).all((path, value) -> {
             Iterator<? extends Integer> it = value.iterator();
             Integer firstHandNumber = it.next();
             if (it.hasNext()) {
@@ -65,7 +62,7 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
             }
         });
         //佣金比例%
-        bindings.bind(root.commissionRate).all((path, value) -> {
+        bindings.bind(root.caseInfo.commissionRate).all((path, value) -> {
             Iterator<? extends BigDecimal> it = value.iterator();
             BigDecimal firstCommissionRate = it.next();
             if (it.hasNext()) {
@@ -77,7 +74,7 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
             }
         });
         //委案日期
-        bindings.bind(root.delegationDate).all((path, value) -> {
+        bindings.bind(root.caseInfo.delegationDate).all((path, value) -> {
             Iterator<? extends Date> it = value.iterator();
             Date firstDelegationDate = it.next();
             if (it.hasNext()) {
@@ -89,7 +86,7 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
             }
         });
         //结案日期
-        bindings.bind(root.closeDate).all((path, value) -> {
+        bindings.bind(root.caseInfo.closeDate).all((path, value) -> {
             Iterator<? extends Date> it = value.iterator();
             Date firstCloseDate = it.next();
             if (it.hasNext()) {
@@ -101,27 +98,27 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
             }
         });
         //委托方
-        bindings.bind(root.principalId.id).first((path, value) -> path.eq(StringUtils.trim(value)));
+        bindings.bind(root.caseInfo.principalId.id).first((path, value) -> path.eq(StringUtils.trim(value)));
         //案件状态
-        bindings.bind(root.collectionStatus).first((path, value) -> path.eq(value));
+        bindings.bind(root.caseInfo.collectionStatus).first((path, value) -> path.eq(value));
         //案件类型
-        bindings.bind(root.caseType).first((path, value) -> path.eq(value));
+        bindings.bind(root.caseInfo.caseType).first((path, value) -> path.eq(value));
         //催收类型
-        bindings.bind(root.collectionType).first((path, value) -> path.eq(value));
+        bindings.bind(root.caseInfo.collectionType).first((path, value) -> path.eq(value));
         //产品系列
-        bindings.bind(root.product.productSeries.id).first((path, value) -> path.eq(StringUtils.trim(value)));
+        //bindings.bind(root.caseInfo.product.productSeries.id).first((path, value) -> path.eq(StringUtils.trim(value)));
         //客户姓名
-        bindings.bind(root.personalInfo.name).first((path, value) -> path.contains(StringUtils.trim(value)));
+        bindings.bind(root.caseInfo.personalInfo.name).first((path, value) -> path.contains(StringUtils.trim(value)));
         //客户手机号
-        bindings.bind(root.personalInfo.mobileNo).first((path, value) -> path.eq(StringUtils.trim(value)).or(root.personalInfo.personalContacts.any().phone.eq(StringUtils.trim(value))));
+        bindings.bind(root.caseInfo.personalInfo.mobileNo).first((path, value) -> path.eq(StringUtils.trim(value)).or(root.caseInfo.personalInfo.personalContacts.any().phone.eq(StringUtils.trim(value))));
         //批次号
-        bindings.bind(root.batchNumber).first((path, value) -> path.eq(StringUtils.trim(value)));
+        bindings.bind(root.caseInfo.batchNumber).first((path, value) -> path.eq(StringUtils.trim(value)));
         //申请省份
-        bindings.bind(root.area.parent.id).first((path, value) -> path.eq(value));
+        //bindings.bind(root.caseInfo.area.parent.id).first((path, value) -> path.eq(value));
         //申请城市
-        bindings.bind(root.area.id).first((path, value) -> path.eq(value));
+        bindings.bind(root.caseInfo.area.id).first((path, value) -> path.eq(value));
         //标记颜色
-        bindings.bind(root.caseMark).first((path, value) -> path.eq(value));
+        bindings.bind(root.caseInfo.caseMark).first((path, value) -> path.eq(value));
         //还款状态
         List<String> list = new ArrayList<>();
         list.add("M1");
@@ -129,7 +126,7 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
         list.add("M3");
         list.add("M4");
         list.add("M5");
-        bindings.bind(root.payStatus).first((path, value) -> {
+        bindings.bind(root.caseInfo.payStatus).first((path, value) -> {
             if (Objects.equals(StringUtils.trim(value), CaseInfo.PayStatus.M6_PLUS.getRemark())) {
                 return path.notIn(list);
             } else {
@@ -137,11 +134,11 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
             }
         });
         //催收反馈
-        bindings.bind(root.followupBack).first((path, value) -> path.eq(value));
+        bindings.bind(root.caseInfo.followupBack).first((path, value) -> path.eq(value));
         //协催
-        bindings.bind(root.assistFlag).first((path, value) -> path.eq(value));
+        bindings.bind(root.caseInfo.assistFlag).first((path, value) -> path.eq(value));
         //协催方式
-        bindings.bind(root.assistWay).first((path, value) -> path.eq(value));
+        bindings.bind(root.caseInfo.assistWay).first((path, value) -> path.eq(value));
         //根据id数组获取查询结果list
         bindings.bind(root.id).all((path, value) -> {
             Set<String> idSets = new HashSet<>();
@@ -157,47 +154,9 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
             }
             return path.in(idSets);
         });
-        bindings.bind(root.collectionType).first((path, value) -> path.eq(value));
-        bindings.bind(root.department.code).first((path, value) -> path.startsWith(value));
+        bindings.bind(root.caseInfo.collectionType).first((path, value) -> path.eq(value));
+        bindings.bind(root.caseInfo.department.code).first((path, value) -> path.startsWith(value));
     }
-
-    /**
-     * @Description 获得指定用户所持有的未结案案件总数
-     */
-    @Query(value = "select count(*) from case_info where current_collector = :userId and collection_status in (20,21,22,23,25,171,172)", nativeQuery = true)
-    Integer getCaseCount(@Param("userId") String userId);
-
-    /**
-     * @Description 获得指定用户的待催收金额
-     */
-    @Query(value = "select sum(overdue_amount+early_settle_amt-early_real_settle_amt-real_pay_amount) from case_info where current_collector = :id or assist_collector = :id and collection_status = :collectionStatus", nativeQuery = true)
-    BigDecimal getCollectionAmt(@Param("id") String id, @Param("collectionStatus") Integer collectionStatus);
-
-    /**
-     * 获取所有批次号
-     *
-     * @param companyCode
-     * @return
-     */
-    @Query(value = "select distinct(batch_number) from case_info where company_code = ?1 and batch_number is not null", nativeQuery = true)
-    List<String> findDistinctByBatchNumber(@Param("companyCode") String companyCode);
-
-    /**
-     * 根据案件编号查询案件
-     *
-     * @param caseNumber
-     * @return
-     */
-    List<CaseInfo> findByCaseNumber(String caseNumber);
-
-    /**
-     * 设置案件协催状态为审批失效
-     *
-     * @param cupoIds
-     */
-    @Modifying
-    @Query("update CaseInfo acc set acc.assistStatus=212 where acc.collectionStatus not in(24,166) and acc.id in ?1")
-    void updateCaseStatusToCollectioning(Set<String> cupoIds);
 
     /**
      * 查询核销案件数
@@ -214,8 +173,9 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
      * @param
      * @return
      */
-    @Query(value = "select count(a.id) as cityCount,b.area_name as city,sum(a.overdue_amount) as amount from case_info_verification a LEFT JOIN area_code b " +
-            "on a.area_id = b.id where a.company_code = :companyCode and a.case_follow_in_time > :startTime and a.case_follow_in_time < :endTime group by b.area_name", nativeQuery = true)
+    @Query(value = "SELECT c.area_name,sum(b.overdue_amount),count(a.id) from (case_info_verification a LEFT JOIN case_info b on a.case_id = b.id)LEFT JOIN " +
+            "area_code c ON b.area_id = c.id where company_code = :companyCode and b.case_follow_inTime > :startTime and b.case_follow_inTime < :endTime" +
+            " GROUP BY c.area_name", nativeQuery = true)
    List<CaseInfoVerModel> findCaseInfoVerificationReport(@Param("startTime") Date startTime,
                                                          @Param("endTime") Date endTime,
                                                          @Param("companyCode") String companyCode);

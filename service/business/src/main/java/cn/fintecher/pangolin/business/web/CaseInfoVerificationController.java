@@ -16,7 +16,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -64,10 +63,11 @@ public class CaseInfoVerificationController extends BaseController {
             CaseInfoVerification caseInfoVerification = new CaseInfoVerification();
             for (CaseInfo caseInfo : caseInfoList) {
                 if (caseInfo.getCollectionStatus() != CaseInfo.CollectionStatus.CASE_OVER.getValue()) {
-                    BeanUtils.copyProperties(caseInfo, caseInfoVerification);
+                    caseInfo.setEndType(CaseInfo.EndType.CLOSE_CASE.getValue());
+                    caseInfoVerification.setCompanyCode(caseInfo.getCompanyCode());
+                    caseInfoVerification.setCaseInfo(caseInfo);
                     CaseInfoVerification caseInfoVerification1 = caseInfoVerificationRepository.save(caseInfoVerification);
                     caseInfoVerificationList.add(caseInfoVerification1);
-                    caseInfoRepository.delete(caseInfo);
                 }
             }
             return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "CaseInfoVerificationModel")).body(caseInfoVerificationList);
@@ -107,6 +107,7 @@ public class CaseInfoVerificationController extends BaseController {
         } else {
             builder.and(QCaseInfoVerification.caseInfoVerification.companyCode.eq(user.getCompanyCode()));
         }
+        builder.and(QCaseInfoVerification.caseInfoVerification.caseInfo.endType.eq(CaseInfo.EndType.CLOSE_CASE.getValue()));
         Page<CaseInfoVerification> page = caseInfoVerificationRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoVerification")).body(page);
     }

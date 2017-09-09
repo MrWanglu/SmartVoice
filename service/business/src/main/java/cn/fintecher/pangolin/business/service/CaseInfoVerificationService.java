@@ -73,22 +73,22 @@ public class CaseInfoVerificationService {
             Map<String, Object> map;
             for (CaseInfoVerification caseInfoVerification : caseInfoVerificationList) {
                 map = new LinkedHashMap<>();
-                map.put("caseNumber", caseInfoVerification.getCaseNumber());
-                map.put("personalName", caseInfoVerification.getPersonalInfo().getName());
-                map.put("personalMobileNo", caseInfoVerification.getPersonalInfo().getMobileNo());
-                if (Objects.nonNull(caseInfoVerification.getPersonalInfo())) {
-                    map.put("personalIdCard", caseInfoVerification.getPersonalInfo().getIdCard());
+                map.put("caseNumber", caseInfoVerification.getCaseInfo().getCaseNumber());
+                map.put("personalName", caseInfoVerification.getCaseInfo().getPersonalInfo().getName());
+                map.put("personalMobileNo", caseInfoVerification.getCaseInfo().getPersonalInfo().getMobileNo());
+                if (Objects.nonNull(caseInfoVerification.getCaseInfo().getPersonalInfo())) {
+                    map.put("personalIdCard", caseInfoVerification.getCaseInfo().getPersonalInfo().getIdCard());
                 }
-                map.put("batchNumber", caseInfoVerification.getBatchNumber());
-                map.put("overdueDays", caseInfoVerification.getOverdueDays());
-                map.put("overdueAmount", caseInfoVerification.getOverdueAmount());
-                if (Objects.nonNull(caseInfoVerification.getPrincipalId())) {
-                    map.put("principalName", caseInfoVerification.getPrincipalId().getName());
+                map.put("batchNumber", caseInfoVerification.getCaseInfo().getBatchNumber());
+                map.put("overdueDays", caseInfoVerification.getCaseInfo().getOverdueDays());
+                map.put("overdueAmount", caseInfoVerification.getCaseInfo().getOverdueAmount());
+                if (Objects.nonNull(caseInfoVerification.getCaseInfo().getPrincipalId())) {
+                    map.put("principalName", caseInfoVerification.getCaseInfo().getPrincipalId().getName());
                 }
-                if (Objects.nonNull(caseInfoVerification.getCurrentCollector())) {
-                    map.put("currentCollector", caseInfoVerification.getCurrentCollector().getRealName());
+                if (Objects.nonNull(caseInfoVerification.getCaseInfo().getCurrentCollector())) {
+                    map.put("currentCollector", caseInfoVerification.getCaseInfo().getCurrentCollector().getRealName());
                 }
-                DataDict dataDict = dataDictRepository.findOne(QDataDict.dataDict.id.eq(caseInfoVerification.getCollectionStatus()));
+                DataDict dataDict = dataDictRepository.findOne(QDataDict.dataDict.id.eq(caseInfoVerification.getCaseInfo().getCollectionStatus()));
                 map.put("collectionStatus", dataDict.getName());
                 dataList.add(map);
             }
@@ -142,8 +142,8 @@ public class CaseInfoVerificationService {
      * @Description 查询报表
      */
     public List<CaseInfoVerModel> getList(CaseInfoVerificationParams caseInfoVerificationParams, User tokenUser) {
-        StringBuilder queryCon = new StringBuilder("select count(a.id) as cityCount,b.area_name as city,sum(a.overdue_amount) as amount from case_info_verification a LEFT JOIN area_code b " +
-                "on a.area_id = b.id where 1=1");
+        StringBuilder queryCon = new StringBuilder("SELECT count(a.id),c.area_name,sum(b.overdue_amount) from (case_info_verification a LEFT JOIN case_info b on a.case_id = b.id)LEFT JOIN " +
+                "area_code c ON b.area_id = c.id where 1=1");
         //公司code码
         if (StringUtils.isNotBlank(caseInfoVerificationParams.getCompanyCode())) {
             queryCon.append(" and a.company_code = ").append(caseInfoVerificationParams.getCompanyCode());
@@ -152,13 +152,13 @@ public class CaseInfoVerificationService {
         }
         //开始时间
         if (StringUtils.isNotBlank(caseInfoVerificationParams.getStartTime())) {
-            queryCon.append(" and a.case_follow_in_time >= ").append("'").append(caseInfoVerificationParams.getStartTime()).append("'");
+            queryCon.append(" and b.case_follow_in_time >= ").append("'").append(caseInfoVerificationParams.getStartTime()).append("'");
         }
         //结束时间
         if (StringUtils.isNotBlank(caseInfoVerificationParams.getEndTime())) {
-            queryCon.append(" and a.case_follow_in_time <= ").append("'").append(caseInfoVerificationParams.getEndTime()).append("'");
+            queryCon.append(" and b.case_follow_in_time <= ").append("'").append(caseInfoVerificationParams.getEndTime()).append("'");
         }
-        queryCon.append(" group by b.area_name");
+        queryCon.append(" group by c.area_name");
         logger.debug(queryCon.toString());
         List<Object[]> objects = em.createNativeQuery(queryCon.toString()).getResultList();
         List<CaseInfoVerModel> caseInfoVerModels = new ArrayList<>();
