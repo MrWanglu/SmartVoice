@@ -3,7 +3,10 @@ package cn.fintecher.pangolin.business.service;
 import cn.fintecher.pangolin.business.model.BackPlanImportParams;
 import cn.fintecher.pangolin.business.model.UploadUserBackcashPlanExcelModel;
 import cn.fintecher.pangolin.business.repository.UserBackcashPlanRepository;
+import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.entity.QUser;
 import cn.fintecher.pangolin.entity.QUserBackcashPlan;
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.UserBackcashPlan;
 import cn.fintecher.pangolin.entity.util.CellError;
 import cn.fintecher.pangolin.entity.util.ExcelSheetObj;
@@ -28,6 +31,9 @@ public class UserBackcashPlanExcelImportService {
     @Autowired
     private UserBackcashPlanRepository userBackcashPlanRepository;
     final Logger log = LoggerFactory.getLogger(UserBackcashPlanExcelImportService.class);
+
+    @Autowired
+    private UserRepository userRepository;
 
     public List<CellError> importExcelDataInfo(BackPlanImportParams params) throws Exception {
         List<CellError> cellErrorList = null;
@@ -181,6 +187,15 @@ public class UserBackcashPlanExcelImportService {
             if (!(data.getBackCash() instanceof Number)) {
                 CellError cellError = new CellError();
                 cellError.setErrorMsg("导入的用户 [" + username + "] 的目标金额不是数字！");
+                cellErrorList.add(cellError);
+                return false;
+            }
+            // 判断用户名和姓名是否对应正确
+            String realName = data.getRealName();
+            User user = userRepository.findOne(QUser.user.realName.eq(realName));
+            if (Objects.isNull(user)) {
+                CellError cellError = new CellError();
+                cellError.setErrorMsg("导入的用户名 [" + username + "]和姓名[" + realName + "]不对应");
                 cellErrorList.add(cellError);
                 return false;
             }
