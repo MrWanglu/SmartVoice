@@ -4,10 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -270,7 +267,7 @@ public class CaseInfo extends BaseEntity {
         //委外结案
         OUTSIDE_CLOSED(114, "委外结案"),
         //核销结案
-        CLOSE_CASE(217,"核销结案");
+        CLOSE_CASE(218, "核销结案");
 
         private Integer value;
 

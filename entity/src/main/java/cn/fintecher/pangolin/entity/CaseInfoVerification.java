@@ -1,10 +1,8 @@
 package cn.fintecher.pangolin.entity;
 
 import lombok.Data;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+
+import javax.persistence.*;
 
 /**
  * @author yuanyanting
@@ -13,13 +11,13 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "case_info_verification")
 @Data
-public class CaseInfoVerification extends BaseEntity{
+public class CaseInfoVerification extends BaseEntity {
 
     @OneToOne
     @JoinColumn(name = "case_id")
     private CaseInfo caseInfo;
 
-    @JoinColumn(name = "company_code")
+
     private String companyCode;
 
 }

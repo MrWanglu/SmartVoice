@@ -25,8 +25,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
+
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -59,16 +59,15 @@ public class CaseInfoVerificationController extends BaseController {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "结案案件不能核销!")).body(null);
                 }
             }
-            List<CaseInfoVerification> caseInfoVerificationList = new ArrayList<>();
             for (CaseInfo caseInfo : caseInfoList) {
                 CaseInfoVerification caseInfoVerification = new CaseInfoVerification();
                 caseInfo.setEndType(CaseInfo.EndType.CLOSE_CASE.getValue());
+                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue());
                 caseInfoVerification.setCompanyCode(caseInfo.getCompanyCode());
                 caseInfoVerification.setCaseInfo(caseInfo);
-                CaseInfoVerification caseInfoVerification1 = caseInfoVerificationRepository.save(caseInfoVerification);
-                caseInfoVerificationList.add(caseInfoVerification1);
+                caseInfoVerificationRepository.save(caseInfoVerification);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "CaseInfoVerificationModel")).body(caseInfoVerificationList);
+            return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "CaseInfoVerificationModel")).body(null);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "操作失败!")).body(null);
@@ -154,7 +153,7 @@ public class CaseInfoVerificationController extends BaseController {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "请选择公司")).body(null);
                 }
             }
-            caseInfoVerificationReport = caseInfoVerificationService.getList(caseInfoVerificationParams,user);
+            caseInfoVerificationReport = caseInfoVerificationService.getList(caseInfoVerificationParams, user);
             Integer totalCount = caseInfoVerificationRepository.getTotalCount();
             Page<CaseInfoVerModel> page = new PageImpl<>(caseInfoVerificationReport, pageable, totalCount);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseInfoVerificationController/getVerificationReportBycondition");
@@ -176,7 +175,7 @@ public class CaseInfoVerificationController extends BaseController {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "请选择公司")).body(null);
                 }
             }
-            String url = caseInfoVerificationService.exportReport(caseInfoVerificationParams,user);
+            String url = caseInfoVerificationService.exportReport(caseInfoVerificationParams, user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(url);
         } catch (Exception e) {
             e.printStackTrace();
