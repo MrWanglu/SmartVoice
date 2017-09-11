@@ -3,13 +3,12 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.model.CaseInfoVerModel;
 import cn.fintecher.pangolin.business.model.CaseInfoVerificationParams;
 import cn.fintecher.pangolin.business.model.ListAccVerificationRecevicePool;
+import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoVerificationRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoVerificationService;
-import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.CaseInfoVerification;
-import cn.fintecher.pangolin.entity.QCaseInfoVerification;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
@@ -27,9 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author yuanyanting
@@ -49,21 +46,46 @@ public class CaseInfoVerificationController extends BaseController {
     @Inject
     private CaseInfoRepository caseInfoRepository;
 
+    @Inject
+    private CaseAssistRepository caseAssistRepository;
+
     @PostMapping("/saveCaseInfoVerification")
     @ApiOperation(value = "核销管理", notes = "核销管理")
-    public ResponseEntity saveCaseInfoVerification(@RequestBody ListAccVerificationRecevicePool request) {
+    public ResponseEntity saveCaseInfoVerification(@RequestBody ListAccVerificationRecevicePool request,
+                                                   @RequestHeader(value = "X-UserToken") String token) {
         try {
+            User user = getUserByToken(token);
             List<CaseInfo> caseInfoList = caseInfoRepository.findAll(request.getIds());
+            List<CaseAssist> caseAssistList = new ArrayList<>();
             for (int i = 0; i < caseInfoList.size(); i++) {
                 if (caseInfoList.get(i).getCollectionStatus().equals(CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "结案案件不能核销!")).body(null);
                 }
             }
             for (CaseInfo caseInfo : caseInfoList) {
+                //处理协催案件
+                if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //协催标识
+                    //结束协催案件
+                    CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.eq(caseInfo).and(QCaseAssist.caseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
+                    if (Objects.nonNull(one)) {
+                        one.setAssistCloseFlag(0); //手动结束
+                        one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催结束
+                        one.setOperator(user);
+                        one.setOperatorTime(new Date());
+                        one.setCaseFlowinTime(new Date()); //流入时间
+                        caseAssistList.add(one);
+                    }
+                    caseInfo.setAssistFlag(0); //协催标识置0
+                    caseInfo.setAssistStatus(null);//协催状态置空
+                    caseInfo.setAssistWay(null);
+                    caseInfo.setAssistCollector(null);
+                }
                 CaseInfoVerification caseInfoVerification = new CaseInfoVerification();
                 caseInfo.setEndType(CaseInfo.EndType.CLOSE_CASE.getValue());
                 caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue());
                 caseInfoVerification.setCompanyCode(caseInfo.getCompanyCode());
+                caseInfoVerification.setOperator(user.getRealName());
+                caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime());
                 caseInfoVerification.setCaseInfo(caseInfo);
                 caseInfoVerificationRepository.save(caseInfoVerification);
             }

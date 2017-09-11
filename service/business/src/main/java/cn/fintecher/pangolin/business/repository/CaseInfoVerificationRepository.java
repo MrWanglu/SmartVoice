@@ -174,7 +174,7 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
      * @return
      */
     @Query(value = "SELECT c.area_name,sum(b.overdue_amount),count(a.id) from (case_info_verification a LEFT JOIN case_info b on a.case_id = b.id)LEFT JOIN " +
-            "area_code c ON b.area_id = c.id where company_code = :companyCode and b.case_follow_inTime > :startTime and b.case_follow_inTime < :endTime" +
+            "area_code c ON b.area_id = c.id where company_code = :companyCode and b.case_follow_inTime >= :startTime and b.case_follow_inTime <= :endTime" +
             " GROUP BY c.area_name", nativeQuery = true)
    List<CaseInfoVerModel> findCaseInfoVerificationReport(@Param("startTime") Date startTime,
                                                          @Param("endTime") Date endTime,

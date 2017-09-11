@@ -1,8 +1,9 @@
 package cn.fintecher.pangolin.entity;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
 import javax.persistence.*;
+import java.util.Date;
 
 /**
  * @author yuanyanting
@@ -14,10 +15,17 @@ import javax.persistence.*;
 public class CaseInfoVerification extends BaseEntity {
 
     @OneToOne
+    @ApiModelProperty("案件Id")
     @JoinColumn(name = "case_id")
     private CaseInfo caseInfo;
 
-
+    @ApiModelProperty("公司code码")
     private String companyCode;
+
+    @ApiModelProperty("当前催收员")
+    private String operator;
+
+    @ApiModelProperty("操作时间")
+    private Date operatorTime;
 
 }
