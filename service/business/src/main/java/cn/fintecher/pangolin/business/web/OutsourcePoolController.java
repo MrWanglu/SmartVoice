@@ -235,6 +235,9 @@ public class OutsourcePoolController extends BaseController {
             }
             for (String outId:outCaseIds){
                 OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
+                if (OutsourcePool.OutStatus.OUTSIDE_OVER.getCode().equals(outsourcePool.getOutStatus())){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("已委外结案案件不能再结案", "", "已委外结案案件不能再结案")).body(null);
+                }
                 outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode());//状态改为委外结束
                 outsourcePool.setOperator(user.getUserName());//委外结案人
                 outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());//委外结案时间
