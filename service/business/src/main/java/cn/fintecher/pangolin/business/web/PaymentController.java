@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -172,7 +173,7 @@ public class PaymentController extends BaseController {
             builder.and(QCasePayApply.casePayApply.companyCode.eq(tokenUser.getCompanyCode())); //只查登陆人公司的记录
             builder.and(QCasePayApply.casePayApply.approveStatus.in(list)); //只查限定状态的记录
             builder.and(QCasePayApply.casePayApply.approveStatus.ne(CasePayApply.ApproveStatus.REVOKE.getValue())); //不查撤回的记录
-            Iterator<CasePayApply> casePayApplies = casePayApplyRepository.findAll(builder).iterator();
+            Iterator<CasePayApply> casePayApplies = casePayApplyRepository.findAll(builder, new Sort(Sort.Direction.DESC, "applyDate")).iterator();
             List<CasePayApply> casePayApplyList = IteratorUtils.toList(casePayApplies);
             String url = paymentService.exportCasePayApply(casePayApplyList);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_CASE_PAY_APPLY)).body(url);

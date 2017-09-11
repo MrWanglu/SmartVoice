@@ -255,6 +255,7 @@ public class PaymentService {
         headMap.put("personalPhone", "手机号");
         headMap.put("caseAmt", "案件金额(元)");
         headMap.put("applyPayAmt", "还款金额(元)");
+        headMap.put("applyDerateAmt", "减免金额(元)");
         headMap.put("payType", "还款类型");
         headMap.put("payWay", "还款方式");
         headMap.put("approveStatus", "审核状态");
@@ -273,6 +274,7 @@ public class PaymentService {
                 map.put("personalPhone", (Objects.isNull(casePayApply.getPersonalPhone()) ? "" : casePayApply.getPersonalPhone()));
                 map.put("caseAmt", (Objects.isNull(casePayApply.getCaseAmt()) ? "" : casePayApply.getCaseAmt()));
                 map.put("applyPayAmt", (Objects.isNull(casePayApply.getApplyPayAmt()) ? "" : casePayApply.getApplyPayAmt()));
+                map.put("applyDerateAmt", (Objects.isNull(casePayApply.getApplyDerateAmt()) ? "" : casePayApply.getApplyDerateAmt()));
                 map.put("payType", (Objects.isNull(casePayApply.getPayType()) ? "" : dataDictService.getDataDictName(casePayApply.getPayType())));
                 map.put("payWay", (Objects.isNull(casePayApply.getPayWay()) ? "" : dataDictService.getDataDictName(casePayApply.getPayWay())));
                 map.put("approveStatus", (Objects.isNull(casePayApply.getApproveStatus()) ? "" : dataDictService.getDataDictName(casePayApply.getApproveStatus())));
