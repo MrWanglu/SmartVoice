@@ -7,10 +7,7 @@ import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
-import cn.fintecher.pangolin.entity.util.CellError;
-import cn.fintecher.pangolin.entity.util.ExcelUtil;
-import cn.fintecher.pangolin.entity.util.LabelValue;
-import cn.fintecher.pangolin.entity.util.Status;
+import cn.fintecher.pangolin.entity.util.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
@@ -73,7 +70,8 @@ public class OutsourcePoolController extends BaseController {
     AccFinanceEntryService accFinanceEntryService;
     @Autowired
     AccFinanceEntryRepository accFinanceEntryRepository;
-    public static final String FINANCEEXCEL_URL = "http://117.36.75.166:888/group1/M00/00/28/wKgDClmyVkSAQ9ESAAAmQT2GhjE49.xlsx";
+    @Autowired
+    SysParamRepository sysParamRepository;
     private static final String ENTITY_NAME = "OutSource";
     private static final String ENTITY_NAME1 = "OutSourcePool";
     private static final String ENTITY_CASEINFO = "CaseInfo";
@@ -495,13 +493,27 @@ public class OutsourcePoolController extends BaseController {
     @GetMapping("/loadTemplate")
     @ResponseBody
     @ApiOperation(value = "下载模板", notes = "下载模板")
-    public ResponseEntity<String> loadTemplate(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+    public ResponseEntity<String> loadTemplate(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         try {
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
-            return ResponseEntity.ok().body(FINANCEEXCEL_URL);
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userBackcashPlan", "请选择公司")).body(null);
+                }
+            }else {
+                companyCode = user.getCompanyCode();
+            }
+            QSysParam qSysParam = QSysParam.sysParam;
+            SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
+                    .and(qSysParam.code.eq(Constants.SMS_OUTCASE_ACCOUNT_URL_CODE))
+                    .and(qSysParam.type.eq(Constants.SMS_OUTCASE_ACCOUNT_URL_TYPE)));
+            if (Objects.isNull(sysParam)){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("该模板不存在", "", "该模板不存在")).body(null);
+            }
+            return ResponseEntity.ok().body(sysParam.getValue());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("下载失败", "", e.getMessage())).body(null);
