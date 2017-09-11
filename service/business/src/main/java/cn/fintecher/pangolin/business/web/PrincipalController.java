@@ -157,7 +157,7 @@ public class PrincipalController extends BaseController {
             Iterator<Principal> principalIterator = principalRepository.findAll(qPrincipal.name.eq(request.getName()).and(qPrincipal.flag.eq(Principal.deleteStatus.START.getDeleteCode())).and(qPrincipal.companyCode.eq(request.getCompanyCode()))).iterator();
             if (principalIterator.hasNext()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                        "The outsourcename is not allowed to be used", "该名字不允许被使用")).body(null);
+                        "The outsourcename is not allowed to be used", "该名称已被占用，请重新输入")).body(null);
             }
             LabelValue labelValue = batchSeqService.nextSeq(Constants.PRIN_SEQ, Outsource.principalStatus.PRINCODE_DIGIT.getPrincipalCode());
             if (Objects.isNull(labelValue)) {
