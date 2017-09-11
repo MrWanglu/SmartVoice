@@ -6,6 +6,7 @@ import cn.fintecher.pangolin.dataimp.entity.ExcelSheetObj;
 import cn.fintecher.pangolin.dataimp.entity.TemplateExcelInfo;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.SymbolReplace;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -233,7 +234,7 @@ public class ExcelUtil {
                                 field.setAccessible(true);
                                 //实体中变量赋值
                                 try {
-                                    field.set(obj, getObj(field.getType(), cell));
+                                    field.set(obj, getObj(field.getType(), cell, field));
                                 } catch (Exception e) {
                                     String errorMsg = "第[" + (dataRow.getRowNum() + 1) + "]行，字段:[" + templateExcelInfo.getCellName() + "]的数据类型不正确";
                                     CellError errorObj = new CellError(sheetName, rowIndex, templateExcelInfo.getCellNum(), proName, null, errorMsg, e);
@@ -284,7 +285,7 @@ public class ExcelUtil {
                             field.setAccessible(true);
                             //实体中变量赋值
                             try {
-                                field.set(obj, getObj(field.getType(), cell));
+                                field.set(obj, getObj(field.getType(), cell, field));
                                 break;
                             } catch (Exception e) {
                                 String errorMsg = "第[" + (dataRow.getRowNum() + 1) + "]行，字段:[" + cellName + "]的数据类型不正确";
@@ -372,7 +373,7 @@ public class ExcelUtil {
      * @return 返回单元格对应的实体
      * @throws Exception
      */
-    public static Object getObj(Class clazz, Cell cell) throws Exception {
+    public static Object getObj(Class clazz, Cell cell, Field field) throws Exception {
         if (cell == null) {
             return null;
         }
@@ -399,9 +400,29 @@ public class ExcelUtil {
             return new BigDecimal(cellValue).setScale(2, BigDecimal.ROUND_HALF_UP);
         } else {
             Constructor con = clazz.getConstructor(String.class);
+            if (field.isAnnotationPresent(SymbolReplace.class)) {
+                return con.newInstance(filterEmoji(cellValue,""));
+            }
             return con.newInstance(cellValue);
         }
     }
+
+    /**
+     * emoji表情替换
+     *
+     * @param source  原字符串
+     * @param slipStr emoji表情替换成的字符串
+     * @return 过滤后的字符串
+     */
+    private static String filterEmoji(String source, String slipStr) {
+        if (StringUtils.isNotBlank(source)) {
+            return source.replaceAll("[\\ud800\\udc00-\\udbff\\udfff\\ud800-\\udfff]", slipStr);
+        } else {
+            return source;
+        }
+    }
+
+
 
     /**
      * 解析每个Sheet页的头部信息

@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.dataimp.entity;
 
 import cn.fintecher.pangolin.dataimp.annotation.ClassFeature;
 import cn.fintecher.pangolin.dataimp.annotation.ExcelAnno;
+import cn.fintecher.pangolin.entity.util.SymbolReplace;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -172,6 +173,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人1姓名")
     @ExcelAnno(cellName = "联系人1姓名")
+    @SymbolReplace
     private String contactName1;
 
     @ApiModelProperty("联系人1与客户关系")
@@ -200,6 +202,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人2姓名")
     @ExcelAnno(cellName = "联系人2姓名")
+    @SymbolReplace
     private String contactName2;
 
     @ApiModelProperty("联系人2与客户关系")
@@ -228,6 +231,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人3姓名")
     @ExcelAnno(cellName = "联系人3姓名")
+    @SymbolReplace
     private String contactName3;
 
     @ApiModelProperty("联系人3与客户关系")
@@ -256,6 +260,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人4姓名")
     @ExcelAnno(cellName = "联系人4姓名")
+    @SymbolReplace
     private String contactName4;
 
     @ApiModelProperty("联系人4与客户关系")
@@ -284,6 +289,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人5姓名")
     @ExcelAnno(cellName = "联系人5姓名")
+    @SymbolReplace
     private String contactName5;
 
     @ApiModelProperty("联系人5与客户关系")
@@ -312,6 +318,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人6姓名")
     @ExcelAnno(cellName = "联系人6姓名")
+    @SymbolReplace
     private String contactName6;
 
     @ApiModelProperty("联系人6与客户关系")
@@ -340,6 +347,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人7姓名")
     @ExcelAnno(cellName = "联系人7姓名")
+    @SymbolReplace
     private String contactName7;
 
     @ApiModelProperty("联系人7与客户关系")
@@ -368,6 +376,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人8姓名")
     @ExcelAnno(cellName = "联系人8姓名")
+    @SymbolReplace
     private String contactName8;
 
     @ApiModelProperty("联系人8与客户关系")
@@ -396,6 +405,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人9姓名")
     @ExcelAnno(cellName = "联系人9姓名")
+    @SymbolReplace
     private String contactName9;
 
     @ApiModelProperty("联系人9与客户关系")
@@ -424,6 +434,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人10姓名")
     @ExcelAnno(cellName = "联系人10姓名")
+    @SymbolReplace
     private String contactName10;
 
     @ApiModelProperty("联系人10与客户关系")
@@ -452,6 +463,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人11姓名")
     @ExcelAnno(cellName = "联系人11姓名")
+    @SymbolReplace
     private String contactName11;
 
     @ApiModelProperty("联系人11与客户关系")
@@ -480,6 +492,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人12姓名")
     @ExcelAnno(cellName = "联系人12姓名")
+    @SymbolReplace
     private String contactName12;
 
     @ApiModelProperty("联系人12与客户关系")
@@ -508,6 +521,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人13姓名")
     @ExcelAnno(cellName = "联系人13姓名")
+    @SymbolReplace
     private String contactName13;
 
     @ApiModelProperty("联系人13与客户关系")
@@ -536,6 +550,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人14姓名")
     @ExcelAnno(cellName = "联系人14姓名")
+    @SymbolReplace
     private String contactName14;
 
     @ApiModelProperty("联系人14与客户关系")
@@ -564,6 +579,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("联系人15姓名")
     @ExcelAnno(cellName = "联系人15姓名")
+    @SymbolReplace
     private String contactName15;
 
     @ApiModelProperty("联系人15与客户关系")
