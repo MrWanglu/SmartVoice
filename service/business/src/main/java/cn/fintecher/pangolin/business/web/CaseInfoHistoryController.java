@@ -102,20 +102,23 @@ public class CaseInfoHistoryController extends BaseController {
      * @Description : 删除案件放到caseInfoHistory
      */
     @PostMapping("/deleteCaseInfo")
-    public ResponseEntity<List<CaseInfoHistory>> deleteCaseInfo(@RequestBody CaseInfoIdList request) {
+    public ResponseEntity<List<CaseInfo>> deleteCaseInfo(@RequestBody CaseInfoIdList request) {
         if (request.getIds().size() == 0) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "请选择案件")).body(null);
         }
         List<CaseInfo> caseInfoList = caseInfoRepository.findAll(request.getIds());
-        List<CaseInfoHistory> caseInfoHistoryList = new ArrayList<>();
+        List<CaseInfo> caseInfoReturnList = new ArrayList<>();
         for (CaseInfo caseInfo : caseInfoList) {
-            CaseInfoHistory caseInfoHistory = new CaseInfoHistory();
-            BeanUtils.copyProperties(caseInfo, caseInfoHistory);
-            caseInfoHistory.setCaseId(caseInfo.getId());
-            caseInfoHistoryRepository.save(caseInfoHistory);
-            caseInfoRepository.delete(caseInfo.getId());
-            caseInfoHistoryList.add(caseInfoHistory);
+            if(Objects.equals("24",CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
+                CaseInfoHistory caseInfoHistory = new CaseInfoHistory();
+                BeanUtils.copyProperties(caseInfo, caseInfoHistory);
+                caseInfoHistory.setCaseId(caseInfo.getId());
+                caseInfoHistoryRepository.save(caseInfoHistory);
+                caseInfoRepository.delete(caseInfo.getId());
+            }else{
+                caseInfoReturnList.add(caseInfo);
+            }
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(caseInfoHistoryList);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(caseInfoReturnList);
     }
 }
