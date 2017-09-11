@@ -22,7 +22,7 @@ public interface OutSourceCommssionRepository extends QueryDslPredicateExecutor<
 
     @Query(value = "SELECT aa.outs_name,aa.overdue_time,aa.return_money,(aa.return_money * aa.huankuan) AS money,aa.return_households,(aa.return_households * aa.hushu) AS nummoney " +
             "FROM " +
-            "(SELECT b.outs_name,d.overdue_time,d.return_money,d.return_households,sum(c.out_back_amt) AS huankuan,count(*) AS hushu " +
+            "(SELECT b.outs_name,d.overdue_time,d.return_money,d.return_households,sum(a.back_amt) AS huankuan,count(*) AS hushu " +
             " FROM out_operate_record a,outsource b,outsource_pool c,outsource_commission d" +
             " WHERE " +
             "    a.out_id = b.id " +

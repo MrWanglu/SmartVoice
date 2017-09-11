@@ -87,23 +87,26 @@ public class OutBackSourceController extends BaseController {
                     outsourcePool.setOutoperationStatus(outBackSource.getOperationType());
                     outsourcePoolRepository.saveAndFlush(outsourcePool);//保存委外案件
                 }
-            }
-            //判断如果是超级管理员companyCode是为null的
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(outBackSource.getCompanyCode())) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "OutBackSource", "请选择公司")).body(null);
+                if(outsourcePool.getOutStatus().equals(OutsourcePool.OutStatus.OUTSIDING.getCode())){
+                    //判断如果是超级管理员companyCode是为null的
+                    if (Objects.isNull(user.getCompanyCode())) {
+                        if (Objects.isNull(outBackSource.getCompanyCode())) {
+                            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "OutBackSource", "请选择公司")).body(null);
+                        }
+                    } else {
+                        outBackSource.setCompanyCode(user.getCompanyCode());
+                    }
+                    outBackSource.setOperator(user.getRealName());
+                    outBackSource.setOperateTime(ZWDateUtil.getNowDateTime());
+                    outbackSourceRepository.save(outBackSource);
+                }else{
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请操作委外中案件")).body(null);
                 }
-            } else {
-                outBackSource.setCompanyCode(user.getCompanyCode());
             }
-            outBackSource.setOperator(user.getRealName());
-            outBackSource.setOperateTime(ZWDateUtil.getNowDateTime());
-            outbackSourceRepository.save(outBackSource);
-
             return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", " 操作成功")).body(outBackSource);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("操作失败", "", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
 
     }
