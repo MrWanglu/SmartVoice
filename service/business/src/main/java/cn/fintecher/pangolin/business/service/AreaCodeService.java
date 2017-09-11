@@ -6,6 +6,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * @Author: PeiShouWen
@@ -34,6 +35,9 @@ public class AreaCodeService {
      */
     @Cacheable(value = "areaCode", key = "'pangolin:areaCode:'+#areaName", unless = "#result==null")
     public AreaCode queryAreaCodeByName(String areaName){
+        if(Objects.isNull(areaName)){
+            return null;
+        }
         Iterable<AreaCode> areaCodeIterable=queryAllAreaCode();
         for(Iterator<AreaCode> it=areaCodeIterable.iterator();it.hasNext();){
             AreaCode areaCode=it.next();
