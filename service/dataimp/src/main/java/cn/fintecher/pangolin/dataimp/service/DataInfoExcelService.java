@@ -199,29 +199,29 @@ public class DataInfoExcelService {
             DataInfoExcel tempObj = (DataInfoExcel) datas.get(i);
             if (StringUtils.isBlank(tempObj.getPersonalName())) {
                 CellError cellError = new CellError();
-                cellError.setErrorMsg("第[" + (i + 1) + "]行的客户姓名为空");
+                cellError.setErrorMsg("第[" + (i + 2) + "]行的客户姓名为空");
                 cellErrorList.add(cellError);
             } else {
                 if (StringUtils.isBlank(tempObj.getProductName())) {
                     CellError cellError = new CellError();
-                    cellError.setErrorMsg("第[" + (i + 1) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的产品名称为空"));
+                    cellError.setErrorMsg("第[" + (i + 2) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的产品名称为空"));
                     cellErrorList.add(cellError);
                 }
                 if (StringUtils.isBlank(tempObj.getIdCard())) {
                     CellError cellError = new CellError();
-                    cellError.setErrorMsg("第[" + (i + 1) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的身份证号为空"));
+                    cellError.setErrorMsg("第[" + (i + 2) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的身份证号为空"));
                     cellErrorList.add(cellError);
                 } else {
                     if (!IdcardUtils.validateCard(tempObj.getIdCard())) {
                         CellError cellError = new CellError();
-                        cellError.setErrorMsg("第[" + (i + 1) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的身份证号[").concat(tempObj.getIdCard()).concat("]不合法"));
+                        cellError.setErrorMsg("第[" + (i + 2) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的身份证号[").concat(tempObj.getIdCard()).concat("]不合法"));
                         cellErrorList.add(cellError);
                     }
                 }
                 if (Objects.equals(type, "1")) { // 邢台需要录入批次号
                     if (StringUtils.isBlank(tempObj.getBatchNumber())) {
                         CellError cellError = new CellError();
-                        cellError.setErrorMsg("第[" + (i + 1) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的批次为空"));
+                        cellError.setErrorMsg("第[" + (i + 2) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的批次为空"));
                         cellErrorList.add(cellError);
                     }
                 }

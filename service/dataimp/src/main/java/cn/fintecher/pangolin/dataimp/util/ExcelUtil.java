@@ -217,27 +217,27 @@ public class ExcelUtil {
                 }
             } else {
                 //配置模板
-                for (TemplateExcelInfo templateExcelInfo : templateExcelInfos) {
-                    if (StringUtils.isNotBlank(templateExcelInfo.getRelateName())) {
-                        Cell cell = dataRow.getCell(templateExcelInfo.getCellNum());
-                        if (cell != null && !cell.toString().trim().equals("")) {
-                            //获取类中所有的字段
-                            Field[] fields = dataClass.getDeclaredFields();
-                            for (Field field : fields) {
-                                //实体中的属性名称
-                                String proName = field.getName();
-                                //匹配到实体中相应的字段
-                                if (proName.equals(templateExcelInfo.getRelateName())) {
-                                    //打开实体中私有变量的权限
-                                    field.setAccessible(true);
-                                    //实体中变量赋值
-                                    try {
-                                        field.set(obj, getObj(field.getType(), cell));
-                                    } catch (Exception e) {
-                                        String errorMsg = "第[" + dataRow.getRowNum() + "]行，字段:[" + proName + "]的数据类型不正确";
-                                        CellError errorObj = new CellError(sheetName, rowIndex, templateExcelInfo.getCellNum(), proName, null, errorMsg, e);
-                                        cellErrors.add(errorObj);
-                                    }
+            }
+            for (TemplateExcelInfo templateExcelInfo : templateExcelInfos) {
+                if (StringUtils.isNotBlank(templateExcelInfo.getRelateName())) {
+                    Cell cell = dataRow.getCell(templateExcelInfo.getCellNum());
+                    if (cell != null && !cell.toString().trim().equals("")) {
+                        //获取类中所有的字段
+                        Field[] fields = dataClass.getDeclaredFields();
+                        for (Field field : fields) {
+                            //实体中的属性名称
+                            String proName = field.getName();
+                            //匹配到实体中相应的字段
+                            if (proName.equals(templateExcelInfo.getRelateName())) {
+                                //打开实体中私有变量的权限
+                                field.setAccessible(true);
+                                //实体中变量赋值
+                                try {
+                                    field.set(obj, getObj(field.getType(), cell));
+                                } catch (Exception e) {
+                                    String errorMsg = "第[" + (dataRow.getRowNum() + 1) + "]行，字段:[" + templateExcelInfo.getCellName() + "]的数据类型不正确";
+                                    CellError errorObj = new CellError(sheetName, rowIndex, templateExcelInfo.getCellNum(), proName, null, errorMsg, e);
+                                    cellErrors.add(errorObj);
                                 }
                             }
                         }
@@ -287,7 +287,7 @@ public class ExcelUtil {
                                 field.set(obj, getObj(field.getType(), cell));
                                 break;
                             } catch (Exception e) {
-                                String errorMsg = "第[" + dataRow.getRowNum() + "]行，字段:[" + cellName + "]的数据类型不正确";
+                                String errorMsg = "第[" + (dataRow.getRowNum() + 1) + "]行，字段:[" + cellName + "]的数据类型不正确";
                                 CellError errorObj = new CellError(sheetName, rowIndex, colIndex, null, titleName, errorMsg, e);
                                 cellErrors.add(errorObj);
                             }
