@@ -72,7 +72,7 @@ public class OutsourceController extends BaseController {
             Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(qOutsource.outsName.eq(outsource.getOutsName()).and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode())).and(qOutsource.companyCode.eq(outsource.getCompanyCode()))).iterator();
             if (outsourceIterator.hasNext()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                        "The outsourcename is not allowed to be used", "该名字不允许被使用")).body(null);
+                        "The outsourcename is not allowed to be used", "该名称已被占用，请重新输入")).body(null);
             }
             LabelValue labelValue = batchSeqService.nextSeq(Constants.PRIN_SEQ, Outsource.principalStatus.PRINCODE_DIGIT.getPrincipalCode());
             if (Objects.isNull(labelValue)) {
@@ -238,6 +238,7 @@ public class OutsourceController extends BaseController {
         if (Objects.nonNull(companyCode)) {
             builder.and(qOutsource.companyCode.eq(companyCode));
         }
+        builder.and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode()));
         Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(builder).iterator();
         List<Outsource> outsourceList = IteratorUtils.toList(outsourceIterator);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(outsourceList);

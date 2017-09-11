@@ -66,6 +66,7 @@ public class PaymentService {
 
     @Inject
     ReminderService reminderService;
+
     /**
      * @Description 还款信息展示
      */
@@ -226,7 +227,7 @@ public class PaymentService {
         //消息提醒
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
         sendReminderMessage.setUserId(applyUser.getId());
-        sendReminderMessage.setTitle("客户 ["+caseInfo.getPersonalInfo().getName()+"] 的"+(Objects.equals(paymentParams.getFlag(),0)?"减免":"还款")+"申请" + (Objects.equals(paymentParams.getResult(), 0) ? "被驳回" : "已入账"));
+        sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 的" + (Objects.equals(paymentParams.getFlag(), 0) ? "减免" : "还款") + "申请" + (Objects.equals(paymentParams.getResult(), 0) ? "被驳回" : "已入账"));
         sendReminderMessage.setContent(casePayApply.getApprovePayMemo());
         sendReminderMessage.setType(ReminderType.REPAYMENT);
         reminderService.sendReminder(sendReminderMessage);
@@ -265,19 +266,19 @@ public class PaymentService {
             Map<String, Object> map;
             for (CasePayApply casePayApply : casePayApplyList) {
                 map = new LinkedHashMap<>();
-                map.put("caseNumber", casePayApply.getCaseNumber());
-                map.put("batchNumber", casePayApply.getBatchNumber());
-                map.put("principalName", casePayApply.getPrincipalName());
-                map.put("personalName", casePayApply.getPersonalName());
-                map.put("personalPhone", casePayApply.getPersonalPhone());
-                map.put("caseAmt", casePayApply.getCaseAmt());
-                map.put("applyPayAmt", casePayApply.getApplyPayAmt());
-                map.put("payType", dataDictService.getDataDictName(casePayApply.getPayType()));
-                map.put("payWay", dataDictService.getDataDictName(casePayApply.getPayWay()));
-                map.put("approveStatus", dataDictService.getDataDictName(casePayApply.getApproveStatus()));
-                map.put("approveResult", dataDictService.getDataDictName(casePayApply.getApproveResult()));
-                map.put("applayDate", casePayApply.getApplyDate());
-                map.put("applayRealName", casePayApply.getApplyRealName());
+                map.put("caseNumber", (Objects.isNull(casePayApply.getCaseNumber()) ? "" : casePayApply.getCaseNumber()));
+                map.put("batchNumber", (Objects.isNull(casePayApply.getBatchNumber()) ? "" : casePayApply.getBatchNumber()));
+                map.put("principalName", (Objects.isNull(casePayApply.getPrincipalName()) ? "" : casePayApply.getPrincipalName()));
+                map.put("personalName", (Objects.isNull(casePayApply.getPersonalName()) ? "" : casePayApply.getPersonalName()));
+                map.put("personalPhone", (Objects.isNull(casePayApply.getPersonalPhone()) ? "" : casePayApply.getPersonalPhone()));
+                map.put("caseAmt", (Objects.isNull(casePayApply.getCaseAmt()) ? "" : casePayApply.getCaseAmt()));
+                map.put("applyPayAmt", (Objects.isNull(casePayApply.getApplyPayAmt()) ? "" : casePayApply.getApplyPayAmt()));
+                map.put("payType", (Objects.isNull(casePayApply.getPayType()) ? "" : dataDictService.getDataDictName(casePayApply.getPayType())));
+                map.put("payWay", (Objects.isNull(casePayApply.getPayWay()) ? "" : dataDictService.getDataDictName(casePayApply.getPayWay())));
+                map.put("approveStatus", (Objects.isNull(casePayApply.getApproveStatus()) ? "" : dataDictService.getDataDictName(casePayApply.getApproveStatus())));
+                map.put("approveResult", (Objects.isNull(casePayApply.getApproveResult()) ? "" : dataDictService.getDataDictName(casePayApply.getApproveResult())));
+                map.put("applayDate", (Objects.isNull(casePayApply.getApplyDate()) ? "" : casePayApply.getApplyDate()));
+                map.put("applayRealName", (Objects.isNull(casePayApply.getApplyRealName()) ? "" : casePayApply.getApplyRealName()));
                 dataList.add(map);
             }
 

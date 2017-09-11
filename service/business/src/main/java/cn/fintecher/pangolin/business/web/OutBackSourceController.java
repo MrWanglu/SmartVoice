@@ -66,33 +66,35 @@ public class OutBackSourceController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
 
-            String outId = outBackSource.getOutId();
+            String outcaseId = outBackSource.getOutcaseId();
             OutsourcePool outsourcePool = null;
 
-            if (Objects.nonNull(outId)){
-                outsourcePool = outsourcePoolRepository.findOne(outId);
-                if(Objects.nonNull(outsourcePool)){
+            if (Objects.nonNull(outcaseId)){
+                outsourcePool = outsourcePoolRepository.findOne(outcaseId);
+
+                if (Objects.nonNull(outsourcePool)){
 
                     CaseInfo caseInfo = outsourcePool.getCaseInfo();
-                    if (Objects.nonNull(caseInfo)){
+                    if(Objects.nonNull(caseInfo)){
                         outBackSource.setOutcaseId(outsourcePool.getCaseInfo().getId());
                     }
                     Integer operationType = outBackSource.getOperationType();
                     BigDecimal amt = outBackSource.getBackAmt();
                     //累加回款金额和操作状态
-                    if (OutBackSource.operationType.OUTBACKAMT.getCode().equals(operationType) && amt!=null){
-                        outsourcePool.setOutBackAmt(amt);//累加回款金额
+                    if (OutBackSource.operationType.OUTBACKAMT.getCode().equals(operationType) && amt != null) {
+                        outsourcePool.setOutBackAmt(outsourcePool.getOutBackAmt().add(amt));//累加回款金额
                     }
                     outsourcePool.setOutoperationStatus(outBackSource.getOperationType());
                     outsourcePoolRepository.saveAndFlush(outsourcePool);//保存委外案件
                 }
             }
+
             //判断如果是超级管理员companyCode是为null的
             if (Objects.isNull(user.getCompanyCode())) {
-                if(Objects.isNull(outBackSource.getCompanyCode())){
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+                if (Objects.isNull(outBackSource.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "OutBackSource", "请选择公司")).body(null);
                 }
-            }else{
+            } else {
                 outBackSource.setCompanyCode(user.getCompanyCode());
             }
             outBackSource.setOperator(user.getRealName());

@@ -111,6 +111,10 @@ public final class Constants {
     public static final String CASE_IMPORT_TEMPLATE_URL_CODE = "SysParam.caseimportexcelurl";
     public static final String CASE_IMPORT_TEMPLATE_URL_TYPE = "9004";
 
+    //委外案件账目导入模版url
+    public static final String SMS_OUTCASE_ACCOUNT_URL_CODE = "sys.outcase.account";
+    public static final String SMS_OUTCASE_ACCOUNT_URL_TYPE = "9001";
+
     //系统参数请求
     public static final String SYSPARAM_URL = "http://business-service/api/sysParamResource";
 
