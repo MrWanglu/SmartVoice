@@ -71,7 +71,7 @@ public class ReminderTimingJob implements Job {
                         JobDataMap jobDataMap = new JobDataMap();
                         jobDataMap.put("companyCode", company.getCode());
                         jobDataMap.put("sysParamCode", Constants.SYSPARAM_REMINDER_STATUS);
-                        CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.REMINDER_TRIGGER_GROUP.concat("_").concat(company.getCode()),
+                        CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.REMINDER_TRIGGER_GROUP,
                                 Constants.REMINDER_TRIGGER_NAME.concat("_").concat(company.getCode()),
                                 "reminderTimingJobBean".concat("_").concat(company.getCode()),
                                 Constants.REMINDER_TRIGGER_DESC.concat("_").concat(company.getCode()),
