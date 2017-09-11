@@ -238,6 +238,7 @@ public class OutsourceController extends BaseController {
         if (Objects.nonNull(companyCode)) {
             builder.and(qOutsource.companyCode.eq(companyCode));
         }
+        builder.and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode()));
         Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(builder).iterator();
         List<Outsource> outsourceList = IteratorUtils.toList(outsourceIterator);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(outsourceList);
