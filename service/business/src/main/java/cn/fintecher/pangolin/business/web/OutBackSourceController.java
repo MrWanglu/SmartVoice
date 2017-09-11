@@ -2,18 +2,22 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.repository.OutBackSourceRepository;
 import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
-import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.OutBackSource;
+import cn.fintecher.pangolin.entity.OutsourcePool;
+import cn.fintecher.pangolin.entity.QOutBackSource;
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
-import io.swagger.annotations.*;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -74,10 +78,6 @@ public class OutBackSourceController extends BaseController {
 
                 if (Objects.nonNull(outsourcePool)){
 
-                    CaseInfo caseInfo = outsourcePool.getCaseInfo();
-                    if(Objects.nonNull(caseInfo)){
-                        outBackSource.setOutcaseId(outsourcePool.getCaseInfo().getId());
-                    }
                     Integer operationType = outBackSource.getOperationType();
                     BigDecimal amt = outBackSource.getBackAmt();
                     //累加回款金额和操作状态
@@ -88,7 +88,6 @@ public class OutBackSourceController extends BaseController {
                     outsourcePoolRepository.saveAndFlush(outsourcePool);//保存委外案件
                 }
             }
-
             //判断如果是超级管理员companyCode是为null的
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(outBackSource.getCompanyCode())) {
@@ -100,6 +99,7 @@ public class OutBackSourceController extends BaseController {
             outBackSource.setOperator(user.getRealName());
             outBackSource.setOperateTime(ZWDateUtil.getNowDateTime());
             outbackSourceRepository.save(outBackSource);
+
             return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", " 操作成功")).body(outBackSource);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
