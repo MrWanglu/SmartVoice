@@ -117,4 +117,10 @@ public interface CupoPageMapper {
      * @return
      */
     Integer getCaseInfoAllCount(String userId);
+
+    /**
+     * 任务目标金额
+     * @return
+     */
+    BigDecimal getBackCash(String userId);
 }

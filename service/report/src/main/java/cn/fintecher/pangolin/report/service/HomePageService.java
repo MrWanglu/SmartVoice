@@ -154,6 +154,10 @@ public class HomePageService {
         // 第七部分 本周结案数统计
         List<WeekCountResult> caseEndWeek = cupoPageMapper.getCaseEndWeek(user.getId());
         cupoPage.setWeekCaseEndCount(addWeekListZero(caseEndWeek));
+
+        // 任务回款金额
+        BigDecimal backCash = cupoPageMapper.getBackCash(user.getUserName());
+        cupoPage.setBackCash(backCash);
         homePageResult.setData(cupoPage);
         return homePageResult;
     }

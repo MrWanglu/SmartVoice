@@ -67,4 +67,7 @@ public class CupoPage {
     // 第七部分
     @ApiModelProperty(notes = "本周结案数")
     private List<WeekCountResult> weekCaseEndCount;
+
+    @ApiModelProperty(notes = "任务目标金额")
+    private BigDecimal backCash = new BigDecimal("0.00");
 }

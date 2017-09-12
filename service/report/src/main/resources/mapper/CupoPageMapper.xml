@@ -142,4 +142,12 @@
         WHERE assist_collector = #{userId}
         ) AS m
     </select>
+
+    <!--月度回款总额-->
+    <select id="getBackCash" parameterType="string" resultType="java.math.BigDecimal">
+        SELECT back_cash FROM user_backcash_plan as plan
+        WHERE plan.user_name = #{username}
+        and plan.year = year(now())
+        and plan.month = month(now())
+    </select>
 </mapper>
