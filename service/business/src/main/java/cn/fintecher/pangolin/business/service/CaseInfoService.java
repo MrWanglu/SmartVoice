@@ -11,7 +11,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.IteratorUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -102,7 +101,7 @@ public class CaseInfoService {
      * @Description 重新分配
      */
     public void reDistribution(ReDistributionParams reDistributionParams, User tokenUser) {
-        if (StringUtils.equals(reDistributionParams.getUserName(), "administrator")) {
+        if (reDistributionParams.getUserName().contains("administrator")) {
             throw new RuntimeException("不能分配给超级管理员");
         }
         User user = userRepository.findByUserName(reDistributionParams.getUserName());
