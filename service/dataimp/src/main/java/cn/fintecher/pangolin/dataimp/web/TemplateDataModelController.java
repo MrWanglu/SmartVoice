@@ -1,7 +1,6 @@
 package cn.fintecher.pangolin.dataimp.web;
 
 
-import cn.fintecher.pangolin.dataimp.entity.QTemplateDataModel;
 import cn.fintecher.pangolin.dataimp.entity.TemplateDataModel;
 import cn.fintecher.pangolin.dataimp.entity.TemplateExcelInfo;
 import cn.fintecher.pangolin.dataimp.repository.TemplateDataModelRepository;
@@ -39,6 +38,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -48,6 +48,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static cn.fintecher.pangolin.dataimp.entity.QTemplateDataModel.templateDataModel;
 
 /**
  * Created by luqiang on 2017/7/25.
@@ -104,9 +106,9 @@ public class TemplateDataModelController {
                 if(Objects.isNull(companyCode)){
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("templateDataModel", "TemplateDataModel", "请选择公司")).body(null);
                 }
-                builder.and(QTemplateDataModel.templateDataModel.companyCode.eq(companyCode));
+                builder.and(templateDataModel.companyCode.eq(companyCode));
             }else{
-                builder.and(QTemplateDataModel.templateDataModel.companyCode.eq(user.getCompanyCode()));
+                builder.and(templateDataModel.companyCode.eq(user.getCompanyCode()));
             }
             Page<TemplateDataModel> page = templateDataModelRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/accImportExcelDataController/getExcelTemplateList");
@@ -206,6 +208,20 @@ public class TemplateDataModelController {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
         }
+    }
+    @GetMapping("/updatetExcelTemplateData")
+    @ResponseBody
+    @ApiOperation(value = "修改Excel模板配置", notes = "修改Excel模板配置")
+    public ResponseEntity<TemplateDataModel> updatetExcelTemplateData(@RequestParam String id){
+        TemplateDataModel templateDataModel=null;
+        try {
+           templateDataModel= templateDataModelRepository.findOne(id);
+            templateDataModel.setDataColNum(templateDataModelService.excelColIndexToStr(Integer.parseInt(templateDataModel.getDataColNum())));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "success")).body(templateDataModel);
     }
     @GetMapping("/getExcelList")
     @ApiOperation(value = "获取Excel映射字段", notes = "获取Excel映射字段")

@@ -133,6 +133,12 @@ public class ScoreStrategyController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStregy","no message","新增失败")).body(null);
         }
     }
+    @DeleteMapping("/deleteScoreStrategy")
+    @ApiOperation(value = "删除评分记录", notes = "删除评分记录")
+    public ResponseEntity deleteScoreStrategy(@RequestParam String id){
+        scoreRuleRepository.delete(id);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert("scoreStregy", "operate successfully", "删除评分记录成功")).body(null);
+    }
     private String analysisRule(String strategyJson, StringBuilder sb, String variable) {
         if (StringUtils.isNotBlank(strategyJson)) {
             JSONArray jsonArray = JSONArray.parseArray(strategyJson);
