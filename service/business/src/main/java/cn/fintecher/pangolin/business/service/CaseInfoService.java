@@ -1771,6 +1771,9 @@ public class CaseInfoService {
         synchronized (this) {
             CaseAssist caseAssist = caseAssistRepository.findOne(id);
             //更改协催案件信息
+            if(!Objects.equals(caseAssist.getAssistStatus(),CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue())){
+                throw new RuntimeException("该协催已被他人抢走");
+            }
             caseAssist.setDepartId(user.getDepartment().getId()); //协催部门ID
             caseAssist.setAssistCollector(user); //协催员
             caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue()); //协催状态 待催收
