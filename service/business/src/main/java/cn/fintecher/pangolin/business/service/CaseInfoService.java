@@ -1531,17 +1531,12 @@ public class CaseInfoService {
             if (Objects.isNull(caseInfo)) {
                 throw new RuntimeException("有案件未找到!");
             }
-            Integer collectionStatus = caseInfo.getCollectionStatus();
-            if (Objects.equals(collectionStatus, CaseInfo.CollectionStatus.CASE_OVER.getValue()) //已结案
-                    || Objects.equals(collectionStatus, CaseInfo.CollectionStatus.CASE_OUT.getValue()) //已委外
-                    || Objects.equals(collectionStatus, CaseInfo.CollectionStatus.EARLY_PAYING.getValue())) {  //提前借清还款中
-                caseInfoNo.add(caseInfo);
-            } else {
-                caseInfoYes.add(caseInfo);
+            if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) { //24-已结案
+                throw new RuntimeException("已结案案件不能重新分配");
             }
-        }
-        if (!caseInfoNo.isEmpty()) {
-            throw new RuntimeException("已结案 已委外 提前借清还款中的案件不可重新分配!");
+            if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OUT.getValue())) { //166已委外
+                throw new RuntimeException("已委外案件不能重新分配");
+            }
         }
         //案件列表
         List<CaseInfo> caseInfoObjList = new ArrayList<>();
