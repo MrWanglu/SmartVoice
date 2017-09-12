@@ -136,8 +136,16 @@ public class ScoreStrategyController {
     @DeleteMapping("/deleteScoreStrategy")
     @ApiOperation(value = "删除评分记录", notes = "删除评分记录")
     public ResponseEntity deleteScoreStrategy(@RequestParam String id){
-        scoreRuleRepository.delete(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert("scoreStregy", "operate successfully", "删除评分记录成功")).body(null);
+
+        ScoreRule scorerule = scoreRuleRepository.findOne(id);
+        //删除评分条件 created by huyanmin 2017/09/12
+        if(Objects.nonNull(scorerule)){
+            scoreRuleRepository.delete(id);
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert("scoreStregy", "operate successfully", "删除评分记录成功")).body(null);
+        }else{
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStregy", "operate failed", "请先保存该属性")).body(null);
+        }
+
     }
     private String analysisRule(String strategyJson, StringBuilder sb, String variable) {
         if (StringUtils.isNotBlank(strategyJson)) {
