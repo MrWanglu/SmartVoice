@@ -68,6 +68,12 @@ pangolin:
     proceedSign: 59715406
     secret: 6b21a1c997dcea6a20c3181677c20744
     recordlist: http://m.icsoc.net/v2/wintelapi/record/recordlist
+  yunyi-server:
+    host: 116.236.220.211
+    port: 12345
+    timeout: 10000000
+    customerDisplayNum: 51300794
+    agentPwd : zhiwang123
   jiguang:
     appKey: 79ddc73963c2e534c2bbce00
     masterSecret: 8a7f887494a570e3b4420b11

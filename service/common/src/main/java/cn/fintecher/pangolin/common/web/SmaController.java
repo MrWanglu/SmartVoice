@@ -66,6 +66,17 @@ public class SmaController {
     private String cti;
     @Value("${pangolin.zhongtong-server.recordlist}")
     private String recordlist;
+    //云翳参数配置
+    @Value("${pangolin.yunyi-server.host}")
+    private String host;
+    @Value("${pangolin.yunyi-server.port}")
+    private int port;
+    @Value("${pangolin.yunyi-server.timeout}")
+    private int timeout;
+    @Value("${pangolin.yunyi-server.customerDisplayNum}")
+    private String customerDisplayNum;
+    @Value("${pangolin.yunyi-server.agentPwd}")
+    private String agentPwd;
 
     /**
      * @Description : 呼叫类型设置
@@ -237,13 +248,13 @@ public class SmaController {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
                 }
                 try {
-                    Socket socket = new Socket("116.236.220.211", 12345);
-                    socket.setSoTimeout(10000000);
+                    Socket socket = new Socket(host, port);
+                    socket.setSoTimeout(timeout);
                     BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
 
                     //拨打电话
-                    String sendData1 = "<request><cmdType>manual_callout</cmdType><agentID>" + user.getCallPhone() + "</agentID><customerNum>" + request.getCallee() + "</customerNum><customerDisplayNum>51300794</customerDisplayNum></request>";
+                    String sendData1 = "<request><cmdType>manual_callout</cmdType><agentID>" + user.getCallPhone() + "</agentID><customerNum>" + request.getCallee() + "</customerNum><customerDisplayNum>"+customerDisplayNum+"</customerDisplayNum></request>";
                     String sendDataUtf821 = new String(sendData1.getBytes("UTF-8"), "UTF-8");
                     String head21 = "<<<length=" + sendDataUtf821.getBytes("UTF-8").length + ">>>";
                     sendDataUtf821 = head21 + sendDataUtf821;
@@ -325,8 +336,8 @@ public class SmaController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Check-in user does not exist", "签入用户不存在")).body(null);
             }
             Map<String, String> map = callService.signIn(user.getId(), user.getCallPhone());
-            Socket socket = new Socket("116.236.220.211", 12345);
-            socket.setSoTimeout(10000000);
+            Socket socket = new Socket(host, port);
+            socket.setSoTimeout(timeout);
             BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
             // 签入
@@ -334,7 +345,7 @@ public class SmaController {
             String response = "<request>\n" +
                     "<cmdType>signin</cmdType>\n" +
                     "<agentID>" + user.getCallPhone() + "</agentID>\n" +
-                    "<agentPwd>zhiwang123</agentPwd>\n" +
+                    "<agentPwd>"+agentPwd+"</agentPwd>\n" +
                     "<bindExten>yes</bindExten>\n" +
                     "<agentExten>" + user.getCallPhone() + "</agentExten>\n" +
                     "<initStatus>0</initStatus>\n" +
@@ -365,8 +376,8 @@ public class SmaController {
             Map<String, String> map1 = Constants.map;
             if (map1.containsKey(user.getId())) {
                 Map<String, String> map = callService.signOut(user.getId(), user.getCallPhone());
-                Socket socket = new Socket("116.236.220.211", 12345);
-                socket.setSoTimeout(10000000);
+                Socket socket = new Socket(host, port);
+                socket.setSoTimeout(timeout);
                 BufferedReader is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 PrintWriter pw = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"));
                 // 签入
