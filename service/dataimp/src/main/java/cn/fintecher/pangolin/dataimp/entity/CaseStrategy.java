@@ -1,7 +1,5 @@
 package cn.fintecher.pangolin.dataimp.entity;
 
-import cn.fintecher.pangolin.web.BaseObject;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -27,7 +25,6 @@ public class CaseStrategy {
     //分配类型 0 机构 1 催收员
     private Integer assignType;
     //创建日期
-    @JsonFormat(pattern = BaseObject.DATE_TIME_FORMAT, locale = BaseObject.TIMEZONE)
     private Date createTime;
     //策略Json对象
     private String strategyJson;

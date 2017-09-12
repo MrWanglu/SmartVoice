@@ -111,7 +111,7 @@ public class TemplateController extends BaseController {
             }else{
                 template.setCompanyCode(user.getCompanyCode());
             }
-            template.setCreator(user.getUserName());
+            template.setCreator(user.getRealName());
             List<Template> templateList = templateRepository.findByTemplateNameOrTemplateCode(template.getTemplateName().trim(), template.getTemplateCode().trim());
             if (ZWStringUtils.isNotEmpty(templateList)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该模板名称和编号已被占用")).body(null);

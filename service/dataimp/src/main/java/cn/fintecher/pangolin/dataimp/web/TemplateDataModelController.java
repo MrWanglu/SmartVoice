@@ -189,7 +189,7 @@ public class TemplateDataModelController {
             }
             User user=userResponseEntity.getBody();
             excelTemplateData.setOperatorTime(ZWDateUtil.getNowDateTime());
-            excelTemplateData.setOperator(user.getUserName());
+            excelTemplateData.setOperator(user.getRealName());
             excelTemplateData.setOperatorName(user.getRealName());
             excelTemplateData.setDataColNum(templateDataModelService.excelColStrToNum(excelTemplateData.getDataColNum()));//将字母转化为数字
             excelTemplateData.setDataRowNum(String.valueOf(Integer.parseInt(excelTemplateData.getDataRowNum())-1));
