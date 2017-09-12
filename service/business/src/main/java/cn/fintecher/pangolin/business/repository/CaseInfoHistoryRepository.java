@@ -7,6 +7,7 @@ import cn.fintecher.pangolin.entity.QCaseInfoHistory;
 import com.querydsl.core.types.dsl.StringPath;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
@@ -136,4 +137,7 @@ public interface CaseInfoHistoryRepository extends QueryDslPredicateExecutor<Cas
         //催收反馈
         bindings.bind(root.followupBack).first((path, value) -> path.eq(value));
     }
+
+    @Query(value = "SELECT DISTINCT(case_id) FROM case_info_history",nativeQuery = true)
+    List<String> findAllCaseInfoIds();
 }

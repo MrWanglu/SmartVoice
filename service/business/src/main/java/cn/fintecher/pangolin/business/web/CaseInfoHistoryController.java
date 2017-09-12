@@ -122,7 +122,6 @@ public class CaseInfoHistoryController extends BaseController {
                 caseInfos.add(caseInfo);
             }
             caseInfoHistoryRepository.save(caseInfoHistories);
-            caseInfoRepository.deleteInBatch(caseInfos);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert( "删除成功","")).body(null);
         } catch (BeansException e) {
             log.debug(e.getMessage());
