@@ -32,6 +32,7 @@ public final class Constants {
     //呼叫中心模块
     public static final String PHONE_CALL_CODE = "SysParam.phone.call";
     public static final String PHONE_CALL_TYPE = "0005";
+    public static final String PHONE_ISREALCALL_CODE = "sys.sma.isrealcall";
     public static final Map<String, String> map = new HashMap<String, String>();
     //阅读回款目前excel模板url
     public static final String BACK_CASH_PLAN_EXCEL_URL_CODE = "SysParam.backcashplanexcelurl";
