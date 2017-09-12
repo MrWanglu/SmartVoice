@@ -170,6 +170,19 @@ public class SmaController {
             if (Objects.isNull(sysParam)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
             }
+            //是否虚拟拨打 若是，则直接返回拨打成功
+            SysParam sysObj = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + request.getCompanyCode() + "&code=" + Constants.PHONE_ISREALCALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
+            if (Objects.isNull(sysObj)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
+            }
+            Integer status = sysObj.getStatus();
+            if (Objects.nonNull(status) && 0 == status){//虚拟拨打(此处的值写死)
+                Map falseMap = new HashMap();
+                falseMap.put("id", request.getTaskId());//呼叫流程id
+                falseMap.put("resultTaskId", "61925452-cbcc-490c-acfd-7e6994a69d68");
+                falseMap.put("taskId", "603881051");
+                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(falseMap);
+            }
 
 //         163 erpv3     165  云羿
             if (Objects.equals(CaseFollowupRecord.CallType.ERPV3.getValue().toString(), sysParam.getValue())) {
