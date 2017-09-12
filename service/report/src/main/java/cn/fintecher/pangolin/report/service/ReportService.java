@@ -84,6 +84,9 @@ public class ReportService {
                     continue;
                 }
             }
+            if (backMoneyReport.getUserName().contains("administrator")) {
+                continue;
+            }
             if (Objects.equals(backMoneyModel.getDeptCode(), backMoneyReport.getParentDeptCode())) { //一级模型中有该部门code码
                 List<BackMoneySecModel> backMoneySecModelList = backMoneyModel.getBackMoneySecModels(); //获得二级模型集合
                 if (Objects.isNull(backMoneySecModelList)) { //如果二级模型集合为空则new
@@ -225,6 +228,9 @@ public class ReportService {
                     continue;
                 }
             }
+            if (performanceBasisModel.getUserName().contains("administrator")) {
+                continue;
+            }
             if (Objects.equals(performanceModel.getDeptCode(), performanceBasisModel.getParentDeptCode())) { //一级模型中有该部门code码
                 List<PerformanceSecModel> performanceSecModels = performanceModel.getPerformanceSecModels(); //获得二级模型集合
                 if (Objects.isNull(performanceSecModels)) { //如果二级模型集合为空则new
@@ -335,6 +341,9 @@ public class ReportService {
                         && !Objects.equals(tokenUser.getUserName(), dailyProcessReport.getUserName())) { //过滤同部门
                     continue;
                 }
+            }
+            if (dailyProcessReport.getUserName().contains("administrator")) {
+                continue;
             }
             if (Objects.equals(dailyProcessModel.getDeptCode(), dailyProcessReport.getParentDeptCode())) { //一级模型中有该部门code码
                 List<DailyProcessSecModel> dailyProcessSecModels = dailyProcessModel.getDailyProcessSecModels();
@@ -494,6 +503,9 @@ public class ReportService {
                     continue;
                 }
             }
+            if (dailyResultReport.getUserName().contains("administrator")) {
+                continue;
+            }
             if (Objects.equals(dailyResultModel.getDeptCode(), dailyResultReport.getParentDeptCode())) { //一级模型中有该部门code码
                 List<DailyResultSecModel> dailyResultSecModels = dailyResultModel.getDailyResultSecModels();
                 if (Objects.isNull(dailyResultSecModels)) { //如果二级模型集合为空则new
@@ -628,6 +640,9 @@ public class ReportService {
                     continue;
                 }
             }
+            if (performanceRankingReport.getUserName().contains("administrator")) {
+                continue;
+            }
             if (Objects.equals(collectorPerformanceModel.getDeptCode(), performanceRankingReport.getParentDeptCode())) { //如果部门code码不为空
                 List<PerformanceRankingReport> performanceRankingReports1 = collectorPerformanceModel.getPerformanceRankingReports();
                 if (Objects.isNull(performanceRankingReports1)) {
@@ -708,6 +723,9 @@ public class ReportService {
                         && !Objects.equals(tokenUser.getUserName(), performanceRankingReport.getUserName())) { //过滤同部门
                     continue;
                 }
+            }
+            if (performanceRankingReport.getUserName().contains("administrator")) {
+                continue;
             }
             if (Objects.equals(performanceSummaryModel.getDeptCode(), performanceRankingReport.getParentDeptCode())) { //一级模型中有该部门code码
                 List<PerformanceSummarySecModel> performanceSummarySecModels = performanceSummaryModel.getPerformanceSummarySecModels();
@@ -1148,6 +1166,9 @@ public class ReportService {
                         && !Objects.equals(smsReport.getUserName(), tokenUser.getUserName())) { //过滤同部门
                     continue;
                 }
+            }
+            if (smsReport.getUserName().contains("administrator")) {
+                continue;
             }
             if (Objects.equals(smsModel.getDeptCode(), smsReport.getParentDeptCode())) { //一级模型中有该部门code码
                 smsSecModels = smsModel.getSmsSecModels();
