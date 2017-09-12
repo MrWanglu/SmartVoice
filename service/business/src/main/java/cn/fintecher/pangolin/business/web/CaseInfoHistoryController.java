@@ -110,17 +110,19 @@ public class CaseInfoHistoryController extends BaseController {
             }
             List<CaseInfo> caseInfoList = caseInfoRepository.findAll(request.getIds());
             List<CaseInfoHistory> caseInfoHistories = new ArrayList<>();
+            List<CaseInfo> caseInfos = new ArrayList<>();
             for (CaseInfo caseInfo : caseInfoList) {
                 if (!Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","未结案的案件不能删除!")).body(null);
+                    caseInfos.add(caseInfo);
+                } else {
+                    CaseInfoHistory caseInfoHistory = new CaseInfoHistory();
+                    BeanUtils.copyProperties(caseInfo, caseInfoHistory);
+                    caseInfoHistory.setCaseId(caseInfo.getId());
+                    caseInfoHistories.add(caseInfoHistory);
                 }
-                CaseInfoHistory caseInfoHistory = new CaseInfoHistory();
-                BeanUtils.copyProperties(caseInfo, caseInfoHistory);
-                caseInfoHistory.setCaseId(caseInfo.getId());
-                caseInfoHistories.add(caseInfoHistory);
             }
             caseInfoHistoryRepository.save(caseInfoHistories);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert( "删除成功","")).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert( "删除成功","")).body(caseInfos);
         } catch (BeansException e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "删除失败")).body(null);
