@@ -14,6 +14,7 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -103,22 +104,29 @@ public class CaseInfoHistoryController extends BaseController {
      */
     @PostMapping("/deleteCaseInfo")
     public ResponseEntity<List<CaseInfo>> deleteCaseInfo(@RequestBody CaseInfoIdList request) {
-        if (request.getIds().size() == 0) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "请选择案件")).body(null);
-        }
-        List<CaseInfo> caseInfoList = caseInfoRepository.findAll(request.getIds());
-        List<CaseInfo> caseInfoReturnList = new ArrayList<>();
-        for (CaseInfo caseInfo : caseInfoList) {
-            if(Objects.equals("24",CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
+        try {
+            if (Objects.isNull(request.getIds()) || request.getIds().isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","请选择要删除的案件!")).body(null);
+            }
+            List<CaseInfo> caseInfoList = caseInfoRepository.findAll(request.getIds());
+            List<CaseInfoHistory> caseInfoHistories = new ArrayList<>();
+            List<CaseInfo> caseInfos = new ArrayList<>();
+            for (CaseInfo caseInfo : caseInfoList) {
+                if (!Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","未结案的案件不能删除!")).body(null);
+                }
                 CaseInfoHistory caseInfoHistory = new CaseInfoHistory();
                 BeanUtils.copyProperties(caseInfo, caseInfoHistory);
                 caseInfoHistory.setCaseId(caseInfo.getId());
-                caseInfoHistoryRepository.save(caseInfoHistory);
-                caseInfoRepository.delete(caseInfo.getId());
-            }else{
-                caseInfoReturnList.add(caseInfo);
+                caseInfoHistories.add(caseInfoHistory);
+                caseInfos.add(caseInfo);
             }
+            caseInfoHistoryRepository.save(caseInfoHistories);
+            caseInfoRepository.deleteInBatch(caseInfos);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert( "删除成功","")).body(null);
+        } catch (BeansException e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "删除失败")).body(null);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(caseInfoReturnList);
     }
 }
