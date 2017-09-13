@@ -1546,19 +1546,12 @@ public class CaseInfoService {
         //选择的案件ID列表
         List<String> caseInfoList = accCaseInfoDisModel.getCaseIdList();
         //检查案件状态（待分配 待催收 催收中 承诺还款 可以分配）
-        List<CaseInfo> caseInfoNo = new ArrayList<>(); //不可分配案件
+//        List<CaseInfo> caseInfoNo = new ArrayList<>(); //不可分配案件
         List<CaseInfo> caseInfoYes = new ArrayList<>(); //可分配案件
         for (String caseId : caseInfoList) {
             CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
             if (Objects.isNull(caseInfo)) {
                 throw new RuntimeException("有案件未找到!");
-            }
-            if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue()) //已结案
-                    || Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OUT.getValue()) //已委外
-                    || Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.EARLY_PAYING.getValue())) {  //提前借清还款中
-                caseInfoNo.add(caseInfo);
-            } else {
-                caseInfoYes.add(caseInfo);
             }
             if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) { //24-已结案
                 throw new RuntimeException("已结案案件不能重新分配");
@@ -1566,6 +1559,7 @@ public class CaseInfoService {
             if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OUT.getValue())) { //166已委外
                 throw new RuntimeException("已委外案件不能重新分配");
             }
+            caseInfoYes.add(caseInfo);
         }
         //案件列表
         List<CaseInfo> caseInfoObjList = new ArrayList<>();
