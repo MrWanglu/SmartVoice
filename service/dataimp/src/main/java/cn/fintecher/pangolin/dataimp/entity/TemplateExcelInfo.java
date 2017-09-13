@@ -24,5 +24,7 @@ public class TemplateExcelInfo {
     public String cellCode;
     @ApiModelProperty("Excel列编号")//字母
     public String colNum;
+    @ApiModelProperty("是否必输")//0:是  1：否
+    public Integer flag;
 
 }

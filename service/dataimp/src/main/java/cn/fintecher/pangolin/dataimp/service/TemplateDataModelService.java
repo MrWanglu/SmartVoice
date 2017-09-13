@@ -268,6 +268,12 @@ public class TemplateDataModelService {
                 TemplateExcelInfo templateModel = new TemplateExcelInfo();
                 //实体中注解的属性名称
                 templateModel.setCellName(name.cellName());
+                if(f.getName().equals("personalName") ||f.getName().equals("idCard")
+                        || f.getName().equals("productName") || f.getName().equals("province") || f.getName().equals("city") ){
+                    templateModel.setFlag(0);//0：必输
+                }else{
+                    templateModel.setFlag(1);//1:不是必输
+                }
                 templateModel.setCellCode(f.getName());
                 templateModel.setCellType(f.getType().toString());
                 templateModel.setCellTypeName(getTypeName(f.getType().toString()));
