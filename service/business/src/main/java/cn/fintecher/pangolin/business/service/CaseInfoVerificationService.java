@@ -152,11 +152,11 @@ public class CaseInfoVerificationService {
         }
         //开始时间
         if (StringUtils.isNotBlank(caseInfoVerificationParams.getStartTime())) {
-            queryCon.append(" and b.case_follow_in_time >= ").append("'").append(caseInfoVerificationParams.getStartTime()).append("'");
+            queryCon.append(" and b.case_follow_in_time >= ").append("'").append(caseInfoVerificationParams.getStartTime()).append(" 00:00:00").append("'");
         }
         //结束时间
         if (StringUtils.isNotBlank(caseInfoVerificationParams.getEndTime())) {
-            queryCon.append(" and b.case_follow_in_time <= ").append("'").append(caseInfoVerificationParams.getEndTime()).append("'");
+            queryCon.append(" and b.case_follow_in_time <= ").append("'").append(caseInfoVerificationParams.getEndTime()).append(" 23:59:59").append("'");
         }
         queryCon.append(" group by c.area_name");
         logger.debug(queryCon.toString());
