@@ -130,6 +130,10 @@ public class RoleController extends BaseController {
         User user;
         try {
             user = getUserByToken(token);
+            //set操作人的真实姓名
+            if (Objects.nonNull(user)) {
+                role.setOperator(user.getRealName());
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
