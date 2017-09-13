@@ -6,6 +6,7 @@ import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.FollowRecordExportService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.IdcardUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -806,6 +807,21 @@ public class CaseInfoController extends BaseController {
                 .and(QCaseInfoFile.caseInfoFile.companyCode.eq(user.getCompanyCode())));
         List<CaseInfoFile> caseInfoFiles = IterableUtils.toList(all);
         return ResponseEntity.ok().body(caseInfoFiles);
+    }
+
+    /**
+     * @Description 查看凭证
+     */
+    @GetMapping("/getFollowupFile")
+    @ApiOperation(value = "下载凭证", notes = "下载凭证")
+    public ResponseEntity<List<UploadFile>> getFollowupFile(@RequestParam @ApiParam(value = "跟进记录ID") String followId) {
+        log.debug("REST request to get flowup file");
+        try {
+            List<UploadFile> caseFlowupFiles = caseInfoService.getFollowupFile(followId);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("下载成功", "")).body(caseFlowupFiles);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("下载失败", "uploadFile", e.getMessage())).body(null);
+        }
     }
 }
 

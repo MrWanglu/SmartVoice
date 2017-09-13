@@ -97,6 +97,9 @@ public class CaseInfoService {
     @Inject
     CaseAdvanceTurnApplayRepository caseAdvanceTurnApplayRepository;
 
+    @Inject
+    CaseFlowupFileRepository caseFlowupFileRepository;
+
     /**
      * @Description 重新分配
      */
@@ -373,65 +376,6 @@ public class CaseInfoService {
     }
 
     /**
-     * @Description 添加跟进记录
-     */
-    public CaseFollowupRecord saveFollowupRecord(CaseFollowupParams caseFollowupParams, User tokenUser) {
-        CaseInfo caseInfo = caseInfoRepository.findOne(caseFollowupParams.getCaseId()); //获取案件信息
-        if (Objects.isNull(caseInfo)) {
-            throw new RuntimeException("该案件未找到");
-        }
-        CaseFollowupRecord caseFollowupRecord = new CaseFollowupRecord();
-        BeanUtils.copyProperties(caseFollowupParams, caseFollowupRecord);
-        caseFollowupRecord.setCaseId(caseFollowupParams.getCaseId());
-        caseFollowupRecord.setCaseNumber(caseFollowupParams.getCaseNumber());
-        caseFollowupRecord.setPersonalId(caseFollowupParams.getPersonalId());
-        caseFollowupRecord.setCompanyCode(tokenUser.getCompanyCode());
-        caseFollowupRecord.setOperator(tokenUser.getUserName()); //操作人
-        caseFollowupRecord.setOperatorName(tokenUser.getRealName()); //操作人姓名
-        caseFollowupRecord.setOperatorDeptName(tokenUser.getDepartment().getName()); // 操作人部门
-        caseFollowupRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-        caseFollowupRecordRepository.saveAndFlush(caseFollowupRecord);
-
-        //同步更新案件
-        if (Objects.equals(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue(), caseInfo.getCollectionStatus())
-                || Objects.equals(CaseInfo.CollectionStatus.PART_REPAID.getValue(), caseInfo.getCollectionStatus())
-                || Objects.equals(CaseInfo.CollectionStatus.REPAID.getValue(), caseInfo.getCollectionStatus())) {
-            caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue());//首次跟进将催收状态变为催收中
-        }
-        caseInfo.setFollowupTime(caseFollowupRecord.getOperatorTime()); //最新跟进时间
-        caseInfo.setFollowupBack(caseFollowupRecord.getCollectionFeedback()); //催收反馈
-        caseInfo.setPromiseAmt(caseFollowupRecord.getPromiseAmt()); //承诺还款金额
-        caseInfo.setPromiseTime(caseFollowupRecord.getPromiseDate()); //承诺还款日期
-        caseInfo.setOperator(tokenUser); //操作人
-        caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-        caseInfoRepository.save(caseInfo);
-
-        //承诺还款提醒
-        if (Objects.nonNull(caseFollowupParams.getCollectionFeedback()) && caseFollowupParams.getCollectionFeedback().equals(CaseFollowupRecord.EffectiveCollection.PROMISE.getValue())) {
-            SendReminderMessage sendReminderMessage = new SendReminderMessage();
-            sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 承诺今日还款");
-            sendReminderMessage.setUserId(userRepository.findByUserName(caseFollowupRecord.getOperator()).getId());
-            sendReminderMessage.setRemindTime(caseFollowupParams.getPromiseDate());
-            sendReminderMessage.setContent("客户 [" + caseInfo.getPersonalInfo().getName() + "] 承诺今日还款 [" + caseFollowupParams.getPromiseAmt() + "] 元");
-            sendReminderMessage.setType(ReminderType.FLLOWUP);
-            reminderService.sendReminderCalendarMessage(sendReminderMessage);
-        }
-
-        //消息提醒
-        if (Objects.nonNull(caseFollowupParams.getFollnextDate())) {
-            SendReminderMessage sendReminderMessage = new SendReminderMessage();
-            sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 的跟进提醒");
-            sendReminderMessage.setUserId(userRepository.findByUserName(caseFollowupRecord.getOperator()).getId());
-            sendReminderMessage.setRemindTime(caseFollowupParams.getFollnextDate());
-            sendReminderMessage.setContent(caseFollowupParams.getFollnextContent());
-            sendReminderMessage.setType(ReminderType.FLLOWUP);
-            reminderService.sendReminderCalendarMessage(sendReminderMessage);
-        }
-
-        return caseFollowupRecord;
-    }
-
-    /**
      * @Description 结案
      */
     public void endCase(EndCaseParams endCaseParams, User tokenUser) {
@@ -512,6 +456,65 @@ public class CaseInfoService {
                 caseInfoRepository.saveAndFlush(caseInfo);
             }
         }
+    }
+
+    /**
+     * @Description 添加跟进记录
+     */
+    public CaseFollowupRecord saveFollowupRecord(CaseFollowupParams caseFollowupParams, User tokenUser) {
+        CaseInfo caseInfo = caseInfoRepository.findOne(caseFollowupParams.getCaseId()); //获取案件信息
+        if (Objects.isNull(caseInfo)) {
+            throw new RuntimeException("该案件未找到");
+        }
+        CaseFollowupRecord caseFollowupRecord = new CaseFollowupRecord();
+        BeanUtils.copyProperties(caseFollowupParams, caseFollowupRecord);
+        caseFollowupRecord.setCaseId(caseFollowupParams.getCaseId());
+        caseFollowupRecord.setCaseNumber(caseFollowupParams.getCaseNumber());
+        caseFollowupRecord.setPersonalId(caseFollowupParams.getPersonalId());
+        caseFollowupRecord.setCompanyCode(tokenUser.getCompanyCode());
+        caseFollowupRecord.setOperator(tokenUser.getUserName()); //操作人
+        caseFollowupRecord.setOperatorName(tokenUser.getRealName()); //操作人姓名
+        caseFollowupRecord.setOperatorDeptName(tokenUser.getDepartment().getName()); // 操作人部门
+        caseFollowupRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        caseFollowupRecordRepository.saveAndFlush(caseFollowupRecord);
+
+        //同步更新案件
+        if (Objects.equals(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue(), caseInfo.getCollectionStatus())
+                || Objects.equals(CaseInfo.CollectionStatus.PART_REPAID.getValue(), caseInfo.getCollectionStatus())
+                || Objects.equals(CaseInfo.CollectionStatus.REPAID.getValue(), caseInfo.getCollectionStatus())) {
+            caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue());//首次跟进将催收状态变为催收中
+        }
+        caseInfo.setFollowupTime(caseFollowupRecord.getOperatorTime()); //最新跟进时间
+        caseInfo.setFollowupBack(caseFollowupRecord.getCollectionFeedback()); //催收反馈
+        caseInfo.setPromiseAmt(caseFollowupRecord.getPromiseAmt()); //承诺还款金额
+        caseInfo.setPromiseTime(caseFollowupRecord.getPromiseDate()); //承诺还款日期
+        caseInfo.setOperator(tokenUser); //操作人
+        caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        caseInfoRepository.save(caseInfo);
+
+        //承诺还款提醒
+        if (Objects.nonNull(caseFollowupParams.getCollectionFeedback()) && caseFollowupParams.getCollectionFeedback().equals(CaseFollowupRecord.EffectiveCollection.PROMISE.getValue())) {
+            SendReminderMessage sendReminderMessage = new SendReminderMessage();
+            sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 承诺今日还款");
+            sendReminderMessage.setUserId(userRepository.findByUserName(caseFollowupRecord.getOperator()).getId());
+            sendReminderMessage.setRemindTime(caseFollowupParams.getPromiseDate());
+            sendReminderMessage.setContent("客户 [" + caseInfo.getPersonalInfo().getName() + "] 承诺今日还款 [" + caseFollowupParams.getPromiseAmt() + "] 元");
+            sendReminderMessage.setType(ReminderType.FLLOWUP);
+            reminderService.sendReminderCalendarMessage(sendReminderMessage);
+        }
+
+        //消息提醒
+        if (Objects.nonNull(caseFollowupParams.getFollnextDate())) {
+            SendReminderMessage sendReminderMessage = new SendReminderMessage();
+            sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 的跟进提醒");
+            sendReminderMessage.setUserId(userRepository.findByUserName(caseFollowupRecord.getOperator()).getId());
+            sendReminderMessage.setRemindTime(caseFollowupParams.getFollnextDate());
+            sendReminderMessage.setContent(caseFollowupParams.getFollnextContent());
+            sendReminderMessage.setType(ReminderType.FLLOWUP);
+            reminderService.sendReminderCalendarMessage(sendReminderMessage);
+        }
+
+        return caseFollowupRecord;
     }
 
     /**
@@ -942,6 +945,25 @@ public class CaseInfoService {
         while (it.hasNext()) {
             CasePayFile casePayFile = it.next();
             ResponseEntity<UploadFile> entity = restTemplate.getForEntity("http://file-service/api/uploadFile/" + casePayFile.getFileid(), UploadFile.class);
+            if (!entity.hasBody()) {
+                throw new RuntimeException("下载失败");
+            } else {
+                UploadFile uploadFile = entity.getBody();//文件对象
+                uploadFiles.add(uploadFile);
+            }
+        }
+        return uploadFiles;
+    }
+
+    public List<UploadFile> getFollowupFile(String followId){
+        //下载跟进记录凭证
+        List<UploadFile> uploadFiles = new ArrayList<>();//文件对象集合
+        QCaseFlowupFile qCaseFlowupFile = QCaseFlowupFile.caseFlowupFile;
+        Iterable<CaseFlowupFile> caseFlowupFiles = caseFlowupFileRepository.findAll(qCaseFlowupFile.followupId.id.eq(followId));
+        Iterator<CaseFlowupFile> it = caseFlowupFiles.iterator();
+        while (it.hasNext()) {
+            CaseFlowupFile file = it.next();
+            ResponseEntity<UploadFile> entity = restTemplate.getForEntity("http://file-service/api/uploadFile/" + file.getFileid(), UploadFile.class);
             if (!entity.hasBody()) {
                 throw new RuntimeException("下载失败");
             } else {

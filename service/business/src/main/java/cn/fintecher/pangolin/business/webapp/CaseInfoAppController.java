@@ -1,7 +1,5 @@
 package cn.fintecher.pangolin.business.webapp;
 
-import cn.fintecher.pangolin.business.model.LeaveCaseModel;
-import cn.fintecher.pangolin.business.model.LeaveCaseParams;
 import cn.fintecher.pangolin.business.model.MapModel;
 import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
@@ -30,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.inject.Inject;
 
 import com.querydsl.core.types.Predicate;
-import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.math.BigDecimal;
