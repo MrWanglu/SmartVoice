@@ -223,7 +223,29 @@ public class UserController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The department for the disabled state, can not add user", "该部门为停用状态，不能添加用户")).body(null);
         }
         User updateUser = userService.save(user);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(updateUser);
+        Set<UserDevice> devices = updateUser.getUserDevices();
+        if (devices.size() == 0) {
+            Set<UserDevice> userDevices = new HashSet<>();
+            UserDevice userDevicePc = new UserDevice();
+            userDevicePc.setUserId(user.getId());
+            userDevicePc.setStatus(Status.Enable.getValue());
+            userDevicePc.setValidate(Status.Enable.getValue());
+            userDevicePc.setType(Status.Enable.getValue());
+            userDevicePc.setOperateTime(ZWDateUtil.getNowDateTime());
+            userDeviceRepository.saveAndFlush(userDevicePc);
+            userDevices.add(userDevicePc);
+
+            UserDevice userDeviceApp = new UserDevice();
+            userDeviceApp.setUserId(user.getId());
+            userDeviceApp.setStatus(Status.Enable.getValue());
+            userDeviceApp.setValidate(Status.Enable.getValue());
+            userDeviceApp.setType(Status.Disable.getValue());
+            userDeviceApp.setOperateTime(ZWDateUtil.getNowDateTime());
+            userDeviceRepository.saveAndFlush(userDeviceApp);
+            userDevices.add(userDeviceApp);
+            user.setUserDevices(userDevices);
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(updateUser);
     }
 
     /**
