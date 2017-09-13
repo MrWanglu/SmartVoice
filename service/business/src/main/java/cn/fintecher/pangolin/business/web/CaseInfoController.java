@@ -206,12 +206,12 @@ public class CaseInfoController extends BaseController {
 //                    qCaseInfo.endType.isNull());
             List<String> allCaseInfoIds = caseInfoHistoryRepository.findAllCaseInfoIds();
             builder.and(qCaseInfo.id.notIn(allCaseInfoIds));
-            if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) { //管理者
-                builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));
-            }
-            if (Objects.equals(user.getManager(), User.MANAGER_TYPE.NO_DATA_AUTH.getValue())) { //不是管理者
-                builder.and(qCaseInfo.currentCollector.eq(user).or(qCaseInfo.assistCollector.eq(user)));
-            }
+//            if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) { //管理者
+//                builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));
+//            }
+//            if (Objects.equals(user.getManager(), User.MANAGER_TYPE.NO_DATA_AUTH.getValue())) { //不是管理者
+//                builder.and(qCaseInfo.currentCollector.eq(user).or(qCaseInfo.assistCollector.eq(user)));
+//            }
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
