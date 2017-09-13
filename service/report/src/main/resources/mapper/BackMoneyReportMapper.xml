@@ -28,7 +28,8 @@
         as companyCode from user where id in
         (SELECT current_collector as userId from case_info where current_collector not in(SELECT id from user where
         user_name in
-        (SELECT apply_user_name from case_pay_apply where approve_status = 58)))) a
+        (SELECT apply_user_name from case_pay_apply where approve_status = 58 and date_format(apply_date,'%Y-%m-%d') =
+        date_format(now(),'%Y-%m-%d'))))) a
         LEFT JOIN
         (SELECT l.deptCode,l.deptName,l.groupCode,l.groupName,k.userName,k.realName from
         (SELECT user_name as userName,dept_id as deptId,real_name as realName from user) k
@@ -69,7 +70,7 @@
         as companyCode from user where id in
         (SELECT current_collector as userId from case_info where current_collector not in(SELECT id from user where
         user_name in
-        (SELECT apply_user_name from case_pay_apply where approve_status = 58)))) a
+        (SELECT apply_user_name from case_pay_apply where approve_status = 58 and DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d') = DATE_FORMAT(#{historyDate},'%Y-%m-%d'))))) a
         LEFT JOIN
         (SELECT l.deptCode,l.deptName,l.groupCode,l.groupName,k.userName,k.realName from
 				(SELECT user_name as userName,dept_id as deptId,real_name as realName from user) k
