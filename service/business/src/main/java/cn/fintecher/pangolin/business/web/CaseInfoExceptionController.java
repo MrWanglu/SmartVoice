@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.CaseInfoExceptionIdList;
 import cn.fintecher.pangolin.business.model.CaseUpdateParams;
 import cn.fintecher.pangolin.business.repository.CaseInfoExceptionRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoExceptionService;
@@ -147,6 +148,23 @@ public class CaseInfoExceptionController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "系统异常!")).body(null);
+        }
+    }
+
+    @DeleteMapping("/batchDeleteCaseInfoException")
+    @ApiOperation(value = "批量删除异常池案件", notes = "批量删除异常池案件")
+    public ResponseEntity<Void> batchDeleteCaseInfoException(@RequestBody @ApiParam(value = "异常案件ids") CaseInfoExceptionIdList caseInfoExceptionIdList) {
+        try {
+            log.debug("REST request to delete caseInfoException : {}", caseInfoExceptionIdList);
+            if (Objects.isNull(caseInfoExceptionIdList.getIds()) || caseInfoExceptionIdList.getIds().isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","请选择要删除的案件!")).body(null);
+            }
+            List<CaseInfoException> all = caseInfoExceptionRepository.findAll(caseInfoExceptionIdList.getIds());
+            caseInfoExceptionRepository.deleteInBatch(all);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功!","")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"delete error","案件删除失败，请检查案件是否已被删除")).body(null);
         }
     }
 }
