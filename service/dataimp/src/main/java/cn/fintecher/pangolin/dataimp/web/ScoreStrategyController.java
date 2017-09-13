@@ -8,6 +8,7 @@ import cn.fintecher.pangolin.entity.QTemplate;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.EntityUtil;
+import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.alibaba.fastjson.JSONArray;
@@ -31,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -54,23 +56,23 @@ public class ScoreStrategyController {
     @ApiOperation(value = "查询所有规则属性", notes = "查询所有规则属性")
     public ResponseEntity query(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                 @QuerydslPredicate(root = ScoreRule.class) Predicate predicate,
-                                @RequestHeader(value = "X-UserToken") String token,@ApiIgnore Pageable pageable){
+                                @RequestHeader(value = "X-UserToken") String token, @ApiIgnore Pageable pageable) {
         try {
-            ResponseEntity<User> userResponseEntity=null;
+            ResponseEntity<User> userResponseEntity = null;
             try {
                 userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-            }catch (Exception e){
-                logger.error(e.getMessage(),e);
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user","请登录")).body(null);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", "请登录")).body(null);
             }
-            User user=userResponseEntity.getBody();
+            User user = userResponseEntity.getBody();
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.isNull(user.getCompanyCode())){
-                if(Objects.isNull(companyCode)){
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStrategy", "scoreStrategy", "请选择公司")).body(null);
                 }
                 builder.and(QTemplate.template.companyCode.eq(companyCode));
-            }else{
+            } else {
                 builder.and(QTemplate.template.companyCode.eq(user.getCompanyCode()));
             }
             Page<ScoreRule> page = scoreRuleRepository.findAll(builder, pageable);
@@ -81,9 +83,10 @@ public class ScoreStrategyController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStrategy", "", e.getMessage())).body(null);
         }
     }
+
     @PostMapping("/saveScoreStrategy")
     @ApiOperation(value = "新增评分记录", notes = "新增评分记录")
-    public ResponseEntity saveScoreStrategy(@RequestBody JsonObj jsonStr, @RequestHeader(value = "X-UserToken") String token){
+    public ResponseEntity saveScoreStrategy(@RequestBody JsonObj jsonStr, @RequestHeader(value = "X-UserToken") String token) {
         try {
             ResponseEntity<User> userResult = null;
             try {
@@ -106,9 +109,9 @@ public class ScoreStrategyController {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
                 scoreRule.setName(jsonObject.getString("name"));
                 scoreRule.setWeight(jsonObject.getDouble("weight"));
-                if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
+                if (Objects.isNull(user.getCompanyCode())) {//如果是超级管理员，code码为空
                     scoreRule.setCompanyCode(null);
-                }else{
+                } else {
                     scoreRule.setCompanyCode(user.getCompanyCode());
                 }
                 JSONArray formulas = jsonObject.getJSONArray("formulas");
@@ -130,23 +133,27 @@ public class ScoreStrategyController {
             return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert("scoreStregy", "operate successfully", "新增评分记录成功")).body(sorceRules);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStregy","no message","新增失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStregy", "no message", "新增失败")).body(null);
         }
     }
+
     @DeleteMapping("/deleteScoreStrategy")
     @ApiOperation(value = "删除评分记录", notes = "删除评分记录")
-    public ResponseEntity deleteScoreStrategy(@RequestParam String id){
-
-        ScoreRule scorerule = scoreRuleRepository.findOne(id);
-        //删除评分条件 created by huyanmin 2017/09/12
-        if(Objects.nonNull(scorerule)){
-            scoreRuleRepository.delete(id);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert("scoreStregy", "operate successfully", "删除评分记录成功")).body(null);
-        }else{
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStregy", "operate failed", "请先保存该属性")).body(null);
+    public ResponseEntity deleteScoreStrategy(@RequestParam String id) {
+        //传ID的时候表示确实要删除，没有传值得时候表示只是前台界面的删除。
+        if (ZWStringUtils.isNotEmpty(id)) {
+            try {
+                scoreRuleRepository.delete(id);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                logger.error(ex.getMessage(), ex);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStregy", "operate failed", "刪除的信息不存在")).body(null);
+            }
+        } else {
         }
-
+        return ResponseEntity.ok().body(null);
     }
+
     private String analysisRule(String strategyJson, StringBuilder sb, String variable) {
         if (StringUtils.isNotBlank(strategyJson)) {
             JSONArray jsonArray = JSONArray.parseArray(strategyJson);
