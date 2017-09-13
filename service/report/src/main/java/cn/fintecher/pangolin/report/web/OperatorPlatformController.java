@@ -65,10 +65,10 @@ public class OperatorPlatformController extends BaseController{
             //催收员今日累计回款
             BigDecimal dayMoneyResult1 = cupoPageMapper.getDayMoneyResult(user.getUserName());
             BigDecimal dayMoneyResult = Objects.isNull(dayMoneyResult1) ? new BigDecimal("0.00") : dayMoneyResult1;
-            //催收员本月累计催收次数
-            Integer monthFollowCount = cupoPageMapper.getMonthFollowCount(user.getId());
+            //催收员本月累计催收次数\
+            Integer monthFollowCount = cupoPageMapper.getMonthFollowCount(user.getUserName());
             //催收员今日累计催收次数
-            Integer dayFollowCount = cupoPageMapper.getDayFollowCount(user.getId());
+            Integer dayFollowCount = cupoPageMapper.getDayFollowCount(user.getUserName());
             //金额余两位小数处理
             moneySumResult = moneySumResult.setScale(2, BigDecimal.ROUND_HALF_UP);
             monthMoneyResult = monthMoneyResult.setScale(2, BigDecimal.ROUND_HALF_UP);
