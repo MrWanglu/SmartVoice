@@ -426,7 +426,8 @@ public class OverNightBatchService {
                 .and(qCaseInfo.currentCollector.isNotNull())//催收员不为空
                 .and(qCaseInfo.collectionType.eq(collectionType))//催收类型
                 .and(qCaseInfo.holdDays.goe(Integer.parseInt(sysParam.getValue())))//持案天数
-                .and(qCaseInfo.assistFlag.eq(CaseInfo.AssistFlag.NO_ASSIST.getValue()))//协催标志（未协催的）
+//                .and(qCaseInfo.assistFlag.eq(CaseInfo.AssistFlag.NO_ASSIST.getValue()))//协催标志（未协催的）
+                .and(qCaseInfo.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue()).or(qCaseInfo.assistStatus.isNull())) //协催状态为待审批或为空
                 .and(qCaseInfo.companyCode.eq(sysParam.getCompanyCode())));//公司码
         return Lists.newArrayList(caseInfoIterable);
     }
