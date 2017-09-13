@@ -820,7 +820,7 @@ public class CaseInfoController extends BaseController {
             List<UploadFile> caseFlowupFiles = caseInfoService.getFollowupFile(followId);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("下载成功", "")).body(caseFlowupFiles);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("下载失败", "uploadFile", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("下载失败", "uploadFile", "下载失败")).body(null);
         }
     }
 }
