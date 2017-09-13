@@ -52,6 +52,7 @@
         LEFT JOIN department
         ON case_pay_apply.depart_id = department.id
         WHERE department.`code` LIKE concat(#{deptCode},'%')
+        AND (case_pay_apply.approve_result = 62 OR case_pay_apply.approve_status =58)
         AND YEARWEEK(DATE_FORMAT(approve_pay_datetime,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
         GROUP BY WEEKDAY(approve_pay_datetime)
         ORDER BY dayOfWeek
