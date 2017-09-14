@@ -8,6 +8,7 @@ import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
@@ -79,8 +80,12 @@ public class UserController extends BaseController {
         user = (User) EntityUtil.emptyValueToNull(user);
         //前端的限制 一级部门普通管理员不能添加用户
         User userToken;
+        String companyCode = user.getCompanyCode();
         try {
             userToken = getUserByToken(token);
+            if(ZWStringUtils.isEmpty(companyCode)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "该机构不能新增用户", "该机构不能新增用户")).body(null);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
@@ -97,7 +102,7 @@ public class UserController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "New user institutions must be greater than the first class", "新增用户，用户机构等级必须大于一级")).body(null);
         }
-//        新增用户的个数限制
+
         QSysParam qSysParam1 = QSysParam.sysParam;
         SysParam sysParamsNumber = null;
         try {
@@ -108,7 +113,7 @@ public class UserController extends BaseController {
         }
         if (Objects.nonNull(sysParamsNumber) && Objects.equals(Status.Enable.getValue(), sysParamsNumber.getStatus())) {
             QUser qUser1 = QUser.user;
-            int userNum = (int) userRepository.count(qUser1.companyCode.eq(user.getCompanyCode()));
+            int userNum = (int) userRepository.count(qUser1.companyCode.eq(companyCode));
             int size = Integer.parseInt(sysParamsNumber.getValue());
             if (userNum > size) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
@@ -117,7 +122,7 @@ public class UserController extends BaseController {
         }
         //用户名不能重复
         QUser qUser = QUser.user;
-        boolean exist = userRepository.exists(qUser.userName.eq(user.getUserName()).and(qUser.companyCode.eq(user.getCompanyCode())));
+        boolean exist = userRepository.exists(qUser.userName.eq(user.getUserName()).and(qUser.companyCode.eq(companyCode)));
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "User name cannot be repeated", "用户名不能重复")).body(null);

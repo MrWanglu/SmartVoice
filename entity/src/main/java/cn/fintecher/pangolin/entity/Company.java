@@ -44,4 +44,7 @@ public class Company extends BaseEntity {
     private Date operateTime;
     @ApiModelProperty("备用字段")
     private String field;
+    @ApiModelProperty("公司序列码")
+    private String sequence;
+
 }

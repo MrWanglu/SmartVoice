@@ -61,7 +61,10 @@ public class CompanyController extends BaseController {
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User name cannot be repeated", "公司名，公司英文名，公司code不能与其他公司重复")).body(null);
         }
-        company.setOperator(user.getUserName());
+        //get随机序列值
+        String randomCode =req();
+        company.setSequence(randomCode);
+        company.setOperator(user.getRealName());
         company.setOperateTime(ZWDateUtil.getNowDateTime());
         Company result = companyRepository.save(company);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(result);
@@ -194,5 +197,26 @@ public class CompanyController extends BaseController {
         QCompany qCompany = QCompany.company;
         Company company = companyRepository.findOne(qCompany.code.eq(code));
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(company);
+    }
+
+    /**
+     * @Description : 随机生成公司序列码
+     * <p>
+     * Created by huyanmin 2017/9/14
+     */
+    private String req() {
+        String randomCode = "";
+        //随机生成3位大写字母
+        for (int i = 0; i < 3; i++) {
+            int value = (int) (Math.random() * 25 + 65);
+            while (value > 91 && value < 96)
+                value = (int) (Math.random() * 25 + 65);
+            randomCode = randomCode + (char) value;
+        }
+        boolean exists = companyRepository.exists(QCompany.company.sequence.eq(randomCode));
+        if (exists) {
+            req();
+        }
+        return randomCode;
     }
 }

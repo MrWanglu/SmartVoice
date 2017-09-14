@@ -130,9 +130,12 @@ public class RoleController extends BaseController {
         User user;
         try {
             user = getUserByToken(token);
-            //set操作人的真实姓名
+
             if (Objects.nonNull(user)) {
+                //set操作人的真实姓名
                 role.setOperator(user.getRealName());
+                //set操作的当前时间
+                role.setOperateTime(ZWDateUtil.getNowDateTime());
             }
         } catch (Exception e) {
             e.printStackTrace();
