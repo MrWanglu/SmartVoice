@@ -52,6 +52,7 @@ public class CaseJudicialCollectionController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfo>> queryCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                         @ApiIgnore Pageable pageable,
+                                                        @RequestParam(required = false) String companyCode,
                                                         @RequestHeader(value = "X-UserToken") String token) {
 
         User user;
@@ -65,6 +66,10 @@ public class CaseJudicialCollectionController extends BaseController {
         builder.and(QCaseInfo.caseInfo.endType.eq(CaseInfo.EndType.JUDGMENT_CLOSED.getValue()));
         if (Objects.nonNull(user.getCompanyCode())) {
             builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+        }else{
+            if (Objects.nonNull(companyCode)){
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+            }
         }
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(page);
