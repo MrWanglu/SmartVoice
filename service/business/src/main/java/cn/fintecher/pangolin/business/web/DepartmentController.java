@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.AssistingStatisticsModel;
 import cn.fintecher.pangolin.business.model.CollectionCaseModel;
+import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.business.repository.DepartmentRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.service.CaseAssistService;
@@ -55,6 +56,8 @@ public class DepartmentController extends BaseController {
     CaseInfoService caseInfoService;
     @Autowired
     CaseAssistService caseAssistService;
+    @Autowired
+    CompanyRepository companyRepository;
 
     /**
      * @Description : 组织机构的type属性
@@ -138,6 +141,15 @@ public class DepartmentController extends BaseController {
         log.debug("REST request to update Department : {}", department);
         if (department.getId() == null) {
             return createDepartment(department, token);
+        }
+        //同步修改公司管理模块中的公司名称
+        try {
+            Company company = companyRepository.findOne(QCompany.company.code.eq(department.getCompanyCode()));
+            company.setChinaName(department.getName());
+            companyRepository.save(company);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "同步公司名称失败")).body(null);
         }
         User user;
         try {
