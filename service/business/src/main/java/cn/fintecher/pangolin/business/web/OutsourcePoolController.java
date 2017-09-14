@@ -178,10 +178,9 @@ public class OutsourcePoolController extends BaseController {
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
                 }
-                builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
             }
@@ -294,10 +293,9 @@ public class OutsourcePoolController extends BaseController {
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(ourBatchList.getCompanyCode())) {
-                   return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
+                if (Objects.nonNull(ourBatchList.getCompanyCode())) {
+                    builder.and(qOutsourcePool.caseInfo.companyCode.eq(ourBatchList.getCompanyCode()));
                 }
-                builder.and(qOutsourcePool.caseInfo.companyCode.eq(ourBatchList.getCompanyCode()));
             } else {
                 builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
             }
@@ -475,10 +473,9 @@ public class OutsourcePoolController extends BaseController {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "请选择公司")).body(null);
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
@@ -540,10 +537,9 @@ public class OutsourcePoolController extends BaseController {
             }
             AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
+                if (Objects.nonNull(companyCode)) {
+                    accFinanceEntry.setCompanyCode(companyCode);
                 }
-                accFinanceEntry.setCompanyCode(companyCode);
             } else {
                 accFinanceEntry.setCompanyCode(user.getCompanyCode());//限制公司code码
             }
@@ -641,10 +637,9 @@ public class OutsourcePoolController extends BaseController {
             }
             AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
+                if (Objects.nonNull(companyCode)) {
+                    accFinanceEntry.setCompanyCode(companyCode);
                 }
-                accFinanceEntry.setCompanyCode(companyCode);
             } else {
                 accFinanceEntry.setCompanyCode(user.getCompanyCode()); //限制公司code码
             }
@@ -703,10 +698,9 @@ public class OutsourcePoolController extends BaseController {
                 QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
                 BooleanBuilder builder = new BooleanBuilder();
                 if (Objects.isNull(user.getCompanyCode())) {
-                    if (Objects.isNull(companyCode)) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutsourcePool", "请选择公司")).body(null);
+                    if (Objects.nonNull(companyCode)) {
+                        builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
                     }
-                    builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
                 } else {
                     builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
                 }
@@ -858,10 +852,9 @@ public class OutsourcePoolController extends BaseController {
             QOutsourceRecord qOutsourceRecord = QOutsourceRecord.outsourceRecord;
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourceRecord", "OutsourceRecord", "请选择公司")).body(null);
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(qOutsourceRecord.caseInfo.companyCode.eq(companyCode));
                 }
-                builder.and(qOutsourceRecord.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(qOutsourceRecord.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
             }
