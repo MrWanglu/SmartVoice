@@ -153,12 +153,11 @@ public class OutsourceController extends BaseController {
         }
         QOutsource qOutsource = QOutsource.outsource;
         BooleanBuilder builder = new BooleanBuilder();
-        if(Objects.nonNull(user.getCompanyCode())){//超级管理员查所有记录
-//            if(Objects.isNull(companyCode)){
-//                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "Outsource", "请选择公司")).body(null);
-//            }
-//            builder.and(qOutsource.companyCode.eq(companyCode));
-//        }else{
+        if(Objects.nonNull(user.getCompanyCode())){//超级管理员默认查所有记录
+            if(Objects.nonNull(companyCode)){
+                builder.and(qOutsource.companyCode.eq(companyCode));
+            }
+        }else{
             builder.and(qOutsource.companyCode.eq(user.getCompanyCode()));
         }
         if (Objects.nonNull(outsCode)) {
@@ -235,12 +234,13 @@ public class OutsourceController extends BaseController {
         }
         QOutsource qOutsource = QOutsource.outsource;
         BooleanBuilder builder = new BooleanBuilder();
-        if(Objects.nonNull(user.getCompanyCode())){//超级管理员查所有记录
+        if(Objects.nonNull(user.getCompanyCode())){//超级管理员默認查所有记录
             builder.and(qOutsource.companyCode.eq(user.getCompanyCode()));
+        }else{
+            if (Objects.nonNull(companyCode)) {
+                builder.and(qOutsource.companyCode.eq(companyCode));
+            }
         }
-//        if (Objects.nonNull(companyCode)) {
-//            builder.and(qOutsource.companyCode.eq(companyCode));
-//        }
         builder.and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode()));
         Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(builder).iterator();
         List<Outsource> outsourceList = IteratorUtils.toList(outsourceIterator);
