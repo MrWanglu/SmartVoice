@@ -132,7 +132,7 @@ public class OutsourceController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<Outsource>> query(@RequestParam String companyCode,
+    public ResponseEntity<Page<Outsource>> query(@RequestParam(required = false) String companyCode,
                                                  @RequestParam(required = false) String outsCode,
                                                  @RequestParam(required = false) String outsName,
                                                  @RequestParam(required = false) String outsAddress,
@@ -153,12 +153,12 @@ public class OutsourceController extends BaseController {
         }
         QOutsource qOutsource = QOutsource.outsource;
         BooleanBuilder builder = new BooleanBuilder();
-        if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "Outsource", "请选择公司")).body(null);
-            }
-            builder.and(qOutsource.companyCode.eq(companyCode));
-        }else{
+        if(Objects.nonNull(user.getCompanyCode())){//超级管理员查所有记录
+//            if(Objects.isNull(companyCode)){
+//                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "Outsource", "请选择公司")).body(null);
+//            }
+//            builder.and(qOutsource.companyCode.eq(companyCode));
+//        }else{
             builder.and(qOutsource.companyCode.eq(user.getCompanyCode()));
         }
         if (Objects.nonNull(outsCode)) {
@@ -235,9 +235,12 @@ public class OutsourceController extends BaseController {
         }
         QOutsource qOutsource = QOutsource.outsource;
         BooleanBuilder builder = new BooleanBuilder();
-        if (Objects.nonNull(companyCode)) {
-            builder.and(qOutsource.companyCode.eq(companyCode));
+        if(Objects.nonNull(user.getCompanyCode())){//超级管理员查所有记录
+            builder.and(qOutsource.companyCode.eq(user.getCompanyCode()));
         }
+//        if (Objects.nonNull(companyCode)) {
+//            builder.and(qOutsource.companyCode.eq(companyCode));
+//        }
         builder.and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode()));
         Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(builder).iterator();
         List<Outsource> outsourceList = IteratorUtils.toList(outsourceIterator);
