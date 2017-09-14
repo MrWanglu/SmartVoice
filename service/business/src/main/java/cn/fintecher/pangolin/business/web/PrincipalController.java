@@ -68,9 +68,9 @@ public class PrincipalController extends BaseController {
     public ResponseEntity<Page<Principal>> getPrincipalPageList(@QuerydslPredicate(root = Principal.class) Predicate predicate,
                                                                 @ApiIgnore Pageable pageable,
                                                                 @RequestHeader(value = "X-UserToken") String token,
-                                                                @RequestParam(value = "companyCode",required = false) String companyCode) {
+                                                                @RequestParam(value = "companyCode", required = false) String companyCode) {
         logger.debug("REST request to getPrincipalPageList");
-        User user ;
+        User user;
         try {
             user = getUserByToken(token);
         } catch (final Exception e) {
@@ -104,7 +104,7 @@ public class PrincipalController extends BaseController {
         logger.debug("REST request to get all Principal");
         QPrincipal qPrincipal = QPrincipal.principal;
         BooleanBuilder builder = new BooleanBuilder();
-        if (Objects.nonNull(companyCode)) {
+        if (Objects.nonNull(companyCode) && !Objects.equals(companyCode, "null")) {
             builder.and(qPrincipal.companyCode.eq(companyCode));
         }
         builder.and(qPrincipal.flag.eq(Principal.deleteStatus.START.getDeleteCode()));
