@@ -15,4 +15,5 @@ public class MobilePositionParams {
     private String depCode; //部门
     private String startDate; //起始时间
     private String endDate; //终止时间
+    private String companyCode;
 }

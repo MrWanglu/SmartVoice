@@ -1389,7 +1389,7 @@ public class CaseInfoService {
                 }
                 String caseId = caseInfoList.get(alreadyCaseNum);
                 CaseRepair caseRepair = caseRepairRepository.findOne(caseId);
-                if (Objects.isNull(Objects.nonNull(targetUser) && Objects.isNull(targetUser.getCompanyCode()))) {
+                if (Objects.nonNull(targetUser) && Objects.isNull(targetUser.getCompanyCode())) {
                     throw new Exception("不能把案件分配给超级管理员");
                 }
                 if (Objects.equals(caseRepair.getCaseId().getCollectionType(), CaseInfo.CollectionType.TEL.getValue())
@@ -1462,6 +1462,30 @@ public class CaseInfoService {
                     caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件标记为无色
                     //案件列表
                     caseInfoObjList.add(caseInfo);
+
+                    if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //协催标识
+                        if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
+                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseInfo.getId(), user, "修复分配拒绝");
+                            caseAssistApplyRepository.saveAndFlush(caseAssistApply);
+                        } else {
+                            //结束协催案件
+                            CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.eq(caseInfo)
+                                    .and(QCaseAssist.caseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
+                            if (Objects.nonNull(one)) {
+                                one.setAssistCloseFlag(0); //手动结束
+                                one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催结束
+                                one.setOperator(user);
+                                one.setOperatorTime(new Date());
+                                one.setCaseFlowinTime(new Date()); //流入时间
+                                caseAssistRepository.saveAndFlush(one);
+                            }
+                            caseInfo.setAssistFlag(0); //协催标识置0
+                            caseInfo.setAssistStatus(null);//协催状态置空
+                            caseInfo.setAssistWay(null);
+                            caseInfo.setAssistCollector(null);
+                        }
+                    }
+
                     //案件流转记录
                     CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
                     BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录

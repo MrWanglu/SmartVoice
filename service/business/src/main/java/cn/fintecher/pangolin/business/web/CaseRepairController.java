@@ -144,14 +144,6 @@ public class CaseRepairController extends BaseController{
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
-        if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseRepair", "", "请选择公司")).body(null);
-            }
-            builder.and(QCaseRepair.caseRepair.companyCode.eq(companyCode));
-        }else{
-            builder.and(QCaseRepair.caseRepair.companyCode.eq(user.getCompanyCode()));
-        }
         List<Integer> list = new ArrayList<>();
         list.add(CaseInfo.CollectionStatus.CASE_OVER.getValue());
         list.add(CaseInfo.CollectionStatus.CASE_OUT.getValue());
@@ -161,6 +153,13 @@ public class CaseRepairController extends BaseController{
         list1.add(CaseRepair.CaseRepairStatus.REPAIRED.getValue()); // 已修复
         list1.add(CaseRepair.CaseRepairStatus.DISTRIBUTE.getValue()); // 已分配
         builder.and(QCaseRepair.caseRepair.repairStatus.in(list1));
+        if(Objects.isNull(user.getCompanyCode())){
+            if(Objects.nonNull(companyCode)){
+                builder.and(QCaseRepair.caseRepair.companyCode.eq(companyCode));
+            }
+        }else{
+            builder.and(QCaseRepair.caseRepair.companyCode.eq(user.getCompanyCode()));
+        }
         Page<CaseRepair> page = caseRepairRepository.findAll(builder,pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "RepairCaseDistributeController")).body(page);
     }

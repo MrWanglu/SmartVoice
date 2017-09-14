@@ -653,14 +653,13 @@ public class CaseAssistController extends BaseController {
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (StringUtils.isNotBlank(companyCode)) {
-                    user.setCompanyCode(companyCode);
-                } else {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司!")).body(null);
+            if(Objects.isNull(user.getCompanyCode())){
+                if(Objects.nonNull(companyCode)){
+                    exp.and(qCaseAssist.companyCode.eq(companyCode));
                 }
+            }else{
+                exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
             }
-            exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
             exp.and(qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())); //协催完成
             Page<CaseAssist> page = null;
             if (Objects.equals(user.getManager(), 0) && Objects.equals(user.getType(), User.Type.VISIT.getValue())) {
@@ -694,14 +693,13 @@ public class CaseAssistController extends BaseController {
             QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (StringUtils.isNotBlank(companyCode)) {
-                    user.setCompanyCode(companyCode);
-                } else {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司!")).body(null);
+            if(Objects.isNull(user.getCompanyCode())){
+                if(Objects.nonNull(companyCode)){
+                    exp.and(qCaseAssist.companyCode.eq(companyCode));
                 }
+            }else{
+                exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
             }
-            exp.and(qCaseAssist.companyCode.eq(user.getCompanyCode()));
             Page<CaseAssist> page = null;
             exp.and(qCaseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()));
             if (Objects.equals(user.getManager(), 0) && Objects.equals(user.getType(), User.Type.VISIT.getValue())) {

@@ -75,7 +75,14 @@ public class MobilePositionController{
         ResponseEntity<User> userResult = userClient.getUserByToken(token);
         User user = userResult.getBody();
         BooleanBuilder builder = new BooleanBuilder();
-        builder.and(QMobilePosition.mobilePosition.companyCode.eq(user.getCompanyCode()));
+        if(Objects.isNull(user.getCompanyCode())){
+            if(Objects.nonNull(mobilePositionParams.getCompanyCode())){
+                builder.and(QMobilePosition.mobilePosition.companyCode.eq(mobilePositionParams.getCompanyCode()));
+            }
+        }else{
+            builder.and(QMobilePosition.mobilePosition.companyCode.eq(user.getCompanyCode()));
+        }
+
         builder.and(QMobilePosition.mobilePosition.depCode.startsWith(user.getDepartment().getCode()));
         try {
             if (null != mobilePositionParams.getName()

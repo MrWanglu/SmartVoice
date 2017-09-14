@@ -105,12 +105,11 @@ public class AccVisitPoolController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+            if(Objects.isNull(tokenUser.getCompanyCode())){
+                if(Objects.nonNull(companyCode)){
+                    builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
-            } else {
+            }else{
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
             if (Objects.equals(tokenUser.getManager(), 1)) {
@@ -153,12 +152,11 @@ public class AccVisitPoolController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+            if(Objects.isNull(tokenUser.getCompanyCode())){
+                if(Objects.nonNull(companyCode)){
+                    builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
-            } else {
+            }else{
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
             if (Objects.equals(tokenUser.getManager(), 1)) {
