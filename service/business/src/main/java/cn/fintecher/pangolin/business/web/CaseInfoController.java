@@ -702,6 +702,8 @@ public class CaseInfoController extends BaseController {
             List<CaseInfo> accCaseInfoList = new ArrayList<>();
             List<CaseInfo> caseInfoList1 = new ArrayList<>();
             caseInfoList.forEach(single -> accCaseInfoList.add(single));
+            ScoreNumbersModel scoreNumbersModel = new ScoreNumbersModel();
+            scoreNumbersModel.setTotal(accCaseInfoList.size());
             if (accCaseInfoList.size() > 0) {
                 for (CaseInfo caseInfo : accCaseInfoList) {
                     ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
@@ -725,7 +727,7 @@ public class CaseInfoController extends BaseController {
                 caseInfoRepository.save(caseInfoList1);
                 watch1.stop();
                 log.info("耗时：" + watch1.getTotalTimeMillis());
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(null);
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
             }
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
         } catch (IllegalStateException e) {
