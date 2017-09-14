@@ -348,7 +348,7 @@ public class PersonalController extends BaseController {
                 //不是超级管理员
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
-            Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/PersonalController/getPersonalCaseInfo");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
