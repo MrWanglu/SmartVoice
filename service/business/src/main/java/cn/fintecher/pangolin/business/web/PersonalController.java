@@ -2,7 +2,10 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.MapModel;
 import cn.fintecher.pangolin.business.model.PersonalInfoExportModel;
-import cn.fintecher.pangolin.business.repository.*;
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.repository.CaseTurnRecordRepository;
+import cn.fintecher.pangolin.business.repository.DepartmentRepository;
+import cn.fintecher.pangolin.business.repository.PersonalRepository;
 import cn.fintecher.pangolin.business.service.AccMapService;
 import cn.fintecher.pangolin.business.service.PersonalInfoExportService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
@@ -13,7 +16,6 @@ import cn.fintecher.pangolin.web.ResponseUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.FileUtils;
@@ -119,9 +121,10 @@ public class PersonalController extends BaseController {
                 }
                 // 部门下的催收员
                 Department one = departmentRepository.findOne(orgCode);
-                BooleanExpression exp = qCaseInfo.department.code.startsWith(one.getCode());
-                exp.and(qCaseInfo.currentCollector.realName.eq(collectorName));
-                Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
+                BooleanBuilder builder = new BooleanBuilder();
+                builder.and(qCaseInfo.department.code.startsWith(one.getCode()));
+                builder.and(qCaseInfo.currentCollector.realName.eq(collectorName));
+                Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 caseInfos = IterableUtils.toList(all);
                 if (caseInfos.isEmpty()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "要导出的数据为空!")).body(null);
@@ -142,8 +145,9 @@ public class PersonalController extends BaseController {
                     prodName = (String) prodObj.get(0);
                 }
                 // 查找出某产品类型的所有案件
-                BooleanExpression exp = qCaseInfo.product.productSeries.seriesName.eq(prodName);
-                Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
+                BooleanBuilder builder = new BooleanBuilder();
+                builder.and(qCaseInfo.product.productSeries.seriesName.eq(prodName));
+                Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 caseInfos = IterableUtils.toList(all);
                 if (caseInfos.isEmpty()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "要导出的数据为空!")).body(null);
@@ -174,8 +178,9 @@ public class PersonalController extends BaseController {
                 } else {
                     batchNumber = (String) batchNumObj.get(0);
                 }
-                BooleanExpression exp = qCaseInfo.batchNumber.eq(batchNumber);
-                Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
+                BooleanBuilder builder = new BooleanBuilder();
+                builder.and(qCaseInfo.batchNumber.eq(batchNumber));
+                Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 caseInfos = IterableUtils.toList(all);
                 if (caseInfos.isEmpty()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "要导出的数据为空!")).body(null);
@@ -197,8 +202,9 @@ public class PersonalController extends BaseController {
                 for (Object o : stList) {
                     sl.add(Integer.valueOf(o.toString()));
                 }
-                BooleanExpression exp = qCaseInfo.collectionStatus.in(sl);
-                Iterable<CaseInfo> all = caseInfoRepository.findAll(exp);
+                BooleanBuilder builder = new BooleanBuilder();
+                builder.and(qCaseInfo.collectionStatus.in(sl));
+                Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 caseInfos = IterableUtils.toList(all);
                 if (caseInfos.isEmpty()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "要导出的数据为空!")).body(null);

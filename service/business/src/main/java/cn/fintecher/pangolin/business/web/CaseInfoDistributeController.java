@@ -107,12 +107,11 @@ public class CaseInfoDistributeController extends BaseController {
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.isNull(user.getCompanyCode())) {
                 if (StringUtils.isNotBlank(companyCode)) {
-                    user.setCompanyCode(companyCode);
-                } else {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "findCaseInfoDistribute", "请先选择公司!")).body(null);
+                    builder.and(qd.companyCode.eq(companyCode));
                 }
+            } else {
+                builder.and(qd.companyCode.eq(user.getCompanyCode()));
             }
-            builder.and(qd.companyCode.eq(user.getCompanyCode()));
             Page<CaseInfoDistributed> page = caseInfoDistributedRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {

@@ -145,8 +145,10 @@ public class CaseInfoVerificationService {
         StringBuilder queryCon = new StringBuilder("SELECT count(a.id),c.area_name,sum(b.overdue_amount) from (case_info_verification a LEFT JOIN case_info b on a.case_id = b.id)LEFT JOIN " +
                 "area_code c ON b.area_id = c.id where 1=1");
         //公司code码
-        if (StringUtils.isNotBlank(caseInfoVerificationParams.getCompanyCode())) {
-            queryCon.append(" and a.company_code = ").append(caseInfoVerificationParams.getCompanyCode());
+        if (Objects.isNull(tokenUser.getCompanyCode())) {
+            if (StringUtils.isNotBlank(caseInfoVerificationParams.getCompanyCode())) {
+                queryCon.append(" and a.company_code = ").append(caseInfoVerificationParams.getCompanyCode());
+            }
         } else {
             queryCon.append(" and a.company_code = ").append("'").append(tokenUser.getCompanyCode()).append("'");
         }

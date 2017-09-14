@@ -18,6 +18,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,10 +99,9 @@ public class UserBackcashPlanController extends BaseController {
             builder.and(qUserBackcashPlan.month.eq(month));
         }
         if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userBackcashPlan", "请选择公司")).body(null);
+            if(StringUtils.isNotBlank(companyCode)){
+                builder.and(qUserBackcashPlan.companyCode.eq(companyCode));
             }
-            builder.and(qUserBackcashPlan.companyCode.eq(companyCode));
         }else{
             builder.and(qUserBackcashPlan.companyCode.eq(user.getCompanyCode()));
         }
