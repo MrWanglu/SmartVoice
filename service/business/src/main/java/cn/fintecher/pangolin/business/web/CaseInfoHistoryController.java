@@ -72,18 +72,18 @@ public class CaseInfoHistoryController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllCaseInfo", e.getMessage())).body(null);
         }
-        // 超级管理员
-        if (Objects.isNull(user.getCompanyCode())) {
-            if (Objects.nonNull(companyCode)) {
-                user.setCompanyCode(companyCode);
-            } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司!")).body(null);
-            }
-        }
         try {
             QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode())); //公司
+
+            // 超级管理员
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(qCaseInfo.companyCode.eq(companyCode)); //公司
+                }
+            }else{
+                builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode())); //公司
+            }
             builder.and(qCaseInfo.endType.eq(CaseInfo.EndType.REPAID.getValue())); //以结案
             if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) { //管理者
                 builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));

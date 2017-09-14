@@ -189,10 +189,9 @@ public class CaseRepairController extends BaseController{
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseRepair", "", "请选择公司")).body(null);
+            if(Objects.nonNull(companyCode)){
+                builder.and(QCaseRepair.caseRepair.companyCode.eq(companyCode));
             }
-            builder.and(QCaseRepair.caseRepair.companyCode.eq(companyCode));
         }else{
             builder.and(QCaseRepair.caseRepair.companyCode.eq(user.getCompanyCode()));
         }
@@ -230,10 +229,9 @@ public class CaseRepairController extends BaseController{
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseRepair", "", "请选择公司")).body(null);
+            if(Objects.nonNull(companyCode)){
+                builder.and(QCaseRepair.caseRepair.companyCode.eq(companyCode));
             }
-            builder.and(QCaseRepair.caseRepair.companyCode.eq(companyCode));
         }else{
             builder.and(QCaseRepair.caseRepair.companyCode.eq(user.getCompanyCode()));
         }

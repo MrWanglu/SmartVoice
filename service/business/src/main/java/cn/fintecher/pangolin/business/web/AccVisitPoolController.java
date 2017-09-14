@@ -571,10 +571,9 @@ public class AccVisitPoolController extends BaseController {
             QCaseAdvanceTurnApplay qCaseAdvanceTurnApplay = QCaseAdvanceTurnApplay.caseAdvanceTurnApplay;
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAdvanceTurnApplay", "CaseAdvanceTurnApplay", "请选择公司")).body(null);
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(qCaseAdvanceTurnApplay.companyCode.eq(companyCode));
                 }
-                builder.and(qCaseAdvanceTurnApplay.companyCode.eq(companyCode));
             } else {
                 builder.and(qCaseAdvanceTurnApplay.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }

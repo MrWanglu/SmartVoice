@@ -136,10 +136,9 @@ public class OutBackSourceController extends BaseController {
             User user = getUserByToken(token);
             //判断如果是超级管理员companyCode是为null的
             if (Objects.isNull(user.getCompanyCode())) {
-                if(Objects.isNull(companyCode)){
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
+                if(Objects.nonNull(companyCode)){
+                    builder.and(QOutBackSource.outBackSource.companyCode.eq(companyCode));
                 }
-                builder.and(QOutBackSource.outBackSource.companyCode.eq(companyCode));
             }else{
                 builder.and(QOutBackSource.outBackSource.companyCode.eq(user.getCompanyCode()));
             }

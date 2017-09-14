@@ -153,7 +153,7 @@ public class OutsourceController extends BaseController {
         }
         QOutsource qOutsource = QOutsource.outsource;
         BooleanBuilder builder = new BooleanBuilder();
-        if(Objects.nonNull(user.getCompanyCode())){//超级管理员默认查所有记录
+        if(Objects.isNull(user.getCompanyCode())){//超级管理员默认查所有记录
             if(Objects.nonNull(companyCode)){
                 builder.and(qOutsource.companyCode.eq(companyCode));
             }

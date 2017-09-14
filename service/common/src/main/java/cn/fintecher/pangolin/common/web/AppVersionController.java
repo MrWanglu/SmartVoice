@@ -117,10 +117,9 @@ public class AppVersionController {
             ResponseEntity<User> userEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
             user = userEntity.getBody();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "AppVersion", "请选择公司")).body(null);
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(QAppVersion.appVersion1.companyCode.eq(companyCode));
                 }
-                builder.and(QAppVersion.appVersion1.companyCode.eq(companyCode));
             } else {
                 builder.and(QAppVersion.appVersion1.companyCode.eq(user.getCompanyCode()));
             }

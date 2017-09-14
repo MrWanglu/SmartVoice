@@ -29,6 +29,7 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author : xiaqun
@@ -65,6 +66,7 @@ public class PaymentController extends BaseController {
     })
     public ResponseEntity<Page<CasePayApply>> getAllDerate(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
                                                            @ApiIgnore Pageable pageable,
+                                                           @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                            @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get all derate record");
         List<Integer> list = new ArrayList<>();
@@ -73,7 +75,13 @@ public class PaymentController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCasePayApply.casePayApply.companyCode.eq(tokenUser.getCompanyCode())); //只查登陆人公司的记录
+            if(Objects.isNull(tokenUser.getCompanyCode())){//超级管理员默认查所有记录
+                if(Objects.nonNull(companyCode)){
+                    builder.and(QCasePayApply.casePayApply.companyCode.eq(companyCode));
+                }
+            }else{
+                builder.and(QCasePayApply.casePayApply.companyCode.eq(tokenUser.getCompanyCode()));
+            }
             builder.and(QCasePayApply.casePayApply.approveStatus.in(list)); //只查限定状态的记录
             builder.and(QCasePayApply.casePayApply.approveStatus.ne(CasePayApply.ApproveStatus.REVOKE.getValue())); //不查撤回的记录
             Page<CasePayApply> page = casePayApplyRepository.findAll(builder, pageable);
@@ -100,6 +108,7 @@ public class PaymentController extends BaseController {
     })
     public ResponseEntity<Page<CasePayApply>> getAllPayment(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
                                                             @ApiIgnore Pageable pageable,
+                                                            @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                             @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get all payment record");
         List<Integer> list = new ArrayList<>();
@@ -109,7 +118,13 @@ public class PaymentController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCasePayApply.casePayApply.companyCode.eq(tokenUser.getCompanyCode())); //只查登陆人公司的记录
+            if(Objects.isNull(tokenUser.getCompanyCode())){//超级管理员默认查所有记录
+                if(Objects.nonNull(companyCode)){
+                    builder.and(QCasePayApply.casePayApply.companyCode.eq(companyCode));
+                }
+            }else{
+                builder.and(QCasePayApply.casePayApply.companyCode.eq(tokenUser.getCompanyCode()));
+            }
             builder.and(QCasePayApply.casePayApply.approveStatus.in(list)); //只查限定状态的记录
             builder.and(QCasePayApply.casePayApply.approveStatus.ne(CasePayApply.ApproveStatus.REVOKE.getValue())); //不查撤回状态记录
             Page<CasePayApply> page = casePayApplyRepository.findAll(builder, pageable);

@@ -324,15 +324,7 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert( "DataInfoExcelController","findUpload", e.getMessage())).body(null);
         }
         User user = userResponseEntity.getBody();
-        if (Objects.isNull(user.getCompanyCode())) {
-            if (StringUtils.isNotBlank(companyCode)) {
-                user.setCompanyCode(companyCode);
-            } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "casesConfirmByBatchNum", "请先选择公司!")).body(null);
-            }
-        }
-        Iterable<DataInfoExcelFile> all = dataInfoExcelFileRepository.findAll(QDataInfoExcelFile.dataInfoExcelFile.caseNumber.eq(caseNumber)
-                .and(QDataInfoExcelFile.dataInfoExcelFile.companyCode.eq(user.getCompanyCode())));
+        Iterable<DataInfoExcelFile> all = dataInfoExcelFileRepository.findAll(QDataInfoExcelFile.dataInfoExcelFile.caseNumber.eq(caseNumber));
         List<DataInfoExcelFile> dataInfoExcelFiles = IterableUtils.toList(all);
         return ResponseEntity.ok().body(dataInfoExcelFiles);
     }
