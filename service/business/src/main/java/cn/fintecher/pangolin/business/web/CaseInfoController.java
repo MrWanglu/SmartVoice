@@ -149,7 +149,8 @@ public class CaseInfoController extends BaseController {
 
     @GetMapping("/getAllBatchNumber")
     @ApiOperation(value = "获取所有批次号", notes = "获取所有批次号")
-    public ResponseEntity<List<String>> getAllBatchNumber(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<List<String>> getAllBatchNumber(@RequestHeader(value = "X-UserToken") String token,
+                                                          @RequestParam(value = "companyCode",required = false) @ApiParam("公司Code") String companyCode) {
         log.debug("REST request to getAllBatchNumber");
         User user = null;
         try {
@@ -159,6 +160,12 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllBatchNumber", e.getMessage())).body(null);
         }
         try {
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isBlank(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","请选择公司!")).body(null);
+                }
+                user.setCompanyCode(companyCode);
+            }
             return ResponseEntity.ok().body(caseInfoRepository.findDistinctByBatchNumber(user.getCompanyCode()));
         } catch (Exception e) {
             log.error(e.getMessage(), e);

@@ -205,14 +205,9 @@ public class CompanyController extends BaseController {
      * Created by huyanmin 2017/9/14
      */
     private String req() {
-        String randomCode = "";
         //随机生成3位大写字母
-        for (int i = 0; i < 3; i++) {
-            int value = (int) (Math.random() * 25 + 65);
-            while (value > 91 && value < 96)
-                value = (int) (Math.random() * 25 + 65);
-            randomCode = randomCode + (char) value;
-        }
+        int i = (int) ((Math.random() * 9 + 1) * 1000);
+        String randomCode = String.valueOf(i);
         boolean exists = companyRepository.exists(QCompany.company.sequence.eq(randomCode));
         if (exists) {
             req();
