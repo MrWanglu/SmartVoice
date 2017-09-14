@@ -142,10 +142,9 @@ public class CaseInfoVerificationController extends BaseController {
             user = getUserByToken(token);
             BooleanBuilder booleanBuilder = new BooleanBuilder();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseRepair", "", "请选择公司")).body(null);
+                if (Objects.nonNull(companyCode)) {
+                    booleanBuilder.and(QCaseInfoVerification.caseInfoVerification.companyCode.eq(companyCode));
                 }
-                booleanBuilder.and(QCaseInfoVerification.caseInfoVerification.companyCode.eq(companyCode));
             } else {
                 booleanBuilder.and(QCaseInfoVerification.caseInfoVerification.companyCode.eq(user.getCompanyCode()));
             }

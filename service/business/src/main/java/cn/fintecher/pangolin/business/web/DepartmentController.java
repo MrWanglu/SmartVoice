@@ -526,10 +526,9 @@ public class DepartmentController extends BaseController {
         QDepartment qDepartment = QDepartment.department;
         BooleanBuilder builder = new BooleanBuilder();
         if (Objects.isNull(user.getCompanyCode())) {
-            if (Objects.isNull(companyCode)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("department", "please choose company", "请选择公司")).body(null);
+            if (Objects.nonNull(companyCode)) {
+                builder.and(QDepartment.department.companyCode.eq(companyCode));
             }
-            builder.and(QDepartment.department.companyCode.eq(companyCode));
         } else {
             builder.and(QDepartment.department.companyCode.eq(user.getCompanyCode()));
         }

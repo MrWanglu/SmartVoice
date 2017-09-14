@@ -79,10 +79,9 @@ public class CaseAssistController extends BaseController {
         }
         try {
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(leaveCaseParams.getCompanyCode())) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司!")).body(null);
+                if (Objects.nonNull(leaveCaseParams.getCompanyCode())) {
+                    user.setCompanyCode(leaveCaseParams.getCompanyCode());
                 }
-                user.setCompanyCode(leaveCaseParams.getCompanyCode());
             }
             Integer num = caseAssistService.leaveCaseAssistNum(user); //可留案案件数
             Iterable<CaseAssist> all = caseAssistRepository.findAll(QCaseAssist.caseAssist.id.in(leaveCaseParams.getCaseIds()));
@@ -126,10 +125,9 @@ public class CaseAssistController extends BaseController {
         }
         try {
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(leaveCaseParams.getCompanyCode())) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司!")).body(null);
+                if (Objects.nonNull(leaveCaseParams.getCompanyCode())) {
+                    user.setCompanyCode(leaveCaseParams.getCompanyCode());
                 }
-                user.setCompanyCode(leaveCaseParams.getCompanyCode());
             }
             Integer num = caseAssistService.leaveCaseAssistNum(user);
             List<String> caseIds = leaveCaseParams.getCaseIds();
