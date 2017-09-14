@@ -1,10 +1,10 @@
 package cn.fintecher.pangolin.dataimp.web;
 
+import cn.fintecher.pangolin.dataimp.entity.QScoreRule;
 import cn.fintecher.pangolin.dataimp.entity.ScoreFormula;
 import cn.fintecher.pangolin.dataimp.entity.ScoreRule;
 import cn.fintecher.pangolin.dataimp.model.JsonObj;
 import cn.fintecher.pangolin.dataimp.repository.ScoreRuleRepository;
-import cn.fintecher.pangolin.entity.QTemplate;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.EntityUtil;
@@ -67,13 +67,12 @@ public class ScoreStrategyController {
             }
             User user = userResponseEntity.getBody();
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStrategy", "scoreStrategy", "请选择公司")).body(null);
+            if(Objects.isNull(user.getCompanyCode())){
+                if(Objects.nonNull(companyCode)){
+                    builder.and(QScoreRule.scoreRule.companyCode.eq(companyCode));
                 }
-                builder.and(QTemplate.template.companyCode.eq(companyCode));
-            } else {
-                builder.and(QTemplate.template.companyCode.eq(user.getCompanyCode()));
+            }else {
+                builder.and(QScoreRule.scoreRule.companyCode.eq(user.getCompanyCode()));
             }
             Page<ScoreRule> page = scoreRuleRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/scoreStrategyController/query");
