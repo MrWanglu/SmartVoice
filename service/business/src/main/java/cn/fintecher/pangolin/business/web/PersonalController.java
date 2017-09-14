@@ -333,13 +333,12 @@ public class PersonalController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseRepair", "", "请选择公司")).body(null);
+            if(Objects.isNull(tokenUser.getCompanyCode())){
+                if(Objects.nonNull(companyCode)){
+                    builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
-            } else {
-                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
+            }else{
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
             Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/PersonalController/getPersonalCaseInfo");
