@@ -336,10 +336,9 @@ public class CaseInfoController extends BaseController {
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
         if (Objects.isNull(user.getCompanyCode())) {
-            if (Objects.isNull(companyCode)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("electricSmallCirculation", "", "请选择公司")).body(null);
+            if (Objects.nonNull(companyCode)) {
+                booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             }
-            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
         } else {
             booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
@@ -374,10 +373,9 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "User not exists", e.getMessage())).body(null);
         }
         if (Objects.isNull(user.getCompanyCode())) {
-            if (Objects.isNull(companyCode)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("electricSmallCirculation", "", "请选择公司")).body(null);
+            if (Objects.nonNull(companyCode)) {
+                booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             }
-            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
         } else {
             booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
@@ -413,10 +411,9 @@ public class CaseInfoController extends BaseController {
 
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
         if (Objects.isNull(user.getCompanyCode())) {
-            if (Objects.isNull(companyCode)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("outSmallCirculation", "", "请选择公司")).body(null);
+            if (Objects.nonNull(companyCode)) {
+                booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             }
-            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
         } else {
             booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
@@ -451,10 +448,9 @@ public class CaseInfoController extends BaseController {
         }
         BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
         if (Objects.isNull(user.getCompanyCode())) {
-            if (Objects.isNull(companyCode)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("outSmallCirculation", "", "请选择公司")).body(null);
+            if (Objects.nonNull(companyCode)) {
+                booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             }
-            booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
         } else {
             booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         }
@@ -484,10 +480,9 @@ public class CaseInfoController extends BaseController {
         }
         try {
             if (Objects.isNull(user.getCompanyCode())) {
-                if (StringUtils.isBlank(exportCaseNum.getCompanyCode())) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司")).body(null);
+                if (StringUtils.isNotBlank(exportCaseNum.getCompanyCode())) {
+                    user.setCompanyCode(exportCaseNum.getCompanyCode());
                 }
-                user.setCompanyCode(exportCaseNum.getCompanyCode());
             }
             List<String> caseNumberList = exportCaseNum.getCaseNumberList();
             if (caseNumberList.isEmpty()) {
@@ -575,10 +570,9 @@ public class CaseInfoController extends BaseController {
 
         try {
             if (Objects.isNull(user.getCompanyCode())) {
-                if (StringUtils.isBlank(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司")).body(null);
+                if (StringUtils.isNotBlank(companyCode)) {
+                    user.setCompanyCode(companyCode);
                 }
-                user.setCompanyCode(companyCode);
             }
             List<Object[]> caseFollowupRecords = caseFollowupRecordRepository.findFollowupSingl(caseNumber, user.getCompanyCode());
             if (caseFollowupRecords.isEmpty()) {

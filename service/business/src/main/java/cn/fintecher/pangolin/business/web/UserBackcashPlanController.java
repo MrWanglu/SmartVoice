@@ -224,9 +224,7 @@ public class UserBackcashPlanController extends BaseController {
         //登录的密码设定的时间限制
         QSysParam qSysParam = QSysParam.sysParam;
         if (Objects.isNull(user.getCompanyCode())) {
-            if (Objects.isNull(companyCode)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userBackcashPlan", "请选择公司")).body(null);
-            }else {
+            if (Objects.nonNull(companyCode)) {
                 booleanBuilder.and(qSysParam.companyCode.eq(companyCode));
             }
         }else {
@@ -260,9 +258,7 @@ public class UserBackcashPlanController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
         if (Objects.isNull(user.getCompanyCode())) {
-            if (Objects.isNull(request.getCompanyCode())) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userBackcashPlan", "请选择公司")).body(null);
-            }else {
+            if (Objects.nonNull(request.getCompanyCode())) {
                 booleanBuilder.and(qUser.companyCode.eq(request.getCompanyCode()));
             }
         }else {
