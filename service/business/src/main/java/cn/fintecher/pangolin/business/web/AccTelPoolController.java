@@ -283,10 +283,9 @@ public class AccTelPoolController extends BaseController {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "请选择公司")).body(null);
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
@@ -339,10 +338,9 @@ public class AccTelPoolController extends BaseController {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "请选择公司")).body(null);
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
@@ -675,10 +673,9 @@ public class AccTelPoolController extends BaseController {
             QCaseAdvanceTurnApplay qCaseAdvanceTurnApplay = QCaseAdvanceTurnApplay.caseAdvanceTurnApplay;
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAdvanceTurnApplay", "CaseAdvanceTurnApplay", "请选择公司")).body(null);
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(qCaseAdvanceTurnApplay.companyCode.eq(companyCode));
                 }
-                builder.and(qCaseAdvanceTurnApplay.companyCode.eq(companyCode));
             } else {
                 builder.and(qCaseAdvanceTurnApplay.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }

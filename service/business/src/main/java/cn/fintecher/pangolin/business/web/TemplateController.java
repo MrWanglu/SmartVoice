@@ -76,11 +76,10 @@ public class TemplateController extends BaseController {
             BooleanBuilder builder = new BooleanBuilder(predicate);
             User user = getUserByToken(token);
             if(Objects.isNull(user.getCompanyCode())){
-                if(Objects.isNull(companyCode)){
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("templateDataModel", "TemplateDataModel", "请选择公司")).body(null);
+                if(Objects.nonNull(companyCode)){
+                    builder.and(QTemplate.template.companyCode.eq(companyCode));
                 }
-                builder.and(QTemplate.template.companyCode.eq(companyCode));
-            }else{
+            }else {
                 builder.and(QTemplate.template.companyCode.eq(user.getCompanyCode()));
             }
             Page<Template> page = templateRepository.findAll(builder, pageable);

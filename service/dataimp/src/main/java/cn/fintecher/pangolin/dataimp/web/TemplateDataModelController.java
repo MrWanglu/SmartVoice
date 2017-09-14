@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.dataimp.web;
 
 
+import cn.fintecher.pangolin.dataimp.entity.QTemplateDataModel;
 import cn.fintecher.pangolin.dataimp.entity.TemplateDataModel;
 import cn.fintecher.pangolin.dataimp.entity.TemplateExcelInfo;
 import cn.fintecher.pangolin.dataimp.repository.TemplateDataModelRepository;
@@ -48,8 +49,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static cn.fintecher.pangolin.dataimp.entity.QTemplateDataModel.templateDataModel;
 
 /**
  * Created by luqiang on 2017/7/25.
@@ -102,13 +101,12 @@ public class TemplateDataModelController {
             }
             User user=userResponseEntity.getBody();
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.isNull(user.getCompanyCode())){
-                if(Objects.isNull(companyCode)){
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("templateDataModel", "TemplateDataModel", "请选择公司")).body(null);
+            if(Objects.isNull(user.getCompanyCode())){//超级管理员默认查询所有
+                if(Objects.nonNull(companyCode)){
+                    builder.and(QTemplateDataModel.templateDataModel.companyCode.eq(companyCode));
                 }
-                builder.and(templateDataModel.companyCode.eq(companyCode));
-            }else{
-                builder.and(templateDataModel.companyCode.eq(user.getCompanyCode()));
+            }else {
+                builder.and(QTemplateDataModel.templateDataModel.companyCode.eq(user.getCompanyCode()));
             }
             Page<TemplateDataModel> page = templateDataModelRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/accImportExcelDataController/getExcelTemplateList");

@@ -186,18 +186,16 @@ public class CaseInfoController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllCaseInfo", e.getMessage())).body(null);
         }
-        // 超级管理员
-        if (Objects.isNull(user.getCompanyCode())) {
-            if (Objects.nonNull(companyCode)) {
-                user.setCompanyCode(companyCode);
-            } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司!")).body(null);
-            }
-        }
         try {
             QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode())); //公司
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    builder.and(qCaseInfo.companyCode.eq(companyCode)); //公司
+                }
+            } else {
+                builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode())); //公司
+            }
 //            builder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //以结案
 //            builder.and(qCaseInfo.endType.notIn(CaseInfo.EndType.JUDGMENT_CLOSED.getValue(),CaseInfo.EndType.OUTSIDE_CLOSED.getValue())); //不查司法、委外的
 //            builder.andAnyOf(qCaseInfo.endType.notIn(CaseInfo.EndType.JUDGMENT_CLOSED.getValue(),

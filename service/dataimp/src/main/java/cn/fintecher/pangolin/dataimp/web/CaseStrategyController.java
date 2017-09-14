@@ -90,12 +90,11 @@ public class CaseStrategyController {
             User user=userResponseEntity.getBody();
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if(Objects.isNull(user.getCompanyCode())){
-                if(Objects.isNull(companyCode)){
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseStrategy", "caseStrategy", "请选择公司")).body(null);
+                if(Objects.nonNull(companyCode)){
+                    builder.and(QCaseStrategy.caseStrategy.companyCode.eq(companyCode));
                 }
-                builder.and(QTemplate.template.companyCode.eq(companyCode));
-            }else{
-                builder.and(QTemplate.template.companyCode.eq(user.getCompanyCode()));
+            }else {
+                builder.and(QCaseStrategy.caseStrategy.companyCode.eq(user.getCompanyCode()));
             }
             Page<CaseStrategy> page = caseStrategyRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseStrategyController/getCaseStrategy");

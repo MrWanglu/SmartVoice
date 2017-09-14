@@ -79,14 +79,12 @@ public class DataInfoExcelController {
         User user=userResponseEntity.getBody();
         //只查询本人数据
         BooleanBuilder builder = new BooleanBuilder(predicate);
-        builder.and(QDataInfoExcel.dataInfoExcel.operator.eq(user.getId()));
         if (Objects.isNull(user.getCompanyCode())) {
             if (StringUtils.isNotBlank(companyCode)) {
                 builder.and(QDataInfoExcel.dataInfoExcel.companyCode.eq(companyCode));
-            } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "getDataInfoExcelList", "请先选择公司!")).body(null);
             }
         } else {
+            builder.and(QDataInfoExcel.dataInfoExcel.operator.eq(user.getId()));
             builder.and(QDataInfoExcel.dataInfoExcel.companyCode.eq(user.getCompanyCode()));
         }
         Page<DataInfoExcel> dataInfoExcelPage=  dataInfoExcelRepository.findAll(builder,pageable);

@@ -4,11 +4,9 @@ import cn.fintecher.pangolin.business.model.CaseInfoExceptionIdList;
 import cn.fintecher.pangolin.business.model.CaseUpdateParams;
 import cn.fintecher.pangolin.business.repository.CaseInfoExceptionRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoExceptionService;
-import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.CaseInfoDistributed;
-import cn.fintecher.pangolin.entity.CaseInfoException;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.web.HeaderUtil;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
@@ -61,10 +59,23 @@ public class CaseInfoExceptionController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseInfoException>> getAllCaseInfoException(@QuerydslPredicate(root = CaseInfoException.class) Predicate predicate,
-                                                                           @ApiIgnore Pageable pageable) {
+                                                                           @ApiIgnore Pageable pageable,
+                                                                           @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                                           @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
         log.debug("REST request to get all CaseInfoExceptions");
-        Page<CaseInfoException> page = caseInfoExceptionRepository.findAll(predicate, pageable);
-        return ResponseEntity.ok().body(page);
+        try {
+            User user = getUserByToken(token);
+            QCaseInfoException qCaseInfoException = QCaseInfoException.caseInfoException;
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            if (Objects.nonNull(user.getCompanyCode())) {
+                builder.and(qCaseInfoException.companyCode.eq(user.getCompanyCode()));
+            }
+            Page<CaseInfoException> page = caseInfoExceptionRepository.findAll(predicate, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "查询失败!")).body(null);
+        }
     }
 
     /**

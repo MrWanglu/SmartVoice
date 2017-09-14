@@ -15,6 +15,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -122,10 +123,9 @@ public class CaseInfoVerificationController extends BaseController {
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if (Objects.isNull(user.getCompanyCode())) {
-            if (Objects.isNull(companyCode)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "请选择公司")).body(null);
+            if (StringUtils.isNotBlank(companyCode)) {
+                builder.and(QCaseInfoVerification.caseInfoVerification.companyCode.eq(companyCode));
             }
-            builder.and(QCaseInfoVerification.caseInfoVerification.companyCode.eq(companyCode));
         } else {
             builder.and(QCaseInfoVerification.caseInfoVerification.companyCode.eq(user.getCompanyCode()));
         }
@@ -173,11 +173,6 @@ public class CaseInfoVerificationController extends BaseController {
         List<CaseInfoVerModel> caseInfoVerificationReport = null;
         try {
             user = getUserByToken(token);
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(caseInfoVerificationParams.getCompanyCode())) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "请选择公司")).body(null);
-                }
-            }
             caseInfoVerificationReport = caseInfoVerificationService.getList(caseInfoVerificationParams, user);
             Integer totalCount = caseInfoVerificationRepository.getTotalCount();
             Page<CaseInfoVerModel> page = new PageImpl<>(caseInfoVerificationReport, pageable, totalCount);

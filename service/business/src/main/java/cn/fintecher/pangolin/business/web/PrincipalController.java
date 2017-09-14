@@ -11,11 +11,11 @@ import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -23,14 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -46,7 +43,7 @@ import java.util.Objects;
 public class PrincipalController extends BaseController {
 
     private final Logger logger = LoggerFactory.getLogger(PrincipalController.class);
-    private static final String ENTITY_NAME = "Principal";
+    private static final String ENTITY_NAME = "PrincipalController";
     @Autowired
     private PrincipalRepository principalRepository;
     @Autowired
@@ -70,14 +67,34 @@ public class PrincipalController extends BaseController {
     })
     public ResponseEntity<Page<Principal>> getPrincipalPageList(@QuerydslPredicate(root = Principal.class) Predicate predicate,
                                                                 @ApiIgnore Pageable pageable,
-                                                                @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
-        logger.debug("REST request to get all AreaCode");
-        QPrincipal qPrincipal = QPrincipal.principal;
-        BooleanBuilder builder = new BooleanBuilder(predicate);
-        builder.and(qPrincipal.flag.eq(Principal.deleteStatus.START.getDeleteCode())); //查询未删除的
-        Page<Principal> page = principalRepository.findAll(builder, pageable);
-        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/queryAreaCode");
-        return new ResponseEntity<>(page, headers, HttpStatus.OK);
+                                                                @RequestHeader(value = "X-UserToken") String token,
+                                                                @RequestParam(value = "companyCode",required = false) String companyCode) {
+        logger.debug("REST request to getPrincipalPageList");
+        User user ;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+        try {
+            QPrincipal qPrincipal = QPrincipal.principal;
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(qPrincipal.flag.eq(Principal.deleteStatus.START.getDeleteCode())); //查询未删除的
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    builder.and(qPrincipal.companyCode.eq(companyCode));
+                }
+            } else {
+                builder.and(qPrincipal.companyCode.eq(user.getCompanyCode()));
+            }
+            Page<Principal> page = principalRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
+                    "", Constants.ERROR_MESSAGE)).body(null);
+        }
 
     }
 
