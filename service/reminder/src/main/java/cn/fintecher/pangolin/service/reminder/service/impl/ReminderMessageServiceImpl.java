@@ -57,10 +57,10 @@ public class ReminderMessageServiceImpl implements ReminderMessageService {
     }
 
     @Override
-    public Page<ReminderMessage> findByUser(String userId, Pageable pageable,ReminderMessage.ReadStatus readStatus) {
+    public Page<ReminderMessage> findByUser(String userId, Pageable pageable, ReminderMessage.ReadStatus readStatus) {
         Query query = new Query();
         query.addCriteria(Criteria.where("userId").is(userId));
-        if(Objects.nonNull(readStatus)){
+        if (Objects.nonNull(readStatus)) {
             query.addCriteria(Criteria.where("state").is(readStatus));
         }
         query.with(pageable);
@@ -99,13 +99,13 @@ public class ReminderMessageServiceImpl implements ReminderMessageService {
         ReminderMessage result = reminderMessageRepository.save(message);
         ReminderWebSocketMessage reminderWebSocketMessage = new ReminderWebSocketMessage();
         reminderWebSocketMessage.setData(result);
-        userService.sendMessage(result.getUserId(), reminderWebSocketMessage);
-        if (Objects.nonNull(result)) {
+        if (Objects.nonNull(result.getUserId())) {
+            userService.sendMessage(result.getUserId(), reminderWebSocketMessage);
             Long count = reminderMessageService.countUnRead(result.getUserId());
             AppMsg request = new AppMsg();
             BeanUtils.copyProperties(result, request);
             request.setId(null);
-            request.setAppMsgUnRead(new Long(count).intValue());
+            request.setAppMsgUnRead(Long.valueOf(count).intValue());
             request.setContent(result.getContent());
             try {
                 appMsgService.sendPush(request);

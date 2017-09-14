@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,28 +41,7 @@ public class ReminderServiceImpl implements ReminderService{
 
     @Override
     public List<SendReminderMessage> getAllReminderMessage(){
-        return null;
-    }
-
-
-    @Override
-    public void leaveCaseReminder() {
-/*        QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-        Iterable<CaseInfo> caseInfoIterable = caseInfoRepository.findAll(qCaseInfo.leaveCaseFlag.eq(1).
-                        and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())));
-        Iterator<CaseInfo> iterator = caseInfoIterable.iterator();
-        while(iterator.hasNext()){
-            CaseInfo caseInfo = iterator.next();
-            String userId = caseInfo.getCurrentCollector().getId();
-            String reminderTitle = "案件留案提醒";
-            String reminderContent = "您有留案案件["+caseInfo.getCaseNumber()+"]未处理,请及时处理。";
-            this.sendReminder(reminderTitle,reminderContent,userId,ReminderType.LEAVE_CASE,null);
-        }*/    //待修改
-    }
-
-    @Override
-    public void applyReminder() {
-
+        return Collections.emptyList();
     }
 
 }

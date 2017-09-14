@@ -34,7 +34,7 @@ public class RemindTimingBatchService {
     private CaseInfoService caseInfoService;
 
     @Autowired
-    private ReminderService ReminderService;
+    private ReminderService reminderService;
 
     @Autowired
     private CaseAssistService caseAssistService;
@@ -101,7 +101,7 @@ public class RemindTimingBatchService {
                     sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 的案件强制流转提醒");
                     sendReminderMessage.setContent("您持有客户 [" + caseInfo.getPersonalInfo().getName() + "] 的案件 [" + caseInfo.getCaseNumber() + "] 即将强制流转,请及时留案");
                     sendReminderMessage.setMode(ReminderMode.POPUP);
-                    ReminderService.sendReminder(sendReminderMessage);
+                    reminderService.sendReminder(sendReminderMessage);
                 }
             }
         } catch (Exception e) {
@@ -125,7 +125,7 @@ public class RemindTimingBatchService {
                     sendReminderMessage.setTitle("客户 [" + caseAssist.getCaseId().getPersonalInfo().getName() + "] 的协催案件强制流转提醒");
                     sendReminderMessage.setContent("您参与客户 [" + caseAssist.getCaseId().getPersonalInfo().getName() + "] 的协催案件 [" + caseAssist.getCaseId().getCaseNumber() + "] 即将强制流转,请及时留案");
                     sendReminderMessage.setMode(ReminderMode.POPUP);
-                    ReminderService.sendReminder(sendReminderMessage);
+                    reminderService.sendReminder(sendReminderMessage);
                 }
             }
         } catch (Exception e) {
@@ -149,16 +149,16 @@ public class RemindTimingBatchService {
                     sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 无跟进记录提醒");
                     sendReminderMessage.setContent("客户 [" + caseInfo.getPersonalInfo().getName() + "] 案件 [" + caseInfo.getCaseNumber() + "] 长期无跟进记录,请及时处理");
                     sendReminderMessage.setMode(ReminderMode.POPUP);
-                    if (managers.size() > 0) {
+                    if (managers.isEmpty()) {
+                        sendReminderMessage.setUserId(caseInfo.getCurrentCollector().getId());
+                    } else {
                         List<String> managerIds = new ArrayList<>();
                         for (int i = 0; i < managers.size(); i++) {
                             managerIds.add(managers.get(i).getId());
                         }
                         sendReminderMessage.setCcUserIds(managerIds.toArray(new String[managerIds.size()]));
-                    } else {
-                        sendReminderMessage.setUserId(caseInfo.getCurrentCollector().getId());
                     }
-                    ReminderService.sendReminder(sendReminderMessage);
+                    reminderService.sendReminder(sendReminderMessage);
                 }
             }
         } catch (Exception e) {
@@ -182,7 +182,7 @@ public class RemindTimingBatchService {
                     sendReminderMessage.setTitle("客户 [" + caseAssist.getCaseId().getPersonalInfo().getName() + "] 协催案件跟进提醒");
                     sendReminderMessage.setContent("客户 [" + caseAssist.getCaseId().getPersonalInfo().getName() + "] 协催案件 [" + caseAssist.getCaseId().getCaseNumber() + "] 长时间无跟进记录,请及时处理");
                     sendReminderMessage.setMode(ReminderMode.POPUP);
-                    ReminderService.sendReminder(sendReminderMessage);
+                    reminderService.sendReminder(sendReminderMessage);
                 }
             }
         } catch (Exception e) {

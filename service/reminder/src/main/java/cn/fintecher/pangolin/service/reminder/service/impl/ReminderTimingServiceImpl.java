@@ -3,11 +3,9 @@ package cn.fintecher.pangolin.service.reminder.service.impl;
 import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.service.reminder.model.ReminderMessage;
 import cn.fintecher.pangolin.service.reminder.model.ReminderTiming;
-import cn.fintecher.pangolin.service.reminder.repository.ReminderMessageRepository;
 import cn.fintecher.pangolin.service.reminder.repository.ReminderTimingRepository;
 import cn.fintecher.pangolin.service.reminder.service.ReminderMessageService;
 import cn.fintecher.pangolin.service.reminder.service.ReminderTimingService;
-import cn.fintecher.pangolin.service.reminder.service.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,10 +18,7 @@ public class ReminderTimingServiceImpl implements ReminderTimingService {
 
     @Autowired
     private ReminderTimingRepository reminderTimingRepository;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private ReminderMessageRepository reminderMessageRepository;
+
     @Autowired
     private ReminderMessageService reminderMessageService;
 
@@ -31,8 +26,7 @@ public class ReminderTimingServiceImpl implements ReminderTimingService {
     public ReminderTiming saveReminderTiming(SendReminderMessage reminderMessage){
         ReminderTiming reminderTiming=new ReminderTiming();
         BeanUtils.copyProperties(reminderMessage,reminderTiming);
-        ReminderTiming result = reminderTimingRepository.save(reminderTiming);
-        return result;
+        return reminderTimingRepository.save(reminderTiming);
     }
 
     @Override

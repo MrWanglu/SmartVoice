@@ -25,16 +25,6 @@ public interface ReminderService {
     List<SendReminderMessage> getAllReminderMessage();
 
     /**
-     * 案件留案提醒
-     */
-    void leaveCaseReminder();
-
-    /**
-     * 审批提醒
-     */
-    void applyReminder();
-
-    /**
      * 发送定时提醒
      * @param sendReminderMessage
      */
