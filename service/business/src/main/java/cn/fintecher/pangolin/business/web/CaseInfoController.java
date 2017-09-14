@@ -46,12 +46,14 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import javax.inject.Inject;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+
 /**
  * Created by ChenChang on 2017/5/23.
  */
@@ -203,7 +205,9 @@ public class CaseInfoController extends BaseController {
 //                    CaseInfo.EndType.CLOSE_CASE.getValue()),
 //                    qCaseInfo.endType.isNull());
             List<String> allCaseInfoIds = caseInfoHistoryRepository.findAllCaseInfoIds();
-            builder.and(qCaseInfo.id.notIn(allCaseInfoIds));
+            if (!allCaseInfoIds.isEmpty()) {
+                builder.and(qCaseInfo.id.notIn(allCaseInfoIds));
+            }
 //            if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) { //管理者
 //                builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));
 //            }

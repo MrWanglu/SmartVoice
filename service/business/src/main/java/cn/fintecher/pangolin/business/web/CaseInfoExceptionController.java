@@ -148,8 +148,6 @@ public class CaseInfoExceptionController extends BaseController {
             if (Objects.isNull(user.getCompanyCode())) {
                 if (StringUtils.isNotBlank(companyCode)) {
                     user.setCompanyCode(companyCode);
-                } else {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "checkExceptionCase", "请先选择公司!")).body(null);
                 }
             }
             if (caseInfoExceptionService.checkCaseExceptionExist(user)) {

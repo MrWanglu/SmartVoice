@@ -107,8 +107,6 @@ public class DataInfoExcelController {
         if (Objects.isNull(user.getCompanyCode())) {
             if (Objects.nonNull(dataImportRecord.getCompanyCode())) {
                 user.setCompanyCode(dataImportRecord.getCompanyCode());
-            } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司!")).body(null);
             }
         }
         if (StringUtils.isBlank(dataImportRecord.getPrincipalId())) {
@@ -159,8 +157,6 @@ public class DataInfoExcelController {
         if (Objects.isNull(user.getCompanyCode())) {
             if (StringUtils.isNotBlank(companyCode)) {
                 user.setCompanyCode(companyCode);
-            } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "queryBatchNumGroup", "请先选择公司!")).body(null);
             }
         }
         List<String> batchNumList= dataInfoExcelService.queryBatchNumGroup(user);
@@ -227,8 +223,6 @@ public class DataInfoExcelController {
         if (Objects.isNull(user.getCompanyCode())) {
             if (StringUtils.isNotBlank(companyCode)) {
                 user.setCompanyCode(companyCode);
-            } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "queryBatchNumGroup", "请先选择公司!")).body(null);
             }
         }
         dataInfoExcelService.deleteCasesByBatchNum(batchNumber,user);
@@ -252,8 +246,6 @@ public class DataInfoExcelController {
         if (Objects.isNull(user.getCompanyCode())) {
             if (StringUtils.isNotBlank(companyCode)) {
                 user.setCompanyCode(companyCode);
-            } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "queryBatchNumGroup", "请先选择公司!")).body(null);
             }
         }
         List<DataInfoExcelFileExist> checkStr = dataInfoExcelService.checkCasesFile(user);
@@ -275,8 +267,6 @@ public class DataInfoExcelController {
         if (Objects.isNull(user.getCompanyCode())) {
             if (StringUtils.isNotBlank(companyCode)) {
                 user.setCompanyCode(companyCode);
-            } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "casesConfirmByBatchNum", "请先选择公司!")).body(null);
             }
         }
         dataInfoExcelService.casesConfirmByBatchNum(user);
@@ -324,7 +314,13 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert( "DataInfoExcelController","findUpload", e.getMessage())).body(null);
         }
         User user = userResponseEntity.getBody();
-        Iterable<DataInfoExcelFile> all = dataInfoExcelFileRepository.findAll(QDataInfoExcelFile.dataInfoExcelFile.caseNumber.eq(caseNumber));
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (StringUtils.isNotBlank(companyCode)) {
+                user.setCompanyCode(companyCode);
+            }
+        }
+        Iterable<DataInfoExcelFile> all = dataInfoExcelFileRepository.findAll(QDataInfoExcelFile.dataInfoExcelFile.caseNumber.eq(caseNumber)
+                .and(QDataInfoExcelFile.dataInfoExcelFile.companyCode.eq(user.getCompanyCode())));
         List<DataInfoExcelFile> dataInfoExcelFiles = IterableUtils.toList(all);
         return ResponseEntity.ok().body(dataInfoExcelFiles);
     }
