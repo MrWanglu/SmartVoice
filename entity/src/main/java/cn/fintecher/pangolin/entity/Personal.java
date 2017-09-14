@@ -85,13 +85,16 @@ public class Personal extends BaseEntity {
         UNKNOWN(68, "未知");
         private Integer value;
         private String remark;
+
         PhoneStatus(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }
+
         public Integer getValue() {
             return value;
         }
+
         public String getRemark() {
             return remark;
         }
@@ -100,17 +103,20 @@ public class Personal extends BaseEntity {
     /**
      * 性别
      */
-    public enum SexEnum{
-        MAN(142,"男"),WOMEN(143,"女"),UNKNOWN(144,"未知");
+    public enum SexEnum {
+        MAN(142, "男"), WOMEN(143, "女"), UNKNOWN(144, "未知");
         private Integer value;
         private String remark;
+
         SexEnum(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }
+
         public Integer getValue() {
             return value;
         }
+
         public String getRemark() {
             return remark;
         }
@@ -119,35 +125,41 @@ public class Personal extends BaseEntity {
     /**
      * 关系
      */
-    public enum RelationEnum{
-        SELF(69,"本人"),PARTNER(70,"配偶"),PARENTS(71,"父母"),CHILDREN(72,"子女"),FAMILY(73,"亲属"),COLLEAGUE(74,"同事"),
-        FRIENDS(75,"朋友"),OTHERS(76,"其他"),UNIT(77,"单位");
+    public enum RelationEnum {
+        SELF(69, "本人"), PARTNER(70, "配偶"), PARENTS(71, "父母"), CHILDREN(72, "子女"), FAMILY(73, "亲属"), COLLEAGUE(74, "同事"),
+        FRIENDS(75, "朋友"), OTHERS(76, "其他"), UNIT(77, "单位"), STUDENT(219, "同学");
         private Integer value;
         private String remark;
+
         RelationEnum(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }
+
         public Integer getValue() {
             return value;
         }
+
         public String getRemark() {
             return remark;
         }
     }
 
-    public enum AddrRelationEnum{
-        CURRENTADDR(83,"现居住地址"),UNITADDR(84,"单位地址"),IDCARDADDR(85,"身份证地址"),
-        PROPERTYADDR(86,"房产地址"),OTHERS(87,"其他");
+    public enum AddrRelationEnum {
+        CURRENTADDR(83, "现居住地址"), UNITADDR(84, "单位地址"), IDCARDADDR(85, "身份证地址"),
+        PROPERTYADDR(86, "房产地址"), OTHERS(87, "其他");
         private Integer value;
         private String remark;
+
         AddrRelationEnum(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }
+
         public Integer getValue() {
             return value;
         }
+
         public String getRemark() {
             return remark;
         }
@@ -167,24 +179,27 @@ public class Personal extends BaseEntity {
         UNKNOWN(154, "未知");
         private Integer value;
         private String remark;
+
         AddrStatus(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }
+
         public Integer getValue() {
             return value;
         }
+
         public String getRemark() {
             return remark;
         }
     }
 
     public enum MARITAL {
-        UNMARRIED(207,"未婚"),
-        MARRIED(208,"已婚"),
-        UNKNOW(209,"未知");
-        private  Integer value;
-        private  String remark;
+        UNMARRIED(207, "未婚"),
+        MARRIED(208, "已婚"),
+        UNKNOW(209, "未知");
+        private Integer value;
+        private String remark;
 
         MARITAL(Integer value, String remark) {
             this.value = value;

@@ -512,4 +512,7 @@ public class DataInfoExcelModel implements Serializable {
     @ApiModelProperty(notes = "附件信息")
     private List<CaseInfoFile> caseInfoFileList;
 
+    @ApiModelProperty("婚姻状况")
+    private String marital;
+
 }

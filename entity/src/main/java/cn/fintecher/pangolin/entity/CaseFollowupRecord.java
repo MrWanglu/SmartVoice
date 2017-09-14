@@ -191,7 +191,9 @@ public class CaseFollowupRecord extends BaseEntity {
         //其他
         OTHER(76, "其他"),
         //单位
-        UNIT(77, "单位");
+        UNIT(77, "单位"),
+        //同学
+        STUDENT(219, "同学");
 
         private Integer value;
 

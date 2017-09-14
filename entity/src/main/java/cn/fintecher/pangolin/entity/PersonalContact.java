@@ -84,7 +84,9 @@ public class PersonalContact extends BaseEntity {
 
         OTHER(76, "其他"),
 
-        UNIT(77, "单位");
+        UNIT(77, "单位"),
+
+        STUDENT(219,"同学");
 
         private Integer value;
 

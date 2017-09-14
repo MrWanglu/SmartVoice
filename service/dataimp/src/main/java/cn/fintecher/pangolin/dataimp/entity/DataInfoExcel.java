@@ -616,7 +616,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("逾期管理费")
     @ExcelAnno(cellName = "逾期管理费")
-    private Double overdueManageFee=new Double(0);
+    private Double overdueManageFee = new Double(0);
 
     @ExcelAnno(cellName = "批次")
     @ApiModelProperty(notes = "批次号")
@@ -674,5 +674,9 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("案件编号")
     private String caseNumber;
+
+    @ApiModelProperty("婚姻状况")
+    @ExcelAnno(cellName = "婚姻状况")
+    private String marital;
 
 }
