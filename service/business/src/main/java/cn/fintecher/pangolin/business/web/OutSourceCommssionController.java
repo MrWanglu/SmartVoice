@@ -195,19 +195,15 @@ public class OutSourceCommssionController extends BaseController {
      */
     @GetMapping("/outsourceCommissionForm")
     @ApiOperation(value = "委外佣金报表", notes = "委外佣金报表")
-    public ResponseEntity<List> outsourceCommissionForm(@RequestParam String companyCode,
+    public ResponseEntity<List> outsourceCommissionForm(@RequestParam(required = false) String companyCode,
                                                         @RequestParam Integer operationType,
-                                                        @RequestParam String outsName,
+                                                        @RequestParam(required = false) String outsName,
                                                         @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
-            //判断如果是超级管理员companyCode是为null的
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "请选择公司")).body(null);
-                }
-            } else {
+            //获取普通用户的公司code码
+            if (Objects.nonNull(user.getCompanyCode())) {
                 companyCode = user.getCompanyCode();//限制公司code码
             }
         } catch (Exception e) {
@@ -217,11 +213,23 @@ public class OutSourceCommssionController extends BaseController {
 
         Object[] objects;
         if (Objects.equals(OutBackSource.operationType.OUTBACKAMT.getCode(), operationType)) {
-            objects = outSourceCommssionRepository.outsourceCommissionReturn(companyCode, operationType, outsName);
+            if (companyCode != null && !"".equals(companyCode)) {
+                objects = outSourceCommssionRepository.outsourceCommissionReturn(companyCode, operationType, outsName);
+            } else {//超级管理员查所有记录的情况
+                objects = outSourceCommssionRepository.outsourceCommissionReturn1(operationType, outsName);
+            }
         } else if (Objects.equals(OutBackSource.operationType.OUTBACK.getCode(), operationType)) {
-            objects = outSourceCommssionRepository.outsourceCommissionRollback(companyCode, operationType, outsName);
+            if (companyCode != null && !"".equals(companyCode)) {
+                objects = outSourceCommssionRepository.outsourceCommissionRollback(companyCode, operationType, outsName);
+            } else {//超级管理员查所有记录的情况
+                objects = outSourceCommssionRepository.outsourceCommissionRollback1(operationType, outsName);
+            }
         } else {
-            objects = outSourceCommssionRepository.outsourceCommissionRepair(companyCode, operationType, outsName);
+            if (companyCode != null && !"".equals(companyCode)) {
+                objects = outSourceCommssionRepository.outsourceCommissionRepair(companyCode, operationType, outsName);
+            } else {//超级管理员查所有记录的情况
+                objects = outSourceCommssionRepository.outsourceCommissionRepair1(operationType, outsName);
+            }
         }
         if (objects.length == 1 && Objects.isNull(((Object[]) objects[0])[0])) {
             List kong = new ArrayList();
