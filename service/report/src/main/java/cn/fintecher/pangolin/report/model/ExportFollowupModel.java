@@ -14,7 +14,7 @@ import java.util.List;
 @Entity
 public class ExportFollowupModel {
 
-    private String company; // 公司code
+    private String companyCode; // 公司code
 
     private List<String> list; // 案件编号集合
 }

@@ -71,8 +71,8 @@ public class ExportFollowupController extends BaseController {
             try {
                 String companyCode = user.getCompanyCode();
                 if (Objects.isNull(user.getCompanyCode())) {
-                    if (StringUtils.isNotBlank(exportFollowupModel.getCompany())) {
-                        companyCode = exportFollowupModel.getCompany();
+                    if (StringUtils.isNotBlank(exportFollowupModel.getCompanyCode())) {
+                        companyCode = exportFollowupModel.getCompanyCode();
                     }
                 }
                 List<String> caseNumberList = exportFollowupModel.getList();
