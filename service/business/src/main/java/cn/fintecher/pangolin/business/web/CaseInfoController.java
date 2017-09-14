@@ -160,13 +160,14 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllBatchNumber", e.getMessage())).body(null);
         }
         try {
+            List<String> distinctByBatchNumber;
+
             if (Objects.isNull(user.getCompanyCode())) {
-                if (StringUtils.isBlank(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","请选择公司!")).body(null);
-                }
-                user.setCompanyCode(companyCode);
+                distinctByBatchNumber = caseInfoRepository.findAllDistinctByBatchNumber();
+            } else {
+                distinctByBatchNumber = caseInfoRepository.findDistinctByBatchNumber(user.getCompanyCode());
             }
-            return ResponseEntity.ok().body(caseInfoRepository.findDistinctByBatchNumber(user.getCompanyCode()));
+            return ResponseEntity.ok().body(distinctByBatchNumber);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllBatchNumber", "系统异常!")).body(null);

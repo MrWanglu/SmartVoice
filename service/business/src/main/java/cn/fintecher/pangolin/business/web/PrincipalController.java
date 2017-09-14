@@ -68,9 +68,9 @@ public class PrincipalController extends BaseController {
     public ResponseEntity<Page<Principal>> getPrincipalPageList(@QuerydslPredicate(root = Principal.class) Predicate predicate,
                                                                 @ApiIgnore Pageable pageable,
                                                                 @RequestHeader(value = "X-UserToken") String token,
-                                                                @RequestParam(value = "companyCode", required = false) String companyCode) {
+                                                                @RequestParam(value = "companyCode",required = false) String companyCode) {
         logger.debug("REST request to getPrincipalPageList");
-        User user;
+        User user ;
         try {
             user = getUserByToken(token);
         } catch (final Exception e) {
@@ -100,12 +100,24 @@ public class PrincipalController extends BaseController {
 
     @GetMapping("/getPrincipalList")
     @ApiOperation(value = "获取所有委托方信息", notes = "获取所有委托方信息")
-    public ResponseEntity<List<Principal>> getPrincipalPageList(@RequestParam(required = false) String companyCode) {
+    public ResponseEntity<List<Principal>> getPrincipalPageList(@RequestParam(required = false) String companyCode,
+                                                                @RequestHeader(value = "X-UserToken") String token) {
         logger.debug("REST request to get all Principal");
+        User user ;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
         QPrincipal qPrincipal = QPrincipal.principal;
         BooleanBuilder builder = new BooleanBuilder();
-        if (Objects.nonNull(companyCode) && !Objects.equals(companyCode, "null")) {
-            builder.and(qPrincipal.companyCode.eq(companyCode));
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (StringUtils.isNotBlank(companyCode)) {
+                builder.and(qPrincipal.companyCode.eq(companyCode));
+            }
+        } else {
+            builder.and(qPrincipal.companyCode.eq(user.getCompanyCode()));
         }
         builder.and(qPrincipal.flag.eq(Principal.deleteStatus.START.getDeleteCode()));
         Iterator<Principal> principalIterator = principalRepository.findAll(builder).iterator();

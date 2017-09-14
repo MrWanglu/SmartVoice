@@ -14,6 +14,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.joda.time.DateTime;
@@ -490,10 +491,9 @@ public class UserController extends BaseController {
         QUser qUser = QUser.user;
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("user", "please choose company", "请选择公司")).body(null);
+            if (StringUtils.isNotBlank(companyCode)) {
+                builder.and(QUser.user.companyCode.eq(companyCode));
             }
-            builder.and(QUser.user.companyCode.eq(companyCode));
         }else{
             builder.and(QUser.user.companyCode.eq(user.getCompanyCode()));
         }
