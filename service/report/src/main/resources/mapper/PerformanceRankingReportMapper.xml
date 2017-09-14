@@ -44,8 +44,10 @@
         LEFT JOIN
         (SELECT id,`code` as parentDeptCode,`name` as parentDeptName from department) t on s.pid = t.id
         ) v on u.dept_id = v.id
-        ) x on w.current_collector = x.id where companyCode = #{companyCode} and x.deptCode LIKE
-        CONCAT(#{deptCode},'%')
+        ) x on w.current_collector = x.id where x.deptCode LIKE CONCAT(#{deptCode},'%')
+        <if test="companyCode != null">
+            AND companyCode = #{companyCode}
+        </if>
         <if test="realName != null">
             AND x.realName LIKE CONCAT('%',#{realName},'%')
         </if>
@@ -92,8 +94,10 @@
     <!-- 查询历史报表 -->
     <select id="getHistoryReport" parameterType="cn.fintecher.pangolin.report.model.PerformanceRankingParams"
             resultMap="performanceRankingReport">
-        SELECT * from performance_ranking_report
-        where company_code = #{companyCode} and dept_code like CONCAT(#{deptCode},'%')
+        SELECT * from performance_ranking_report where dept_code like CONCAT(#{deptCode},'%')
+        <if test="companyCode != null">
+            and company_code = #{companyCode}
+        </if>
         <if test="date != null">
             AND DATE_FORMAT(now_date,'%Y-%m-%d') = #{date}
         </if>

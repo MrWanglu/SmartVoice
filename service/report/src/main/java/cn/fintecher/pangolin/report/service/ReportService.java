@@ -208,9 +208,6 @@ public class ReportService {
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
         List<PerformanceBasisModel> performanceBasisModels;
         if (Objects.isNull(tokenUser.getCompanyCode())) {
-            if (Objects.isNull(performanceParams.getCompanyCode())) {
-                throw new RuntimeException("请选择公司");
-            }
             performanceBasisModels = performanceReportMapper.getPerformanceReport(deptModel.getCode(), performanceParams.getCode(), StringUtils.trim(performanceParams.getUserName()), performanceParams.getCompanyCode());
         } else {
             performanceBasisModels = performanceReportMapper.getPerformanceReport(deptModel.getCode(), performanceParams.getCode(), StringUtils.trim(performanceParams.getUserName()), tokenUser.getCompanyCode());
@@ -307,9 +304,6 @@ public class ReportService {
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
         if (Objects.equals(generalParams.getType(), 0)) { //实时报表
             if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(generalParams.getCompanyCode())) {
-                    throw new RuntimeException("请选择公司");
-                }
                 dailyProcessReports = dailyProcessReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), generalParams.getCompanyCode()); //获得实时报表
             } else {
                 dailyProcessReports = dailyProcessReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), tokenUser.getCompanyCode()); //获得实时报表
@@ -318,9 +312,6 @@ public class ReportService {
             Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
             Date date2 = ZWDateUtil.getFormatDate(generalParams.getEndDate());
             if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(generalParams.getCompanyCode())) {
-                    throw new RuntimeException("请选择公司");
-                }
                 dailyProcessReports = dailyProcessReportMapper.getHistoryReport(date1, date2,
                         deptModel.getCode(), generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), generalParams.getCompanyCode());
             } else {
@@ -468,9 +459,6 @@ public class ReportService {
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
         if (Objects.equals(generalParams.getType(), 0)) { //实时报表
             if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(generalParams.getCompanyCode())) {
-                    throw new RuntimeException("请选择公司");
-                }
                 dailyResultReports = dailyResultReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), generalParams.getCompanyCode());
             } else {
                 dailyResultReports = dailyResultReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), tokenUser.getCompanyCode());
@@ -479,9 +467,6 @@ public class ReportService {
             Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
             Date date2 = ZWDateUtil.getFormatDate(generalParams.getEndDate());
             if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(generalParams.getCompanyCode())) {
-                    throw new RuntimeException("请选择公司");
-                }
                 dailyResultReports = dailyResultReportMapper.getHistoryReport(date1, date2,
                         deptModel.getCode(), generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), generalParams.getCompanyCode());
             } else {
@@ -688,9 +673,6 @@ public class ReportService {
             Date startDate = cal.getTime();
             Date endDate = ZWDateUtil.getNowDate();
             if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
-                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
-                    throw new RuntimeException("请选择公司");
-                }
                 performanceRankingReports = performanceRankingReportMapper.getRealtimeSummaryReport(startDate, endDate, performanceRankingParams.getCompanyCode(),
                         tokenUser.getDepartment().getCode(), StringUtils.trim(performanceRankingParams.getRealName()), performanceRankingParams.getCode());
             } else {
@@ -699,9 +681,6 @@ public class ReportService {
             }
         } else { //历史报表
             if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
-                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
-                    throw new RuntimeException("请选择公司");
-                }
                 performanceRankingReports = performanceRankingReportMapper.getHistorySummayReport(performanceRankingParams.getDate(), performanceRankingParams.getCompanyCode(),
                         tokenUser.getDepartment().getCode(), StringUtils.trim(performanceRankingParams.getRealName()), performanceRankingParams.getCode());
             } else {
@@ -823,9 +802,6 @@ public class ReportService {
             Date startDate = cal.getTime();
             Date endDate = ZWDateUtil.getNowDate();
             if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
-                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
-                    throw new RuntimeException("请选择公司");
-                }
                 if (0 == flag) {
                     performanceRankingReports = performanceRankingReportMapper.getRealtimeReport(startDate, endDate, performanceRankingParams.getCompanyCode(),
                             tokenUser.getDepartment().getCode(), StringUtils.trim(performanceRankingParams.getRealName()), performanceRankingParams.getCode());
@@ -844,9 +820,6 @@ public class ReportService {
             }
         } else { //历史报表
             if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
-                if (Objects.isNull(performanceRankingParams.getCompanyCode())) {
-                    throw new RuntimeException("请选择公司");
-                }
                 if (0 == flag) {
                     performanceRankingReports = performanceRankingReportMapper.getHistoryReport(performanceRankingParams.getDate(), performanceRankingParams.getCompanyCode(),
                             tokenUser.getDepartment().getCode(), StringUtils.trim(performanceRankingParams.getRealName()), performanceRankingParams.getCode());
@@ -1100,9 +1073,6 @@ public class ReportService {
         DeptModel deptModel = backMoneyReportMapper.getDept(tokenUser.getUserName()); //获取登录人的部门信息
         if (Objects.equals(generalParams.getType(), 0)) { //实时报表
             if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(generalParams.getCompanyCode())) {
-                    throw new RuntimeException("请选择公司");
-                }
                 backMoneyReports = backMoneyReportMapper.getRealTimeReport(deptModel.getCode(), generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), generalParams.getCompanyCode());
             } else {
                 //获取当日有回款的记录
@@ -1112,9 +1082,6 @@ public class ReportService {
             Date date1 = ZWDateUtil.getFormatDate(generalParams.getStartDate());
             Date date2 = ZWDateUtil.getFormatDate(generalParams.getEndDate());
             if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(generalParams.getCompanyCode())) {
-                    throw new RuntimeException("请选择公司");
-                }
                 backMoneyReports = backMoneyReportMapper.getHistoryReport(deptModel.getCode(), date1,
                         date2, generalParams.getCode(), StringUtils.trim(generalParams.getRealName()), generalParams.getCompanyCode());
             } else {

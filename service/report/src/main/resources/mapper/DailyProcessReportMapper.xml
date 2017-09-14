@@ -44,7 +44,10 @@
         (SELECT id,`code` as parentDeptCode,`name` as parentDeptName from department) j on h.pid = j.id
         ) n on m.deptId = n.id) c on
         a.current_collector = c.id
-        where c.deptCode LIKE CONCAT(#{deptCode}, '%') AND c.companyCode = #{companyCode}
+        where c.deptCode LIKE CONCAT(#{deptCode}, '%')
+        <if test="companyCode != null">
+            AND c.companyCode = #{companyCode}
+        </if>
         <if test="code != null">
             AND c.deptCode LIKE CONCAT(#{code},'%')
         </if>
@@ -101,8 +104,10 @@
     <!-- 查询催收员每日催收过程历史报表 -->
     <select id="getHistoryReport" parameterType="cn.fintecher.pangolin.report.model.GeneralParams"
             resultMap="dailyProcessReport">
-        select * from daily_process_report where dept_code LIKE CONCAT(#{deptCode}, '%') AND company_code =
-        #{companyCode}
+        select * from daily_process_report where dept_code LIKE CONCAT(#{deptCode}, '%')
+        <if test="companyCode != null">
+            AND company_code = #{companyCode}
+        </if>
         <if test="startDate != null and endDate != null">
             AND <![CDATA[DATE_FORMAT(now_date,'%Y-%m-%d') >= DATE_FORMAT(#{startDate},'%Y-%m-%d')]]>
             AND <![CDATA[DATE_FORMAT(now_date,'%Y-%m-%d') <= DATE_FORMAT(#{endDate},'%Y-%m-%d')]]>

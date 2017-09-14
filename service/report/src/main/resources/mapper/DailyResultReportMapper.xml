@@ -48,8 +48,10 @@
         (SELECT user_name,`year`,`month`,back_cash as target from user_backcash_plan where DATE_FORMAT(NOW(),'%Y') =
         `year` and DATE_FORMAT(NOW(),'%c') = `month`) d
         on m.userName = d.user_name
-        ) b on a.current_collector = b.id where b.deptCode LIKE CONCAT(#{deptCode},'%') AND b.companyCode =
-        #{companyCode}
+        ) b on a.current_collector = b.id where b.deptCode LIKE CONCAT(#{deptCode},'%')
+        <if test="companyCode">
+            AND b.companyCode = #{companyCode}
+        </if>
         <if test="code != null">
             AND b.deptCode LIKE CONCAT(#{code},'%')
         </if>
@@ -100,7 +102,10 @@
     <!-- 查询催收员每日催收结果历史报表 -->
     <select id="getHistoryReport" parameterType="cn.fintecher.pangolin.report.model.GeneralParams"
             resultMap="dailyResultReport">
-        SELECT * from daily_result_report where dept_code LIKE CONCAT(#{deptCode},'%') AND company_code = #{companyCode}
+        SELECT * from daily_result_report where dept_code LIKE CONCAT(#{deptCode},'%')
+        <if test="companyCode != null">
+            AND company_code = #{companyCode}
+        </if>
         <if test="startDate != null and endDate != null">
             AND <![CDATA[DATE_FORMAT(now_date,'%Y-%m-%d') >= DATE_FORMAT(#{startDate},'%Y-%m-%d')]]>
             AND <![CDATA[DATE_FORMAT(now_date,'%Y-%m-%d') <= DATE_FORMAT(#{endDate},'%Y-%m-%d')]]>

@@ -39,7 +39,10 @@
         (SELECT id,code as parentDeptCode,`name` as parentDeptName from department) x on z.pid = x.id) n on m.deptId =
         n.id
         ) b on a.current_collector = b.id
-        where b.deptCode LIKE CONCAT(#{deptCode}, '%') AND b.companyCode = #{companyCode}
+        where b.deptCode LIKE CONCAT(#{deptCode}, '%')
+        <if test="companyCode != null">
+            AND b.companyCode = #{companyCode}
+        </if>
         <if test="code != null">
             AND b.deptCode LIKE concat(#{code},'%')
         </if>

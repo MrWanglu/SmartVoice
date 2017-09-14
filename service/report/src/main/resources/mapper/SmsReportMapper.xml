@@ -22,8 +22,10 @@
         (SELECT operator_user_name,COUNT(id) as smsNum,count(case when flag = 0 then id end) as successNum,count(case
         when flag = 1 then id end) as failureNum from send_message_record where
         DATE_FORMAT(operator_date,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d')
-        GROUP BY operator_user_name) b on a.userName = b.operator_user_name where companyCode = #{companyCode} AND
-        deptCode like concat(#{deptCode},'%')
+        GROUP BY operator_user_name) b on a.userName = b.operator_user_name where deptCode like concat(#{deptCode},'%')
+        <if test="companyCode != null">
+            AND companyCode = #{companyCode}
+        </if>
         <if test="code != null">
             AND deptCode like concat(#{code},'%')
         </if>
@@ -62,8 +64,10 @@
             resultMap="smsReport">
         select dept_code,dept_name,parent_dept_code,parent_dept_name,user_name,real_name,
         sum(sms_num)as sms_num,sum(success_num) as success_num,
-        sum(failure_num) as failure_num from sms_report where company_code = #{companyCode} and dept_code like
-        concat(#{deptCode},'%')
+        sum(failure_num) as failure_num from sms_report where dept_code like concat(#{deptCode},'%')
+        <if test="companyCode != null">
+            and company_code = #{companyCode}
+        </if>
         <if test="startDate != null and endDate != null">
             AND <![CDATA[DATE_FORMAT(now_date,'%Y-%m-%d') >= DATE_FORMAT(#{startDate},'%Y-%m-%d')]]>
             AND <![CDATA[DATE_FORMAT(now_date,'%Y-%m-%d') <= DATE_FORMAT(#{endDate},'%Y-%m-%d')]]>

@@ -39,7 +39,10 @@
         LEFT JOIN
         (SELECT id,`code` as deptCode,`name` as deptName from department) g on f.pid = g.id) l on k.deptId = l.id) b
         on a.userName = b.userName
-        ) as temp where deptCode like CONCAT(#{deptCode},'%') AND companyCode = #{companyCode}
+        ) as temp where deptCode like CONCAT(#{deptCode},'%')
+        <if test="companyCode != null">
+            AND companyCode = #{companyCode}
+        </if>
         <if test="code != null">
             AND deptCode LIKE CONCAT(#{code}, '%')
         </if>
@@ -91,7 +94,10 @@
     <!-- 查询回款历史报表 -->
     <select id="getHistoryReport" parameterType="cn.fintecher.pangolin.report.model.GeneralParams"
             resultMap="backMoneyReport">
-        SELECT * from back_money_report where dept_code like CONCAT(#{deptCode},'%') and company_code = #{companyCode}
+        SELECT * from back_money_report where dept_code like CONCAT(#{deptCode},'%')
+        <if test="companyCode != null">
+            and company_code = #{companyCode}
+        </if>
         <if test="startDate != null and endDate != null">
             AND <![CDATA[DATE_FORMAT(back_date,'%Y-%m-%d') >= DATE_FORMAT(#{startDate},'%Y-%m-%d')]]>
             AND <![CDATA[DATE_FORMAT(back_date,'%Y-%m-%d') <= DATE_FORMAT(#{endDate},'%Y-%m-%d')]]>
