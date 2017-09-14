@@ -36,4 +36,6 @@ public class PaymentModel {
     private Integer payType; //还款类型
     private Integer payWay; //还款方式
     private Date applyDate; //申请日期
+    private Integer fileCount; //附件个数
+
 }

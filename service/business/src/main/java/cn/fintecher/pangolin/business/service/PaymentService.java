@@ -7,6 +7,7 @@ import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import cn.fintecher.pangolin.util.ZWStringUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -67,6 +68,9 @@ public class PaymentService {
     @Inject
     ReminderService reminderService;
 
+    @Inject
+    CasePayFileRepository casePayFileRepository;
+
     /**
      * @Description 还款信息展示
      */
@@ -75,10 +79,15 @@ public class PaymentService {
         if (Objects.isNull(casePayApply)) {
             throw new RuntimeException("该还款记录未找到");
         }
+        QCasePayFile qCasePayFile = QCasePayFile.casePayFile;
+
+        long fileCount = casePayFileRepository.count(qCasePayFile.payId.eq(casePayApplyId));
+
         CaseInfo caseInfo = caseInfoRepository.findOne(casePayApply.getCaseId()); //获取案件信息
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件信息未找到");
         }
+
         PaymentModel paymentModel = new PaymentModel();
         BeanUtils.copyProperties(caseInfo, paymentModel);
         paymentModel.setName(casePayApply.getPersonalName()); //客户姓名
@@ -92,6 +101,7 @@ public class PaymentService {
         paymentModel.setPayType(casePayApply.getPayType()); //还款类型
         paymentModel.setPayWay(casePayApply.getPayWay()); //还款方式
         paymentModel.setApplyDate(casePayApply.getApplyDate()); //申请日期
+        paymentModel.setFileCount((int) fileCount); //附件个数
         return paymentModel;
     }
 

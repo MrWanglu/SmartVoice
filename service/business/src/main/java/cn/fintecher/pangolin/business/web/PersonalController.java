@@ -339,11 +339,13 @@ public class PersonalController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.isNull(tokenUser.getCompanyCode())){
-                if(Objects.nonNull(companyCode)){
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                //超级管理员
+                if (Objects.nonNull(companyCode)) {
                     builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-            }else{
+            } else {
+                //不是超级管理员
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
             Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);

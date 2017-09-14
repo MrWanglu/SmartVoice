@@ -46,12 +46,14 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import javax.inject.Inject;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+
 /**
  * Created by ChenChang on 2017/5/23.
  */
@@ -796,15 +798,7 @@ public class CaseInfoController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
-        if (Objects.isNull(user.getCompanyCode())) {
-            if (StringUtils.isNotBlank(companyCode)) {
-                user.setCompanyCode(companyCode);
-            } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "findUpload", "请先选择公司!")).body(null);
-            }
-        }
-        Iterable<CaseInfoFile> all = caseInfoFileRepository.findAll(QCaseInfoFile.caseInfoFile.caseNumber.eq(caseNumber)
-                .and(QCaseInfoFile.caseInfoFile.companyCode.eq(user.getCompanyCode())));
+        Iterable<CaseInfoFile> all = caseInfoFileRepository.findAll(QCaseInfoFile.caseInfoFile.caseNumber.eq(caseNumber));
         List<CaseInfoFile> caseInfoFiles = IterableUtils.toList(all);
         return ResponseEntity.ok().body(caseInfoFiles);
     }
