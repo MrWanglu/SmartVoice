@@ -86,11 +86,7 @@ public class CaseAssistApplyController extends BaseController {
             // 查出所有电催审批通过的
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
-            if(Objects.isNull(user.getCompanyCode())){
-                if(Objects.nonNull(companyCode)){
-                    exp.and(qCaseAssistApply.companyCode.eq(companyCode));
-                }
-            }else{
+            if(Objects.nonNull(user.getCompanyCode())){
                 exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));
             }
             exp.and(qCaseAssistApply.approvePhoneResult.eq(CaseAssistApply.ApproveResult.TEL_PASS.getValue()));
@@ -120,14 +116,9 @@ public class CaseAssistApplyController extends BaseController {
             QCaseAssistApply qCaseAssistApply = QCaseAssistApply.caseAssistApply;
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (StringUtils.isNotBlank(companyCode)) {
-                    user.setCompanyCode(companyCode);
-                } else {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司!")).body(null);
-                }
+            if (Objects.nonNull(user.getCompanyCode())) {
+                exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));
             }
-            exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));
             // 查出所有电催待审批的案件
             Page<CaseAssistApply> page = caseAssistApplyRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);
