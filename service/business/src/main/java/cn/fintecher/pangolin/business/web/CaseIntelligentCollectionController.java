@@ -10,10 +10,7 @@ import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +59,8 @@ public class CaseIntelligentCollectionController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfo>> queryCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                         @ApiIgnore Pageable pageable,
-                                                        @RequestHeader(value = "X-UserToken") String token) {
+                                                        @RequestHeader(value = "X-UserToken") String token,
+                                                        @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         User user;
         try {
             user = getUserByToken(token);
@@ -77,8 +75,14 @@ public class CaseIntelligentCollectionController extends BaseController {
         list.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue());
         list.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue());
         builder.and(QCaseInfo.caseInfo.collectionStatus.in(list));
-        if (Objects.nonNull(user.getCompanyCode())) {
-            builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+        if (Objects.isNull(user.getCompanyCode())) {
+            //超级管理员
+            if (Objects.nonNull(companyCode)) {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+            }
+        } else {
+            //不是超级管理员
+            builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
         }
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "CaseIntelligentCollectionController")).body(page);
