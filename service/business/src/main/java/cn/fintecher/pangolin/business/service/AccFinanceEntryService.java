@@ -1,8 +1,8 @@
 package cn.fintecher.pangolin.business.service;
 
 import cn.fintecher.pangolin.business.repository.AccFinanceEntryRepository;
-import cn.fintecher.pangolin.entity.AccFinanceDataExcel;
-import cn.fintecher.pangolin.entity.AccFinanceEntry;
+import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.*;
 import cn.fintecher.pangolin.util.ZWStringUtils;
 import org.apache.commons.lang.StringUtils;
@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -25,6 +26,8 @@ public class AccFinanceEntryService {
     private final Logger logger = LoggerFactory.getLogger(AccFinanceEntryService.class);
     @Autowired
     AccFinanceEntryRepository accFinanceEntryRepository;
+    @Autowired
+    OutsourcePoolRepository outsourcePoolRepository;
 
 
     public List<CellError> importAccFinanceData(String fileUrl, int[] startRow, int[] startCol, Class<?>[] dataClass, AccFinanceEntry accFinanceEntry) throws Exception {
@@ -64,6 +67,14 @@ public class AccFinanceEntryService {
             afe.setCreator(accFinanceEntry.getCreator());
             afe.setCreateTime(accFinanceEntry.getCreateTime());
             afe.setCompanyCode(accFinanceEntry.getCompanyCode());
+
+            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+
+            Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(qOutsourcePool.caseInfo.caseNumber.eq(accFinanceDataExcel.getCaseNum()));
+            if (Objects.nonNull(outsourcePools) && outsourcePools.iterator().hasNext()) {
+                afe.setFienBatchnum(outsourcePools.iterator().next().getOutBatch());
+                afe.setFienFgname(outsourcePools.iterator().next().getOutsource().getOutsName());
+            }
             //验证必要数据的合法性
             if (!validityFinance(errorList, afe)) {
                 return;
@@ -102,4 +113,4 @@ public class AccFinanceEntryService {
     }
 
 
-    }
+}
