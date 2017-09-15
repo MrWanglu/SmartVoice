@@ -123,7 +123,9 @@ public class UserController extends BaseController {
         }
         //用户名不能重复
         QUser qUser = QUser.user;
-        boolean exist = userRepository.exists(qUser.userName.eq(user.getUserName()).and(qUser.companyCode.eq(companyCode)));
+//        boolean exist = userRepository.exists(qUser.userName.eq(user.getUserName()).and(qUser.companyCode.eq(companyCode)));
+        //新加用户去掉公司code码判断，以后重新设计
+        boolean exist = userRepository.exists(qUser.userName.eq(user.getUserName()));
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "User name cannot be repeated", "用户名不能重复")).body(null);
