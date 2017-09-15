@@ -43,8 +43,8 @@ public class OutsourcePool extends BaseEntity {
     @ApiModelProperty("逾期时段")
     private String overduePeriods;
 
-    @ApiModelProperty("合同金额")
-    private BigDecimal contractAmt;
+    @ApiModelProperty("案件金额")
+    private BigDecimal cupoAmt;
 
     //Added by huyanmin 2017/9/5
     @ApiModelProperty("委外操作状态")
