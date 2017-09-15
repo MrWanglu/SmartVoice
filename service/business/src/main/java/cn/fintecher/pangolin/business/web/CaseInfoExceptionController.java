@@ -67,7 +67,11 @@ public class CaseInfoExceptionController extends BaseController {
             User user = getUserByToken(token);
             QCaseInfoException qCaseInfoException = QCaseInfoException.caseInfoException;
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.nonNull(user.getCompanyCode())) {
+            if (Objects.isNull(user.getCompanyCode())) {
+                if(StringUtils.isNotBlank(companyCode)) {
+                    builder.and(qCaseInfoException.companyCode.eq(companyCode));
+                }
+            } else {
                 builder.and(qCaseInfoException.companyCode.eq(user.getCompanyCode()));
             }
             Page<CaseInfoException> page = caseInfoExceptionRepository.findAll(predicate, pageable);
