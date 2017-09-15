@@ -355,7 +355,7 @@ public class PersonalController extends BaseController {
     public ResponseEntity<Page<CaseInfo>> getPersonalCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                               @ApiIgnore Pageable pageable,
                                                               @RequestHeader(value = "X-UserToken") String token,
-                                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) throws URISyntaxException {
+                                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode){
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);

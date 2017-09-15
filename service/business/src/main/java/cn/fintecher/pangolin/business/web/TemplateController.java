@@ -230,7 +230,7 @@ public class TemplateController extends BaseController {
     public Template addTemplate(Template template) {
         Integer style = template.getTemplateStyle();
         Integer type = template.getTemplateType();
-        List<Template> listTemplates = templateRepository.findTemplatesByTemplateStyleAndTemplateType(style, type);
+        List<Template> listTemplates = templateRepository.findTemplatesByTemplateStyleAndTemplateTypeAndCompanyCode(style, type,template.getCompanyCode());
         //该形式、类别原来没有数据，则新建的设为默认模板
         if (listTemplates.isEmpty() && template.getTemplateStatus() == Status.Enable.getValue()) {
             template.setIsDefault(Template.DEFAULT_YES);

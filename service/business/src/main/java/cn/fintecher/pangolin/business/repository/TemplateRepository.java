@@ -22,7 +22,7 @@ public interface TemplateRepository extends QueryDslPredicateExecutor<Template>,
 
     List<Template> findByTemplateNameOrTemplateCode(String templateName, String templateCode);
 
-    List<Template> findTemplatesByTemplateStyleAndTemplateType(int templateStyle, int type);
+    List<Template> findTemplatesByTemplateStyleAndTemplateTypeAndCompanyCode(int templateStyle, int type, String companyCode);
 
     List<Template> findTemplatesByTemplateStyleAndTemplateTypeAndTemplateStatusAndIsDefault(int templateStyle, int templateType, int templateStatus, boolean isDefault);
 
