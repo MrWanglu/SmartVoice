@@ -235,7 +235,7 @@ public class TemplateController extends BaseController {
         if (listTemplates.isEmpty() && template.getTemplateStatus() == Status.Enable.getValue()) {
             template.setIsDefault(Template.DEFAULT_YES);
         }
-        List<Template> temps = findDefaultTemplate(style, type);
+        List<Template> temps = findDefaultTemplate(style, type,template.getCompanyCode());
         if (!listTemplates.isEmpty() && template.getIsDefault()) {
             Template t = temps.get(0);
             t.setIsDefault(Template.DEFAULT_NO);
@@ -253,8 +253,8 @@ public class TemplateController extends BaseController {
      * @author luqiang
      * @apiNote 根据模板形式、类别查询默认模板
      */
-    public List<Template> findDefaultTemplate(Integer style, Integer type) {
-        return templateRepository.findTemplatesByTemplateStyleAndTemplateTypeAndTemplateStatusAndIsDefault(style, type, Status.Enable.getValue(), Template.DEFAULT_YES);
+    public List<Template> findDefaultTemplate(Integer style, Integer type, String companyCode) {
+        return templateRepository.findTemplatesByTemplateStyleAndTemplateTypeAndTemplateStatusAndIsDefaultAndCompanyCode(style, type, Status.Enable.getValue(), Template.DEFAULT_YES, companyCode);
     }
 
     public Template updateTemplate(Template template) {
@@ -267,7 +267,7 @@ public class TemplateController extends BaseController {
             return null;
         }
         if (template.getIsDefault()) {
-            List<Template> listTemplates = findDefaultTemplate(template.getTemplateStyle(), template.getTemplateType());
+            List<Template> listTemplates = findDefaultTemplate(template.getTemplateStyle(), template.getTemplateType(),template.getCompanyCode());
             if (!listTemplates.isEmpty()) {
                 Template tem = listTemplates.get(0);
                 tem.setIsDefault(Template.DEFAULT_NO);

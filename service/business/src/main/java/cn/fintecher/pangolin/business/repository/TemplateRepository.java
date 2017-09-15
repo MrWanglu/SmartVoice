@@ -24,7 +24,7 @@ public interface TemplateRepository extends QueryDslPredicateExecutor<Template>,
 
     List<Template> findTemplatesByTemplateStyleAndTemplateTypeAndCompanyCode(int templateStyle, int type, String companyCode);
 
-    List<Template> findTemplatesByTemplateStyleAndTemplateTypeAndTemplateStatusAndIsDefault(int templateStyle, int templateType, int templateStatus, boolean isDefault);
+    List<Template> findTemplatesByTemplateStyleAndTemplateTypeAndTemplateStatusAndIsDefaultAndCompanyCode(int templateStyle, int templateType, int templateStatus, boolean isDefault, String compCode);
 
     List<Template> findTemplatesByTemplateStyleAndTemplateTypeAndTemplateName(int templateStyle, int templateType, String templateName);
 
