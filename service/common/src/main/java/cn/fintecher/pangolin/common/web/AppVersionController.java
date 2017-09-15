@@ -116,11 +116,7 @@ public class AppVersionController {
         try {
             ResponseEntity<User> userEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
             user = userEntity.getBody();
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.nonNull(companyCode)) {
-                    builder.and(QAppVersion.appVersion1.companyCode.eq(companyCode));
-                }
-            } else {
+            if (Objects.nonNull(user.getCompanyCode())) {
                 builder.and(QAppVersion.appVersion1.companyCode.eq(user.getCompanyCode()));
             }
             logger.debug("REST request to query company : {}");

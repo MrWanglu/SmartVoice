@@ -14,6 +14,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.joda.time.DateTime;
@@ -122,7 +123,9 @@ public class UserController extends BaseController {
         }
         //用户名不能重复
         QUser qUser = QUser.user;
-        boolean exist = userRepository.exists(qUser.userName.eq(user.getUserName()).and(qUser.companyCode.eq(companyCode)));
+//        boolean exist = userRepository.exists(qUser.userName.eq(user.getUserName()).and(qUser.companyCode.eq(companyCode)));
+        //新加用户去掉公司code码判断，以后重新设计
+        boolean exist = userRepository.exists(qUser.userName.eq(user.getUserName()));
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "User name cannot be repeated", "用户名不能重复")).body(null);
@@ -490,10 +493,9 @@ public class UserController extends BaseController {
         QUser qUser = QUser.user;
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("user", "please choose company", "请选择公司")).body(null);
+            if (StringUtils.isNotBlank(companyCode)) {
+                builder.and(QUser.user.companyCode.eq(companyCode));
             }
-            builder.and(QUser.user.companyCode.eq(companyCode));
         }else{
             builder.and(QUser.user.companyCode.eq(user.getCompanyCode()));
         }

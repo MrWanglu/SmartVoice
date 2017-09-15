@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.repository.DepartmentRepository;
 import cn.fintecher.pangolin.business.repository.ResourceRepository;
 import cn.fintecher.pangolin.business.repository.RoleRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
@@ -47,6 +48,8 @@ public class RoleController extends BaseController {
     private UserRepository userRepository;
     @Autowired
     ResourceService resourceService;
+    @Autowired
+    private DepartmentRepository departmentRepository;
 
     /**
      * @Description : 带条件的分页查询
@@ -64,6 +67,7 @@ public class RoleController extends BaseController {
     })
     public ResponseEntity<Page<Role>> getAllRolePage(@RequestParam(required = false) String companyCode,
                                                      @RequestParam(required = false) String name,
+                                                     @RequestParam(required = false) String departmentCode,
                                                      @RequestParam(required = false) Integer status,
                                                      @RequestParam(required = false) String operator,
                                                      @ApiIgnore Pageable pageable) {
@@ -72,6 +76,13 @@ public class RoleController extends BaseController {
         BooleanBuilder builder = new BooleanBuilder();
         if (Objects.nonNull(companyCode)) {
             builder.and(qRole.companyCode.eq(companyCode));
+        } else {
+            if (Objects.nonNull(departmentCode)) {
+                Department department = departmentRepository.findOne(QDepartment.department.code.eq(departmentCode));
+                if (Objects.nonNull(department.getCompanyCode())) {
+                    builder.and(qRole.companyCode.eq(department.getCompanyCode()));
+                }
+            }
         }
         if (Objects.nonNull(name)) {
             builder.and(qRole.name.like("%".concat(name).concat("%")));
@@ -108,7 +119,12 @@ public class RoleController extends BaseController {
         }
         //增加角色的code需要传入
         QRole qRole = QRole.role;
-        boolean exist = roleRepository.exists(qRole.name.eq(role.getName()).and(qRole.companyCode.eq(role.getCompanyCode())));
+        boolean exist = false;
+        if (Objects.isNull(role.getCompanyCode())) {
+            exist = roleRepository.exists(qRole.name.eq(role.getName()));
+        } else {
+            exist = roleRepository.exists(qRole.name.eq(role.getName()).and(qRole.companyCode.eq(role.getCompanyCode())));
+        }
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role name has been occupied", "该角色名已被占用")).body(null);
         } else {

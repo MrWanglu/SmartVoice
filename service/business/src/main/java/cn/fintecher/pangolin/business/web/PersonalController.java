@@ -112,16 +112,6 @@ public class PersonalController extends BaseController {
             Integer maxNum = null; //最大联系人数
             // 催收员
             if (Objects.equals(exportType, 0)) {
-                String companyCode = null;
-                if (Objects.isNull(user.getCompanyCode())) {
-                    List<Object> objects = dataFilter.get("companyCode");
-                    if (Objects.isNull(objects) || objects.isEmpty()) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","","请选择公司!")).body(null);
-                    }
-                    companyCode = (String)objects.get(0);
-                } else {
-                    companyCode = user.getCompanyCode();
-                }
                 // 查找出所有属于该催收员的数据
                 String orgCode = null;// 组织机构Code
                 String collectorName = null; //催收员名称
@@ -142,7 +132,9 @@ public class PersonalController extends BaseController {
                 BooleanBuilder builder = new BooleanBuilder();
                 builder.and(qCaseInfo.department.code.startsWith(one.getCode()));
                 builder.and(qCaseInfo.currentCollector.realName.eq(collectorName));
-                builder.and(qCaseInfo.companyCode.eq(companyCode));
+                if (Objects.nonNull(user.getCompanyCode())) {
+                    builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+                }
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 caseInfos = IterableUtils.toList(all);
                 if (caseInfos.isEmpty()) {
@@ -156,16 +148,6 @@ public class PersonalController extends BaseController {
             }
             // 产品类型
             if (Objects.equals(exportType, 1)) {
-                String companyCode = null;
-                if (Objects.isNull(user.getCompanyCode())) {
-                    List<Object> objects = dataFilter.get("companyCode");
-                    if (Objects.isNull(objects) || objects.isEmpty()) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","","请选择公司!")).body(null);
-                    }
-                    companyCode = (String)objects.get(0);
-                } else {
-                    companyCode = user.getCompanyCode();
-                }
                 String prodName = null; //产品名称
                 List<Object> prodObj = dataFilter.get("prodName");
                 if (Objects.isNull(prodObj) || prodObj.isEmpty()) {
@@ -175,7 +157,9 @@ public class PersonalController extends BaseController {
                 }
                 // 查找出某产品类型的所有案件
                 BooleanBuilder builder = new BooleanBuilder();
-                builder.and(qCaseInfo.companyCode.eq(companyCode));
+                if (Objects.nonNull(user.getCompanyCode())) {
+                    builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+                }
                 builder.and(qCaseInfo.product.productSeries.seriesName.eq(prodName));
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 caseInfos = IterableUtils.toList(all);
@@ -201,16 +185,6 @@ public class PersonalController extends BaseController {
             }
             // 批次号
             if (Objects.equals(exportType, 2)) {
-                String companyCode = null;
-                if (Objects.isNull(user.getCompanyCode())) {
-                    List<Object> objects = dataFilter.get("companyCode");
-                    if (Objects.isNull(objects) || objects.isEmpty()) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","","请选择公司!")).body(null);
-                    }
-                    companyCode = (String)objects.get(0);
-                } else {
-                    companyCode = user.getCompanyCode();
-                }
                 String batchNumber = null; //批次号
                 List<Object> batchNumObj = dataFilter.get("batchNumber");
                 if (Objects.isNull(batchNumObj) || batchNumObj.isEmpty()) {
@@ -220,7 +194,9 @@ public class PersonalController extends BaseController {
                 }
                 BooleanBuilder builder = new BooleanBuilder();
                 builder.and(qCaseInfo.batchNumber.eq(batchNumber));
-                builder.and(qCaseInfo.companyCode.eq(companyCode));
+                if (Objects.nonNull(user.getCompanyCode())) {
+                    builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+                }
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 caseInfos = IterableUtils.toList(all);
                 if (caseInfos.isEmpty()) {
@@ -235,16 +211,6 @@ public class PersonalController extends BaseController {
 
             // 案件状态
             if (Objects.equals(exportType, 3)) {
-                String companyCode = null;
-                if (Objects.isNull(user.getCompanyCode())) {
-                    List<Object> objects = dataFilter.get("companyCode");
-                    if (Objects.isNull(objects) || objects.isEmpty()) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","","请选择公司!")).body(null);
-                    }
-                    companyCode = (String)objects.get(0);
-                } else {
-                    companyCode = user.getCompanyCode();
-                }
                 List<Object> stList = (List) dataFilter.get("caseInfoStatus");
                 if (Objects.isNull(stList) || stList.isEmpty()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalController", "personalInfoExport", "数据筛选产品名称为空!")).body(null);
@@ -254,7 +220,9 @@ public class PersonalController extends BaseController {
                     sl.add(Integer.valueOf(o.toString()));
                 }
                 BooleanBuilder builder = new BooleanBuilder();
-                builder.and(qCaseInfo.companyCode.eq(companyCode));
+                if (Objects.nonNull(user.getCompanyCode())) {
+                    builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+                }
                 builder.and(qCaseInfo.collectionStatus.in(sl));
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 caseInfos = IterableUtils.toList(all);
@@ -421,8 +389,7 @@ public class PersonalController extends BaseController {
             User tokenUser = getUserByToken(token);
             OrderSpecifier<Integer> sortOrder = QCaseTurnRecord.caseTurnRecord.id.asc();
             QCaseTurnRecord qCaseTurnRecord = QCaseTurnRecord.caseTurnRecord;
-            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseNumber.eq(caseNumber)
-                    .and(qCaseTurnRecord.companyCode.eq(tokenUser.getCompanyCode())), sortOrder);
+            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseNumber.eq(caseNumber), sortOrder);
             List<CaseTurnRecord> caseTurnRecordList = IterableUtils.toList(caseTurnRecords);
             //过滤掉接收部门为为空的数据
             caseTurnRecordList.forEach(e -> {

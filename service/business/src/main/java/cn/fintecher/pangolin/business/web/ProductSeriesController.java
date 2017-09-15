@@ -10,7 +10,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -52,12 +51,7 @@ public class ProductSeriesController extends BaseController{
         try {
             QProductSeries qProductSeries = QProductSeries.productSeries;
             BooleanBuilder exp = new BooleanBuilder();
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (StringUtils.isBlank(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","","请选择公司!")).body(null);
-                }
-                exp.and(qProductSeries.companyCode.eq(companyCode));
-            } else {
+            if (Objects.nonNull(user.getCompanyCode())) {
                 exp.and(qProductSeries.companyCode.eq(user.getCompanyCode()));
             }
             Iterable<ProductSeries> all = productSeriesRepository.findAll(exp);

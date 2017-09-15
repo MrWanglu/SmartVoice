@@ -470,6 +470,7 @@ public class CaseInfoService {
         }
         CaseFollowupRecord caseFollowupRecord = new CaseFollowupRecord();
         BeanUtils.copyProperties(caseFollowupParams, caseFollowupRecord);
+        caseFollowupRecord.setId(null);
         caseFollowupRecord.setCaseId(caseFollowupParams.getCaseId());
         caseFollowupRecord.setCaseNumber(caseFollowupParams.getCaseNumber());
         caseFollowupRecord.setPersonalId(caseFollowupParams.getPersonalId());
@@ -957,7 +958,7 @@ public class CaseInfoService {
         return uploadFiles;
     }
 
-    public List<UploadFile> getFollowupFile(String followId){
+    public List<UploadFile> getFollowupFile(String followId) {
         //下载跟进记录凭证
         List<UploadFile> uploadFiles = new ArrayList<>();//文件对象集合
         QCaseFlowupFile qCaseFlowupFile = QCaseFlowupFile.caseFlowupFile;
@@ -1820,7 +1821,7 @@ public class CaseInfoService {
         synchronized (this) {
             CaseAssist caseAssist = caseAssistRepository.findOne(id);
             //更改协催案件信息
-            if(!Objects.equals(caseAssist.getAssistStatus(),CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue())){
+            if (!Objects.equals(caseAssist.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue())) {
                 throw new RuntimeException("该协催已被他人抢走");
             }
             caseAssist.setDepartId(user.getDepartment().getId()); //协催部门ID
