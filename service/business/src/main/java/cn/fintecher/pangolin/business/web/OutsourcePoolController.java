@@ -656,6 +656,54 @@ public class OutsourcePoolController extends BaseController {
         }
     }
 
+    @GetMapping("/findConfirmFinanceData")
+    @ResponseBody
+    @ApiOperation(value = "查询已确认的数据", notes = "查询已确认的数据")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<AccFinanceEntry>> findConfirmFinanceData(@ApiIgnore Pageable pageable,
+                                                                 @RequestParam(required = false) @ApiParam(value = "委外方") String outsName,
+                                                                 @RequestParam(required = false) @ApiParam(value = "批次号") String outbatch,
+                                                                 @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                 @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
+            AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.nonNull(companyCode)) {
+                    accFinanceEntry.setCompanyCode(companyCode);
+                }
+            } else {
+                accFinanceEntry.setCompanyCode(user.getCompanyCode()); //限制公司code码
+            }
+            accFinanceEntry.setFienStatus(Status.Disable.getValue());
+            accFinanceEntry.setFienCount(null);
+            accFinanceEntry.setFienPayback(null);
+            if (Objects.nonNull(outsName)){
+                accFinanceEntry.setFienFgname(outsName);
+            }
+            if (Objects.nonNull(outbatch)){
+                accFinanceEntry.setFienBatchnum(outbatch);
+            }
+            ExampleMatcher matcher = ExampleMatcher.matching();
+            org.springframework.data.domain.Example<AccFinanceEntry> example = org.springframework.data.domain.Example.of(accFinanceEntry, matcher);
+            Page<AccFinanceEntry> page = accFinanceEntryRepository.findAll(example, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "", e.getMessage())).body(null);
+        }
+    }
+
 
     @PostMapping("/deleteFinanceData")
     @ResponseBody
@@ -689,28 +737,28 @@ public class OutsourcePoolController extends BaseController {
         FileOutputStream fileOutputStream = null;
 
         try {
-            List<OutsourcePool> accOutsourcePoolList;
+            List<AccFinanceEntry> accOutsourcePoolList;
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
             try {
-                QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+                QAccFinanceEntry qAccFinanceEntry = QAccFinanceEntry.accFinanceEntry;
                 BooleanBuilder builder = new BooleanBuilder();
                 if (Objects.isNull(user.getCompanyCode())) {
                     if (Objects.nonNull(companyCode)) {
-                        builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
+                        builder.and(qAccFinanceEntry.companyCode.eq(companyCode));
                     }
                 } else {
-                    builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
+                    builder.and(qAccFinanceEntry.companyCode.eq(user.getCompanyCode())); //限制公司code码
                 }
                 if (Objects.nonNull(oupoOutbatch)) {
-                    builder.and(qOutsourcePool.outBatch.gt(oupoOutbatch));
+                    builder.and(qAccFinanceEntry.fienBatchnum.gt(oupoOutbatch));
                 }
                 if (Objects.nonNull(outsName)) {
-                    builder.and(qOutsourcePool.outsource.outsName.like("%"+outsName+"%"));
+                    builder.and(qAccFinanceEntry.fienFgname.like("%"+outsName+"%"));
                 }
-                accOutsourcePoolList = (List<OutsourcePool>)outsourcePoolRepository.findAll(builder);
+                accOutsourcePoolList = (List<AccFinanceEntry>)accFinanceEntryRepository.findAll(builder);
             } catch (Exception e) {
                 e.getStackTrace();
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询委外案件失败", "", e.getMessage())).body(null);
@@ -722,22 +770,21 @@ public class OutsourcePoolController extends BaseController {
             // 将需要的数据获取到按照导出的模板存放在List中
             List<AccOutsideFinExportModel> accOutsideList = new ArrayList<>();
             for (int i = 0; i < accOutsourcePoolList.size(); i++) {
-                OutsourcePool aop = accOutsourcePoolList.get(i);
+                AccFinanceEntry aop = accOutsourcePoolList.get(i);
                 AccOutsideFinExportModel expm = new AccOutsideFinExportModel();
-                expm.setOupoOutbatch(checkValueIsNull(aop.getOutBatch())); // 委外批次号
-                expm.setOupoCasenum(checkValueIsNull(aop.getCaseInfo().getCaseNumber())); // 案件编号
-                expm.setCustName(checkValueIsNull(aop.getCaseInfo().getPersonalInfo().getName()));  // 客户名称
-                expm.setOupoIdcard(checkValueIsNull(aop.getCaseInfo().getPersonalInfo().getIdCard()));  // 身份证号
-                expm.setOupoStatus(checkOupoStatus(aop.getOutStatus())); // 委外状态
-                expm.setOupoAmt(checkValueIsNull(aop.getCaseInfo().getOverdueAmount()));  // 案件金额
-                expm.setOupoPaynum(checkValueIsNull(aop.getCaseInfo().getHasPayAmount())); // 已还款金额
-                expm.setOutsName(aop.getOutsource().getOutsName());  // 委外方名称
+                expm.setOupoOutbatch(checkValueIsNull(aop.getFienBatchnum())); // 委外批次号
+                expm.setOupoCasenum(checkValueIsNull(aop.getFienCasenum())); // 案件编号
+                expm.setCustName(checkValueIsNull(aop.getFienCustname()));  // 客户名称
+                expm.setOupoIdcard(checkValueIsNull(aop.getFienIdcard()));  // 身份证号
+                expm.setOupoAmt(checkValueIsNull(aop.getFienCount()));  // 案件金额
+                expm.setOupoPaynum(checkValueIsNull(aop.getFienPayback())); // 已还款金额
+                expm.setOutsName(aop.getFienFgname());  // 委外方名称
                 accOutsideList.add(expm);
             }
 
             // 将存放的数据写入Excel
-            String[] titleList = {"案件编号", "客户姓名", "客户身份证号", "委外状态", "委外方", "案件金额", "已还款金额"};
-            String[] proNames = {"oupoCasenum", "custName", "oupoIdcard", "oupoStatus", "outsName", "oupoAmt", "oupoPaynum"};
+            String[] titleList = {"案件编号", "客户姓名", "客户身份证号", "委外方", "案件金额", "已还款金额"};
+            String[] proNames = {"oupoCasenum", "custName", "oupoIdcard", "outsName", "oupoAmt", "oupoPaynum"};
             workbook = new HSSFWorkbook();
             HSSFSheet sheet = workbook.createSheet("sheet1");
             out = new ByteArrayOutputStream();
