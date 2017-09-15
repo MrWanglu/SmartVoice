@@ -75,6 +75,8 @@ public final class Constants {
     public static final String ORG_SERVICE_URL = "http://business-service/api/departmentResource/";
     //获取得分规则
     public static final String SCOREL_SERVICE_URL = "http://dataimp-service/api/scoreResource/";
+    // 公司URL
+    public static final String COMPANY_URL = "http://business-service/api/companyResource/getCompanyByCode?companyCode=";
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
     //案件确认数据发送队列

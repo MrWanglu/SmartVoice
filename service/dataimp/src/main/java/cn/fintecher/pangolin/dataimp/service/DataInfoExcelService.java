@@ -5,10 +5,7 @@ import cn.fintecher.pangolin.dataimp.model.DataInfoExcelFileExist;
 import cn.fintecher.pangolin.dataimp.model.UpLoadFileModel;
 import cn.fintecher.pangolin.dataimp.repository.*;
 import cn.fintecher.pangolin.dataimp.util.ExcelUtil;
-import cn.fintecher.pangolin.entity.CaseInfoFile;
-import cn.fintecher.pangolin.entity.DataInfoExcelModel;
-import cn.fintecher.pangolin.entity.SysParam;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.message.ConfirmDataInfoMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
@@ -140,6 +137,12 @@ public class DataInfoExcelService {
                 dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
                 dataImportRecord.setCompanyCode(user.getCompanyCode());
                 dataImportRecordRepository.save(dataImportRecord);
+
+                ResponseEntity<Company> entity = restTemplate.getForEntity(Constants.COMPANY_URL.concat(user.getCompanyCode()), Company.class);
+                if (!entity.hasBody()) {
+                    throw  new Exception("获取公司序列号失败!");
+                }
+                Company company = entity.getBody();
                 if (Objects.equals(body.getValue(), "1")) { //邢台
                     //开始保存数据
                     for (Object obj : dataList) {
@@ -156,7 +159,7 @@ public class DataInfoExcelService {
                         tempObj.setDelegationDate(dataImportRecord.getDelegationDate());
                         tempObj.setCloseDate(dataImportRecord.getCloseDate());
                         String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, user.getCompanyCode(), Constants.CASE_SEQ_LENGTH);
-                        tempObj.setCaseNumber(caseNumber);
+                        tempObj.setCaseNumber(caseNumber.concat(company.getSequence()));
                         dataInfoExcelRepository.save(tempObj);
                     }
                 } else {
@@ -179,7 +182,7 @@ public class DataInfoExcelService {
                         tempObj.setDelegationDate(dataImportRecord.getDelegationDate());
                         tempObj.setCloseDate(dataImportRecord.getCloseDate());
                         String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, user.getCompanyCode(), Constants.CASE_SEQ_LENGTH);
-                        tempObj.setCaseNumber(caseNumber);
+                        tempObj.setCaseNumber(caseNumber.concat(company.getSequence()));
                         dataInfoExcelRepository.save(tempObj);
                     }
                 }

@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.AssistingStatisticsModel;
 import cn.fintecher.pangolin.business.model.CollectionCaseModel;
+import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.business.repository.DepartmentRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.service.CaseAssistService;
@@ -55,6 +56,8 @@ public class DepartmentController extends BaseController {
     CaseInfoService caseInfoService;
     @Autowired
     CaseAssistService caseAssistService;
+    @Autowired
+    CompanyRepository companyRepository;
 
     /**
      * @Description : 组织机构的type属性
@@ -138,6 +141,15 @@ public class DepartmentController extends BaseController {
         log.debug("REST request to update Department : {}", department);
         if (department.getId() == null) {
             return createDepartment(department, token);
+        }
+        //同步修改公司管理模块中的公司名称
+        try {
+            Company company = companyRepository.findOne(QCompany.company.code.eq(department.getCompanyCode()));
+            company.setChinaName(department.getName());
+            companyRepository.save(company);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "同步公司名称失败")).body(null);
         }
         User user;
         try {
@@ -397,17 +409,17 @@ public class DepartmentController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
         if (Objects.equals(Constants.ADMIN_USER_NAME, user.getUserName())) {
-            if (Objects.isNull(companyCode)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "请输入公司code码")).body(null);
+            List<Department> departmentList = new ArrayList<>();
+            if (Objects.isNull(companyCode)||Objects.equals(companyCode,"null")) {
+                departmentList = departmentRepository.findAll();
             } else {
-                List<Department> departmentList = new ArrayList<>();
                 QDepartment qDepartment = QDepartment.department;
                 Iterator<Department> departments = departmentRepository.findAll(qDepartment.code.like(user.getDepartment().getCode().concat("%")).and(qDepartment.companyCode.eq(companyCode))).iterator();
                 while (departments.hasNext()) {
                     departmentList.add(departments.next());
                 }
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
             }
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
         }
         List<Department> departmentList = new ArrayList<>();
         QDepartment qDepartment = QDepartment.department;
@@ -514,7 +526,7 @@ public class DepartmentController extends BaseController {
     @ResponseBody
     @ApiOperation(value = "查询公司下的外访机构", notes = "查询公司下的外访机构")
     public ResponseEntity<List<Department>> querySubdivisions(@RequestParam(required = false) String companyCode,
-                                                             @RequestParam Integer type,@RequestHeader(value = "X-UserToken") String token,
+                                                              @RequestParam Integer type, @RequestHeader(value = "X-UserToken") String token,
                                                               @ApiIgnore Pageable pageable) {
         User user;
         try {
@@ -525,18 +537,17 @@ public class DepartmentController extends BaseController {
         }
         QDepartment qDepartment = QDepartment.department;
         BooleanBuilder builder = new BooleanBuilder();
-        if(Objects.isNull(user.getCompanyCode())){
-            if(Objects.isNull(companyCode)){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("department", "please choose company", "请选择公司")).body(null);
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (Objects.nonNull(companyCode)) {
+                builder.and(QDepartment.department.companyCode.eq(companyCode));
             }
-            builder.and(QDepartment.department.companyCode.eq(companyCode));
-        }else{
+        } else {
             builder.and(QDepartment.department.companyCode.eq(user.getCompanyCode()));
         }
-        if(Objects.nonNull(type)){
+        if (Objects.nonNull(type)) {
             builder.and(qDepartment.type.eq(type));
         }
-        Iterator<Department>  departmentList = departmentRepository.findAll(builder).iterator();
+        Iterator<Department> departmentList = departmentRepository.findAll(builder).iterator();
         List<Department> departmentList1 = IteratorUtils.toList(departmentList);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList1);
     }

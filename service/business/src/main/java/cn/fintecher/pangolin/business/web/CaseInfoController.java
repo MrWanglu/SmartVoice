@@ -46,12 +46,14 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import javax.inject.Inject;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+
 /**
  * Created by ChenChang on 2017/5/23.
  */
@@ -147,7 +149,8 @@ public class CaseInfoController extends BaseController {
 
     @GetMapping("/getAllBatchNumber")
     @ApiOperation(value = "获取所有批次号", notes = "获取所有批次号")
-    public ResponseEntity<List<String>> getAllBatchNumber(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<List<String>> getAllBatchNumber(@RequestHeader(value = "X-UserToken") String token,
+                                                          @RequestParam(value = "companyCode",required = false) @ApiParam("公司Code") String companyCode) {
         log.debug("REST request to getAllBatchNumber");
         User user = null;
         try {
@@ -157,7 +160,14 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllBatchNumber", e.getMessage())).body(null);
         }
         try {
-            return ResponseEntity.ok().body(caseInfoRepository.findDistinctByBatchNumber(user.getCompanyCode()));
+            List<String> distinctByBatchNumber;
+
+            if (Objects.isNull(user.getCompanyCode())) {
+                distinctByBatchNumber = caseInfoRepository.findAllDistinctByBatchNumber();
+            } else {
+                distinctByBatchNumber = caseInfoRepository.findDistinctByBatchNumber(user.getCompanyCode());
+            }
+            return ResponseEntity.ok().body(distinctByBatchNumber);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllBatchNumber", "系统异常!")).body(null);
@@ -203,7 +213,9 @@ public class CaseInfoController extends BaseController {
 //                    CaseInfo.EndType.CLOSE_CASE.getValue()),
 //                    qCaseInfo.endType.isNull());
             List<String> allCaseInfoIds = caseInfoHistoryRepository.findAllCaseInfoIds();
-            builder.and(qCaseInfo.id.notIn(allCaseInfoIds));
+            if (!allCaseInfoIds.isEmpty()) {
+                builder.and(qCaseInfo.id.notIn(allCaseInfoIds));
+            }
 //            if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) { //管理者
 //                builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));
 //            }

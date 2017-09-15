@@ -183,6 +183,15 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
     List<String> findDistinctByBatchNumber(@Param("companyCode") String companyCode);
 
     /**
+     * 获取所有批次号
+     *
+     * @return
+     */
+    @Query(value = "select distinct(batch_number) from case_info where batch_number is not null", nativeQuery = true)
+    List<String> findAllDistinctByBatchNumber();
+
+
+    /**
      * 根据案件编号查询案件
      *
      * @param caseNumber

@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.dataimp.service;
 
 import cn.fintecher.pangolin.dataimp.entity.MongoSequence;
+import cn.fintecher.pangolin.entity.Company;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.util.ZWStringUtils;
@@ -8,7 +9,9 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Objects;
 
@@ -25,6 +28,8 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 public class MongoSequenceService {
     @Autowired
     MongoTemplate mongo;
+    @Autowired
+    RestTemplate restTemplate;
 
     /**
      * 返回指定的序列号
@@ -42,11 +47,13 @@ public class MongoSequenceService {
             throw  new Exception("返回序列对象为空");
         }
         String nowDate= ZWDateUtil.getFormatNowDate(Constants.DATE_FORMAT_ONE);
+
         String seqStr=mongoSequence.getCurrentValue().toString();
         if(StringUtils.length(seqStr)>mongoSequence.getLength()){
             throw  new Exception("超过序列的最大值");
         }
         String seq= ZWStringUtils.formatString(seqStr,mongoSequence.getLength(),3);
+
         return nowDate.concat(seq);
     }
 

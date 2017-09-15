@@ -71,10 +71,9 @@ public class ExportFollowupController extends BaseController {
             try {
                 String companyCode = user.getCompanyCode();
                 if (Objects.isNull(user.getCompanyCode())) {
-                    if (StringUtils.isBlank(exportFollowupModel.getCompany())) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司")).body(null);
+                    if (StringUtils.isNotBlank(exportFollowupModel.getCompanyCode())) {
+                        companyCode = exportFollowupModel.getCompanyCode();
                     }
-                    companyCode = exportFollowupModel.getCompany();
                 }
                 List<String> caseNumberList = exportFollowupModel.getList();
                 if (caseNumberList.isEmpty()) {

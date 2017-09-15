@@ -75,11 +75,11 @@ public class PaymentController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.isNull(tokenUser.getCompanyCode())){//超级管理员默认查所有记录
-                if(Objects.nonNull(companyCode)){
+            if (Objects.isNull(tokenUser.getCompanyCode())) {//超级管理员默认查所有记录
+                if (Objects.nonNull(companyCode)) {
                     builder.and(QCasePayApply.casePayApply.companyCode.eq(companyCode));
                 }
-            }else{
+            } else {
                 builder.and(QCasePayApply.casePayApply.companyCode.eq(tokenUser.getCompanyCode()));
             }
             builder.and(QCasePayApply.casePayApply.approveStatus.in(list)); //只查限定状态的记录
@@ -118,11 +118,11 @@ public class PaymentController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.isNull(tokenUser.getCompanyCode())){//超级管理员默认查所有记录
-                if(Objects.nonNull(companyCode)){
+            if (Objects.isNull(tokenUser.getCompanyCode())) {//超级管理员默认查所有记录
+                if (Objects.nonNull(companyCode)) {
                     builder.and(QCasePayApply.casePayApply.companyCode.eq(companyCode));
                 }
-            }else{
+            } else {
                 builder.and(QCasePayApply.casePayApply.companyCode.eq(tokenUser.getCompanyCode()));
             }
             builder.and(QCasePayApply.casePayApply.approveStatus.in(list)); //只查限定状态的记录
@@ -176,7 +176,8 @@ public class PaymentController extends BaseController {
     @PostMapping("/exportCasePayApply")
     @ApiOperation(value = "导出还款记录", notes = "导出还款记录")
     public ResponseEntity<String> exportCasePayApply(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
-                                                     @RequestHeader(value = "X-UserToken") String token) {
+                                                     @RequestHeader(value = "X-UserToken") String token,
+                                                     @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         log.debug("REST request to export casePayApply");
         List<Integer> list = new ArrayList<>();
         list.add(CasePayApply.ApproveStatus.PAY_TO_AUDIT.getValue()); //还款待审核
@@ -185,7 +186,13 @@ public class PaymentController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCasePayApply.casePayApply.companyCode.eq(tokenUser.getCompanyCode())); //只查登陆人公司的记录
+            if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(QCasePayApply.casePayApply.companyCode.eq(companyCode)); //只查登陆人公司的记录
+                }
+            } else { //不是超级管理员
+                builder.and(QCasePayApply.casePayApply.companyCode.eq(tokenUser.getCompanyCode())); //只查登陆人公司的记录
+            }
             builder.and(QCasePayApply.casePayApply.approveStatus.in(list)); //只查限定状态的记录
             builder.and(QCasePayApply.casePayApply.approveStatus.ne(CasePayApply.ApproveStatus.REVOKE.getValue())); //不查撤回的记录
             Iterator<CasePayApply> casePayApplies = casePayApplyRepository.findAll(builder, new Sort(Sort.Direction.DESC, "applyDate")).iterator();

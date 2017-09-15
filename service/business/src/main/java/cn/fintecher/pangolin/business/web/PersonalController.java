@@ -83,12 +83,20 @@ public class PersonalController extends BaseController {
 
     @PostMapping("/personalInfoExport")
     @ApiOperation(value = "客户信息导出", notes = "客户信息导出")
-    public ResponseEntity personalInfoExport(@RequestBody @ApiParam("配置项") PersonalInfoExportModel model) {
+    public ResponseEntity personalInfoExport(@RequestBody @ApiParam("配置项") PersonalInfoExportModel model,
+                                             @RequestHeader(value = "X-UserToken") String token) {
         Integer exportType = model.getExportType();  //导出维度  0-催收员，1-产品类型，2-批次号，3-案件状态
         // 数据过滤
         Map<String, List<Object>> dataFilter = model.getDataFilter();
         Map<String, List<String>> dataInfo = model.getDataInfo(); //数据项
 
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", e.getMessage())).body(null);
+        }
 
         XSSFWorkbook workbook = null;
         File file = null;
@@ -124,6 +132,9 @@ public class PersonalController extends BaseController {
                 BooleanBuilder builder = new BooleanBuilder();
                 builder.and(qCaseInfo.department.code.startsWith(one.getCode()));
                 builder.and(qCaseInfo.currentCollector.realName.eq(collectorName));
+                if (Objects.nonNull(user.getCompanyCode())) {
+                    builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+                }
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 caseInfos = IterableUtils.toList(all);
                 if (caseInfos.isEmpty()) {
@@ -146,6 +157,9 @@ public class PersonalController extends BaseController {
                 }
                 // 查找出某产品类型的所有案件
                 BooleanBuilder builder = new BooleanBuilder();
+                if (Objects.nonNull(user.getCompanyCode())) {
+                    builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+                }
                 builder.and(qCaseInfo.product.productSeries.seriesName.eq(prodName));
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 caseInfos = IterableUtils.toList(all);
@@ -180,6 +194,9 @@ public class PersonalController extends BaseController {
                 }
                 BooleanBuilder builder = new BooleanBuilder();
                 builder.and(qCaseInfo.batchNumber.eq(batchNumber));
+                if (Objects.nonNull(user.getCompanyCode())) {
+                    builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+                }
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 caseInfos = IterableUtils.toList(all);
                 if (caseInfos.isEmpty()) {
@@ -203,6 +220,9 @@ public class PersonalController extends BaseController {
                     sl.add(Integer.valueOf(o.toString()));
                 }
                 BooleanBuilder builder = new BooleanBuilder();
+                if (Objects.nonNull(user.getCompanyCode())) {
+                    builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+                }
                 builder.and(qCaseInfo.collectionStatus.in(sl));
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 caseInfos = IterableUtils.toList(all);
@@ -348,7 +368,7 @@ public class PersonalController extends BaseController {
                 //不是超级管理员
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
-            Page<CaseInfo> page = caseInfoRepository.findAll(predicate, pageable);
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/PersonalController/getPersonalCaseInfo");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
@@ -369,8 +389,7 @@ public class PersonalController extends BaseController {
             User tokenUser = getUserByToken(token);
             OrderSpecifier<Integer> sortOrder = QCaseTurnRecord.caseTurnRecord.id.asc();
             QCaseTurnRecord qCaseTurnRecord = QCaseTurnRecord.caseTurnRecord;
-            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseNumber.eq(caseNumber)
-                    .and(qCaseTurnRecord.companyCode.eq(tokenUser.getCompanyCode())), sortOrder);
+            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseNumber.eq(caseNumber), sortOrder);
             List<CaseTurnRecord> caseTurnRecordList = IterableUtils.toList(caseTurnRecords);
             //过滤掉接收部门为为空的数据
             caseTurnRecordList.forEach(e -> {

@@ -8,18 +8,17 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.apache.commons.collections4.IterableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -39,7 +38,8 @@ public class ProductSeriesController extends BaseController{
 
     @GetMapping("/getProductSeriesName")
     @ApiOperation(value = "获取所有的产品名称",notes = "获取所有的产品名称")
-    public ResponseEntity<Set<String>> getProductSeriesName(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<Set<String>> getProductSeriesName(@RequestHeader(value = "X-UserToken") String token,
+                                                            @RequestParam(value = "companyCode",required = false) @ApiParam("公司Code") String companyCode) {
         log.debug("REST request to getProductSeriesName");
         User user = null;
         try {
@@ -51,7 +51,9 @@ public class ProductSeriesController extends BaseController{
         try {
             QProductSeries qProductSeries = QProductSeries.productSeries;
             BooleanBuilder exp = new BooleanBuilder();
-            exp.and(qProductSeries.companyCode.eq(user.getCompanyCode()));
+            if (Objects.nonNull(user.getCompanyCode())) {
+                exp.and(qProductSeries.companyCode.eq(user.getCompanyCode()));
+            }
             Iterable<ProductSeries> all = productSeriesRepository.findAll(exp);
             List<ProductSeries> productSeries = IterableUtils.toList(all);
             Set<String> set = new HashSet<>();
