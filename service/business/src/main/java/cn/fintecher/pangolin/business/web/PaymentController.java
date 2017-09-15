@@ -173,7 +173,7 @@ public class PaymentController extends BaseController {
     /**
      * @Description 导出还款记录
      */
-    @PostMapping("/exportCasePayApply")
+    @GetMapping("/exportCasePayApply")
     @ApiOperation(value = "导出还款记录", notes = "导出还款记录")
     public ResponseEntity<String> exportCasePayApply(@QuerydslPredicate(root = CasePayApply.class) Predicate predicate,
                                                      @RequestHeader(value = "X-UserToken") String token,
