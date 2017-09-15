@@ -108,7 +108,12 @@ public class RoleController extends BaseController {
         }
         //增加角色的code需要传入
         QRole qRole = QRole.role;
-        boolean exist = roleRepository.exists(qRole.name.eq(role.getName()).and(qRole.companyCode.eq(role.getCompanyCode())));
+        boolean exist = false;
+        if (Objects.isNull(role.getCompanyCode())) {
+            exist = roleRepository.exists(qRole.name.eq(role.getName()));
+        } else {
+            exist = roleRepository.exists(qRole.name.eq(role.getName()).and(qRole.companyCode.eq(role.getCompanyCode())));
+        }
         if (exist) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The role name has been occupied", "该角色名已被占用")).body(null);
         } else {
