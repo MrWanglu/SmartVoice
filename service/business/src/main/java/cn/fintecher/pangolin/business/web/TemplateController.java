@@ -141,7 +141,7 @@ public class TemplateController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该模板已被删除")).body(null);
             }
             User user = getUserByToken(token);
-            template.setCreator(user.getUserName());
+            template.setCreator(user.getRealName());
             Template result = updateTemplate(template);
             if (result == null) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "默认模板不可停用、取消默认、更改类别")).body(null);
