@@ -80,65 +80,65 @@ public class OutsourcePoolController extends BaseController {
     @ApiOperation(value = "委外处理", notes = "委外处理")
     public ResponseEntity<Void> batchDistribution(@RequestBody OutsourceInfo outsourceInfo, @RequestHeader(value = "X-UserToken") String token) {
         try {
-                List<String> caseIds = outsourceInfo.getCaseIds();//待委外的案件id集合
-                List<OutsourceRecord> outsourceRecords = new ArrayList<>();//待保存的案件委外记录集合
-                List<CaseInfo> caseInfos = new ArrayList<>();//待保存的委外案件集合
-                List<OutsourcePool> outsourcePools = new ArrayList<>();//待保存的流转记录集合
-                User user = getUserByToken(token);
-                if (Objects.isNull(user)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            List<String> caseIds = outsourceInfo.getCaseIds();//待委外的案件id集合
+            List<OutsourceRecord> outsourceRecords = new ArrayList<>();//待保存的案件委外记录集合
+            List<CaseInfo> caseInfos = new ArrayList<>();//待保存的委外案件集合
+            List<OutsourcePool> outsourcePools = new ArrayList<>();//待保存的流转记录集合
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
+            LabelValue seqResult = batchSeqService.nextSeq(CASE_SEQ, 5);
+            String ouorBatch = seqResult.getValue();
+            for (String cupoId : caseIds) {
+                CaseInfo caseInfo = caseInfoRepository.findOne(cupoId);
+                if (Objects.isNull(caseInfo)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "案件不存在")).body(null);
                 }
-                LabelValue seqResult = batchSeqService.nextSeq(CASE_SEQ, 5);
-                String ouorBatch = seqResult.getValue();
-                for (String cupoId : caseIds) {
-                    CaseInfo caseInfo = caseInfoRepository.findOne(cupoId);
-                    if (Objects.isNull(caseInfo)){
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "案件不存在")).body(null);
-                    }
-                    if (CaseInfo.CollectionStatus.CASE_OVER.getValue().equals(caseInfo.getCollectionStatus())) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已结案案件不能再委外")).body(null);
-                    }else if (CaseInfo.CollectionStatus.CASE_OUT.getValue().equals(caseInfo.getCollectionStatus())) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已委外案件不能再委外")).body(null);
-                    }else if (CaseInfo.CollectionStatus.REPAID.getValue().equals(caseInfo.getCollectionStatus())) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已还款案件不能再委外")).body(null);
-                    }
-                    //将原案件改为已结案
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OUT.getValue());//已委外
-                    caseInfo.setEndType(CaseInfo.EndType.OUTSIDE_CLOSED.getValue());//委外结案
-                    caseInfo.setOperator(user);
-                    caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
-                    caseInfo.setEndRemark("委外结案");//结案说明
-                    caseInfos.add(caseInfo);
-                    Outsource outsource = outsourceRepository.findOne(outsourceInfo.getOutsId());
-                    //委外记录
-                    OutsourceRecord outsourceRecord = new OutsourceRecord();
-                    outsourceRecord.setCaseInfo(caseInfo);
-                    outsourceRecord.setOutsource(outsource);
-                    outsourceRecord.setCreateTime(ZWDateUtil.getNowDateTime());
-                    outsourceRecord.setCreator(user.getUserName());
-                    outsourceRecord.setFlag(0);//默认正常
-                    outsourceRecord.setOuorBatch(ouorBatch);//批次号
-                    outsourceRecords.add(outsourceRecord);
-                    //保存委外案件
-                    OutsourcePool outsourcePool = new OutsourcePool();
-                    outsourcePool.setOutsource(outsource);
-                    outsourcePool.setCaseInfo(caseInfo);
-                    outsourcePool.setOperator(user.getUserName());
-                    outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());
-                    outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDING.getCode());//委外中
-                    outsourcePool.setOutBatch(ouorBatch);
-                    outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
-                    outsourcePool.setOverduePeriods(caseInfo.getPayStatus());//逾期时段
-                    outsourcePool.setContractAmt(caseInfo.getContractAmount());//合同金额
-                    outsourcePools.add(outsourcePool);
+                if (CaseInfo.CollectionStatus.CASE_OVER.getValue().equals(caseInfo.getCollectionStatus())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已结案案件不能再委外")).body(null);
+                } else if (CaseInfo.CollectionStatus.CASE_OUT.getValue().equals(caseInfo.getCollectionStatus())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已委外案件不能再委外")).body(null);
+                } else if (CaseInfo.CollectionStatus.REPAID.getValue().equals(caseInfo.getCollectionStatus())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "已还款案件不能再委外")).body(null);
                 }
-                //批量保存
-                caseInfoRepository.save(caseInfos);
-                outsourcePoolRepository.save(outsourcePools);
-                outsourceRecordRepository.save(outsourceRecords);
-                return ResponseEntity.ok().body(null);
+                //将原案件改为已结案
+                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OUT.getValue());//已委外
+                caseInfo.setEndType(CaseInfo.EndType.OUTSIDE_CLOSED.getValue());//委外结案
+                caseInfo.setOperator(user);
+                caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+                caseInfo.setEndRemark("委外结案");//结案说明
+                caseInfos.add(caseInfo);
+                Outsource outsource = outsourceRepository.findOne(outsourceInfo.getOutsId());
+                //委外记录
+                OutsourceRecord outsourceRecord = new OutsourceRecord();
+                outsourceRecord.setCaseInfo(caseInfo);
+                outsourceRecord.setOutsource(outsource);
+                outsourceRecord.setCreateTime(ZWDateUtil.getNowDateTime());
+                outsourceRecord.setCreator(user.getUserName());
+                outsourceRecord.setFlag(0);//默认正常
+                outsourceRecord.setOuorBatch(ouorBatch);//批次号
+                outsourceRecords.add(outsourceRecord);
+                //保存委外案件
+                OutsourcePool outsourcePool = new OutsourcePool();
+                outsourcePool.setOutsource(outsource);
+                outsourcePool.setCaseInfo(caseInfo);
+                outsourcePool.setOperator(user.getUserName());
+                outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());
+                outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDING.getCode());//委外中
+                outsourcePool.setOutBatch(ouorBatch);
+                outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
+                outsourcePool.setOverduePeriods(caseInfo.getPayStatus());//逾期时段
+                outsourcePool.setContractAmt(caseInfo.getOverdueAmount());//案件金额
+                outsourcePools.add(outsourcePool);
+            }
+            //批量保存
+            caseInfoRepository.save(caseInfos);
+            outsourcePoolRepository.save(outsourcePools);
+            outsourceRecordRepository.save(outsourceRecords);
+            return ResponseEntity.ok().body(null);
         } catch (Exception e) {
-            log.error(e.getMessage(),e);
+            log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("委外失败", ENTITY_NAME, e.getMessage())).body(null);
         }
 
@@ -170,7 +170,7 @@ public class OutsourcePoolController extends BaseController {
                                                      @RequestParam(required = false) String companyCode,
                                                      @RequestHeader(value = "X-UserToken") String token,
                                                      @ApiIgnore Pageable pageable) {
-        try{
+        try {
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
@@ -178,9 +178,10 @@ public class OutsourcePoolController extends BaseController {
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.nonNull(companyCode)) {
-                    builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
                 }
+                builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
             }
@@ -191,7 +192,7 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qOutsourcePool.caseInfo.overdueDays.lt(overDayMax));
             }
             if (Objects.nonNull(outsName)) {
-                builder.and(qOutsourcePool.outsource.outsName.like("%"+outsName+"%"));
+                builder.and(qOutsourcePool.outsource.outsName.like("%" + outsName + "%"));
             }
             if (Objects.nonNull(oupoStatus)) {
                 builder.and(qOutsourcePool.caseInfo.collectionStatus.eq(oupoStatus));
@@ -217,7 +218,7 @@ public class OutsourcePoolController extends BaseController {
             Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
-            log.error(e.getMessage(),e);
+            log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", ENTITY_NAME1, e.getMessage())).body(null);
         }
     }
@@ -225,16 +226,16 @@ public class OutsourcePoolController extends BaseController {
     @PostMapping("/closeOutsourcePool")
     @ApiOperation(value = "委外结案", notes = "委外结案")
     public ResponseEntity<List<OutsourcePool>> closeOutsourcePool(@RequestBody OutCaseIdList outCaseIdList, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
-        try{
+        try {
             List<String> outCaseIds = outCaseIdList.getOutCaseIds();
             List<OutsourcePool> outsourcePools = new ArrayList<>();
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
-            for (String outId:outCaseIds){
+            for (String outId : outCaseIds) {
                 OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
-                if (OutsourcePool.OutStatus.OUTSIDE_OVER.getCode().equals(outsourcePool.getOutStatus())){
+                if (OutsourcePool.OutStatus.OUTSIDE_OVER.getCode().equals(outsourcePool.getOutStatus())) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("已委外结案案件不能再结案", "", "已委外结案案件不能再结案")).body(null);
                 }
                 outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode());//状态改为委外结束
@@ -244,8 +245,8 @@ public class OutsourcePoolController extends BaseController {
             }
             outsourcePools = outsourcePoolRepository.save(outsourcePools);
             return ResponseEntity.ok().body(outsourcePools);
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("委外结案失败", ENTITY_NAME1, e.getMessage())).body(null);
         }
     }
@@ -253,14 +254,14 @@ public class OutsourcePoolController extends BaseController {
     @PostMapping("/backOutsourcePool")
     @ApiOperation(value = "退案", notes = "退案")
     public ResponseEntity<List<OutsourcePool>> backOutsourcePool(@RequestBody OutCaseIdList outCaseIdList, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
-        try{
+        try {
             List<String> outCaseIds = outCaseIdList.getOutCaseIds();
             List<OutsourcePool> outsourcePools = new ArrayList<>();
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
-            for (String outId:outCaseIds){
+            for (String outId : outCaseIds) {
                 OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
                 outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());//状态改为待委外
                 outsourcePool.setOperator(user.getUserName());//委外退案人
@@ -269,8 +270,8 @@ public class OutsourcePoolController extends BaseController {
             }
             outsourcePools = outsourcePoolRepository.save(outsourcePools);
             return ResponseEntity.ok().body(outsourcePools);
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("委外退案失败", ENTITY_NAME1, e.getMessage())).body(null);
         }
     }
@@ -293,19 +294,20 @@ public class OutsourcePoolController extends BaseController {
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.nonNull(ourBatchList.getCompanyCode())) {
-                    builder.and(qOutsourcePool.caseInfo.companyCode.eq(ourBatchList.getCompanyCode()));
+                if (Objects.isNull(ourBatchList.getCompanyCode())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
                 }
+                builder.and(qOutsourcePool.caseInfo.companyCode.eq(ourBatchList.getCompanyCode()));
             } else {
                 builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
             }
             List<String> list = ourBatchList.getOurBatchList();
-            if (!list.isEmpty()){
+            if (!list.isEmpty()) {
                 builder.and(qOutsourcePool.outBatch.in(list));
             }
-            List<OutsourcePool> outsourcePools = (List<OutsourcePool>)outsourcePoolRepository.findAll(builder);
+            List<OutsourcePool> outsourcePools = (List<OutsourcePool>) outsourcePoolRepository.findAll(builder);
             List<AccOutsourcePoolModel> accOutsourcePoolModels = new ArrayList<>();
-            for (OutsourcePool outsourcePool:outsourcePools){
+            for (OutsourcePool outsourcePool : outsourcePools) {
                 AccOutsourcePoolModel accOutsourcePoolModel = new AccOutsourcePoolModel();
                 CaseInfo caseInfo = outsourcePool.getCaseInfo();
                 accOutsourcePoolModel.setCaseCode(caseInfo.getCaseNumber());
@@ -314,28 +316,28 @@ public class OutsourcePoolController extends BaseController {
                         accOutsourcePoolModel.setCommissionRate(caseInfo.getCommissionRate().toString());
                     }
                     if (Objects.nonNull(caseInfo.getContractAmount())) {
-                        accOutsourcePoolModel.setContractAmount(caseInfo.getContractAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
+                        accOutsourcePoolModel.setContractAmount(caseInfo.getContractAmount().setScale(2, BigDecimal.ROUND_HALF_UP).toString());
                     }
                     if (Objects.nonNull(caseInfo.getPerPayAmount())) {
                         accOutsourcePoolModel.setCurrentAmount(caseInfo.getPerPayAmount().toString());//每期还款金额
                     }
-                    accOutsourcePoolModel.setCurrentPayDate(ZWDateUtil.fomratterDate(caseInfo.getPerDueDate(),"yyyy-MM-dd"));//每期还款日
+                    accOutsourcePoolModel.setCurrentPayDate(ZWDateUtil.fomratterDate(caseInfo.getPerDueDate(), "yyyy-MM-dd"));//每期还款日
                     if (Objects.nonNull(caseInfo.getPersonalInfo())) {
                         accOutsourcePoolModel.setCustName(caseInfo.getPersonalInfo().getName());
                     }
                     Set set = caseInfo.getPersonalInfo().getPersonalJobs();
                     PersonalJob personalJob = null;
-                    if (!set.isEmpty()){
-                        personalJob = (PersonalJob)set.iterator().next();
+                    if (!set.isEmpty()) {
+                        personalJob = (PersonalJob) set.iterator().next();
                     }
 
-                    if (Objects.nonNull(personalJob)){
+                    if (Objects.nonNull(personalJob)) {
                         accOutsourcePoolModel.setEmployerAddress(personalJob.getAddress());
                         accOutsourcePoolModel.setEmployerName(personalJob.getCompanyName());
                         accOutsourcePoolModel.setEmployerPhone(personalJob.getPhone());
                     }
                     if (Objects.nonNull(caseInfo.getHasPayAmount())) {
-                        accOutsourcePoolModel.setHasPayAmount(caseInfo.getHasPayAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
+                        accOutsourcePoolModel.setHasPayAmount(caseInfo.getHasPayAmount().setScale(2, BigDecimal.ROUND_HALF_UP).toString());
                     }
                     if (Objects.nonNull(caseInfo.getHasPayPeriods())) {
                         accOutsourcePoolModel.setHasPayPeriods(caseInfo.getHasPayPeriods().toString());
@@ -346,10 +348,10 @@ public class OutsourcePoolController extends BaseController {
                         accOutsourcePoolModel.setLastPayAmount(caseInfo.getLatelyPayAmount().toString());//最近还款金额
                     }
                     if (Objects.nonNull(caseInfo.getLatelyPayDate())) {
-                        accOutsourcePoolModel.setLastPayDate(ZWDateUtil.fomratterDate(caseInfo.getLatelyPayDate(),"yyyy-MM-dd"));//最近还款日期
+                        accOutsourcePoolModel.setLastPayDate(ZWDateUtil.fomratterDate(caseInfo.getLatelyPayDate(), "yyyy-MM-dd"));//最近还款日期
                     }
                     if (Objects.nonNull(caseInfo.getOverdueAmount())) {
-                        accOutsourcePoolModel.setOverDueAmount(caseInfo.getOverdueAmount().setScale(2,BigDecimal.ROUND_HALF_UP).toString());
+                        accOutsourcePoolModel.setOverDueAmount(caseInfo.getOverdueAmount().setScale(2, BigDecimal.ROUND_HALF_UP).toString());
                     }
                     if (Objects.nonNull(caseInfo.getOverdueCapital())) {
                         accOutsourcePoolModel.setOverDueCapital(caseInfo.getOverdueCapital().toString());//逾期本金
@@ -390,8 +392,8 @@ public class OutsourcePoolController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("没有委外数据", "", "没有委外数据")).body(null);
             }
 
-            String[] titleList = {"案件编号", "客户姓名", "身份证号", "手机号码", "产品系列", "产品名称", "合同金额（元）", "逾期总金额（元）", "逾期本金（元）", "逾期利息（元）", "逾期罚息（元）", "逾期滞纳金（元）", "还款期数","逾期期数","逾期天数","已还款金额（元）","已还款期数","最近还款日期","最近还款金额（元）","家庭住址","工作单位名称","工作单位地址","工作单位电话","佣金比例（%）","每期还款日","每期还款金额（元）"};
-            String[] proNames = {"caseCode", "custName", "idCardNumber", "phoneNumber", "productSeries", "productName", "contractAmount", "overDueAmount", "overDueCapital", "overDueInterest", "overDueDisincentive", "overDueFine", "payPeriods","overDuePeriods","overDueDays","hasPayAmount","hasPayPeriods","lastPayDate","lastPayAmount","homeAddress","employerName","employerAddress","employerPhone","commissionRate","currentPayDate","currentAmount"};
+            String[] titleList = {"案件编号", "客户姓名", "身份证号", "手机号码", "产品系列", "产品名称", "合同金额（元）", "逾期总金额（元）", "逾期本金（元）", "逾期利息（元）", "逾期罚息（元）", "逾期滞纳金（元）", "还款期数", "逾期期数", "逾期天数", "已还款金额（元）", "已还款期数", "最近还款日期", "最近还款金额（元）", "家庭住址", "工作单位名称", "工作单位地址", "工作单位电话", "佣金比例（%）", "每期还款日", "每期还款金额（元）"};
+            String[] proNames = {"caseCode", "custName", "idCardNumber", "phoneNumber", "productSeries", "productName", "contractAmount", "overDueAmount", "overDueCapital", "overDueInterest", "overDueDisincentive", "overDueFine", "payPeriods", "overDuePeriods", "overDueDays", "hasPayAmount", "hasPayPeriods", "lastPayDate", "lastPayAmount", "homeAddress", "employerName", "employerAddress", "employerPhone", "commissionRate", "currentPayDate", "currentAmount"};
             workbook = new HSSFWorkbook();
             HSSFSheet sheet = workbook.createSheet("sheet1");
             ExcelUtil.createExcel(workbook, sheet, accOutsourcePoolModels, titleList, proNames, 0, 0);
@@ -409,7 +411,7 @@ public class OutsourcePoolController extends BaseController {
             if (url == null) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("上传服务器失败", "", "上传服务器失败")).body(null);
             } else {
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","OutsourcePoolController")).body(body);
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "OutsourcePoolController")).body(body);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -473,9 +475,10 @@ public class OutsourcePoolController extends BaseController {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.nonNull(companyCode)) {
-                    builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "请选择公司")).body(null);
                 }
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
@@ -493,7 +496,7 @@ public class OutsourcePoolController extends BaseController {
     @GetMapping("/loadTemplate")
     @ResponseBody
     @ApiOperation(value = "下载模板", notes = "下载模板")
-    public ResponseEntity<String> loadTemplate(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+    public ResponseEntity<String> loadTemplate(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode, @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         try {
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
@@ -503,14 +506,14 @@ public class OutsourcePoolController extends BaseController {
                 if (Objects.isNull(companyCode)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userBackcashPlan", "请选择公司")).body(null);
                 }
-            }else {
+            } else {
                 companyCode = user.getCompanyCode();
             }
             QSysParam qSysParam = QSysParam.sysParam;
             SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
                     .and(qSysParam.code.eq(Constants.SMS_OUTCASE_ACCOUNT_URL_CODE))
                     .and(qSysParam.type.eq(Constants.SMS_OUTCASE_ACCOUNT_URL_TYPE)));
-            if (Objects.isNull(sysParam)){
+            if (Objects.isNull(sysParam)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("该模板不存在", "", "该模板不存在")).body(null);
             }
             return ResponseEntity.ok().body(sysParam.getValue());
@@ -537,9 +540,10 @@ public class OutsourcePoolController extends BaseController {
             }
             AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.nonNull(companyCode)) {
-                    accFinanceEntry.setCompanyCode(companyCode);
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
                 }
+                accFinanceEntry.setCompanyCode(companyCode);
             } else {
                 accFinanceEntry.setCompanyCode(user.getCompanyCode());//限制公司code码
             }
@@ -590,7 +594,7 @@ public class OutsourcePoolController extends BaseController {
                 List<CaseInfo> caseInfos = caseInfoRepository.findByCaseNumber(caseNum);
                 if (Objects.nonNull(caseInfos) && !caseInfos.isEmpty()) {
                     //对委外客户池已还款金额做累加
-                    for (CaseInfo caseInfo:caseInfos){
+                    for (CaseInfo caseInfo : caseInfos) {
                         if (Objects.isNull(caseInfo.getHasPayAmount())) {
                             caseInfo.setHasPayAmount(new BigDecimal(0));
                         }
@@ -598,7 +602,7 @@ public class OutsourcePoolController extends BaseController {
                         caseInfoList.add(caseInfo);
                     }
 
-                }else {
+                } else {
                     unableMatchList.add(financeEntryCase);   //未有匹配委外案件
                 }
                 //临时表中的数据状态为已确认。
@@ -637,9 +641,10 @@ public class OutsourcePoolController extends BaseController {
             }
             AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.nonNull(companyCode)) {
-                    accFinanceEntry.setCompanyCode(companyCode);
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
                 }
+                accFinanceEntry.setCompanyCode(companyCode);
             } else {
                 accFinanceEntry.setCompanyCode(user.getCompanyCode()); //限制公司code码
             }
@@ -656,16 +661,64 @@ public class OutsourcePoolController extends BaseController {
         }
     }
 
+    @GetMapping("/findConfirmFinanceData")
+    @ResponseBody
+    @ApiOperation(value = "查询已确认的数据", notes = "查询已确认的数据")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<AccFinanceEntry>> findConfirmFinanceData(@ApiIgnore Pageable pageable,
+                                                                        @RequestParam(required = false) @ApiParam(value = "委外方") String outsName,
+                                                                        @RequestParam(required = false) @ApiParam(value = "批次号") String outbatch,
+                                                                        @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                        @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
+            AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.nonNull(companyCode)) {
+                    accFinanceEntry.setCompanyCode(companyCode);
+                }
+            } else {
+                accFinanceEntry.setCompanyCode(user.getCompanyCode()); //限制公司code码
+            }
+            accFinanceEntry.setFienStatus(Status.Disable.getValue());
+            accFinanceEntry.setFienCount(null);
+            accFinanceEntry.setFienPayback(null);
+            if (Objects.nonNull(outsName)) {
+                accFinanceEntry.setFienFgname(outsName);
+            }
+            if (Objects.nonNull(outbatch)) {
+                accFinanceEntry.setFienBatchnum(outbatch);
+            }
+            ExampleMatcher matcher = ExampleMatcher.matching();
+            org.springframework.data.domain.Example<AccFinanceEntry> example = org.springframework.data.domain.Example.of(accFinanceEntry, matcher);
+            Page<AccFinanceEntry> page = accFinanceEntryRepository.findAll(example, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "", e.getMessage())).body(null);
+        }
+    }
+
 
     @PostMapping("/deleteFinanceData")
     @ResponseBody
     @ApiOperation(value = "财务数据删除操作", notes = "财务数据删除操作")
     public ResponseEntity deleteFinanceData(@RequestBody FienCasenums fienCasenums) {
         try {
-            if(fienCasenums.getIdList().isEmpty()){
+            if (fienCasenums.getIdList().isEmpty()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("没有可删除的数据", "", "没有可删除的数据")).body(null);
             }
-            for(String id : fienCasenums.getIdList()){
+            for (String id : fienCasenums.getIdList()) {
                 accFinanceEntryRepository.delete(id);
             }
             return ResponseEntity.ok().body(null);
@@ -689,28 +742,29 @@ public class OutsourcePoolController extends BaseController {
         FileOutputStream fileOutputStream = null;
 
         try {
-            List<OutsourcePool> accOutsourcePoolList;
+            List<AccFinanceEntry> accOutsourcePoolList;
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
             try {
-                QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+                QAccFinanceEntry qAccFinanceEntry = QAccFinanceEntry.accFinanceEntry;
                 BooleanBuilder builder = new BooleanBuilder();
                 if (Objects.isNull(user.getCompanyCode())) {
-                    if (Objects.nonNull(companyCode)) {
-                        builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
+                    if (Objects.isNull(companyCode)) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutsourcePool", "请选择公司")).body(null);
                     }
+                    builder.and(qAccFinanceEntry.companyCode.eq(companyCode));
                 } else {
-                    builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
+                    builder.and(qAccFinanceEntry.companyCode.eq(user.getCompanyCode())); //限制公司code码
                 }
                 if (Objects.nonNull(oupoOutbatch)) {
-                    builder.and(qOutsourcePool.outBatch.gt(oupoOutbatch));
+                    builder.and(qAccFinanceEntry.fienBatchnum.gt(oupoOutbatch));
                 }
                 if (Objects.nonNull(outsName)) {
-                    builder.and(qOutsourcePool.outsource.outsName.like("%"+outsName+"%"));
+                    builder.and(qAccFinanceEntry.fienFgname.like("%" + outsName + "%"));
                 }
-                accOutsourcePoolList = (List<OutsourcePool>)outsourcePoolRepository.findAll(builder);
+                accOutsourcePoolList = (List<AccFinanceEntry>) accFinanceEntryRepository.findAll(builder);
             } catch (Exception e) {
                 e.getStackTrace();
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询委外案件失败", "", e.getMessage())).body(null);
@@ -722,22 +776,22 @@ public class OutsourcePoolController extends BaseController {
             // 将需要的数据获取到按照导出的模板存放在List中
             List<AccOutsideFinExportModel> accOutsideList = new ArrayList<>();
             for (int i = 0; i < accOutsourcePoolList.size(); i++) {
-                OutsourcePool aop = accOutsourcePoolList.get(i);
+                AccFinanceEntry aop = accOutsourcePoolList.get(i);
                 AccOutsideFinExportModel expm = new AccOutsideFinExportModel();
-                expm.setOupoOutbatch(checkValueIsNull(aop.getOutBatch())); // 委外批次号
-                expm.setOupoCasenum(checkValueIsNull(aop.getCaseInfo().getCaseNumber())); // 案件编号
-                expm.setCustName(checkValueIsNull(aop.getCaseInfo().getPersonalInfo().getName()));  // 客户名称
-                expm.setOupoIdcard(checkValueIsNull(aop.getCaseInfo().getPersonalInfo().getIdCard()));  // 身份证号
-                expm.setOupoStatus(checkOupoStatus(aop.getOutStatus())); // 委外状态
-                expm.setOupoAmt(checkValueIsNull(aop.getCaseInfo().getOverdueAmount()));  // 案件金额
-                expm.setOupoPaynum(checkValueIsNull(aop.getCaseInfo().getHasPayAmount())); // 已还款金额
-                expm.setOutsName(aop.getOutsource().getOutsName());  // 委外方名称
+                expm.setOupoOutbatch(checkValueIsNull(aop.getFienBatchnum())); // 委外批次号
+                expm.setOupoCasenum(checkValueIsNull(aop.getFienCasenum())); // 案件编号
+                expm.setCustName(checkValueIsNull(aop.getFienCustname()));  // 客户名称
+                expm.setOupoIdcard(checkValueIsNull(aop.getFienIdcard()));  // 身份证号
+//                expm.setOupoStatus(checkOupoStatus(aop.getOutStatus())); // 委外状态
+                expm.setOupoAmt(checkValueIsNull(aop.getFienCount()));  // 案件金额
+                expm.setOupoPaynum(checkValueIsNull(aop.getFienPayback())); // 已还款金额
+                expm.setOutsName(aop.getFienFgname());  // 委外方名称
                 accOutsideList.add(expm);
             }
 
             // 将存放的数据写入Excel
-            String[] titleList = {"案件编号", "客户姓名", "客户身份证号", "委外状态", "委外方", "案件金额", "已还款金额"};
-            String[] proNames = {"oupoCasenum", "custName", "oupoIdcard", "oupoStatus", "outsName", "oupoAmt", "oupoPaynum"};
+            String[] titleList = {"案件编号", "客户姓名", "客户身份证号", "委外方", "案件金额", "已还款金额"};
+            String[] proNames = {"oupoCasenum", "custName", "oupoIdcard", "outsName", "oupoAmt", "oupoPaynum"};
             workbook = new HSSFWorkbook();
             HSSFSheet sheet = workbook.createSheet("sheet1");
             out = new ByteArrayOutputStream();
@@ -852,9 +906,10 @@ public class OutsourcePoolController extends BaseController {
             QOutsourceRecord qOutsourceRecord = QOutsourceRecord.outsourceRecord;
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.nonNull(companyCode)) {
-                    builder.and(qOutsourceRecord.caseInfo.companyCode.eq(companyCode));
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourceRecord", "OutsourceRecord", "请选择公司")).body(null);
                 }
+                builder.and(qOutsourceRecord.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(qOutsourceRecord.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
             }
