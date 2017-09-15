@@ -129,7 +129,7 @@ public class OutsourcePoolController extends BaseController {
                     outsourcePool.setOutBatch(ouorBatch);
                     outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
                     outsourcePool.setOverduePeriods(caseInfo.getPayStatus());//逾期时段
-                    outsourcePool.setCupoAmt(caseInfo.getOverdueAmount());//案件金额
+                    outsourcePool.setContractAmt(caseInfo.getOverdueAmount());//案件金额
                     outsourcePools.add(outsourcePool);
                 }
                 //批量保存
