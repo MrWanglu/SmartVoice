@@ -1,5 +1,7 @@
 package cn.fintecher.pangolin.report.mapper;
 
+import cn.fintecher.pangolin.report.model.ExcportResultModel;
+import cn.fintecher.pangolin.report.model.ExportFollowRecordParams;
 import cn.fintecher.pangolin.report.model.ExportFollowupParams;
 import org.apache.ibatis.annotations.Param;
 
@@ -18,5 +20,7 @@ public interface QueryFollowupMapper {
      * @return
      */
     List<ExportFollowupParams> getExportFollowModel(@Param("list")List list, @Param("company")String company);
+
+    List<ExcportResultModel> findFollowupRecord(ExportFollowRecordParams exportFollowupParams);
 
 }

@@ -1,11 +1,14 @@
 package cn.fintecher.pangolin.report.web;
 
-import cn.fintecher.pangolin.report.service.FollowRecordExportService;
-import cn.fintecher.pangolin.report.util.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.report.mapper.QueryFollowupMapper;
+import cn.fintecher.pangolin.report.model.ExcportResultModel;
+import cn.fintecher.pangolin.report.model.ExportFollowRecordParams;
 import cn.fintecher.pangolin.report.model.ExportFollowupModel;
 import cn.fintecher.pangolin.report.model.ExportFollowupParams;
 import cn.fintecher.pangolin.report.service.ExportFollowupService;
+import cn.fintecher.pangolin.report.service.FollowRecordExportService;
+import cn.fintecher.pangolin.report.util.ExcelExportHelper;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -50,6 +53,8 @@ public class ExportFollowupController extends BaseController {
     private ExportFollowupService exportFollowupService;
     @Inject
     private FollowRecordExportService followRecordExportService;
+    @Inject
+    QueryFollowupMapper queryFollowupMapper;
 
     @PostMapping (value = "/getExcelData")
     @ApiOperation(value = "导出跟进记录",notes = "导出跟进记录")
@@ -144,5 +149,13 @@ public class ExportFollowupController extends BaseController {
         }
     }
 
+    @PostMapping (value = "/test")
+    public ResponseEntity getExcelData(@RequestBody ExportFollowRecordParams exportFollowupParams) {
+        long l = System.currentTimeMillis();
+        List<ExcportResultModel> test = queryFollowupMapper.findFollowupRecord(exportFollowupParams);
+        long l1 = System.currentTimeMillis();
+        log.info("耗时-----------------------------------"+(l1-l));
+        return ResponseEntity.ok(test);
+    }
 
 }

@@ -30,4 +30,42 @@
             </foreach>
     </select>
 
+    <select id="findFollowupRecord" parameterType="cn.fintecher.pangolin.report.model.ExportFollowRecordParams" resultMap="caseInfoResultMap">
+        SELECT * FROM case_info a
+        LEFT JOIN case_info b ON a.case_number = b.case_number
+        LEFT JOIN personal c ON b.personal_id = c.id
+        LEFT JOIN product d ON b.product_id = d.id
+        LEFT JOIN principal e ON b.principal_id = e.id
+        LEFT JOIN area_code f ON a.area_id = f.id
+        LEFT JOIN case_followup_record h ON a.case_number = h.case_number
+        WHERE 1=1
+        <if test="personalName != null">
+            AND c.name = #{personalName}
+        </if>
+        <if test="provinceId != null">
+            AND f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId})
+        </if>
+    </select>
+
+    <resultMap id="caseInfoResultMap" type="cn.fintecher.pangolin.report.model.ExcportResultModel">
+        <association property="personalInfo" column="personal_id" select="selectPersonal"></association>
+        <association property="areaCode" column="area_id" select="selectArea"></association>
+        <collection property="caseFollowupRecords" column="case_number"
+                    ofType="cn.fintecher.pangolin.entity.CaseFollowupRecord" select="selectCaseFollowupRecord">
+
+        </collection>
+    </resultMap>
+
+    <select id="selectPersonal" parameterType="string" resultType="cn.fintecher.pangolin.entity.Personal">
+        SELECT * FROM personal WHERE id = #{personal_id}
+    </select>
+
+    <select id="selectArea" resultType="cn.fintecher.pangolin.entity.AreaCode">
+        SELECT * FROM area_code WHERE id = #{area_id}
+    </select>
+
+    <select id="selectCaseFollowupRecord" resultType="cn.fintecher.pangolin.entity.CaseFollowupRecord">
+        SELECT * FROM case_followup_record WHERE case_number = #{case_number} AND collection_way != 0
+    </select>
+
 </mapper>
