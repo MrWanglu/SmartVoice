@@ -37,27 +37,91 @@
         LEFT JOIN product d ON b.product_id = d.id
         LEFT JOIN principal e ON b.principal_id = e.id
         LEFT JOIN area_code f ON a.area_id = f.id
-        LEFT JOIN case_followup_record h ON a.case_number = h.case_number
+        LEFT JOIN department i ON a.depart_id = i.id
         WHERE 1=1
         <if test="personalName != null">
             AND c.name = #{personalName}
         </if>
+        <if test="phone != null">
+            AND c.mobile_no = #{phone}
+        </if>
         <if test="provinceId != null">
             AND f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId})
+        </if>
+        <if test="cityId != null">
+            AND f.id = #{cityId}
+        </if>
+        <if test="batchNumber !=null">
+            AND a.batch_number = #{batchNumber}
+        </if>
+        <if test="payStatus != null">
+            AND a.pay_status = #{payStatus}
+        </if>
+        <if test="overDayStart != null">
+            AND a.overdue_days &gt; #{overDayStart}
+        </if>
+        <if test="overDayEnd !=null">
+            AND a.overdue_days &lt; #{overDayEnd}
+        </if>
+        <if test="overDueAmountStart != null">
+            AND a.overdue_amount &gt; #{overDueAmountStart}
+        </if>
+        <if test="overDueAmountEnd != null">
+            AND a.overdue_amount &lt; #{overDueAmountEnd}
+        </if>
+        <if test="handNumberStart != null">
+            AND a.hand_number &gt; #{handNumberStart}
+        </if>
+        <if test="handNumberEnd != null">
+            AND a.hand_number &lt; #{handNumberEnd}
+        </if>
+        <if test="commissionRateStart != null">
+            AND  a.commission_rate &gt; #{commissionRateStart}
+        </if>
+        <if test="commissionRateEnd != null">
+            AND  a.commission_rate &lt; #{commissionRateEnd}
+        </if>
+        <if test="collectionStatus != null">
+            AND a.collection_status = #{collectionStatus}
+        </if>
+        <if test="principalName != null">
+            AND e.name = #{principalName}
+        </if>
+        <if test="assistFlag != null">
+            AND a.assist_flag = #{assistFlag}
+        </if>
+        <if test="followupBack != null">
+            AND a.followup_back = #{followupBack}
+        </if>
+        <if test="assistWay != null">
+            AND a.assist_way = #{assistWay}
+        </if>
+        <if test="collectionType != null">
+            AND a.collection_type = #{collectionType}
+        </if>
+        <if test="departmentCode != null">
+            AND i.code LIKE concat(#{departmentCode},'%')
         </if>
     </select>
 
     <resultMap id="caseInfoResultMap" type="cn.fintecher.pangolin.report.model.ExcportResultModel">
         <association property="personalInfo" column="personal_id" select="selectPersonal"></association>
         <association property="areaCode" column="area_id" select="selectArea"></association>
-        <collection property="caseFollowupRecords" column="case_number"
-                    ofType="cn.fintecher.pangolin.entity.CaseFollowupRecord" select="selectCaseFollowupRecord">
-
-        </collection>
+        <collection property="caseFollowupRecords" column="case_number" ofType="cn.fintecher.pangolin.entity.CaseFollowupRecord" select="selectCaseFollowupRecord"></collection>
     </resultMap>
 
-    <select id="selectPersonal" parameterType="string" resultType="cn.fintecher.pangolin.entity.Personal">
+    <select id="selectPersonal" parameterType="string" resultMap="personalResultMap">
         SELECT * FROM personal WHERE id = #{personal_id}
+    </select>
+
+    <resultMap id="personalResultMap" type="cn.fintecher.pangolin.entity.Personal">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <collection property="personalBankInfos" column="id" ofType="cn.fintecher.pangolin.entity.PersonalBank" select="selectPersonalBank"></collection>
+    </resultMap>
+
+    <select id="selectPersonalBank" resultType="cn.fintecher.pangolin.entity.PersonalBank">
+        SELECT * FROM personal_bank WHERE personal_id = #{id}
     </select>
 
     <select id="selectArea" resultType="cn.fintecher.pangolin.entity.AreaCode">
@@ -65,7 +129,7 @@
     </select>
 
     <select id="selectCaseFollowupRecord" resultType="cn.fintecher.pangolin.entity.CaseFollowupRecord">
-        SELECT * FROM case_followup_record WHERE case_number = #{case_number} AND collection_way != 0
+        SELECT collection_way AS collectionWay FROM case_followup_record WHERE case_number = #{case_number} AND collection_way != 0
     </select>
 
 </mapper>
