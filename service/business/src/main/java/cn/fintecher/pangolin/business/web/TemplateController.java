@@ -113,7 +113,7 @@ public class TemplateController extends BaseController {
             template.setCreator(user.getRealName());
             List<Template> templateList = templateRepository.findByTemplateNameOrTemplateCode(template.getTemplateName().trim(), template.getTemplateCode().trim());
             if (ZWStringUtils.isNotEmpty(templateList)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该模板名称和编号已被占用")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该模板名称或编号已被占用")).body(null);
             }
             Template t = addTemplate(template);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("新增模块信息成功成功","template")).body(t);
@@ -188,17 +188,27 @@ public class TemplateController extends BaseController {
     }
 
     @GetMapping("/getTemplateByNameOrCode")
-    @ApiOperation(value = "判断新增模板名称、编号是否可用", notes = "判断新增模板名称、编号是否可用")
-    public ResponseEntity getTemplateByNameOrCode(@RequestParam(required = false) @ApiParam("模板名称") String name,
-                                                  @RequestParam(required = false) @ApiParam("模板编号") String code) {
+    @ApiOperation(value = "判断修改模板名称、编号是否可用", notes = "判断修改模板名称、编号是否可用")
+    public ResponseEntity getTemplateByNameOrCode(@RequestParam(required = false) @ApiParam("模板id") String id,
+                                                  @RequestParam(required = false) @ApiParam("模板名称") String templateName,
+                                                  @RequestParam(required = false) @ApiParam("模板编号") String templateCode) {
         try {
-            List<Template> templateNames = templateRepository.findByTemplateNameOrTemplateCode(name + "", "");
-            if (!templateNames.isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该名称已存在")).body(null);
+            List<Template> templateNames = templateRepository.findByTemplateNameOrTemplateCode(templateName + "", "");
+            if (!templateNames.isEmpty()){
+                for(Template template :templateNames){
+                    if(!Objects.equals(template.getId(),id)){
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该名称已存在")).body(null);
+                    }
+                }
             }
-            List<Template> templateCodes = templateRepository.findByTemplateNameOrTemplateCode("", code + "");
-            if (!templateCodes.isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该编号已存在")).body(null);
+
+            List<Template> templateCodes = templateRepository.findByTemplateNameOrTemplateCode("", templateCode + "");
+            if (!templateCodes.isEmpty()){
+                for(Template template :templateCodes){
+                    if(!Objects.equals(template.getId(),id)){
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该编号已存在")).body(null);
+                    }
+                }
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "")).body(null);
         } catch (Exception e) {
