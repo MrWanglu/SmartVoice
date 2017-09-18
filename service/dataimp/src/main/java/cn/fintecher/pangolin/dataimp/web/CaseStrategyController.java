@@ -77,23 +77,23 @@ public class CaseStrategyController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity getCaseStrategy(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                           @QuerydslPredicate(root = CaseStrategy.class) Predicate predicate, @ApiIgnore Pageable pageable,
+                                          @QuerydslPredicate(root = CaseStrategy.class) Predicate predicate, @ApiIgnore Pageable pageable,
                                           @RequestHeader(value = "X-UserToken") String token) {
         try {
-            ResponseEntity<User> userResponseEntity=null;
+            ResponseEntity<User> userResponseEntity = null;
             try {
                 userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-            }catch (Exception e){
-                logger.error(e.getMessage(),e);
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user",ENTITY_NAME)).body(null);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
             }
-            User user=userResponseEntity.getBody();
+            User user = userResponseEntity.getBody();
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.isNull(user.getCompanyCode())){
-                if(Objects.nonNull(companyCode)){
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.nonNull(companyCode)) {
                     builder.and(QCaseStrategy.caseStrategy.companyCode.eq(companyCode));
                 }
-            }else {
+            } else {
                 builder.and(QCaseStrategy.caseStrategy.companyCode.eq(user.getCompanyCode()));
             }
             Page<CaseStrategy> page = caseStrategyRepository.findAll(builder, pageable);
@@ -108,21 +108,21 @@ public class CaseStrategyController {
     @ResponseBody
     @PostMapping("/queryCaseInfoByCondition")
     @ApiOperation(value = "预览案件生成规则", notes = "预览案件生成规则")
-    public ResponseEntity queryCaseInfoByCondition(@RequestBody CaseStrategy caseStrategy,@RequestHeader(value = "X-UserToken") String token) throws IOException, TemplateException {
+    public ResponseEntity queryCaseInfoByCondition(@RequestBody CaseStrategy caseStrategy, @RequestHeader(value = "X-UserToken") String token) throws IOException, TemplateException {
         if (Objects.isNull(caseStrategy)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no message", "没有分配策略信息")).body(null);
         }
         if (ZWStringUtils.isEmpty(caseStrategy.getStrategyJson())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no message", "没有分配策略信息")).body(null);
         }
-        ResponseEntity<User> userResponseEntity=null;
+        ResponseEntity<User> userResponseEntity = null;
         try {
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-        }catch (Exception e){
-            logger.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user",ENTITY_NAME)).body(null);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
-        User user=userResponseEntity.getBody();
+        User user = userResponseEntity.getBody();
         String companyCode = user.getCompanyCode();
         try {
             StringBuilder sb = new StringBuilder();
@@ -133,7 +133,7 @@ public class CaseStrategyController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "解析分配策略失败")).body(null);
         }
         caseStrategy.setId(UUID.randomUUID().toString());
-        List<CaseInfoDistributed> caseInfoLsit = runCaseRun(caseStrategy, true,companyCode);
+        List<CaseInfoDistributed> caseInfoLsit = runCaseRun(caseStrategy, true, companyCode);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "预览成功")).body(caseInfoLsit);
     }
 
@@ -168,9 +168,9 @@ public class CaseStrategyController {
 
         }
         User user = userResult.getBody();
-        if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
+        if (Objects.isNull(user.getCompanyCode())) {//如果是超级管理员，code码为空
             caseStrategy.setCompanyCode(null);
-        }else{
+        } else {
             caseStrategy.setCompanyCode(user.getCompanyCode());
         }
         caseStrategy.setCreateTime(ZWDateUtil.getNowDateTime());
@@ -196,11 +196,12 @@ public class CaseStrategyController {
         ResponseEntity<List<CaseInfoException>> resp = restTemplate.exchange(Constants.BUSINESS_SERVICE_URL.concat("getAllExceptionCaseInfo").concat("?companyCode=").concat(cmpanyCode),
                 HttpMethod.GET, null, responseType);
         List<CaseInfoException> caseInfoExceptions = resp.getBody();
-        if(caseInfoExceptions.size()>0){
+        if (caseInfoExceptions.size() > 0) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "有异常案件未处理请先处理")).body(null);
         }
-        List<CaseStrategy> caseStrategies = caseStrategyRepository.findAll(new Sort(Sort.Direction.ASC, "priority"));
-        if (caseStrategies.isEmpty()) {
+        Iterable<CaseStrategy> caseStrategies = caseStrategyRepository.findAll(QCaseStrategy.caseStrategy.companyCode.eq(user.getCompanyCode()), new Sort(Sort.Direction.ASC, "priority"));
+
+        if (Objects.isNull(caseStrategies) || !caseStrategies.iterator().hasNext()) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no strategy", "暂无分配策略")).body("");
         }
         //案件列表
@@ -212,7 +213,7 @@ public class CaseStrategyController {
         for (CaseStrategy caseStrategy : caseStrategies) {
             String companyCode = user.getCompanyCode();
             //得到符合分配策略的案件 caseInfos
-            List<CaseInfoDistributed> caseInfos = runCaseRun(caseStrategy, false,companyCode);
+            List<CaseInfoDistributed> caseInfos = runCaseRun(caseStrategy, false, companyCode);
             if (Objects.isNull(caseInfos) || caseInfos.isEmpty()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "cases do not conform to the allocation strategy to distribution strategy", "没有符合策略的案件")).body("");
             } else {
@@ -361,14 +362,14 @@ public class CaseStrategyController {
         }
         try {
             CaseStrategy caseStrategy = caseStrategyRepository.findOne(QCaseStrategy.caseStrategy.name.eq(name));
-           if(Objects.nonNull(caseStrategy)){
-               return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exist", "该策略名称已存在")).body(null);
-           }
+            if (Objects.nonNull(caseStrategy)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exist", "该策略名称已存在")).body(null);
+            }
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "检查策略名称失败")).body(null);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","caseInfo")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfo")).body(null);
     }
 
     @ApiModelProperty
@@ -413,7 +414,7 @@ public class CaseStrategyController {
                     }
                 }
             }
-           // stringBuilder.delete(0, 1);
+            // stringBuilder.delete(0, 1);
             return stringBuilder.toString();
         } catch (Exception e) {
             //  e.printStackTrace();
@@ -428,7 +429,7 @@ public class CaseStrategyController {
      * @throws IOException
      * @throws TemplateException
      */
-    public List<CaseInfoDistributed> runCaseRun(CaseStrategy caseStrategy, boolean flag,String companyCode) throws IOException, TemplateException {
+    public List<CaseInfoDistributed> runCaseRun(CaseStrategy caseStrategy, boolean flag, String companyCode) throws IOException, TemplateException {
         List<CaseInfoDistributed> checkedList = new ArrayList<>();
         Template template = freemarkerConfiguration.getTemplate("caseInfo.ftl", "UTF-8");
         Map<String, String> map = new HashMap<>();
