@@ -54,7 +54,7 @@ public class ExportFollowupController extends BaseController {
     @PostMapping (value = "/getExcelData")
     @ApiOperation(value = "导出跟进记录",notes = "导出跟进记录")
     public ResponseEntity getExcelData(@RequestBody ExportFollowupModel exportFollowupModel,
-                                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token){
+                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token){
         try {
             XSSFWorkbook workbook = null;
             File file = null;

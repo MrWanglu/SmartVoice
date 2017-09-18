@@ -4,18 +4,20 @@
 
     <!--获取部门下所有用户-->
     <select id="getExportFollowModel" parameterType="java.util.List"  resultType="cn.fintecher.pangolin.report.model.ExportFollowupParams">
-SELECT a.case_number AS casenum,b.batch_number AS batchNum,e.`name` AS principalName,a.operator_time AS followTime,a.type AS followType,c.`name` AS personName,c.id_card AS idCard,a.target AS target,a.target_name AS targetName,a.contact_phone AS contactPhone,a.detail AS detail,a.collection_location AS collectionLocation,a.collection_feedback AS collectionFeedback,a.content AS content,c.number AS personNumber,f.account_number AS accountNumber,b.hand_number AS handNumber
- FROM (
-SELECT
-	*
-FROM
-	case_followup_record
+    SELECT a.case_number AS casenum,b.batch_number AS batchNum,e.`name` AS principalName,a.operator_time AS followTime,a.type AS followType,c.`name` AS personName,c.id_card AS idCard,a.target AS target,a.target_name AS targetName,a.contact_phone AS contactPhone,a.detail AS detail,a.collection_location AS collectionLocation,a.collection_feedback AS collectionFeedback,a.content AS content,c.number AS personNumber,f.account_number AS accountNumber,b.hand_number AS handNumber
+     FROM (
+        SELECT
+            *
+        FROM
+        case_followup_record
              WHERE case_number IN
             <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
                 #{item}
             </foreach>
              AND collection_way != 0
-             AND company_code = #{company}
+            <if test="company != null and company != ''">
+                AND company_code = #{company}
+            </if>
             ) AS a
             LEFT JOIN case_info b ON a.case_number = b.case_number
             LEFT JOIN personal c ON b.personal_id = c.id
