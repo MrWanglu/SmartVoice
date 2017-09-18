@@ -102,14 +102,15 @@ public class AccVisitPoolController extends BaseController {
         Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
         Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
         Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
+        Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.isNull(tokenUser.getCompanyCode())){
-                if(Objects.nonNull(companyCode)){
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.nonNull(companyCode)) {
                     builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-            }else{
+            } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
             if (Objects.equals(tokenUser.getManager(), 1)) {
@@ -129,7 +130,7 @@ public class AccVisitPoolController extends BaseController {
             if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("DESC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime2));
             }
-            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)));
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/accVisitPoolController/getAllVisitCase");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
@@ -152,11 +153,11 @@ public class AccVisitPoolController extends BaseController {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.isNull(tokenUser.getCompanyCode())){
-                if(Objects.nonNull(companyCode)){
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.nonNull(companyCode)) {
                     builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-            }else{
+            } else {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
             if (Objects.equals(tokenUser.getManager(), 1)) {
