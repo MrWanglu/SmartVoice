@@ -201,7 +201,7 @@ public class CaseStrategyController {
         }
         List<CaseStrategy> caseStrategies = caseStrategyRepository.findAll(new Sort(Sort.Direction.ASC, "priority"));
         if (caseStrategies.isEmpty()) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no strategy", "没有查询到的分配策略")).body("");
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no strategy", "暂无分配策略")).body("");
         }
         //案件列表
         List<CaseInfo> caseInfoObjList = new ArrayList<>();
@@ -214,7 +214,7 @@ public class CaseStrategyController {
             //得到符合分配策略的案件 caseInfos
             List<CaseInfoDistributed> caseInfos = runCaseRun(caseStrategy, false,companyCode);
             if (Objects.isNull(caseInfos) || caseInfos.isEmpty()) {
-                continue;
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "cases do not conform to the allocation strategy to distribution strategy", "案件不符合分配策略，无法策略分配")).body("");
             } else {
                 //走案件分配流程
 
