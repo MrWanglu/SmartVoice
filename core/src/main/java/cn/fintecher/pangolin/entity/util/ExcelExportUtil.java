@@ -20,6 +20,14 @@ public class ExcelExportUtil {
     private static final int ROW_MAX = 1048576 - 1; //Excel 07版最大行数 减去表头
     private static final int SHEET_MAX = 255;   // Excel sheet页最大个数
 
+    /**
+     *
+     * @param workbook 工作簿
+     * @param headMap 表头信息，key为字段，value为对应的字段名称
+     * @param dataList 到导出的数据
+     * @param rowData 每个sheet要存储的数据最大行数
+     * @throws Exception
+     */
     public static void createExcelData(SXSSFWorkbook workbook, Map<String, String> headMap, List<?> dataList, int rowData) throws Exception {
         CellStyle headStyle = workbook.createCellStyle();
         CellStyle bodyStyle = workbook.createCellStyle();
@@ -38,16 +46,14 @@ public class ExcelExportUtil {
         if (rowData > ROW_MAX) {
             throw new RuntimeException("每个sheet页显示的行数超过了所允许的最大行数!");
         }
-
         int sheetNum = getSheetNum(dataList, rowData);
-
         if (sheetNum > SHEET_MAX) {
             throw new RuntimeException("要导出的sheet页数量超过所允许的最大个数，可以选择将每个sheet显示的行数调大!");
         }
 
-        int aaa = 0;
+        int anum = 0;
         for (int i = 0; i < sheetNum; i++) {
-            logger.info("第"+ (i+1)+"页"+sheetNum);
+            logger.info("正在写入第" + (i + 1) + "页数据，共" + sheetNum + "页,共" + dataList.size() + "条数据");
             SXSSFSheet sheet = workbook.createSheet("sheet" + (i + 1));
             int startRow = 0;
             int headStartCol = 0;
@@ -65,19 +71,7 @@ public class ExcelExportUtil {
                 }
             }
 
-
-            int a = dataList.size() % rowData;
-            List<?> dataListSub = new ArrayList<>();
-            if (a == 0) {
-                dataListSub = dataList.subList(i * rowData, (i * rowData) + rowData);
-            } else {
-                if (a == (dataList.size() - (i * rowData))) {
-                    dataListSub = dataList.subList(i * rowData, dataList.size());
-                } else {
-                    dataListSub = dataList.subList(i * rowData, (i * rowData) + rowData);
-                }
-            }
-
+            List<?> dataListSub = getSubList(dataList, rowData, i);
             // 写入数据
             if (!dataListSub.isEmpty()) {
                 int k = 1; //序号从1开始
@@ -99,16 +93,22 @@ public class ExcelExportUtil {
                         if (value instanceof Date) {
                             cell.setCellValue(ZWDateUtil.fomratterDate((Date) value, "yyyy-MM-dd"));
                         } else {
-                            cell.setCellValue(String.valueOf(value));
+                            cell.setCellValue((value == null) ? "" : String.valueOf(value));
                         }
                         cell.setCellStyle(bodyStyle);
                     }
-                    logger.info("正在写入第"+ ++aaa +"条数据");
+                    logger.info("第" + (i + 1) + "页，总第" + ++anum + "条数据写入完成.");
                 }
             }
         }
     }
 
+    /**
+     * 根据要导出的数据总量和每个sheet页最大行数计算总共需要的sheet页数量
+     * @param dataList 总数据
+     * @param rowData 每个sheet页最大行数
+     * @return
+     */
     private static int getSheetNum(List<?> dataList, int rowData) {
         int a = dataList.size() / rowData;
         int b = dataList.size() % rowData;
@@ -119,6 +119,29 @@ public class ExcelExportUtil {
         }
     }
 
+    /**
+     * 截取每个sheet要写入的数据
+     * @param dataList 总数据
+     * @param rowData 每个sheet页的最大行数
+     * @param i 第i个sheet页
+     * @return
+     */
+    private static List<?> getSubList(List<?> dataList, int rowData, int i) {
+        int a = dataList.size() % rowData;
+        List<?> dataListSub = new ArrayList<>();
+        if (a == 0) {
+            dataListSub = dataList.subList(i * rowData, (i * rowData) + rowData);
+            return dataListSub;
+        } else {
+            if (a == (dataList.size() - (i * rowData))) {
+                dataListSub = dataList.subList(i * rowData, dataList.size());
+                return dataListSub;
+            } else {
+                dataListSub = dataList.subList(i * rowData, (i * rowData) + rowData);
+                return dataListSub;
+            }
+        }
+    }
     public static HashMap<String, String> createHeadMap(String[] title, Class<?> tClass) {
         HashMap<String, String> headMap = new LinkedHashMap<>();
         Field[] declaredFields = tClass.getDeclaredFields();

@@ -21,6 +21,7 @@ public interface QueryFollowupMapper {
      */
     List<ExportFollowupParams> getExportFollowModel(@Param("list")List list, @Param("company")String company);
 
+
     List<ExcportResultModel> findFollowupRecord(ExportFollowRecordParams exportFollowupParams);
 
 }

@@ -59,5 +59,7 @@ public class ExportFollowRecordParams {
     private Integer collectionType;
     @ApiModelProperty(notes = "机构Code")
     private String departmentCode;
+    @ApiModelProperty(notes = "公司Code")
+    private String companyCode;
 
 }

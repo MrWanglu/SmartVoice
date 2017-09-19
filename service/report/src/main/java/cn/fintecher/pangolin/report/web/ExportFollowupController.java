@@ -162,11 +162,6 @@ public class ExportFollowupController extends BaseController {
     public ResponseEntity exportFollowupRecord(@RequestBody ExportFollowRecordParams exportFollowupParams,
                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
 
-//        SXSSFWorkbook workbook = null;
-//        File file = null;
-//        ByteArrayOutputStream out = null;
-//        FileOutputStream fileOutputStream = null;
-
         User user = null;
         try {
             user = getUserByToken(token);
@@ -188,8 +183,8 @@ public class ExportFollowupController extends BaseController {
                     List<FollowupExportModel> dataList = followRecordExportService.getFollowupData(all);
                     String[] title = {"案件编号", "批次号", "委托方", "跟进时间", "跟进方式", "客户姓名", "客户身份证", "催收对象", "姓名", "电话/地址", "定位地址","催收反馈", "跟进内容","客户号","账户号","手数"};
                     Map<String, String> headMap = ExcelExportUtil.createHeadMap(title, FollowupExportModel.class);
-                    workbook = new SXSSFWorkbook(10000);
-                    ExcelExportUtil.createExcelData(workbook, headMap, dataList, 10000);
+                    workbook = new SXSSFWorkbook(5000);
+                    ExcelExportUtil.createExcelData(workbook, headMap, dataList, 100000);
                     out = new ByteArrayOutputStream();
                     workbook.write(out);
                     String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xlsx");
@@ -255,7 +250,7 @@ public class ExportFollowupController extends BaseController {
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
         sendReminderMessage.setTitle(title);
         sendReminderMessage.setContent(content);
-        sendReminderMessage.setType(ReminderType.ASSIST_APPROVE);
+        sendReminderMessage.setType(ReminderType.FOLLOWUP_EXPORT);
         sendReminderMessage.setMode(ReminderMode.POPUP);
         sendReminderMessage.setCreateTime(new Date());
         sendReminderMessage.setUserId(userId);

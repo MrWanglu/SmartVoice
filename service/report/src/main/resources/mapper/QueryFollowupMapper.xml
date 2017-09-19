@@ -38,6 +38,15 @@
         LEFT JOIN area_code f ON a.area_id = f.id
         LEFT JOIN department i ON a.depart_id = i.id
         WHERE 1=1
+        <if test="companyCode != null">
+            AND a.company_code = #{companyCode}
+        </if>
+        <if test="caseNumberList != null">
+            AND a.case_number IN
+            <foreach collection="caseNumberList" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
         <if test="personalName != null">
             AND c.name = #{personalName}
         </if>
