@@ -1,9 +1,6 @@
 package cn.fintecher.pangolin.report.model;
 
-import cn.fintecher.pangolin.entity.AreaCode;
-import cn.fintecher.pangolin.entity.CaseFollowupRecord;
-import cn.fintecher.pangolin.entity.Department;
-import cn.fintecher.pangolin.entity.Personal;
+import cn.fintecher.pangolin.entity.*;
 import lombok.Data;
 
 import java.util.List;
@@ -18,7 +15,7 @@ public class ExcportResultModel {
     private String caseNumber;
     private Personal personalInfo;
     private List<CaseFollowupRecord> caseFollowupRecords;
-    private Department department;
     private AreaCode areaCode;
+    private Principal principal;
 
 }

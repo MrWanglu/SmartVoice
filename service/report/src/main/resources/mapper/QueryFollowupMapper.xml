@@ -31,7 +31,7 @@
     </select>
 
     <select id="findFollowupRecord" parameterType="cn.fintecher.pangolin.report.model.ExportFollowRecordParams" resultMap="caseInfoResultMap">
-        SELECT * FROM case_info a
+        SELECT a.id,a.case_number,a.batch_number,a.hand_number,a.personal_id,a.product_id,a.principal_id,a.area_id FROM case_info a
         LEFT JOIN case_info b ON a.case_number = b.case_number
         LEFT JOIN personal c ON b.personal_id = c.id
         LEFT JOIN product d ON b.product_id = d.id
@@ -105,31 +105,64 @@
     </select>
 
     <resultMap id="caseInfoResultMap" type="cn.fintecher.pangolin.report.model.ExcportResultModel">
+        <id column="id" property="id"/>
+        <result column="case_number" property="caseNumber"/>
+        <result column="batch_number" property="batchNumber"/>
+        <result column="hand_number" property="handNumber"/>
         <association property="personalInfo" column="personal_id" select="selectPersonal"></association>
         <association property="areaCode" column="area_id" select="selectArea"></association>
+        <association property="principal" column="principal_id" select="selectPrincipal"></association>
         <collection property="caseFollowupRecords" column="case_number" ofType="cn.fintecher.pangolin.entity.CaseFollowupRecord" select="selectCaseFollowupRecord"></collection>
     </resultMap>
 
     <select id="selectPersonal" parameterType="string" resultMap="personalResultMap">
-        SELECT * FROM personal WHERE id = #{personal_id}
+        SELECT id,name,id_card as idCard,number FROM personal WHERE id = #{personal_id}
     </select>
 
     <resultMap id="personalResultMap" type="cn.fintecher.pangolin.entity.Personal">
         <id column="id" property="id"></id>
         <result column="name" property="name"></result>
+        <result column="id_card" property="idCard"/>
+        <result column="number" property="number"/>
         <collection property="personalBankInfos" column="id" ofType="cn.fintecher.pangolin.entity.PersonalBank" select="selectPersonalBank"></collection>
     </resultMap>
 
-    <select id="selectPersonalBank" resultType="cn.fintecher.pangolin.entity.PersonalBank">
-        SELECT * FROM personal_bank WHERE personal_id = #{id}
+    <select id="selectPersonalBank" resultMap="personalBankMap">
+        SELECT id,account_number FROM personal_bank WHERE personal_id = #{id}
     </select>
+
+    <resultMap id="personalBankMap" type="cn.fintecher.pangolin.entity.PersonalBank">
+        <id column="id" property="id"/>
+        <result column="account_number" property="accountNumber"/>
+    </resultMap>
 
     <select id="selectArea" resultType="cn.fintecher.pangolin.entity.AreaCode">
         SELECT * FROM area_code WHERE id = #{area_id}
     </select>
 
-    <select id="selectCaseFollowupRecord" resultType="cn.fintecher.pangolin.entity.CaseFollowupRecord">
-        SELECT collection_way AS collectionWay FROM case_followup_record WHERE case_number = #{case_number} AND collection_way != 0
+    <select id="selectCaseFollowupRecord" resultMap="caseFollowupRecord">
+        SELECT id,target,target_name,contact_phone,detail,collection_location,collection_feedback,content,operator_time FROM case_followup_record WHERE case_number = #{case_number} AND collection_way != 0
     </select>
+
+    <resultMap id="caseFollowupRecord" type="cn.fintecher.pangolin.entity.CaseFollowupRecord">
+        <id column="id" property="id"/>
+        <result column="target" property="target"/>
+        <result column="target_name" property="targetName"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="detail" property="detail"/>
+        <result column="collection_location" property="collectionLocation"/>
+        <result column="collection_feedback" property="collectionFeedback"/>
+        <result column="content" property="content"/>
+        <result column="operator_time" property="operatorTime"/>
+    </resultMap>
+
+    <select id="selectPrincipal" resultMap="principalMap">
+        select id,name from principal where id = #{principal_id}
+    </select>
+
+    <resultMap id="principalMap" type="cn.fintecher.pangolin.entity.Principal">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+    </resultMap>
 
 </mapper>
