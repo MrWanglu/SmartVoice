@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.entity.ReminderMode;
 import cn.fintecher.pangolin.entity.ReminderType;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
@@ -13,7 +14,7 @@ import java.util.Map;
  * @Date : 2017/7/21.
  */
 @Data
-public class SendReminderMessage {
+public class SendReminderMessage implements Serializable {
     private ReminderType type;
     private ReminderMode mode;
     private String userId;

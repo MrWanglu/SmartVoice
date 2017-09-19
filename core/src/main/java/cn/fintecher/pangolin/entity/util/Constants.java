@@ -81,6 +81,8 @@ public final class Constants {
 
     //案件确认数据发送队列
     public static final String DATAINFO_CONFIRM_QE = "dataInfoExcel.confirm.progress.dev";
+    //导出跟进记录消息队列
+    public static final String FOLLOWUP_EXPORT_QE = "mr.cui.followup.progress";
 
     //获取催收员回款报表excel模版url
     public static final String BACK_MONEY_REPORT_EXCEL_URL_CODE = "SysParam.backmoneyreportexcelurl";

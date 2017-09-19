@@ -1,11 +1,13 @@
 package cn.fintecher.pangolin.report.web;
 
+import cn.fintecher.pangolin.entity.ReminderMode;
+import cn.fintecher.pangolin.entity.ReminderType;
 import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.message.SendReminderMessage;
+import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.ExcelExportUtil;
 import cn.fintecher.pangolin.report.mapper.QueryFollowupMapper;
-import cn.fintecher.pangolin.report.model.ExcportResultModel;
-import cn.fintecher.pangolin.report.model.ExportFollowRecordParams;
-import cn.fintecher.pangolin.report.model.ExportFollowupModel;
-import cn.fintecher.pangolin.report.model.ExportFollowupParams;
+import cn.fintecher.pangolin.report.model.*;
 import cn.fintecher.pangolin.report.service.ExportFollowupService;
 import cn.fintecher.pangolin.report.service.FollowRecordExportService;
 import cn.fintecher.pangolin.report.util.ExcelExportHelper;
@@ -15,11 +17,13 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +36,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -48,18 +53,21 @@ import java.util.Objects;
 public class ExportFollowupController extends BaseController {
 
     private final Logger log = LoggerFactory.getLogger(ExportFollowupController.class);
+    private static final String ENTITY_NAME = "ExportFollowupController";
 
     @Autowired
     private ExportFollowupService exportFollowupService;
     @Inject
     private FollowRecordExportService followRecordExportService;
     @Inject
-    QueryFollowupMapper queryFollowupMapper;
+    private QueryFollowupMapper queryFollowupMapper;
+    @Inject
+    private RabbitTemplate rabbitTemplate;
 
-    @PostMapping(value = "/getExcelData")
-    @ApiOperation(value = "导出跟进记录", notes = "导出跟进记录")
+    @PostMapping (value = "/getExcelData")
+    @ApiOperation(value = "导出跟进记录",notes = "导出跟进记录")
     public ResponseEntity getExcelData(@RequestBody ExportFollowupModel exportFollowupModel,
-                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token){
         try {
             XSSFWorkbook workbook = null;
             File file = null;
@@ -84,7 +92,7 @@ public class ExportFollowupController extends BaseController {
                 if (caseNumberList.isEmpty()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择案件!")).body(null);
                 }
-                List<ExportFollowupParams> caseFollowupRecords = exportFollowupService.getExcelData(caseNumberList, companyCode);
+                List<ExportFollowupParams> caseFollowupRecords = exportFollowupService.getExcelData(caseNumberList,companyCode);
                 if (caseFollowupRecords.isEmpty()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "要导出的跟进记录数据为空!")).body(null);
                 }
@@ -143,89 +151,116 @@ public class ExportFollowupController extends BaseController {
                     file.delete();
                 }
             }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("ExportFollowupController", "ExportFollowupController", "导出跟进记录失败!")).body(null);
+        }catch (Exception e){
+            log.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("ExportFollowupController","ExportFollowupController","导出跟进记录失败!")).body(null);
         }
     }
 
-    @PostMapping(value = "/test")
-    public ResponseEntity getExcelData(@RequestBody ExportFollowRecordParams exportFollowupParams) {
-        try {
-            XSSFWorkbook workbook = null;
-            File file = null;
-            ByteArrayOutputStream out = null;
-            FileOutputStream fileOutputStream = null;
-            long l = System.currentTimeMillis();
-            List<ExcportResultModel> caseFollowupRecords = queryFollowupMapper.findFollowupRecord(exportFollowupParams);
-            if (caseFollowupRecords.isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "要导出的跟进记录数据为空!")).body(null);
-            }
-            try {
-                workbook = new XSSFWorkbook();
-                XSSFSheet sheet = workbook.createSheet("sheet1");
-                out = new ByteArrayOutputStream();
-                Map<String, String> head = followRecordExportService.createHead();
-                List<Map<String, Object>> data = followRecordExportService.createNewData(caseFollowupRecords);
-                log.debug(data.size()+"ssss");
-                ExcelExportHelper.createExcel(workbook, sheet, head, data, 0, 0);
-                log.debug("dfdfdf");
-                workbook.write(out);
-                log.debug("dddd");
-                String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xlsx");
-                file = new File(filePath);
-                fileOutputStream = new FileOutputStream(file);
-                fileOutputStream.write(out.toByteArray());
-                FileSystemResource resource = new FileSystemResource(file);
-                MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
-                param.add("file", resource);
-                log.debug(param.toString());
-                ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
-                if (url == null) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "系统错误!")).body(null);
-                } else {
-                    return ResponseEntity.ok().body(url.getBody());
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                log.error(ex.getMessage());
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
-            } finally {
-                // 关闭流
-                if (workbook != null) {
-                    try {
-                        workbook.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (out != null) {
-                    try {
-                        out.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (fileOutputStream != null) {
-                    try {
-                        fileOutputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                // 删除文件
-                if (file != null) {
-                    file.delete();
-                }
-                long l1 = System.currentTimeMillis();
-                log.info("耗时-----------------------------------" + (l1 - l));
-                return ResponseEntity.ok(caseFollowupRecords);
-            }
-        }catch(Exception e){
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("ExportFollowupController", "ExportFollowupController", "导出跟进记录失败!")).body(null);
-        }
+    @PostMapping (value = "/exportFollowupRecord")
+    @ApiOperation(notes = "导出跟进记录", value = "导出跟进记录")
+    public ResponseEntity exportFollowupRecord(@RequestBody ExportFollowRecordParams exportFollowupParams,
+                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
 
+//        SXSSFWorkbook workbook = null;
+//        File file = null;
+//        ByteArrayOutputStream out = null;
+//        FileOutputStream fileOutputStream = null;
+
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", e.getMessage())).body(null);
+        }
+        final String userId = user.getId();
+        try {
+            //创建一个线程，执行导出任务
+            Thread t = new Thread(() -> {
+
+                SXSSFWorkbook workbook = null;
+                File file = null;
+                ByteArrayOutputStream out = null;
+                FileOutputStream fileOutputStream = null;
+                try {
+                    List<ExcportResultModel> all = queryFollowupMapper.findFollowupRecord(exportFollowupParams);
+                    List<FollowupExportModel> dataList = followRecordExportService.getFollowupData(all);
+                    String[] title = {"案件编号", "批次号", "委托方", "跟进时间", "跟进方式", "客户姓名", "客户身份证", "催收对象", "姓名", "电话/地址", "定位地址","催收反馈", "跟进内容","客户号","账户号","手数"};
+                    Map<String, String> headMap = ExcelExportUtil.createHeadMap(title, FollowupExportModel.class);
+                    workbook = new SXSSFWorkbook(10000);
+                    ExcelExportUtil.createExcelData(workbook, headMap, dataList, 10000);
+                    out = new ByteArrayOutputStream();
+                    workbook.write(out);
+                    String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xlsx");
+                    file = new File(filePath);
+                    fileOutputStream = new FileOutputStream(file);
+                    fileOutputStream.write(out.toByteArray());
+                    FileSystemResource resource = new FileSystemResource(file);
+                    MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+                    param.add("file", resource);
+                    ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
+                    if (url == null) {
+                        String tt = "跟进记录导出失败";
+                        String content = "跟进记录导出失败，请重新导出下载。";
+                        sendReminder(tt,content,userId);
+                    } else {
+                        String tt = "跟进记录导出完成";
+                        String content = "请使用此地址下载导出的跟进记录 【"+ url.getBody() + "】";
+                        sendReminder(tt,content,userId);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    String tt = "跟进记录导出失败";
+                    String content = "跟进记录导出失败，请重新导出下载。";
+                    sendReminder(tt,content,userId);
+                } finally {
+                    // 关闭流
+                    if (workbook != null) {
+                        try {
+                            workbook.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (out != null) {
+                        try {
+                            out.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (fileOutputStream != null) {
+                        try {
+                            fileOutputStream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    // 删除文件
+                    if (file != null) {
+                        file.delete();
+                    }
+                }
+            });
+            t.start();
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("开始导出,完成后请前往消息列表查看下载。", "")).body(null);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "上传文件服务器失败")).body(null);
+        }
+    }
+
+    private void sendReminder(String title, String content, String userId) {
+        SendReminderMessage sendReminderMessage = new SendReminderMessage();
+        sendReminderMessage.setTitle(title);
+        sendReminderMessage.setContent(content);
+        sendReminderMessage.setType(ReminderType.ASSIST_APPROVE);
+        sendReminderMessage.setMode(ReminderMode.POPUP);
+        sendReminderMessage.setCreateTime(new Date());
+        sendReminderMessage.setUserId(userId);
+        //发送消息
+        rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, sendReminderMessage);
     }
 
 }

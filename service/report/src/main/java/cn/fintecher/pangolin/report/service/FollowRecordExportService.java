@@ -1,9 +1,13 @@
 package cn.fintecher.pangolin.report.service;
 
 import cn.fintecher.pangolin.entity.CaseFollowupRecord;
+import cn.fintecher.pangolin.entity.Personal;
+import cn.fintecher.pangolin.entity.Principal;
 import cn.fintecher.pangolin.report.model.ExcportResultModel;
 import cn.fintecher.pangolin.report.model.ExportFollowupParams;
+import cn.fintecher.pangolin.report.model.FollowupExportModel;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +20,7 @@ import java.util.*;
  */
 @Service
 public class FollowRecordExportService {
-    private final org.slf4j.Logger log = LoggerFactory.getLogger(FollowRecordExportService.class);
+    private final Logger log = LoggerFactory.getLogger(FollowRecordExportService.class);
 
     private static final String[] TITLE_LIST = {"案件编号", "批次号", "委托方", "跟进时间", "跟进方式", "客户姓名", "客户身份证", "催收对象", "姓名", "电话/地址", "定位地址","催收反馈", "跟进内容","客户号","账户号","手数"};
     private static final String[] PRO_NAMES = {"caseNumber", "batchNumber", "principalName", "follTime", "follType", "personalName", "idcard", "follTarget", "follTargetName", "follPhoneNum", "location","follFeedback", "follContent","personalNum","accountNum","handNum"};
@@ -167,5 +171,72 @@ public class FollowRecordExportService {
             }
         }
         return dataList;
+    }
+
+
+    public List<FollowupExportModel> getFollowupData(List<ExcportResultModel> excportResultModels) {
+        List<FollowupExportModel> followupExportModels = new ArrayList<>();
+        int i = 0;
+        for (ExcportResultModel excportResultModel : excportResultModels) {
+            log.info("第"+ ++i +"条信息正在导出。。。。。");
+            List<CaseFollowupRecord> caseFollowupRecords = excportResultModel.getCaseFollowupRecords();
+            if (!caseFollowupRecords.isEmpty()) {
+                for (CaseFollowupRecord record : caseFollowupRecords) {
+                    FollowupExportModel followupExportModel = new FollowupExportModel();
+                    followupExportModel.setCaseNumber(excportResultModel.getCaseNumber());
+                    followupExportModel.setBatchNumber(excportResultModel.getBatchNumber());
+                    Principal principal = excportResultModel.getPrincipal();
+                    followupExportModel.setPrincipalName(Objects.isNull(principal) ? "": principal.getName());
+                    Personal personalInfo = excportResultModel.getPersonalInfo();
+                    followupExportModel.setPersonalName(Objects.isNull(personalInfo) ? "" : personalInfo.getName());
+                    followupExportModel.setIdCard(Objects.isNull(personalInfo) ? "" :personalInfo.getIdCard());
+                    followupExportModel.setAccountNum(Objects.isNull(personalInfo) ? "": (personalInfo.getPersonalBankInfos().isEmpty() ? "": personalInfo.getPersonalBankInfos().iterator().next().getAccountNumber()));
+                    followupExportModel.setHandNum(excportResultModel.getHandNumber());
+                    followupExportModel.setPersonalNum(Objects.isNull(personalInfo) ? "" : personalInfo.getNumber());
+                    followupExportModel.setFollTime(ZWDateUtil.fomratterDate(record.getOperatorTime(), null));
+                    followupExportModel.setFollTargetName(record.getTargetName());
+                    followupExportModel.setLocation(record.getCollectionLocation());
+                    followupExportModel.setFollContent(record.getContent());
+
+                    CaseFollowupRecord.Type[] values = CaseFollowupRecord.Type.values(); //跟进方式
+                    for (int j = 0; j < values.length; j++) {
+                        if (Objects.equals(record.getType(), values[j].getValue())) {
+                            followupExportModel.setFollType(values[j].getRemark());
+                            break;
+                        }
+                    }
+                    CaseFollowupRecord.Target[] values1 = CaseFollowupRecord.Target.values(); //催收对象
+                    for (int j = 0; j < values1.length; j++) {
+                        if (Objects.equals(record.getTarget(), values1[j].getValue())) {
+                            followupExportModel.setFollTarget(values1[j].getRemark());
+                            break;
+                        }
+                    }
+                    // 电话催收
+                    if (Objects.equals(record.getType(),CaseFollowupRecord.Type.TEL.getValue())) {
+                        followupExportModel.setFollPhoneNum(record.getContactPhone());
+                    }
+                    if (!Objects.equals(record.getType(),CaseFollowupRecord.Type.TEL.getValue())) {
+                        followupExportModel.setFollPhoneNum(record.getDetail());
+                    }
+                    CaseFollowupRecord.EffectiveCollection[] values2 = CaseFollowupRecord.EffectiveCollection.values(); //催收反馈
+                    for (int j = 0; j < values2.length; j++) {
+                        if (Objects.equals(record.getCollectionFeedback(), values2[j].getValue())) {
+                            followupExportModel.setFollFeedback(values2[j].getRemark());
+                            break;
+                        }
+                    }
+                    CaseFollowupRecord.InvalidCollection[] values3 = CaseFollowupRecord.InvalidCollection.values();
+                    for (int j = 0; j < values3.length; j++) {
+                        if (Objects.equals(record.getCollectionFeedback(), values3[j].getValue())) {
+                            followupExportModel.setFollFeedback(values3[j].getRemark());
+                            break;
+                        }
+                    }
+                    followupExportModels.add(followupExportModel);
+                }
+            }
+        }
+        return followupExportModels;
     }
 }

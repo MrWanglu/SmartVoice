@@ -34,6 +34,9 @@ public class PangolinBusinessApplication {
     public Queue unReduceSuccessQueue() {
         return new Queue(Constants.DATAINFO_CONFIRM_QE);
     }
+    @Bean
+    public Queue exportFollowupRecordQueue() {return new Queue(Constants.FOLLOWUP_EXPORT_QE);}
+
     public static void main(String[] args) throws UnknownHostException {
         SpringApplication app = new SpringApplication(PangolinBusinessApplication.class);
         Environment env = app.run(args).getEnvironment();
