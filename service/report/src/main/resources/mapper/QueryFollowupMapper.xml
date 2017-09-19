@@ -32,10 +32,9 @@
 
     <select id="findFollowupRecord" parameterType="cn.fintecher.pangolin.report.model.ExportFollowRecordParams" resultMap="caseInfoResultMap">
         SELECT a.id,a.case_number,a.batch_number,a.hand_number,a.personal_id,a.product_id,a.principal_id,a.area_id FROM case_info a
-        LEFT JOIN case_info b ON a.case_number = b.case_number
-        LEFT JOIN personal c ON b.personal_id = c.id
-        LEFT JOIN product d ON b.product_id = d.id
-        LEFT JOIN principal e ON b.principal_id = e.id
+        LEFT JOIN personal c ON a.personal_id = c.id
+        LEFT JOIN product d ON a.product_id = d.id
+        LEFT JOIN principal e ON a.principal_id = e.id
         LEFT JOIN area_code f ON a.area_id = f.id
         LEFT JOIN department i ON a.depart_id = i.id
         WHERE 1=1

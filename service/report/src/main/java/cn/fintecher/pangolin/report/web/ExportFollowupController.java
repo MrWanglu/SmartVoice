@@ -56,10 +56,10 @@ public class ExportFollowupController extends BaseController {
     @Inject
     QueryFollowupMapper queryFollowupMapper;
 
-    @PostMapping (value = "/getExcelData")
-    @ApiOperation(value = "导出跟进记录",notes = "导出跟进记录")
+    @PostMapping(value = "/getExcelData")
+    @ApiOperation(value = "导出跟进记录", notes = "导出跟进记录")
     public ResponseEntity getExcelData(@RequestBody ExportFollowupModel exportFollowupModel,
-                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token){
+                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         try {
             XSSFWorkbook workbook = null;
             File file = null;
@@ -84,7 +84,7 @@ public class ExportFollowupController extends BaseController {
                 if (caseNumberList.isEmpty()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择案件!")).body(null);
                 }
-                List<ExportFollowupParams> caseFollowupRecords = exportFollowupService.getExcelData(caseNumberList,companyCode);
+                List<ExportFollowupParams> caseFollowupRecords = exportFollowupService.getExcelData(caseNumberList, companyCode);
                 if (caseFollowupRecords.isEmpty()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "要导出的跟进记录数据为空!")).body(null);
                 }
@@ -143,19 +143,89 @@ public class ExportFollowupController extends BaseController {
                     file.delete();
                 }
             }
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("ExportFollowupController","ExportFollowupController","导出跟进记录失败!")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("ExportFollowupController", "ExportFollowupController", "导出跟进记录失败!")).body(null);
         }
     }
 
-    @PostMapping (value = "/test")
+    @PostMapping(value = "/test")
     public ResponseEntity getExcelData(@RequestBody ExportFollowRecordParams exportFollowupParams) {
-        long l = System.currentTimeMillis();
-        List<ExcportResultModel> test = queryFollowupMapper.findFollowupRecord(exportFollowupParams);
-        long l1 = System.currentTimeMillis();
-        log.info("耗时-----------------------------------"+(l1-l));
-        return ResponseEntity.ok(test);
+        try {
+            XSSFWorkbook workbook = null;
+            File file = null;
+            ByteArrayOutputStream out = null;
+            FileOutputStream fileOutputStream = null;
+            long l = System.currentTimeMillis();
+            List<ExcportResultModel> caseFollowupRecords = queryFollowupMapper.findFollowupRecord(exportFollowupParams);
+            if (caseFollowupRecords.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "要导出的跟进记录数据为空!")).body(null);
+            }
+            try {
+                workbook = new XSSFWorkbook();
+                XSSFSheet sheet = workbook.createSheet("sheet1");
+                out = new ByteArrayOutputStream();
+                Map<String, String> head = followRecordExportService.createHead();
+                List<Map<String, Object>> data = followRecordExportService.createNewData(caseFollowupRecords);
+                log.debug(data.size()+"ssss");
+                ExcelExportHelper.createExcel(workbook, sheet, head, data, 0, 0);
+                log.debug("dfdfdf");
+                workbook.write(out);
+                log.debug("dddd");
+                String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xlsx");
+                file = new File(filePath);
+                fileOutputStream = new FileOutputStream(file);
+                fileOutputStream.write(out.toByteArray());
+                FileSystemResource resource = new FileSystemResource(file);
+                MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+                param.add("file", resource);
+                log.debug(param.toString());
+                ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
+                if (url == null) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "系统错误!")).body(null);
+                } else {
+                    return ResponseEntity.ok().body(url.getBody());
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                log.error(ex.getMessage());
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
+            } finally {
+                // 关闭流
+                if (workbook != null) {
+                    try {
+                        workbook.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (out != null) {
+                    try {
+                        out.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (fileOutputStream != null) {
+                    try {
+                        fileOutputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                // 删除文件
+                if (file != null) {
+                    file.delete();
+                }
+                long l1 = System.currentTimeMillis();
+                log.info("耗时-----------------------------------" + (l1 - l));
+                return ResponseEntity.ok(caseFollowupRecords);
+            }
+        }catch(Exception e){
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("ExportFollowupController", "ExportFollowupController", "导出跟进记录失败!")).body(null);
+        }
+
     }
 
 }

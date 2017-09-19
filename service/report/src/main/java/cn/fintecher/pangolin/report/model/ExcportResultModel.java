@@ -17,5 +17,6 @@ public class ExcportResultModel {
     private List<CaseFollowupRecord> caseFollowupRecords;
     private AreaCode areaCode;
     private Principal principal;
+    private Integer handNumber;
 
 }

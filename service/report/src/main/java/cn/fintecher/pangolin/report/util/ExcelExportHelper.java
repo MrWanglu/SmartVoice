@@ -2,6 +2,8 @@ package cn.fintecher.pangolin.report.util;
 
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.poi.ss.usermodel.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -12,6 +14,7 @@ import java.util.*;
  */
 public class ExcelExportHelper {
 
+    private final static Logger log = LoggerFactory.getLogger(ExcelExportHelper.class);
     /**
      * 导出Excel工具
      *
@@ -24,7 +27,6 @@ public class ExcelExportHelper {
      * @throws Exception
      */
     public static void createExcel(Workbook workbook, Sheet sheet, Map<String, String> headMap, List<Map<String, Object>> dataList, int startRow, int startCol) throws Exception {
-
         CellStyle headStyle = workbook.createCellStyle();
         CellStyle bodyStyle = workbook.createCellStyle();
         headStyle.setAlignment(HorizontalAlignment.CENTER); // 居中
@@ -67,6 +69,7 @@ public class ExcelExportHelper {
             }
             int k = 1; //序号从1开始
             for (Map<String, Object> dataMap : dataList) {
+                log.debug("记录"+k);
                 Row dataRow = sheet.createRow(++startRow);
                 int dataStartCol = startCol;
                 Cell indexCell = dataRow.createCell(dataStartCol++);
