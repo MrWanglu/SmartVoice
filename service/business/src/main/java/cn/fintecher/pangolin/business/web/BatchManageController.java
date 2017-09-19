@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.BatchManageContent;
 import cn.fintecher.pangolin.business.model.BatchManageList;
+import cn.fintecher.pangolin.business.model.BatchManageParams;
 import cn.fintecher.pangolin.business.model.SysNotice;
 import cn.fintecher.pangolin.business.repository.BatchManageRepository;
 import cn.fintecher.pangolin.business.repository.CompanyRepository;
@@ -220,5 +221,23 @@ public class BatchManageController extends BaseController {
         BatchManageContent batchManageContent = new BatchManageContent();
         batchManageContent.setContent(batchManageLists);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "batchManageController")).body(batchManageContent);
+    }
+
+    @GetMapping("/getStatus")
+    @ApiOperation(value = "获取当日跑批总状态", notes = "获取当日跑批总状态")
+    @ResponseBody
+    public ResponseEntity<BatchManageParams> getStatus() {
+        logger.debug("REST request to get sysStatus");
+        try {
+            //后期需要优化
+            String status = "成功";
+            BatchManageParams batchManageParams = new BatchManageParams();
+            batchManageParams.setSysStatus(status);
+            batchManageParams.setSysDate(ZWDateUtil.getNowDate());
+            return ResponseEntity.ok().body(batchManageParams);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "error", "获取失败")).body(null);
+        }
     }
 }
