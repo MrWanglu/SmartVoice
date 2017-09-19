@@ -34,7 +34,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -63,6 +65,7 @@ import java.util.*;
 public class CaseInfoController extends BaseController {
 
     private static final String ENTITY_NAME = "caseInfo";
+    private static final String ENTITY_CASEINFO_RETURN = "CaseInfoReturn";
     private final Logger log = LoggerFactory.getLogger(CaseInfoController.class);
     private final CaseInfoRepository caseInfoRepository;
 
@@ -84,6 +87,8 @@ public class CaseInfoController extends BaseController {
     private CaseInfoFileRepository caseInfoFileRepository;
     @Inject
     private CaseInfoHistoryRepository caseInfoHistoryRepository;
+    @Inject
+    private CaseInfoReturnRepository caseInfoReturnRepository;
 
     public CaseInfoController(CaseInfoRepository caseInfoRepository) {
         this.caseInfoRepository = caseInfoRepository;
@@ -150,7 +155,7 @@ public class CaseInfoController extends BaseController {
     @GetMapping("/getAllBatchNumber")
     @ApiOperation(value = "获取所有批次号", notes = "获取所有批次号")
     public ResponseEntity<List<String>> getAllBatchNumber(@RequestHeader(value = "X-UserToken") String token,
-                                                          @RequestParam(value = "companyCode",required = false) @ApiParam("公司Code") String companyCode) {
+                                                          @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
         log.debug("REST request to getAllBatchNumber");
         User user = null;
         try {
@@ -189,6 +194,7 @@ public class CaseInfoController extends BaseController {
                                                          @RequestHeader(value = "X-UserToken") String token,
                                                          @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code码") String companyCode) {
         log.debug("REST request to getAllCaseInfo");
+        Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
         User user = null;
         try {
             user = getUserByToken(token);
@@ -222,6 +228,7 @@ public class CaseInfoController extends BaseController {
 //            if (Objects.equals(user.getManager(), User.MANAGER_TYPE.NO_DATA_AUTH.getValue())) { //不是管理者
 //                builder.and(qCaseInfo.currentCollector.eq(user).or(qCaseInfo.assistCollector.eq(user)));
 //            }
+            pageable = new PageRequest(pageable.getPageSize(), pageable.getPageNumber(), pageable.getSort().and(new Sort(personalName)));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
@@ -819,6 +826,101 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("下载成功", "")).body(caseFlowupFiles);
         } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("下载失败", "uploadFile", "下载失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 案件查找
+     */
+    @GetMapping("/findCaseInfo")
+    @ApiOperation(value = "案件查找", notes = "案件查找")
+    public ResponseEntity<Page<CaseInfo>> findCaseInfo(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                       @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                       @ApiIgnore Pageable pageable,
+                                                       @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to find case");
+        try {
+            User tokenUser = getUserByToken(token);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+                }
+            } else { //不是超级管理员
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
+            }
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/CaseInfoController/findCaseInfo");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "查询失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 修改备注
+     */
+    @PostMapping("/modifyCaseMemo")
+    @ApiOperation(value = "修改备注", notes = "修改备注")
+    public ResponseEntity<Void> modifyCaseMemo(@RequestBody ModifyMemoParams modifyMemoParams) {
+        log.debug("REST request to modify case memo");
+        try {
+            caseInfoService.modifyCaseMemo(modifyMemoParams);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("修改成功", ENTITY_NAME)).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 案件退案
+     */
+    @PostMapping("/returnCase")
+    @ApiOperation(value = "案件退案", notes = "案件退案")
+    public ResponseEntity<Void> returnCase(@RequestBody ReturnCaseParams returnCaseParams,
+                                           @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to return case");
+        try {
+            User tokenUser = getUserByToken(token);
+            caseInfoService.returnCase(returnCaseParams, tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("退案成功", ENTITY_CASEINFO_RETURN)).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO_RETURN, "caseInfoReturn", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 多条件查询退案案件
+     */
+    @GetMapping("/getAllCaseInfoReturn")
+    @ApiOperation(value = "多条件查询退案案件", notes = "多条件查询退案案件")
+    public ResponseEntity<Page<CaseInfoReturn>> getAllCaseInfoReturn(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                     @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                                     @ApiIgnore Pageable pageable,
+                                                                     @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get all case info return");
+        Sort.Order operatorTimeSort = new Sort.Order(Sort.Direction.DESC, "operatorTime", Sort.NullHandling.NULLS_LAST); //操作时间倒序
+        Sort.Order personalNameSort = new Sort.Order(Sort.Direction.ASC, "caseId.personalInfo.name", Sort.NullHandling.NULLS_LAST); //客户姓名正序
+        try {
+            User tokenUser = getUserByToken(token);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            if (Objects.isNull(tokenUser.getCompanyCode())) { //超级管理员
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(QCaseInfoReturn.caseInfoReturn.caseId.companyCode.eq(companyCode));
+                }
+            } else { //不是超级管理员
+                builder.and(QCaseInfoReturn.caseInfoReturn.caseId.companyCode.eq(tokenUser.getCompanyCode()));
+            }
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(operatorTimeSort)).and(new Sort(personalNameSort)));
+            Page<CaseInfoReturn> page = caseInfoReturnRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/CaseInfoController/getAllCaseInfoReturn");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO_RETURN, "caseInfoReturn", "查询失败")).body(null);
         }
     }
 }

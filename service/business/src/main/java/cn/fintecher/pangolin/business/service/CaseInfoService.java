@@ -100,6 +100,9 @@ public class CaseInfoService {
     @Inject
     CaseFlowupFileRepository caseFlowupFileRepository;
 
+    @Inject
+    CaseInfoReturnRepository caseInfoReturnRepository;
+
     /**
      * @Description 重新分配
      */
@@ -1960,5 +1963,50 @@ public class CaseInfoService {
             caseAssistList.addAll(IterableUtils.toList(caseAssistRepository.findAll(builder)));
         }
         return caseAssistList;
+    }
+
+    /**
+     * @Description 修改案件备注
+     */
+    public void modifyCaseMemo(ModifyMemoParams modifyMemoParams) {
+        CaseInfo caseInfo = caseInfoRepository.findOne(modifyMemoParams.getCaseId()); //获取案件信息
+        if (Objects.isNull(caseInfo)) {
+            throw new RuntimeException("该案件未找到");
+        }
+        caseInfo.setMemo(modifyMemoParams.getMemo()); //备注信息
+        caseInfoRepository.save(caseInfo);
+
+        //消息提醒
+        SendReminderMessage sendReminderMessage = new SendReminderMessage();
+        sendReminderMessage.setUserId(caseInfo.getCurrentCollector().getId());
+        sendReminderMessage.setTitle("案件 [" + caseInfo.getCaseNumber() + "] 的备注信息已修改");
+        sendReminderMessage.setContent(caseInfo.getMemo());
+        sendReminderMessage.setType(ReminderType.MEMO_MODIFY);
+        reminderService.sendReminder(sendReminderMessage);
+    }
+
+    /**
+     * @Description 案件退案
+     */
+    public void returnCase(ReturnCaseParams returnCaseParams, User tokenUser) {
+        List<String> caseIds = returnCaseParams.getCaseIds();
+        if (Objects.isNull(caseIds) || caseIds.isEmpty()) {
+            throw new RuntimeException("请选择案件");
+        }
+        for (String caseId : caseIds) {
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+            if (Objects.isNull(caseInfo)) {
+                throw new RuntimeException("所选案件为找到");
+            }
+            if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
+                throw new RuntimeException("所选案件已结案，不能退案");
+            }
+            CaseInfoReturn caseInfoReturn = new CaseInfoReturn();
+            caseInfoReturn.setCaseId(caseInfo); //案件信息
+            caseInfoReturn.setReason(returnCaseParams.getReason()); //退案原因
+            caseInfoReturn.setOperator(tokenUser.getUserName()); //操作人用户名
+            caseInfoReturn.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+            caseInfoReturnRepository.save(caseInfoReturn);
+        }
     }
 }
