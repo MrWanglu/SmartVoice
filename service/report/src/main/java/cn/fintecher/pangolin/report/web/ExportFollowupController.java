@@ -1,6 +1,5 @@
 package cn.fintecher.pangolin.report.web;
 
-import cn.fintecher.pangolin.dataimp.model.ListResult;
 import cn.fintecher.pangolin.entity.ReminderMode;
 import cn.fintecher.pangolin.entity.ReminderType;
 import cn.fintecher.pangolin.entity.User;
@@ -28,9 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
