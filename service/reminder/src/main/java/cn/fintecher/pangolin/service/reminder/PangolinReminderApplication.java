@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.service.reminder;
 
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.service.reminder.service.MessageWebSocketEndpoint;
 import cn.fintecher.pangolin.service.reminder.util.SpringContextUtil;
 import org.slf4j.Logger;
@@ -49,6 +50,8 @@ public class PangolinReminderApplication extends SpringBootServletInitializer {
         return new Queue("mr.cui.data.area.progress");
     }
 
+    @Bean
+    public Queue exportFollowupRecordQueue() {return new Queue(Constants.FOLLOWUP_EXPORT_QE);}
 
     public static void main(String[] args) throws UnknownHostException {
         SpringApplication app = new SpringApplication(PangolinReminderApplication.class);

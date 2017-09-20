@@ -124,7 +124,7 @@
     </resultMap>
 
     <select id="selectPersonal" parameterType="string" resultMap="personalResultMap">
-        SELECT id,name,id_card as idCard,number FROM personal WHERE id = #{personal_id}
+        SELECT id,name,id_card,number FROM personal WHERE id = #{personal_id}
     </select>
 
     <resultMap id="personalResultMap" type="cn.fintecher.pangolin.entity.Personal">
@@ -149,13 +149,14 @@
     </select>
 
     <select id="selectCaseFollowupRecord" resultMap="caseFollowupRecord">
-        SELECT id,target,target_name,contact_phone,detail,collection_location,collection_feedback,content,operator_time FROM case_followup_record WHERE case_number = #{case_number} AND collection_way != 0
+        SELECT id,target,target_name,type,contact_phone,detail,collection_location,collection_feedback,content,operator_time FROM case_followup_record WHERE case_number = #{case_number} AND collection_way != 0
     </select>
 
     <resultMap id="caseFollowupRecord" type="cn.fintecher.pangolin.entity.CaseFollowupRecord">
         <id column="id" property="id"/>
         <result column="target" property="target"/>
         <result column="target_name" property="targetName"/>
+        <result column="type" property="type"/>
         <result column="contact_phone" property="contactPhone"/>
         <result column="detail" property="detail"/>
         <result column="collection_location" property="collectionLocation"/>

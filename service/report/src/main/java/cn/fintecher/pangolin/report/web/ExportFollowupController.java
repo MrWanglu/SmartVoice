@@ -1,8 +1,10 @@
 package cn.fintecher.pangolin.report.web;
 
+import cn.fintecher.pangolin.dataimp.model.ListResult;
 import cn.fintecher.pangolin.entity.ReminderMode;
 import cn.fintecher.pangolin.entity.ReminderType;
 import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.message.ProgressMessage;
 import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.ExcelExportUtil;
@@ -26,6 +28,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -36,10 +41,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 
 /**
@@ -64,10 +66,10 @@ public class ExportFollowupController extends BaseController {
     @Inject
     private RabbitTemplate rabbitTemplate;
 
-    @PostMapping (value = "/getExcelData")
-    @ApiOperation(value = "导出跟进记录",notes = "导出跟进记录")
+    @PostMapping(value = "/getExcelData")
+    @ApiOperation(value = "导出跟进记录", notes = "导出跟进记录")
     public ResponseEntity getExcelData(@RequestBody ExportFollowupModel exportFollowupModel,
-                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token){
+                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         try {
             XSSFWorkbook workbook = null;
             File file = null;
@@ -92,7 +94,7 @@ public class ExportFollowupController extends BaseController {
                 if (caseNumberList.isEmpty()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择案件!")).body(null);
                 }
-                List<ExportFollowupParams> caseFollowupRecords = exportFollowupService.getExcelData(caseNumberList,companyCode);
+                List<ExportFollowupParams> caseFollowupRecords = exportFollowupService.getExcelData(caseNumberList, companyCode);
                 if (caseFollowupRecords.isEmpty()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "要导出的跟进记录数据为空!")).body(null);
                 }
@@ -151,13 +153,13 @@ public class ExportFollowupController extends BaseController {
                     file.delete();
                 }
             }
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("ExportFollowupController","ExportFollowupController","导出跟进记录失败!")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("ExportFollowupController", "ExportFollowupController", "导出跟进记录失败!")).body(null);
         }
     }
 
-    @PostMapping (value = "/exportFollowupRecord")
+    @PostMapping(value = "/exportFollowupRecord")
     @ApiOperation(notes = "导出跟进记录", value = "导出跟进记录")
     public ResponseEntity exportFollowupRecord(@RequestBody ExportFollowRecordParams exportFollowupParams,
                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
@@ -173,18 +175,32 @@ public class ExportFollowupController extends BaseController {
         try {
             //创建一个线程，执行导出任务
             Thread t = new Thread(() -> {
-
                 SXSSFWorkbook workbook = null;
                 File file = null;
                 ByteArrayOutputStream out = null;
                 FileOutputStream fileOutputStream = null;
+                ProgressMessage progressMessage = null;
                 try {
+                    progressMessage = new ProgressMessage();
+                    // 登录人ID
+                    progressMessage.setUserId(userId);
+                    //要解析的总数据
+                    progressMessage.setTotal(5);
+                    //当前解析的数据
+                    progressMessage.setCurrent(0);
+                    //正在处理数据
+                    progressMessage.setText("正在处理数据");
+                    rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
                     List<ExcportResultModel> all = queryFollowupMapper.findFollowupRecord(exportFollowupParams);
+                    progressMessage.setCurrent(2);
+                    rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
                     List<FollowupExportModel> dataList = followRecordExportService.getFollowupData(all);
-                    String[] title = {"案件编号", "批次号", "委托方", "跟进时间", "跟进方式", "客户姓名", "客户身份证", "催收对象", "姓名", "电话/地址", "定位地址","催收反馈", "跟进内容","客户号","账户号","手数"};
+                    String[] title = {"案件编号", "批次号", "委托方", "跟进时间", "跟进方式", "客户姓名", "客户身份证", "催收对象", "姓名", "电话/地址", "定位地址", "催收反馈", "跟进内容", "手数"};
                     Map<String, String> headMap = ExcelExportUtil.createHeadMap(title, FollowupExportModel.class);
+                    progressMessage.setCurrent(3);
+                    rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
                     workbook = new SXSSFWorkbook(5000);
-                    ExcelExportUtil.createExcelData(workbook, headMap, dataList, 100000);
+                    ExcelExportUtil.createExcelData(workbook, headMap, dataList, 1048575);
                     out = new ByteArrayOutputStream();
                     workbook.write(out);
                     String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xlsx");
@@ -196,19 +212,31 @@ public class ExportFollowupController extends BaseController {
                     param.add("file", resource);
                     ResponseEntity<String> url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
                     if (url == null) {
-                        String tt = "跟进记录导出失败";
-                        String content = "跟进记录导出失败，请重新导出下载。";
-                        sendReminder(tt,content,userId);
+                        ListResult listResult = new ListResult();
+                        listResult.setUser(userId);
+                        listResult.setStatus(ListResult.Status.FAILURE.getVal()); // 1-失败
+                        restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", null, Void.class, listResult);
+                        progressMessage.setCurrent(5);
+                        rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
                     } else {
-                        String tt = "跟进记录导出完成";
-                        String content = "请使用此地址下载导出的跟进记录 【"+ url.getBody() + "】";
-                        sendReminder(tt,content,userId);
+                        ListResult listResult = new ListResult();
+                        List<String> urls = new ArrayList<>();
+                        urls.add(url.getBody());
+                        listResult.setUser(userId);
+                        listResult.setResult(urls);
+                        listResult.setStatus(ListResult.Status.SUCCESS.getVal()); // 0-成功
+                        restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", listResult, Void.class);
+                        progressMessage.setCurrent(5);
+                        rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    String tt = "跟进记录导出失败";
-                    String content = "跟进记录导出失败，请重新导出下载。";
-                    sendReminder(tt,content,userId);
+                    ListResult listResult = new ListResult();
+                    listResult.setUser(userId);
+                    listResult.setStatus(ListResult.Status.FAILURE.getVal()); // 1-失败
+                    restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", null, Void.class, listResult);
+                    progressMessage.setCurrent(5);
+                    rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
                 } finally {
                     // 关闭流
                     if (workbook != null) {
