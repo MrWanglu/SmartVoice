@@ -103,6 +103,9 @@ public class CaseInfoService {
     @Inject
     CaseInfoReturnRepository caseInfoReturnRepository;
 
+    @Inject
+    CaseInfoRemarkRepository caseInfoRemarkRepository;
+
     /**
      * @Description 重新分配
      */
@@ -1968,13 +1971,20 @@ public class CaseInfoService {
     /**
      * @Description 修改案件备注
      */
-    public void modifyCaseMemo(ModifyMemoParams modifyMemoParams) {
+    public void modifyCaseMemo(ModifyMemoParams modifyMemoParams, User tokenUser) {
         CaseInfo caseInfo = caseInfoRepository.findOne(modifyMemoParams.getCaseId()); //获取案件信息
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
-        caseInfo.setMemo(modifyMemoParams.getMemo()); //备注信息
-        caseInfoRepository.save(caseInfo);
+        //保存备注信息
+        CaseInfoRemark caseInfoRemark = new CaseInfoRemark();
+        caseInfoRemark.setCaseId(modifyMemoParams.getCaseId()); //案件ID
+        caseInfoRemark.setRemark(modifyMemoParams.getMemo()); //案件备注信息
+        caseInfoRemark.setOperatorUserName(tokenUser.getUserName()); //操作人用户名
+        caseInfoRemark.setOperatorRealName(tokenUser.getRealName()); //操作人姓名
+        caseInfoRemark.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        caseInfoRemark.setCompanyCode(tokenUser.getCompanyCode()); //公司code码
+        caseInfoRemarkRepository.save(caseInfoRemark);
 
         //消息提醒
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
@@ -2007,6 +2017,20 @@ public class CaseInfoService {
             caseInfoReturn.setOperator(tokenUser.getUserName()); //操作人用户名
             caseInfoReturn.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseInfoReturnRepository.save(caseInfoReturn);
+        }
+    }
+
+    /**
+     * @Description 查询案件备注信息
+     */
+    public List<CaseInfoRemark> getCaseInfoRemark(String caseId) {
+        QCaseInfoRemark qCaseInfoRemark = QCaseInfoRemark.caseInfoRemark;
+        Iterable<CaseInfoRemark> caseInfoRemarks = caseInfoRemarkRepository.findAll(qCaseInfoRemark.caseId.eq(caseId));
+        List<CaseInfoRemark> caseInfoRemarkList = IterableUtils.toList(caseInfoRemarks);
+        if (caseInfoRemarkList.isEmpty()) {
+            return new ArrayList<>();
+        } else {
+            return caseInfoRemarkList;
         }
     }
 }

@@ -66,6 +66,7 @@ public class CaseInfoController extends BaseController {
 
     private static final String ENTITY_NAME = "caseInfo";
     private static final String ENTITY_CASEINFO_RETURN = "CaseInfoReturn";
+    private static final String ENTITY_CASEINFO_REMARK = "CaseInfoRemark";
     private final Logger log = LoggerFactory.getLogger(CaseInfoController.class);
     private final CaseInfoRepository caseInfoRepository;
 
@@ -863,10 +864,12 @@ public class CaseInfoController extends BaseController {
      */
     @PostMapping("/modifyCaseMemo")
     @ApiOperation(value = "修改备注", notes = "修改备注")
-    public ResponseEntity<Void> modifyCaseMemo(@RequestBody ModifyMemoParams modifyMemoParams) {
+    public ResponseEntity<Void> modifyCaseMemo(@RequestBody ModifyMemoParams modifyMemoParams,
+                                               @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to modify case memo");
         try {
-            caseInfoService.modifyCaseMemo(modifyMemoParams);
+            User tokenUser = getUserByToken(token);
+            caseInfoService.modifyCaseMemo(modifyMemoParams, tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("修改成功", ENTITY_NAME)).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -921,6 +924,22 @@ public class CaseInfoController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO_RETURN, "caseInfoReturn", "查询失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 查询备注信息
+     */
+    @GetMapping("/getCaseInfoRemark")
+    @ApiOperation(value = "查询备注信息", notes = "查询备注信息")
+    public ResponseEntity<List<CaseInfoRemark>> getCaseInfoRemark(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+        log.debug("REST request to get case info remark");
+        try {
+            List<CaseInfoRemark> caseInfoRemarks = caseInfoService.getCaseInfoRemark(caseId);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASEINFO_REMARK)).body(caseInfoRemarks);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO_REMARK, "caseInfoRemark", "查询失败")).body(null);
         }
     }
 }
