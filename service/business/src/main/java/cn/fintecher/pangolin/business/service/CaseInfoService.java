@@ -1988,7 +1988,9 @@ public class CaseInfoService {
 
         //消息提醒
         SendReminderMessage sendReminderMessage = new SendReminderMessage();
-        sendReminderMessage.setUserId(caseInfo.getCurrentCollector().getId());
+        if (Objects.nonNull(caseInfo.getCurrentCollector())) {
+            sendReminderMessage.setUserId(caseInfo.getCurrentCollector().getId());
+        }
         sendReminderMessage.setTitle("案件 [" + caseInfo.getCaseNumber() + "] 的备注信息已修改");
         sendReminderMessage.setContent(caseInfo.getMemo());
         sendReminderMessage.setType(ReminderType.MEMO_MODIFY);
@@ -2030,6 +2032,7 @@ public class CaseInfoService {
         if (caseInfoRemarkList.isEmpty()) {
             return new ArrayList<>();
         } else {
+            caseInfoRemarkList.sort(((o1, o2) -> o2.getOperatorTime().compareTo(o1.getOperatorTime()))); //创建时间倒序
             return caseInfoRemarkList;
         }
     }
