@@ -314,6 +314,7 @@ public class CaseInfoController extends BaseController {
         QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(qCaseFollowupRecord.caseNumber.eq(caseNumber));
+        builder.and(QCaseFollowupRecord.caseFollowupRecord.collectionWay.eq(1)); //只查催记方式为手动的
         Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
         return ResponseEntity.ok().body(page);
     }
