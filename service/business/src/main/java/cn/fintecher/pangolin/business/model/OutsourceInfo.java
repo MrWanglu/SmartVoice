@@ -10,6 +10,8 @@ import java.util.List;
 @Data
 public class OutsourceInfo {
 
-    String outsId;//委外方Id
-    private List<String> caseIds;//案件id集合
+    private List<OutDistributeParam> outDistributes;//委外方分配信息
+    private List<String> outCaseIds;//案件id集合
+    private Integer rule;//分配原则(1共债优先；2案件数平均)
+
 }
