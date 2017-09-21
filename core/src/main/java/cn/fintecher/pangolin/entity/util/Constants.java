@@ -285,4 +285,11 @@ public final class Constants {
     /**地球半径**/
     public final static double EARTH_RADIUS=6371;
 
+    /**
+     * 系统数据库备份
+     */
+    public final static String MYSQL_BACKUP_ADDRESS_CODE="Sysparam.mysqlbackup.address";
+    public final static String MYSQL_BACKUP_ADDRESS_TYPE="9001";
+    public final static String MYSQL_RECOVER_ADDRESS_CODE="Sysparam.mysqlrecover.address";
+    public final static String MYSQL_RECOVER_ADDRESS_TYPE="9001";
 }
