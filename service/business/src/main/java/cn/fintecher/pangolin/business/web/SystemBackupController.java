@@ -18,8 +18,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by  hukaijia.
@@ -65,31 +68,48 @@ public class SystemBackupController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exception for parameters", "系统数据库备份地址参数异常")).body(null);
         }
-        //调用shell脚本备份数据库
+        //调用shell脚本备份mysql数据库
+        BufferedReader br = null;
+        Process ps = null;
         String result = null;
         try {
             logger.info("开始备份");
-            String shpath = sysParams.getValue();
-            Process ps = Runtime.getRuntime().exec(shpath);
+            String[] shpath = {sysParams.getValue(),user.getUserName()};
+            ps = Runtime.getRuntime().exec(shpath);
             ps.waitFor();
-            BufferedReader br = new BufferedReader(new InputStreamReader(ps.getInputStream()));
+            br = new BufferedReader(new InputStreamReader(ps.getInputStream()));
             StringBuffer sb = new StringBuffer();
             String line;
             while ((line = br.readLine()) != null) {
-                sb.append(line).append("\n");
+                sb.append(line);
             }
             result = sb.toString();
+            Pattern p = Pattern.compile(".*sql");
+            Matcher m = p.matcher(result);
+            while (!(m.find())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Mysql database backup failed", "mysql数据库备份失败")).body(null);
+            }
 //            System.out.println(result);
             logger.info("备份返回值" + result);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (br != null) {
+                    br.close();
+                }
+                if (ps != null) {
+                    ps.destroy();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         request.setMysqlName(result);
         //增加系统数据库备份
         SystemBackup systemBackup = systemBackupRepository.save(request);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(systemBackup);
     }
-
     /**
      * @Description : 恢复系统数据库备份
      */
