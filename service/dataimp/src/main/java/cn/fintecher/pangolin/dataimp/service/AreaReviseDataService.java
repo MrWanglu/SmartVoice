@@ -81,7 +81,7 @@ public class AreaReviseDataService {
             }
             if (Objects.nonNull(excelSheetObj)) {
                 // 获取到解析的数据
-                List dataList = excelSheetObj.getDatasList();
+                List dataList = excelSheetObj.getDataList();
                 // 解析时产生的错误信息
                 cellErrorList = excelSheetObj.getCellErrorList();
                 // 解析产生错误

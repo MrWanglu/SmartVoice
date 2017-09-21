@@ -117,7 +117,7 @@ public class DataInfoExcelService {
         List<CellError> cellErrorList = null;
         if (Objects.nonNull(excelSheetObj)) {
             cellErrorList = excelSheetObj.getCellErrorList();
-            List dataList = excelSheetObj.getDatasList();
+            List dataList = excelSheetObj.getDataList();
 
             //邢台的需要从Excel获取
             String requestUrl = Constants.SYSPARAM_URL.concat("?")

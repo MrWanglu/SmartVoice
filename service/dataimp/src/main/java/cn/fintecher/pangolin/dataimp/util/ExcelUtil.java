@@ -40,7 +40,6 @@ import java.util.*;
 public class ExcelUtil {
     private final static Logger logger = LoggerFactory.getLogger(ExcelUtil.class);
 
-
     /**
      * 解析单sheet页的Excel
      *
@@ -186,7 +185,7 @@ public class ExcelUtil {
             }
         }
         excelSheetObj.setSheetName(sheetName);
-        excelSheetObj.setDatasList(objList);
+        excelSheetObj.setDataList(objList);
         excelSheetObj.setCellErrorList(cellErrorList);
         return excelSheetObj;
     }
