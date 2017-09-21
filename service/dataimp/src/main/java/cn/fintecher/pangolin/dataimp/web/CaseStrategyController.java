@@ -356,7 +356,7 @@ public class CaseStrategyController {
     @ApiModelProperty
     @GetMapping("/findCaseStrategy")
     @ApiOperation(value = "检查策略名称是否重复", notes = "检查策略名称是否重复")
-    public ResponseEntity findCaseStrategy(@RequestParam String name,@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+    public ResponseEntity findCaseStrategy(@RequestParam(required = false) String name,@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         ResponseEntity<User> userResult = null;
         userResult = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
         if (!userResult.hasBody()) {
