@@ -13,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 /**
  * Created by  hukaijia.
  * Description:
@@ -48,7 +51,26 @@ public class SystemBackupController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
-        //增加系统数据库备份
+        //调用shell脚本备份数据库
+        try {
+            logger.info("开始备份");
+            String shpath="/data/mysqlscript/mysqlbackup.sh";
+            Process ps = Runtime.getRuntime().exec(shpath);
+            ps.waitFor();
+            BufferedReader br = new BufferedReader(new InputStreamReader(ps.getInputStream()));
+            StringBuffer sb = new StringBuffer();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            String result = sb.toString();
+            System.out.println(result);
+            logger.info("备份返回值"+result);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    //增加系统数据库备份
         SystemBackup systemBackup = systemBackupRepository.save(request);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(systemBackup);
     }
