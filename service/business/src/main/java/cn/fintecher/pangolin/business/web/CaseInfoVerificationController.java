@@ -161,15 +161,17 @@ public class CaseInfoVerificationController extends BaseController {
             }
             int sum = 0;
             BigDecimal amount = new BigDecimal(sum);
-            for (Object[] caseInfoVerification : caseInfoVerificationList) {
-                BigDecimal i = new BigDecimal(caseInfoVerification[6].toString());
-                amount.add(i);
+            for (String id : ids) {
+                CaseInfoVerification caseInfoVerification = caseInfoVerificationRepository.findOne(id);
+                CaseInfo caseInfo = caseInfoVerification.getCaseInfo();
+                BigDecimal overdueAmount = caseInfo.getOverdueAmount();
+                amount = amount.add(overdueAmount);
             }
             String url = caseInfoVerificationService.exportCaseInfoVerification(caseInfoVerificationList);
             CaseInfoVerificationPackaging caseInfoVerificationPackaging = new CaseInfoVerificationPackaging();
             caseInfoVerificationPackaging.setPackagingTime(ZWDateUtil.getNowDateTime()); // 打包时间
             caseInfoVerificationPackaging.setPackagingState(caseInfoVerficationModel.getState()); // 打包说明
-            caseInfoVerificationPackaging.setPackagingCount(1);
+            caseInfoVerificationPackaging.setCount(ids.size());
             caseInfoVerificationPackaging.setDownloadCount(1);
             caseInfoVerificationPackaging.setTotalAmount(amount); // 总金额
             caseInfoVerificationPackaging.setDownloadAddress(url); // 下载地址
@@ -245,9 +247,6 @@ public class CaseInfoVerificationController extends BaseController {
             List<String> urlList = new ArrayList<>();
             for (String id : ids) {
                 CaseInfoVerificationPackaging caseInfoVerificationPackaging = caseInfoVerificationPackagingRepository.findOne(id);
-                if (Objects.nonNull(caseInfoVerificationPackaging.getPackagingCount())) {
-                    caseInfoVerificationPackaging.setPackagingCount(caseInfoVerificationPackaging.getPackagingCount() + 1); // 打包次数
-                }
                 if (Objects.nonNull(caseInfoVerificationPackaging.getDownloadCount())) {
                     caseInfoVerificationPackaging.setDownloadCount(caseInfoVerificationPackaging.getDownloadCount() + 1); // 下载次数
                 }
@@ -267,9 +266,6 @@ public class CaseInfoVerificationController extends BaseController {
     public ResponseEntity<String> download(String id) {
         try{
             CaseInfoVerificationPackaging caseInfoVerificationPackaging = caseInfoVerificationPackagingRepository.findOne(id);
-            if (Objects.nonNull(caseInfoVerificationPackaging.getPackagingCount())) {
-                caseInfoVerificationPackaging.setPackagingCount(caseInfoVerificationPackaging.getPackagingCount() + 1); // 打包次数
-            }
             if (Objects.nonNull(caseInfoVerificationPackaging.getDownloadCount())) {
                 caseInfoVerificationPackaging.setDownloadCount(caseInfoVerificationPackaging.getDownloadCount() + 1); // 下载次数
             }
