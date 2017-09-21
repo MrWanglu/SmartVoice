@@ -74,7 +74,7 @@ public class SystemBackupController extends BaseController {
         String result = null;
         try {
             logger.info("开始备份");
-            String[] shpath = {sysParams.getValue(),user.getUserName()};
+            String[] shpath = {sysParams.getValue(), user.getUserName()};
             ps = Runtime.getRuntime().exec(shpath);
             ps.waitFor();
             br = new BufferedReader(new InputStreamReader(ps.getInputStream()));
@@ -110,13 +110,14 @@ public class SystemBackupController extends BaseController {
         SystemBackup systemBackup = systemBackupRepository.save(request);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(systemBackup);
     }
+
     /**
      * @Description : 恢复系统数据库备份
      */
     @PostMapping("/recoverSystemBackup")
     @ApiOperation(value = "恢复系统数据库备份", notes = "恢复系统数据库备份")
-    public ResponseEntity<SystemBackup> recoverSystemBackup(@RequestBody SystemBackup request,
-                                                            @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<String> recoverSystemBackup(@RequestBody SystemBackup request,
+                                                      @RequestHeader(value = "X-UserToken") String token) {
         logger.debug("REST request to save caseInfo : {}", request);
         if (Objects.isNull(request.getMysqlName()) && Objects.isNull(request.getMongdbName())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Missing database file", "数据库文件缺失")).body(null);
@@ -137,13 +138,15 @@ public class SystemBackupController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exception for parameters", "恢复系统数据库地址参数异常")).body(null);
         }
         //调用shell脚本备份数据库
+        BufferedReader br = null;
+        Process ps = null;
         String result = null;
         try {
             logger.info("开始恢复备份");
-            String shpath = sysParams.getValue();
-            Process ps = Runtime.getRuntime().exec(shpath);
+            String[] shpath = {sysParams.getValue(), request.getMysqlName()};
+            ps = Runtime.getRuntime().exec(shpath);
             ps.waitFor();
-            BufferedReader br = new BufferedReader(new InputStreamReader(ps.getInputStream()));
+            br = new BufferedReader(new InputStreamReader(ps.getInputStream()));
             StringBuffer sb = new StringBuffer();
             String line;
             while ((line = br.readLine()) != null) {
@@ -155,9 +158,6 @@ public class SystemBackupController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        request.setMysqlName(result);
-        //增加系统数据库备份
-        SystemBackup systemBackup = systemBackupRepository.save(request);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(systemBackup);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(result);
     }
 }
