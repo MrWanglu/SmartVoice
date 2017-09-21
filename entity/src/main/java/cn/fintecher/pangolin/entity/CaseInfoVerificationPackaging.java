@@ -26,13 +26,13 @@ public class CaseInfoVerificationPackaging extends BaseEntity {
     @ApiModelProperty(notes = "打包说明")
     private String packagingState;
 
-    @ApiModelProperty(notes = "案件个数")
+    @ApiModelProperty(notes = "案件数量")
     private Integer count;
 
     @ApiModelProperty(notes = "总金额")
     private BigDecimal totalAmount;
 
-    @ApiModelProperty(notes = "下载个数")
+    @ApiModelProperty(notes = "下载次数")
     private Integer downloadCount;
 
     @ApiModelProperty(notes = "下载地址")

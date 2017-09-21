@@ -21,7 +21,7 @@ public interface CaseInfoVerificationPackagingRepository extends QueryDslPredica
     default void customize(final QuerydslBindings bindings, final QCaseInfoVerificationPackaging root) {
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
         // 打包时间
-        bindings.bind(root.caseInfoVerificationPackaging.packagingTime).all((path, value) -> {
+        bindings.bind(root.packagingTime).all((path, value) -> {
             Iterator<? extends Date> it = value.iterator();
             Date firstDelegationDate = it.next();
             if (it.hasNext()) {
@@ -33,7 +33,7 @@ public interface CaseInfoVerificationPackagingRepository extends QueryDslPredica
             }
         });
         // 案件金额
-        bindings.bind(root.caseInfoVerificationPackaging.totalAmount).all((path, value) -> {
+        bindings.bind(root.totalAmount).all((path, value) -> {
             Iterator<? extends BigDecimal> it = value.iterator();
             BigDecimal firstOverdueAmount = it.next();
             if (it.hasNext()) {
