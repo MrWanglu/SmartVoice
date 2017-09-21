@@ -17,4 +17,6 @@ public class CaseInfoVerficationModel {
 
     private String state; // 打包说明
 
+    private String id; // 核销案件的id
+
 }

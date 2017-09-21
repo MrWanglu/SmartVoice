@@ -2,13 +2,13 @@ package cn.fintecher.pangolin.business.repository;
 
 import cn.fintecher.pangolin.entity.CaseInfoVerificationPackaging;
 import cn.fintecher.pangolin.entity.QCaseInfoVerificationPackaging;
-import com.querydsl.core.types.dsl.StringPath;
-import org.apache.commons.lang3.StringUtils;
+import com.querydsl.core.types.dsl.DateTimePath;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -19,9 +19,9 @@ import java.util.Iterator;
 public interface CaseInfoVerificationPackagingRepository extends QueryDslPredicateExecutor<CaseInfoVerificationPackaging>, JpaRepository<CaseInfoVerificationPackaging, String>, QuerydslBinderCustomizer<QCaseInfoVerificationPackaging> {
     @Override
     default void customize(final QuerydslBindings bindings, final QCaseInfoVerificationPackaging root) {
-        bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
+        //bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
         // 打包时间
-        bindings.bind(root.packagingTime).all((path, value) -> {
+        bindings.bind(root.packagingTime).all((DateTimePath<Date> path, Collection<? extends Date> value) -> {
             Iterator<? extends Date> it = value.iterator();
             Date firstDelegationDate = it.next();
             if (it.hasNext()) {

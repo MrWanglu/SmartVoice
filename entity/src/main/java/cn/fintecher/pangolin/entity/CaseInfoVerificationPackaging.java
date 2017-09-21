@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.entity;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.math.BigDecimal;
@@ -21,6 +22,7 @@ public class CaseInfoVerificationPackaging extends BaseEntity {
     private String id;
 
     @ApiModelProperty(notes = "打包时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date packagingTime;
 
     @ApiModelProperty(notes = "打包说明")

@@ -263,9 +263,12 @@ public class CaseInfoVerificationController extends BaseController {
 
     @PostMapping("/download")
     @ApiOperation(value = "单个立刻下载",notes = "单个立即下载")
-    public ResponseEntity<String> download(String id) {
+    public ResponseEntity<String> download(@RequestBody CaseInfoVerficationModel caseInfoVerficationModel) {
         try{
-            CaseInfoVerificationPackaging caseInfoVerificationPackaging = caseInfoVerificationPackagingRepository.findOne(id);
+            CaseInfoVerificationPackaging caseInfoVerificationPackaging = new CaseInfoVerificationPackaging();
+            if(Objects.nonNull(caseInfoVerficationModel.getId())) {
+                caseInfoVerificationPackaging = caseInfoVerificationPackagingRepository.findOne(caseInfoVerficationModel.getId());
+            }
             if (Objects.nonNull(caseInfoVerificationPackaging.getDownloadCount())) {
                 caseInfoVerificationPackaging.setDownloadCount(caseInfoVerificationPackaging.getDownloadCount() + 1); // 下载次数
             }
