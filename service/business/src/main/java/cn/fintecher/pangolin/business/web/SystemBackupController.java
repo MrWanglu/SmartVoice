@@ -157,6 +157,17 @@ public class SystemBackupController extends BaseController {
             logger.info("恢复备份返回值" + result);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (br != null) {
+                    br.close();
+                }
+                if (ps != null) {
+                    ps.destroy();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(result);
     }
