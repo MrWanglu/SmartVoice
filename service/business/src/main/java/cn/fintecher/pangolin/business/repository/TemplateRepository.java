@@ -20,7 +20,9 @@ public interface TemplateRepository extends QueryDslPredicateExecutor<Template>,
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
     }
 
-    List<Template> findByTemplateNameOrTemplateCode(String templateName, String templateCode);
+    List<Template> findByTemplateNameOrTemplateCodeAndCompanyCode(String companyCode,String templateName, String templateCode);
+    List<Template> findByTemplateNameAndCompanyCode(String templateName, String companyCode);
+    List<Template> findByTemplateCodeAndCompanyCode(String templateName, String companyCode);
 
     List<Template> findTemplatesByTemplateStyleAndTemplateTypeAndCompanyCode(int templateStyle, int type, String companyCode);
 
