@@ -1,9 +1,8 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.*;
-import cn.fintecher.pangolin.business.service.AccFinanceEntryService;
-import cn.fintecher.pangolin.entity.AccFinanceDataExcel;
 import cn.fintecher.pangolin.business.repository.*;
+import cn.fintecher.pangolin.business.service.AccFinanceEntryService;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
@@ -23,7 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -41,6 +43,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
+import java.text.NumberFormat;
 import java.util.*;
 
 /**
@@ -1040,4 +1043,203 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "", e.getMessage())).body(null);
         }
     }
+
+    /**
+     * @Description 查询委外已结案案件
+     * <p>
+     * Created by huyanmin at 2017/09/20
+     */
+    @GetMapping("/getAllClosedOutSourceCase")
+    @ApiOperation(value = "查询委外已结案案件", notes = "查询委外已结案案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<OutsourcePool>> getAllClosedOutSourceCase(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                                         @ApiIgnore Pageable pageable,
+                                                                         @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("Rest request get all closed outsource case");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "user do not log in", e.getMessage())).body(null);
+        }
+        try {
+            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            //查询所有已结案案件
+            builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode()));
+            Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "getAllClosedOutSourceCase", "系统异常!")).body(null);
+        }
+
+
+    }
+
+    /**
+     * @Description 查询委外中案件
+     * <p>
+     * Created by huyanmin at 2017/09/20
+     */
+    @GetMapping("/getAllOutSourcePoolModel")
+    @ApiOperation(value = "查询可委外案件", notes = "查询可委外案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<OutsourcePoolModel>> getAllOutSourcePoolModel(@RequestParam(required = false) @ApiParam(value = "委外中展示Type") Integer type,
+                                                                                 @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                                                 @ApiIgnore Pageable pageable,
+                                                                                 @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("Rest request get all closed outsource case");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "user do not log in", e.getMessage())).body(null);
+        }
+        List<OutsourcePoolModel> list = null;
+        Page<OutsourcePoolModel> page = null;
+        try {
+            if (Objects.nonNull(type)) {
+                List<Object[]> allOutsourcePoolCase = null;
+                List<Object[]> allClosedOutsourcePoolCase = null;
+                //0-按委托方展示，1-按批次号展示
+                 if (type == 0) {
+                     allOutsourcePoolCase = outsourcePoolRepository.findAllOutsourcePoolCase();
+                     allClosedOutsourcePoolCase = outsourcePoolRepository.findAllClosedsourcePoolCase();
+                     list = getOutsourceList(allOutsourcePoolCase,allClosedOutsourcePoolCase, type);
+                } else {
+                     allOutsourcePoolCase = outsourcePoolRepository.findAllOutsourcePoolBatchCase();
+                     allClosedOutsourcePoolCase = outsourcePoolRepository.findAllClosedsourcePoolBatchCase();
+                     list = getOutsourceList(allOutsourcePoolCase,allClosedOutsourcePoolCase, type);
+                }
+                long size = list.size();
+                page = new PageImpl<>(list, pageable, size);
+            }
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "getAllOutSourcePoolModel", "系统异常!")).body(null);
+        }
+        return ResponseEntity.ok().body(page);
+    }
+
+    /**
+     * @Description 查询委外中按委托方展示
+     * <p>
+     * Created by huyanmin at 2017/09/21
+     */
+    private List<OutsourcePoolModel> getOutsourceList(List<Object[]> allOutsourcePoolCase, List<Object[]> allClosedOutsourcePoolCase, Integer type) {
+
+            List<OutsourcePoolModel> outsourcePoolModelList = new ArrayList<>();
+                int size = allOutsourcePoolCase.size();
+                for(int i=0; i<size;i++) {
+                    OutsourcePoolModel outsourcePoolModel = new OutsourcePoolModel();
+                    //查询所有案件
+                    Object[] objects1 = null;
+                    if(Objects.nonNull(allOutsourcePoolCase.get(i))){
+                        objects1 = allOutsourcePoolCase.get(i);
+                        outsourcePoolModel.setOutsourceName(objects1[0].toString());
+                        outsourcePoolModel.setComeOutsourceTime((Date) (objects1[1]));
+                        outsourcePoolModel.setDelegationDate((Date) (objects1[2]));
+                        outsourcePoolModel.setClosedDate((Date) (objects1[3]));
+                        outsourcePoolModel.setLeftDay((BigInteger) (objects1[4]));
+                        outsourcePoolModel.setOutcaseTotalAmt((BigDecimal) (objects1[5]));
+                        outsourcePoolModel.setOutcaseTotalCount((objects1[6]).toString());
+                        if (objects1.length == 8) {
+                            outsourcePoolModel.setBatchNumber(objects1[7].toString());
+                        } else {
+                            outsourcePoolModel.setBatchNumber("");
+                        }
+
+                    }
+                    Object[] objects2 = null;
+                    for(int j=0; j<allClosedOutsourcePoolCase.size();j++){
+                        objects2 = allClosedOutsourcePoolCase.get(j);
+                        //获取格式化对象
+                        NumberFormat nt = NumberFormat.getPercentInstance();
+                        //设置百分数精确度2即保留两位小数
+                        nt.setMinimumFractionDigits(2);
+                        String OutcaseCountRatio = "0.00%";
+                        String OutcaseCountAmtRatio = "0.00%";
+                        double OutcaseTotalCount = 0.00;
+                        double OutcaseClosedCount = 0.00;
+                        double OutcaseTotalCountAmt = 0.00;
+                        double OutcaseClosedCountAmt = 0.00;
+                        if (type == 0) {
+                            if (objects1[0].equals(objects2[0])) {
+                                outsourcePoolModel.setOutcaseClosedCount(objects2[1].toString());
+                                outsourcePoolModel.setOutcaseClosedAmt((BigDecimal) objects2[2]);
+                                OutcaseTotalCount = Double.parseDouble(outsourcePoolModel.getOutcaseTotalCount());
+                                OutcaseClosedCount = Double.parseDouble(outsourcePoolModel.getOutcaseClosedCount());
+                                OutcaseTotalCountAmt = outsourcePoolModel.getOutcaseTotalAmt().doubleValue();
+                                OutcaseClosedCountAmt = outsourcePoolModel.getOutcaseClosedAmt().doubleValue();
+                                OutcaseCountRatio = nt.format(OutcaseClosedCount / OutcaseTotalCount);
+                                OutcaseCountAmtRatio = nt.format(OutcaseClosedCountAmt / OutcaseTotalCountAmt);
+                                outsourcePoolModel.setOutcaseCountRatio(OutcaseCountRatio);
+                                outsourcePoolModel.setOutcaseAmtRatio(OutcaseCountAmtRatio);
+                            }else{
+                                if(Objects.isNull(outsourcePoolModel.getOutcaseClosedCount())){
+                                    outsourcePoolModel.setOutcaseClosedCount("0");
+                                }
+                                if(Objects.isNull(outsourcePoolModel.getOutcaseClosedAmt())){
+                                    outsourcePoolModel.setOutcaseClosedAmt(BigDecimal.valueOf(0.00));
+                                }
+                                if(Objects.isNull(outsourcePoolModel.getOutcaseCountRatio())){
+                                    outsourcePoolModel.setOutcaseCountRatio("0.00%");
+                                }
+                                if(Objects.isNull(outsourcePoolModel.getOutcaseAmtRatio())){
+                                    outsourcePoolModel.setOutcaseAmtRatio("0.00%");
+                                }
+                            }
+                        } else {
+                            if (objects1[0].equals(objects2[1]) && objects1[7].equals(objects2[0])) {
+                                outsourcePoolModel.setOutcaseClosedCount(objects2[2].toString());
+                                outsourcePoolModel.setOutcaseClosedAmt((BigDecimal) objects2[3]);
+                                OutcaseTotalCount = Double.parseDouble(outsourcePoolModel.getOutcaseTotalCount());
+                                OutcaseClosedCount = Double.parseDouble(outsourcePoolModel.getOutcaseClosedCount());
+                                OutcaseTotalCountAmt = outsourcePoolModel.getOutcaseTotalAmt().doubleValue();
+                                OutcaseClosedCountAmt = outsourcePoolModel.getOutcaseClosedAmt().doubleValue();
+                                OutcaseCountRatio = nt.format(OutcaseClosedCount / OutcaseTotalCount);
+                                OutcaseCountAmtRatio = nt.format(OutcaseClosedCountAmt / OutcaseTotalCountAmt);
+                                outsourcePoolModel.setOutcaseCountRatio(OutcaseCountRatio);
+                                outsourcePoolModel.setOutcaseAmtRatio(OutcaseCountAmtRatio);
+                            }else{
+                                if(Objects.isNull(outsourcePoolModel.getOutcaseClosedCount())){
+                                    outsourcePoolModel.setOutcaseClosedCount("0");
+                                }
+                                if(Objects.isNull(outsourcePoolModel.getOutcaseClosedAmt())){
+                                    outsourcePoolModel.setOutcaseClosedAmt(BigDecimal.valueOf(0.00));
+                                }
+                                if(Objects.isNull(outsourcePoolModel.getOutcaseCountRatio())){
+                                    outsourcePoolModel.setOutcaseCountRatio("0.00%");
+                                }
+                                if(Objects.isNull(outsourcePoolModel.getOutcaseAmtRatio())){
+                                    outsourcePoolModel.setOutcaseAmtRatio("0.00%");
+                                }
+
+                            }
+                        }
+                    }
+                    outsourcePoolModelList.add(outsourcePoolModel);
+                }
+            return outsourcePoolModelList;
+    }
+
+
 }
