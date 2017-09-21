@@ -215,7 +215,7 @@ public class CaseStrategyController {
             //得到符合分配策略的案件 caseInfos
             List<CaseInfoDistributed> caseInfos = runCaseRun(caseStrategy, false, companyCode);
             if (Objects.isNull(caseInfos) || caseInfos.isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "cases do not conform to the allocation strategy to distribution strategy", "没有符合策略的案件")).body("");
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "not in line with the strategy of the case", "没有符合策略的案件")).body("");
             } else {
                 //走案件分配流程
 

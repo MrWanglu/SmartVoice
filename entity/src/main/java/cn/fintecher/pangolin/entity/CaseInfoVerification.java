@@ -28,4 +28,7 @@ public class CaseInfoVerification extends BaseEntity {
     @ApiModelProperty("操作时间")
     private Date operatorTime;
 
+    @ApiModelProperty("核销说明")
+    private String state;
+
 }

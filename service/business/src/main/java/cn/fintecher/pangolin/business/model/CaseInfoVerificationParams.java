@@ -5,6 +5,7 @@ import java.util.Date;
 
 /**
  * Created by yuanyanting on 2017/9/1.
+ * 核销案件报表的查询条件
  */
 @Data
 public class CaseInfoVerificationParams {

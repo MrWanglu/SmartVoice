@@ -1,10 +1,11 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.CaseInfoVerModel;
+import cn.fintecher.pangolin.business.model.CaseInfoVerficationModel;
 import cn.fintecher.pangolin.business.model.CaseInfoVerificationParams;
-import cn.fintecher.pangolin.business.model.ListAccVerificationRecevicePool;
 import cn.fintecher.pangolin.business.repository.CaseAssistRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.repository.CaseInfoVerificationPackagingRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoVerificationRepository;
 import cn.fintecher.pangolin.business.service.CaseInfoVerificationService;
 import cn.fintecher.pangolin.entity.*;
@@ -14,7 +15,6 @@ import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
-import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -25,9 +25,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
-
 import javax.inject.Inject;
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author yuanyanting
@@ -50,9 +53,12 @@ public class CaseInfoVerificationController extends BaseController {
     @Inject
     private CaseAssistRepository caseAssistRepository;
 
+    @Inject
+    private CaseInfoVerificationPackagingRepository caseInfoVerificationPackagingRepository;
+
     @PostMapping("/saveCaseInfoVerification")
     @ApiOperation(value = "核销管理", notes = "核销管理")
-    public ResponseEntity saveCaseInfoVerification(@RequestBody ListAccVerificationRecevicePool request,
+    public ResponseEntity saveCaseInfoVerification(@RequestBody CaseInfoVerficationModel request,
                                                    @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
@@ -87,10 +93,11 @@ public class CaseInfoVerificationController extends BaseController {
                 CaseInfoVerification caseInfoVerification = new CaseInfoVerification();
                 caseInfo.setEndType(CaseInfo.EndType.CLOSE_CASE.getValue());
                 caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue());
-                caseInfoVerification.setCompanyCode(caseInfo.getCompanyCode());
-                caseInfoVerification.setOperator(user.getRealName());
-                caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime());
-                caseInfoVerification.setCaseInfo(caseInfo);
+                caseInfoVerification.setCompanyCode(caseInfo.getCompanyCode()); // 公司code
+                caseInfoVerification.setOperator(user.getRealName()); // 操作人
+                caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
+                caseInfoVerification.setCaseInfo(caseInfo); // 案件信息
+                caseInfoVerification.setState(request.getState()); // 核销说明
                 caseInfoVerificationRepository.save(caseInfoVerification);
             }
             return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "CaseInfoVerificationModel")).body(null);
@@ -134,27 +141,52 @@ public class CaseInfoVerificationController extends BaseController {
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoVerification")).body(page);
     }
 
-    @GetMapping("/exportVerification")
+    @PostMapping("/exportVerification")
     @ApiOperation(value = "核销管理导出", notes = "核销管理导出")
-    public ResponseEntity<String> exportVerification(@RequestHeader(value = "X-UserToken") String token, @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
+    public ResponseEntity<String> exportVerification(@RequestHeader(value = "X-UserToken") String token,
+                                                     @RequestBody CaseInfoVerficationModel caseInfoVerficationModel) {
         User user;
         try {
             user = getUserByToken(token);
-            BooleanBuilder booleanBuilder = new BooleanBuilder();
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.nonNull(companyCode)) {
-                    booleanBuilder.and(QCaseInfoVerification.caseInfoVerification.companyCode.eq(companyCode));
-                }
-            } else {
-                booleanBuilder.and(QCaseInfoVerification.caseInfoVerification.companyCode.eq(user.getCompanyCode()));
+            List<String> ids = caseInfoVerficationModel.getIds();
+            if (ids.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择案件!")).body(null);
             }
-            Iterator<CaseInfoVerification> caseInfoVerifications = caseInfoVerificationRepository.findAll(booleanBuilder).iterator();
-            List<CaseInfoVerification> caseInfoVerificationList = IteratorUtils.toList(caseInfoVerifications);
+            List<Object[]> caseInfoVerificationList = caseInfoVerificationService.getCastInfoList(caseInfoVerficationModel, user);
+            if (caseInfoVerificationList.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "要导出的核销案件数据为空!")).body(null);
+            }
+            if (caseInfoVerificationList.size() > 10000) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "不支持导出数据超过10000条!")).body(null);
+            }
+            int sum = 0;
+            BigDecimal amount = new BigDecimal(sum);
+            for (Object[] caseInfoVerification : caseInfoVerificationList) {
+                BigDecimal i = new BigDecimal(caseInfoVerification[6].toString());
+                amount.add(i);
+            }
             String url = caseInfoVerificationService.exportCaseInfoVerification(caseInfoVerificationList);
+            CaseInfoVerificationPackaging caseInfoVerificationPackaging = new CaseInfoVerificationPackaging();
+            caseInfoVerificationPackaging.setPackagingTime(ZWDateUtil.getNowDateTime()); // 打包时间
+            caseInfoVerificationPackaging.setPackagingState(caseInfoVerficationModel.getState()); // 打包说明
+            caseInfoVerificationPackaging.setPackagingCount(1);
+            caseInfoVerificationPackaging.setDownloadCount(1);
+            caseInfoVerificationPackaging.setTotalAmount(amount); // 总金额
+            caseInfoVerificationPackaging.setDownloadAddress(url); // 下载地址
+            caseInfoVerificationPackaging.setOperator(user.getRealName()); // 操作人
+            caseInfoVerificationPackaging.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.nonNull(caseInfoVerficationModel.getCompanyCode())) {
+                    caseInfoVerificationPackaging.setCompanyCode(caseInfoVerficationModel.getCompanyCode());
+                }
+            }else {
+                caseInfoVerificationPackaging.setCompanyCode(user.getCompanyCode());
+            }
+            caseInfoVerificationPackagingRepository.save(caseInfoVerificationPackaging);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", "caseInfoVerification")).body(url);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "导出失败")).body(null);
+             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "导出失败")).body(null);
         }
     }
 
@@ -200,6 +232,87 @@ public class CaseInfoVerificationController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "导出失败")).body(null);
         }
+    }
+
+    @PostMapping("/batchDownload")
+    @ApiOperation(value = "立刻下载",notes = "立刻下载")
+    public ResponseEntity<List<String>> batchDownload(@RequestBody CaseInfoVerficationModel caseInfoVerficationModel) {
+        try{
+            List<String> ids = caseInfoVerficationModel.getIds();
+            if (ids.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "请至少选择一个案件！")).body(null);
+            }
+            List<String> urlList = new ArrayList<>();
+            for (String id : ids) {
+                CaseInfoVerificationPackaging caseInfoVerificationPackaging = caseInfoVerificationPackagingRepository.findOne(id);
+                if (Objects.nonNull(caseInfoVerificationPackaging.getPackagingCount())) {
+                    caseInfoVerificationPackaging.setPackagingCount(caseInfoVerificationPackaging.getPackagingCount() + 1); // 打包次数
+                }
+                if (Objects.nonNull(caseInfoVerificationPackaging.getDownloadCount())) {
+                    caseInfoVerificationPackaging.setDownloadCount(caseInfoVerificationPackaging.getDownloadCount() + 1); // 下载次数
+                }
+                caseInfoVerificationPackagingRepository.save(caseInfoVerificationPackaging);
+                String url = caseInfoVerificationPackaging.getDownloadAddress();
+                urlList.add(url);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(urlList);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "查看失败")).body(null);
+        }
+    }
+
+    @PostMapping("/download")
+    @ApiOperation(value = "单个立刻下载",notes = "单个立即下载")
+    public ResponseEntity<String> download(String id) {
+        try{
+            CaseInfoVerificationPackaging caseInfoVerificationPackaging = caseInfoVerificationPackagingRepository.findOne(id);
+            if (Objects.nonNull(caseInfoVerificationPackaging.getPackagingCount())) {
+                caseInfoVerificationPackaging.setPackagingCount(caseInfoVerificationPackaging.getPackagingCount() + 1); // 打包次数
+            }
+            if (Objects.nonNull(caseInfoVerificationPackaging.getDownloadCount())) {
+                caseInfoVerificationPackaging.setDownloadCount(caseInfoVerificationPackaging.getDownloadCount() + 1); // 下载次数
+            }
+            caseInfoVerificationPackagingRepository.save(caseInfoVerificationPackaging);
+            String url = caseInfoVerificationPackaging.getDownloadAddress();
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(url);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "查看失败")).body(null);
+        }
+    }
+
+    @RequestMapping(value = "/getCaseInfoVerificationPackaging", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+    @ApiOperation(value = "核销案件打包的查询", notes = "核销案件打包的查询")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity getCaseInfoVerificationPackaging(@QuerydslPredicate(root = CaseInfoVerificationPackaging.class) Predicate predicate,
+                                                           @ApiIgnore Pageable pageable,
+                                                           @RequestHeader(value = "X-UserToken") String token,
+                                                           @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+        }
+        BooleanBuilder builder = new BooleanBuilder(predicate);
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (StringUtils.isNotBlank(companyCode)) {
+                builder.and(QCaseInfoVerificationPackaging.caseInfoVerificationPackaging.companyCode.eq(companyCode));
+            }
+        } else {
+            builder.and(QCaseInfoVerificationPackaging.caseInfoVerificationPackaging.companyCode.eq(user.getCompanyCode()));
+        }
+        Page<CaseInfoVerificationPackaging> page = caseInfoVerificationPackagingRepository.findAll(builder, pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoVerification")).body(page);
     }
 }
 

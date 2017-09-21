@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 /**
  * @author yuanyanting
  * @version Id:CaseInfoVerModel.java,v 0.1 2017/9/1 13:56 yuanyanting Exp $$
+ * 核销案件报表的导出返回参数
  */
 
 @Data

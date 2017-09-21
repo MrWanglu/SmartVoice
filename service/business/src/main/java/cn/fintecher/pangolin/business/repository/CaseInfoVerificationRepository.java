@@ -179,4 +179,13 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
    List<CaseInfoVerModel> findCaseInfoVerificationReport(@Param("startTime") Date startTime,
                                                          @Param("endTime") Date endTime,
                                                          @Param("companyCode") String companyCode);
+    /**
+     * 导出核销管理
+     *
+     * @param ids
+     * @param companyCode
+     * @return
+     */
+    @Query(value = "SELECT b.case_number,c.`name`,c.mobile_no,c.id_card,b.batch_number,b.overdue_days,b.overdue_amount,d.`name` AS pname,e.real_name,b.collection_status FROM (SELECT id,case_id FROM case_info_verification WHERE id in (:ids) AND company_code = :companyCode) AS a LEFT JOIN case_info b ON a.case_id = b.id LEFT JOIN personal c ON b.personal_id = c.id LEFT JOIN principal d ON b.principal_id = d.id LEFT JOIN `user` e ON b.current_collector = e.id ", nativeQuery = true)
+    List<Object[]> findCaseInfoVer(@Param("ids") List<String> ids, @Param("companyCode") String companyCode);
 }
