@@ -26,8 +26,8 @@ public class CaseInfoVerificationPackaging extends BaseEntity {
     @ApiModelProperty(notes = "打包说明")
     private String packagingState;
 
-    @ApiModelProperty(notes = "打包个数")
-    private Integer packagingCount;
+    @ApiModelProperty(notes = "案件个数")
+    private Integer count;
 
     @ApiModelProperty(notes = "总金额")
     private BigDecimal totalAmount;
