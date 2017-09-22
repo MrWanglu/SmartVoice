@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.dataimp.model.ColumnError;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
@@ -15,6 +16,9 @@ import java.util.List;
 @Document
 @ApiModel(description = "数据行错误信息")
 public class RowError {
+    @ApiModelProperty("唯一标识（主键）")
+    @Id
+    private String Id;
     @ApiModelProperty("sheet名称")
     private String sheetName;
     @ApiModelProperty("行数")

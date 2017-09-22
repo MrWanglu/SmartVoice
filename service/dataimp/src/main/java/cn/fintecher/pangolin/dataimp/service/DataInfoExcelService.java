@@ -69,6 +69,8 @@ public class DataInfoExcelService {
 
     @Autowired
     private DataInfoExcelHisRepository dataInfoExcelHisRepository;
+    @Autowired
+    private RowErrorRepository rowErrorRepository;
 
     private final Logger logger = LoggerFactory.getLogger(DataInfoExcelService.class);
 
@@ -79,7 +81,7 @@ public class DataInfoExcelService {
      * @param user
      * @throws Exception
      */
-    public List<RowError> importExcelData(DataImportRecord dataImportRecord, User user) throws Exception {
+    public void importExcelData(DataImportRecord dataImportRecord, User user) throws Exception {
         //获取上传的文件
         ResponseEntity<UploadFile> fileResponseEntity = null;
         try {
@@ -118,46 +120,49 @@ public class DataInfoExcelService {
         if (Objects.nonNull(excelSheetObj)) {
             rowErrors = excelSheetObj.getSheetErrorList();
             List dataList = excelSheetObj.getDataList();
-            //验证数据的合法性 此处验证数据的合法性 分为严重错误和提醒错误
-//            validityDataInfoExcel(cellErrorList, dataList);
-            if (rowErrors.isEmpty()) {
-                //导入数据记录
-                dataImportRecord.setOperator(user.getId());
-                dataImportRecord.setOperatorName(user.getRealName());
-                dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
-                dataImportRecord.setCompanyCode(user.getCompanyCode());
-                dataImportRecordRepository.save(dataImportRecord);
+            //导入数据记录
+            dataImportRecord.setOperator(user.getId());
+            dataImportRecord.setOperatorName(user.getRealName());
+            dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
+            dataImportRecord.setCompanyCode(user.getCompanyCode());
+            dataImportRecordRepository.save(dataImportRecord);
 
-                ResponseEntity<Company> entity = restTemplate.getForEntity(Constants.COMPANY_URL.concat(user.getCompanyCode()), Company.class);
-                if (!entity.hasBody()) {
-                    throw new Exception("获取公司序列号失败!");
-                }
-                Company company = entity.getBody();
-                //批次号
-                String batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ, user.getCompanyCode(), Constants.ORDER_SEQ_LENGTH);
-                dataImportRecord.setBatchNumber(batchNumber);
-                dataImportRecordRepository.save(dataImportRecord);
-                //开始保存数据
-                for (Object obj : dataList) {
-                    DataInfoExcel tempObj = (DataInfoExcel) obj;
-                    tempObj.setBatchNumber(batchNumber);
-                    tempObj.setDataSources(Constants.DataSource.IMPORT.getValue());
-                    tempObj.setPrinCode(dataImportRecord.getPrincipalId());
-                    tempObj.setPrinName(dataImportRecord.getPrincipalName());
-                    tempObj.setOperator(user.getId());
-                    tempObj.setOperatorName(user.getRealName());
-                    tempObj.setOperatorTime(ZWDateUtil.getNowDateTime());
-                    tempObj.setCompanyCode(user.getCompanyCode());
-                    tempObj.setPaymentStatus("M".concat(String.valueOf(tempObj.getOverDuePeriods() == null ? "M0" : tempObj.getOverDuePeriods())));
-                    tempObj.setDelegationDate(dataImportRecord.getDelegationDate());
-                    tempObj.setCloseDate(dataImportRecord.getCloseDate());
-                    String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, user.getCompanyCode(), Constants.CASE_SEQ_LENGTH);
-                    tempObj.setCaseNumber(caseNumber.concat(company.getSequence()));
-                    dataInfoExcelRepository.save(tempObj);
+            ResponseEntity<Company> entity = restTemplate.getForEntity(Constants.COMPANY_URL.concat(user.getCompanyCode()), Company.class);
+            if (!entity.hasBody()) {
+                throw new Exception("获取公司序列号失败!");
+            }
+            Company company = entity.getBody();
+            //批次号
+            String batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ, user.getCompanyCode(), Constants.ORDER_SEQ_LENGTH);
+            dataImportRecord.setBatchNumber(batchNumber);
+            dataImportRecordRepository.save(dataImportRecord);
+            //开始保存数据
+            for (int i = 0; i< dataList.size(); i++) {
+                DataInfoExcel tempObj = (DataInfoExcel) dataList.get(i);
+                tempObj.setBatchNumber(batchNumber);
+                tempObj.setDataSources(Constants.DataSource.IMPORT.getValue());
+                tempObj.setPrinCode(dataImportRecord.getPrincipalId());
+                tempObj.setPrinName(dataImportRecord.getPrincipalName());
+                tempObj.setOperator(user.getId());
+                tempObj.setOperatorName(user.getRealName());
+                tempObj.setOperatorTime(ZWDateUtil.getNowDateTime());
+                tempObj.setCompanyCode(user.getCompanyCode());
+                tempObj.setPaymentStatus("M".concat(String.valueOf(tempObj.getOverDuePeriods() == null ? "M0" : tempObj.getOverDuePeriods())));
+                tempObj.setDelegationDate(dataImportRecord.getDelegationDate());
+                tempObj.setCloseDate(dataImportRecord.getCloseDate());
+                String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, user.getCompanyCode(), Constants.CASE_SEQ_LENGTH);
+                tempObj.setCaseNumber(caseNumber.concat(company.getSequence()));
+                dataInfoExcelRepository.save(tempObj);
+                for (RowError rowError : rowErrors) {
+                    if (rowError.getRowIndex() == i+1) {
+                        rowError.setBatchNumber(batchNumber);
+                        rowError.setCaseNumber(caseNumber);
+                        rowErrorRepository.save(rowError);
+                        break;
+                    }
                 }
             }
         }
-        return rowErrors;
     }
 
     /**

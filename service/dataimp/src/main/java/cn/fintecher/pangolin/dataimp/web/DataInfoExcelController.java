@@ -115,7 +115,7 @@ public class DataInfoExcelController {
         List<RowError> rowErrorList = new ArrayList<>();
         try {
             try {
-                rowErrorList= dataInfoExcelService.importExcelData(dataImportRecord,user);
+                dataInfoExcelService.importExcelData(dataImportRecord,user);
             } catch (final Exception e) {
                 logger.error(e.getMessage(),e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "importExcelData", e.getMessage())).body(null);
