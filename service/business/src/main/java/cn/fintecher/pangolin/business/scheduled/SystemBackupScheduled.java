@@ -40,8 +40,7 @@ public class SystemBackupScheduled {
     @Autowired
     private SysParamRepository sysParamRepository;
 
-    @Scheduled(cron = "0/59 * * * * ?")
-//    @Scheduled(cron = "0 0 0/23 * * ?")
+    @Scheduled(cron = "0 0 0/23 * * ?")
     void systemBackup() throws IOException {
         log.info("开始mysql数据库备份" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
         try {
