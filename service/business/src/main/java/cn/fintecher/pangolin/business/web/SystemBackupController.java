@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.DeleteSystemBackupIds;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.repository.SystemBackupRepository;
 import cn.fintecher.pangolin.business.service.SystemBackupService;
@@ -165,9 +166,29 @@ public class SystemBackupController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exception for parameters", "恢复系统数据库地址参数异常")).body(null);
         }
         String result = systemBackupService.operationShell(sysParams.getValue(), request.getMysqlName());
-        if(!Objects.equals("success",result)){
+        if (!Objects.equals("success", result)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail to backup mysql database", "mysql数据库备份失败")).body(null);
         }
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(result);
+    }
+
+    /**
+     * @Description : 删除系统数据库备份
+     */
+    @PostMapping("/deleteSystemBackup")
+    @ApiOperation(value = "删除系统数据库备份", notes = "删除系统数据库备份")
+    public ResponseEntity<String> deleteSystemBackup(@RequestBody DeleteSystemBackupIds request,
+                                                     @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        for(String id:request.getIds()){
+            systemBackupRepository.delete(id);
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
     }
 }
