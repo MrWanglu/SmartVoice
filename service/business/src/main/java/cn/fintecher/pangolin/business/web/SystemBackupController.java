@@ -169,18 +169,18 @@ public class SystemBackupController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
         QSysParam qSysParam = QSysParam.sysParam;
-        SysParam sysParams = null;
-        try {
-            sysParams = sysParamRepository.findOne(qSysParam.code.eq(Constants.MYSQL_RECOVER_ADDRESS_CODE).and(qSysParam.type.eq(Constants.MYSQL_RECOVER_ADDRESS_TYPE)).and(qSysParam.companyCode.eq(request.getCompanyCode())));
-        } catch (Exception e) {
-            e.printStackTrace();
+        //mysql数据库恢复
+        Iterator<SysParam> mysqlSysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.MYSQL_RECOVER_ADDRESS_CODE).and(qSysParam.type.eq(Constants.MYSQL_RECOVER_ADDRESS_TYPE))).iterator();
+        if (!mysqlSysParams.hasNext()) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exception for parameters", "恢复系统数据库地址参数异常")).body(null);
         }
-        String result = systemBackupService.operationShell(sysParams.getValue(), request.getMysqlName());
-        if (!Objects.equals("success", result)) {
+        String mysqlResult = systemBackupService.operationShell(mysqlSysParams.next().getValue(), request.getMysqlName());
+        if (!Objects.equals("success", mysqlResult)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail to recover mysql database", "mysql数据库恢复失败")).body(null);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(result);
+        //mongodb数据库恢复
+
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(mysqlResult);
     }
 
     /**
