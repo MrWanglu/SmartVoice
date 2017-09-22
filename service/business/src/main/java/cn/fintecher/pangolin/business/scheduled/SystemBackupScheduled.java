@@ -52,15 +52,17 @@ public class SystemBackupScheduled {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            String result = systemBackupService.operationShell(sysParams.next().getValue(), "Administrator");
-            Pattern p = Pattern.compile(".*sql");
-            Matcher m = p.matcher(result);
-            while (m.find()) {
-                request.setType(0);
-                request.setMysqlName(result);
-                request.setOperator("Administrator");
-                request.setOperateTime(ZWDateUtil.getNowDateTime());
-                systemBackupRepository.save(request);
+            if (sysParams.hasNext()) {
+                String result = systemBackupService.operationShell(sysParams.next().getValue(), "Administrator");
+                Pattern p = Pattern.compile(".*sql");
+                Matcher m = p.matcher(result);
+                while (m.find()) {
+                    request.setType(0);
+                    request.setMysqlName(result);
+                    request.setOperator("Administrator");
+                    request.setOperateTime(ZWDateUtil.getNowDateTime());
+                    systemBackupRepository.save(request);
+                }
             }
         } catch (Exception e1) {
             e1.printStackTrace();
