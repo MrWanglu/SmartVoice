@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -116,22 +117,32 @@ public class SystemBackupController extends BaseController {
         if (Objects.isNull(request.getCompanyCode())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "error for companycode", "公司code码不能为空")).body(null);
         }
+        //mysql数据库备份
         QSysParam qSysParam = QSysParam.sysParam;
-        SysParam sysParams = null;
-        try {
-            sysParams = sysParamRepository.findOne(qSysParam.code.eq(Constants.MYSQL_BACKUP_ADDRESS_CODE).and(qSysParam.type.eq(Constants.MYSQL_BACKUP_ADDRESS_TYPE)).and(qSysParam.companyCode.eq(request.getCompanyCode())));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exception for parameters", "系统数据库备份地址参数异常")).body(null);
+        Iterator<SysParam> mysqlSysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.MYSQL_BACKUP_ADDRESS_CODE).and(qSysParam.type.eq(Constants.MYSQL_BACKUP_ADDRESS_TYPE))).iterator();
+        if (!mysqlSysParams.hasNext()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exception for parameters", "mysql系统数据库备份地址参数异常")).body(null);
         }
-        String result = systemBackupService.operationShell(sysParams.getValue(), user.getUserName());
+        String result = systemBackupService.operationShell(mysqlSysParams.next().getValue(), user.getUserName());
         Pattern p = Pattern.compile(".*sql");
         Matcher m = p.matcher(result);
         while (!(m.find())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Mysql database backup failed", "mysql数据库备份失败")).body(null);
         }
+        //mongodb数据库备份
+        Iterator<SysParam> mongodbSysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.MONGODB_BACKUP_ADDRESS_CODE).and(qSysParam.type.eq(Constants.MONGODB_BACKUP_ADDRESS_TYPE))).iterator();
+        if (!mongodbSysParams.hasNext()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exception for parameters", "mongodb系统数据库备份地址参数异常")).body(null);
+        }
+        String mongodbResult = systemBackupService.operationShell(mongodbSysParams.next().getValue(), user.getUserName());
+        Pattern mongodbp = Pattern.compile(".*mongodb");
+        Matcher mongodbm = mongodbp.matcher(mongodbResult);
+        while (!(mongodbm.find())) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "mongodb database backup failed", "mongodb数据库备份失败")).body(null);
+        }
         request.setType(1);
         request.setMysqlName(result);
+        request.setMongdbName(mongodbResult);
         request.setOperator(user.getRealName());
         request.setOperateTime(ZWDateUtil.getNowDateTime());
         //增加系统数据库备份
@@ -186,7 +197,7 @@ public class SystemBackupController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
-        for(String id:request.getIds()){
+        for (String id : request.getIds()) {
             systemBackupRepository.delete(id);
         }
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);

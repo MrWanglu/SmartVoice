@@ -40,18 +40,14 @@ public class SystemBackupScheduled {
     @Autowired
     private SysParamRepository sysParamRepository;
 
-    @Scheduled(cron = "0 0 0/23 * * ?")
+    @Scheduled(cron = "0/59 * * * * ?")
+//    @Scheduled(cron = "0 0 0/23 * * ?")
     void systemBackup() throws IOException {
         log.info("开始mysql数据库备份" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
         try {
             SystemBackup request = new SystemBackup();
             QSysParam qSysParam = QSysParam.sysParam;
-            Iterator<SysParam> sysParams = null;
-            try {
-                sysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.MYSQL_BACKUP_ADDRESS_CODE).and(qSysParam.type.eq(Constants.MYSQL_BACKUP_ADDRESS_TYPE))).iterator();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Iterator<SysParam> sysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.MYSQL_BACKUP_ADDRESS_CODE).and(qSysParam.type.eq(Constants.MYSQL_BACKUP_ADDRESS_TYPE))).iterator();
             if (sysParams.hasNext()) {
                 String result = systemBackupService.operationShell(sysParams.next().getValue(), "Administrator");
                 Pattern p = Pattern.compile(".*sql");
@@ -59,11 +55,23 @@ public class SystemBackupScheduled {
                 while (m.find()) {
                     request.setType(0);
                     request.setMysqlName(result);
-                    request.setOperator("Administrator");
-                    request.setOperateTime(ZWDateUtil.getNowDateTime());
-                    systemBackupRepository.save(request);
+//mongodb数据库备份
+                    Iterator<SysParam> mongodbSysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.MONGODB_BACKUP_ADDRESS_CODE).and(qSysParam.type.eq(Constants.MONGODB_BACKUP_ADDRESS_TYPE))).iterator();
+                    if(mongodbSysParams.hasNext()) {
+                        String mongodbResult = systemBackupService.operationShell(mongodbSysParams.next().getValue(),"Administrator");
+                        Pattern mongodbp = Pattern.compile(".*mongodb");
+                        Matcher mongodbm = mongodbp.matcher(mongodbResult);
+                        while (mongodbm.find()) {
+                            request.setMongdbName(mongodbResult);
+                            request.setOperator("Administrator");
+                            request.setOperateTime(ZWDateUtil.getNowDateTime());
+                            systemBackupRepository.save(request);
+                        }
+
+                    }
                 }
             }
+
         } catch (Exception e1) {
             e1.printStackTrace();
         }
