@@ -15,5 +15,5 @@ public class ExcelSheetObj  implements Serializable{
     private String sheetName;
     private List dataList;
     private String importMsg;
-    private List<CellError> cellErrorList;
+    private List<RowError> sheetErrorList;
 }

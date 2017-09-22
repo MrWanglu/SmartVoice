@@ -28,15 +28,18 @@ public class DataInfoExcel implements Serializable {
     private String id;
 
     @ApiModelProperty(notes = "客户姓名")
-    @ExcelAnno(cellName = "客户姓名")
+    @ExcelAnno(cellName = "客户姓名",
+            fieldCheck = ExcelAnno.FieldCheck.PERSONAL_NAME)
     private String personalName;
 
     @ApiModelProperty(notes = "身份证号码")
-    @ExcelAnno(cellName = "身份证号")
+    @ExcelAnno(cellName = "身份证号",
+            fieldCheck = ExcelAnno.FieldCheck.IDCARD)
     private String idCard;
 
     @ApiModelProperty(notes = "手机号码")
-    @ExcelAnno(cellName = "手机号码")
+    @ExcelAnno(cellName = "手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String mobileNo;
 
     @ApiModelProperty(notes = "产品系列")
@@ -44,7 +47,8 @@ public class DataInfoExcel implements Serializable {
     private String productSeriesName;
 
     @ApiModelProperty(notes = "产品名称")
-    @ExcelAnno(cellName = "产品名称")
+    @ExcelAnno(cellName = "产品名称",
+            fieldCheck = ExcelAnno.FieldCheck.PRODUCT_NAME)
     private String productName;
 
     @ApiModelProperty(notes = "合同编号")
@@ -52,83 +56,103 @@ public class DataInfoExcel implements Serializable {
     private String contractNumber;
 
     @ApiModelProperty(notes = "贷款日期 就是合同签订日期")
-    @ExcelAnno(cellName = "贷款日期")
+    @ExcelAnno(cellName = "贷款日期",
+            fieldType = ExcelAnno.FieldType.DATE)
     private Date loanDate;
 
     @ApiModelProperty("总期数")
-    @ExcelAnno(cellName = "还款期数")
+    @ExcelAnno(cellName = "还款期数",
+            fieldType = ExcelAnno.FieldType.INTEGER)
     private Integer periods = new Integer(0);
 
     @ApiModelProperty("每期还款日")
-    @ExcelAnno(cellName = "每期还款日")
+    @ExcelAnno(cellName = "每期还款日",
+            fieldType = ExcelAnno.FieldType.DATE)
     private Date perDueDate;
 
     @ApiModelProperty("每期还款金额(元)")
-    @ExcelAnno(cellName = "每期还款金额(元)")
+    @ExcelAnno(cellName = "每期还款金额(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double perPayAmount = new Double(0);
 
     @ApiModelProperty("合同金额")
-    @ExcelAnno(cellName = "合同金额(元)")
+    @ExcelAnno(cellName = "合同金额(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double contractAmount = new Double(0);
 
     @ApiModelProperty("剩余本金")
-    @ExcelAnno(cellName = "剩余本金(元)")
+    @ExcelAnno(cellName = "剩余本金(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double leftCapital = new Double(0);
 
     @ApiModelProperty("剩余利息")
-    @ExcelAnno(cellName = "剩余利息(元)")
+    @ExcelAnno(cellName = "剩余利息(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double leftInterest = new Double(0);
 
     @ApiModelProperty("案件金额")
-    @ExcelAnno(cellName = "逾期总金额(元)")
+    @ExcelAnno(cellName = "逾期总金额(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double overdueAmount = new Double(0);
 
     @ApiModelProperty("逾期本金(元)")
-    @ExcelAnno(cellName = "逾期本金(元)")
+    @ExcelAnno(cellName = "逾期本金(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double overdueCapital = new Double(0);
 
     @ApiModelProperty("逾期利息(元)")
-    @ExcelAnno(cellName = "逾期利息(元)")
+    @ExcelAnno(cellName = "逾期利息(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double overDueInterest = new Double(0);
 
     @ApiModelProperty("逾期罚息(元)")
-    @ExcelAnno(cellName = "逾期罚息(元)")
+    @ExcelAnno(cellName = "逾期罚息(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double overdueFine = new Double(0);
 
     @ApiModelProperty("逾期滞纳金(元)")
-    @ExcelAnno(cellName = "逾期滞纳金(元)")
+    @ExcelAnno(cellName = "逾期滞纳金(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double overdueDelayFine = new Double(0);
 
     @ApiModelProperty("其他费用")
-    @ExcelAnno(cellName = "其他费用(元)")
+    @ExcelAnno(cellName = "其他费用(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double otherAmt = new Double(0);
 
     @ApiModelProperty("逾期日期")
-    @ExcelAnno(cellName = "逾期日期")
+    @ExcelAnno(cellName = "逾期日期",
+            fieldType = ExcelAnno.FieldType.DATE)
     private Date overDueDate;
 
     @ApiModelProperty("逾期期数")
-    @ExcelAnno(cellName = "逾期期数")
+    @ExcelAnno(cellName = "逾期期数",
+            fieldType = ExcelAnno.FieldType.INTEGER)
     private Integer overDuePeriods = new Integer(0);
 
     @ApiModelProperty("逾期天数")
-    @ExcelAnno(cellName = "逾期天数")
+    @ExcelAnno(cellName = "逾期天数",
+            fieldType = ExcelAnno.FieldType.INTEGER)
     private Integer overDueDays = new Integer(0);
 
     @ApiModelProperty("已还款金额(元)")
-    @ExcelAnno(cellName = "已还款金额(元)")
+    @ExcelAnno(cellName = "已还款金额(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double hasPayAmount = new Double(0);
 
     @ApiModelProperty("已还款期数")
-    @ExcelAnno(cellName = "已还款期数")
+    @ExcelAnno(cellName = "已还款期数",
+            fieldType = ExcelAnno.FieldType.INTEGER)
     private Integer hasPayPeriods = new Integer(0);
 
     @ApiModelProperty("最近还款日期")
-    @ExcelAnno(cellName = "最近还款日期")
+    @ExcelAnno(cellName = "最近还款日期",
+            fieldType = ExcelAnno.FieldType.DATE)
     private Date latelyPayDate;
 
     @ApiModelProperty("最近还款金额(元)")
-    @ExcelAnno(cellName = "最近还款金额(元)")
+    @ExcelAnno(cellName = "最近还款金额(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double latelyPayAmount = new Double(0);
 
     @ApiModelProperty("客户还款卡银行")
@@ -185,15 +209,18 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit1;
 
     @ApiModelProperty("联系人1单位电话")
-    @ExcelAnno(cellName = "联系人1单位电话")
+    @ExcelAnno(cellName = "联系人1单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone1;
 
     @ApiModelProperty("联系人1手机号码")
-    @ExcelAnno(cellName = "联系人1手机号码")
+    @ExcelAnno(cellName = "联系人1手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone1;
 
     @ApiModelProperty("联系人1住宅电话")
-    @ExcelAnno(cellName = "联系人1住宅电话")
+    @ExcelAnno(cellName = "联系人1住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone1;
 
     @ApiModelProperty("联系人1现居地址")
@@ -210,7 +237,8 @@ public class DataInfoExcel implements Serializable {
     private String contactRelation2;
 
     @ApiModelProperty("联系人2手机号码")
-    @ExcelAnno(cellName = "联系人2手机号码")
+    @ExcelAnno(cellName = "联系人2手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone2;
 
     @ApiModelProperty("联系人2工作单位")
@@ -218,11 +246,13 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit2;
 
     @ApiModelProperty("联系人2单位电话")
-    @ExcelAnno(cellName = "联系人2单位电话")
+    @ExcelAnno(cellName = "联系人2单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone2;
 
     @ApiModelProperty("联系人2住宅电话")
-    @ExcelAnno(cellName = "联系人2住宅电话")
+    @ExcelAnno(cellName = "联系人2住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone2;
 
     @ApiModelProperty("联系人2现居地址")
@@ -239,7 +269,8 @@ public class DataInfoExcel implements Serializable {
     private String contactRelation3;
 
     @ApiModelProperty("联系人3手机号码")
-    @ExcelAnno(cellName = "联系人3手机号码")
+    @ExcelAnno(cellName = "联系人3手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone3;
 
     @ApiModelProperty("联系人3工作单位")
@@ -247,7 +278,8 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit3;
 
     @ApiModelProperty("联系人3单位电话")
-    @ExcelAnno(cellName = "联系人3单位电话")
+    @ExcelAnno(cellName = "联系人3单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone3;
 
     @ApiModelProperty("联系人3住宅电话")
@@ -268,7 +300,8 @@ public class DataInfoExcel implements Serializable {
     private String contactRelation4;
 
     @ApiModelProperty("联系人4手机号码")
-    @ExcelAnno(cellName = "联系人4手机号码")
+    @ExcelAnno(cellName = "联系人4手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone4;
 
     @ApiModelProperty("联系人4工作单位")
@@ -276,11 +309,13 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit4;
 
     @ApiModelProperty("联系人4单位电话")
-    @ExcelAnno(cellName = "联系人4单位电话")
+    @ExcelAnno(cellName = "联系人4单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone4;
 
     @ApiModelProperty("联系人4住宅电话")
-    @ExcelAnno(cellName = "联系人4住宅电话")
+    @ExcelAnno(cellName = "联系人4住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone4;
 
     @ApiModelProperty("联系人4现居地址")
@@ -301,15 +336,18 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit5;
 
     @ApiModelProperty("联系人5单位电话")
-    @ExcelAnno(cellName = "联系人5单位电话")
+    @ExcelAnno(cellName = "联系人5单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone5;
 
     @ApiModelProperty("联系人5手机号码")
-    @ExcelAnno(cellName = "联系人5手机号码")
+    @ExcelAnno(cellName = "联系人5手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone5;
 
     @ApiModelProperty("联系人5住宅电话")
-    @ExcelAnno(cellName = "联系人5住宅电话")
+    @ExcelAnno(cellName = "联系人5住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone5;
 
     @ApiModelProperty("联系人5现居地址")
@@ -330,15 +368,18 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit6;
 
     @ApiModelProperty("联系人6单位电话")
-    @ExcelAnno(cellName = "联系人6单位电话")
+    @ExcelAnno(cellName = "联系人6单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone6;
 
     @ApiModelProperty("联系人6手机号码")
-    @ExcelAnno(cellName = "联系人6手机号码")
+    @ExcelAnno(cellName = "联系人6手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone6;
 
     @ApiModelProperty("联系人6住宅电话")
-    @ExcelAnno(cellName = "联系人6住宅电话")
+    @ExcelAnno(cellName = "联系人6住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone6;
 
     @ApiModelProperty("联系人6现居地址")
@@ -359,15 +400,18 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit7;
 
     @ApiModelProperty("联系人7单位电话")
-    @ExcelAnno(cellName = "联系人7单位电话")
+    @ExcelAnno(cellName = "联系人7单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone7;
 
     @ApiModelProperty("联系人7手机号码")
-    @ExcelAnno(cellName = "联系人7手机号码")
+    @ExcelAnno(cellName = "联系人7手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone7;
 
     @ApiModelProperty("联系人7住宅电话")
-    @ExcelAnno(cellName = "联系人7住宅电话")
+    @ExcelAnno(cellName = "联系人7住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone7;
 
     @ApiModelProperty("联系人7现居地址")
@@ -388,15 +432,18 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit8;
 
     @ApiModelProperty("联系人8单位电话")
-    @ExcelAnno(cellName = "联系人8单位电话")
+    @ExcelAnno(cellName = "联系人8单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone8;
 
     @ApiModelProperty("联系人8手机号码")
-    @ExcelAnno(cellName = "联系人8手机号码")
+    @ExcelAnno(cellName = "联系人8手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone8;
 
     @ApiModelProperty("联系人8住宅电话")
-    @ExcelAnno(cellName = "联系人8住宅电话")
+    @ExcelAnno(cellName = "联系人8住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone8;
 
     @ApiModelProperty("联系人8现居地址")
@@ -417,15 +464,18 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit9;
 
     @ApiModelProperty("联系人9单位电话")
-    @ExcelAnno(cellName = "联系人9单位电话")
+    @ExcelAnno(cellName = "联系人9单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone9;
 
     @ApiModelProperty("联系人9手机号码")
-    @ExcelAnno(cellName = "联系人9手机号码")
+    @ExcelAnno(cellName = "联系人9手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone9;
 
     @ApiModelProperty("联系人9住宅电话")
-    @ExcelAnno(cellName = "联系人9住宅电话")
+    @ExcelAnno(cellName = "联系人9住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone9;
 
     @ApiModelProperty("联系人9现居地址")
@@ -446,15 +496,18 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit10;
 
     @ApiModelProperty("联系人10单位电话")
-    @ExcelAnno(cellName = "联系人10单位电话")
+    @ExcelAnno(cellName = "联系人10单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone10;
 
     @ApiModelProperty("联系人10手机号码")
-    @ExcelAnno(cellName = "联系人10手机号码")
+    @ExcelAnno(cellName = "联系人10手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone10;
 
     @ApiModelProperty("联系人10住宅电话")
-    @ExcelAnno(cellName = "联系人10住宅电话")
+    @ExcelAnno(cellName = "联系人10住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone10;
 
     @ApiModelProperty("联系人10现居地址")
@@ -475,15 +528,18 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit11;
 
     @ApiModelProperty("联系人11单位电话")
-    @ExcelAnno(cellName = "联系人11单位电话")
+    @ExcelAnno(cellName = "联系人11单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone11;
 
     @ApiModelProperty("联系人11手机号码")
-    @ExcelAnno(cellName = "联系人11手机号码")
+    @ExcelAnno(cellName = "联系人11手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone11;
 
     @ApiModelProperty("联系人11住宅电话")
-    @ExcelAnno(cellName = "联系人11住宅电话")
+    @ExcelAnno(cellName = "联系人11住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone11;
 
     @ApiModelProperty("联系人11现居地址")
@@ -504,15 +560,18 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit12;
 
     @ApiModelProperty("联系人12单位电话")
-    @ExcelAnno(cellName = "联系人12单位电话")
+    @ExcelAnno(cellName = "联系人12单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone12;
 
     @ApiModelProperty("联系人12手机号码")
-    @ExcelAnno(cellName = "联系人12手机号码")
+    @ExcelAnno(cellName = "联系人12手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone12;
 
     @ApiModelProperty("联系人12住宅电话")
-    @ExcelAnno(cellName = "联系人12住宅电话")
+    @ExcelAnno(cellName = "联系人12住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone12;
 
     @ApiModelProperty("联系人12现居地址")
@@ -533,15 +592,18 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit13;
 
     @ApiModelProperty("联系人13单位电话")
-    @ExcelAnno(cellName = "联系人13单位电话")
+    @ExcelAnno(cellName = "联系人13单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone13;
 
     @ApiModelProperty("联系人13手机号码")
-    @ExcelAnno(cellName = "联系人13手机号码")
+    @ExcelAnno(cellName = "联系人13手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone13;
 
     @ApiModelProperty("联系人13住宅电话")
-    @ExcelAnno(cellName = "联系人13住宅电话")
+    @ExcelAnno(cellName = "联系人13住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone13;
 
     @ApiModelProperty("联系人13现居地址")
@@ -562,15 +624,18 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit14;
 
     @ApiModelProperty("联系人14单位电话")
-    @ExcelAnno(cellName = "联系人14单位电话")
+    @ExcelAnno(cellName = "联系人14单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone14;
 
     @ApiModelProperty("联系人14手机号码")
-    @ExcelAnno(cellName = "联系人14手机号码")
+    @ExcelAnno(cellName = "联系人14手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone14;
 
     @ApiModelProperty("联系人14住宅电话")
-    @ExcelAnno(cellName = "联系人14住宅电话")
+    @ExcelAnno(cellName = "联系人14住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone14;
 
     @ApiModelProperty("联系人14现居地址")
@@ -591,15 +656,18 @@ public class DataInfoExcel implements Serializable {
     private String contactWorkUnit15;
 
     @ApiModelProperty("联系人15单位电话")
-    @ExcelAnno(cellName = "联系人15单位电话")
+    @ExcelAnno(cellName = "联系人15单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactUnitPhone15;
 
     @ApiModelProperty("联系人15手机号码")
-    @ExcelAnno(cellName = "联系人15手机号码")
+    @ExcelAnno(cellName = "联系人15手机号码",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactPhone15;
 
     @ApiModelProperty("联系人15住宅电话")
-    @ExcelAnno(cellName = "联系人15住宅电话")
+    @ExcelAnno(cellName = "联系人15住宅电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
     private String contactHomePhone15;
 
     @ApiModelProperty("联系人15现居地址")
@@ -611,11 +679,13 @@ public class DataInfoExcel implements Serializable {
     private String memo;
 
     @ApiModelProperty("佣金比例(%)")
-    @ExcelAnno(cellName = "佣金比例(%)")
+    @ExcelAnno(cellName = "佣金比例(%)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double commissionRate = new Double(0);
 
     @ApiModelProperty("逾期管理费")
-    @ExcelAnno(cellName = "逾期管理费")
+    @ExcelAnno(cellName = "逾期管理费(元)",
+            fieldType = ExcelAnno.FieldType.DOUBLE)
     private Double overdueManageFee = new Double(0);
 
     @ExcelAnno(cellName = "批次")
@@ -631,7 +701,8 @@ public class DataInfoExcel implements Serializable {
     private String accountNumber;
 
     @ApiModelProperty("首次还款日期")
-    @ExcelAnno(cellName = "首次还款日期")
+    @ExcelAnno(cellName = "首次还款日期",
+            fieldType = ExcelAnno.FieldType.DATE)
     private Date firstPayDate;
 
     @ApiModelProperty("账龄")
@@ -639,8 +710,13 @@ public class DataInfoExcel implements Serializable {
     private String accountAge;
 
     @ApiModelProperty("手数")
-    @ExcelAnno(cellName = "手数")
+    @ExcelAnno(cellName = "手数",
+            fieldType = ExcelAnno.FieldType.INTEGER)
     private Integer caseHandNum;
+
+    @ApiModelProperty("婚姻状况")
+    @ExcelAnno(cellName = "婚姻状况")
+    private String marital;
 
     @ApiModelProperty("还款状态")
     private String paymentStatus;
@@ -674,9 +750,5 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("案件编号")
     private String caseNumber;
-
-    @ApiModelProperty("婚姻状况")
-    @ExcelAnno(cellName = "婚姻状况")
-    private String marital;
 
 }

@@ -112,22 +112,15 @@ public class DataInfoExcelController {
         if (StringUtils.isBlank(dataImportRecord.getPrincipalId())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择委托方!")).body(null);
         }
-        List<CellError> cellErrorList=null;
+        List<RowError> rowErrorList = new ArrayList<>();
         try {
             try {
-                cellErrorList= dataInfoExcelService.importExcelData(dataImportRecord,user);
-                if (!cellErrorList.isEmpty()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"importExcelData","")).body(cellErrorList);
-                }
+                rowErrorList= dataInfoExcelService.importExcelData(dataImportRecord,user);
             } catch (final Exception e) {
                 logger.error(e.getMessage(),e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "importExcelData", e.getMessage())).body(null);
             }
         }catch (Exception e){
-            e.printStackTrace();
-            if(Objects.nonNull(cellErrorList) && !cellErrorList.isEmpty()){
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("模板数据错误","dataTemple Error",ENTITY_NAME)).body(cellErrorList);
-            }
             return ResponseEntity.badRequest().headers(HeaderUtil.createAlert(e.getMessage(),ENTITY_NAME)).body(null);
         }
         return  ResponseEntity.ok()

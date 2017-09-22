@@ -19,11 +19,11 @@ public @interface ExcelAnno {
     String cellName() default "";
 
     /**
-     * 实体中的字段类型
+     * 实体中的字段类型校验
      * @return
      */
 
-    public FieldType fieldType() default FieldType.STRING;
+    FieldType fieldType() default FieldType.STRING;
     /**
      * 在excel中列的顺序，从小到大排
      *
@@ -31,7 +31,31 @@ public @interface ExcelAnno {
      */
     int order() default 0;
 
+    /**
+     * 特殊字段校验
+     * @return
+     */
+    FieldCheck fieldCheck() default FieldCheck.NONE;
+
+    /**
+     * 数据类型校验枚举
+     */
     enum FieldType{
-        STRING, NUM, FLOATNUM, DATE
+        STRING,
+        INTEGER,
+        DOUBLE,
+        DATE
+    }
+
+    /**
+     * 特殊字段校验枚举
+     */
+    enum FieldCheck {
+        NONE,
+        PERSONAL_NAME,  //客户姓名
+        PRODUCT_NAME,   //产品名称
+        IDCARD,     //身份证号
+        PHONE_NUMBER,   //电话号码
+        CASE_AMOUNT  //案件金额
     }
 }
