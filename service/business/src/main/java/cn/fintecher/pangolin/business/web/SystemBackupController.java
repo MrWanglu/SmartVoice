@@ -167,7 +167,7 @@ public class SystemBackupController extends BaseController {
         }
         String result = systemBackupService.operationShell(sysParams.getValue(), request.getMysqlName());
         if (!Objects.equals("success", result)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail to backup mysql database", "mysql数据库备份失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail to recover mysql database", "mysql数据库恢复失败")).body(null);
         }
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(result);
     }
