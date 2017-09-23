@@ -273,49 +273,47 @@ public class ExcelUtil {
      */
     private static void matchFields(Class<?> dataClass, Row dataRow, List<ColumnError> columnErrorList, String sheetName,
                                     int rowIndex, Object obj, int colIndex, String titleName, Cell cell) throws Exception {
-        if (cell != null && !cell.toString().trim().equals("")) {
-            //获取类中所有的字段
-            Field[] fields = dataClass.getDeclaredFields();
-            int fieldCount = 0;
-            for (Field field : fields) {
-                fieldCount++;
-                //获取标记了ExcelAnno的注解字段
-                if (field.isAnnotationPresent(ExcelAnno.class)) {
-                    ExcelAnno f = field.getAnnotation(ExcelAnno.class);
-                    //实体中注解的属性名称
-                    String cellName = f.cellName();
-                    if (cellName != null && !cellName.isEmpty()) {
-                        //匹配到实体中相应的字段
-                        if (chineseCompare(cellName, titleName, "UTF-8")) {
-                            ColumnError columnError = new ColumnError();
-                            columnError.setColumnIndex(colIndex + 1);
-                            columnError.setTitleMsg(cellName);
-                            //打开实体中私有变量的权限
-                            field.setAccessible(true);
-                            //实体中变量赋值
-                            try {
-                                // 获取数据或者错误信息
-                                Map<Object, ColumnError> map = validityDataGetFieldValue(field, cell, columnError);
-                                Map.Entry<Object, ColumnError> next = map.entrySet().iterator().next();
-                                field.set(obj, next.getKey());
-                                if (StringUtils.isNotBlank(next.getValue().getErrorMsg())) {
-                                    ColumnError value = next.getValue();
-                                    columnErrorList.add(value);
-                                }
-                                break;
-                            } catch (Exception e) {
-                                logger.debug(e.getMessage());
-                                throw new RuntimeException(e.getMessage());
+        //获取类中所有的字段
+        Field[] fields = dataClass.getDeclaredFields();
+        int fieldCount = 0;
+        for (Field field : fields) {
+            fieldCount++;
+            //获取标记了ExcelAnno的注解字段
+            if (field.isAnnotationPresent(ExcelAnno.class)) {
+                ExcelAnno f = field.getAnnotation(ExcelAnno.class);
+                //实体中注解的属性名称
+                String cellName = f.cellName();
+                if (cellName != null && !cellName.isEmpty()) {
+                    //匹配到实体中相应的字段
+                    if (chineseCompare(cellName, titleName, "UTF-8")) {
+                        ColumnError columnError = new ColumnError();
+                        columnError.setColumnIndex(colIndex + 1);
+                        columnError.setTitleMsg(cellName);
+                        //打开实体中私有变量的权限
+                        field.setAccessible(true);
+                        //实体中变量赋值
+                        try {
+                            // 获取数据或者错误信息
+                            Map<Object, ColumnError> map = validityDataGetFieldValue(field, cell, columnError);
+                            Map.Entry<Object, ColumnError> next = map.entrySet().iterator().next();
+                            field.set(obj, next.getKey());
+                            if (StringUtils.isNotBlank(next.getValue().getErrorMsg())) {
+                                ColumnError value = next.getValue();
+                                columnErrorList.add(value);
                             }
+                            break;
+                        } catch (Exception e) {
+                            logger.debug(e.getMessage());
+                            throw new RuntimeException(e.getMessage());
                         }
-                    } else {
-                        logger.info(Thread.currentThread() + "实体：" + obj.getClass().getSimpleName() + "中的：" + field.getName() + " 未配置cellName属性");
-                        continue;
                     }
-                    if (fieldCount == fields.length) {
-                        //标明没有找到匹配的属性字段
-                        logger.info(Thread.currentThread() + "模板中的：" + sheetName + "[" + titleName + "]未与实体：" + obj.getClass().getSimpleName() + " 对应");
-                    }
+                } else {
+                    logger.info(Thread.currentThread() + "实体：" + obj.getClass().getSimpleName() + "中的：" + field.getName() + " 未配置cellName属性");
+                    continue;
+                }
+                if (fieldCount == fields.length) {
+                    //标明没有找到匹配的属性字段
+                    logger.info(Thread.currentThread() + "模板中的：" + sheetName + "[" + titleName + "]未与实体：" + obj.getClass().getSimpleName() + " 对应");
                 }
             }
         }
@@ -384,7 +382,7 @@ public class ExcelUtil {
                     columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
                     map.put(cellValue, columnError);
                     break;
-                } else if (!cellValue.matches(regExp)) {
+                } else if (cellValue !="" && !cellValue.matches(regExp)) {
                     columnError.setErrorMsg("电话号码不合规");
                     columnError.setErrorLevel(ColumnError.ErrorLevel.PROMPT.getValue());
                     map.put(cellValue, columnError);

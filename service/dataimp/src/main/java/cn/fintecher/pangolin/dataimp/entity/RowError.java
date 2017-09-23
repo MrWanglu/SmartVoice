@@ -23,6 +23,12 @@ public class RowError {
     private String sheetName;
     @ApiModelProperty("行数")
     private Integer rowIndex;
+    @ApiModelProperty("客户姓名")
+    private String name;
+    @ApiModelProperty("身份证号")
+    private String idCard;
+    @ApiModelProperty("电话号码")
+    private String phone;
     @ApiModelProperty("错误信息")
     private List<ColumnError> columnErrorList;
     @ApiModelProperty("批次号")

@@ -192,7 +192,9 @@ public class DataInfoExcel implements Serializable {
     private String companyAddr;
 
     @ApiModelProperty("工作单位电话")
-    @ExcelAnno(cellName = "工作单位电话")
+    @ExcelAnno(cellName = "工作单位电话",
+            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER
+    )
     private String companyPhone;
 
     @ApiModelProperty("联系人1姓名")
@@ -750,5 +752,8 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("案件编号")
     private String caseNumber;
+
+    @ApiModelProperty("颜色：0-无色，1-红色，2-黄色")
+    private Integer color = 0;
 
 }

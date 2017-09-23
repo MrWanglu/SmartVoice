@@ -1,11 +1,15 @@
 package cn.fintecher.pangolin.dataimp.service;
 
 import cn.fintecher.pangolin.dataimp.entity.*;
+import cn.fintecher.pangolin.dataimp.model.ColumnError;
 import cn.fintecher.pangolin.dataimp.model.DataInfoExcelFileExist;
 import cn.fintecher.pangolin.dataimp.model.UpLoadFileModel;
 import cn.fintecher.pangolin.dataimp.repository.*;
 import cn.fintecher.pangolin.dataimp.util.ExcelUtil;
-import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.CaseInfoFile;
+import cn.fintecher.pangolin.entity.Company;
+import cn.fintecher.pangolin.entity.DataInfoExcelModel;
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.message.ConfirmDataInfoMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
@@ -152,15 +156,35 @@ public class DataInfoExcelService {
                 tempObj.setCloseDate(dataImportRecord.getCloseDate());
                 String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, user.getCompanyCode(), Constants.CASE_SEQ_LENGTH);
                 tempObj.setCaseNumber(caseNumber.concat(company.getSequence()));
-                dataInfoExcelRepository.save(tempObj);
-                for (RowError rowError : rowErrors) {
-                    if (rowError.getRowIndex() == i+1) {
-                        rowError.setBatchNumber(batchNumber);
-                        rowError.setCaseNumber(caseNumber);
-                        rowErrorRepository.save(rowError);
-                        break;
+                if (!rowErrors.isEmpty()) {
+                    for (RowError rowError : rowErrors) {
+                        if (rowError.getRowIndex() == i+1) {
+                            rowError.setName(tempObj.getPersonalName());
+                            rowError.setIdCard(tempObj.getIdCard());
+                            rowError.setPhone(tempObj.getMobileNo());
+                            rowError.setBatchNumber(batchNumber);
+                            rowError.setCaseNumber(tempObj.getCaseNumber());
+                            rowErrorRepository.save(rowError);
+
+                            List<ColumnError> columnErrorList = rowError.getColumnErrorList();
+                            for (ColumnError columnError : columnErrorList) {
+                                if (tempObj.getColor() == 0 && columnError.getErrorLevel() == ColumnError.ErrorLevel.PROMPT.getValue()) {
+                                    tempObj.setColor(2);
+                                }
+                                if (tempObj.getColor() == 0 && columnError.getErrorLevel() == ColumnError.ErrorLevel.FORCE.getValue()) {
+                                    tempObj.setColor(1);
+                                    break;
+                                }
+                                if (tempObj.getColor() == 2 && columnError.getErrorLevel() == ColumnError.ErrorLevel.FORCE.getValue()) {
+                                    tempObj.setColor(1);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                     }
                 }
+                dataInfoExcelRepository.save(tempObj);
             }
         }
     }
