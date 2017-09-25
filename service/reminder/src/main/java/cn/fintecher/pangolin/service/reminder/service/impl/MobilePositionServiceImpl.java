@@ -40,11 +40,11 @@ public class MobilePositionServiceImpl implements MobilePositionService {
         query.addCriteria(Criteria.where("depCode").regex(depCode)); //只查询当前登录用户机构下的记录
         query.addCriteria(Criteria.where("userName").ne("administrator")); //过滤超级管理员
         if (null != mobilePositionParams.getName()
-                || null != mobilePositionParams.getDepCode()
+                || null != mobilePositionParams.getDeptCode()
                 || null != mobilePositionParams.getStartDate()
                 || null != mobilePositionParams.getEndDate()) { //有查询条件
-            if (StringUtils.isNotBlank(mobilePositionParams.getDepCode())) {
-                query.addCriteria(Criteria.where("depCode").regex(mobilePositionParams.getDepCode()));
+            if (StringUtils.isNotBlank(mobilePositionParams.getDeptCode())) {
+                query.addCriteria(Criteria.where("depCode").regex(mobilePositionParams.getDeptCode()));
             }
             if (StringUtils.isNotBlank(mobilePositionParams.getName())) {
                 query.addCriteria(Criteria.where("realName").regex(mobilePositionParams.getName()));
