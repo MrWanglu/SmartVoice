@@ -229,7 +229,7 @@ public class CaseInfoController extends BaseController {
 //            if (Objects.equals(user.getManager(), User.MANAGER_TYPE.NO_DATA_AUTH.getValue())) { //不是管理者
 //                builder.and(qCaseInfo.currentCollector.eq(user).or(qCaseInfo.assistCollector.eq(user)));
 //            }
-            pageable = new PageRequest(pageable.getPageSize(), pageable.getPageNumber(), pageable.getSort().and(new Sort(personalName)));
+            pageable = new PageRequest(pageable.getPageNumber(),pageable.getPageSize(), pageable.getSort().and(new Sort(personalName)));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
