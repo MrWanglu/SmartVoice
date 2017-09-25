@@ -215,7 +215,7 @@ public class CaseStrategyController {
             //得到符合分配策略的案件 caseInfos
             List<CaseInfoDistributed> caseInfos = runCaseRun(caseStrategy, false, companyCode);
             if (Objects.isNull(caseInfos) || caseInfos.isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "cases do not conform to the allocation strategy to distribution strategy", "没有符合策略的案件")).body("");
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "not in line with the strategy of the case", "没有符合策略的案件")).body("");
             } else {
                 //走案件分配流程
 
@@ -356,13 +356,19 @@ public class CaseStrategyController {
     @ApiModelProperty
     @GetMapping("/findCaseStrategy")
     @ApiOperation(value = "检查策略名称是否重复", notes = "检查策略名称是否重复")
-    public ResponseEntity findCaseStrategy(@RequestParam String name) {
+    public ResponseEntity findCaseStrategy(@RequestParam(required = false) String name,@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        ResponseEntity<User> userResult = null;
+        userResult = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+        if (!userResult.hasBody()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "用户未登录")).body(null);
+        }
+        User user = userResult.getBody();
         if (ZWStringUtils.isEmpty(name)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no name", "没有输入策略名称")).body(null);
         }
         try {
-            CaseStrategy caseStrategy = caseStrategyRepository.findOne(QCaseStrategy.caseStrategy.name.eq(name));
-            if (Objects.nonNull(caseStrategy)) {
+            Iterable<CaseStrategy> caseStrategy = caseStrategyRepository.findAll(QCaseStrategy.caseStrategy.name.eq(name).and(QCaseStrategy.caseStrategy.companyCode.eq(user.getCompanyCode())));
+            if (caseStrategy.iterator().hasNext()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exist", "该策略名称已存在")).body(null);
             }
         } catch (Exception ex) {

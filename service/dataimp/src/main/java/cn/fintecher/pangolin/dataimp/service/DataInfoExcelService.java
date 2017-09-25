@@ -1,11 +1,15 @@
 package cn.fintecher.pangolin.dataimp.service;
 
 import cn.fintecher.pangolin.dataimp.entity.*;
+import cn.fintecher.pangolin.dataimp.model.ColumnError;
 import cn.fintecher.pangolin.dataimp.model.DataInfoExcelFileExist;
 import cn.fintecher.pangolin.dataimp.model.UpLoadFileModel;
 import cn.fintecher.pangolin.dataimp.repository.*;
 import cn.fintecher.pangolin.dataimp.util.ExcelUtil;
-import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.CaseInfoFile;
+import cn.fintecher.pangolin.entity.Company;
+import cn.fintecher.pangolin.entity.DataInfoExcelModel;
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.message.ConfirmDataInfoMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
@@ -69,6 +73,8 @@ public class DataInfoExcelService {
 
     @Autowired
     private DataInfoExcelHisRepository dataInfoExcelHisRepository;
+    @Autowired
+    private RowErrorRepository rowErrorRepository;
 
     private final Logger logger = LoggerFactory.getLogger(DataInfoExcelService.class);
 
@@ -79,7 +85,7 @@ public class DataInfoExcelService {
      * @param user
      * @throws Exception
      */
-    public List<CellError> importExcelData(DataImportRecord dataImportRecord, User user) throws Exception {
+    public void importExcelData(DataImportRecord dataImportRecord, User user) throws Exception {
         //获取上传的文件
         ResponseEntity<UploadFile> fileResponseEntity = null;
         try {
@@ -114,92 +120,105 @@ public class DataInfoExcelService {
         }
         Class<?>[] dataClass = {DataInfoExcel.class};
         ExcelSheetObj excelSheetObj = ExcelUtil.parseExcelSingle(file, dataClass, startRow, startCol, templateExcelInfoList);
-        List<CellError> cellErrorList = null;
+        List<RowError> rowErrors = new ArrayList<>();
         if (Objects.nonNull(excelSheetObj)) {
-            cellErrorList = excelSheetObj.getCellErrorList();
-            List dataList = excelSheetObj.getDatasList();
+            rowErrors = excelSheetObj.getSheetErrorList();
+            List dataList = excelSheetObj.getDataList();
+            //导入数据记录
+            dataImportRecord.setOperator(user.getId());
+            dataImportRecord.setOperatorName(user.getRealName());
+            dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
+            dataImportRecord.setCompanyCode(user.getCompanyCode());
+            dataImportRecordRepository.save(dataImportRecord);
 
-            //邢台的需要从Excel获取
-            String requestUrl = Constants.SYSPARAM_URL.concat("?")
-                    .concat("&userId=".concat(user.getId()))
-                    .concat("&companyCode=".concat(user.getCompanyCode()))
-                    .concat("&code=".concat(Constants.BATCH_NUMBER_RULE_CODE))
-                    .concat("&type=".concat(Constants.BATCH_NUMBER_RULE_TYPE));
-            ResponseEntity<SysParam> forEntity = restTemplate.getForEntity(requestUrl, SysParam.class);
-            SysParam body = forEntity.getBody();
+            ResponseEntity<Company> entity = restTemplate.getForEntity(Constants.COMPANY_URL.concat(user.getCompanyCode()), Company.class);
+            if (!entity.hasBody()) {
+                throw new Exception("获取公司序列号失败!");
+            }
+            Company company = entity.getBody();
+            //批次号
+            String batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ, user.getCompanyCode(), Constants.ORDER_SEQ_LENGTH);
+            dataImportRecord.setBatchNumber(batchNumber);
+            dataImportRecordRepository.save(dataImportRecord);
+            //开始保存数据
+            for (int i = 0; i< dataList.size(); i++) {
+                DataInfoExcel tempObj = (DataInfoExcel) dataList.get(i);
+                tempObj.setBatchNumber(batchNumber);
+                tempObj.setDataSources(Constants.DataSource.IMPORT.getValue());
+                tempObj.setPrinCode(dataImportRecord.getPrincipalId());
+                tempObj.setPrinName(dataImportRecord.getPrincipalName());
+                tempObj.setOperator(user.getId());
+                tempObj.setOperatorName(user.getRealName());
+                tempObj.setOperatorTime(ZWDateUtil.getNowDateTime());
+                tempObj.setCompanyCode(user.getCompanyCode());
+                tempObj.setPaymentStatus("M".concat(String.valueOf(tempObj.getOverDuePeriods() == null ? "M0" : tempObj.getOverDuePeriods())));
+                tempObj.setDelegationDate(dataImportRecord.getDelegationDate());
+                tempObj.setCloseDate(dataImportRecord.getCloseDate());
+                String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, user.getCompanyCode(), Constants.CASE_SEQ_LENGTH);
+                tempObj.setCaseNumber(caseNumber.concat(company.getSequence()));
+                if (!rowErrors.isEmpty()) {
+                    for (RowError rowError : rowErrors) {
+                        if (rowError.getRowIndex() == i+1) {
+                            rowError.setName(tempObj.getPersonalName());
+                            rowError.setIdCard(tempObj.getIdCard());
+                            rowError.setPhone(tempObj.getMobileNo());
+                            rowError.setBatchNumber(batchNumber);
+                            rowError.setCaseNumber(tempObj.getCaseNumber());
+                            rowErrorRepository.save(rowError);
 
-            //验证数据的合法性
-            validityDataInfoExcel(cellErrorList, dataList, body.getValue());
-            if (cellErrorList.isEmpty()) {
-                //导入数据记录
-                dataImportRecord.setOperator(user.getId());
-                dataImportRecord.setOperatorName(user.getRealName());
-                dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
-                dataImportRecord.setCompanyCode(user.getCompanyCode());
-                dataImportRecordRepository.save(dataImportRecord);
-
-                ResponseEntity<Company> entity = restTemplate.getForEntity(Constants.COMPANY_URL.concat(user.getCompanyCode()), Company.class);
-                if (!entity.hasBody()) {
-                    throw  new Exception("获取公司序列号失败!");
-                }
-                Company company = entity.getBody();
-                if (Objects.equals(body.getValue(), "1")) { //邢台
-                    //开始保存数据
-                    for (Object obj : dataList) {
-                        DataInfoExcel tempObj = (DataInfoExcel) obj;
-                        tempObj.setBatchNumber(tempObj.getBatchNumber());
-                        tempObj.setDataSources(Constants.DataSource.IMPORT.getValue());
-                        tempObj.setPrinCode(dataImportRecord.getPrincipalId());
-                        tempObj.setPrinName(dataImportRecord.getPrincipalName());
-                        tempObj.setOperator(user.getId());
-                        tempObj.setOperatorName(user.getRealName());
-                        tempObj.setOperatorTime(ZWDateUtil.getNowDateTime());
-                        tempObj.setCompanyCode(user.getCompanyCode());
-                        tempObj.setPaymentStatus("M".concat(String.valueOf(tempObj.getOverDuePeriods() == null ? "M0" : tempObj.getOverDuePeriods())));
-                        tempObj.setDelegationDate(dataImportRecord.getDelegationDate());
-                        tempObj.setCloseDate(dataImportRecord.getCloseDate());
-                        String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, user.getCompanyCode(), Constants.CASE_SEQ_LENGTH);
-                        tempObj.setCaseNumber(caseNumber.concat(company.getSequence()));
-                        dataInfoExcelRepository.save(tempObj);
-                    }
-                } else {
-                    //批次号
-                    String batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ, user.getCompanyCode(), Constants.ORDER_SEQ_LENGTH);
-                    dataImportRecord.setBatchNumber(batchNumber);
-                    dataImportRecordRepository.save(dataImportRecord);
-                    //开始保存数据
-                    for (Object obj : dataList) {
-                        DataInfoExcel tempObj = (DataInfoExcel) obj;
-                        tempObj.setBatchNumber(batchNumber);
-                        tempObj.setDataSources(Constants.DataSource.IMPORT.getValue());
-                        tempObj.setPrinCode(dataImportRecord.getPrincipalId());
-                        tempObj.setPrinName(dataImportRecord.getPrincipalName());
-                        tempObj.setOperator(user.getId());
-                        tempObj.setOperatorName(user.getRealName());
-                        tempObj.setOperatorTime(ZWDateUtil.getNowDateTime());
-                        tempObj.setCompanyCode(user.getCompanyCode());
-                        tempObj.setPaymentStatus("M".concat(String.valueOf(tempObj.getOverDuePeriods() == null ? "M0" : tempObj.getOverDuePeriods())));
-                        tempObj.setDelegationDate(dataImportRecord.getDelegationDate());
-                        tempObj.setCloseDate(dataImportRecord.getCloseDate());
-                        String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, user.getCompanyCode(), Constants.CASE_SEQ_LENGTH);
-                        tempObj.setCaseNumber(caseNumber.concat(company.getSequence()));
-                        dataInfoExcelRepository.save(tempObj);
+                            List<ColumnError> columnErrorList = rowError.getColumnErrorList();
+                            for (ColumnError columnError : columnErrorList) {
+                                if (tempObj.getColor() == 0 && columnError.getErrorLevel() == ColumnError.ErrorLevel.PROMPT.getValue()) {
+                                    tempObj.setColor(2);
+                                }
+                                if (tempObj.getColor() == 0 && columnError.getErrorLevel() == ColumnError.ErrorLevel.FORCE.getValue()) {
+                                    tempObj.setColor(1);
+                                    break;
+                                }
+                                if (tempObj.getColor() == 2 && columnError.getErrorLevel() == ColumnError.ErrorLevel.FORCE.getValue()) {
+                                    tempObj.setColor(1);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                     }
                 }
+                dataInfoExcelRepository.save(tempObj);
             }
         }
-        return cellErrorList;
     }
 
     /**
      * 验证必要数据合法性
      */
-    private void validityDataInfoExcel(List<CellError> cellErrorList, List datas, String type) {
+    private void validityDataInfoExcel(List<CellError> cellErrorList, List dataList) {
         if (Objects.isNull(cellErrorList)) {
             cellErrorList = new ArrayList<>();
         }
-        for (int i = 0; i < datas.size(); i++) {
-            DataInfoExcel tempObj = (DataInfoExcel) datas.get(i);
+        for (int i = 0; i < dataList.size(); i++) {
+            DataInfoExcel tempObj = (DataInfoExcel) dataList.get(i);
+            //客户姓名验证
+            if (StringUtils.isBlank(tempObj.getPersonalName())) {
+                CellError cellError = new CellError();
+                cellError.setErrorMsg("第[" + (i + 2) + "]行的客户姓名为空");
+                cellErrorList.add(cellError);
+            }
+            //身份证号验证
+            if (StringUtils.isBlank(tempObj.getIdCard())) {
+                CellError cellError = new CellError();
+                cellError.setErrorMsg("第[" + (i + 2) + "]行的客户的身份证号为空");
+                cellErrorList.add(cellError);
+            } else {
+                if (!IdcardUtils.validateCard(tempObj.getIdCard())) {
+                    CellError cellError = new CellError();
+                    cellError.setErrorMsg("第[" + (i + 2) + "]行的客户的身份证号[".concat(tempObj.getIdCard()).concat("]不合法"));
+                    cellErrorList.add(cellError);
+                }
+            }
+            //产品名称验证
+            //手机号验证
+            //案件金额验证
             if (StringUtils.isBlank(tempObj.getPersonalName())) {
                 CellError cellError = new CellError();
                 cellError.setErrorMsg("第[" + (i + 2) + "]行的客户姓名为空");
@@ -218,13 +237,6 @@ public class DataInfoExcelService {
                     if (!IdcardUtils.validateCard(tempObj.getIdCard())) {
                         CellError cellError = new CellError();
                         cellError.setErrorMsg("第[" + (i + 2) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的身份证号[").concat(tempObj.getIdCard()).concat("]不合法"));
-                        cellErrorList.add(cellError);
-                    }
-                }
-                if (Objects.equals(type, "1")) { // 邢台需要录入批次号
-                    if (StringUtils.isBlank(tempObj.getBatchNumber())) {
-                        CellError cellError = new CellError();
-                        cellError.setErrorMsg("第[" + (i + 2) + "]行的客户[".concat(tempObj.getPersonalName()).concat("]的批次为空"));
                         cellErrorList.add(cellError);
                     }
                 }

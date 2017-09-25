@@ -389,7 +389,10 @@ public class PersonalController extends BaseController {
             User tokenUser = getUserByToken(token);
             OrderSpecifier<Integer> sortOrder = QCaseTurnRecord.caseTurnRecord.id.asc();
             QCaseTurnRecord qCaseTurnRecord = QCaseTurnRecord.caseTurnRecord;
-            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(qCaseTurnRecord.caseNumber.eq(caseNumber), sortOrder);
+            BooleanBuilder booleanBuilder = new BooleanBuilder();
+            booleanBuilder.and(qCaseTurnRecord.caseNumber.eq(caseNumber));
+            booleanBuilder.and(qCaseTurnRecord.operatorUserName.ne("administrator"));
+            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(booleanBuilder,sortOrder);
             List<CaseTurnRecord> caseTurnRecordList = IterableUtils.toList(caseTurnRecords);
             //过滤掉接收部门为为空的数据
             caseTurnRecordList.forEach(e -> {

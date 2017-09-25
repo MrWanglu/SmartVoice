@@ -97,7 +97,7 @@ public class SystemLogAop {
             systemLogRepository.save(systemLogs);
         } catch (Exception e1) {
             e1.printStackTrace();
-            log.debug(e.getMessage());
+            log.debug(e1.getMessage());
         }
     }
 }

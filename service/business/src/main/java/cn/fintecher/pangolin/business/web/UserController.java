@@ -574,7 +574,8 @@ public class UserController extends BaseController {
             userModel.setPhone(user.getPhone());
             userModel.setEmail(user.getEmail());
             userModel.setRemark(user.getRemark());
-            userModel.setOperator(user.getOperator());
+            //创建人显示用户真实姓名,禅道Bug1488
+            userModel.setOperator(user.getRealName());
             userModelList.add(userModel);
         }
         try {

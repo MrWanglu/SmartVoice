@@ -111,7 +111,7 @@ public class TemplateController extends BaseController {
                 template.setCompanyCode(user.getCompanyCode());
             }
             template.setCreator(user.getRealName());
-            List<Template> templateList = templateRepository.findByTemplateNameOrTemplateCode(template.getTemplateName().trim(), template.getTemplateCode().trim());
+            List<Template> templateList = templateRepository.findByTemplateNameOrTemplateCodeAndCompanyCode(user.getCompanyCode(),template.getTemplateName().trim(), template.getTemplateCode().trim());
             if (ZWStringUtils.isNotEmpty(templateList)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "该模板名称或编号已被占用")).body(null);
             }
@@ -191,9 +191,11 @@ public class TemplateController extends BaseController {
     @ApiOperation(value = "判断修改模板名称、编号是否可用", notes = "判断修改模板名称、编号是否可用")
     public ResponseEntity getTemplateByNameOrCode(@RequestParam(required = false) @ApiParam("模板id") String id,
                                                   @RequestParam(required = false) @ApiParam("模板名称") String templateName,
-                                                  @RequestParam(required = false) @ApiParam("模板编号") String templateCode) {
+                                                  @RequestParam(required = false) @ApiParam("模板编号") String templateCode,
+                                                  @RequestHeader(value = "X-UserToken") String token) {
         try {
-            List<Template> templateNames = templateRepository.findByTemplateNameOrTemplateCode(templateName + "", "");
+            User user = getUserByToken(token);
+            List<Template> templateNames = templateRepository.findByTemplateNameAndCompanyCode(templateName,user.getCompanyCode());
             if (!templateNames.isEmpty()){
                 for(Template template :templateNames){
                     if(!Objects.equals(template.getId(),id)){
@@ -202,7 +204,7 @@ public class TemplateController extends BaseController {
                 }
             }
 
-            List<Template> templateCodes = templateRepository.findByTemplateNameOrTemplateCode("", templateCode + "");
+            List<Template> templateCodes = templateRepository.findByTemplateCodeAndCompanyCode(templateCode,user.getCompanyCode());
             if (!templateCodes.isEmpty()){
                 for(Template template :templateCodes){
                     if(!Objects.equals(template.getId(),id)){

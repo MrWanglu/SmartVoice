@@ -3,11 +3,15 @@ package cn.fintecher.pangolin.dataimp.util;
 import cn.fintecher.pangolin.dataimp.annotation.ExcelAnno;
 import cn.fintecher.pangolin.dataimp.entity.CellError;
 import cn.fintecher.pangolin.dataimp.entity.ExcelSheetObj;
+import cn.fintecher.pangolin.dataimp.entity.RowError;
 import cn.fintecher.pangolin.dataimp.entity.TemplateExcelInfo;
+import cn.fintecher.pangolin.dataimp.model.ColumnError;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.IdcardUtils;
 import cn.fintecher.pangolin.entity.util.SymbolReplace;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
@@ -30,6 +34,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -39,7 +44,6 @@ import java.util.*;
  */
 public class ExcelUtil {
     private final static Logger logger = LoggerFactory.getLogger(ExcelUtil.class);
-
 
     /**
      * 解析单sheet页的Excel
@@ -151,12 +155,12 @@ public class ExcelUtil {
      */
     public static ExcelSheetObj parseSheet(Sheet sheet, int startRow, int startCol, Class<?> dataClass,
                                            List<TemplateExcelInfo> templateExcelInfos) throws Exception {
-        ExcelSheetObj excelSheetObj = new ExcelSheetObj();
-        List objList = new ArrayList();
-        List<CellError> cellErrorList = new ArrayList<>();
-        String sheetName = sheet.getSheetName();
+        ExcelSheetObj excelSheetObj = new ExcelSheetObj();  //Excel sheet页对象信息
+        List dataList = new ArrayList();     //sheet页数据
+        List<RowError> sheetErrorList = new ArrayList<>();  //sheet页错误信息
+        String sheetName = sheet.getSheetName();  //sheet名称
         //获取每个sheet页的头部信息,用于和实体属性匹配(默认模板使用)
-        Map<Integer, String> headerMap = null;
+        Map<Integer, String> headerMap = new LinkedHashMap<>();
         //数据开始列
         int dataStartRow = 0;
         //默认数据模板导入
@@ -169,16 +173,23 @@ public class ExcelUtil {
             //走配置模板
             dataStartRow = startRow;
         }
-        //解析数据行
+        //循环解析sheet每行的数据
         for (int rowIndex = dataStartRow; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+            RowError rowError = new RowError();
             try {
                 //获取每一行的数据
                 Row dataRow = sheet.getRow(rowIndex);
                 if (!isBlankRow(dataRow)) {
                     //解析一行中每一列数据
-                    Object obj = parseRow(dataClass, dataRow, startCol, headerMap, cellErrorList, sheetName, rowIndex, templateExcelInfos);
+                    Map<Object, RowError> map = parseRow(dataClass, dataRow, startCol, headerMap, rowError, sheetName, rowIndex, templateExcelInfos);
+                    Map.Entry<Object, RowError> next = map.entrySet().iterator().next();
+                    Object obj = next.getKey();
                     if (null != obj) {
-                        objList.add(obj);
+                        dataList.add(obj);
+                    }
+                    RowError value = next.getValue();
+                    if (!value.getColumnErrorList().isEmpty()) {
+                        sheetErrorList.add(rowError);
                     }
                 }
             } catch (Exception e) {
@@ -186,59 +197,64 @@ public class ExcelUtil {
             }
         }
         excelSheetObj.setSheetName(sheetName);
-        excelSheetObj.setDatasList(objList);
-        excelSheetObj.setCellErrorList(cellErrorList);
+        excelSheetObj.setDataList(dataList);
+        excelSheetObj.setSheetErrorList(sheetErrorList);
         return excelSheetObj;
     }
 
 
     /**
-     * @param dataClass  数据实体
-     * @param dataRow    数据行
-     * @param startCol   开始列
-     * @param headerMap  头部信息
-     * @param cellErrors 错误信息
+     * @param dataClass 数据实体
+     * @param dataRow   数据行
+     * @param startCol  开始列
+     * @param headerMap 头部信息
      * @param sheetName
-     * @param rowIndex   行数
+     * @param rowIndex  行数
      * @return 返回实体对象
      */
-    public static Object parseRow(Class<?> dataClass, Row dataRow, int startCol, Map<Integer, String> headerMap, List<CellError> cellErrors,
-                                  String sheetName, int rowIndex, List<TemplateExcelInfo> templateExcelInfos) {
+    public static Map<Object, RowError> parseRow(Class<?> dataClass, Row dataRow, int startCol, Map<Integer, String> headerMap, RowError rowError,
+                                                 String sheetName, int rowIndex, List<TemplateExcelInfo> templateExcelInfos) {
+        Map<Object, RowError> map = new LinkedHashMap<>(1);
         //反射创建实体对象
         Object obj = null;
+        rowError.setSheetName(sheetName);
+        rowError.setRowIndex(rowIndex);
         try {
             obj = dataClass.newInstance();
             //默认数据模板
             if (Objects.isNull(templateExcelInfos)) {
+                //循环解析每行中的每个单元格
+                List<ColumnError> columnErrorList = new ArrayList<>();
                 for (int colIndex = startCol; colIndex < dataRow.getLastCellNum(); colIndex++) {
                     //获取该列对应的头部信息中文
                     String titleName = headerMap.get(colIndex);
                     Cell cell = dataRow.getCell(colIndex);
-                    matchFields(dataClass, dataRow, cellErrors, sheetName, rowIndex, obj, colIndex, titleName, cell);
+                    matchFields(dataClass, dataRow, columnErrorList, sheetName, rowIndex, obj, colIndex, titleName, cell);
                 }
+                rowError.setColumnErrorList(columnErrorList);
             } else {
                 //配置模板
-            }
-            for (TemplateExcelInfo templateExcelInfo : templateExcelInfos) {
-                if (StringUtils.isNotBlank(templateExcelInfo.getRelateName())) {
-                    Cell cell = dataRow.getCell(templateExcelInfo.getCellNum());
-                    if (cell != null && !cell.toString().trim().equals("")) {
-                        //获取类中所有的字段
-                        Field[] fields = dataClass.getDeclaredFields();
-                        for (Field field : fields) {
-                            //实体中的属性名称
-                            String proName = field.getName();
-                            //匹配到实体中相应的字段
-                            if (proName.equals(templateExcelInfo.getRelateName())) {
-                                //打开实体中私有变量的权限
-                                field.setAccessible(true);
-                                //实体中变量赋值
-                                try {
-                                    field.set(obj, getObj(field.getType(), cell, field));
-                                } catch (Exception e) {
-                                    String errorMsg = "第[" + (dataRow.getRowNum() + 1) + "]行，字段:[" + templateExcelInfo.getCellName() + "]的数据类型不正确";
-                                    CellError errorObj = new CellError(sheetName, rowIndex, templateExcelInfo.getCellNum(), proName, null, errorMsg, e);
-                                    cellErrors.add(errorObj);
+                for (TemplateExcelInfo templateExcelInfo : templateExcelInfos) {
+                    if (StringUtils.isNotBlank(templateExcelInfo.getRelateName())) {
+                        Cell cell = dataRow.getCell(templateExcelInfo.getCellNum());
+                        if (cell != null && !cell.toString().trim().equals("")) {
+                            //获取类中所有的字段
+                            Field[] fields = dataClass.getDeclaredFields();
+                            for (Field field : fields) {
+                                //实体中的属性名称
+                                String proName = field.getName();
+                                //匹配到实体中相应的字段
+                                if (proName.equals(templateExcelInfo.getRelateName())) {
+                                    //打开实体中私有变量的权限
+                                    field.setAccessible(true);
+                                    //实体中变量赋值
+                                    try {
+                                        field.set(obj, getObj(field.getType(), cell, field));
+                                    } catch (Exception e) {
+                                        String errorMsg = "第[" + (dataRow.getRowNum() + 1) + "]行，字段:[" + templateExcelInfo.getCellName() + "]的数据类型不正确";
+                                        CellError errorObj = new CellError(sheetName, rowIndex, templateExcelInfo.getCellNum(), proName, null, errorMsg, e);
+//                                        cellErrors.add(errorObj);
+                                    }
                                 }
                             }
                         }
@@ -248,64 +264,187 @@ public class ExcelUtil {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
-        return obj;
+        map.put(obj, rowError);
+        return map;
     }
 
     /**
      * 匹配相应的字段
-     *
-     * @param dataClass
-     * @param dataRow
-     * @param cellErrors
-     * @param sheetName
-     * @param rowIndex
-     * @param obj
-     * @param colIndex
-     * @param titleName
-     * @param cell
-     * @throws Exception
      */
-    private static void matchFields(Class<?> dataClass, Row dataRow, List<CellError> cellErrors, String sheetName,
+    private static void matchFields(Class<?> dataClass, Row dataRow, List<ColumnError> columnErrorList, String sheetName,
                                     int rowIndex, Object obj, int colIndex, String titleName, Cell cell) throws Exception {
-        if (cell != null && !cell.toString().trim().equals("")) {
-            //获取类中所有的字段
-            Field[] fields = dataClass.getDeclaredFields();
-            int fieldCount = 0;
-            for (Field field : fields) {
-                fieldCount++;
-                //获取标记了ExcelAnno的注解字段
-                if (field.isAnnotationPresent(ExcelAnno.class)) {
-                    ExcelAnno f = field.getAnnotation(ExcelAnno.class);
-                    //实体中注解的属性名称
-                    String cellName = f.cellName();
-                    if (cellName != null && !cellName.isEmpty()) {
-                        //匹配到实体中相应的字段
-                        if (chineseCompare(cellName, titleName, "UTF-8")) {
-                            //打开实体中私有变量的权限
-                            field.setAccessible(true);
-                            //实体中变量赋值
-                            try {
-                                field.set(obj, getObj(field.getType(), cell, field));
-                                break;
-                            } catch (Exception e) {
-                                String errorMsg = "第[" + (dataRow.getRowNum() + 1) + "]行，字段:[" + cellName + "]的数据类型不正确";
-                                CellError errorObj = new CellError(sheetName, rowIndex, colIndex, null, titleName, errorMsg, e);
-                                cellErrors.add(errorObj);
+        //获取类中所有的字段
+        Field[] fields = dataClass.getDeclaredFields();
+        int fieldCount = 0;
+        for (Field field : fields) {
+            fieldCount++;
+            //获取标记了ExcelAnno的注解字段
+            if (field.isAnnotationPresent(ExcelAnno.class)) {
+                ExcelAnno f = field.getAnnotation(ExcelAnno.class);
+                //实体中注解的属性名称
+                String cellName = f.cellName();
+                if (cellName != null && !cellName.isEmpty()) {
+                    //匹配到实体中相应的字段
+                    if (chineseCompare(cellName, titleName, "UTF-8")) {
+                        ColumnError columnError = new ColumnError();
+                        columnError.setColumnIndex(colIndex + 1);
+                        columnError.setTitleMsg(cellName);
+                        //打开实体中私有变量的权限
+                        field.setAccessible(true);
+                        //实体中变量赋值
+                        try {
+                            // 获取数据或者错误信息
+                            Map<Object, ColumnError> map = validityDataGetFieldValue(field, cell, columnError);
+                            Map.Entry<Object, ColumnError> next = map.entrySet().iterator().next();
+                            field.set(obj, next.getKey());
+                            if (StringUtils.isNotBlank(next.getValue().getErrorMsg())) {
+                                ColumnError value = next.getValue();
+                                columnErrorList.add(value);
                             }
+                            break;
+                        } catch (Exception e) {
+                            logger.debug(e.getMessage());
+                            throw new RuntimeException(e.getMessage());
                         }
-                    } else {
-                        logger.info(Thread.currentThread() + "实体：" + obj.getClass().getSimpleName() + "中的：" + field.getName() + " 未配置cellName属性");
-                        continue;
                     }
-                    if (fieldCount == fields.length) {
-                        //标明没有找到匹配的属性字段
-                        logger.info(Thread.currentThread() + "模板中的：" + sheetName + "[" + titleName + "]未与实体：" + obj.getClass().getSimpleName() + " 对应");
-                    }
+                } else {
+                    logger.info(Thread.currentThread() + "实体：" + obj.getClass().getSimpleName() + "中的：" + field.getName() + " 未配置cellName属性");
+                    continue;
+                }
+                if (fieldCount == fields.length) {
+                    //标明没有找到匹配的属性字段
+                    logger.info(Thread.currentThread() + "模板中的：" + sheetName + "[" + titleName + "]未与实体：" + obj.getClass().getSimpleName() + " 对应");
                 }
             }
         }
     }
 
+    private static Map<Object, ColumnError> validityDataGetFieldValue(Field field, Cell cell, ColumnError columnError) throws ParseException {
+        Map<Object, ColumnError> map = new HashedMap(1);
+        String cellValue = getCellValue(cell);
+        ExcelAnno.FieldCheck fieldCheck = field.getAnnotation(ExcelAnno.class).fieldCheck();
+        switch (fieldCheck) {
+            case PERSONAL_NAME:
+                if (StringUtils.equalsIgnoreCase(cellValue, "")) {
+                    columnError.setErrorMsg("客户姓名为空");
+                    columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
+                    map.put(cellValue, columnError);
+                    break;
+                }
+                map.put(cellValue, columnError);
+                break;
+            case IDCARD:
+                if (StringUtils.equalsIgnoreCase(cellValue, "")) {
+                    columnError.setErrorMsg("身份证号为空");
+                    columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
+                    map.put(cellValue, columnError);
+                    break;
+                }
+                if (!IdcardUtils.validateCard(cellValue)) {
+                    columnError.setErrorMsg("身份证号无效");
+                    columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
+                    map.put(cellValue, columnError);
+                    break;
+                }
+                map.put(cellValue, columnError);
+                break;
+            case PRODUCT_NAME:
+                if (StringUtils.equalsIgnoreCase(cellValue, "")) {
+                    columnError.setErrorMsg("产品名称为空");
+                    columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
+                    map.put(cellValue, columnError);
+                    break;
+                }
+                map.put(cellValue, columnError);
+                break;
+            case CASE_AMOUNT:
+                if (StringUtils.equalsIgnoreCase(cellValue, "")) {
+                    columnError.setErrorMsg("案件金额为空");
+                    columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
+                    map.put(0.00, columnError);
+                    break;
+                }
+                Double dou = 0D;
+                try {
+                    dou = Double.parseDouble(cellValue);
+                } catch (NumberFormatException e) {
+                    columnError.setErrorMsg("数据类型错误");
+                    columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
+                    map.put(dou, columnError);
+                    break;
+                }
+                map.put(dou, columnError);
+                break;
+            case PHONE_NUMBER:
+                String regExp = "^((13[0-9])|(15[^4])|(18[0,2,3,5-9])|(17[0-8])|(147))\\d{8}$";
+                if (cellValue.length() >= 16) {
+                    columnError.setErrorMsg("电话号码长度过长");
+                    columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
+                    map.put(cellValue, columnError);
+                    break;
+                } else if (cellValue !="" && !cellValue.matches(regExp)) {
+                    columnError.setErrorMsg("电话号码不合规");
+                    columnError.setErrorLevel(ColumnError.ErrorLevel.PROMPT.getValue());
+                    map.put(cellValue, columnError);
+                    break;
+                } else {
+                    map.put(cellValue, columnError);
+                    break;
+                }
+            case NONE:
+                ExcelAnno.FieldType fieldType = field.getAnnotation(ExcelAnno.class).fieldType();
+                switch (fieldType) {
+                    case STRING:
+                        map.put(cellValue, columnError);
+                        break;
+                    case INTEGER:
+                        Integer inte = 0;
+                        try {
+                            inte = Integer.parseInt(cellValue);
+                        } catch (NumberFormatException e) {
+                            columnError.setErrorMsg("数据类型错误");
+                            columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
+                            map.put(inte, columnError);
+                            break;
+                        }
+                        map.put(inte, columnError);
+                        break;
+                    case DOUBLE:
+                        Double dou1 = 0D;
+                        try {
+                            dou = Double.parseDouble(cellValue);
+                        } catch (NumberFormatException e) {
+                            columnError.setErrorMsg("数据类型错误");
+                            columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
+                            map.put(dou1, columnError);
+                            break;
+                        }
+                        map.put(dou, columnError);
+                        break;
+                    case DATE:
+                        if (cellValue.matches("\\d{4}/\\d{1,2}/\\d{1,2}")) {
+                            map.put(ZWDateUtil.getUtilDate(cellValue, "yyyy/MM/dd"), columnError);
+                            break;
+                        } else if (cellValue.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                            map.put(ZWDateUtil.getUtilDate(cellValue, "yyyy-MM-dd"), columnError);
+                            break;
+                        } else if (cellValue.matches("^\\d{4}\\d{2}\\d{2}")) {
+                            map.put(ZWDateUtil.getUtilDate(cellValue, "yyyyMMdd"), columnError);
+                            break;
+                        } else if (cellValue.matches("\\d{4}.\\d{1,2}.\\d{1,2}")) {
+                            map.put(ZWDateUtil.getUtilDate(cellValue, "yyyy.MM.dd"), columnError);
+                            break;
+                        } else {
+                            columnError.setErrorMsg("日期格式错误");
+                            columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
+                            map.put(ZWDateUtil.getUtilDate("1970-01-01", "yyyy-MM-dd"), columnError);
+                            break;
+                        }
+                }
+        }
+        return map;
+
+    }
 
     /**
      * Excel 中将数字转化为字符 如 1 转为 A
@@ -378,6 +517,7 @@ public class ExcelUtil {
             return null;
         }
         String cellValue = getCellValue(cell);
+        // 数据类型匹配
         if ("java.util.Date".equalsIgnoreCase(clazz.getName())) {
             if (cellValue.matches("\\d{4}/\\d{1,2}/\\d{1,2}"))
                 return ZWDateUtil.getUtilDate(cellValue, "yyyy/MM/dd");
@@ -401,7 +541,7 @@ public class ExcelUtil {
         } else {
             Constructor con = clazz.getConstructor(String.class);
             if (field.isAnnotationPresent(SymbolReplace.class)) {
-                return con.newInstance(filterEmoji(cellValue,""));
+                return con.newInstance(filterEmoji(cellValue, ""));
             }
             return con.newInstance(cellValue);
         }
@@ -423,7 +563,6 @@ public class ExcelUtil {
     }
 
 
-
     /**
      * 解析每个Sheet页的头部信息
      *
@@ -437,7 +576,7 @@ public class ExcelUtil {
             if (startCol > lastCellNum) {
                 throw new Exception("Excel数据模板开始列大于数据总列数");
             }
-            Map<Integer, String> headerMap = new HashMap<>();
+            Map<Integer, String> headerMap = new LinkedHashMap<>();
             for (int columnIndex = startCol; columnIndex < titleRow.getLastCellNum(); columnIndex++) {
                 Cell cell = titleRow.getCell(columnIndex);
                 headerMap.put(columnIndex, cell.getStringCellValue());

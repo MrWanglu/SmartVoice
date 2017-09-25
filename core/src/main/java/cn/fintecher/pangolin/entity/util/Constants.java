@@ -42,11 +42,11 @@ public final class Constants {
     public static final String SMS_PUSH_TYPE = "0017";
     //导入批次号最大999(3位)
     public final static String ORDER_SEQ = "orderSeq";
-    public final static Integer ORDER_SEQ_LENGTH=3;
+    public final static Integer ORDER_SEQ_LENGTH = 3;
 
     //案件编号最大99999（5位）
     public final static String CASE_SEQ = "caseSeq";
-    public final static Integer CASE_SEQ_LENGTH=5;
+    public final static Integer CASE_SEQ_LENGTH = 5;
     //委托方编号最大999（3位）
     public final static String PRIN_SEQ = "prinSeq";
     public static final String ERROR_MESSAGE = "系统错误";
@@ -169,46 +169,46 @@ public final class Constants {
     /**
      * 晚间批量任务调度
      */
-    public final static String OVERNIGHT_TRIGGER_GROUP="overNightTriggerGroup";
-    public final static String OVERNIGHT_TRIGGER_NAME="overNightTriggerName";
-    public final static String OVERNIGHT_TRIGGER_DESC="晚间批量触发器";
-    public final static String OVERNIGHT_JOB_GROUP="OverNightJobGroup";
-    public final static String OVERNIGHT_JOB_NAME="OverNightJobName";
-    public final static String OVERNIGHT_JOB_DESC="晚间批量";
-    public final static String SYSPARAM_OVERNIGHT="SysParam.overNight";
-    public final static String SYSPARAM_OVERNIGHT_STATUS="Sysparam.overnight.status";
-    public final static String SYSPARAM_OVERNIGHT_STEP="Sysparam.overnight.step";
+    public final static String OVERNIGHT_TRIGGER_GROUP = "overNightTriggerGroup";
+    public final static String OVERNIGHT_TRIGGER_NAME = "overNightTriggerName";
+    public final static String OVERNIGHT_TRIGGER_DESC = "晚间批量触发器";
+    public final static String OVERNIGHT_JOB_GROUP = "OverNightJobGroup";
+    public final static String OVERNIGHT_JOB_NAME = "OverNightJobName";
+    public final static String OVERNIGHT_JOB_DESC = "晚间批量";
+    public final static String SYSPARAM_OVERNIGHT = "SysParam.overNight";
+    public final static String SYSPARAM_OVERNIGHT_STATUS = "Sysparam.overnight.status";
+    public final static String SYSPARAM_OVERNIGHT_STEP = "Sysparam.overnight.step";
 
 
     /**
      * 录音下载调度
      */
-    public final static String RECORD_TRIGGER_GROUP="recordTriggerGroup";
-    public final static String RECORD_TRIGGER_NAME="recordTriggerName";
-    public final static String RECORD_TRIGGER_DESC="录音下载触发器";
-    public final static String RECORD_JOB_GROUP="recordJobGroup";
-    public final static String RECORD_JOB_NAME="recordJobName";
-    public final static String RECORD_JOB_DESC="录音下载批量";
-    public final static String SYSPARAM_RECORD="Sysparam.record";
-    public final static String SYSPARAM_RECORD_STATUS="Sysparam.record.status";
+    public final static String RECORD_TRIGGER_GROUP = "recordTriggerGroup";
+    public final static String RECORD_TRIGGER_NAME = "recordTriggerName";
+    public final static String RECORD_TRIGGER_DESC = "录音下载触发器";
+    public final static String RECORD_JOB_GROUP = "recordJobGroup";
+    public final static String RECORD_JOB_NAME = "recordJobName";
+    public final static String RECORD_JOB_DESC = "录音下载批量";
+    public final static String SYSPARAM_RECORD = "Sysparam.record";
+    public final static String SYSPARAM_RECORD_STATUS = "Sysparam.record.status";
 
     /**
      * 消息提醒调度
      */
-    public final static String REMINDER_TRIGGER_GROUP="reminderTriggerGroup";
-    public final static String REMINDER_TRIGGER_NAME="reminderTriggerName";
-    public final static String REMINDER_TRIGGER_DESC="消息提醒触发器";
-    public final static String REMINDER_JOB_GROUP="reminderJobGroup";
-    public final static String REMINDER_JOB_NAME="reminderJobName";
-    public final static String REMINDER_JOB_DESC="消息提醒批量";
-    public final static String SYSPARAM_REMINDER="Sysparam.reminder";
-    public final static String SYSPARAM_REMINDER_STATUS="Sysparam.reminder.status";
+    public final static String REMINDER_TRIGGER_GROUP = "reminderTriggerGroup";
+    public final static String REMINDER_TRIGGER_NAME = "reminderTriggerName";
+    public final static String REMINDER_TRIGGER_DESC = "消息提醒触发器";
+    public final static String REMINDER_JOB_GROUP = "reminderJobGroup";
+    public final static String REMINDER_JOB_NAME = "reminderJobName";
+    public final static String REMINDER_JOB_DESC = "消息提醒批量";
+    public final static String SYSPARAM_REMINDER = "Sysparam.reminder";
+    public final static String SYSPARAM_REMINDER_STATUS = "Sysparam.reminder.status";
 
     /**
      * 批量执行状态
      */
-    public enum BatchStatus{
-        STOP("0","未执行"),RUNING("1","正在执行");
+    public enum BatchStatus {
+        STOP("0", "未执行"), RUNING("1", "正在执行");
 
         String value;
         String code;
@@ -227,62 +227,128 @@ public final class Constants {
         }
     }
 
-    /**电催小流转**/
-    public final static String SYS_PHNOEFLOW_SMALLDAYS="sys.phnoeFlow.smallDays" ;
-    /**电催大流转**/
-    public final static String SYS_PHNOEFLOW_BIGDAYS="sys.phnoeFlow.bigDays" ;
-    /**电催留案流转**/
-    public final static String SYS_PHNOEFLOW_LEAVEDAYS="sys.phnoeFlow.leaveDays";
-    /**电催留案比例**/
-    public final static String SYS_PHNOEFLOW_LEAVERATE="sys.phnoeFlow.leaveRate";
-    /**电催强制流转提醒天数**/
-    public final static String SYS_PHNOEFLOW_BIGDAYSREMIND="sys.phnoeFlow.bigDaysRemind";
-    /**电催无进展提醒天数**/
-    public final static String SYS_PHONEREMIND_DAYS="sys.phoneRemind.days";
-    /**电催小流转部门**/
-    public final static String SYS_PHNOETURN_SMALLDEPTNAME="电催小流转";
-    /**电催强制流转部门**/
-    public final static String SYS_PHNOETURN_BIGDEPTNAME="电催强制流转";
-    /**电催留案流转部门**/
-    public final static String SYS_PHNOETURN_LEAVEDEPTNAME="电催留案流转";
+    /**
+     * 电催小流转
+     **/
+    public final static String SYS_PHNOEFLOW_SMALLDAYS = "sys.phnoeFlow.smallDays";
+    /**
+     * 电催大流转
+     **/
+    public final static String SYS_PHNOEFLOW_BIGDAYS = "sys.phnoeFlow.bigDays";
+    /**
+     * 电催留案流转
+     **/
+    public final static String SYS_PHNOEFLOW_LEAVEDAYS = "sys.phnoeFlow.leaveDays";
+    /**
+     * 电催留案比例
+     **/
+    public final static String SYS_PHNOEFLOW_LEAVERATE = "sys.phnoeFlow.leaveRate";
+    /**
+     * 电催强制流转提醒天数
+     **/
+    public final static String SYS_PHNOEFLOW_BIGDAYSREMIND = "sys.phnoeFlow.bigDaysRemind";
+    /**
+     * 电催无进展提醒天数
+     **/
+    public final static String SYS_PHONEREMIND_DAYS = "sys.phoneRemind.days";
+    /**
+     * 电催小流转部门
+     **/
+    public final static String SYS_PHNOETURN_SMALLDEPTNAME = "电催小流转";
+    /**
+     * 电催强制流转部门
+     **/
+    public final static String SYS_PHNOETURN_BIGDEPTNAME = "电催强制流转";
+    /**
+     * 电催留案流转部门
+     **/
+    public final static String SYS_PHNOETURN_LEAVEDEPTNAME = "电催留案流转";
 
 
-    /**外访小流转**/
-    public final static String SYS_OUTBOUNDFLOW_SMALLDAYS="sys.outboundFlow.smallDays" ;
-    /**外访大流转**/
-    public final static String SYS_OUTBOUNDFLOW_BIGDAYS="sys.outboundFlow.bigDays" ;
-    /**外访留案流转**/
-    public final static String SYS_OUTBOUNDFLOW_LEAVEDAYS="sys.outboundFlow.leaveDays";
-    /**外访留案比例**/
-    public final static String SYS_OUTBOUNDFLOW_LEAVERATE="sys.outboundflow.leaveRate";
-    /**外访强制流转提醒天数**/
-    public final static String SYS_OUTBOUNDFLOW_BIGDAYSREMIND="sys.outboundFlow.bigDaysRemind";
-    /**外访无进展提醒天数**/
-    public final static String SYS_OUTREMIND_DAYS="sys.outRemind.days";
-    /**外访小流转部门**/
-    public final static String SYS_OUTTURN_SMALLDEPTNAME="外访小流转";
-    /**外访强制流转部门**/
-    public final static String SYS_OUTTURN_BIGDEPTNAME="外访强制流转";
-    /**外访留案流转部门**/
-    public final static String SYS_OUTTURN_LEAVEDEPTNAME="外访留案流转";
+    /**
+     * 外访小流转
+     **/
+    public final static String SYS_OUTBOUNDFLOW_SMALLDAYS = "sys.outboundFlow.smallDays";
+    /**
+     * 外访大流转
+     **/
+    public final static String SYS_OUTBOUNDFLOW_BIGDAYS = "sys.outboundFlow.bigDays";
+    /**
+     * 外访留案流转
+     **/
+    public final static String SYS_OUTBOUNDFLOW_LEAVEDAYS = "sys.outboundFlow.leaveDays";
+    /**
+     * 外访留案比例
+     **/
+    public final static String SYS_OUTBOUNDFLOW_LEAVERATE = "sys.outboundflow.leaveRate";
+    /**
+     * 外访强制流转提醒天数
+     **/
+    public final static String SYS_OUTBOUNDFLOW_BIGDAYSREMIND = "sys.outboundFlow.bigDaysRemind";
+    /**
+     * 外访无进展提醒天数
+     **/
+    public final static String SYS_OUTREMIND_DAYS = "sys.outRemind.days";
+    /**
+     * 外访小流转部门
+     **/
+    public final static String SYS_OUTTURN_SMALLDEPTNAME = "外访小流转";
+    /**
+     * 外访强制流转部门
+     **/
+    public final static String SYS_OUTTURN_BIGDEPTNAME = "外访强制流转";
+    /**
+     * 外访留案流转部门
+     **/
+    public final static String SYS_OUTTURN_LEAVEDEPTNAME = "外访留案流转";
 
-    /**全程协催案件强制流转天数**/
-    public final static String SYS_ASSIST_BIGDAYS="sys.assist.bigdays";
-    /**单次协催小流转天数**/
-    public final static String SYS_ASSIST_SMALLDAYS="sys.assist.smalldays";
-    /**协催留案天数**/
-    public final static String SYS_ASSIST_LEAVEDAYS="sys.assist.leavedays";
-    /**协催留案比例**/
-    public final static String SYS_ASSIST_LEAVERATE="sys.assist.leaveRate";
+    /**
+     * 全程协催案件强制流转天数
+     **/
+    public final static String SYS_ASSIST_BIGDAYS = "sys.assist.bigdays";
+    /**
+     * 单次协催小流转天数
+     **/
+    public final static String SYS_ASSIST_SMALLDAYS = "sys.assist.smalldays";
+    /**
+     * 协催留案天数
+     **/
+    public final static String SYS_ASSIST_LEAVEDAYS = "sys.assist.leavedays";
+    /**
+     * 协催留案比例
+     **/
+    public final static String SYS_ASSIST_LEAVERATE = "sys.assist.leaveRate";
 
-    /**协催无进展提醒天数**/
-    public final static String SYS_ASSISTREMIND_DAYS="sys.assistRemind.days";
-    /**协催强制流转提醒天数**/
-    public final static String SYS_ASSISTREMIND_BIGDAYSREMIND="sys.assistRemind.bigDaysRemind";
+    /**
+     * 协催无进展提醒天数
+     **/
+    public final static String SYS_ASSISTREMIND_DAYS = "sys.assistRemind.days";
+    /**
+     * 协催强制流转提醒天数
+     **/
+    public final static String SYS_ASSISTREMIND_BIGDAYSREMIND = "sys.assistRemind.bigDaysRemind";
 
-    /**抢单半径（公里）**/
-    public final static String SYS_QIANGDAN_RADIUS="sys.qiangdan.radius";
-    /**地球半径**/
-    public final static double EARTH_RADIUS=6371;
+    /**
+     * 抢单半径（公里）
+     **/
+    public final static String SYS_QIANGDAN_RADIUS = "sys.qiangdan.radius";
+    /**
+     * 地球半径
+     **/
+    public final static double EARTH_RADIUS = 6371;
 
+    /**
+     * mysql系统数据库备份
+     */
+    public final static String MYSQL_BACKUP_ADDRESS_CODE = "Sysparam.mysqlbackup.address";
+    public final static String MYSQL_BACKUP_ADDRESS_TYPE = "9001";
+    public final static String MYSQL_RECOVER_ADDRESS_CODE = "Sysparam.mysqlrecover.address";
+    public final static String MYSQL_RECOVER_ADDRESS_TYPE = "9001";
+    /**
+     * mongodb系统数据库备份
+     */
+    public final static String MONGODB_BACKUP_ADDRESS_CODE = "Sysparam.mongodbbackup.address";
+    public final static String MONGODB_BACKUP_ADDRESS_TYPE = "9001";
+    public final static String MONGODB_RECOVER_ADDRESS_CODE = "Sysparam.mongodbrecover.address";
+    public final static String MONGODB_RECOVER_ADDRESS_TYPE = "9001";
 }
