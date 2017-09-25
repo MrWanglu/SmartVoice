@@ -19,4 +19,10 @@ public class CaseInfoVerficationModel {
 
     private String id; // 核销案件的id
 
+    private String applicationReason; // 申请原因
+
+    private String approvalOpinion; //审批意见
+
+    private String approvalResult; // 审批结果
+
 }
