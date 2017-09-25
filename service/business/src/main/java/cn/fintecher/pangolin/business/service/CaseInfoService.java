@@ -935,6 +935,7 @@ public class CaseInfoService {
         personalContact.setPhoneStatus(repairInfoModel.getPhoneStatus()); //电话状态
         personalContact.setSocialType(repairInfoModel.getSocialType()); //社交帐号类型
         personalContact.setSocialValue(repairInfoModel.getSocialValue()); //社交帐号内容
+        personalContact.setMail(repairInfoModel.getEmail()); //邮箱地址
         personalContact.setSource(Constants.DataSource.REPAIR.getValue()); //数据来源 147-修复
         personalContact.setOperator(tokenUser.getUserName()); //操作人
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
@@ -1987,14 +1988,14 @@ public class CaseInfoService {
         caseInfoRemarkRepository.save(caseInfoRemark);
 
         //消息提醒
-        SendReminderMessage sendReminderMessage = new SendReminderMessage();
-        if (Objects.nonNull(caseInfo.getCurrentCollector())) {
+        if (Objects.nonNull(caseInfo.getCurrentCollector())) { //当前案件有催收员
+            SendReminderMessage sendReminderMessage = new SendReminderMessage();
             sendReminderMessage.setUserId(caseInfo.getCurrentCollector().getId());
+            sendReminderMessage.setTitle("案件 [" + caseInfo.getCaseNumber() + "] 的备注信息已修改");
+            sendReminderMessage.setContent(caseInfo.getMemo());
+            sendReminderMessage.setType(ReminderType.MEMO_MODIFY);
+            reminderService.sendReminder(sendReminderMessage);
         }
-        sendReminderMessage.setTitle("案件 [" + caseInfo.getCaseNumber() + "] 的备注信息已修改");
-        sendReminderMessage.setContent(caseInfo.getMemo());
-        sendReminderMessage.setType(ReminderType.MEMO_MODIFY);
-        reminderService.sendReminder(sendReminderMessage);
     }
 
     /**
