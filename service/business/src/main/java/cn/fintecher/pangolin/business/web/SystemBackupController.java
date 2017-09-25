@@ -172,15 +172,22 @@ public class SystemBackupController extends BaseController {
         //mysql数据库恢复
         Iterator<SysParam> mysqlSysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.MYSQL_RECOVER_ADDRESS_CODE).and(qSysParam.type.eq(Constants.MYSQL_RECOVER_ADDRESS_TYPE))).iterator();
         if (!mysqlSysParams.hasNext()) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exception for parameters", "恢复系统数据库地址参数异常")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exception for parameters", "恢复mysql系统数据库地址参数异常")).body(null);
         }
         String mysqlResult = systemBackupService.operationShell(mysqlSysParams.next().getValue(), request.getMysqlName());
         if (!Objects.equals("success", mysqlResult)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail to recover mysql database", "mysql数据库恢复失败")).body(null);
         }
         //mongodb数据库恢复
-
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(mysqlResult);
+        Iterator<SysParam> mongodbSysParams = sysParamRepository.findAll(qSysParam.code.eq(Constants.MONGODB_RECOVER_ADDRESS_CODE).and(qSysParam.type.eq(Constants.MONGODB_RECOVER_ADDRESS_TYPE))).iterator();
+        if (!mongodbSysParams.hasNext()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exception for parameters", "恢复mongodb系统数据库地址参数异常")).body(null);
+        }
+        String mongodbResult = systemBackupService.operationShell(mongodbSysParams.next().getValue(), request.getMongdbName());
+        if (!Objects.equals("success", mongodbResult)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail to recover mongodb database", "mongodb数据库恢复失败")).body(null);
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body("mysql"+mysqlResult+"mongodb"+mongodbResult);
     }
 
     /**
