@@ -71,7 +71,9 @@ public class RecordDownLoadJob implements Job {
                 //erpv3 的录音下载
                 logger.info("erpv3 的录音下载" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
                 dateTime = new DateTime();
-                caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.opUrl.isNull().and(qCaseFollowupRecord.operatorTime.gt(dateTime.minusWeeks(1).toDate())).and(qCaseFollowupRecord.callType.eq(CaseFollowupRecord.CallType.ERPV3.getValue())).and(qCaseFollowupRecord.taskId.isNotNull()).and(qCaseFollowupRecord.recoderId.isNotNull()).and(qCaseFollowupRecord.taskcallerId.isNotNull())).iterator();
+                caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.opUrl.isNull().and(qCaseFollowupRecord.operatorTime.gt(dateTime.minusWeeks(1).toDate()))
+                        .and(qCaseFollowupRecord.callType.eq(CaseFollowupRecord.CallType.ERPV3.getValue())).and(qCaseFollowupRecord.taskId.isNotNull())
+                        .and(qCaseFollowupRecord.recoderId.isNotNull()).and(qCaseFollowupRecord.taskcallerId.isNotNull())).iterator();
                 caseFollowupRecordList = IteratorUtils.toList(caseFollowupRecords);
                 HttpHeaders headers = new HttpHeaders();
                 HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -164,7 +166,7 @@ public class RecordDownLoadJob implements Job {
                         .and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
                 if (Objects.nonNull(sysParam)) {
                     String cron = sysParam.getValue();
-                    cron = "0 ".concat("0").concat("/").concat(cron).concat(" * * * ?");
+                    cron = "0 ".concat(cron).concat(" * * * ?");
                     JobDetail jobDetail = ConfigureQuartz.createJobDetail(RecordDownLoadJob.class, Constants.RECORD_JOB_GROUP,
                             Constants.RECORD_JOB_NAME.concat("_").concat(company.getCode()),
                             Constants.RECORD_JOB_DESC.concat("_").concat(company.getCode()));
