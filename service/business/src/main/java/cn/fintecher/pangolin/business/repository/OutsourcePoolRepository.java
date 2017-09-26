@@ -62,52 +62,6 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
     }
 
     /**
-     * 获取所有相同委托方案件
-     *
-     * @return
-     */
-    @Query(value = "SELECT aa.outs_name, MIN(aa.case_follow_in_time), MIN(aa.delegation_date), Max(aa.close_date), MIN(aa.left_days), sum(aa.overdue_amount), count(*) from (SELECT c.outs_name,b.case_follow_in_time,b.overdue_amount,b.delegation_date,b.close_date,b.left_days,a.out_status\n" +
-            "FROM outsource c \n" +
-            "INNER JOIN outsource_pool a on c.id=a.out_id\n" +
-            "INNER JOIN case_info b on a.case_id=b.id) aa GROUP BY aa.outs_name", nativeQuery = true)
-    List<Object[]>  findAllOutsourcePoolCase();
-
-    /**
-     * 获取所有相同委托方已结案案件
-     *
-     * @return
-     */
-    @Query(value = "SELECT c.outs_name, count(*),sum(b.overdue_amount)\n" +
-            "FROM outsource c \n" +
-            "INNER JOIN outsource_pool a on c.id=a.out_id\n" +
-            "INNER JOIN case_info b on a.case_id=b.id where a.out_status=170 GROUP BY c.outs_name", nativeQuery = true)
-    List<Object[]>  findAllClosedsourcePoolCase();
-
-
-    /**
-     * 获取所有相同批次号案件
-     *
-     * @return
-     */
-    @Query(value = "SELECT aa.outs_name, MIN(aa.case_follow_in_time), MIN(aa.delegation_date), Max(aa.close_date), MIN(aa.left_days), sum(aa.overdue_amount), count(*),aa.out_batch from (SELECT c.outs_name,b.case_follow_in_time,b.overdue_amount,b.delegation_date,b.close_date,b.left_days,a.out_status,a.out_batch\n" +
-            "FROM outsource  c\n" +
-            "INNER JOIN outsource_pool a on c.id=a.out_id\n" +
-            "INNER JOIN case_info b on a.case_id=b.id ORDER BY a.out_batch) aa GROUP BY aa.out_batch, aa.outs_name", nativeQuery = true)
-    List<Object[]>  findAllOutsourcePoolBatchCase();
-
-    /**
-     * 获取所有相同批次号已结案案件
-     *
-     * @return
-     */
-    @Query(value = "SELECT a.out_batch,c.outs_name,count(*),sum(b.overdue_amount)\n" +
-            "FROM outsource c\n" +
-            "INNER JOIN outsource_pool a on c.id=a.out_id\n" +
-            "INNER JOIN case_info b on a.case_id=b.id where a.out_status=170 GROUP BY a.out_batch,c.outs_name ORDER BY a.out_batch", nativeQuery = true)
-    List<Object[]>  findAllClosedsourcePoolBatchCase();
-
-
-    /**
      * 获取特定委外方下的特定案件的个数（共债案件）
      *
      * @param name,idCard,outIds

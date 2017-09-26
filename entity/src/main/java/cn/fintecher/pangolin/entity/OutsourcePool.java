@@ -50,6 +50,19 @@ public class OutsourcePool extends BaseEntity {
     @ApiModelProperty("委外操作状态")
     private Integer outoperationStatus; //回款 204，回退 205，修复 206
 
+    //Added by huyanmin 2017/9/25
+    @ApiModelProperty("公司标识符")
+    private String companyCode;
+
+    //Added by huyanmin 2017/9/25
+    @ApiModelProperty("委外到期时间")
+    private Date overOutsourceTime;
+
+    //Added by huyanmin 2017/9/25
+    @ApiModelProperty("委外结案日期")
+    private Date endOutsourceTime;
+
+
     public enum OutStatus {
 
         //待委外

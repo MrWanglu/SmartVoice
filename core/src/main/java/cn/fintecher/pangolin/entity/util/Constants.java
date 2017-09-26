@@ -120,6 +120,10 @@ public final class Constants {
     public static final String SMS_OUTCASE_ACCOUNT_URL_CODE = "sys.outcase.account";
     public static final String SMS_OUTCASE_ACCOUNT_URL_TYPE = "9001";
 
+    //委外案件跟进记录导入模版url
+    public static final String SMS_OUTCASE_FOLLOWUP_URL_CODE = "sys.outcase.followup";
+    public static final String SMS_OUTCASE_FOLLOWUP_URL_TYPE = "9005";
+
     //系统参数请求
     public static final String SYSPARAM_URL = "http://business-service/api/sysParamResource";
 
