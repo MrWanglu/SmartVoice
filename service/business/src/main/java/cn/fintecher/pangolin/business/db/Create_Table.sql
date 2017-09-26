@@ -31,3 +31,28 @@ CREATE TABLE `system_backup` (
   `operate_time` datetime DEFAULT NULL COMMENT '备份时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--2017-09-26
+--新增案件回收表
+--祁吉贵
+CREATE TABLE `case_info_return` (
+  `id` varchar(64) NOT NULL DEFAULT '' COMMENT '主键',
+  `case_id` varchar(64) DEFAULT NULL COMMENT '案件ID',
+  `operator_time` datetime DEFAULT NULL COMMENT '操作时间',
+  `operator` varchar(64) DEFAULT NULL COMMENT '操作人（username)',
+  `reason` varchar(1000) DEFAULT NULL COMMENT '退案原因',
+   `source` int(4) DEFAULT NULL COMMENT '退回来源：内催，委外，司法，核销',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--2017-09-26
+--新增司法案件表
+--夏群
+CREATE TABLE `case_info_judicial` (
+  `id` varchar(64) NOT NULL COMMENT '主键ID',
+  `case_id` varchar(64) DEFAULT NULL COMMENT '案件ID',
+  `operator_user_name` varchar(64) DEFAULT NULL COMMENT '操作人用户名',
+  `operator_real_name` varchar(200) DEFAULT NULL COMMENT '操作人姓名',
+  `operator_time` datetime DEFAULT NULL COMMENT '操作时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='司法案件池';
