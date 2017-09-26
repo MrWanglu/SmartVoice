@@ -14,6 +14,7 @@ import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -27,16 +28,12 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StopWatch;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import static cn.fintecher.pangolin.dataimp.entity.QDataInfoExcel.dataInfoExcel;
 
 /**
  * @Author: PeiShouWen
@@ -74,16 +71,10 @@ public class DataInfoExcelService {
     private DataInfoExcelHisRepository dataInfoExcelHisRepository;
 
     @Autowired
-    private DataInfoExcelAsyncTask dataInfoExcelAsyncTask;
+    ParseExcelService parseExcelService;
 
     private final Logger logger = LoggerFactory.getLogger(DataInfoExcelService.class);
 
-    CopyOnWriteArrayList<Integer> dataIndex = new CopyOnWriteArrayList<>();
-
-    DataImportRecord dataImportRecord = new DataImportRecord();
-
-    @Autowired
-    private ExcelParseService excelParseService;
     /**
      * Excel数据导入
      *
@@ -108,63 +99,49 @@ public class DataInfoExcelService {
         if (!Constants.EXCEL_TYPE_XLS.equals(file.getType()) && !Constants.EXCEL_TYPE_XLSX.equals(file.getType())) {
             throw new Exception("数据文件为非Excel数据");
         }
+        Sheet excelSheet = null;
+        try {
+            excelSheet = parseExcelService.getExcelSheets(file);
+            if (Objects.isNull(excelSheet)) {
+                throw new RuntimeException("获取Excel对象错误");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("获取Excel对象错误");
+        }
+        int startRow = 0;
+        int startCol = 0;
         //获取模板数据
         TemplateDataModel templateDataModel = null;
-        int[] startRow = new int[]{0};
-        int[] startCol = new int[]{0};
         //通过模板配置解析Excel数据
         List<TemplateExcelInfo> templateExcelInfoList = null;
         if (StringUtils.isNotBlank(dataImportRecord.getTemplateId())) {
             templateDataModel = templateDataModelRepository.findOne(dataImportRecord.getTemplateId());
             if (Objects.nonNull(templateDataModel)) {
-                startRow = new int[]{Integer.parseInt(templateDataModel.getDataRowNum())};
-                startCol = new int[]{Integer.parseInt(templateDataModel.getDataColNum())};
+                startRow = Integer.parseInt(templateDataModel.getDataRowNum());
+                startCol = Integer.parseInt(templateDataModel.getDataColNum());
                 templateExcelInfoList = templateDataModel.getTemplateExcelInfoList();
             } else {
                 throw new Exception("导入模板配置信息缺失");
             }
         }
-        Class<?>[] dataClass = {DataInfoExcel.class};
-//        ExcelSheetObj excelSheetObj = ExcelUtil.parseExcelSingle(file, dataClass, startRow, startCol, templateExcelInfoList);
-        ExcelSheetObj excelSheetObj = excelParseService.parseExcelSingle(file, dataClass, startRow, startCol, templateExcelInfoList);
-        List<RowError> rowErrors = new ArrayList<>();
-        if (Objects.nonNull(excelSheetObj)) {
-            rowErrors = excelSheetObj.getSheetErrorList();
-            List dataList = excelSheetObj.getDataList();
-
-            ResponseEntity<Company> entity = restTemplate.getForEntity(Constants.COMPANY_URL.concat(user.getCompanyCode()), Company.class);
-            if (!entity.hasBody()) {
-                throw new Exception("获取公司序列号失败!");
-            }
-            Company company = entity.getBody();
-            //批次号
-            String batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ, user.getCompanyCode(), Constants.ORDER_SEQ_LENGTH);
-            //导入数据记录
-            dataImportRecord.setBatchNumber(batchNumber);
-            dataImportRecord.setOperator(user.getId());
-            dataImportRecord.setOperatorName(user.getRealName());
-            dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
-            dataImportRecord.setCompanyCode(user.getCompanyCode());
-            dataImportRecord.setCompanySequence(company.getSequence());
-            dataImportRecordRepository.save(dataImportRecord);
-            this.dataImportRecord = dataImportRecord;
-            //开始保存数据
-            //开始保存数据
-            logger.info("共{}条数据,开始校验保存...", dataList.size());
-            StopWatch watch = new StopWatch();
-            watch.start();
-            dataIndex.clear();
-            for (int i = 0; i < dataList.size(); i++) {
-                dataInfoExcelAsyncTask.saveDataExcelInfo((DataInfoExcel) dataList.get(i), rowErrors, this.dataImportRecord, i, dataIndex);
-            }
-            while (dataIndex.size() != dataList.size()) {
-                Thread thread = Thread.currentThread();
-                thread.sleep(1);
-            }
-            watch.stop();
-            logger.info("共{}条数据,校验保存完成,共耗时{}ms", dataList.size(), watch.getTotalTimeMillis());
-            return;
+        ResponseEntity<Company> entity = restTemplate.getForEntity(Constants.COMPANY_URL.concat(user.getCompanyCode()), Company.class);
+        if (!entity.hasBody()) {
+            throw new Exception("获取公司序列号失败!");
         }
+        Company company = entity.getBody();
+        //批次号
+        String batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ, user.getCompanyCode(), Constants.ORDER_SEQ_LENGTH);
+        dataImportRecord.setBatchNumber(batchNumber);
+        dataImportRecord.setOperator(user.getId());
+        dataImportRecord.setOperatorName(user.getRealName());
+        dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
+        dataImportRecord.setCompanyCode(user.getCompanyCode());
+        dataImportRecord.setCompanySequence(company.getSequence());
+        dataImportRecordRepository.save(dataImportRecord);
+        //开始保存数据
+        parseExcelService.parseSheet(excelSheet, startRow,startCol, DataInfoExcel.class, dataImportRecord, templateExcelInfoList);
+        logger.debug("数据处理保存完成");
+        return;
     }
 
     /**
@@ -253,7 +230,7 @@ public class DataInfoExcelService {
      */
     public List<DataInfoExcelFileExist> checkCasesFile(User user) {
         List<DataInfoExcelFileExist> dataInfoExcelFileExistList = new ArrayList<>();
-        QDataInfoExcel qDataInfoExcel = dataInfoExcel;
+        QDataInfoExcel qDataInfoExcel = QDataInfoExcel.dataInfoExcel;
         Iterable<DataInfoExcel> dataInfoExcelIterable = dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId())
                 .and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
         for (Iterator<DataInfoExcel> it = dataInfoExcelIterable.iterator(); it.hasNext(); ) {
@@ -278,21 +255,16 @@ public class DataInfoExcelService {
      *
      * @param user
      */
-    public void casesConfirmByBatchNum(User user, String batchNumber) {
+    public void casesConfirmByBatchNum(User user) {
         //查询该用户下所有未确认的案件
-        QDataInfoExcel qDataInfoExcel = dataInfoExcel;
-        Iterable<DataInfoExcel> dataInfoExcelIterable = dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId())
-                .and(qDataInfoExcel.companyCode.eq(user.getCompanyCode()))
-                .and(qDataInfoExcel.batchNumber.eq(batchNumber)));
+        QDataInfoExcel qDataInfoExcel = QDataInfoExcel.dataInfoExcel;
+        Iterable<DataInfoExcel> dataInfoExcelIterable = dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId()).and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
         List<DataInfoExcelModel> dataInfoExcelModelList = new ArrayList<>();
         List<DataInfoExcelHis> dataInfoExcelHisList = new ArrayList<>();
         int dataTotal = 0;
         for (Iterator iterator = dataInfoExcelIterable.iterator(); iterator.hasNext(); ) {
             dataTotal = dataTotal + 1;
             DataInfoExcel dataInfoExcel = (DataInfoExcel) iterator.next();
-            if (Objects.equals(dataInfoExcel.getColor(), 1)) { //严重错误
-                throw new RuntimeException("这批案件有存在严重错误的案件,不能确认");
-            }
             DataInfoExcelModel dataInfoExcelModel = new DataInfoExcelModel();
             BeanUtils.copyProperties(dataInfoExcel, dataInfoExcelModel);
             //附件信息
@@ -346,4 +318,5 @@ public class DataInfoExcelService {
             throw e;
         }
     }
+
 }

@@ -14,10 +14,10 @@ spring:
             uri: mongodb://192.168.3.10:27017
             database: pangolin_common_db
     rabbitmq:
-        username: sun
-        password: sun
+        username: dev
+        password: dev
         host: 192.168.3.10
-        virtual-host: sun
+        virtual-host: dev
         port: 5672
     mail:
         host:  smtp.yeah.net
