@@ -6,6 +6,7 @@ import cn.fintecher.pangolin.dataimp.model.DataInfoExcelFileExist;
 import cn.fintecher.pangolin.dataimp.model.UpLoadFileModel;
 import cn.fintecher.pangolin.dataimp.repository.DataInfoExcelFileRepository;
 import cn.fintecher.pangolin.dataimp.repository.DataInfoExcelRepository;
+import cn.fintecher.pangolin.dataimp.repository.RowErrorRepository;
 import cn.fintecher.pangolin.dataimp.service.DataInfoExcelService;
 import cn.fintecher.pangolin.entity.SysParam;
 import cn.fintecher.pangolin.entity.User;
@@ -51,6 +52,9 @@ public class DataInfoExcelController {
 
     @Autowired
     DataInfoExcelFileRepository dataInfoExcelFileRepository;
+
+    @Autowired
+    RowErrorRepository rowErrorRepository;
 
     private final Logger logger = LoggerFactory.getLogger(DataInfoExcelController.class);
     private static final String ENTITY_NAME = "DataInfoExcel";
@@ -309,5 +313,37 @@ public class DataInfoExcelController {
                 .and(QDataInfoExcelFile.dataInfoExcelFile.companyCode.eq(user.getCompanyCode())));
         List<DataInfoExcelFile> dataInfoExcelFiles = IterableUtils.toList(all);
         return ResponseEntity.ok().body(dataInfoExcelFiles);
+    }
+
+    @GetMapping("/findError")
+    @ApiOperation(value = "查看批次错误报告", notes = "查看批次错误报告")
+    public ResponseEntity<Page<RowError>> findError(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                             @RequestParam(value = "batchNumber", required = true) @ApiParam("批次号") String batchNumber,
+                                                             @RequestParam(value = "companyCode", required = false) @ApiParam("批次号") String companyCode,
+                                                             @ApiIgnore Pageable pageable) {
+        ResponseEntity<User> userResponseEntity = null;
+        try {
+            userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+        } catch (final Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+        User user = userResponseEntity.getBody();
+        try {
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    user.setCompanyCode(companyCode);
+                }
+            }
+            QRowError qRowError = QRowError.rowError;
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(qRowError.batchNumber.eq(batchNumber));
+            builder.and(qRowError.companyCode.eq(companyCode));
+            Page<RowError> all = rowErrorRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(all);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "查看错误报告失败!")).body(null);
+        }
     }
 }

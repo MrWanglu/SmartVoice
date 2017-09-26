@@ -82,7 +82,7 @@ public class DataInfoExcelService {
      * @param user
      * @throws Exception
      */
-    public void importExcelData(DataImportRecord dataImportRecord, User user) throws Exception {
+    public String importExcelData(DataImportRecord dataImportRecord, User user) throws Exception {
         //获取上传的文件
         ResponseEntity<UploadFile> fileResponseEntity = null;
         try {
@@ -141,7 +141,7 @@ public class DataInfoExcelService {
         //开始保存数据
         parseExcelService.parseSheet(excelSheet, startRow,startCol, DataInfoExcel.class, dataImportRecord, templateExcelInfoList);
         logger.debug("数据处理保存完成");
-        return;
+        return batchNumber;
     }
 
     /**

@@ -146,6 +146,7 @@ public class ParseExcelTask {
                 }
             }
             rowError.setErrorMsg(errorSb.toString());
+            rowError.setCompanyCode(dataImportRecord.getCompanyCode());
             dataInfoExcel.setColor(mark);
             rowErrorRepository.save(rowError);
             dataInfoExcelRepository.save(dataInfoExcel);
