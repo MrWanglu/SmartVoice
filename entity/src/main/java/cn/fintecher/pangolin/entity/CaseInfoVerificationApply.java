@@ -111,6 +111,9 @@ public class CaseInfoVerificationApply extends BaseEntity {
     @ApiModelProperty(notes = "最近还款金额")
     private BigDecimal latelyPayAmount;
 
+    @ApiModelProperty(notes = "还款期数")
+    private Integer periods;
+
     /**
      * 审批状态的枚举类
      */

@@ -111,6 +111,17 @@ public class CaseInfoVerificationController extends BaseController {
                     caseInfoVerificationApply.setOverdueAmount(caseInfo.getOverdueAmount()); // 逾期金额
                     caseInfoVerificationApply.setOverdueDays(caseInfo.getOverdueDays()); // 逾期天数
                     caseInfoVerificationApply.setPayStatus(caseInfo.getPayStatus()); // 还款状态
+                    caseInfoVerificationApply.setContractNumber(caseInfo.getContractNumber()); // 合同编号
+                    caseInfoVerificationApply.setContractAmount(caseInfo.getContractAmount()); // 合同金额
+                    caseInfoVerificationApply.setOverdueCapital(caseInfo.getOverdueCapital()); // 逾期本金
+                    caseInfoVerificationApply.setOverdueDelayFine(caseInfo.getOverdueDelayFine()); // 逾期滞纳金
+                    caseInfoVerificationApply.setOverdueFine(caseInfo.getOverdueFine()); // 逾期罚息
+                    caseInfoVerificationApply.setOverdueInterest(caseInfo.getOverdueInterest()); // 逾期利息
+                    caseInfoVerificationApply.setHasPayAmount(caseInfo.getHasPayAmount()); // 已还款金额
+                    caseInfoVerificationApply.setHasPayPeriods(caseInfo.getHasPayPeriods()); // 已还款期数
+                    caseInfoVerificationApply.setLatelyPayAmount(caseInfo.getLatelyPayAmount()); // 最近还款金额
+                    caseInfoVerificationApply.setLatelyPayDate(caseInfo.getLatelyPayDate()); // 最近还款日期
+                    caseInfoVerificationApply.setPeriods(caseInfo.getPeriods()); // 还款期数
                     if (Objects.nonNull(caseInfo.getArea())) {
                         caseInfoVerificationApply.setCity(caseInfo.getArea().getAreaName()); // 城市
                         if (Objects.nonNull(caseInfo.getArea().getParent())) {
