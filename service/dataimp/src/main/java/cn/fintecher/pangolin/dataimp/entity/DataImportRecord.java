@@ -25,7 +25,7 @@ public class DataImportRecord implements Serializable {
     @ApiModelProperty("批次号")
     private String batchNumber;
 
-    @ApiModelProperty("外键:文件ID")
+    @ApiModelProperty(notes = "外键:文件ID", required = true)
     private String fileId;
 
     @ApiModelProperty("创建时间")
@@ -37,7 +37,7 @@ public class DataImportRecord implements Serializable {
     @ApiModelProperty("操作人姓名")
     private String operatorName;
 
-    @ApiModelProperty("委托方编号")
+    @ApiModelProperty(notes = "委托方编号",required = true)
     private String principalId;
 
     @ApiModelProperty("委托方名称")
@@ -49,9 +49,6 @@ public class DataImportRecord implements Serializable {
     @ApiModelProperty("委案日期")
     private Date delegationDate;
 
-    @ApiModelProperty("案件手数")
-    private Integer handNumber;
-
     @ApiModelProperty("备注")
     private String memo;
 
@@ -60,4 +57,7 @@ public class DataImportRecord implements Serializable {
 
     @ApiModelProperty("公司码")
     private String companyCode;
+
+    @ApiModelProperty("公司序列号")
+    private String companySequence;
 }

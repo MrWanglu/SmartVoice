@@ -86,11 +86,11 @@ public class MobilePositionController{
         builder.and(QMobilePosition.mobilePosition.depCode.startsWith(user.getDepartment().getCode()));
         try {
             if (null != mobilePositionParams.getName()
-                    || null != mobilePositionParams.getDepCode()
+                    || null != mobilePositionParams.getDeptCode()
                     || null != mobilePositionParams.getStartDate()
                     || null != mobilePositionParams.getEndDate()) {
-                if (StringUtils.isNotBlank(mobilePositionParams.getDepCode())) {
-                    builder.and(QMobilePosition.mobilePosition.depCode.startsWith(mobilePositionParams.getDepCode()));
+                if (StringUtils.isNotBlank(mobilePositionParams.getDeptCode())) {
+                    builder.and(QMobilePosition.mobilePosition.depCode.startsWith(mobilePositionParams.getDeptCode()));
                 }
                 if (StringUtils.isNotBlank(mobilePositionParams.getName())) {
                     builder.and(QMobilePosition.mobilePosition.userName.eq(mobilePositionParams.getName()));
@@ -110,7 +110,7 @@ public class MobilePositionController{
                     mobilePositionList.add(e);
                 });
             } else {
-                builder.and(QMobilePosition.mobilePosition.datetime.after(ZWDateUtil.getNightTime(-1)));
+//                builder.and(QMobilePosition.mobilePosition.datetime.after(ZWDateUtil.getNightTime(-1)));
                 Iterable<MobilePosition> mobilePositionIterable = mobilePositionRepository.findAll(builder, new Sort(Sort.Direction.DESC, "datetime"));
                 List<String> nameList = new ArrayList<>();
                 mobilePositionIterable.forEach(e -> {

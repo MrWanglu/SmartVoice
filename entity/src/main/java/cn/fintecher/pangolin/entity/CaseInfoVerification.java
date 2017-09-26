@@ -2,6 +2,8 @@ package cn.fintecher.pangolin.entity;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -26,9 +28,9 @@ public class CaseInfoVerification extends BaseEntity {
     private String operator;
 
     @ApiModelProperty("操作时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date operatorTime;
 
     @ApiModelProperty("核销说明")
     private String state;
-
 }

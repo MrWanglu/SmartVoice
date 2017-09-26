@@ -16,3 +16,18 @@ CREATE TABLE `case_info_remark` (
   `company_code` varchar(64) DEFAULT NULL COMMENT '公司code码',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='案件备注信息';
+
+--2017-09-25
+--新增数据库备份表
+--胡开甲
+DROP TABLE IF EXISTS `system_backup`;
+CREATE TABLE `system_backup` (
+  `id` varchar(64) NOT NULL,
+  `company_code` varchar(64) DEFAULT NULL COMMENT '公司的标识',
+  `type` int(4) DEFAULT NULL COMMENT '备份类型 0：自动 1：手动',
+  `mysql_name` varchar(255) DEFAULT NULL COMMENT 'mysql数据库文件名称',
+  `mongdb_name` varchar(255) DEFAULT NULL COMMENT 'mongdb数据库名称',
+  `operator` varchar(200) DEFAULT NULL COMMENT '操作人',
+  `operate_time` datetime DEFAULT NULL COMMENT '备份时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

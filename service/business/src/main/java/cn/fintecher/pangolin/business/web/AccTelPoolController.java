@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -266,15 +265,9 @@ public class AccTelPoolController extends BaseController {
                                                         @ApiIgnore Pageable pageable,
                                                         @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get all tel case");
-        List<Integer> list = new ArrayList<>();
-        list.add(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //待催收
-        list.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue()); //催收中
-        list.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue()); //逾期还款中
-        list.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue()); //提前结清还款中
-        list.add(CaseInfo.CollectionStatus.PART_REPAID.getValue()); //部分已还款
-        list.add(CaseInfo.CollectionStatus.REPAID.getValue()); //已还款
 
-        Sort.Order followupBackOrder = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupBackOrder1 = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupBackOrder2 = new Sort.Order(Sort.Direction.DESC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
         Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
         Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
         Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
@@ -295,10 +288,12 @@ public class AccTelPoolController extends BaseController {
                 builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(tokenUser.getId()));
             }
             builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(), CaseInfo.CaseType.PHNONELEAVETURN.getValue())); //只查案件类型为案件分配的
-            builder.and(QCaseInfo.caseInfo.collectionStatus.in(list)); //不查询已结案案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())); //只查询电催案件
-            if (pageable.getSort().toString().contains("followupBack")) {
-                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder));
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
+            }
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder2));
             }
             if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("ASC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime1));
