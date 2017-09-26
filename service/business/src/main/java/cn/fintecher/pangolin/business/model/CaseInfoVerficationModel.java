@@ -23,6 +23,6 @@ public class CaseInfoVerficationModel {
 
     private String approvalOpinion; //审批意见
 
-    private String approvalResult; // 审批结果
+    private Integer approvalResult; // 审批结果
 
 }

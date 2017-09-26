@@ -247,11 +247,11 @@ public class CaseInfoVerificationController extends BaseController {
                 caseInfoRepository.save(caseInfo);
                 caseInfoVerification.setCaseInfo(caseInfo);
                 caseInfoVerificationRepository.save(caseInfoVerification);
+                caseInfoVerification.setOperator(user.getRealName()); // 操作人
+                caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
+                caseInfoVerification.setState(caseInfoVerficationModel.getState()); // 核销说明
+                caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
             }
-            caseInfoVerification.setOperator(user.getRealName()); // 操作人
-            caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
-            caseInfoVerification.setState(caseInfoVerficationModel.getState()); // 核销说明
-            caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(null);
         }catch (Exception e) {
             e.printStackTrace();
