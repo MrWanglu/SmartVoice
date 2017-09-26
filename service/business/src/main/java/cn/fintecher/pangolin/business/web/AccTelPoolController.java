@@ -17,10 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -408,6 +405,11 @@ public class AccTelPoolController extends BaseController {
                 if (!StringUtils.equals(StringUtils.trim(aStr), "")) {
                     statusList.add(Integer.parseInt(aStr));
                 }
+            }
+            if (statusList.isEmpty()) {
+                Page<CaseInfo> page = new PageImpl<>(new ArrayList<>());
+                HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getAllTelCollecting");
+                return new ResponseEntity<>(page, headers, HttpStatus.OK);
             }
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
