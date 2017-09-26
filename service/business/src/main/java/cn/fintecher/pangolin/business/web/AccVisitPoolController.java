@@ -9,10 +9,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -42,6 +38,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/accVisitPoolController")
+@Api(value = "AccVisitPoolController", description = "外访页面接口")
 public class AccVisitPoolController extends BaseController {
     final Logger log = LoggerFactory.getLogger(AccVisitPoolController.class);
     private static final String ENTITY_NAME = "CaseInfo";
@@ -667,6 +664,305 @@ public class AccVisitPoolController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "personalContact", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 多条件查询外访待催收案件
+     */
+    @GetMapping("/getVisitWaitCollection")
+    @ApiOperation(value = "多条件查询外访待催收案件",notes = "多条件查询外访待催收案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity getVisitWaitCollection(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                 @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                 @ApiIgnore Pageable pageable,
+                                                 @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        Sort.Order followupBackOrder1 = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupBackOrder2 = new Sort.Order(Sort.Direction.DESC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
+        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
+        Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
+        Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
+        try{
+            user = getUserByToken(token);
+            BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+            if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
+                if (Objects.nonNull(companyCode)) {
+                    booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+                }
+            }else {
+                booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+            }
+            if (Objects.equals(user.getManager(), 1)) {
+                booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(user.getDepartment().getCode())); //权限控制
+            } else {
+                booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
+            }
+            booleanBuilder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue())); //催收状态：待催收
+            booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); // 催收类型:外访
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
+            }
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder2));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime1));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime2));
+            }
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
+            Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "accVisitPoolController")).body(page);
+        }catch (Exception e) {
+            log.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfo", "caseInfo", "查询失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 多条件查询外访催收中案件
+     */
+    @GetMapping("/getVisitCollectioning")
+    @ApiOperation(value = "多条件查询外访催收中案件",notes = "多条件查询外访催收中案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity getVisitCollectioning(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                 @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                 @ApiIgnore Pageable pageable,
+                                                 @RequestHeader(value = "X-UserToken") String token) {
+        Sort.Order followupBackOrder1 = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupBackOrder2 = new Sort.Order(Sort.Direction.DESC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
+        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
+        Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
+        Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
+        User user;
+        try{
+            user = getUserByToken(token);
+            BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+            if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
+                if (Objects.nonNull(companyCode)) {
+                    booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+                }
+            }else {
+                booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+            }
+            if (Objects.equals(user.getManager(), 1)) {
+                booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(user.getDepartment().getCode())); //权限控制
+            } else {
+                booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
+            }
+            booleanBuilder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.COLLECTIONING.getValue())); //催收状态：催收中
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
+            }
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder2));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime1));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime2));
+            }
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
+            Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "accVisitPoolController")).body(page);
+        }catch (Exception e) {
+            log.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "accVisitPoolController", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 多条件查询外访还款审核中案件
+     */
+    @GetMapping("/getVisitPaying")
+    @ApiOperation(value = "多条件查询外访还款审核中案件",notes = "多条件查询外访还款审核中案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity getVisitPaying(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                         @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                         @ApiIgnore Pageable pageable,
+                                         @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        Sort.Order followupBackOrder1 = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupBackOrder2 = new Sort.Order(Sort.Direction.DESC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
+        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
+        Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
+        Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
+        try{
+            user = getUserByToken(token);
+            BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+            if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
+                if (Objects.nonNull(companyCode)) {
+                    booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+                }
+            }else {
+                booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+            }
+            if (Objects.equals(user.getManager(), 1)) {
+                booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(user.getDepartment().getCode())); //权限控制
+            } else {
+                booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
+            }
+            booleanBuilder.and(QCaseInfo.caseInfo.collectionStatus.in(CaseInfo.CollectionStatus.OVER_PAYING.getValue(),CaseInfo.CollectionStatus.EARLY_PAYING.getValue())); //催收状态：还款审核中（逾期还款、提前结清）
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
+            }
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder2));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime1));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime2));
+            }
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
+            Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "accVisitPoolController")).body(page);
+        }catch (Exception e) {
+            log.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "accVisitPoolController", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 多条件查询外访待结案案件
+     */
+    @GetMapping("/getVisitRepaid")
+    @ApiOperation(value = "多条件查询外访待结案案件",notes = "多条件查询外访待结案案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity getVisitRepaid(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                         @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                         @ApiIgnore Pageable pageable,
+                                         @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        Sort.Order followupBackOrder1 = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupBackOrder2 = new Sort.Order(Sort.Direction.DESC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
+        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
+        Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
+        Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
+        try{
+            user = getUserByToken(token);
+            BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+            if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
+                if (Objects.nonNull(companyCode)) {
+                    booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+                }
+            }else {
+                booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+            }
+            if (Objects.equals(user.getManager(), 1)) {
+                booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(user.getDepartment().getCode())); //权限控制
+            } else {
+                booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
+            }
+            booleanBuilder.and(QCaseInfo.caseInfo.collectionStatus.in(CaseInfo.CollectionStatus.REPAID.getValue())); //催收状态：待结案
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
+            }
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder2));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime1));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime2));
+            }
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
+            Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "accVisitPoolController")).body(page);
+        }catch (Exception e) {
+            log.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "accVisitPoolController", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 多条件查询外访已结案案件
+     */
+    @GetMapping("/getVisitCaseOver")
+    @ApiOperation(value = "多条件查询外访已结案案件",notes = "多条件查询外访已结案案件")
+
+    public ResponseEntity getVisitCaseOver(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                           @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                           @ApiIgnore Pageable pageable,
+                                           @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        Sort.Order followupBackOrder1 = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupBackOrder2 = new Sort.Order(Sort.Direction.DESC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
+        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
+        Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
+        Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
+        try{
+            user = getUserByToken(token);
+            BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+            if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
+                if (Objects.nonNull(companyCode)) {
+                    booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+                }
+            }else {
+                booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
+            }
+            if (Objects.equals(user.getManager(), 1)) {
+                booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(user.getDepartment().getCode())); //权限控制
+            } else {
+                booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
+            }
+            booleanBuilder.and(QCaseInfo.caseInfo.collectionStatus.in(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //催收状态：已结案
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
+            }
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder2));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime1));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime2));
+            }
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
+            Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "accVisitPoolController")).body(page);
+        }catch (Exception e) {
+            log.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "accVisitPoolController", e.getMessage())).body(null);
         }
     }
 }
