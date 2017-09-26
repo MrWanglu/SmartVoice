@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.AccFinanceEntryService;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.Template;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -12,12 +13,19 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+import freemarker.template.*;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.joda.time.DateTime;
+import org.kie.api.KieServices;
+import org.kie.api.builder.KieBuilder;
+import org.kie.api.builder.KieFileSystem;
+import org.kie.api.builder.Results;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,16 +37,16 @@ import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import javax.inject.Inject;
+import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
@@ -74,6 +82,13 @@ public class OutsourcePoolController extends BaseController {
     AccFinanceEntryRepository accFinanceEntryRepository;
     @Autowired
     SysParamRepository sysParamRepository;
+    @Inject
+    private Configuration freemarkerConfiguration;
+    @Inject
+    private PersonalRepository personalRepository;
+    @Inject
+    private CaseInfoReturnRepository caseInfoReturnRepository;
+
     private static final String ENTITY_NAME = "OutSource";
     private static final String ENTITY_NAME1 = "OutSourcePool";
     private static final String ENTITY_CASEINFO = "CaseInfo";
@@ -273,14 +288,6 @@ public class OutsourcePoolController extends BaseController {
      */
     @GetMapping("/getOutDistributeInfo")
     @ApiOperation(value = "查询委外分配信息", notes = "查询委外分配信息")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
-                    value = "页数 (0..N)"),
-            @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
-                    value = "每页大小."),
-            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
-                    value = "依据什么排序: 属性名(,asc|desc). ")
-    })
     public ResponseEntity<List<OutDistributeInfo>> query(@RequestParam(required = false) String companyCode,
                                                      @RequestHeader(value = "X-UserToken") String token) {
         try {
@@ -321,6 +328,158 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", ENTITY_NAME1, e.getMessage())).body(null);
         }
     }
+
+    @GetMapping("/outCaseScore")
+    @ApiOperation(value = "案件评分(手动)", notes = "案件评分(手动)")
+    public ResponseEntity outCaseScore(@RequestParam(required = false) String companyCode,@RequestHeader(value = "X-UserToken") String token) throws IOException {
+        try {
+            User user = null;
+            try {
+                user = getUserByToken(token);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if (Objects.isNull(user.getCompanyCode())){
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
+                }
+            } else {
+                companyCode = user.getCompanyCode();
+            }
+            StopWatch watch1 = new StopWatch();
+            watch1.start();
+            KieSession kieSession = null;
+            try {
+                kieSession = createSorceRule(companyCode);
+            } catch (TemplateException e) {
+                e.printStackTrace();
+            }
+            Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(QOutsourcePool.outsourcePool.outStatus.eq(OutsourcePool.OutStatus.TO_OUTSIDE.getCode())
+                    .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())));
+            List<OutsourcePool> outsourcePoolList = (List<OutsourcePool>)outsourcePools;
+            ScoreNumbersModel scoreNumbersModel = new ScoreNumbersModel();
+            scoreNumbersModel.setTotal(outsourcePoolList.size());
+            if (outsourcePoolList.size() > 0) {
+                for (OutsourcePool outsourcePool : outsourcePoolList) {
+                    ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
+                    int age = IdcardUtils.getAgeByIdCard(outsourcePool.getCaseInfo().getPersonalInfo().getIdCard());
+                    scoreRuleModel.setAge(age);
+                    scoreRuleModel.setOverDueAmount(outsourcePool.getCaseInfo().getOverdueAmount().doubleValue());
+                    scoreRuleModel.setOverDueDays(outsourcePool.getCaseInfo().getOverdueDays());
+                    scoreRuleModel.setProId(outsourcePool.getCaseInfo().getArea().getId());//省份id
+                    Personal personal = personalRepository.findOne(outsourcePool.getCaseInfo().getPersonalInfo().getId());
+                    if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
+                        scoreRuleModel.setIsWork(1);
+                    } else {
+                        scoreRuleModel.setIsWork(0);
+                    }
+                    kieSession.insert(scoreRuleModel);//插入
+                    kieSession.fireAllRules();//执行规则
+                    outsourcePool.getCaseInfo().setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                }
+                kieSession.dispose();
+                outsourcePoolRepository.save(outsourcePoolList);
+                watch1.stop();
+                log.info("耗时：" + watch1.getTotalTimeMillis());
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
+            }
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
+        }
+    }
+
+    /**
+     * 动态生成规则
+     *
+     * @return
+     * @throws IOException
+     * @throws
+     */
+    private KieSession createSorceRule(String comanyCode) throws IOException, TemplateException {
+        freemarker.template.Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
+        freemarker.template.Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
+        ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode), ScoreRules.class);
+        List<ScoreRule> rules = null;
+        if (responseEntity.hasBody()) {
+            ScoreRules scoreRules = responseEntity.getBody();
+            rules = scoreRules.getScoreRules();
+        }
+        StringBuilder sb = new StringBuilder();
+        if (Objects.nonNull(rules)) {
+            for (ScoreRule rule : rules) {
+                for (int i = 0; i < rule.getFormulas().size(); i++) {
+                    ScoreFormula scoreFormula = rule.getFormulas().get(i);
+                    Map<String, String> map = new HashMap<>();
+                    map.put("id", rule.getId());
+                    map.put("index", String.valueOf(i));
+                    map.put("strategy", scoreFormula.getStrategy());
+                    map.put("score", String.valueOf(scoreFormula.getScore()));
+                    map.put("weight", String.valueOf(rule.getWeight()));
+                    sb.append(FreeMarkerTemplateUtils.processTemplateIntoString(scoreFormulaTemplate, map));
+                }
+            }
+        }
+        KieServices kieServices = KieServices.Factory.get();
+        KieFileSystem kfs = kieServices.newKieFileSystem();
+        Map<String, String> map = new HashMap<>();
+        map.put("allRules", sb.toString());
+        String text = FreeMarkerTemplateUtils.processTemplateIntoString(scoreRuleTemplate, map);
+        kfs.write("src/main/resources/simple.drl",
+                kieServices.getResources().newReaderResource(new StringReader(text)));
+        KieBuilder kieBuilder = kieServices.newKieBuilder(kfs).buildAll();
+        Results results = kieBuilder.getResults();
+        if (results.hasMessages(org.kie.api.builder.Message.Level.ERROR)) {
+            System.out.println(results.getMessages());
+            throw new IllegalStateException("### errors ###");
+        }
+        KieContainer kieContainer =
+                kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
+        KieSession kieSession = kieContainer.newKieSession();
+        return kieSession;
+    }
+
+    /**
+     * @Description 多条件查询回收案件
+     */
+    @GetMapping("/getReturnCaseByConditions")
+    @ApiOperation(value = "多条件查询回收案件", notes = "多条件查询回收案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseInfoReturn>> getReturnCaseByConditions(@QuerydslPredicate(root = CaseInfoReturn.class) Predicate predicate,
+                                                                         @ApiIgnore Pageable pageable,
+                                                                          @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                         @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
+            QCaseInfoReturn qCaseInfoReturn = QCaseInfoReturn.caseInfoReturn;
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoReturn", "", "请选择公司")).body(null);
+                }
+            } else {
+                builder.and(qCaseInfoReturn.caseId.companyCode.eq(user.getCompanyCode())); //限制公司code码
+            }
+            Page<CaseInfoReturn> page = caseInfoReturnRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/OutsourcePoolController/getReturnCaseByConditions");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoReturn", "", "查询失败")).body(null);
+        }
+    }
+
 
     /**
      * @Description : 查询委外案件
