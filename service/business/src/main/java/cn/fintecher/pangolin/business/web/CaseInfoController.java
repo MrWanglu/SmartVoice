@@ -943,6 +943,20 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO_REMARK, "caseInfoRemark", "查询失败")).body(null);
         }
     }
+
+    @PostMapping("/moveToDistribution")
+    @ApiOperation(value = "移入待分配案件池", notes = "移入待分配案件池")
+    public ResponseEntity moveToDistribution(@RequestBody @ApiParam(value = "案件ID集合", required = true) CaseInfoIdList caseIds) {
+        log.debug("REST request to moveToDistribution");
+        if (Objects.isNull(caseIds.getIds()) || caseIds.getIds().isEmpty()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","请选择要移除的案件!")).body(null);
+        }
+        Iterator<CaseInfo> all = caseInfoRepository.findAll(QCaseInfo.caseInfo.caseNumber.in(caseIds.getIds())).iterator();
+        while (all.hasNext()) {
+            CaseInfo next = all.next();
+        }
+        return ResponseEntity.ok().body(null);
+    }
 }
 
 
