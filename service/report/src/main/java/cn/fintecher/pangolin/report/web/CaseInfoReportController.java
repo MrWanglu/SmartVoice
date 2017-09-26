@@ -5,6 +5,8 @@ import cn.fintecher.pangolin.entity.Personal;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.entity.CaseInfo;
 import cn.fintecher.pangolin.report.model.CaseInfoParams;
+import cn.fintecher.pangolin.report.model.CollectingCaseInfo;
+import cn.fintecher.pangolin.report.model.CollectingCaseParams;
 import cn.fintecher.pangolin.report.model.MapModel;
 import cn.fintecher.pangolin.report.service.AccMapService;
 import cn.fintecher.pangolin.report.service.CaseInfoService;
@@ -35,7 +37,7 @@ import java.util.Objects;
  */
 @RestController
 @RequestMapping("/api/caseInfoReportController")
-@Api(description = "委托方数据操作")
+@Api(description = "案件信息操作")
 public class CaseInfoReportController extends BaseController{
 
     Logger logger=LoggerFactory.getLogger(CaseInfoReportController.class);
@@ -111,6 +113,46 @@ public class CaseInfoReportController extends BaseController{
         pageInfos.setPages(pageInfo.getPages());
         pageInfos.setTotal(pageInfo.getTotal());
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","")).body(pageInfos);
+    }
+    @GetMapping("/queryCollectingCase")
+    @ApiOperation(value = "PC催收中案件查询", notes = "PC催收中案件查询")
+    public ResponseEntity<PageInfo>  queryCollectingCase(@RequestHeader(value = "X-UserToken") String token,
+                                                   @RequestParam(required = true)@ApiParam(value = "页数") Integer page,
+                                                   @RequestParam(required = true)@ApiParam(value = "大小") Integer size,
+                                                   @RequestParam(required = false) @ApiParam(value = "批次号") String batchNumber,
+                                                   @RequestParam(required = false) @ApiParam(value = "委托方") String principalId,
+                                                   @RequestParam(required = false) @ApiParam(value = "委案日期") String delegationDate,
+                                                   @RequestParam(required = false) @ApiParam(value = "委案日期") String closeDate,
+                                                   @RequestParam(required = false) @ApiParam(value = "公司CODE") String companyCode) {
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
+        }
+
+        CollectingCaseParams collectingCaseParams = new CollectingCaseParams();
+        collectingCaseParams.setDeptCode(user.getDepartment().getCode());
+        if(Objects.nonNull(companyCode)){
+            collectingCaseParams.setCompanyCode(companyCode);
+        }else{
+            collectingCaseParams.setCompanyCode(user.getCompanyCode());
+        }
+        if(Objects.nonNull(batchNumber)){
+            collectingCaseParams.setBatchNumber(batchNumber);
+        }
+        if(Objects.nonNull(principalId)){
+            collectingCaseParams.setPrincipalId(principalId);
+        }
+        if(Objects.nonNull(delegationDate)){
+            collectingCaseParams.setDelegationDate(delegationDate);
+        }
+        if(Objects.nonNull(closeDate)){
+            collectingCaseParams.setCloseDate(closeDate);
+        }
+        List<CollectingCaseInfo> list = caseInfoService.queryCollectingCase(collectingCaseParams,page,size);
+        PageInfo pageInfo = new PageInfo(list);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","")).body(pageInfo);
     }
 
 }

@@ -208,4 +208,52 @@
       set longitude = #{longitude},latitude = #{latitude}
       where id = #{id}
   </update>
+
+    <select id = "queryCollectingCase" parameterType="cn.fintecher.pangolin.report.model.CollectingCaseParams" resultType="cn.fintecher.pangolin.report.model.CollectingCaseInfo">
+        select a.batch_number as batchNumber,a.name,a.caseFollowInTime,a.delegationDate,a.closeDate,a.leftDate,a.caseNum,a.caseAmt,a.endCaseAmt,ifnull(b.endCaseNum,0) as endCaseNum,ifnull((b.endCaseNum/caseNum),0) as numRate,(endCaseAmt/caseAmt) as amtRate
+        from
+        (
+            select aa.batch_number,aa.caseFollowInTime,aa.delegationDate,aa.closeDate,aa.leftDate,aa.caseNum,aa.caseAmt,aa.endCaseAmt,ab.name
+            from
+				(
+				    select batch_number,principal_id,MIN(case_follow_in_time) as caseFollowInTime ,MIN(delegation_date) as delegationDate,Max(close_date) as closeDate,Min(left_days) as leftDate,count(*) as caseNum,sum(overdue_amount) as caseAmt,sum(real_pay_amount+early_real_settle_amt) as endCaseAmt
+                    from case_info cc
+                    left join department on cc.depart_id = department.id
+                    where 1 = 1
+                    and department.code like CONCAT(#{deptCode}, '%')
+                    and collection_status in (21,22,23,171,172)
+                    <if test = "batchNumber != null">
+                        and batch_number = #{batchNumber}
+                    </if>
+                    <if test = "delegationDate != null">
+                        and delegation_date &gt; #{delegationDate}
+                    </if>
+                    <if test = "closeDate != null">
+                        and close_date &lt; #{closeDate}
+                    </if>
+                    <if test = "companyCode != null">
+                        and cc.company_code = #{companyCode}
+                    </if>
+				    GROUP BY batch_number,principal_id
+				)as aa
+				inner join
+				(
+				    select id,name from principal
+                    where 1 = 1
+                    <if test = "principalId != null">
+                        and name = #{principalId}
+                    </if>
+				) as ab
+                on aa.principal_id = ab.id
+        )
+		as a
+        left join
+            (
+	            select batch_number,count(id) as endCaseNum
+	            from case_info
+	            where collection_status = 171
+	            GROUP BY batch_number
+            ) as b
+            on a.batch_number = b.batch_number
+    </select>
 </mapper>

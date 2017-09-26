@@ -6,6 +6,8 @@ import cn.fintecher.pangolin.report.entity.CaseInfo;
 
 import cn.fintecher.pangolin.report.mapper.CaseInfoMapper;
 import cn.fintecher.pangolin.report.model.CaseInfoParams;
+import cn.fintecher.pangolin.report.model.CollectingCaseInfo;
+import cn.fintecher.pangolin.report.model.CollectingCaseParams;
 import com.github.pagehelper.PageHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,5 +46,12 @@ public class CaseInfoService {
 
     public void updateLngLat(Personal personal){
         caseInfoMapper.updateLngLat(personal);
+    }
+
+    public List<CollectingCaseInfo> queryCollectingCase(CollectingCaseParams collectingCaseParams, int page, int size){
+        List<CollectingCaseInfo> list = null;
+        PageHelper.startPage(page, size);
+        list = caseInfoMapper.queryCollectingCase(collectingCaseParams);
+        return list;
     }
 }
