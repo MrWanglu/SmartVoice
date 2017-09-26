@@ -957,6 +957,39 @@ public class CaseInfoController extends BaseController {
         }
         return ResponseEntity.ok().body(null);
     }
+
+    /**
+     * @Description 内催按批次号查询催收中案件
+     */
+    @GetMapping("/getCollectingCase")
+    @ApiOperation(value = "内催按批次号查询催收中案件", notes = "内催按批次号查询催收中案件")
+    public ResponseEntity<Page<CaseInfo>> getCollectingCase(@RequestHeader(value = "X-UserToken") String token,
+                                                                  @ApiIgnore Pageable pageable,
+                                                                  @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                                  @RequestParam @ApiParam(value = "批次号", required = true) String batchNumber) {
+        log.debug("REST request to get case info remark");
+        try {
+            User tokenUser = getUserByToken(token);
+            List<Integer> status = new ArrayList<>();
+            status.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue());
+            status.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue());
+            status.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue());
+            status.add(CaseInfo.CollectionStatus.PART_REPAID.getValue());
+            status.add(CaseInfo.CollectionStatus.REPAID.getValue());
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(QCaseInfo.caseInfo.batchNumber.eq(batchNumber));
+            if(Objects.nonNull(tokenUser.getCompanyCode())) {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
+            }
+            builder.and(QCaseInfo.caseInfo.department.code.startsWith(tokenUser.getDepartment().getCode()));
+            builder.and(QCaseInfo.caseInfo.collectionStatus.in(status));
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder,pageable);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
+        }
+    }
 }
 
 
