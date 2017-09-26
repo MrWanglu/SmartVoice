@@ -15,6 +15,8 @@ import java.util.List;
 public class ExportFollowRecordParams {
     @ApiModelProperty(notes = "选择的案件编号集合")
     private List<String> caseNumberList;
+    @ApiModelProperty(notes = "导出项集合")
+    private List<String> exportItemList;
     @ApiModelProperty(notes = "客户姓名")
     private String personalName;
     @ApiModelProperty(notes = "客户手机号")
