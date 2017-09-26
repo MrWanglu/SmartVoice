@@ -38,3 +38,11 @@ cuibei:
     placeInquire:
         webUrl: http://restapi.amap.com/v3/place/text?&output=json&extensions=all
         ak: 803c595254626ef5a6edeb02944174e4
+
+threadPool:
+   corePoolSize: 10
+   maxPoolSize: 200
+   keepAliveSeconds: 60
+   queueCapacity: 500
+   allowCoreThreadTimeout: false
+   threadNamePrefix: pangolin-

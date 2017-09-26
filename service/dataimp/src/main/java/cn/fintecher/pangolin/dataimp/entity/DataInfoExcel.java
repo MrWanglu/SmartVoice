@@ -714,7 +714,7 @@ public class DataInfoExcel implements Serializable {
     @ApiModelProperty("手数")
     @ExcelAnno(cellName = "手数",
             fieldType = ExcelAnno.FieldType.INTEGER)
-    private Integer caseHandNum;
+    private Integer caseHandNum = new Integer(0);
 
     @ApiModelProperty("婚姻状况")
     @ExcelAnno(cellName = "婚姻状况")
@@ -754,6 +754,6 @@ public class DataInfoExcel implements Serializable {
     private String caseNumber;
 
     @ApiModelProperty("颜色：0-无色，1-红色，2-黄色")
-    private Integer color = 0;
+    private Integer color = new Integer(0);
 
 }
