@@ -17,10 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -393,7 +390,7 @@ public class AccTelPoolController extends BaseController {
                                                               @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                               @ApiIgnore Pageable pageable,
                                                               @RequestHeader(value = "X-UserToken") String token,
-                                                              @RequestParam @ApiParam(value = "案件状态", required = true) String status) {
+                                                              @RequestParam(required = false) @ApiParam(value = "案件状态") String status) {
         log.debug("REST request to get all collecting tel case");
         Sort.Order followupBackOrder1 = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
         Sort.Order followupBackOrder2 = new Sort.Order(Sort.Direction.DESC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
@@ -402,6 +399,11 @@ public class AccTelPoolController extends BaseController {
         Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
         Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
         try {
+            if (Objects.isNull(status)) {
+                Page<CaseInfo> page = new PageImpl<>(new ArrayList<>(), pageable, 0);
+                HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getAllTelCollecting");
+                return new ResponseEntity<>(page, headers, HttpStatus.OK);
+            }
             List<Integer> statusList = new ArrayList<>();
             String str[] = StringUtils.split(status, ",");
             for (String aStr : str) {

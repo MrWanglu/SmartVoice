@@ -1,9 +1,13 @@
 package cn.fintecher.pangolin.business.service;
 
+import cn.fintecher.pangolin.business.model.OutsourceFollowUpRecordModel;
 import cn.fintecher.pangolin.business.repository.AccFinanceEntryRepository;
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.repository.OutsourceFollowupRecordRepository;
 import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.*;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.util.ZWStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -12,9 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 
@@ -28,12 +30,13 @@ public class AccFinanceEntryService {
     AccFinanceEntryRepository accFinanceEntryRepository;
     @Autowired
     OutsourcePoolRepository outsourcePoolRepository;
+    @Autowired
+    OutsourceFollowupRecordRepository outsourceFollowupRecordRepository;
+    @Autowired
+    CaseInfoRepository caseInfoRepository;
 
-
-    public List<CellError> importAccFinanceData(String fileUrl, int[] startRow, int[] startCol, Class<?>[] dataClass, AccFinanceEntry accFinanceEntry) throws Exception {
-        Map<String, List> map = new HashMap<>();
+    public List<CellError> importAccFinanceData(String fileUrl, int[] startRow, int[] startCol, Class<?>[] dataClass, AccFinanceEntry accFinanceEntry, Integer type) throws Exception {
         List<CellError> errorList = null;
-        List<AccFinanceEntry> accFinanceEntryList = null;
         try {
             //从文件服务器上获取Excel文件并解析：
             ExcelSheetObj excelSheetObj = ExcelUtil.parseExcelSingle(fileUrl, dataClass, startRow, startCol);
@@ -41,7 +44,12 @@ public class AccFinanceEntryService {
             //导入错误信息
             errorList = excelSheetObj.getCellErrorList();
             if (errorList.isEmpty()) {
-                processFinanceData(dataList, accFinanceEntry, errorList);
+                if(type==0){
+                    processFinanceData(dataList, accFinanceEntry, errorList);
+                }else{
+                    processFinanceDataFollowup(dataList,errorList);
+                }
+
             }
 
         } catch (Exception e) {
@@ -108,6 +116,59 @@ public class AccFinanceEntryService {
                 errorList.add(cellError);
                 return false;
             }
+        }
+        return true;
+    }
+
+    /**
+     *Created by huyanmin 2017/9/26
+     *  将Excel中的数据存入数据库中
+     *
+     * */
+    public void processFinanceDataFollowup(List datalist, List<CellError> errorList) {
+
+        for (Object obj : datalist) {
+            OutsourceFollowRecord out = new OutsourceFollowRecord();
+            OutsourceFollowUpRecordModel followUpRecordModel = (OutsourceFollowUpRecordModel) obj;
+
+            CaseInfo caseInfo = null;
+            if(Objects.nonNull(followUpRecordModel.getCaseNum())){
+                out.setCaseNum(followUpRecordModel.getCaseNum());
+                caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(followUpRecordModel.getCaseNum()));
+                if(Objects.nonNull(caseInfo)){
+                    out.setCaseInfo(caseInfo);
+                }
+            }
+            out.setFollowType(followUpRecordModel.getFollowType());
+            out.setFollowTime(followUpRecordModel.getFollowTime());
+            out.setFollowPerson(followUpRecordModel.getFollowPerson());
+            out.setUserName(followUpRecordModel.getUserName());
+            out.setObjectName(followUpRecordModel.getObjectName());
+            out.setFeedback(followUpRecordModel.getFeedback());
+            out.setFollowRecord(followUpRecordModel.getFollowRecord());
+            out.setTelStatus(followUpRecordModel.getTelStatus());
+            out.setImportTime(ZWDateUtil.getNowDateTime());
+
+            //验证必要数据的合法性
+            if (!validityFinanceFollowup(errorList, out)) {
+                return;
+            }
+            outsourceFollowupRecordRepository.save(out);
+
+        }
+    }
+    /**
+     *Created by huyanmin 2017/9/26
+     *  验证案件号是否为空
+     *
+     * */
+    private Boolean validityFinanceFollowup(List<CellError> errorList, OutsourceFollowRecord out) {
+
+        if (ZWStringUtils.isEmpty(out.getCaseNum())) {
+            CellError cellError = new CellError();
+            cellError.setErrorMsg("客户[".concat(out.getCaseNum()).concat("]的案件编号为空"));
+            errorList.add(cellError);
+            return false;
         }
         return true;
     }

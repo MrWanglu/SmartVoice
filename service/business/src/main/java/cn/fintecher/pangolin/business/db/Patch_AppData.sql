@@ -79,3 +79,10 @@ INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, 
 INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('227', '0050', NULL, '司法', '2');
 INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('228', '0050', NULL, '核销', '3');
 
+
+--2017-09-25 huyanmin 新增导入跟进记录参数
+INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f001a', '0001', 'sys.outcase.followup', '委外案件跟进记录导入模版', 0, '9005', 'http://192.168.3.10/group1/M00/00/3C/wKgDClnJp7WAdpBVAAAjWcLFBSc29.xlsx', 0, 'administrator', '2017-9-25 19:10:20', '委外案件账目导入模版', NULL);
+--2017-09-25 huyanmin 在委外池中新增3个字段
+ALTER TABLE outsource_pool ADD company_code varchar(64) DEFAULT NULL COMMENT '公司特定标识';
+ALTER TABLE outsource_pool ADD over_outsource_time date DEFAULT NULL COMMENT '委外到期时间';
+ALTER TABLE outsource_pool ADD end_outsource_time date DEFAULT NULL COMMENT '已结案日期';
