@@ -15,6 +15,7 @@ import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -63,6 +64,9 @@ public class CaseInfoVerificationController extends BaseController {
     @Inject
     private CaseFollowupRecordRepository caseFollowupRecordRepository;
 
+    @Inject
+    private CaseTurnRecordRepository caseTurnRecordRepository;
+
     @PostMapping("/saveCaseInfoVerification")
     @ApiOperation(value = "案件申请审批", notes = "案件申请审批")
     public ResponseEntity saveCaseInfoVerification(@RequestBody CaseInfoVerficationModel caseInfoVerficationModel,
@@ -70,7 +74,6 @@ public class CaseInfoVerificationController extends BaseController {
         try {
             User user = getUserByToken(token);
             List<CaseInfo> caseInfoList = caseInfoRepository.findAll(caseInfoVerficationModel.getIds());
-            List<CaseAssist> caseAssistList = new ArrayList<>();
             for (int i = 0; i < caseInfoList.size(); i++) {
                 if (caseInfoList.get(i).getCollectionStatus().equals(CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "结案案件不能核销!")).body(null);
@@ -81,23 +84,6 @@ public class CaseInfoVerificationController extends BaseController {
             }
             CaseInfoVerificationApply caseInfoVerificationApply = new CaseInfoVerificationApply();
             for (CaseInfo caseInfo : caseInfoList) {
-                //处理协催案件
-                if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //协催标识
-                    //结束协催案件
-                    CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.eq(caseInfo).and(QCaseAssist.caseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
-                    if (Objects.nonNull(one)) {
-                        one.setAssistCloseFlag(0); //手动结束
-                        one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催结束
-                        one.setOperator(user);
-                        one.setOperatorTime(new Date());
-                        one.setCaseFlowinTime(new Date()); //流入时间
-                        caseAssistList.add(one);
-                    }
-                    caseInfo.setAssistFlag(0); //协催标识置0
-                    caseInfo.setAssistStatus(null);//协催状态置空
-                    caseInfo.setAssistWay(null);
-                    caseInfo.setAssistCollector(null);
-                }
                 caseInfoVerificationApply.setOperator(user.getRealName()); // 操作人
                 caseInfoVerificationApply.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
                 caseInfoVerificationApply.setApplicant(user.getRealName()); // 申请人
@@ -225,17 +211,47 @@ public class CaseInfoVerificationController extends BaseController {
             } else { // 核销审批通过
                 caseInfoVerificationApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.approve.getValue()); // 审批结果：通过
                 caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_approve.getValue()); // 审批状态：审批通过
+                CaseInfo caseInfo = caseInfoRepository.findOne(caseInfoVerificationApply.getCaseId());
+                List<CaseAssist> caseAssistList = new ArrayList<>();
+                //处理协催案件
+                if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //协催标识
+                    //结束协催案件
+                    CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.eq(caseInfo).and(QCaseAssist.caseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
+                    if (Objects.nonNull(one)) {
+                        one.setAssistCloseFlag(0); //手动结束
+                        one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催结束
+                        one.setOperator(user);
+                        one.setOperatorTime(new Date());
+                        one.setCaseFlowinTime(new Date()); //流入时间
+                        caseAssistList.add(one);
+                    }
+                    caseInfo.setAssistFlag(0); //协催标识置0
+                    caseInfo.setAssistStatus(null);//协催状态置空
+                    caseInfo.setAssistWay(null);
+                    caseInfo.setAssistCollector(null);
+                    caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //29-协催完成
+                    //协催结束新增一条流转记录
+                    CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+                    BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
+                    caseTurnRecord.setId(null); //主键置空
+                    caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
+                    caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
+                    caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
+                    caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
+                    caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
+                    caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                    caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
+                }
+                caseInfo.setEndType(CaseInfo.EndType.CLOSE_CASE.getValue()); // 结案类型：核销结案
+                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); // 催收状态：已结案
+                caseInfoRepository.save(caseInfo);
+                caseInfoVerification.setCaseInfo(caseInfo);
+                caseInfoVerificationRepository.save(caseInfoVerification);
             }
-            caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
             caseInfoVerification.setOperator(user.getRealName()); // 操作人
             caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
             caseInfoVerification.setState(caseInfoVerficationModel.getState()); // 核销说明
-            CaseInfo caseInfo = caseInfoRepository.findOne(caseInfoVerificationApply.getCaseId());
-            caseInfo.setEndType(CaseInfo.EndType.CLOSE_CASE.getValue()); // 结案类型：核销结案
-            caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); // 催收状态：已结案
-            caseInfoRepository.save(caseInfo);
-            caseInfoVerification.setCaseInfo(caseInfo);
-            caseInfoVerificationRepository.save(caseInfoVerification);
+            caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(null);
         }catch (Exception e) {
             e.printStackTrace();
