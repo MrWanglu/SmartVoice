@@ -52,7 +52,7 @@ public class CaseInfoVerificationApply extends BaseEntity {
     private String approvalOpinion;
 
     @ApiModelProperty(notes = "审批结果")
-    private String approvalResult;
+    private Integer approvalResult;
 
     @ApiModelProperty(notes = "逾期金额")
     private BigDecimal overdueAmount;
@@ -114,24 +114,57 @@ public class CaseInfoVerificationApply extends BaseEntity {
     @ApiModelProperty(notes = "还款期数")
     private Integer periods;
 
+    @ApiModelProperty(notes = "佣金比例")
+    private BigDecimal commissionRate;
+
     /**
      * 审批状态的枚举类
      */
     public enum ApprovalStatus {
         // 待审批
-        approval_pending(213,"待审批"),
+        approval_pending(222,"待审批"),
 
         // 通过
-        approve(214,"审批通过"),
+        approval_approve(220,"审批通过"),
 
         // 拒绝
-        disapprove(215,"审批拒绝");
+        approval_disapprove(221,"审批拒绝");
 
         private Integer value;
 
         private String remark;
 
         ApprovalStatus(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+
+    }
+
+    /**
+     * 审批状态的枚举类
+     */
+    public enum ApprovalResult {
+
+        // 通过
+        approve(223,"通过"),
+
+        // 拒绝
+        disapprove(224,"拒绝");
+
+        private Integer value;
+
+        private String remark;
+
+        ApprovalResult(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }

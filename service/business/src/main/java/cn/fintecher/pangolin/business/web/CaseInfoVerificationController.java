@@ -122,6 +122,7 @@ public class CaseInfoVerificationController extends BaseController {
                     caseInfoVerificationApply.setLatelyPayAmount(caseInfo.getLatelyPayAmount()); // 最近还款金额
                     caseInfoVerificationApply.setLatelyPayDate(caseInfo.getLatelyPayDate()); // 最近还款日期
                     caseInfoVerificationApply.setPeriods(caseInfo.getPeriods()); // 还款期数
+                    caseInfoVerificationApply.setCommissionRate(caseInfo.getCommissionRate()); // 佣金比例
                     if (Objects.nonNull(caseInfo.getArea())) {
                         caseInfoVerificationApply.setCity(caseInfo.getArea().getAreaName()); // 城市
                         if (Objects.nonNull(caseInfo.getArea().getParent())) {
@@ -182,7 +183,7 @@ public class CaseInfoVerificationController extends BaseController {
         } else {
             builder.and(QCaseInfoVerificationApply.caseInfoVerificationApply.companyCode.eq(user.getCompanyCode()));
         }
-        builder.and(QCaseInfoVerificationApply.caseInfoVerificationApply.approvalStatus.eq(CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue())); // 审批待通过
+        builder.and(QCaseInfoVerificationApply.caseInfoVerificationApply.approvalStatus.in(CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue(),CaseInfoVerificationApply.ApprovalStatus.approval_disapprove.getValue())); // 审批状态：待通过、审批拒绝
         Page<CaseInfoVerificationApply> page = caseInfoVerificationApplyRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoVerification")).body(page);
     }
@@ -218,10 +219,13 @@ public class CaseInfoVerificationController extends BaseController {
                 caseInfoVerificationApply.setCompanyCode(user.getCompanyCode());
                 caseInfoVerification.setCompanyCode(user.getCompanyCode());
             }
-            caseInfoVerificationApply.setApprovalOpinion(caseInfoVerficationModel.getApprovalOpinion()); // 审批意见
-            caseInfoVerificationApply.setApprovalResult(caseInfoVerficationModel.getApprovalResult()); // 审批结果
-            caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approve.getValue()); // 审批通过
-
+            if (Objects.equals(caseInfoVerficationModel.getApprovalResult(), 0)) { // 核销审批拒绝
+                caseInfoVerificationApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.disapprove.getValue()); // 审批结果：拒绝
+                caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_disapprove.getValue()); // 审批状态：审批拒绝
+            } else { // 核销审批通过
+                caseInfoVerificationApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.approve.getValue()); // 审批结果：通过
+                caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_approve.getValue()); // 审批状态：审批通过
+            }
             caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
             caseInfoVerification.setOperator(user.getRealName()); // 操作人
             caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
