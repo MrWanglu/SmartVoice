@@ -5,7 +5,6 @@ import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.AccFinanceEntryService;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.entity.*;
-import cn.fintecher.pangolin.entity.Template;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -13,7 +12,8 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import freemarker.template.*;
+import freemarker.template.Configuration;
+import freemarker.template.TemplateException;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -872,31 +872,35 @@ public class OutsourcePoolController extends BaseController {
 
     @GetMapping("/importFinancData")
     @ResponseBody
-    @ApiOperation(value = "账目导入", notes = "账目导入")
+    @ApiOperation(value = "账目导入/委外跟进记录导入", notes = "账目导入/委外跟进记录导入")
     public ResponseEntity<List> importExcelData(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
                                                 @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                 @RequestParam(required = false) @ApiParam(value = "文件ID") String fileId,
-                                                @RequestParam(required = false) @ApiParam(value = "备注") String fienRemark) {
+                                                @RequestParam(required = false) @ApiParam(value = "备注") String fienRemark,
+                                                @RequestParam(required = true) @ApiParam(value = "导入类型") Integer type) {
         try {
             int[] startRow = {0};
             int[] startCol = {0};
-            Class<?>[] dataClass = {AccFinanceDataExcel.class};
+
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
             AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
+            if(type==0){
+                if (Objects.isNull(user.getCompanyCode())) {
+                    if (Objects.isNull(companyCode)) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
+                    }
+                    accFinanceEntry.setCompanyCode(companyCode);
+                } else {
+                    accFinanceEntry.setCompanyCode(user.getCompanyCode());//限制公司code码
                 }
-                accFinanceEntry.setCompanyCode(companyCode);
-            } else {
-                accFinanceEntry.setCompanyCode(user.getCompanyCode());//限制公司code码
+                accFinanceEntry.setCreateTime(ZWDateUtil.getNowDateTime());
+                accFinanceEntry.setCreator(user.getUserName());
+                accFinanceEntry.setFienRemark(fienRemark);
             }
-            accFinanceEntry.setCreateTime(ZWDateUtil.getNowDateTime());
-            accFinanceEntry.setCreator(user.getUserName());
-            accFinanceEntry.setFienRemark(fienRemark);
+
             //查找上传文件
             ResponseEntity<UploadFile> uploadFileResult = null;
             UploadFile uploadFile = null;
@@ -911,8 +915,18 @@ public class OutsourcePoolController extends BaseController {
                 log.error(e.getMessage(), e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取上传文件失败", "", e.getMessage())).body(null);
             }
-            //解析Excel并保存到临时表中
-            List<CellError> errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry);
+
+            List<CellError> errorList = null;
+            if(type==0){
+                Class<?>[] dataClass = {AccFinanceDataExcel.class};
+                //解析Excel并保存到临时表中
+                errorList  = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry,type);
+            }else{
+                Class<?>[] dataClass = {OutsourceFollowUpRecordModel.class};
+                //解析Excel并保存到临时表中
+                errorList  = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry,type);
+            }
+
             if (errorList.isEmpty()) {
                 return ResponseEntity.ok().body(null);
             } else {
@@ -942,6 +956,15 @@ public class OutsourcePoolController extends BaseController {
                 if (Objects.nonNull(caseInfos) && !caseInfos.isEmpty()) {
                     //对委外客户池已还款金额做累加
                     for (CaseInfo caseInfo : caseInfos) {
+                        //对委外客户池中回款金额累加外部已还款金额
+                        if(Objects.nonNull(caseInfo.getId())){
+                            OutsourcePool outsource = outsourcePoolRepository.findOne(caseInfo.getId());
+                            if(Objects.nonNull(outsource)){
+                                outsource.setOutBackAmt(outsource.getOutBackAmt().add(financeEntryCase.getFienPayback()));
+                                outsourcePoolRepository.save(outsource);
+                            }
+                        }
+
                         if (Objects.isNull(caseInfo.getHasPayAmount())) {
                             caseInfo.setHasPayAmount(new BigDecimal(0));
                         }
