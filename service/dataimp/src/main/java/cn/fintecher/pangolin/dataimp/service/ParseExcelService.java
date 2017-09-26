@@ -3,7 +3,6 @@ package cn.fintecher.pangolin.dataimp.service;
 import cn.fintecher.pangolin.dataimp.entity.DataImportRecord;
 import cn.fintecher.pangolin.dataimp.entity.RowError;
 import cn.fintecher.pangolin.dataimp.entity.TemplateExcelInfo;
-import cn.fintecher.pangolin.dataimp.util.ParseRowService;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.Constants;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -40,7 +39,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Service
 public class ParseExcelService {
 
-    private final Logger logger = LoggerFactory.getLogger(ParseRowService.class);
+    private final Logger logger = LoggerFactory.getLogger(ParseExcelService.class);
 
     @Autowired
     private ParseExcelTask parseExcelTask;
