@@ -81,6 +81,36 @@ public class CaseInfoVerificationApply extends BaseEntity {
     @ApiModelProperty(notes = "城市")
     private String city;
 
+    @ApiModelProperty(notes = "合同编号")
+    private String contractNumber;
+
+    @ApiModelProperty(notes = "合同金额")
+    private BigDecimal contractAmount;
+
+    @ApiModelProperty(notes = "逾期本金")
+    private BigDecimal overdueCapital;
+
+    @ApiModelProperty(notes = "逾期利息")
+    private BigDecimal overdueInterest;
+
+    @ApiModelProperty(notes = "逾期罚息")
+    private BigDecimal overdueFine;
+
+    @ApiModelProperty(notes = "逾期滞纳金")
+    private BigDecimal overdueDelayFine;
+
+    @ApiModelProperty(notes = "已还款金额")
+    private BigDecimal hasPayAmount;
+
+    @ApiModelProperty(notes = "已还款期数")
+    private Integer hasPayPeriods;
+
+    @ApiModelProperty(notes = "最近还款日期")
+    private Date latelyPayDate;
+
+    @ApiModelProperty(notes = "最近还款金额")
+    private BigDecimal latelyPayAmount;
+
     /**
      * 审批状态的枚举类
      */
