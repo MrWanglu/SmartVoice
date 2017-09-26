@@ -257,6 +257,60 @@ public class OutsourcePoolController extends BaseController {
     }
 
     /**
+     * @Description : 查询委外分配信息
+     */
+    @GetMapping("/getOutDistributeInfo")
+    @ApiOperation(value = "查询委外分配信息", notes = "查询委外分配信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "int", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<List<OutDistributeInfo>> query(@RequestParam(required = false) String companyCode,
+                                                     @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
+                }
+            } else {
+                companyCode = user.getCompanyCode();
+            }
+            List<OutDistributeInfo> outDistributeInfos = new ArrayList<>();
+            Object[] object = outsourcePoolRepository.getOutDistributeInfo(companyCode);
+            for (int i=0;i<object.length;i++){
+                Object[] object1 = (Object[]) object[i];
+                String outCode = (String) object1[1];
+                String outName = (String) object1[2];
+                Integer sumNum = ((BigInteger) object1[3]).intValue();
+                Integer endNum = ((BigInteger) object1[4]).intValue();
+                BigDecimal sumAmt = (BigDecimal) object1[5];
+                BigDecimal endAmt = (BigDecimal) object1[6];
+                OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
+                outDistributeInfo.setOutCode(outCode);
+                outDistributeInfo.setOutName(outName);
+                outDistributeInfo.setCaseCount(sumNum);
+                outDistributeInfo.setEndCount(endNum);
+                outDistributeInfo.setCaseAmt(sumAmt);
+                outDistributeInfo.setEndAmt(endAmt);
+                outDistributeInfos.add(outDistributeInfo);
+            }
+            return ResponseEntity.ok().body(outDistributeInfos);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", ENTITY_NAME1, e.getMessage())).body(null);
+        }
+    }
+
+    /**
      * @Description : 查询委外案件
      */
     @GetMapping("/query")
