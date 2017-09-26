@@ -38,4 +38,6 @@ public class CaseStrategy {
     private Integer priority;
     //公司code码
     private String companyCode;
+    //分配案件池类型（司法 委外 内催 核销）
+    private Integer casePoolFlag;
 }

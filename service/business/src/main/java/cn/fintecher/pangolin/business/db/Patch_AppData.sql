@@ -70,3 +70,12 @@ INSERT INTO `sys_param` (`id`, `company_code`, `code`, `name`, `status`, `type`,
 INSERT INTO `sys_param` (`id`, `company_code`, `code`, `name`, `status`, `type`, `value`, `sign`, `operator`, `operate_time`, `remark`, `field`) VALUES ('ff8080815dfe341a797e0043da6f0008', '0001', 'Sysparam.mysqlrecover.address', 'mysql数据库恢复脚本位置', '0', '9001', '/data/mysqlscript/mysqlrecover.sh', '0', 'administrator', '2017-09-21 14:38:24', 'mysql数据库恢复脚本位置', NULL);
 INSERT INTO `sys_param` (`id`, `company_code`, `code`, `name`, `status`, `type`, `value`, `sign`, `operator`, `operate_time`, `remark`, `field`) VALUES ('ff8080815dfe341a797e0043da6f0009', '0001', 'Sysparam.mongodbbackup.address', 'mongodb备份数据库脚本位置', '0', '9001', '/data/mongoscript/mongdbbackup.sh', '0', 'administrator', '2017-09-22 15:35:52', 'mongodb备份数据库脚本位置', NULL);
 INSERT INTO `sys_param` (`id`, `company_code`, `code`, `name`, `status`, `type`, `value`, `sign`, `operator`, `operate_time`, `remark`, `field`) VALUES ('ff8080815dfe341a797e0043da6f0010', '0001', 'Sysparam.mongodbrecover.address', 'mongodb数据库恢复脚本位置', '0', '9001', '/data/mongoscript/mongdbrecover.sh', '0', 'administrator', '2017-09-22 15:35:55', 'mongodb数据库恢复脚本位置', NULL);
+
+--2017-09-26 祁吉贵 增加案件池类型
+INSERT INTO `pangolin_business`.`data_dict_type` (`id`, `code`, `name`) VALUES ('50', '0050', '案件池类型');
+
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('225', '0050', NULL, '内催', '0');
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('226', '0050', NULL, '委外', '1');
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('227', '0050', NULL, '司法', '2');
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('228', '0050', NULL, '核销', '3');
+
