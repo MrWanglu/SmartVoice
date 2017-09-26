@@ -12,6 +12,7 @@ import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -304,6 +306,203 @@ public class AccTelPoolController extends BaseController {
             pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getAllTelCase");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "查询失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 多条件查询电催待催收案件
+     */
+    @GetMapping("/getAllTelWaitCollection")
+    @ApiOperation(value = "多条件查询电催待催收案件", notes = "多条件查询电催待催收案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseInfo>> getAllTelWaitCollection(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                  @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                                  @ApiIgnore Pageable pageable,
+                                                                  @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get all wait collect tel case");
+        Sort.Order followupBackOrder1 = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupBackOrder2 = new Sort.Order(Sort.Direction.DESC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
+        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
+        Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
+        Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
+        try {
+            User tokenUser = getUserByToken(token);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+                }
+            } else {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+            }
+            if (Objects.equals(tokenUser.getManager(), 1)) {
+                builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            } else {
+                builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(tokenUser.getId()));
+            }
+            builder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue())); //只查待催收的案件
+            builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())); //只查询电催案件
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
+            }
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder2));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime1));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime2));
+            }
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getAllTelWaitCollection");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "查询失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 多条件查询电催催收中和还款中案件
+     */
+    @GetMapping("/getAllTelCollecting")
+    @ApiOperation(value = "多条件查询电催催收中案件", notes = "多条件查询电催催收中案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseInfo>> getAllTelCollecting(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                              @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                              @ApiIgnore Pageable pageable,
+                                                              @RequestHeader(value = "X-UserToken") String token,
+                                                              @RequestParam @ApiParam(value = "案件状态", required = true) String status) {
+        log.debug("REST request to get all collecting tel case");
+        Sort.Order followupBackOrder1 = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupBackOrder2 = new Sort.Order(Sort.Direction.DESC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
+        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
+        Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
+        Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
+        try {
+            List<Integer> statusList = new ArrayList<>();
+            String str[] = StringUtils.split(status, ",");
+            for (String aStr : str) {
+                if (!StringUtils.equals(StringUtils.trim(aStr), "")) {
+                    statusList.add(Integer.parseInt(aStr));
+                }
+            }
+            User tokenUser = getUserByToken(token);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+                }
+            } else {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+            }
+            if (Objects.equals(tokenUser.getManager(), 1)) {
+                builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            } else {
+                builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(tokenUser.getId()));
+            }
+            builder.and(QCaseInfo.caseInfo.collectionStatus.in(statusList)); //只查传入的案件状态的案件
+            builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())); //只查询电催案件
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
+            }
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder2));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime1));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime2));
+            }
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getAllTelCollecting");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "查询失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 多条件查询电催待结案案件
+     */
+    @GetMapping("/getAllTelWaitEnd")
+    @ApiOperation(value = "多条件查询电催待结案案件", notes = "多条件查询电催待结案案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseInfo>> getAllTelWaitEnd(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                           @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                           @ApiIgnore Pageable pageable,
+                                                           @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get all collecting tel case");
+        Sort.Order followupBackOrder1 = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupBackOrder2 = new Sort.Order(Sort.Direction.DESC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
+        Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
+        Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
+        Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
+        Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
+        try {
+            User tokenUser = getUserByToken(token);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            if (Objects.isNull(tokenUser.getCompanyCode())) {
+                if (Objects.nonNull(companyCode)) {
+                    builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
+                }
+            } else {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
+            }
+            if (Objects.equals(tokenUser.getManager(), 1)) {
+                builder.and(QCaseInfo.caseInfo.currentCollector.department.code.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            } else {
+                builder.and(QCaseInfo.caseInfo.currentCollector.id.eq(tokenUser.getId()));
+            }
+            builder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.REPAID.getValue())); //只查案件状态为已还款的案件
+            builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())); //只查询电催案件
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
+            }
+            if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder2));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("ASC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime1));
+            }
+            if (pageable.getSort().toString().contains("followupTime") && pageable.getSort().toString().contains("DESC")) {
+                pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupTime2));
+            }
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getAllTelWaitEnd");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
