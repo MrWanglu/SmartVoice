@@ -17,15 +17,12 @@ public class ExcelExportUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(ExcelExportUtil.class);
 
-    private static final int ROW_MAX = 1048576 - 1; //Excel 07版最大行数 减去表头
-    private static final int SHEET_MAX = 255;   // Excel sheet页最大个数
 
     /**
-     *
      * @param workbook 工作簿
-     * @param headMap 表头信息，key为字段，value为对应的字段名称
+     * @param headMap  表头信息，key为字段，value为对应的字段名称
      * @param dataList 到导出的数据
-     * @param rowData 每个sheet要存储的数据最大行数
+     * @param rowData  每个sheet要存储的数据最大行数
      * @throws Exception
      */
     public static void createExcelData(SXSSFWorkbook workbook, Map<String, String> headMap, List<?> dataList, int rowData) throws Exception {
@@ -43,11 +40,11 @@ public class ExcelExportUtil {
         fontBody.setFontHeightInPoints((short) 11);
         bodyStyle.setFont(fontBody);
 
-        if (rowData > ROW_MAX) {
+        if (rowData > Constants.ROW_MAX - 1) {
             throw new RuntimeException("每个sheet页显示的行数超过了所允许的最大行数!");
         }
         int sheetNum = getSheetNum(dataList, rowData);
-        if (sheetNum > SHEET_MAX) {
+        if (sheetNum > Constants.SHEET_MAX) {
             throw new RuntimeException("要导出的sheet页数量超过所允许的最大个数，可以选择将每个sheet显示的行数调大!");
         }
 
@@ -105,8 +102,9 @@ public class ExcelExportUtil {
 
     /**
      * 根据要导出的数据总量和每个sheet页最大行数计算总共需要的sheet页数量
+     *
      * @param dataList 总数据
-     * @param rowData 每个sheet页最大行数
+     * @param rowData  每个sheet页最大行数
      * @return
      */
     private static int getSheetNum(List<?> dataList, int rowData) {
@@ -121,9 +119,10 @@ public class ExcelExportUtil {
 
     /**
      * 截取每个sheet要写入的数据
+     *
      * @param dataList 总数据
-     * @param rowData 每个sheet页的最大行数
-     * @param i 第i个sheet页
+     * @param rowData  每个sheet页的最大行数
+     * @param i        第i个sheet页
      * @return
      */
     private static List<?> getSubList(List<?> dataList, int rowData, int i) {
@@ -142,6 +141,7 @@ public class ExcelExportUtil {
             }
         }
     }
+
     public static HashMap<String, String> createHeadMap(String[] title, Class<?> tClass) {
         HashMap<String, String> headMap = new LinkedHashMap<>();
         Field[] declaredFields = tClass.getDeclaredFields();

@@ -58,7 +58,7 @@ public class ParseExcelTask {
 
         //反射创建实体对象
         Object obj = null;
-        rowError.setRowIndex(rowIndex);
+        rowError.setRowIndex(rowIndex + 1);
         try {
             obj = dataClass.newInstance();
             //默认数据模板
@@ -122,6 +122,7 @@ public class ParseExcelTask {
         dataInfoExcel.setCloseDate(dataImportRecord.getCloseDate());
         String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, dataImportRecord.getCompanyCode(), Constants.CASE_SEQ_LENGTH).concat(dataImportRecord.getCompanySequence());
         dataInfoExcel.setCaseNumber(caseNumber);
+        dataInfoExcel.setRecoverWay(dataImportRecord.getRecoverWay());
         if (!columnErrorList.isEmpty()) {
             rowError.setName(dataInfoExcel.getPersonalName());
             rowError.setIdCard(dataInfoExcel.getIdCard());
@@ -149,10 +150,9 @@ public class ParseExcelTask {
             rowError.setCompanyCode(dataImportRecord.getCompanyCode());
             rowError.setCaseAmount(dataInfoExcel.getOverdueAmount());
             dataInfoExcel.setColor(mark);
-            dataInfoExcel.setRecoverWay(dataImportRecord.getRecoverWay());
             rowErrorRepository.save(rowError);
-            dataInfoExcelRepository.save(dataInfoExcel);
         }
+        dataInfoExcelRepository.save(dataInfoExcel);
     }
 
     private void matchFields(Class<?> dataClass, List<ColumnError> columnErrorList, Object obj, int colIndex, String titleName, Cell cell) throws Exception {

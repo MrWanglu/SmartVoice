@@ -11,16 +11,22 @@ import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.message.ConfirmDataInfoMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.entity.util.ExcelExportUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import com.querydsl.core.BooleanBuilder;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -28,12 +34,15 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * @Author: PeiShouWen
@@ -72,6 +81,9 @@ public class DataInfoExcelService {
 
     @Autowired
     ParseExcelService parseExcelService;
+
+    @Autowired
+    RowErrorRepository rowErrorRepository;
 
     private final Logger logger = LoggerFactory.getLogger(DataInfoExcelService.class);
 
@@ -322,6 +334,55 @@ public class DataInfoExcelService {
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
+        }
+    }
+
+    public String exportError(String batchNumber, String companyCode) {
+        QRowError qRowError = QRowError.rowError;
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(qRowError.batchNumber.eq(batchNumber));
+        if (StringUtils.isNotBlank(companyCode)) {
+            builder.and(qRowError.companyCode.eq(companyCode));
+        }
+        Iterable<RowError> all = rowErrorRepository.findAll(builder);
+        List<RowError> dataList = IterableUtils.toList(all);
+        String[] title = {"Excel行号","案件编号","客户姓名","手机号","身份证号","案件金额(元)","错误内容"};
+        HashMap<String, String> headMap = ExcelExportUtil.createHeadMap(title, RowError.class);
+
+        File file = null;
+        FileOutputStream fileOutputStream = null;
+        try (SXSSFWorkbook workbook = new SXSSFWorkbook(1000);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();) {
+            ExcelExportUtil.createExcelData(workbook, headMap, dataList, Constants.ROW_MAX - 1);
+            workbook.write(out);
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(ZWDateUtil.getFormatNowDate("yyyyMMddhhmmss") + "跟进记录.xlsx");
+            file = new File(filePath);
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(out.toByteArray());
+            FileSystemResource resource = new FileSystemResource(file);
+            MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+            param.add("file", resource);
+            ResponseEntity<String> url = restTemplate.postForEntity(Constants.UPLOAD_FILE_URL, param, String.class);
+            if (url == null) {
+                throw new RuntimeException("获取上传服务器文件失败!");
+            } else {
+                return url.getBody();
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw new RuntimeException("获取上传服务器文件失败!");
+        } finally {
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            // 删除文件
+            if (file != null) {
+                file.delete();
+            }
         }
     }
 

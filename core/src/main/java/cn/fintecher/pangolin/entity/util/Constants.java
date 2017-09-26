@@ -77,6 +77,8 @@ public final class Constants {
     public static final String SCOREL_SERVICE_URL = "http://dataimp-service/api/scoreResource/";
     // 公司URL
     public static final String COMPANY_URL = "http://business-service/api/companyResource/getCompanyByCode?companyCode=";
+    // 获取上传文件URL
+    public static final String UPLOAD_FILE_URL = "http://file-service/api/uploadFile/addUploadFileUrl";
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
     //案件确认数据发送队列
@@ -147,6 +149,11 @@ public final class Constants {
     //夜间跑批启用状态
     public static final String OVERNIGHTBATCH_STATUS_CODE = "Sysparam.overnightbatch.status";
     public static final String OVERNIGHTBATCH_STATUS_TYPE = "9022";
+
+    //Excel 07版最大行数
+    public static final int ROW_MAX = 1048576;
+    // Excel sheet页最大个数
+    public static final int SHEET_MAX = 255;
 
     /**
      * 数据来源

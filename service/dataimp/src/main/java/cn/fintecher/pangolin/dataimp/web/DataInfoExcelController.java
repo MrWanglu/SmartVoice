@@ -352,4 +352,34 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "查看错误报告失败!")).body(null);
         }
     }
+
+    @GetMapping("/exportError")
+    @ApiOperation(value = "导出错误报告", notes = "导出错误报告")
+    public ResponseEntity<String> exportError(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                              @RequestParam(value = "batchNumber", required = true) @ApiParam("批次号") String batchNumber,
+                                              @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
+        logger.debug("Rest request to exportError");
+        ResponseEntity<User> userResponseEntity = null;
+        try {
+            userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+        } catch (final Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+        User user = userResponseEntity.getBody();
+        try {
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    user.setCompanyCode(companyCode);
+                }
+            }
+            String url = dataInfoExcelService.exportError(batchNumber, user.getCompanyCode());
+            return ResponseEntity.ok().body(url);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"", e.getMessage())).body(null);
+        }
+
+    }
+
 }
