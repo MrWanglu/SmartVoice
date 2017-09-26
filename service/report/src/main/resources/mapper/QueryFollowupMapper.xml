@@ -31,83 +31,91 @@
     </select>
 
     <select id="findFollowupRecord" parameterType="cn.fintecher.pangolin.report.model.ExportFollowRecordParams" resultMap="caseInfoResultMap">
-        SELECT a.id,a.case_number,a.batch_number,a.hand_number,a.personal_id,a.product_id,a.principal_id,a.area_id FROM case_info a
+        SELECT a.id,a.case_number,a.batch_number,a.hand_number,a.personal_id,a.product_id,a.principal_id,a.area_id,
+            a.contract_number,a.loan_date,a.contract_amount,a.left_capital,a.left_interest,a.overdue_amount,a.overdue_capital,
+            a.overdue_interest,a.overdue_fine,a.periods,a.per_pay_amount,a.other_amt,a.over_due_date,a.overdue_periods,
+            a.overdue_days,a.has_pay_amount,a.has_pay_periods,a.lately_pay_date,a.lately_pay_amount,a.commission_rate FROM case_info a
         LEFT JOIN personal c ON a.personal_id = c.id
         LEFT JOIN product d ON a.product_id = d.id
         LEFT JOIN principal e ON a.principal_id = e.id
         LEFT JOIN area_code f ON a.area_id = f.id
         LEFT JOIN department i ON a.depart_id = i.id
         WHERE 1=1
-        <if test="companyCode != null">
+        <if test="companyCode != null and companyCode !=''">
             AND a.company_code = #{companyCode}
         </if>
-        <if test="caseNumberList != null">
+        <if test="caseNumberList != null and caseNumberList.size()>0">
             AND a.case_number IN
             <foreach collection="caseNumberList" index="index" item="item" open="(" separator="," close=")">
                 #{item}
             </foreach>
         </if>
-        <if test="personalName != null">
-            AND c.name = #{personalName}
+        <if test="personalName != null and personalName !=''">
+            AND cc.name = #{personalName}
         </if>
-        <if test="phone != null">
-            AND c.mobile_no = #{phone}
+        <if test="phone != null and phone !=''">
+            AND cc.mobile_no = #{phone}
         </if>
-        <if test="provinceId != null">
+        <if test="provinceId != null and provinceId !=''">
             AND f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId})
         </if>
-        <if test="cityId != null">
+        <if test="cityId != null and cityId !=''">
             AND f.id = #{cityId}
         </if>
-        <if test="batchNumber !=null">
+        <if test="batchNumber !=null and batchNumber !=''">
             AND a.batch_number = #{batchNumber}
         </if>
-        <if test="payStatus != null">
-            AND a.pay_status = #{payStatus}
+        <if test="payStatus != null and payStatus !=''">
+            <if test="payStatus == 'M1' or payStatus == 'M2' or payStatus == 'M3' or payStatus == 'M4' or payStatus == 'M5'">
+                AND a.pay_status = #{payStatus}
+            </if>
+            <if test="payStatus == 'M6'">
+                AND a.pay_status NOT IN ('M1','M2','M3','M4','M5')
+            </if>
         </if>
-        <if test="overDayStart != null">
+        <if test="overDayStart != null and overDayStart !=''">
             AND a.overdue_days &gt; #{overDayStart}
         </if>
-        <if test="overDayEnd !=null">
+        <if test="overDayEnd !=null and overDayEnd !=''">
             AND a.overdue_days &lt; #{overDayEnd}
         </if>
-        <if test="overDueAmountStart != null">
+        <if test="overDueAmountStart != null and overDueAmountStart !=''">
             AND a.overdue_amount &gt; #{overDueAmountStart}
         </if>
-        <if test="overDueAmountEnd != null">
+        <if test="overDueAmountEnd != null and overDueAmountEnd !=''">
             AND a.overdue_amount &lt; #{overDueAmountEnd}
         </if>
-        <if test="handNumberStart != null">
+        <if test="handNumberStart != null and handNumberStart !=''">
             AND a.hand_number &gt; #{handNumberStart}
         </if>
-        <if test="handNumberEnd != null">
+        <if test="handNumberEnd != null and handNumberEnd !=''">
             AND a.hand_number &lt; #{handNumberEnd}
         </if>
-        <if test="commissionRateStart != null">
+        <if test="commissionRateStart != null and commissionRateStart !=''">
             AND  a.commission_rate &gt; #{commissionRateStart}
         </if>
-        <if test="commissionRateEnd != null">
+        <if test="commissionRateEnd != null and commissionRateEnd !=''">
             AND  a.commission_rate &lt; #{commissionRateEnd}
         </if>
-        <if test="collectionStatus != null">
+        <if test="collectionStatus != null and collectionStatus !=''">
             AND a.collection_status = #{collectionStatus}
         </if>
-        <if test="principalName != null">
+        <if test="principalName != null and principalName !=''">
             AND e.name = #{principalName}
         </if>
-        <if test="assistFlag != null">
+        <if test="assistFlag != null and assistFlag !=''">
             AND a.assist_flag = #{assistFlag}
         </if>
-        <if test="followupBack != null">
+        <if test="followupBack != null and followupBack !=''">
             AND a.followup_back = #{followupBack}
         </if>
-        <if test="assistWay != null">
+        <if test="assistWay != null and assistWay !=''">
             AND a.assist_way = #{assistWay}
         </if>
-        <if test="collectionType != null">
+        <if test="collectionType != null and collectionType !=''">
             AND a.collection_type = #{collectionType}
         </if>
-        <if test="departmentCode != null">
+        <if test="departmentCode != null and departmentCode !=''">
             AND i.code LIKE concat(#{departmentCode},'%')
         </if>
     </select>
@@ -117,14 +125,35 @@
         <result column="case_number" property="caseNumber"/>
         <result column="batch_number" property="batchNumber"/>
         <result column="hand_number" property="handNumber"/>
+        <result column="contract_number" property="contractNumber"/>
+        <result column="loan_date" property="loanDate"/>
+        <result column="contract_amount" property="contractAmount"/>
+        <result column="left_capital" property="leftCapital"/>
+        <result column="left_interest" property="leftInterest"/>
+        <result column="overdue_amount" property="overdueAmount"/>
+        <result column="overdue_capital" property="overdueCapital"/>
+        <result column="overdue_interest" property="overdueInterest"/>
+        <result column="overdue_fine" property="overdueFine"/>
+        <result column="periods" property="periods"/>
+        <result column="per_pay_amount" property="perPayAmount"/>
+        <result column="other_amt" property="otherAmt"/>
+        <result column="over_due_date" property="overDueDate"/>
+        <result column="overdue_periods" property="overduePeriods"/>
+        <result column="overdue_days" property="overdueDays"/>
+        <result column="has_pay_amount" property="hasPayAmount"/>
+        <result column="has_pay_periods" property="hasPayPeriods"/>
+        <result column="lately_pay_date" property="latelyPayDate"/>
+        <result column="lately_pay_amount" property="latelyPayAmount"/>
+        <result column="commission_rate" property="commissionRate"/>
         <association property="personalInfo" column="personal_id" select="selectPersonal"></association>
         <association property="areaCode" column="area_id" select="selectArea"></association>
         <association property="principal" column="principal_id" select="selectPrincipal"></association>
+        <association property="product" column="product_id" select="selectProduct"></association>
         <collection property="caseFollowupRecords" column="case_number" ofType="cn.fintecher.pangolin.entity.CaseFollowupRecord" select="selectCaseFollowupRecord"></collection>
     </resultMap>
 
     <select id="selectPersonal" parameterType="string" resultMap="personalResultMap">
-        SELECT id,name,id_card,number FROM personal WHERE id = #{personal_id}
+        SELECT id,name,id_card,number,mobile_no,local_phone_no,id_card_address,local_home_address FROM personal WHERE id = #{personal_id}
     </select>
 
     <resultMap id="personalResultMap" type="cn.fintecher.pangolin.entity.Personal">
@@ -132,16 +161,49 @@
         <result column="name" property="name"></result>
         <result column="id_card" property="idCard"/>
         <result column="number" property="number"/>
+        <result column="mobile_no" property="mobileNo"/>
+        <result column="id_card_address" property="idCardAddress"/>
+        <result column="local_phone_no" property="localPhoneNo"/>
+        <result column="local_home_address" property="localHomeAddress"/>
         <collection property="personalBankInfos" column="id" ofType="cn.fintecher.pangolin.entity.PersonalBank" select="selectPersonalBank"></collection>
+        <collection property="personalJobs" column="id" ofType="cn.fintecher.pangolin.entity.PersonalJob" select="selectPersonalJob"></collection>
+        <collection property="personalContacts" column="id" ofType="cn.fintecher.pangolin.entity.PersonalContact" select="selectPersonalContacts"></collection>
     </resultMap>
 
     <select id="selectPersonalBank" resultMap="personalBankMap">
-        SELECT id,account_number FROM personal_bank WHERE personal_id = #{id}
+        SELECT id,account_number,deposit_bank,card_number FROM personal_bank WHERE personal_id = #{id}
     </select>
 
     <resultMap id="personalBankMap" type="cn.fintecher.pangolin.entity.PersonalBank">
         <id column="id" property="id"/>
         <result column="account_number" property="accountNumber"/>
+        <result column="deposit_bank" property="depositBank"/>
+        <result column="card_number" property="cardNumber"/>
+    </resultMap>
+
+    <select id="selectPersonalJob" resultMap="personalJobMap">
+        select id,company_name,address,phone from personal_job WHERE personal_id = #{id}
+    </select>
+
+    <resultMap id="personalJobMap" type="cn.fintecher.pangolin.entity.PersonalJob">
+        <id column="id" property="id"/>
+        <result column="company_name" property="companyName"/>
+        <result column="address" property="address"/>
+        <result column="phone" property="phone"/>
+    </resultMap>
+
+    <select id="selectPersonalContacts" resultMap="personalContactsMap">
+        select id,name,phone,mobile,address,relation,employer,work_phone from personal_contact WHERE personal_id = #{id}
+    </select>
+
+    <resultMap id="personalContactsMap" type="cn.fintecher.pangolin.entity.PersonalContact">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="phone" property="phone"/>
+        <result column="mobile" property="mobile"/>
+        <result column="address" property="address"/>
+        <result column="relation" property="relation"/>
+        <result column="work_phone" property="workPhone"/>
     </resultMap>
 
     <select id="selectArea" resultType="cn.fintecher.pangolin.entity.AreaCode">
@@ -149,7 +211,8 @@
     </select>
 
     <select id="selectCaseFollowupRecord" resultMap="caseFollowupRecord">
-        SELECT id,target,target_name,type,contact_phone,detail,collection_location,collection_feedback,content,operator_time FROM case_followup_record WHERE case_number = #{case_number} AND collection_way != 0
+        SELECT id,target,target_name,type,contact_phone,detail,collection_location,collection_feedback,
+                content,operator_time,operator_name FROM case_followup_record WHERE case_number = #{case_number} AND collection_way != 0
     </select>
 
     <resultMap id="caseFollowupRecord" type="cn.fintecher.pangolin.entity.CaseFollowupRecord">
@@ -163,6 +226,7 @@
         <result column="collection_feedback" property="collectionFeedback"/>
         <result column="content" property="content"/>
         <result column="operator_time" property="operatorTime"/>
+        <result column="operator_name" property="operatorName"/>
     </resultMap>
 
     <select id="selectPrincipal" resultMap="principalMap">
@@ -174,4 +238,21 @@
         <result column="name" property="name"/>
     </resultMap>
 
+    <select id="selectProduct" resultMap="productMap">
+        select id,series_id from product where id = #{product_id}
+    </select>
+
+    <resultMap id="productMap" type="cn.fintecher.pangolin.entity.Product">
+        <id column="id" property="id"/>
+        <association property="productSeries" column="series_id" select="selectSeries"/>
+    </resultMap>
+
+    <select id="selectSeries" resultMap="seriesMap">
+        select id,series_name from product_series where id = #{series_id}
+    </select>
+
+    <resultMap id="seriesMap" type="cn.fintecher.pangolin.entity.ProductSeries">
+        <id column="id" property="id"/>
+        <result column="series_name" property="seriesName"/>
+    </resultMap>
 </mapper>

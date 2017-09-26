@@ -58,7 +58,7 @@ public class CaseFollowupAppController extends BaseController {
 
     @GetMapping("/getAllFollowupsForApp")
     @ApiOperation(value = "APP查询案件跟进记录", notes = "APP查询案件跟进记录")
-    public ResponseEntity<Page<CaseFollowupRecord>> getAllFollowupsForApp(@ApiParam(value = "案件ID", required = true) @RequestParam String number, Pageable pageable) {
+    public ResponseEntity<Page<CaseFollowupRecord>> getAllFollowupsForApp(@ApiParam(value = "案件编号", required = true) @RequestParam String number, Pageable pageable) {
         try {
             BooleanBuilder builder = new BooleanBuilder();
             builder.and(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(number));
