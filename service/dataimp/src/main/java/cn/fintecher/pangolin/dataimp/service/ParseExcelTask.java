@@ -147,6 +147,7 @@ public class ParseExcelTask {
             }
             rowError.setErrorMsg(errorSb.toString());
             rowError.setCompanyCode(dataImportRecord.getCompanyCode());
+            rowError.setCaseAmount(dataInfoExcel.getOverdueAmount());
             dataInfoExcel.setColor(mark);
             dataInfoExcel.setRecoverWay(dataImportRecord.getRecoverWay());
             rowErrorRepository.save(rowError);

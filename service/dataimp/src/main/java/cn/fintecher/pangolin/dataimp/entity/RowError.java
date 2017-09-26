@@ -32,6 +32,8 @@ public class RowError {
     private String batchNumber;
     @ApiModelProperty("案件编号")
     private String caseNumber;
+    @ApiModelProperty("案件金额")
+    private Double caseAmount;
     @ApiModelProperty("公司Code")
     private String companyCode;
 }
