@@ -255,16 +255,22 @@ public class DataInfoExcelService {
      *
      * @param user
      */
-    public void casesConfirmByBatchNum(User user) {
+    public void casesConfirmByBatchNum(User user, String batchNumber) {
         //查询该用户下所有未确认的案件
         QDataInfoExcel qDataInfoExcel = QDataInfoExcel.dataInfoExcel;
-        Iterable<DataInfoExcel> dataInfoExcelIterable = dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId()).and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
+        Iterable<DataInfoExcel> dataInfoExcelIterable = dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId())
+                .and(qDataInfoExcel.companyCode.eq(user.getCompanyCode()))
+                .and(qDataInfoExcel.batchNumber.eq(batchNumber)));
         List<DataInfoExcelModel> dataInfoExcelModelList = new ArrayList<>();
         List<DataInfoExcelHis> dataInfoExcelHisList = new ArrayList<>();
         int dataTotal = 0;
         for (Iterator iterator = dataInfoExcelIterable.iterator(); iterator.hasNext(); ) {
             dataTotal = dataTotal + 1;
             DataInfoExcel dataInfoExcel = (DataInfoExcel) iterator.next();
+            //包含严重错误的一批案件不允许确认
+            if (Objects.equals(dataInfoExcel.getColor(),DataInfoExcel.Color.RED.getValue())) {
+                throw new RuntimeException("此批案件存在严重错误,不允许确认");
+            }
             DataInfoExcelModel dataInfoExcelModel = new DataInfoExcelModel();
             BeanUtils.copyProperties(dataInfoExcel, dataInfoExcelModel);
             //附件信息

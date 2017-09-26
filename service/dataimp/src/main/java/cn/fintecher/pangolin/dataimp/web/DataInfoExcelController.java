@@ -245,7 +245,8 @@ public class DataInfoExcelController {
     @GetMapping("/casesConfirmByBatchNum")
     @ApiOperation(value = "案件确认操作", notes = "案件确认操作")
     public ResponseEntity casesConfirmByBatchNum(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
-                                                 @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
+                                                 @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode,
+                                                 @RequestParam(value = "batchNumber", required = true) @ApiParam("批次号") String batchNumber) {
         ResponseEntity<User> userResponseEntity = null;
         try {
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
@@ -259,8 +260,13 @@ public class DataInfoExcelController {
                 user.setCompanyCode(companyCode);
             }
         }
-        dataInfoExcelService.casesConfirmByBatchNum(user);
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", ENTITY_NAME)).body(null);
+        try {
+            dataInfoExcelService.casesConfirmByBatchNum(user, batchNumber);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(null);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"", e.getMessage())).body(null);
+        }
     }
 
     @GetMapping("/loadTemplate")
