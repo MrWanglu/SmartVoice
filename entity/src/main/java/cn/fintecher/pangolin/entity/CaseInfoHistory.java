@@ -92,6 +92,8 @@ public class CaseInfoHistory extends BaseEntity {
     private String recoverMemo;
     @ApiModelProperty("回收标志：0-未回收，1-已回收")
     private Integer recoverRemark;
+    @ApiModelProperty("内催 225 委外 226 司法 227 核销 228")
+    private Integer casePoolType;
 
     @ManyToOne
     @JoinColumn(name = "personal_id")
@@ -212,7 +214,7 @@ public class CaseInfoHistory extends BaseEntity {
         ASSIST_COMPLATED(29, "协催完成"),
         ASSIST_WAIT_ASSIGN(117, "协催待分配"),
         ASSIST_WAIT_ACC(118, "协催待催收"),
-        FAILURE(30,"协催审批失效");
+        FAILURE(30, "协催审批失效");
 
         private Integer value;
         private String remark;

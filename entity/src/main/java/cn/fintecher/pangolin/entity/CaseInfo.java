@@ -95,6 +95,8 @@ public class CaseInfo extends BaseEntity {
     private String recoverMemo;
     @ApiModelProperty("回收标志：0-未回收，1-已回收")
     private Integer recoverRemark;
+    @ApiModelProperty("内催 225 委外 226 司法 227 核销 228")
+    private Integer casePoolType;
 
     @ManyToOne
     @JoinColumn(name = "personal_id")
@@ -472,7 +474,7 @@ public class CaseInfo extends BaseEntity {
      */
     public enum RecoverWay {
         AUTO(0, "自动回收"),
-        MANUAL(1,"手动回收");
+        MANUAL(1, "手动回收");
 
         private Integer value;
 
@@ -496,7 +498,7 @@ public class CaseInfo extends BaseEntity {
      * 案件回收标识
      */
     public enum RecoverRemark {
-        NOT_RECOVERED(0,"未回收"),
+        NOT_RECOVERED(0, "未回收"),
         RECOVERED(1, "已回收");
 
         private Integer value;
@@ -504,6 +506,36 @@ public class CaseInfo extends BaseEntity {
         private String remark;
 
         RecoverRemark(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
+    /**
+     * @Description 案件池类型
+     */
+    public enum CasePoolType {
+        //电催
+        INNER(225, "内催"),
+        //外访
+        OUTER(226, "委外"),
+        //司法
+        JUDICIAL(227, "司法"),
+        //委外
+        DESTORY(228, "核销");
+
+        private Integer value;
+        private String remark;
+
+        CasePoolType(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }
