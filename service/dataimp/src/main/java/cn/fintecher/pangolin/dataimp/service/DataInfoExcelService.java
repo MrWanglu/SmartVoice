@@ -301,6 +301,7 @@ public class DataInfoExcelService {
             BeanUtils.copyProperties(dataInfoExcel, dataInfoExcelHis);
             dataInfoExcelHisList.add(dataInfoExcelHis);
         }
+        Iterable<RowError> rowErrors = rowErrorRepository.findAll(QRowError.rowError.batchNumber.eq(batchNumber));
         ConfirmDataInfoMessage msg = new ConfirmDataInfoMessage();
         msg.setDataInfoExcelModelList(dataInfoExcelModelList);
         msg.setDataCount(dataInfoExcelModelList.size());
@@ -310,6 +311,7 @@ public class DataInfoExcelService {
         //移动导入的数据
         dataInfoExcelRepository.delete(dataInfoExcelIterable);
         dataInfoExcelHisRepository.save(dataInfoExcelHisList);
+        rowErrorRepository.delete(rowErrors);
     }
 
     public List<DataInfoExcel> queryDataInfoExcelListNoPage(DataInfoExcel dataInfoExcel, User user) throws Exception {

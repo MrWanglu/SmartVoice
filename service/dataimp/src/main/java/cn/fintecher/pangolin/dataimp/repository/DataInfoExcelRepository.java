@@ -43,11 +43,22 @@ public interface DataInfoExcelRepository extends MongoRepository<DataInfoExcel, 
                 return path.goe(firstOverDueAmount);
             }
         });
+        bindings.bind(root.commissionRate).all((path, value) -> {
+            Iterator<? extends Double> it=value.iterator();
+            Double firstCommissionRate=it.next();
+            if(it.hasNext()){
+                Double secondCommissionRate=it.next();
+                return path.between(firstCommissionRate,secondCommissionRate);
+            }else{
+                return path.goe(firstCommissionRate);
+            }
+        });
 
         bindings.bind(root.mobileNo).first((path, value) -> path.eq(StringUtils.trim(value)));
         bindings.bind(root.idCard).first((path, value) -> path.eq(StringUtils.trim(value)));
         bindings.bind(root.province).first((path, value) -> path.startsWith(StringUtils.trim(value)));
         bindings.bind(root.city).first((path, value) -> path.startsWith(StringUtils.trim(value)));
+        bindings.bind(root.color).first((path, value) -> path.eq(value));
     }
 
     /**
