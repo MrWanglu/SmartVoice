@@ -250,14 +250,8 @@ public class CaseInfoDistributeController extends BaseController {
     public ResponseEntity manualAllocation(@RequestHeader(value = "X-UserToken") String token,
                                            @RequestBody ManualParams manualParams) {
         logger.debug("REST request to getCaseCountOnDept");
-        User user = null;
         try {
-            user = getUserByToken(token);
-        } catch (final Exception e) {
-            logger.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
-        }
-        try {
+            User user = getUserByToken(token);
             caseInfoDistributedService.manualAllocation(manualParams, user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功","")).body(null);
         } catch (Exception e) {
