@@ -146,14 +146,11 @@ public class OutsourcePoolController extends BaseController {
                                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "", "委外方查询异常")).body(null);
                             }
                             //优先将案件委外给有共债案件的委外方
-                            outsourcePool.setOutsource(outsource);
-                            outsourcePool.setOutBatch(ouorBatch);
-                            outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());
-                            outsourcePool.setOperator(user.getUserName());
-                            outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDING.getCode());
-                            outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
-                            outsourcePoolList.add(outsourcePool);
+                            setOutsourcePool(outsourcePool,outsource,ouorBatch,user,outsourcePoolList);
                             outsourcePools.remove(0);//干掉已经分出去的案件
+                            //添加委外记录
+                            saveOutsourceRecord(outsourcePool,outsource,user,ouorBatch,outsourceRecords);
+
                             i--;//如果有删除则向前补一位
                             //记录已经分配的委外方及分配数
                             if (map.containsKey(lastOutId)) {
@@ -179,13 +176,9 @@ public class OutsourcePoolController extends BaseController {
                             if (Objects.isNull(outsource)){
                                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "", "委外方查询异常")).body(null);
                             }
-                            outsourcePool.setOutsource(outsource);
-                            outsourcePool.setOutBatch(ouorBatch);
-                            outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());
-                            outsourcePool.setOperator(user.getUserName());
-                            outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDING.getCode());
-                            outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
-                            outsourcePoolList.add(outsourcePool);
+                            setOutsourcePool(outsourcePool,outsource,ouorBatch,user,outsourcePoolList);
+                            //添加委外记录
+                            saveOutsourceRecord(outsourcePool,outsource,user,ouorBatch,outsourceRecords);
                             distributionCount--;//分配数-1
                             outsourcePools.remove(0);//添加完后删除案件集合中的所分案件
                         }
@@ -200,14 +193,10 @@ public class OutsourcePoolController extends BaseController {
                             for (int i=0;i<avgNum;i++){
                                 Outsource outsource = outsourceRepository.findOne(outId);
                                 OutsourcePool outsourcePool = outsourcePools.get(0);
-                                outsourcePool.setOutsource(outsource);
-                                outsourcePool.setOutBatch(ouorBatch);
-                                outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());
-                                outsourcePool.setOperator(user.getUserName());
-                                outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDING.getCode());
-                                outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
-                                outsourcePoolList.add(outsourcePool);
+                                setOutsourcePool(outsourcePool,outsource,ouorBatch,user,outsourcePoolList);
                                 outsourcePools.remove(0);
+                                //添加委外记录
+                                saveOutsourceRecord(outsourcePool,outsource,user,ouorBatch,outsourceRecords);
                             }
                         }
                     }
@@ -215,15 +204,11 @@ public class OutsourcePoolController extends BaseController {
                     for (OutsourcePool outsourcePool:outsourcePools) {
                         String outId = outDistributes.get(0).getOutId();
                         Outsource outsource = outsourceRepository.findOne(outId);
-                        outsourcePool.setOutsource(outsource);
-                        outsourcePool.setOutBatch(ouorBatch);
-                        outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());
-                        outsourcePool.setOperator(user.getUserName());
-                        outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDING.getCode());
-                        outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
-                        outsourcePoolList.add(outsourcePool);
+                        setOutsourcePool(outsourcePool,outsource,ouorBatch,user,outsourcePoolList);
                         //每个委外方分到案件后就不再分配
                         outDistributes.remove(0);
+                        //添加委外记录
+                        saveOutsourceRecord(outsourcePool,outsource,user,ouorBatch,outsourceRecords);
                     }
                 } else {//无规则分配(按手动输入案件数分配)
                     for (OutDistributeParam outDistributeParam:outDistributes){
@@ -235,25 +220,52 @@ public class OutsourcePoolController extends BaseController {
                             if (Objects.isNull(outsource)){
                                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "", "委外方查询异常")).body(null);
                             }
-                            outsourcePool.setOutsource(outsource);
-                            outsourcePool.setOutBatch(ouorBatch);
-                            outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());
-                            outsourcePool.setOperator(user.getUserName());
-                            outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDING.getCode());
-                            outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
-                            outsourcePoolList.add(outsourcePool);
+                            setOutsourcePool(outsourcePool,outsource,ouorBatch,user,outsourcePoolList);
                             outsourcePools.remove(0);//添加完后删除案件集合中的所分案件
+                            //添加委外记录
+                            saveOutsourceRecord(outsourcePool,outsource,user,ouorBatch,outsourceRecords);
                             distributionCount--;//分配数-1
                         }
                     }
                 }
            outsourcePoolRepository.save(outsourcePoolList);//批量保存分配的案子
+           outsourceRecordRepository.save(outsourceRecords);
             return ResponseEntity.ok().body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("委外失败", ENTITY_NAME, e.getMessage())).body(null);
         }
 
+    }
+
+    private void saveOutsourceRecord(OutsourcePool outsourcePool, Outsource outsource, User user, String ouorBatch, List<OutsourceRecord> outsourceRecords) {
+        //委外记录
+        OutsourceRecord outsourceRecord = new OutsourceRecord();
+        outsourceRecord.setCaseInfo(outsourcePool.getCaseInfo());
+        outsourceRecord.setOutsource(outsource);
+        outsourceRecord.setCreateTime(ZWDateUtil.getNowDateTime());
+        outsourceRecord.setCreator(user.getUserName());
+        outsourceRecord.setFlag(0);//默认正常
+        outsourceRecord.setOuorBatch(ouorBatch);//批次号
+        outsourceRecords.add(outsourceRecord);
+    }
+
+
+    private void setOutsourcePool(OutsourcePool outsourcePool, Outsource outsource, String ouorBatch, User user, List<OutsourcePool> outsourcePoolList) {
+        outsourcePool.setOutsource(outsource);
+        outsourcePool.setOutBatch(ouorBatch);
+        outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());
+        outsourcePool.setOperator(user.getUserName());
+        outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDING.getCode());
+        outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
+        BigDecimal b2=outsourcePool.getCaseInfo().getHasPayAmount();//已还款金额
+        if (Objects.isNull(b2)){
+            outsourcePool.getCaseInfo().setHasPayAmount(BigDecimal.ZERO);
+        }
+        BigDecimal b1=outsourcePool.getCaseInfo().getOverdueAmount();//原案件金额
+        outsourcePool.setContractAmt(b1.subtract(b2));//委外案件金额=原案件金额-已还款金额
+        outsourcePool.setOverduePeriods(outsourcePool.getOverduePeriods());//逾期时段
+        outsourcePoolList.add(outsourcePool);
     }
 
     /**
