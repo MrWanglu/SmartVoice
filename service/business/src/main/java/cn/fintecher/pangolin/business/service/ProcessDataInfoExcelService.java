@@ -190,6 +190,7 @@ public class ProcessDataInfoExcelService {
         caseInfoException.setOperator(user.getId());
         caseInfoException.setOperatorName(user.getRealName());
         caseInfoException.setCaseHandNum(dataInfoExcelModel.getCaseHandNum()); //手数
+        caseInfoException.setRecoverRemark(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue());//未回收
         return caseInfoException;
     }
 
@@ -248,6 +249,8 @@ public class ProcessDataInfoExcelService {
         caseInfoDistributed.setMemo(dataInfoExcelModel.getMemo()); //备注
         caseInfoDistributed.setFirstPayDate(dataInfoExcelModel.getFirstPayDate()); //首次还款日期
         caseInfoDistributed.setAccountAge(dataInfoExcelModel.getAccountAge()); //账龄
+        caseInfoDistributed.setRecoverRemark(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()); //未回收
+        caseInfoDistributed.setRecoverWay(dataInfoExcelModel.getRecoverWay()); //回收方式
         return caseInfoDistributed;
     }
 
