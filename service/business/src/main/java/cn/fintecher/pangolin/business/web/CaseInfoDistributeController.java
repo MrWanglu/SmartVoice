@@ -1,6 +1,8 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
+import cn.fintecher.pangolin.business.model.AllocationCountModel;
+import cn.fintecher.pangolin.business.model.ManualParams;
 import cn.fintecher.pangolin.business.model.UserInfoModel;
 import cn.fintecher.pangolin.business.repository.CaseInfoDistributedRepository;
 import cn.fintecher.pangolin.business.repository.PersonalContactRepository;
@@ -242,4 +244,37 @@ public class CaseInfoDistributeController extends BaseController {
         personalContact.setRelation(PersonalContact.relation.OTHER.getValue());
         personalContactRepository.save(personalContact);
     }
+
+    @PostMapping("/manualAllocation")
+    @ApiOperation(notes = "案件分配手动分案", value = "案件分配手动分案")
+    public ResponseEntity manualAllocation(@RequestHeader(value = "X-UserToken") String token,
+                                           @RequestBody ManualParams manualParams) {
+        logger.debug("REST request to getCaseCountOnDept");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+        try {
+            caseInfoDistributedService.manualAllocation(manualParams, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功","")).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+    }
+
+    @PostMapping("/allocationCount")
+    @ApiOperation(notes = "案件分配手动分案统计", value = "案件分配手动分案统计")
+    public ResponseEntity<AllocationCountModel> allocationCount(@RequestBody ManualParams manualParams) {
+        try {
+            AllocationCountModel model = caseInfoDistributedService.allocationCount(manualParams);
+            return ResponseEntity.ok().body(model);
+        } catch (Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+    }
+
 }

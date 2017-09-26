@@ -153,4 +153,7 @@ public interface CaseInfoDistributedRepository extends QueryDslPredicateExecutor
             "AND collection_status NOT IN (24,25,166)", nativeQuery = true)
     Integer getCaseCountOnUser(@Param("userId") String userId);
 
+    @Query(value = "SELECT COUNT(1),SUM(overdue_amount) FROM case_info_distributed WHERE case_number in (:caseNumberList)", nativeQuery = true)
+    Object[] allocationCount(List<String> caseNumberList);
+
 }

@@ -1,12 +1,15 @@
 package cn.fintecher.pangolin.business.service;
 
 import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
+import cn.fintecher.pangolin.business.model.AllocationCountModel;
+import cn.fintecher.pangolin.business.model.ManualParams;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -15,6 +18,7 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -208,5 +212,89 @@ public class CaseInfoDistributedService {
         for (String id : caseInfoAlready) {
             caseInfoDistributedRepository.delete(id);
         }
+    }
+
+    public void manualAllocation(ManualParams manualParams, User user) {
+        try {
+            Iterable<CaseInfoDistributed> all = caseInfoDistributedRepository
+                    .findAll(QCaseInfoDistributed.caseInfoDistributed.caseNumber.in(manualParams.getCaseNumberList()));
+            Iterator<CaseInfoDistributed> iterator = all.iterator();
+            List<CaseInfo> caseInfoList = new ArrayList<>();
+            List<CaseTurnRecord> caseTurnRecordList = new ArrayList<>();
+            List<CaseRepair> caseRepairList = new ArrayList<>();
+            List<OutsourcePool> outsourcePoolList = new ArrayList<>();
+            if (Objects.equals(manualParams.getType(), 0)) {//内催
+                while (iterator.hasNext()) {
+                    CaseInfoDistributed next = iterator.next();
+                    CaseInfo caseInfo = new CaseInfo();
+                    BeanUtils.copyProperties(next, caseInfo);
+                    caseInfo.setId(null);
+                    caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型-案件分配
+                    caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //案件流入时间
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
+                    caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
+                    caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
+                    caseInfo.setLeftDays(ZWDateUtil.getBetween(ZWDateUtil.getNowDate(), caseInfo.getCloseDate(), ChronoUnit.DAYS));//案件剩余天数(结案日期-当前日期)
+                    caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue());//打标标记
+                    caseInfo.setFollowUpNum(0);//流转次数
+                    caseInfo.setOperator(user);
+                    caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+                    caseInfoList.add(caseInfo);
+                    addCaseTurnRecord(caseTurnRecordList, caseInfo, user);//增加流转记录
+                    addCaseRepair(caseRepairList, caseInfo, user);//修复池增加案件
+                }
+                caseInfoRepository.save(caseInfoList);
+                caseTurnRecordRepository.save(caseTurnRecordList);
+                caseRepairRepository.save(caseRepairList);
+                caseInfoDistributedRepository.delete(all);
+            }
+            // TODO 委外
+            if (Objects.equals(manualParams.getType(), 1)) {//委外
+                while (iterator.hasNext()) {
+                    CaseInfoDistributed next = iterator.next();
+                }
+            }
+        } catch (BeansException e) {
+            logger.error(e.getMessage(), e);
+            throw new RuntimeException("分配失败!");
+        }
+
+
+    }
+
+    private void addCaseTurnRecord(List<CaseTurnRecord> caseTurnRecordList,CaseInfo caseInfo, User user) {
+        CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+        BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
+        caseTurnRecord.setId(null); //主键置空
+        caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
+        caseTurnRecord.setCirculationType(3); //流转类型 3-正常流转
+        caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
+        caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        caseTurnRecordList.add(caseTurnRecord);
+    }
+
+    private void addCaseRepair(List<CaseRepair> caseRepairList,CaseInfo caseInfo, User user) {
+        CaseRepair caseRepair = new CaseRepair();
+        caseRepair.setCaseId(caseInfo);
+        caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRING.getValue());
+        caseRepair.setOperatorTime(ZWDateUtil.getNowDateTime());
+        caseRepair.setCompanyCode(user.getCompanyCode());
+        caseRepairList.add(caseRepair);
+    }
+
+    public AllocationCountModel allocationCount(ManualParams manualParams) {
+        if (Objects.isNull(manualParams.getCaseNumberList()) || manualParams.getCaseNumberList().isEmpty()) {
+            throw new RuntimeException("请先选择要分配的案件");
+        }
+        if (Objects.isNull(manualParams.getType())) {
+            throw new RuntimeException("请选择要分给委外/内催");
+        }
+        Object[] obj = caseInfoDistributedRepository.allocationCount(manualParams.getCaseNumberList());
+        Integer caseTotal = (Integer) obj[0];
+        Double caseAmount = (Double) obj[1];
+        AllocationCountModel model = new AllocationCountModel();
+        model.setCaseTotal(caseTotal);
+        model.setCaseAmount(caseAmount);
+        return model;
     }
 }
