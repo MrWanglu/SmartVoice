@@ -390,7 +390,7 @@ public class AccTelPoolController extends BaseController {
                                                               @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                               @ApiIgnore Pageable pageable,
                                                               @RequestHeader(value = "X-UserToken") String token,
-                                                              @RequestParam @ApiParam(value = "案件状态", required = true) String status) {
+                                                              @RequestParam(required = false) @ApiParam(value = "案件状态") String status) {
         log.debug("REST request to get all collecting tel case");
         Sort.Order followupBackOrder1 = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
         Sort.Order followupBackOrder2 = new Sort.Order(Sort.Direction.DESC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
@@ -399,17 +399,17 @@ public class AccTelPoolController extends BaseController {
         Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
         Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
         try {
+            if (Objects.isNull(status)) {
+                Page<CaseInfo> page = new PageImpl<>(new ArrayList<>(), pageable, 0);
+                HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getAllTelCollecting");
+                return new ResponseEntity<>(page, headers, HttpStatus.OK);
+            }
             List<Integer> statusList = new ArrayList<>();
             String str[] = StringUtils.split(status, ",");
             for (String aStr : str) {
                 if (!StringUtils.equals(StringUtils.trim(aStr), "")) {
                     statusList.add(Integer.parseInt(aStr));
                 }
-            }
-            if (statusList.isEmpty()) {
-                Page<CaseInfo> page = new PageImpl<>(new ArrayList<>());
-                HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getAllTelCollecting");
-                return new ResponseEntity<>(page, headers, HttpStatus.OK);
             }
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
