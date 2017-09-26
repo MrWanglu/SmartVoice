@@ -98,13 +98,34 @@ public class CaseInfoVerificationController extends BaseController {
                     caseInfo.setAssistWay(null);
                     caseInfo.setAssistCollector(null);
                 }
-                caseInfoVerificationApply.setCaseId(caseInfo.getId()); // 案件Id
                 caseInfoVerificationApply.setOperator(user.getRealName()); // 操作人
                 caseInfoVerificationApply.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
                 caseInfoVerificationApply.setApplicant(user.getRealName()); // 申请人
                 caseInfoVerificationApply.setApplicationDate(ZWDateUtil.getNowDateTime()); // 申请日期
                 caseInfoVerificationApply.setApplicationReason(caseInfoVerficationModel.getApplicationReason()); // 申请理由
                 caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue()); // 申请状态：审批待通过
+                if (Objects.nonNull(caseInfo)) {
+                    caseInfoVerificationApply.setCaseId(caseInfo.getId()); // 案件Id
+                    caseInfoVerificationApply.setCaseNumber(caseInfo.getCaseNumber()); // 案件编号
+                    caseInfoVerificationApply.setBatchNumber(caseInfo.getBatchNumber()); // 批次号
+                    caseInfoVerificationApply.setOverdueAmount(caseInfo.getOverdueAmount()); // 逾期金额
+                    caseInfoVerificationApply.setOverdueDays(caseInfo.getOverdueDays()); // 逾期天数
+                    caseInfoVerificationApply.setPayStatus(caseInfo.getPayStatus()); // 还款状态
+                    if (Objects.nonNull(caseInfo.getArea())) {
+                        caseInfoVerificationApply.setCity(caseInfo.getArea().getAreaName()); // 城市
+                        if (Objects.nonNull(caseInfo.getArea().getParent())) {
+                            caseInfoVerificationApply.setProvince(caseInfo.getArea().getParent().getAreaName()); // 省份
+                        }
+                    }
+                    if (Objects.nonNull(caseInfo.getPrincipalId())) {
+                        caseInfoVerificationApply.setPrincipalName(caseInfo.getPrincipalId().getName()); // 委托方名称
+                    }
+                    if (Objects.nonNull(caseInfo.getPersonalInfo())) {
+                        caseInfoVerificationApply.setPersonalName(caseInfo.getPersonalInfo().getName()); // 客户名称
+                        caseInfoVerificationApply.setMobileNo(caseInfo.getPersonalInfo().getMobileNo()); // 电话号
+                        caseInfoVerificationApply.setIdCard(caseInfo.getPersonalInfo().getIdCard()); // 身份证号
+                    }
+                }
                 if (Objects.isNull(user.getCompanyCode())) { // 公司code码
                     if (Objects.nonNull(caseInfoVerficationModel.getCompanyCode())) {
                         caseInfoVerificationApply.setCompanyCode(caseInfoVerficationModel.getCompanyCode());
@@ -189,6 +210,7 @@ public class CaseInfoVerificationController extends BaseController {
             caseInfoVerificationApply.setApprovalOpinion(caseInfoVerficationModel.getApprovalOpinion()); // 审批意见
             caseInfoVerificationApply.setApprovalResult(caseInfoVerficationModel.getApprovalResult()); // 审批结果
             caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approve.getValue()); // 审批通过
+
             caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
             caseInfoVerification.setOperator(user.getRealName()); // 操作人
             caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
@@ -204,6 +226,40 @@ public class CaseInfoVerificationController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "查看失败")).body(null);
         }
+    }
+
+    @RequestMapping(value = "/getCaseInfoFollow", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+    @ApiOperation(value = "跟进记录", notes = "跟进记录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity getCaseInfoFollow(@QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
+                                            @ApiIgnore Pageable pageable,
+                                            @RequestHeader(value = "X-UserToken") String token,
+                                            @RequestParam("caseId") @ApiParam("案件编号") String caseId) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+        }
+        CaseInfoVerificationApply caseInfoVerificationApply = caseInfoVerificationApplyRepository.findOne(QCaseInfoVerificationApply.caseInfoVerificationApply.caseId.eq(caseId));
+        BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+        if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
+            if (StringUtils.isNotBlank(caseInfoVerificationApply.getCompanyCode())) {
+                booleanBuilder.and(QCaseFollowupRecord.caseFollowupRecord.companyCode.eq(caseInfoVerificationApply.getCompanyCode()));
+            }
+        } else { // 普通管理员
+            booleanBuilder.and(QCaseFollowupRecord.caseFollowupRecord.companyCode.eq(user.getCompanyCode()));
+        }
+        Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(booleanBuilder, pageable);
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoVerification")).body(page);
     }
 
 

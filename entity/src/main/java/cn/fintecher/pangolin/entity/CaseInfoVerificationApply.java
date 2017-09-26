@@ -4,9 +4,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -18,15 +17,20 @@ import java.util.Date;
 @Data
 public class CaseInfoVerificationApply extends BaseEntity {
 
-
     @ApiModelProperty("公司code码")
     private String companyCode;
 
     @ApiModelProperty("当前催收员")
     private String operator;
 
-    @ApiModelProperty("案件编号")
+    @ApiModelProperty("案件Id")
     private String caseId;
+
+    @ApiModelProperty("批次号")
+    private String batchNumber;
+
+    @ApiModelProperty("案件编号")
+    private String caseNumber;
 
     @ApiModelProperty("操作时间")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -49,6 +53,33 @@ public class CaseInfoVerificationApply extends BaseEntity {
 
     @ApiModelProperty(notes = "审批结果")
     private String approvalResult;
+
+    @ApiModelProperty(notes = "逾期金额")
+    private BigDecimal overdueAmount;
+
+    @ApiModelProperty(notes = "还款状态")
+    private String payStatus;
+
+    @ApiModelProperty(notes = "逾期天数")
+    private Integer overdueDays;
+
+    @ApiModelProperty(notes = "委托方名称")
+    private String principalName;
+
+    @ApiModelProperty(notes = "客户姓名")
+    private String personalName;
+
+    @ApiModelProperty(notes = "手机号码")
+    private String mobileNo;
+
+    @ApiModelProperty(notes = "身份证号")
+    private String IdCard;
+
+    @ApiModelProperty(notes = "省份")
+    private String province;
+
+    @ApiModelProperty(notes = "城市")
+    private String city;
 
     /**
      * 审批状态的枚举类
