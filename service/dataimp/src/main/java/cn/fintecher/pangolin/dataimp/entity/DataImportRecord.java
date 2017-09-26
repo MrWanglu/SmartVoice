@@ -60,4 +60,7 @@ public class DataImportRecord implements Serializable {
 
     @ApiModelProperty("公司序列号")
     private String companySequence;
+
+    @ApiModelProperty("案件到期后回收方式：0-自动回收，1-手动回收")
+    private Integer recoverWay;
 }

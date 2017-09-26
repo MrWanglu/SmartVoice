@@ -515,4 +515,13 @@ public class DataInfoExcelModel implements Serializable {
     @ApiModelProperty("婚姻状况")
     private String marital;
 
+    @ApiModelProperty("案件到期回收方式：0-自动回收，1-手动回收")
+    private Integer recoverWay;
+
+    @ApiModelProperty("案件到期回收说明")
+    private String recoverMemo;
+
+    @ApiModelProperty("回收标志：0-未回收，1-已回收")
+    private Integer recoverRemark;
+
 }

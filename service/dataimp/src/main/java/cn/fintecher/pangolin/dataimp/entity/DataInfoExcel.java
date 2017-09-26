@@ -756,4 +756,32 @@ public class DataInfoExcel implements Serializable {
     @ApiModelProperty("颜色：0-无色，1-红色，2-黄色")
     private Integer color = new Integer(0);
 
+    @ApiModelProperty("案件到期回收方式：0-自动回收，1-手动回收")
+    private Integer recoverWay;
+
+    /**
+     * 案件导入错误提示颜色
+     */
+    public enum Color {
+        NONE(0,"无色"),
+        RED(1,"红色"),
+        YELLOW(2,"黄色");
+
+        private Integer value;
+        private String remark;
+
+        Color(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
 }

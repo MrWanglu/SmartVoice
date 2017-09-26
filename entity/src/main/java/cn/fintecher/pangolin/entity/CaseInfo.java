@@ -89,6 +89,12 @@ public class CaseInfo extends BaseEntity {
     private Date firstPayDate;
     @ApiModelProperty("账龄")
     private String accountAge;
+    @ApiModelProperty("案件到期回收方式：0-自动回收，1-手动回收")
+    private Integer recoverWay;
+    @ApiModelProperty("案件到期回收说明")
+    private String recoverMemo;
+    @ApiModelProperty("回收标志：0-未回收，1-已回收")
+    private Integer recoverRemark;
 
     @ManyToOne
     @JoinColumn(name = "personal_id")
@@ -448,6 +454,56 @@ public class CaseInfo extends BaseEntity {
         private String remark;
 
         CirculationStatus(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
+    /**
+     * 案件回收方式
+     */
+    public enum RecoverWay {
+        AUTO(0, "自动回收"),
+        MANUAL(1,"手动回收");
+
+        private Integer value;
+
+        private String remark;
+
+        RecoverWay(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
+    /**
+     * 案件回收标识
+     */
+    public enum RecoverRemark {
+        NOT_RECOVERED(0,"未回收"),
+        RECOVERED(1, "已回收");
+
+        private Integer value;
+
+        private String remark;
+
+        RecoverRemark(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }

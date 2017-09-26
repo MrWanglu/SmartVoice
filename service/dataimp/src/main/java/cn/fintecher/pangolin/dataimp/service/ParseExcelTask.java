@@ -130,24 +130,25 @@ public class ParseExcelTask {
             rowError.setCaseNumber(caseNumber);
             rowError.setBatchNumber(dataImportRecord.getBatchNumber());
             StringBuilder errorSb = new StringBuilder();
-            int mark = 0;
+            int mark = DataInfoExcel.Color.NONE.getValue();
             for (ColumnError columnError : columnErrorList) {
                 errorSb.append("列【".concat(columnError.getColumnIndex().toString()).concat("】"));
                 errorSb.append(columnError.getTitleMsg().concat(","));
                 errorSb.append(columnError.getErrorMsg());
                 if (columnError.getErrorLevel() == ColumnError.ErrorLevel.FORCE.getValue()) {
                     errorSb.append("(".concat(ColumnError.ErrorLevel.FORCE.getRemark()).concat(")").concat(";"));
-                    mark = 1;
+                    mark = DataInfoExcel.Color.RED.getValue();
                 } else {
                     errorSb.append("(".concat(ColumnError.ErrorLevel.PROMPT.getRemark()).concat(")").concat(";"));
-                    if (mark != 1) {
-                        mark = 2;
+                    if (mark != DataInfoExcel.Color.RED.getValue()) {
+                        mark = DataInfoExcel.Color.YELLOW.getValue();
                     }
                 }
             }
             rowError.setErrorMsg(errorSb.toString());
             rowError.setCompanyCode(dataImportRecord.getCompanyCode());
             dataInfoExcel.setColor(mark);
+            dataInfoExcel.setRecoverWay(dataImportRecord.getRecoverWay());
             rowErrorRepository.save(rowError);
             dataInfoExcelRepository.save(dataInfoExcel);
         }
