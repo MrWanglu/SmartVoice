@@ -981,6 +981,7 @@ public class CaseInfoController extends BaseController {
             if(Objects.nonNull(tokenUser.getCompanyCode())) {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
             }
+            builder.and(QCaseInfo.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
             builder.and(QCaseInfo.caseInfo.department.code.startsWith(tokenUser.getDepartment().getCode()));
             builder.and(QCaseInfo.caseInfo.collectionStatus.in(status));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder,pageable);
