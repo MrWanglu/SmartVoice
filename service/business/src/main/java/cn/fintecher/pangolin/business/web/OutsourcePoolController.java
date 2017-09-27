@@ -50,6 +50,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -92,8 +93,6 @@ public class OutsourcePoolController extends BaseController {
     private CaseInfoReturnRepository caseInfoReturnRepository;
     @Inject
     private CaseInfoVerificationApplyRepository caseInfoVerificationApplyRepository;
-    @Inject
-    private CaseInfoVerificationRepository caseInfoVerificationRepository;
 
     private static final String ENTITY_NAME = "OutSource";
     private static final String ENTITY_NAME1 = "OutSourcePool";
@@ -286,6 +285,10 @@ public class OutsourcePoolController extends BaseController {
         BigDecimal b1=outsourcePool.getCaseInfo().getOverdueAmount();//原案件金额
         outsourcePool.setContractAmt(b1.subtract(b2));//委外案件金额=原案件金额-已还款金额
         outsourcePool.setOverduePeriods(outsourcePool.getOverduePeriods());//逾期时段
+        GregorianCalendar gc=new GregorianCalendar();
+        gc.setTime(ZWDateUtil.getNowDateTime());
+        gc.add(2,3);
+        outsourcePool.setOverOutsourceTime(gc.getTime());
         outsourcePoolList.add(outsourcePool);
     }
 
@@ -604,7 +607,7 @@ public class OutsourcePoolController extends BaseController {
                                                      @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                      @ApiIgnore Pageable pageable,
                                                      @RequestHeader(value = "X-UserToken") String token,
-                                                     @RequestParam @ApiParam(value = "tab页标识 1待分配;2已结案") Integer flag) {
+                                                     @RequestParam @ApiParam(value = "tab页标识 1待分配;2已结案", required = true) Integer flag) {
         try {
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
@@ -630,6 +633,51 @@ public class OutsourcePoolController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", ENTITY_NAME1, e.getMessage())).body(null);
+        }
+    }
+
+    @PostMapping("/recallOutCase")
+    @ApiOperation(value = "撤回", notes = "撤回")
+    public ResponseEntity recallOutCase(@RequestBody VerificationApplyModel verificationApplyModel, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+        try {
+            List<String> ids = verificationApplyModel.getIds();
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("User", "", "获取不到登录人信息")).body(null);
+            }
+            List<OutsourcePool> outsourcePools = new ArrayList<>();
+            for (String id : ids) {
+                OutsourcePool outsourcePool = outsourcePoolRepository.findOne(id);
+                if (Objects.isNull(outsourcePool)){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "案件查询异常")).body(null);
+                }
+                Date outTime = outsourcePool.getOutTime();
+                if (Objects.isNull(outTime)){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "获取委外时间异常")).body(null);
+                }
+                Integer days = ZWDateUtil.getBetween(outTime,ZWDateUtil.getNowDateTime(), ChronoUnit.DAYS);
+                if (days >= 3){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "委外已超过3天，不能撤回")).body(null);
+                }
+                outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
+                outsourcePool.setContractAmt(null);
+                outsourcePool.setOverduePeriods(null);
+                outsourcePool.setEndOutsourceTime(null);
+                outsourcePool.setOverOutsourceTime(null);
+                outsourcePool.setOutsource(null);
+                outsourcePool.setOperateTime(null);
+                outsourcePool.setOperator(null);
+                outsourcePool.setOutBatch(null);
+                outsourcePool.setOutBackAmt(null);
+                outsourcePool.setOutTime(null);
+                outsourcePool.setOutoperationStatus(null);
+                outsourcePools.add(outsourcePool);
+            }
+            outsourcePoolRepository.save(outsourcePools);
+            return ResponseEntity.ok().body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("核销申请失败", ENTITY_NAME1, e.getMessage())).body(null);
         }
     }
 
