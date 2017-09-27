@@ -730,8 +730,8 @@ public class AccVisitPoolController extends BaseController {
     /**
      * @Description 多条件查询外访催收中案件
      */
-    @GetMapping("/getVisitCollectioning")
-    @ApiOperation(value = "多条件查询外访催收中案件",notes = "多条件查询外访催收中案件")
+    @GetMapping("/getVisitCollectioningOrPaying")
+    @ApiOperation(value = "多条件查询外访催收中或还款审核中案件",notes = "多条件查询外访催收中或还款审核中案件")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
                     value = "页数 (0..N)"),
@@ -779,7 +779,8 @@ public class AccVisitPoolController extends BaseController {
             } else {
                 booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
             }
-            booleanBuilder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.COLLECTIONING.getValue())); //催收状态：催收中
+            booleanBuilder.and(QCaseInfo.caseInfo.collectionStatus.in(statusList)); //只查传入的案件状态的案件
+            booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); //只查询外访案件
             if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
             }
@@ -841,6 +842,7 @@ public class AccVisitPoolController extends BaseController {
                 booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
             }
             booleanBuilder.and(QCaseInfo.caseInfo.collectionStatus.in(CaseInfo.CollectionStatus.REPAID.getValue())); //催收状态：待结案
+            booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); //只查询外访案件
             if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
             }
@@ -895,6 +897,7 @@ public class AccVisitPoolController extends BaseController {
                 booleanBuilder.and(QCaseInfo.caseInfo.currentCollector.id.eq(user.getId()));
             }
             booleanBuilder.and(QCaseInfo.caseInfo.collectionStatus.in(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //催收状态：已结案
+            booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); //只查询外访案件
             if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
             }
