@@ -41,6 +41,7 @@
         LEFT JOIN area_code f ON a.area_id = f.id
         LEFT JOIN department i ON a.depart_id = i.id
         WHERE 1=1
+        and a.case_pool_type = 225
         <if test="companyCode != null and companyCode !=''">
             AND a.company_code = #{companyCode}
         </if>

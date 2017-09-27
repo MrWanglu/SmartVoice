@@ -222,6 +222,7 @@
                     where 1 = 1
                     and department.code like CONCAT(#{deptCode}, '%')
                     and collection_status in (21,22,23,171,172)
+                    and case_pool_type = 225
                     <if test = "batchNumber != null">
                         and batch_number = #{batchNumber}
                     </if>
@@ -252,6 +253,7 @@
 	            select batch_number,count(id) as endCaseNum
 	            from case_info
 	            where collection_status = 171
+                and case_pool_type = 225
 	            GROUP BY batch_number
             ) as b
             on a.batch_number = b.batch_number
