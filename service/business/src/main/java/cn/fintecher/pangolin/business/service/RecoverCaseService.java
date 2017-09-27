@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import java.util.Date;
 import java.util.Iterator;
 
 /**
@@ -41,17 +42,21 @@ public class RecoverCaseService {
                 caseInfo.setOperator(user);
                 caseInfo.setOperatorTime(ZWDateUtil.getNowDate());
                 caseInfo.setRecoverRemark(CaseInfo.RecoverRemark.RECOVERED.getValue());
-
+                caseInfoRepository.save(caseInfo);
                 CaseInfoReturn caseInfoReturn = new CaseInfoReturn();
                 caseInfoReturn.setCaseId(caseInfo);
                 caseInfoReturn.setReason(recoverCaseParams.getReason());
                 caseInfoReturn.setOperator(user.getId());
-                caseInfoReturn.setOperatorTime(ZWDateUtil.getNowDate());
+                caseInfoReturn.setOperatorTime(new Date());
                 caseInfoReturnRepository.save(caseInfoReturn);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new RuntimeException("操作失败!");
         }
+    }
+
+    public void recoverCase(Iterable<CaseInfo> all) {
+
     }
 }
