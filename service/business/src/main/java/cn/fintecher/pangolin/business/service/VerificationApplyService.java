@@ -31,9 +31,9 @@ public class VerificationApplyService {
         apply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue()); // 申请状态：审批待通过
         apply.setCaseId(caseInfo.getId()); // 案件Id
         if (Objects.nonNull(caseInfo.getArea())) {
-            apply.setCity(caseInfo.getArea().getAreaName()); // 城市
+            apply.setCityId(caseInfo.getArea().getId()); // 城市
             if (Objects.nonNull(caseInfo.getArea().getParent())) {
-                apply.setProvince(caseInfo.getArea().getParent().getAreaName()); // 省份
+                apply.setProvinceId(caseInfo.getArea().getParent().getId()); // 省份
             }
         }
         if (Objects.nonNull(caseInfo.getPrincipalId())) {

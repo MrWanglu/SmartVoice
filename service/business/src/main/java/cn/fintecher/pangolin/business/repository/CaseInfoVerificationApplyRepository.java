@@ -61,9 +61,9 @@ public interface CaseInfoVerificationApplyRepository extends QueryDslPredicateEx
             }
         });
         // 申请省份
-        bindings.bind(root.province).first((path, value) -> path.eq(value));
+        bindings.bind(root.provinceId).first((path, value) -> path.eq(value));
         // 申请城市
-        bindings.bind(root.city).first((path, value) -> path.eq(value));
+        bindings.bind(root.cityId).first((path, value) -> path.eq(value));
         // 申请日期
         bindings.bind(root.applicationDate).all((path, value) -> {
             Iterator<? extends Date> it = value.iterator();
