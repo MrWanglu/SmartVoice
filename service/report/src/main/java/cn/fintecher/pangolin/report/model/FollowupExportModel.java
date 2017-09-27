@@ -21,24 +21,28 @@ public class FollowupExportModel {
     @ExcelAnno(cellName = "贷款日期")
     private Date loanDate;
     @ExcelAnno(cellName = "合同金额")
+    private String cityName;
+    @ExcelAnno(cellName = "城市")
+    private String provinceName;
+    @ExcelAnno(cellName = "省份")
     private BigDecimal contractAmount;
-    @ExcelAnno(cellName = "剩余本金")
+    @ExcelAnno(cellName = "剩余本金(元)")
     private BigDecimal leftCapital;
-    @ExcelAnno(cellName = "剩余利息")
+    @ExcelAnno(cellName = "剩余利息(元)")
     private BigDecimal leftInterest;
-    @ExcelAnno(cellName = "逾期总金额")
+    @ExcelAnno(cellName = "逾期总金额(元)")
     private BigDecimal overdueAmount;
-    @ExcelAnno(cellName = "逾期本金")
+    @ExcelAnno(cellName = "逾期本金(元)")
     private BigDecimal overdueCapital;
-    @ExcelAnno(cellName = "逾期利息")
+    @ExcelAnno(cellName = "逾期利息(元)")
     private BigDecimal overdueInterest;
-    @ExcelAnno(cellName = "逾期罚息")
+    @ExcelAnno(cellName = "逾期罚息(元)")
     private BigDecimal overdueFine;
     @ExcelAnno(cellName = "还款期数")
     private Integer periods;
-    @ExcelAnno(cellName = "每期还款金额")
+    @ExcelAnno(cellName = "每期还款金额(元)")
     private BigDecimal perPayAmount;
-    @ExcelAnno(cellName = "其他费用")
+    @ExcelAnno(cellName = "其他费用(元)")
     private BigDecimal otherAmt;
     @ExcelAnno(cellName = "逾期日期")
     private Date overDueDate;
@@ -46,15 +50,15 @@ public class FollowupExportModel {
     private Integer overduePeriods;
     @ExcelAnno(cellName = "逾期天数")
     private Integer overdueDays;
-    @ExcelAnno(cellName = "已还款金额")
+    @ExcelAnno(cellName = "已还款金额(元)")
     private BigDecimal hasPayAmount = new BigDecimal(0);
     @ExcelAnno(cellName = "已还款期数")
     private Integer hasPayPeriods;
     @ExcelAnno(cellName = "最近还款日期")
     private Date latelyPayDate;
-    @ExcelAnno(cellName = "最近还款金额")
+    @ExcelAnno(cellName = "最近还款金额(元)")
     private BigDecimal latelyPayAmount;
-    @ExcelAnno(cellName = "佣金比例")
+    @ExcelAnno(cellName = "佣金比例(%)")
     private BigDecimal commissionRate;
 
     @ExcelAnno(cellName = "客户姓名")

@@ -220,6 +220,14 @@ public class ExportItemService {
         BeanUtils.copyProperties(temp, contractNum);
         contractNum.setName("合同编号");
         caseItems.add(contractNum);
+        ExportItem city = new ExportItem();
+        BeanUtils.copyProperties(temp, city);
+        city.setName("城市");
+        caseItems.add(city);
+        ExportItem province = new ExportItem();
+        BeanUtils.copyProperties(temp, province);
+        province.setName("省份");
+        caseItems.add(province);
         ExportItem loanDate = new ExportItem();
         BeanUtils.copyProperties(temp, loanDate);
         loanDate.setName("贷款日期");

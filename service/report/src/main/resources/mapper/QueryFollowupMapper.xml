@@ -146,7 +146,7 @@
         <result column="lately_pay_amount" property="latelyPayAmount"/>
         <result column="commission_rate" property="commissionRate"/>
         <association property="personalInfo" column="personal_id" select="selectPersonal"></association>
-        <association property="areaCode" column="area_id" select="selectArea"></association>
+        <association property="areaCode" column="area_id" select="selectCityArea"></association>
         <association property="principal" column="principal_id" select="selectPrincipal"></association>
         <association property="product" column="product_id" select="selectProduct"></association>
         <collection property="caseFollowupRecords" column="case_number" ofType="cn.fintecher.pangolin.entity.CaseFollowupRecord" select="selectCaseFollowupRecord"></collection>
@@ -206,9 +206,24 @@
         <result column="work_phone" property="workPhone"/>
     </resultMap>
 
-    <select id="selectArea" resultType="cn.fintecher.pangolin.entity.AreaCode">
-        SELECT * FROM area_code WHERE id = #{area_id}
+    <select id="selectCityArea" resultMap="city">
+        SELECT id,parent_id,area_name FROM area_code WHERE id = #{area_id}
     </select>
+
+    <resultMap id="city" type="cn.fintecher.pangolin.entity.AreaCode">
+        <id column="id" property="id"/>
+        <result column="area_name" property="areaName"/>
+        <association property="parent" column="parent_id" select="selectProvinceArea"></association>
+    </resultMap>
+
+    <select id="selectProvinceArea" resultMap="province">
+        select id,area_name from area_code where id = #{parent_id}
+    </select>
+
+    <resultMap id="province" type="cn.fintecher.pangolin.entity.AreaCode">
+        <id column="id" property="id"/>
+        <result column="area_name" property="areaName"/>
+    </resultMap>
 
     <select id="selectCaseFollowupRecord" resultMap="caseFollowupRecord">
         SELECT id,target,target_name,type,contact_phone,detail,collection_location,collection_feedback,

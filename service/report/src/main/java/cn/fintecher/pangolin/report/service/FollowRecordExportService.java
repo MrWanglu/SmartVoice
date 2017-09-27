@@ -1,9 +1,6 @@
 package cn.fintecher.pangolin.report.service;
 
-import cn.fintecher.pangolin.entity.CaseFollowupRecord;
-import cn.fintecher.pangolin.entity.Personal;
-import cn.fintecher.pangolin.entity.PersonalContact;
-import cn.fintecher.pangolin.entity.Principal;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.report.model.ExcportResultModel;
 import cn.fintecher.pangolin.report.model.ExportFollowupParams;
 import cn.fintecher.pangolin.report.model.FollowupExportModel;
@@ -212,6 +209,14 @@ public class FollowRecordExportService {
                     followupExportModel.setContractNumber(excportResultModel.getContractNumber());//合同编号
                     followupExportModel.setLoanDate(excportResultModel.getLoanDate());//贷款日期
                     followupExportModel.setContractAmount(excportResultModel.getContractAmount());//合同金额
+                    AreaCode city = excportResultModel.getAreaCode();
+                    if(Objects.nonNull(city)) {
+                        followupExportModel.setCityName(city.getAreaName());
+                        AreaCode province = city.getParent();
+                        if(Objects.nonNull(province)){
+                            followupExportModel.setProvinceName(province.getAreaName());
+                        }
+                    }
                     followupExportModel.setLeftCapital(excportResultModel.getLeftCapital());//剩余本金
                     followupExportModel.setLeftInterest(excportResultModel.getLeftInterest());//剩余利息
                     followupExportModel.setOverdueAmount(excportResultModel.getOverdueAmount());//逾期金额
