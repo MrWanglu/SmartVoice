@@ -149,9 +149,8 @@
             <version>${drools.version}</version>
         </dependency>
         <dependency>
-            <groupId>cn.fintecher</groupId>
-            <artifactId>pangolin-service-dataimp</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
         </dependency>
     </dependencies>
 
