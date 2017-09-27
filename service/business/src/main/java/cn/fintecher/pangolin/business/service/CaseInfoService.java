@@ -2037,4 +2037,65 @@ public class CaseInfoService {
             return caseInfoRemarkList;
         }
     }
+
+    public void moveToDistribution(CaseInfoIdList idList, User user) {
+        if (Objects.isNull(idList.getIds()) || idList.getIds().isEmpty()) {
+            throw new RuntimeException("请选择要移动的案件");
+        }
+        try {
+            BooleanBuilder builder = new BooleanBuilder();
+            QCaseInfoReturn qCaseInfoReturn = QCaseInfoReturn.caseInfoReturn;
+            builder.and(qCaseInfoReturn.id.in(idList.getIds()));
+            Iterable<CaseInfoReturn> all = caseInfoReturnRepository.findAll(builder);
+            Iterator<CaseInfoReturn> iterator = all.iterator();
+            List<CaseAssist> caseAssistList = new ArrayList<>();
+            while (iterator.hasNext()) {
+                CaseInfoReturn caseInfoReturn = iterator.next();
+                CaseInfo next = caseInfoReturn.getCaseId();
+                next.setRecoverRemark(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue());//未回收
+                next.setCollectionType(null);//催收类型
+                next.setCaseType(null);//案件类型
+                next.setDepartment(null);//部门
+                next.setLatelyCollector(null);//上个催收员
+                next.setCurrentCollector(null);
+                next.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue());//待分配
+                //处理协催案件
+                if (Objects.equals(next.getAssistFlag(), 1)) { //协催标识
+                    //结束协催案件
+                    CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.eq(caseInfo)
+                            .and(QCaseAssist.caseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
+                    if (Objects.nonNull(one)) {
+                        one.setAssistCloseFlag(0); //手动结束
+                        one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催结束
+                        one.setOperator(user);
+                        one.setOperatorTime(new Date());
+                        one.setCaseFlowinTime(new Date()); //流入时间
+                        caseAssistList.add(one);
+                    }
+                    next.setAssistFlag(0); //协催标识置0
+                    next.setAssistStatus(null);//协催状态置空
+                    next.setAssistWay(null);
+                    next.setAssistCollector(null);
+                }
+                next.setFollowUpNum(0);
+                next.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件打标-无色
+                next.setFollowupBack(null); //催收反馈置空
+                next.setFollowupTime(null);//跟进时间置空
+                next.setPromiseAmt(new BigDecimal(0));//承诺还款置0
+                next.setPromiseTime(null);//承诺还款日期置空
+                next.setCirculationStatus(null);//小流转状态
+                next.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());//留案标识
+                next.setLeaveDate(null);//留案操作日期
+                next.setHasLeaveDays(0);//留案天数
+                next.setHandUpFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());//是否挂起
+                next.setOperator(user);
+                next.setOperatorTime(ZWDateUtil.getNowDateTime());
+                caseInfoRepository.save(next);
+                caseInfoReturnRepository.delete(caseInfoReturn);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException("移动失败!");
+        }
+    }
 }

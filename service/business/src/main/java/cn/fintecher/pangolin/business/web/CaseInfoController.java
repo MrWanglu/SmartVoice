@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
+import cn.fintecher.pangolin.business.service.CaseInfoVerificationService;
 import cn.fintecher.pangolin.business.service.FollowRecordExportService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
@@ -90,6 +91,10 @@ public class CaseInfoController extends BaseController {
     private CaseInfoHistoryRepository caseInfoHistoryRepository;
     @Inject
     private CaseInfoReturnRepository caseInfoReturnRepository;
+    @Inject
+    private CaseInfoVerificationService caseInfoVerificationService;
+    @Inject
+    private CaseInfoVerificationApplyRepository caseInfoVerificationApplyRepository;
 
     public CaseInfoController(CaseInfoRepository caseInfoRepository) {
         this.caseInfoRepository = caseInfoRepository;
@@ -946,16 +951,17 @@ public class CaseInfoController extends BaseController {
 
     @PostMapping("/moveToDistribution")
     @ApiOperation(value = "移入待分配案件池", notes = "移入待分配案件池")
-    public ResponseEntity moveToDistribution(@RequestBody @ApiParam(value = "案件ID集合", required = true) CaseInfoIdList caseIds) {
+    public ResponseEntity moveToDistribution(@RequestHeader(value = "X-UserToken") String token,
+            @RequestBody @ApiParam(value = "案件ID集合", required = true) CaseInfoIdList caseIds) {
         log.debug("REST request to moveToDistribution");
-        if (Objects.isNull(caseIds.getIds()) || caseIds.getIds().isEmpty()) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","请选择要移除的案件!")).body(null);
+        try {
+            User user = getUserByToken(token);
+            caseInfoService.moveToDistribution(caseIds, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功!","")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(),e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
-        Iterator<CaseInfo> all = caseInfoRepository.findAll(QCaseInfo.caseInfo.caseNumber.in(caseIds.getIds())).iterator();
-        while (all.hasNext()) {
-            CaseInfo next = all.next();
-        }
-        return ResponseEntity.ok().body(null);
     }
 
     /**
@@ -965,7 +971,6 @@ public class CaseInfoController extends BaseController {
     @ApiOperation(value = "内催按批次号查询催收中案件", notes = "内催按批次号查询催收中案件")
     public ResponseEntity<Page<CaseInfo>> getCollectingCase(@RequestHeader(value = "X-UserToken") String token,
                                                                   @ApiIgnore Pageable pageable,
-                                                                  @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                                   @RequestParam @ApiParam(value = "批次号", required = true) String batchNumber) {
         log.debug("REST request to get case info remark");
         try {
@@ -989,6 +994,60 @@ public class CaseInfoController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
+        }
+    }
+
+    @GetMapping("/findAllCaseInfoReturn")
+    @ApiOperation(notes = "内催案件管理查询回收案件", value = "内催案件管理查询回收案件")
+    public ResponseEntity<Page<CaseInfoReturn>> findAllCaseInfoReturn(@RequestHeader(value = "X-UserToken") String token,
+                                                @ApiIgnore Pageable pageable,
+                                                @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode,
+                                                @QuerydslPredicate(root = CaseInfoReturn.class) Predicate predicate) {
+        try {
+            User user = getUserByToken(token);
+            QCaseInfoReturn qCaseInfoReturn = QCaseInfoReturn.caseInfoReturn;
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    builder.and(qCaseInfoReturn.caseId.companyCode.eq(companyCode));//公司
+                }
+            } else {
+                builder.and(qCaseInfoReturn.caseId.companyCode.eq(user.getCompanyCode()));//公司
+            }
+            builder.and(qCaseInfoReturn.caseId.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));//内催
+            builder.and(qCaseInfoReturn.caseId.department.code.startsWith(user.getDepartment().getCode()));//部门下
+            Page<CaseInfoReturn> all = caseInfoReturnRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(all);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
+        }
+    }
+
+    @PostMapping("/verifyApply")
+    @ApiOperation(notes = "内催案件管理案件回收核销申请", value = "内催案件管理案件回收核销申请")
+    public ResponseEntity verifyApply(@RequestHeader(value = "X-UserToken") String token,
+                                      @RequestBody @ApiParam(value = "回收案件ID集合", required = true) VerificationApplyModel model) {
+        try {
+            User user = getUserByToken(token);
+            if (Objects.isNull(model.getIds()) || model.getIds().isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要核销的案件!")).body(null);
+            }
+            BooleanBuilder builder = new BooleanBuilder();
+            QCaseInfoReturn qCaseInfoReturn = QCaseInfoReturn.caseInfoReturn;
+            builder.and(qCaseInfoReturn.id.in(model.getIds()));
+            Iterable<CaseInfoReturn> all = caseInfoReturnRepository.findAll(builder);
+            Iterator<CaseInfoReturn> iterator = all.iterator();
+            while (iterator.hasNext()) {
+                CaseInfoReturn next = iterator.next();
+                CaseInfoVerificationApply apply = new CaseInfoVerificationApply();
+                caseInfoVerificationService.setVerificationApply(apply, next.getCaseId(), user, model.getReason());
+                caseInfoVerificationApplyRepository.save(apply);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("申请成功!", "")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "申请失败!")).body(null);
         }
     }
 
