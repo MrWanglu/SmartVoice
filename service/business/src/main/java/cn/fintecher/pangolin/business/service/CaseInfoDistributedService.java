@@ -16,6 +16,8 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -262,7 +264,7 @@ public class CaseInfoDistributedService {
 
     }
 
-    private void addCaseTurnRecord(List<CaseTurnRecord> caseTurnRecordList,CaseInfo caseInfo, User user) {
+    private void addCaseTurnRecord(List<CaseTurnRecord> caseTurnRecordList, CaseInfo caseInfo, User user) {
         CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
         BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
         caseTurnRecord.setId(null); //主键置空
@@ -273,7 +275,7 @@ public class CaseInfoDistributedService {
         caseTurnRecordList.add(caseTurnRecord);
     }
 
-    private void addCaseRepair(List<CaseRepair> caseRepairList,CaseInfo caseInfo, User user) {
+    private void addCaseRepair(List<CaseRepair> caseRepairList, CaseInfo caseInfo, User user) {
         CaseRepair caseRepair = new CaseRepair();
         caseRepair.setCaseId(caseInfo);
         caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRING.getValue());
@@ -289,12 +291,18 @@ public class CaseInfoDistributedService {
         if (Objects.isNull(manualParams.getType())) {
             throw new RuntimeException("请选择要分给委外/内催");
         }
-        Object[] obj = caseInfoDistributedRepository.allocationCount(manualParams.getCaseNumberList());
-        Integer caseTotal = (Integer) obj[0];
-        Double caseAmount = (Double) obj[1];
-        AllocationCountModel model = new AllocationCountModel();
-        model.setCaseTotal(caseTotal);
-        model.setCaseAmount(caseAmount);
-        return model;
+        try {
+            List<Object[]> obj = caseInfoDistributedRepository.allocationCount(manualParams.getCaseNumberList());
+            Object[] objects = obj.get(0);
+            BigInteger caseTotal = (BigInteger) objects[0];
+            BigDecimal caseAmount = (objects[1] == null) ? new BigDecimal(0) : (BigDecimal) objects[1];
+            AllocationCountModel model = new AllocationCountModel();
+            model.setCaseTotal(caseTotal);
+            model.setCaseAmount(caseAmount);
+            return model;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw new RuntimeException("统计案件信息错误!");
+        }
     }
 }
