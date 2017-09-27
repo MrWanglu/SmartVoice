@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by Administrator on 2017/9/26.
@@ -106,7 +107,11 @@ public class ExportItemService {
         createPersonalItems(user,category);
         createJobItems(user,category);
         createConnectItems(user,category);
-        createCaseItems(user,category);
+        if(category==1){
+            createCaseItems(user,category);
+        } else if(category==2){
+            createOutsourceCaseItems(user,category);
+        }
         createBankItems(user,category);
         createFollowItems(user,category);
     }
@@ -211,7 +216,9 @@ public class ExportItemService {
         temp.setStatu(1);
         temp.setCategory(category);
         temp.setType(ExportItem.Type.CASE.getValue());
-        temp.setCompanyCode(user.getCompanyCode());
+        if(Objects.nonNull(user.getCompanyCode())){
+            temp.setCompanyCode(user.getCompanyCode());
+        }
         ExportItem product = new ExportItem();
         BeanUtils.copyProperties(temp, product);
         product.setName("产品系列");
@@ -307,6 +314,72 @@ public class ExportItemService {
         exportItemRepository.save(caseItems);
     }
 
+    public void createOutsourceCaseItems(User user,Integer category) {
+        List<ExportItem> caseItems = new ArrayList<>();
+        ExportItem temp = new ExportItem();
+        temp.setStatu(1);
+        temp.setCategory(category);
+        temp.setType(ExportItem.Type.CASE.getValue());
+        if(Objects.nonNull(user.getCompanyCode())){
+            temp.setCompanyCode(user.getCompanyCode());
+        }
+        ExportItem outsourceAmt = new ExportItem();
+        BeanUtils.copyProperties(temp, outsourceAmt);
+        outsourceAmt.setName("委外案件总金额");
+        caseItems.add(outsourceAmt);
+
+        ExportItem hasPayAmt = new ExportItem();
+        BeanUtils.copyProperties(temp, hasPayAmt);
+        hasPayAmt.setName("已还款金额(元)");
+        caseItems.add(hasPayAmt);
+
+        ExportItem leftCapital = new ExportItem();
+        BeanUtils.copyProperties(temp, leftCapital);
+        leftCapital.setName("剩余金额(元)");
+        caseItems.add(leftCapital);
+
+        ExportItem outsourceName = new ExportItem();
+        BeanUtils.copyProperties(temp, outsourceName);
+        outsourceName.setName("委外方");
+        caseItems.add(outsourceName);
+
+        ExportItem batchNum = new ExportItem();
+        BeanUtils.copyProperties(temp, batchNum);
+        batchNum.setName("批次号");
+        caseItems.add(batchNum);
+
+        ExportItem outTime = new ExportItem();
+        BeanUtils.copyProperties(temp, outTime);
+        outTime.setName("委案日期");
+        caseItems.add(outTime);
+
+        ExportItem endOutsourceTime = new ExportItem();
+        BeanUtils.copyProperties(temp, endOutsourceTime);
+        endOutsourceTime.setName(" 结案日期");
+        caseItems.add(endOutsourceTime);
+
+        ExportItem overOutsourceTime = new ExportItem();
+        BeanUtils.copyProperties(temp, overOutsourceTime);
+        overOutsourceTime.setName("委案到期日期");
+        caseItems.add(overOutsourceTime);
+
+        ExportItem overdueDays = new ExportItem();
+        BeanUtils.copyProperties(temp, overdueDays);
+        overdueDays.setName("逾期天数");
+        caseItems.add(overdueDays);
+
+        ExportItem caseStatus = new ExportItem();
+        BeanUtils.copyProperties(temp, caseStatus);
+        caseStatus.setName("案件状态");
+        caseItems.add(caseStatus);
+
+        ExportItem rate = new ExportItem();
+        BeanUtils.copyProperties(temp, rate);
+        rate.setName("佣金比例(%)");
+        caseItems.add(rate);
+        exportItemRepository.save(caseItems);
+    }
+
     public void createBankItems(User user,Integer category) {
         List<ExportItem> bankItems = new ArrayList<>();
         ExportItem temp = new ExportItem();
@@ -379,30 +452,30 @@ public class ExportItemService {
         List<ExportItem> personalList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
                 .and(QExportItem.exportItem.statu.eq(0))
                 .and(QExportItem.exportItem.type.eq(ExportItem.Type.PERSONAL.getValue()))
-                .and(QExportItem.exportItem.category.eq(ExportItem.Category.INRUSH.getValue()))));
+                .and(QExportItem.exportItem.category.eq(category))));
         List<ExportItem> jobList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
                 .and(QExportItem.exportItem.statu.eq(0))
                 .and(QExportItem.exportItem.type.eq(ExportItem.Type.JOB.getValue()))
-                .and(QExportItem.exportItem.category.eq(ExportItem.Category.INRUSH.getValue()))));
+                .and(QExportItem.exportItem.category.eq(category))));
         List<ExportItem> connectList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
                 .and(QExportItem.exportItem.statu.eq(0))
                 .and(QExportItem.exportItem.type.eq(ExportItem.Type.CONCAT.getValue()))
-                .and(QExportItem.exportItem.category.eq(ExportItem.Category.INRUSH.getValue()))));
+                .and(QExportItem.exportItem.category.eq(category))));
         List<ExportItem> caseList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
                 .and(QExportItem.exportItem.statu.eq(0))
                 .and(QExportItem.exportItem.type.eq(ExportItem.Type.CASE.getValue()))
-                .and(QExportItem.exportItem.category.eq(ExportItem.Category.INRUSH.getValue()))));
+                .and(QExportItem.exportItem.category.eq(category))));
         List<ExportItem> bankList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
                 .and(QExportItem.exportItem.statu.eq(0))
                 .and(QExportItem.exportItem.type.eq(ExportItem.Type.BANK.getValue()))
-                .and(QExportItem.exportItem.category.eq(ExportItem.Category.INRUSH.getValue()))));
+                .and(QExportItem.exportItem.category.eq(category))));
         List<ExportItem> followList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
                 .and(QExportItem.exportItem.statu.eq(0))
                 .and(QExportItem.exportItem.type.eq(ExportItem.Type.FOLLOW.getValue()))
-                .and(QExportItem.exportItem.category.eq(ExportItem.Category.INRUSH.getValue()))));
+                .and(QExportItem.exportItem.category.eq(category))));
         if (exportItemRepository.count(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
-                .and(QExportItem.exportItem.category.eq(ExportItem.Category.INRUSH.getValue()))) == 0) {
-            createExportItems(user,ExportItem.Category.INRUSH.getValue());
+                .and(QExportItem.exportItem.category.eq(category))) == 0) {
+            createExportItems(user,category);
         }
         ItemsModel model = new ItemsModel();
         model.setPersonalItems(parseItems(personalList));
@@ -413,4 +486,5 @@ public class ExportItemService {
         model.setFollowItems(parseItems(followList));
         return model;
     }
+
 }

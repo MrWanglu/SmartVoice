@@ -23,6 +23,11 @@ public class CaseInfoReturn extends BaseEntity {
     @JoinColumn(name = "case_id")
     private CaseInfo caseId;
 
+    @OneToOne
+    @ApiModelProperty(notes = "委外案件ID")
+    @JoinColumn(name = "outsource_id")
+    private OutsourcePool outsourcePool;
+
     @ApiModelProperty(notes = "操作时间")
     private Date operatorTime;
 
@@ -34,4 +39,36 @@ public class CaseInfoReturn extends BaseEntity {
 
     @ApiModelProperty(notes = "退回来源 内催，委外，司法，核销")
     private Integer source;
+
+    /**
+     * 案件退回来源
+     */
+    public enum Source {
+        //内催
+        INTERNALCOLLECTION(225,"内催"),
+        //委外
+        OUTSOURCE(226, "委外"),
+        //司法
+        JUDICATURE(227, "司法"),
+        //核销
+        VERIFICATION(228, "核销");
+
+        private Integer value;
+
+        private String remark;
+
+        Source(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
 }

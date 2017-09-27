@@ -34,7 +34,7 @@ public class ExportItem extends BaseEntity{
 
         BANK(5, "银行"),
 
-        FOLLOW(6, "根据记录");
+        FOLLOW(6, "跟进记录");
 
         private Integer value;
         private String remark;

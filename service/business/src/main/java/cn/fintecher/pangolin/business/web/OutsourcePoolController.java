@@ -82,6 +82,8 @@ public class OutsourcePoolController extends BaseController {
     AccFinanceEntryRepository accFinanceEntryRepository;
     @Autowired
     SysParamRepository sysParamRepository;
+    @Autowired
+    OutsourceFollowupRecordRepository outsourceFollowupRecordRepository;
     @Inject
     private Configuration freemarkerConfiguration;
     @Inject
@@ -1021,6 +1023,7 @@ public class OutsourcePoolController extends BaseController {
             List<AccFinanceEntry> accFinanceEntryList = new ArrayList<>();
             List<CaseInfo> caseInfoList = new ArrayList<>();  //在委外池中能匹配上的委外案件
             List<AccFinanceEntry> unableMatchList = new ArrayList<>();  //在委外池中没有匹配的财务数据
+            List<OutsourcePool> outsourcePools = new ArrayList<>();  //在委外池中没有匹配的财务数据
             List<AccFinanceEntry> accFinanceEntrieAll = accFinanceEntryRepository.findAll(fienCasenums.getIdList());
             for (AccFinanceEntry financeEntryCase : accFinanceEntrieAll) {
                 String caseNum = financeEntryCase.getFienCasenum();
@@ -1033,17 +1036,10 @@ public class OutsourcePoolController extends BaseController {
                             OutsourcePool outsource = outsourcePoolRepository.findOne(caseInfo.getId());
                             if(Objects.nonNull(outsource)){
                                 outsource.setOutBackAmt(outsource.getOutBackAmt().add(financeEntryCase.getFienPayback()));
-                                outsourcePoolRepository.save(outsource);
+                                outsourcePools.add(outsource);
                             }
                         }
-
-                        if (Objects.isNull(caseInfo.getHasPayAmount())) {
-                            caseInfo.setHasPayAmount(new BigDecimal(0));
-                        }
-                        caseInfo.setHasPayAmount(caseInfo.getHasPayAmount().add(financeEntryCase.getFienPayback()));
-                        caseInfoList.add(caseInfo);
                     }
-
                 } else {
                     unableMatchList.add(financeEntryCase);   //未有匹配委外案件
                 }
@@ -1053,8 +1049,8 @@ public class OutsourcePoolController extends BaseController {
             }
             //同步更新临时表中的数据状态为已确认
             accFinanceEntryRepository.save(accFinanceEntryList);
-            //更新原有的案件案件金额
-            caseInfoRepository.save(caseInfoList);
+            //更新委外的案件池里的已还款金额
+            outsourcePoolRepository.save(outsourcePools);;
             return ResponseEntity.ok().body(unableMatchList);
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -1325,13 +1321,12 @@ public class OutsourcePoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<OutsourceRecord>> getAccOutsourceOrder(
-            @RequestParam(required = false) @ApiParam(value = "委外方") String outsName,
-            @RequestParam(required = false) @ApiParam(value = "开始时间") String startDate,
-            @RequestParam(required = false) @ApiParam(value = "结束时间") String endDate,
-            @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-            @RequestHeader(value = "X-UserToken") String token,
-            Pageable pageable) throws URISyntaxException {
+    public ResponseEntity<Page<OutsourceRecord>> getAccOutsourceOrder(@RequestParam(required = false) @ApiParam(value = "委外方") String outsName,
+                                                                      @RequestParam(required = false) @ApiParam(value = "开始时间") String startDate,
+                                                                      @RequestParam(required = false) @ApiParam(value = "结束时间") String endDate,
+                                                                      @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                      @RequestHeader(value = "X-UserToken") String token,
+                                                                      Pageable pageable) throws URISyntaxException {
         try {
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
@@ -1373,6 +1368,53 @@ public class OutsourcePoolController extends BaseController {
     }
 
     /**
+     * @Description 按批次号查看委外案件详情
+     * <p>
+     * Created by huyanmin at 2017/09/26
+     */
+    @GetMapping("/getOutSourceCaseByBatchnum")
+    @ApiOperation(value = "按批次号查看委外案件详情", notes = "按批次号查看委外案件详情")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam(required = true) @ApiParam(value = "批次号") String batchNumber,
+                                                                         @RequestParam(required = true) @ApiParam(value = "委外方名称") String outsName,
+                                                                         @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                         @ApiIgnore Pageable pageable,
+                                                                         @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("Rest request get outsource case by batch number");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "user do not log in", e.getMessage())).body(null);
+        }
+        try {
+            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+            BooleanBuilder builder = new BooleanBuilder();
+            if(Objects.nonNull(batchNumber)){
+                builder.and(qOutsourcePool.outBatch.eq(batchNumber));
+            }
+            if(Objects.nonNull(outsName)){
+                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
+                builder.and(qOutsourcePool.outsource.eq(outsource));
+            }
+            Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "getAllClosedOutSourceCase", "系统异常!")).body(null);
+        }
+
+    }
+
+    /**
      * @Description 查询委外已结案案件
      * <p>
      * Created by huyanmin at 2017/09/20
@@ -1410,6 +1452,92 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "getAllClosedOutSourceCase", "系统异常!")).body(null);
         }
 
+    }
+
+    /**
+     * @Description 查看委外案件跟进记录
+     * <p>
+     * Created by huyanmin at 2017/09/27
+     */
+    @GetMapping("/getOutSourceCaseFollowRecord")
+    @ApiOperation(value = "查看委外案件跟进记录", notes = "查看委外案件跟进记录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<OutsourceFollowRecord>> getOutSourceCaseFollowRecord(@RequestParam(required = true) @ApiParam(value = "案件编号") String caseNumber,
+                                                                          @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                          @ApiIgnore Pageable pageable,
+                                                                          @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("Rest request get outsource case by batch number");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "user do not log in", e.getMessage())).body(null);
+        }
+        try {
+            BooleanBuilder builder = new BooleanBuilder();
+            if(Objects.nonNull(caseNumber)){
+                builder.and(QOutsourceFollowRecord.outsourceFollowRecord.caseNum.eq(caseNumber));
+            }
+            Page<OutsourceFollowRecord> page = outsourceFollowupRecordRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "getAllClosedOutSourceCase", "系统异常!")).body(null);
+        }
+    }
+
+    @PostMapping("/returnOutsourceCase")
+    @ApiOperation(value = "收回委外案件", notes = "收回委外案件")
+    public ResponseEntity<List<CaseInfoReturn>> returnOutsourceCase(@RequestBody OutCaseIdList outCaseIdList,
+                                                                   @RequestParam(required = true) String returnReason,
+                                                                   @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+        try {
+            List<String> outCaseIds = outCaseIdList.getOutCaseIds();
+            List<OutsourcePool> outsourcePools = new ArrayList<>();
+            List<CaseInfo> caseInfos = new ArrayList<>();
+            List<CaseInfoReturn> caseInfoReturns = new ArrayList<>();
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
+            for (String outId : outCaseIds) {
+                OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
+                if(Objects.nonNull(outsourcePool)){
+                    if(Objects.nonNull(outsourcePool.getCaseInfo())){
+                        if(Objects.isNull(outsourcePool.getCaseInfo().getRecoverRemark()) || outsourcePool.getCaseInfo().getRecoverRemark()==0 ){
+                            outsourcePool.getCaseInfo().setRecoverRemark(1);
+                            caseInfos.add(outsourcePool.getCaseInfo());
+                            CaseInfoReturn caseInfoReturn = new CaseInfoReturn();
+                            caseInfoReturn.setCaseId(outsourcePool.getCaseInfo());
+                            caseInfoReturn.setOutsourcePool(outsourcePool);
+                            caseInfoReturn.setOperator(user.getUserName());
+                            caseInfoReturn.setOperatorTime(ZWDateUtil.getNowDateTime());
+                            caseInfoReturn.setReason(returnReason);
+                            caseInfoReturn.setSource(CaseInfoReturn.Source.OUTSOURCE.getValue());
+                            caseInfoReturns.add(caseInfoReturn);
+                        }else{
+                            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("案件已回收", "", "已回收案件不能再回收")).body(null);
+                        }
+                        outsourcePools.add(outsourcePool);
+                    }
+                }
+            }
+            caseInfoReturns = caseInfoReturnRepository.save(caseInfoReturns);
+            caseInfoRepository.save(caseInfos);
+            outsourcePoolRepository.delete(outsourcePools);
+            return ResponseEntity.ok().body(caseInfoReturns);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("案件回收失败", ENTITY_NAME1, e.getMessage())).body(null);
+        }
     }
 
 }

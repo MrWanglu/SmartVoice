@@ -63,7 +63,6 @@ INSERT INTO `resource` VALUES ('812', '799', '催大人', '催收反馈', '040B1
 INSERT INTO `resource` VALUES ('813', '799', '催大人', '协催方式', '040B14', NULL, NULL, NULL, NULL, NULL, 19, NULL, NULL, NULL, NULL, 813);
 INSERT INTO `resource` VALUES ('814', '799', '催大人', '催收类型', '040B15', NULL, NULL, NULL, NULL, NULL, 19, NULL, NULL, NULL, NULL, 814);
 INSERT INTO `resource` VALUES ('815', '799', '催大人', '跟进记录', '040B16', NULL, NULL, NULL, NULL, NULL, 19, NULL, NULL, NULL, NULL, 815);
-INSERT INTO `resource` VALUES ('816', '147', '催大人', '导出还款明细', '06020C', NULL, NULL, NULL, NULL, NULL, 19, NULL, NULL, NULL, NULL, 816);
 
 --2017-09-25 胡开甲 增加系统参数
 INSERT INTO `sys_param` (`id`, `company_code`, `code`, `name`, `status`, `type`, `value`, `sign`, `operator`, `operate_time`, `remark`, `field`) VALUES ('ff8080815dfe341a797e0043da6f0007', '0001', 'Sysparam.mysqlbackup.address', 'mysql备份数据库脚本位置', '0', '9001', '/data/mysqlscript/mysqlbackup.sh', '0', 'administrator', '2017-09-21 14:36:06', 'mysql备份数据库脚本位置', NULL);
@@ -81,8 +80,12 @@ INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, 
 
 
 --2017-09-25 huyanmin 新增导入跟进记录参数
-INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f001a', '0001', 'sys.outcase.followup', '委外案件跟进记录导入模版', 0, '9005', 'http://192.168.3.10/group1/M00/00/3C/wKgDClnJp7WAdpBVAAAjWcLFBSc29.xlsx', 0, 'administrator', '2017-9-25 19:10:20', '委外案件账目导入模版', NULL);
+INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f0011', '0001', 'sys.outcase.followup', '委外案件跟进记录导入模版', 0, '9005', 'http://192.168.3.10/group1/M00/00/3C/wKgDClnJp7WAdpBVAAAjWcLFBSc29.xlsx', 0, 'administrator', '2017-9-25 19:10:20', '委外案件账目导入模版', NULL);
 --2017-09-25 huyanmin 在委外池中新增3个字段
 ALTER TABLE outsource_pool ADD company_code varchar(64) DEFAULT NULL COMMENT '公司特定标识';
 ALTER TABLE outsource_pool ADD over_outsource_time date DEFAULT NULL COMMENT '委外到期时间';
 ALTER TABLE outsource_pool ADD end_outsource_time date DEFAULT NULL COMMENT '已结案日期';
+
+--2017-09-27 huyanmin 增加新的权限码
+INSERT INTO `resource` VALUES ('816', '156', '催大人', '导出还款明细', '06020C', NULL, NULL, NULL, NULL, NULL, 19, NULL, NULL, NULL, NULL, 816);
+INSERT INTO `resource` VALUES ('817', '156', '催大人', '按钮', '06020D', NULL, NULL, NULL, NULL, NULL, 19, NULL, NULL, NULL, NULL, 817);

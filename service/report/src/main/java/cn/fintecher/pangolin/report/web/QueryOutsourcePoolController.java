@@ -6,6 +6,7 @@ import cn.fintecher.pangolin.report.model.QueryOutsourcePool;
 import cn.fintecher.pangolin.report.model.QueryOutsourcePoolParams;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -65,12 +66,11 @@ public class QueryOutsourcePoolController extends BaseController {
             }
             PageHelper.startPage(page,size);
             List<QueryOutsourcePool> content = queryOutsourcePoolMapper.getAllOutSourcePoolModel(query);
+            PageInfo pageInfo = new PageInfo(content);
             OutSourcePoolModel outSourcePoolModel = new OutSourcePoolModel();
             outSourcePoolModel.setContent(content);
-            int getTotalPages=1;
-            long getTotalElements=content.size();
-            outSourcePoolModel.setGetTotalPages(getTotalPages);
-            outSourcePoolModel.setGetTotalElements(getTotalElements);
+            outSourcePoolModel.setGetTotalPages(pageInfo.getPages());
+            outSourcePoolModel.setGetTotalElements(pageInfo.getTotal());
             return ResponseEntity.ok().body(outSourcePoolModel);
         } catch (Exception e) {
            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("QueryOutsourcePoolController", "queryAllOutsourcePool", e.getMessage())).body(null);
