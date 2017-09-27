@@ -31,4 +31,7 @@ public class CaseInfoReturn extends BaseEntity {
 
     @ApiModelProperty(notes = "退案原因")
     private String reason;
+
+    @ApiModelProperty(notes = "退回来源 内催，委外，司法，核销")
+    private Integer source;
 }
