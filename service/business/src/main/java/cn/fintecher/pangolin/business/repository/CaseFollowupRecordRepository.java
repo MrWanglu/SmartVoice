@@ -1,7 +1,9 @@
 package cn.fintecher.pangolin.business.repository;
 
+import cn.fintecher.pangolin.business.utils.ZWMathUtil;
 import cn.fintecher.pangolin.entity.CaseFollowupRecord;
 import cn.fintecher.pangolin.entity.QCaseFollowupRecord;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.core.types.dsl.StringPath;
@@ -13,6 +15,7 @@ import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -32,7 +35,14 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
             Iterator<? extends Date> it = value.iterator();
             Date operatorMinTime = it.next();
             if (it.hasNext()) {
-                Date operatorMaxTime = it.next();
+                String date = ZWDateUtil.fomratterDate(it.next(), "yyyy-MM-dd");
+                date = date + " 23:59:59";
+                Date operatorMaxTime = null;
+                try {
+                    operatorMaxTime = ZWDateUtil.getFormatDateTime(date);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 return path.between(operatorMinTime, operatorMaxTime);
             } else {
                 return path.goe(operatorMinTime);
@@ -153,6 +163,7 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
 
     /**
      * 导出跟进记录
+     *
      * @param caseNumberList
      * @param companyCode
      * @return
@@ -162,10 +173,10 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
             " personal c, product d, principal e WHERE a.case_number = b.case_number AND b.collection_type != 0 AND a.personal_id = c.id " +
             " AND a.product_id = d.id AND a.principal_id = e.id AND a.case_number in (?1) and a.company_code=?2 " +
             " LIMIT ?3 ", nativeQuery = true)
-    List<Object[]> findFollowupPage(List<String> caseNumberList, String companyCode,int limit);
+    List<Object[]> findFollowupPage(List<String> caseNumberList, String companyCode, int limit);
 
     @Query(value = "SELECT count(1) FROM case_info a, case_followup_record b," +
             " personal c, product d, principal e WHERE a.case_number = b.case_number AND b.collection_type != 0 AND a.personal_id = c.id " +
             " AND a.product_id = d.id AND a.principal_id = e.id AND a.case_number in (?1) and a.company_code=?2 ", nativeQuery = true)
-    int findFollowupPageTotal(List<String> caseNumberList,String companyCode);
+    int findFollowupPageTotal(List<String> caseNumberList, String companyCode);
 }
