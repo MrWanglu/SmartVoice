@@ -41,7 +41,7 @@ import java.util.Objects;
 @Api(value = "CaseInfoVerificationController", description = "核销案件操作")
 public class CaseInfoVerificationController extends BaseController {
 
-    private final Logger log = LoggerFactory.getLogger(CaseAssistApplyController.class);
+    private final Logger log = LoggerFactory.getLogger(CaseInfoVerificationController.class);
 
     @Inject
     private CaseInfoVerificationRepository caseInfoVerificationRepository;
@@ -90,39 +90,37 @@ public class CaseInfoVerificationController extends BaseController {
                 caseInfoVerificationApply.setApplicationDate(ZWDateUtil.getNowDateTime()); // 申请日期
                 caseInfoVerificationApply.setApplicationReason(caseInfoVerficationModel.getApplicationReason()); // 申请理由
                 caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue()); // 申请状态：审批待通过
-                if (Objects.nonNull(caseInfo)) {
-                    caseInfoVerificationApply.setCaseId(caseInfo.getId()); // 案件Id
-                    caseInfoVerificationApply.setCaseNumber(caseInfo.getCaseNumber()); // 案件编号
-                    caseInfoVerificationApply.setBatchNumber(caseInfo.getBatchNumber()); // 批次号
-                    caseInfoVerificationApply.setOverdueAmount(caseInfo.getOverdueAmount()); // 逾期金额
-                    caseInfoVerificationApply.setOverdueDays(caseInfo.getOverdueDays()); // 逾期天数
-                    caseInfoVerificationApply.setPayStatus(caseInfo.getPayStatus()); // 还款状态
-                    caseInfoVerificationApply.setContractNumber(caseInfo.getContractNumber()); // 合同编号
-                    caseInfoVerificationApply.setContractAmount(caseInfo.getContractAmount()); // 合同金额
-                    caseInfoVerificationApply.setOverdueCapital(caseInfo.getOverdueCapital()); // 逾期本金
-                    caseInfoVerificationApply.setOverdueDelayFine(caseInfo.getOverdueDelayFine()); // 逾期滞纳金
-                    caseInfoVerificationApply.setOverdueFine(caseInfo.getOverdueFine()); // 逾期罚息
-                    caseInfoVerificationApply.setOverdueInterest(caseInfo.getOverdueInterest()); // 逾期利息
-                    caseInfoVerificationApply.setHasPayAmount(caseInfo.getHasPayAmount()); // 已还款金额
-                    caseInfoVerificationApply.setHasPayPeriods(caseInfo.getHasPayPeriods()); // 已还款期数
-                    caseInfoVerificationApply.setLatelyPayAmount(caseInfo.getLatelyPayAmount()); // 最近还款金额
-                    caseInfoVerificationApply.setLatelyPayDate(caseInfo.getLatelyPayDate()); // 最近还款日期
-                    caseInfoVerificationApply.setPeriods(caseInfo.getPeriods()); // 还款期数
-                    caseInfoVerificationApply.setCommissionRate(caseInfo.getCommissionRate()); // 佣金比例
-                    if (Objects.nonNull(caseInfo.getArea())) {
-                        caseInfoVerificationApply.setCity(caseInfo.getArea().getAreaName()); // 城市
-                        if (Objects.nonNull(caseInfo.getArea().getParent())) {
-                            caseInfoVerificationApply.setProvince(caseInfo.getArea().getParent().getAreaName()); // 省份
-                        }
+                caseInfoVerificationApply.setCaseId(caseInfo.getId()); // 案件Id
+                caseInfoVerificationApply.setCaseNumber(caseInfo.getCaseNumber()); // 案件编号
+                caseInfoVerificationApply.setBatchNumber(caseInfo.getBatchNumber()); // 批次号
+                caseInfoVerificationApply.setOverdueAmount(caseInfo.getOverdueAmount()); // 逾期金额
+                caseInfoVerificationApply.setOverdueDays(caseInfo.getOverdueDays()); // 逾期天数
+                caseInfoVerificationApply.setPayStatus(caseInfo.getPayStatus()); // 还款状态
+                caseInfoVerificationApply.setContractNumber(caseInfo.getContractNumber()); // 合同编号
+                caseInfoVerificationApply.setContractAmount(caseInfo.getContractAmount()); // 合同金额
+                caseInfoVerificationApply.setOverdueCapital(caseInfo.getOverdueCapital()); // 逾期本金
+                caseInfoVerificationApply.setOverdueDelayFine(caseInfo.getOverdueDelayFine()); // 逾期滞纳金
+                caseInfoVerificationApply.setOverdueFine(caseInfo.getOverdueFine()); // 逾期罚息
+                caseInfoVerificationApply.setOverdueInterest(caseInfo.getOverdueInterest()); // 逾期利息
+                caseInfoVerificationApply.setHasPayAmount(caseInfo.getHasPayAmount()); // 已还款金额
+                caseInfoVerificationApply.setHasPayPeriods(caseInfo.getHasPayPeriods()); // 已还款期数
+                caseInfoVerificationApply.setLatelyPayAmount(caseInfo.getLatelyPayAmount()); // 最近还款金额
+                caseInfoVerificationApply.setLatelyPayDate(caseInfo.getLatelyPayDate()); // 最近还款日期
+                caseInfoVerificationApply.setPeriods(caseInfo.getPeriods()); // 还款期数
+                caseInfoVerificationApply.setCommissionRate(caseInfo.getCommissionRate()); // 佣金比例
+                if (Objects.nonNull(caseInfo.getArea())) {
+                    caseInfoVerificationApply.setCity(caseInfo.getArea().getAreaName()); // 城市
+                    if (Objects.nonNull(caseInfo.getArea().getParent())) {
+                        caseInfoVerificationApply.setProvince(caseInfo.getArea().getParent().getAreaName()); // 省份
                     }
-                    if (Objects.nonNull(caseInfo.getPrincipalId())) {
-                        caseInfoVerificationApply.setPrincipalName(caseInfo.getPrincipalId().getName()); // 委托方名称
-                    }
-                    if (Objects.nonNull(caseInfo.getPersonalInfo())) {
-                        caseInfoVerificationApply.setPersonalName(caseInfo.getPersonalInfo().getName()); // 客户名称
-                        caseInfoVerificationApply.setMobileNo(caseInfo.getPersonalInfo().getMobileNo()); // 电话号
-                        caseInfoVerificationApply.setIdCard(caseInfo.getPersonalInfo().getIdCard()); // 身份证号
-                    }
+                }
+                if (Objects.nonNull(caseInfo.getPrincipalId())) {
+                    caseInfoVerificationApply.setPrincipalName(caseInfo.getPrincipalId().getName()); // 委托方名称
+                }
+                if (Objects.nonNull(caseInfo.getPersonalInfo())) {
+                    caseInfoVerificationApply.setPersonalName(caseInfo.getPersonalInfo().getName()); // 客户名称
+                    caseInfoVerificationApply.setMobileNo(caseInfo.getPersonalInfo().getMobileNo()); // 电话号
+                    caseInfoVerificationApply.setIdCard(caseInfo.getPersonalInfo().getIdCard()); // 身份证号
                 }
                 if (Objects.isNull(user.getCompanyCode())) { // 公司code码
                     if (Objects.nonNull(caseInfoVerficationModel.getCompanyCode())) {
@@ -208,6 +206,8 @@ public class CaseInfoVerificationController extends BaseController {
             if (Objects.equals(caseInfoVerficationModel.getApprovalResult(), 0)) { // 核销审批拒绝
                 caseInfoVerificationApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.disapprove.getValue()); // 审批结果：拒绝
                 caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_disapprove.getValue()); // 审批状态：审批拒绝
+                caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "核销审批失败")).body(null);
             } else { // 核销审批通过
                 caseInfoVerificationApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.approve.getValue()); // 审批结果：通过
                 caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_approve.getValue()); // 审批状态：审批通过

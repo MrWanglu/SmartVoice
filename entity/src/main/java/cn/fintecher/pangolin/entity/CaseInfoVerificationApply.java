@@ -20,7 +20,7 @@ public class CaseInfoVerificationApply extends BaseEntity {
     @ApiModelProperty("公司code码")
     private String companyCode;
 
-    @ApiModelProperty("当前催收员")
+    @ApiModelProperty("审批人")
     private String operator;
 
     @ApiModelProperty("案件Id")
@@ -37,6 +37,7 @@ public class CaseInfoVerificationApply extends BaseEntity {
     private Date operatorTime;
 
     @ApiModelProperty(notes = "申请日期")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date applicationDate;
 
     @ApiModelProperty(notes = "申请人")
@@ -106,6 +107,7 @@ public class CaseInfoVerificationApply extends BaseEntity {
     private Integer hasPayPeriods;
 
     @ApiModelProperty(notes = "最近还款日期")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date latelyPayDate;
 
     @ApiModelProperty(notes = "最近还款金额")

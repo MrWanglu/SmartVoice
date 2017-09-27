@@ -139,6 +139,8 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
         bindings.bind(root.caseInfo.assistFlag).first((path, value) -> path.eq(value));
         //协催方式
         bindings.bind(root.caseInfo.assistWay).first((path, value) -> path.eq(value));
+        // 催收员
+        bindings.bind(root.caseInfo.currentCollector.realName).first((path, value) -> path.contains(StringUtils.trim(value)));
         //根据id数组获取查询结果list
         bindings.bind(root.id).all((path, value) -> {
             Set<String> idSets = new HashSet<>();
