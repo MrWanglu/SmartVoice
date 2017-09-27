@@ -991,6 +991,75 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
         }
     }
+
+    @GetMapping("/getInnerWaitCollectCase")
+    @ApiOperation(value = "分页查询内催待分配案件", notes = "分页查询内催待分配案件")
+    public ResponseEntity<Page<CaseInfo>> getInnerWaitCollectCase(
+            @ApiIgnore Pageable pageable,
+            @RequestHeader(value = "X-UserToken") String token,
+            @RequestParam @ApiParam(value = "公司CODE", required = false) String companyCode) {
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", e.getMessage())).body(null);
+        }
+        try {
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    builder.and(qCaseInfo.companyCode.eq(companyCode)); //公司
+                }
+            } else {
+                builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode())); //公司
+            }
+            builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));
+            builder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()));
+            builder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "查询失败")).body(null);
+        }
+    }
+
+    @GetMapping("/getInnerOverCase")
+    @ApiOperation(value = "分页查询内催结案案件", notes = "分页查询内催结案案件")
+    public ResponseEntity<Page<CaseInfo>> getInnerOverCase(
+            @ApiIgnore Pageable pageable,
+            @RequestHeader(value = "X-UserToken") String token,
+            @RequestParam @ApiParam(value = "公司CODE", required = false) String companyCode) {
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", e.getMessage())).body(null);
+        }
+        try {
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    builder.and(qCaseInfo.companyCode.eq(companyCode)); //公司
+                }
+            } else {
+                builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode())); //公司
+            }
+            builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));
+            builder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
+            builder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "查询失败")).body(null);
+        }
+    }
+
 }
 
 
