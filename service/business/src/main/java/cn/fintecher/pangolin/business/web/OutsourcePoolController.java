@@ -571,7 +571,6 @@ public class OutsourcePoolController extends BaseController {
                 }
                 CaseInfo caseInfo = caseInfoReturn.getCaseId();
                 caseInfo.setRecoverWay(CaseInfo.RecoverWay.MANUAL.getValue());//默认手动回收
-                caseInfo.setRecoverMemo("");
                 caseInfo.setRecoverRemark(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue());//未回收
                 caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());//流入时间
                 OutsourcePool outsourcePool = new OutsourcePool();
