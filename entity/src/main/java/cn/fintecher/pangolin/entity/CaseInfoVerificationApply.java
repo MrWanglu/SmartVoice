@@ -77,10 +77,10 @@ public class CaseInfoVerificationApply extends BaseEntity {
     private String IdCard;
 
     @ApiModelProperty(notes = "省份")
-    private String province;
+    private Integer provinceId;
 
     @ApiModelProperty(notes = "城市")
-    private String city;
+    private Integer cityId;
 
     @ApiModelProperty(notes = "合同编号")
     private String contractNumber;

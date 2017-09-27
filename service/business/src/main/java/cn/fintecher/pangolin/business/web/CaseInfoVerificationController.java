@@ -109,9 +109,9 @@ public class CaseInfoVerificationController extends BaseController {
                 caseInfoVerificationApply.setPeriods(caseInfo.getPeriods()); // 还款期数
                 caseInfoVerificationApply.setCommissionRate(caseInfo.getCommissionRate()); // 佣金比例
                 if (Objects.nonNull(caseInfo.getArea())) {
-                    caseInfoVerificationApply.setCity(caseInfo.getArea().getAreaName()); // 城市
+                    caseInfoVerificationApply.setCityId(caseInfo.getArea().getId()); // 城市
                     if (Objects.nonNull(caseInfo.getArea().getParent())) {
-                        caseInfoVerificationApply.setProvince(caseInfo.getArea().getParent().getAreaName()); // 省份
+                        caseInfoVerificationApply.setProvinceId(caseInfo.getArea().getParent().getId()); // 省份
                     }
                 }
                 if (Objects.nonNull(caseInfo.getPrincipalId())) {
