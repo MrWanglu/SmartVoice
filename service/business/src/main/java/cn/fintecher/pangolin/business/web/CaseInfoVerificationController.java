@@ -167,6 +167,8 @@ public class CaseInfoVerificationController extends BaseController {
             } else { // 核销审批通过
                 caseInfoVerificationApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.approve.getValue()); // 审批结果：通过
                 caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_approve.getValue()); // 审批状态：审批通过
+                caseInfoVerificationApply.setOperator(user.getUserName()); // 审批人
+                caseInfoVerificationApply.setOperatorTime(ZWDateUtil.getNowDateTime()); // 审批时间
                 CaseInfo caseInfo = caseInfoRepository.findOne(caseInfoVerificationApply.getCaseId());
                 List<CaseAssist> caseAssistList = new ArrayList<>();
                 //处理协催案件
