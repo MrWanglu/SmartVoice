@@ -88,6 +88,10 @@ public class OutsourcePoolController extends BaseController {
     private PersonalRepository personalRepository;
     @Inject
     private CaseInfoReturnRepository caseInfoReturnRepository;
+    @Inject
+    private CaseInfoVerificationApplyRepository caseInfoVerificationApplyRepository;
+    @Inject
+    private CaseInfoVerificationRepository caseInfoVerificationRepository;
 
     private static final String ENTITY_NAME = "OutSource";
     private static final String ENTITY_NAME1 = "OutSourcePool";
@@ -471,6 +475,7 @@ public class OutsourcePoolController extends BaseController {
             } else {
                 builder.and(qCaseInfoReturn.caseId.companyCode.eq(user.getCompanyCode())); //限制公司code码
             }
+            builder.and(qCaseInfoReturn.source.eq(CaseInfo.CasePoolType.OUTER.getValue())); //委外
             Page<CaseInfoReturn> page = caseInfoReturnRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/OutsourcePoolController/getReturnCaseByConditions");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
@@ -480,12 +485,112 @@ public class OutsourcePoolController extends BaseController {
         }
     }
 
+    @PostMapping("/verificationApply")
+    @ApiOperation(value = "核销申请", notes = "核销申请")
+    public ResponseEntity verificationApply(@RequestBody VerificationApplyModel verificationApplyModel, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+        try {
+            List<String> ids = verificationApplyModel.getIds();
+            List<CaseInfoVerificationApply> verificationApplies = new ArrayList<>();
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("User", "", "获取不到登录人信息")).body(null);
+            }
+            for (String id : ids) {
+                CaseInfoReturn caseInfoReturn = caseInfoReturnRepository.findOne(id);
+                if (Objects.isNull(caseInfoReturn)){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoReturn", "", "获取回收案件信息失败")).body(null);
+                }
+                CaseInfoVerificationApply caseInfoVerificationApply = new CaseInfoVerificationApply();
+                caseInfoVerificationApply.setOperator(user.getRealName()); // 操作人
+                caseInfoVerificationApply.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
+                caseInfoVerificationApply.setApplicant(user.getRealName()); // 申请人
+                caseInfoVerificationApply.setApplicationDate(ZWDateUtil.getNowDateTime()); // 申请日期
+                caseInfoVerificationApply.setApplicationReason(verificationApplyModel.getReason()); // 申请理由
+                caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue()); // 申请状态：审批待通过
+                CaseInfo caseInfo = caseInfoReturn.getCaseId();
+                if (Objects.nonNull(caseInfo)) {
+                    caseInfoVerificationApply.setCaseId(caseInfo.getId()); // 案件Id
+                    caseInfoVerificationApply.setCaseNumber(caseInfo.getCaseNumber()); // 案件编号
+                    caseInfoVerificationApply.setBatchNumber(caseInfo.getBatchNumber()); // 批次号
+                    caseInfoVerificationApply.setOverdueAmount(caseInfo.getOverdueAmount()); // 逾期金额
+                    caseInfoVerificationApply.setOverdueDays(caseInfo.getOverdueDays()); // 逾期天数
+                    caseInfoVerificationApply.setPayStatus(caseInfo.getPayStatus()); // 还款状态
+                    caseInfoVerificationApply.setContractNumber(caseInfo.getContractNumber()); // 合同编号
+                    caseInfoVerificationApply.setContractAmount(caseInfo.getContractAmount()); // 合同金额
+                    caseInfoVerificationApply.setOverdueCapital(caseInfo.getOverdueCapital()); // 逾期本金
+                    caseInfoVerificationApply.setOverdueDelayFine(caseInfo.getOverdueDelayFine()); // 逾期滞纳金
+                    caseInfoVerificationApply.setOverdueFine(caseInfo.getOverdueFine()); // 逾期罚息
+                    caseInfoVerificationApply.setOverdueInterest(caseInfo.getOverdueInterest()); // 逾期利息
+                    caseInfoVerificationApply.setHasPayAmount(caseInfo.getHasPayAmount()); // 已还款金额
+                    caseInfoVerificationApply.setHasPayPeriods(caseInfo.getHasPayPeriods()); // 已还款期数
+                    caseInfoVerificationApply.setLatelyPayAmount(caseInfo.getLatelyPayAmount()); // 最近还款金额
+                    caseInfoVerificationApply.setLatelyPayDate(caseInfo.getLatelyPayDate()); // 最近还款日期
+                    caseInfoVerificationApply.setPeriods(caseInfo.getPeriods()); // 还款期数
+                    caseInfoVerificationApply.setCompanyCode(caseInfo.getCompanyCode());
+                    caseInfoVerificationApply.setCommissionRate(caseInfo.getCommissionRate()); // 佣金比例
+                    if (Objects.nonNull(caseInfo.getArea())) {
+                        caseInfoVerificationApply.setCityId(caseInfo.getArea().getId()); // 城市
+                        if (Objects.nonNull(caseInfo.getArea().getParent())) {
+                            caseInfoVerificationApply.setProvinceId(caseInfo.getArea().getParent().getId()); // 省份
+                        }
+                    }
+                    if (Objects.nonNull(caseInfo.getPrincipalId())) {
+                        caseInfoVerificationApply.setPrincipalName(caseInfo.getPrincipalId().getName()); // 委托方名称
+                    }
+                    if (Objects.nonNull(caseInfo.getPersonalInfo())) {
+                        caseInfoVerificationApply.setPersonalName(caseInfo.getPersonalInfo().getName()); // 客户名称
+                        caseInfoVerificationApply.setMobileNo(caseInfo.getPersonalInfo().getMobileNo()); // 电话号
+                        caseInfoVerificationApply.setIdCard(caseInfo.getPersonalInfo().getIdCard()); // 身份证号
+                    }
+                }
+                verificationApplies.add(caseInfoVerificationApply);
+            }
+            caseInfoVerificationApplyRepository.save(verificationApplies);
+            return ResponseEntity.ok().body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("核销申请失败", ENTITY_NAME1, e.getMessage())).body(null);
+        }
+    }
+
+    @PostMapping("/changeToBeAssigned")
+    @ApiOperation(value = "移入待分配", notes = "移入待分配")
+    public ResponseEntity changeToBeAssigned(@RequestBody VerificationApplyModel verificationApplyModel, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+        try {
+            List<String> ids = verificationApplyModel.getIds();
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("User", "", "获取不到登录人信息")).body(null);
+            }
+            for (String id : ids) {
+                CaseInfoReturn caseInfoReturn = caseInfoReturnRepository.findOne(id);
+                if (Objects.isNull(caseInfoReturn)){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoReturn", "", "获取回收案件信息失败")).body(null);
+                }
+                CaseInfo caseInfo = caseInfoReturn.getCaseId();
+                caseInfo.setRecoverWay(CaseInfo.RecoverWay.MANUAL.getValue());//默认手动回收
+                caseInfo.setRecoverMemo("");
+                caseInfo.setRecoverRemark(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue());//未回收
+                caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());//流入时间
+                OutsourcePool outsourcePool = new OutsourcePool();
+                outsourcePool.setCaseInfo(caseInfo);
+                outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
+                outsourcePoolRepository.save(outsourcePool);
+                caseInfoReturnRepository.delete(id);//删除原回收案件
+            }
+            return ResponseEntity.ok().body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("核销申请失败", ENTITY_NAME1, e.getMessage())).body(null);
+        }
+    }
+
 
     /**
      * @Description : 查询委外案件
      */
     @GetMapping("/query")
-    @ApiOperation(value = "查询委外案件", notes = "查询委外案件")
+    @ApiOperation(value = "查询待分配委外案件", notes = "查询待分配委外案件")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
                     value = "页数 (0..N)"),
@@ -494,63 +599,30 @@ public class OutsourcePoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<OutsourcePool>> query(@RequestParam(required = false) @ApiParam(value = "最小逾期天数") Integer overDayMin,
-                                                     @RequestParam(required = false) @ApiParam(value = "最大逾期天数") Integer overDayMax,
-                                                     @RequestParam(required = false) @ApiParam(value = "委外方") String outsName,
-                                                     @RequestParam(required = false) @ApiParam(value = "催收状态") Integer oupoStatus,
-                                                     @RequestParam(required = false) @ApiParam(value = "最小案件金额") BigDecimal oupoAmtMin,
-                                                     @RequestParam(required = false) @ApiParam(value = "最大案件金额") BigDecimal oupoAmtMax,
-                                                     @RequestParam(required = false) @ApiParam(value = "还款状态") String payStatus,
-                                                     @RequestParam(required = false) @ApiParam(value = "最小还款金额") BigDecimal oupoPaynumMin,
-                                                     @RequestParam(required = false) @ApiParam(value = "最大还款金额") BigDecimal oupoPaynumMax,
-                                                     @RequestParam(required = false) @ApiParam(value = "批次号") String outbatch,
-                                                     @RequestParam(required = false) String companyCode,
+    public ResponseEntity<Page<OutsourcePool>> query(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                     @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                     @ApiIgnore Pageable pageable,
                                                      @RequestHeader(value = "X-UserToken") String token,
-                                                     @ApiIgnore Pageable pageable) {
+                                                     @RequestParam @ApiParam(value = "tab页标识 1待分配;2已结案") Integer flag) {
         try {
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
-            BooleanBuilder builder = new BooleanBuilder();
+            BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(companyCode)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
                 }
-                builder.and(qOutsourcePool.caseInfo.companyCode.eq(companyCode));
             } else {
                 builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
             }
-            if (Objects.nonNull(overDayMin)) {
-                builder.and(qOutsourcePool.caseInfo.overdueDays.gt(overDayMin));
-            }
-            if (Objects.nonNull(overDayMax)) {
-                builder.and(qOutsourcePool.caseInfo.overdueDays.lt(overDayMax));
-            }
-            if (Objects.nonNull(outsName)) {
-                builder.and(qOutsourcePool.outsource.outsName.like("%" + outsName + "%"));
-            }
-            if (Objects.nonNull(oupoStatus)) {
-                builder.and(qOutsourcePool.caseInfo.collectionStatus.eq(oupoStatus));
-            }
-            if (Objects.nonNull(oupoAmtMin)) {
-                builder.and(qOutsourcePool.caseInfo.overdueAmount.gt(oupoAmtMin));
-            }
-            if (Objects.nonNull(oupoAmtMax)) {
-                builder.and(qOutsourcePool.caseInfo.overdueAmount.lt(oupoAmtMax));
-            }
-            if (Objects.nonNull(payStatus)) {
-                builder.and(qOutsourcePool.caseInfo.payStatus.eq(payStatus));
-            }
-            if (Objects.nonNull(oupoPaynumMin)) {
-                builder.and(qOutsourcePool.caseInfo.hasPayAmount.gt(oupoPaynumMin));
-            }
-            if (Objects.nonNull(oupoPaynumMax)) {
-                builder.and(qOutsourcePool.caseInfo.hasPayAmount.lt(oupoPaynumMax));
-            }
-            if (Objects.nonNull(outbatch)) {
-                builder.and(qOutsourcePool.outBatch.eq(outbatch));
+            builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));//委外类型
+            if (1 == flag){
+                builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.TO_OUTSIDE.getCode())); //待分配
+            }else if (2 == flag){
+                builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode())); //已结案
             }
             Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
