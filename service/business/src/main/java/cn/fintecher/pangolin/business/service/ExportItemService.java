@@ -320,7 +320,7 @@ public class ExportItemService {
         bankItems.add(name);
         ExportItem card = new ExportItem();
         BeanUtils.copyProperties(temp, card);
-        card.setName("客户还款卡银行");
+        card.setName("客户还款卡号");
         bankItems.add(card);
         exportItemRepository.save(bankItems);
     }

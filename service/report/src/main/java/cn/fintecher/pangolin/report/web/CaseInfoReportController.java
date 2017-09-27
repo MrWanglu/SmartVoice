@@ -4,10 +4,7 @@ package cn.fintecher.pangolin.report.web;
 import cn.fintecher.pangolin.entity.Personal;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.entity.CaseInfo;
-import cn.fintecher.pangolin.report.model.CaseInfoParams;
-import cn.fintecher.pangolin.report.model.CollectingCaseInfo;
-import cn.fintecher.pangolin.report.model.CollectingCaseParams;
-import cn.fintecher.pangolin.report.model.MapModel;
+import cn.fintecher.pangolin.report.model.*;
 import cn.fintecher.pangolin.report.service.AccMapService;
 import cn.fintecher.pangolin.report.service.CaseInfoService;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -116,7 +113,7 @@ public class CaseInfoReportController extends BaseController{
     }
     @GetMapping("/queryCollectingCase")
     @ApiOperation(value = "PC催收中案件查询", notes = "PC催收中案件查询")
-    public ResponseEntity<PageInfo>  queryCollectingCase(@RequestHeader(value = "X-UserToken") String token,
+    public ResponseEntity<CaseInfoByBatchModel>  queryCollectingCase(@RequestHeader(value = "X-UserToken") String token,
                                                    @RequestParam(required = true)@ApiParam(value = "页数") Integer page,
                                                    @RequestParam(required = true)@ApiParam(value = "大小") Integer size,
                                                    @RequestParam(required = false) @ApiParam(value = "批次号") String batchNumber,
@@ -127,32 +124,37 @@ public class CaseInfoReportController extends BaseController{
         User user = null;
         try {
             user = getUserByToken(token);
+            CollectingCaseParams collectingCaseParams = new CollectingCaseParams();
+            collectingCaseParams.setDeptCode(user.getDepartment().getCode());
+            if(Objects.nonNull(companyCode)){
+                collectingCaseParams.setCompanyCode(companyCode);
+            }else{
+                collectingCaseParams.setCompanyCode(user.getCompanyCode());
+            }
+            if(Objects.nonNull(batchNumber)){
+                collectingCaseParams.setBatchNumber(batchNumber);
+            }
+            if(Objects.nonNull(principalId)){
+                collectingCaseParams.setPrincipalId(principalId);
+            }
+            if(Objects.nonNull(delegationDate)){
+                collectingCaseParams.setDelegationDate(delegationDate);
+            }
+            if(Objects.nonNull(closeDate)){
+                collectingCaseParams.setCloseDate(closeDate);
+            }
+            List<CollectingCaseInfo> list = caseInfoService.queryCollectingCase(collectingCaseParams,page,size);
+            PageInfo pageInfo = new PageInfo(list);
+            CaseInfoByBatchModel model = new CaseInfoByBatchModel();
+            model.setContent(list);
+            model.setTotalPages(pageInfo.getPages());
+            model.setTotalElements(pageInfo.getTotal());
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","")).body(model);
         } catch (final Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
         }
 
-        CollectingCaseParams collectingCaseParams = new CollectingCaseParams();
-        collectingCaseParams.setDeptCode(user.getDepartment().getCode());
-        if(Objects.nonNull(companyCode)){
-            collectingCaseParams.setCompanyCode(companyCode);
-        }else{
-            collectingCaseParams.setCompanyCode(user.getCompanyCode());
-        }
-        if(Objects.nonNull(batchNumber)){
-            collectingCaseParams.setBatchNumber(batchNumber);
-        }
-        if(Objects.nonNull(principalId)){
-            collectingCaseParams.setPrincipalId(principalId);
-        }
-        if(Objects.nonNull(delegationDate)){
-            collectingCaseParams.setDelegationDate(delegationDate);
-        }
-        if(Objects.nonNull(closeDate)){
-            collectingCaseParams.setCloseDate(closeDate);
-        }
-        List<CollectingCaseInfo> list = caseInfoService.queryCollectingCase(collectingCaseParams,page,size);
-        PageInfo pageInfo = new PageInfo(list);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","")).body(pageInfo);
+
     }
 
 }
