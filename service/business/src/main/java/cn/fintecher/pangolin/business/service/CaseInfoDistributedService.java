@@ -83,6 +83,9 @@ public class CaseInfoDistributedService {
     DepartmentRepository departmentRepository;
 
     @Inject
+    OutsourcePoolRepository outsourcePoolRepository;
+
+    @Inject
     CaseInfoService caseInfoService;
 
     /**
@@ -222,46 +225,57 @@ public class CaseInfoDistributedService {
                     .findAll(QCaseInfoDistributed.caseInfoDistributed.caseNumber.in(manualParams.getCaseNumberList()));
             Iterator<CaseInfoDistributed> iterator = all.iterator();
             List<CaseInfo> caseInfoList = new ArrayList<>();
-            List<CaseTurnRecord> caseTurnRecordList = new ArrayList<>();
             List<CaseRepair> caseRepairList = new ArrayList<>();
             List<OutsourcePool> outsourcePoolList = new ArrayList<>();
-            if (Objects.equals(manualParams.getType(), 0)) {//内催
+            Integer type = manualParams.getType();
+            //内催
+            if (Objects.equals(0, type)) {
                 while (iterator.hasNext()) {
                     CaseInfoDistributed next = iterator.next();
                     CaseInfo caseInfo = new CaseInfo();
-                    BeanUtils.copyProperties(next, caseInfo);
-                    caseInfo.setId(null);
-                    caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型-案件分配
-                    caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //案件流入时间
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
-                    caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
-                    caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
-                    caseInfo.setLeftDays(ZWDateUtil.getBetween(ZWDateUtil.getNowDate(), caseInfo.getCloseDate(), ChronoUnit.DAYS));//案件剩余天数(结案日期-当前日期)
-                    caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue());//打标标记
-                    caseInfo.setFollowUpNum(0);//流转次数
-                    caseInfo.setOperator(user);
-                    caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+                    setCaseInfo(next, caseInfo, user);
+                    caseInfo.setCasePoolType(CaseInfo.CasePoolType.INNER.getValue());
                     caseInfoList.add(caseInfo);
-                    addCaseTurnRecord(caseTurnRecordList, caseInfo, user);//增加流转记录
                     addCaseRepair(caseRepairList, caseInfo, user);//修复池增加案件
                 }
-                caseInfoRepository.save(caseInfoList);
-                caseTurnRecordRepository.save(caseTurnRecordList);
-                caseRepairRepository.save(caseRepairList);
-                caseInfoDistributedRepository.delete(all);
             }
-            // TODO 委外
-            if (Objects.equals(manualParams.getType(), 1)) {//委外
+            //委外
+            if (Objects.equals(1, type)) {
                 while (iterator.hasNext()) {
                     CaseInfoDistributed next = iterator.next();
+                    CaseInfo caseInfo = new CaseInfo();
+                    setCaseInfo(next, caseInfo, user);
+                    caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue());
+                    caseInfoList.add(caseInfo);
+                    OutsourcePool outsourcePool = new OutsourcePool();
+                    outsourcePool.setCaseInfo(caseInfo);
+                    outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
+                    outsourcePoolList.add(outsourcePool);
                 }
             }
+            caseInfoRepository.save(caseInfoList);
+            caseRepairRepository.save(caseRepairList);
+            outsourcePoolRepository.save(outsourcePoolList);
+            caseInfoDistributedRepository.delete(all);
         } catch (BeansException e) {
             logger.error(e.getMessage(), e);
             throw new RuntimeException("分配失败!");
         }
+    }
 
-
+    private void setCaseInfo(CaseInfoDistributed caseInfoDistributed, CaseInfo caseInfo, User user) {
+        BeanUtils.copyProperties(caseInfoDistributed, caseInfo);
+        caseInfo.setId(null);
+        caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型-案件分配
+        caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //案件流入时间
+        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
+        caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
+        caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
+        caseInfo.setLeftDays(ZWDateUtil.getBetween(ZWDateUtil.getNowDate(), caseInfo.getCloseDate(), ChronoUnit.DAYS));//案件剩余天数(结案日期-当前日期)
+        caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue());//打标标记
+        caseInfo.setFollowUpNum(0);//流转次数
+        caseInfo.setOperator(user);
+        caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
     }
 
     private void addCaseTurnRecord(List<CaseTurnRecord> caseTurnRecordList, CaseInfo caseInfo, User user) {
@@ -280,6 +294,7 @@ public class CaseInfoDistributedService {
         caseRepair.setCaseId(caseInfo);
         caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRING.getValue());
         caseRepair.setOperatorTime(ZWDateUtil.getNowDateTime());
+        caseRepair.setOperator(user);
         caseRepair.setCompanyCode(user.getCompanyCode());
         caseRepairList.add(caseRepair);
     }
