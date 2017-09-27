@@ -143,6 +143,7 @@ public class DataInfoExcelService {
         Company company = entity.getBody();
         //批次号
         String batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ, user.getCompanyCode(), Constants.ORDER_SEQ_LENGTH);
+        batchNumber = batchNumber.concat(company.getSequence());
         dataImportRecord.setBatchNumber(batchNumber);
         dataImportRecord.setOperator(user.getId());
         dataImportRecord.setOperatorName(user.getRealName());
