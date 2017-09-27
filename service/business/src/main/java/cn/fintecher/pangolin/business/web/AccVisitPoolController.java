@@ -730,7 +730,7 @@ public class AccVisitPoolController extends BaseController {
     /**
      * @Description 多条件查询外访催收中案件
      */
-    @GetMapping("/getVisitCollectioningOrPaying")
+    @GetMapping("/getVisitCollectioning")
     @ApiOperation(value = "多条件查询外访催收中或还款审核中案件",notes = "多条件查询外访催收中或还款审核中案件")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -740,7 +740,7 @@ public class AccVisitPoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity getVisitCollectioningOrPaying(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+    public ResponseEntity getVisitCollectioning(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                         @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                         @ApiIgnore Pageable pageable,
                                                         @RequestHeader(value = "X-UserToken") String token,
