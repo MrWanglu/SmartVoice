@@ -223,10 +223,10 @@ public class DataInfoExcelController {
     @ResponseBody
     @ApiOperation(value = "检查案件附件是否存在", notes = "检查案件附件是否存在")
     public ResponseEntity<List<DataInfoExcelFileExist>> checkCasesFile(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                                       @RequestParam(value = "batchNumber") @ApiParam("批次号") String batchNumber,
                                                                        @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
         ResponseEntity<User> userResponseEntity = null;
         try {
-
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -238,7 +238,7 @@ public class DataInfoExcelController {
                 user.setCompanyCode(companyCode);
             }
         }
-        List<DataInfoExcelFileExist> checkStr = dataInfoExcelService.checkCasesFile(user);
+        List<DataInfoExcelFileExist> checkStr = dataInfoExcelService.checkCasesFile(user, batchNumber);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("检查附件是否存在", ENTITY_NAME)).body(checkStr);
     }
 

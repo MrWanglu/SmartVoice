@@ -241,11 +241,11 @@ public class DataInfoExcelService {
      * @param user
      * @return
      */
-    public List<DataInfoExcelFileExist> checkCasesFile(User user) {
+    public List<DataInfoExcelFileExist> checkCasesFile(User user, String batchNumber) {
         List<DataInfoExcelFileExist> dataInfoExcelFileExistList = new ArrayList<>();
         QDataInfoExcel qDataInfoExcel = QDataInfoExcel.dataInfoExcel;
         Iterable<DataInfoExcel> dataInfoExcelIterable = dataInfoExcelRepository.findAll(qDataInfoExcel.operator.eq(user.getId())
-                .and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())));
+                .and(qDataInfoExcel.companyCode.eq(user.getCompanyCode())).and(qDataInfoExcel.batchNumber.eq(batchNumber)));
         for (Iterator<DataInfoExcel> it = dataInfoExcelIterable.iterator(); it.hasNext(); ) {
             DataInfoExcel dataInfoExcel = it.next();
             QDataInfoExcelFile qDataInfoExcelFile = QDataInfoExcelFile.dataInfoExcelFile;
