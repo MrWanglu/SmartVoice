@@ -1450,48 +1450,9 @@ public class OutsourcePoolController extends BaseController {
             }
             if(Objects.nonNull(outsName)){
                 Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
-                builder.and(qOutsourcePool.outsource.eq(outsource));
+                builder.and(qOutsourcePool.outsource.id.eq(outsource.getId()));
             }
-            Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
-            return ResponseEntity.ok().body(page);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "getAllClosedOutSourceCase", "系统异常!")).body(null);
-        }
-
-    }
-
-    /**
-     * @Description 查询委外已结案案件
-     * <p>
-     * Created by huyanmin at 2017/09/20
-     */
-    @GetMapping("/getAllClosedOutSourceCase")
-    @ApiOperation(value = "查询委外已结案案件", notes = "查询委外已结案案件")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
-                    value = "页数 (0..N)"),
-            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
-                    value = "每页大小."),
-            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
-                    value = "依据什么排序: 属性名(,asc|desc). ")
-    })
-    public ResponseEntity<Page<OutsourcePool>> getAllClosedOutSourceCase(@QuerydslPredicate(root = OutsourcePool.class) Predicate predicate,
-                                                                         @ApiIgnore Pageable pageable,
-                                                                         @RequestHeader(value = "X-UserToken") String token) {
-        log.debug("Rest request get all closed outsource case");
-        User user = null;
-        try {
-            user = getUserByToken(token);
-        } catch (final Exception e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "user do not log in", e.getMessage())).body(null);
-        }
-        try {
-            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
-            BooleanBuilder builder = new BooleanBuilder(predicate);
-            //查询所有已结案案件
-            builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode()));
+            builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
             Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
@@ -1544,8 +1505,9 @@ public class OutsourcePoolController extends BaseController {
     @PostMapping("/returnOutsourceCase")
     @ApiOperation(value = "收回委外案件", notes = "收回委外案件")
     public ResponseEntity<List<CaseInfoReturn>> returnOutsourceCase(@RequestBody OutCaseIdList outCaseIdList,
-                                                                   @RequestParam(required = true) String returnReason,
-                                                                   @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+                                                                    @RequestParam(required = true) String returnReason,
+                                                                    @RequestParam(required = false) String companyCode,
+                                                                    @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
         try {
             List<String> outCaseIds = outCaseIdList.getOutCaseIds();
             List<OutsourcePool> outsourcePools = new ArrayList<>();
