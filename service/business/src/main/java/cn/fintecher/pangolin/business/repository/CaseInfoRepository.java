@@ -208,4 +208,44 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
     @Query("update CaseInfo acc set acc.assistStatus=212 where acc.collectionStatus not in(24,166) and acc.id in ?1")
     void updateCaseStatusToCollectioning(Set<String> cupoIds);
 
+    /**
+     * 获取部门级别的共债案件
+     *
+     * @return
+     */
+    @Query(value = "select depart_id,count(*) num " +
+            "from case_info c " +
+            "left join personal p " +
+            "on p.id = c.personal_id " +
+            "where collection_type = 15 " +
+            "and current_collector is null " +
+            "and depart_id is not null " +
+            "and collection_status in (21,22,23,171,172) " +
+            "and c.company_code =:companyCode " +
+            "and p.name =:personName " +
+            "and p.id_card =:idCard " +
+            "GROUP BY depart_id " +
+            "ORDER BY num desc " +
+            "LIMIT 1", nativeQuery = true)
+    Object[] findCaseByDept(@Param("personName") String personName,@Param("idCard") String idCard,@Param("companyCode") String companyCode);
+
+    /**
+     * 获取部门级别的共债案件
+     *
+     * @return
+     */
+
+    @Query(value = "select current_collector,count(*) num " +
+            "from case_info c " +
+            "left join personal p " +
+            "on p.id = c.personal_id " +
+            "where current_collector is not null " +
+            "and collection_status in (21,22,23,171,172) " +
+            "and c.company_code =:companyCode " +
+            "and p.name =:personName " +
+            "and p.id_card =:idCard " +
+            "GROUP BY current_collector " +
+            "ORDER BY num desc " +
+            "LIMIT 1", nativeQuery = true)
+    Object findCaseByCollector(@Param("personName") String personName,@Param("idCard") String idCard,@Param("companyCode") String companyCode);
 }
