@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -2085,6 +2084,11 @@ public class CaseInfoService {
         }
     }
 
+    /**
+     * 内催回收案件移入待分配池
+     * @param idList
+     * @param user
+     */
     public void moveToDistribution(CaseInfoIdList idList, User user) {
         if (Objects.isNull(idList.getIds()) || idList.getIds().isEmpty()) {
             throw new RuntimeException("请选择要移动的案件");
