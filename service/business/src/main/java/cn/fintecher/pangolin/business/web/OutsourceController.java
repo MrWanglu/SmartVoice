@@ -103,7 +103,7 @@ public class OutsourceController extends BaseController {
             outsource.setOperateTime(ZWDateUtil.getNowDateTime()); //创建时间
             outsource.setUser(user);
             Outsource outsourceReturn = outsourceRepository.save(outsource);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(outsourceReturn);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(outsourceReturn);
         } else {
             Outsource outsource1 = outsourceRepository.findOne(outsource.getId());
             //验证委外方是否重名
@@ -115,7 +115,7 @@ public class OutsourceController extends BaseController {
             }
             BeanUtils.copyProperties(outsource, outsource1);
             Outsource outsource2 = outsourceRepository.save(outsource1);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(outsource2);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(outsource2);
         }
     }
 
@@ -189,7 +189,7 @@ public class OutsourceController extends BaseController {
         }
         builder.and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode()));
         Page<Outsource> page = outsourceRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);
     }
 
     /**
@@ -215,7 +215,7 @@ public class OutsourceController extends BaseController {
         Outsource outsource = outsourceRepository.findOne(id);
         outsource.setFlag(Outsource.deleteStatus.BLOCK.getDeleteCode());
         Outsource outsource1 = outsourceRepository.save(outsource);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
     }
 
     /**
@@ -244,6 +244,6 @@ public class OutsourceController extends BaseController {
         builder.and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode()));
         Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(builder).iterator();
         List<Outsource> outsourceList = IteratorUtils.toList(outsourceIterator);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(outsourceList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(outsourceList);
     }
 }

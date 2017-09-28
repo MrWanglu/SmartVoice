@@ -182,7 +182,7 @@ public class BatchManageController extends BaseController {
         Object[] objects = batchManageRepository.batchManageFind(companyCode);
         List<BatchManageList> batchManageLists = new ArrayList<>();
         if (objects.length == 1 && Objects.isNull(((Object[]) objects[0])[0])) {
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
         }
         for (int i = 0; i < objects.length; i++) {
             Object[] object = (Object[]) objects[i];

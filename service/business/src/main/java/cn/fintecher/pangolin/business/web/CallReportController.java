@@ -117,7 +117,7 @@ public class CallReportController extends BaseController {
                 smaRecordReturn.setRealName(objects1[2].toString());
                 smaRecordReturns.add(smaRecordReturn);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(smaRecordReturns);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(smaRecordReturns);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operation failure", "操作失败")).body(null);

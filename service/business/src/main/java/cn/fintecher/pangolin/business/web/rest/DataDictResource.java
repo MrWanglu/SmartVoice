@@ -42,6 +42,6 @@ public class DataDictResource {
         while (dataDicts.hasNext()) {
             dataDictList.add(dataDicts.next());
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(dataDictList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(dataDictList);
     }
 }

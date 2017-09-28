@@ -100,7 +100,7 @@ public class SysParamController extends BaseController {
             builder.and(qSysParam.companyCode.eq(companyCode));
         }
         Page<SysParam> page = sysParamRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);
     }
 
     /**
@@ -241,6 +241,6 @@ public class SysParamController extends BaseController {
             }
         }
         SysParam sysParam1 = sysParamRepository.save(sysParam);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(sysParam1);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(sysParam1);
     }
 }

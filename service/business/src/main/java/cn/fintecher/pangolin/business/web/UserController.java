@@ -267,7 +267,7 @@ public class UserController extends BaseController {
         List<Role> roles = roleRepository.findAll(request.getRoleIds());
         user.getRoles().addAll(roles);
         User userReturn = userService.save(user);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(userReturn);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(userReturn);
     }
 
     /**
@@ -283,7 +283,7 @@ public class UserController extends BaseController {
             user.getRoles().addAll(roles);
             userService.save(user);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
     }
 
     /**
@@ -335,7 +335,7 @@ public class UserController extends BaseController {
         }
         builder.and(qUser.status.eq(0));
         Page<User> page = userRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);
 
     }
 
@@ -383,7 +383,7 @@ public class UserController extends BaseController {
             builder.and(qUser.companyCode.eq(user.getCompanyCode()));
         }
         Page<User> page = userRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);
     }
 
     /**
@@ -418,7 +418,7 @@ public class UserController extends BaseController {
         while (users.hasNext()) {
             userList.add(users.next());
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(userList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(userList);
     }
 
     /**
@@ -463,7 +463,7 @@ public class UserController extends BaseController {
             builder.and(qUser.companyCode.eq(user.getCompanyCode()));
         }
         Page<User> page = userRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);
     }
     /**
      * @Description : 查询外访机构下的用户
@@ -597,7 +597,7 @@ public class UserController extends BaseController {
             if (url == null) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The upload server failed", "上传服务器失败")).body(null);
             } else {
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(url.getBody());
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(url.getBody());
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

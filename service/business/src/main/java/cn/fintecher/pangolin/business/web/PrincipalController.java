@@ -162,7 +162,7 @@ public class PrincipalController extends BaseController {
         Principal principal = principalRepository.findOne(id);
         principal.setFlag(Principal.deleteStatus.BLOCK.getDeleteCode());
         Principal principal1 = principalRepository.save(principal);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
     }
 
     /**
@@ -217,7 +217,7 @@ public class PrincipalController extends BaseController {
             request.setOperatorTime(ZWDateUtil.getNowDateTime()); //创建时间
             request.setUser(user);
             Principal principalReturn = principalRepository.save(request);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(principalReturn);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(principalReturn);
         } else {
             Principal principal = principalRepository.findOne(request.getId());
             //验证委外方是否重名
@@ -229,7 +229,7 @@ public class PrincipalController extends BaseController {
             }
             BeanUtils.copyProperties(request, principal);
             Principal principalReturn = principalRepository.save(principal);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(principalReturn);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(principalReturn);
         }
     }
 }

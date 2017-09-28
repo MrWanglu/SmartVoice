@@ -129,7 +129,7 @@ public class ScoreStrategyController {
                 sorceRules.add(scoreRule);
             }
             sorceRules = scoreRuleRepository.save(sorceRules);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert("scoreStregy", "operate successfully", "新增评分记录成功")).body(sorceRules);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("新增评分记录成功", "")).body(sorceRules);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStregy", "no message", "新增失败")).body(null);

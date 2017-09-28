@@ -39,7 +39,7 @@ public class DataDictController extends BaseController {
         String code = String.valueOf(list.hashCode());
         Map<String, String> map = new HashMap<String, String>();
         map.put("dataDictHashCode", code);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取HashCode")).body(map);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取HashCode", "")).body(map);
     }
 
     /**
@@ -49,7 +49,7 @@ public class DataDictController extends BaseController {
     @ApiOperation(value = "获取数据字典所有数据", notes = "获取数据字典所有数据")
     public ResponseEntity<List<DataDict>> getAll() {
         List<DataDict> list = dataDictRepository.findAll();
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(list);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(list);
 
     }
 
@@ -60,7 +60,7 @@ public class DataDictController extends BaseController {
     @ApiOperation(value = "通过TypeCode查找数据字典列表", notes = "通过TypeCode查找数据字典列表")
     public ResponseEntity<List<DataDict>> getDataDictByTypeCode(@RequestParam String typeCode) {
         List<DataDict> dataDictList = dataDictResource.getDataDictByTypeCode(typeCode).getBody();
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(dataDictList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(dataDictList);
     }
 }
 

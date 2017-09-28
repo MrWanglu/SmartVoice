@@ -98,7 +98,7 @@ public class OutSourceCommssionController extends BaseController {
             builder.and(qOutSourceCommssion.outsId.eq(outsId));
         }
         Page<OutSourceCommssion> page = outSourceCommssionRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);
     }
 
     /**
@@ -162,7 +162,7 @@ public class OutSourceCommssionController extends BaseController {
                 exist.add(outSourceCommssion);
             }
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(exist);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(exist);
     }
 
     /**
@@ -185,7 +185,7 @@ public class OutSourceCommssionController extends BaseController {
                 outSourceCommssionRepository.delete(id);
             }
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
     }
 
 
@@ -233,7 +233,7 @@ public class OutSourceCommssionController extends BaseController {
         }
         if (objects.length == 1 && Objects.isNull(((Object[]) objects[0])[0])) {
             List kong = new ArrayList();
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(kong);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(kong);
         }
         List<ObjectReturn> objectReturnList = new ArrayList<>();
         for (int i = 0; i < objects.length; i++) {
@@ -337,7 +337,7 @@ public class OutSourceCommssionController extends BaseController {
                 }
             }
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(objectReturnList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(objectReturnList);
     }
 
     /**
@@ -422,7 +422,7 @@ public class OutSourceCommssionController extends BaseController {
             if (url == null) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail to upload", "上传服务器失败")).body(null);
             } else {
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(url.getBody());
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(url.getBody());
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);

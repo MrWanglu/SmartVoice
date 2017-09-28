@@ -166,6 +166,6 @@ public class TotalPageAppController extends BaseController {
         }
         user.setPhoto(photoUrl);
         userRepository.saveAndFlush(user);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert("User", "", "修改头像成功")).body(user);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("修改头像成功", "")).body(user);
     }
 }

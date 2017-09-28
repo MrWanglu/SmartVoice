@@ -95,7 +95,7 @@ public class SystemBackupController extends BaseController {
             builder.and(qSystemBackup.operator.like(operator.concat("%")));
         }
         Page<SystemBackup> page = systemBackupRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);
     }
 
     /**
@@ -147,7 +147,7 @@ public class SystemBackupController extends BaseController {
         request.setOperateTime(ZWDateUtil.getNowDateTime());
         //增加系统数据库备份
         SystemBackup systemBackup = systemBackupRepository.save(request);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(systemBackup);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(systemBackup);
     }
 
     /**
@@ -187,7 +187,7 @@ public class SystemBackupController extends BaseController {
         if (!Objects.equals("success", mongodbResult)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail to recover mongodb database", "mongodb数据库恢复失败")).body(null);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body("mysql"+mysqlResult+"mongodb"+mongodbResult);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body("mysql"+mysqlResult+"mongodb"+mongodbResult);
     }
 
     /**
@@ -207,6 +207,6 @@ public class SystemBackupController extends BaseController {
         for (String id : request.getIds()) {
             systemBackupRepository.delete(id);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
     }
 }

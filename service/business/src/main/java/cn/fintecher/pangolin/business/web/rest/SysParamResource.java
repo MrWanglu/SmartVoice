@@ -42,7 +42,7 @@ public class SysParamResource {
         //普通的管理员的系统参数 普通管理员必须传 companyCode
         SysParam sysParams = sysParamRepository.findOne(qSysParam.code.eq(code).and(qSysParam.type.eq(type)).and(qSysParam.companyCode.eq(companyCode)));
         if (Objects.nonNull(sysParams)) {
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(sysParams);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(sysParams);
         } else {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "fail to get", "获取失败")).body(null);
         }

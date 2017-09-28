@@ -44,6 +44,6 @@ public class JobTaskController extends BaseController {
                 .and(qCaseFollowupRecord.id.isNull())//无跟进记录的案件
                 .and(qCaseInfo.companyCode.eq("0001")));//公司码*//*
       //jpaQuery.fetch();*/
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"updateOverNightJob","更新成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("更新成功","")).body(null);
     }
 }

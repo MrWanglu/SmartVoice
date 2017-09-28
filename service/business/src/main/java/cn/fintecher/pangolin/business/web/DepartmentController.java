@@ -66,7 +66,7 @@ public class DepartmentController extends BaseController {
     @ApiOperation(value = "组织机构的type属性", notes = "组织机构的type属性")
     public ResponseEntity<List<DataDict>> getDepartmentType() {
         List<DataDict> dataDictList = dataDictService.getDataDictByTypeCode("0001");
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(dataDictList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(dataDictList);
     }
 
     /**
@@ -76,7 +76,7 @@ public class DepartmentController extends BaseController {
     @GetMapping("/getDepartmentLevel")
     public ResponseEntity<List<DataDict>> getDepartmentLevel() {
         List<DataDict> dataDictList = dataDictService.getDataDictByTypeCode("0002");
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(dataDictList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(dataDictList);
     }
 
     /**
@@ -128,7 +128,7 @@ public class DepartmentController extends BaseController {
         department.setOperator(user.getUserName());
         department.setOperateTime(ZWDateUtil.getNowDateTime());
         Department result = departmentRepository.save(department);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(result);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(result);
     }
 
     /**
@@ -241,7 +241,7 @@ public class DepartmentController extends BaseController {
             }
         }
         Department result = departmentRepository.save(department);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(result);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(result);
     }
 
     /**
@@ -334,7 +334,7 @@ public class DepartmentController extends BaseController {
             builder.and(QDepartment.department.companyCode.eq(user.getCompanyCode()));
         }
         Page<Department> page = departmentRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(page);
     }
 
     /**
@@ -358,7 +358,7 @@ public class DepartmentController extends BaseController {
         builder.and(QDepartment.department.type.in(Department.Type.TELEPHONE_COLLECTION.getValue(), Department.Type.OUTBOUND_COLLECTION.getValue(), Department.Type.SYNTHESIZE_MANAGEMENT.getValue()));
         Iterator<Department> departmentIterator = departmentRepository.findAll(builder).iterator();
         List<Department> departmentList = IteratorUtils.toList(departmentIterator);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(departmentList);
     }
 
     /**
@@ -369,7 +369,7 @@ public class DepartmentController extends BaseController {
     public ResponseEntity<Department> getDepartment(@PathVariable String id) {
         log.debug("REST request to get department : {}", id);
         Department department = departmentRepository.findOne(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(department);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(department);
     }
 
     /**
@@ -391,7 +391,7 @@ public class DepartmentController extends BaseController {
         while (departments.hasNext()) {
             departmentList.add(departments.next());
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(departmentList);
     }
 
     /**
@@ -419,7 +419,7 @@ public class DepartmentController extends BaseController {
                     departmentList.add(departments.next());
                 }
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(departmentList);
         }
         List<Department> departmentList = new ArrayList<>();
         QDepartment qDepartment = QDepartment.department;
@@ -427,7 +427,7 @@ public class DepartmentController extends BaseController {
         while (departments.hasNext()) {
             departmentList.add(departments.next());
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(departmentList);
     }
 
     /**
@@ -459,7 +459,7 @@ public class DepartmentController extends BaseController {
             dept.setCode(deptParent.getCode() + "_" + ShortUUID.generateShortUuid());
             dept.setParent(deptParent);
             Department department = departmentRepository.save(dept);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(department);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(department);
         }
         //如果子部门和父部门的类型不一致需要判断部门下的案件和用户
         //首先的移除部门下面的用户
@@ -495,7 +495,7 @@ public class DepartmentController extends BaseController {
         dept.setCode(deptParent.getCode() + "_" + ShortUUID.generateShortUuid());
         dept.setParent(deptParent);
         Department department = departmentRepository.save(dept);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(department);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(department);
     }
 
     /**
@@ -516,7 +516,7 @@ public class DepartmentController extends BaseController {
         }
         Iterator<Department> departments = departmentRepository.findAll(builder).iterator();
         List<Department> departmentList = IteratorUtils.toList(departments);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(departmentList);
     }
 
     /**
@@ -549,6 +549,6 @@ public class DepartmentController extends BaseController {
         }
         Iterator<Department> departmentList = departmentRepository.findAll(builder).iterator();
         List<Department> departmentList1 = IteratorUtils.toList(departmentList);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(departmentList1);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(departmentList1);
     }
 }

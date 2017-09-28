@@ -134,7 +134,7 @@ public class CaseStrategyController {
         }
         caseStrategy.setId(UUID.randomUUID().toString());
         List<CaseInfoDistributed> caseInfoLsit = runCaseRun(caseStrategy, true, companyCode);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "预览成功")).body(caseInfoLsit);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("预览成功", "")).body(caseInfoLsit);
     }
 
     @ApiModelProperty
@@ -176,7 +176,7 @@ public class CaseStrategyController {
         caseStrategy.setCreateTime(ZWDateUtil.getNowDateTime());
         caseStrategy.setCreator(userResult.getBody().getRealName());
         CaseStrategy caseStrategyNew = caseStrategyRepository.save(caseStrategy);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "解析成功")).body(caseStrategyNew);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("解析成功", "")).body(caseStrategyNew);
     }
 
     @ApiModelProperty
@@ -350,7 +350,7 @@ public class CaseStrategyController {
                 }
             }
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "分配成功")).body(caseInfoObjList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", "")).body(caseInfoObjList);
     }
 
     @ApiModelProperty
@@ -391,7 +391,7 @@ public class CaseStrategyController {
             logger.error(ex.getMessage(), ex);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "删除分配策略规则失败")).body(null);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "删除成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功", "")).body(null);
     }
 
     private String analysisRule(String jsonObject, StringBuilder stringBuilder) {

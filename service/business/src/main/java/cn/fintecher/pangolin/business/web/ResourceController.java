@@ -52,7 +52,7 @@ public class ResourceController extends BaseController {
     @ApiOperation(value = "资源的level属性", notes = "资源的level属性")
     public ResponseEntity<List<DataDict>> getResourceLevel() {
         List<DataDict> dataDictList = dataDictService.getDataDictByTypeCode("0029");
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(dataDictList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(dataDictList);
 
     }
 
@@ -63,7 +63,7 @@ public class ResourceController extends BaseController {
     @ApiOperation(value = "资源的type属性", notes = "资源的type属性")
     public ResponseEntity<List<DataDict>> getResourceType() {
         List<DataDict> dataDictList = dataDictService.getDataDictByTypeCode("0030");
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(dataDictList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(dataDictList);
     }
 
     /**
@@ -73,7 +73,7 @@ public class ResourceController extends BaseController {
     @ApiOperation(value = "资源的filetype属性", notes = "资源的filetype属性")
     public ResponseEntity<List<DataDict>> getResourceFileType() {
         List<DataDict> dataDictList = dataDictService.getDataDictByTypeCode("0031");
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(dataDictList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(dataDictList);
     }
 
     /**
@@ -83,7 +83,7 @@ public class ResourceController extends BaseController {
     @ApiOperation(value = "资源的flag属性", notes = "资源的flag属性")
     public ResponseEntity<List<DataDict>> getResourceStatus() {
         List<DataDict> dataDictList = dataDictService.getDataDictByTypeCode("0032");
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(dataDictList);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(dataDictList);
     }
 
     /**
@@ -110,7 +110,7 @@ public class ResourceController extends BaseController {
                     "Can't add without permission", "没有权限不能添加")).body(null);
         }
         resourceService.save(resource);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
     }
 
     /**
@@ -137,7 +137,7 @@ public class ResourceController extends BaseController {
                     "Can't add without permission", "没有权限不能添加")).body(null);
         }
         resourceService.save(resource);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
     }
 
     /**
@@ -160,7 +160,7 @@ public class ResourceController extends BaseController {
     @ApiOperation(value = "获取所有资源", notes = "获取所有资源")
     public ResponseEntity<List<Resource>> getAllResource() {
         List<Resource> list = resourceService.findAll();
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(list);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(list);
     }
 
     /**
@@ -180,7 +180,7 @@ public class ResourceController extends BaseController {
             resource.getRoles().add(role);
             resourceService.save(resource);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
     }
 
     /**
@@ -237,6 +237,6 @@ public class ResourceController extends BaseController {
             builder.and(qResource.fileType.eq(fileType));
         }
         Page<Resource> page = resourceRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "操作成功")).body(page);
     }
 }

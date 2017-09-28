@@ -103,7 +103,7 @@ public class OutBackSourceController extends BaseController {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请操作委外中案件")).body(null);
                 }
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", " 操作成功")).body(outBackSource);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", " ")).body(outBackSource);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);

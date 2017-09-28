@@ -92,7 +92,7 @@ public class CaseInfoHistoryController extends BaseController {
                 builder.and(qCaseInfo.currentCollector.eq(user).or(qCaseInfo.assistCollector.eq(user)));
             }
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
-            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllCaseInfo", "系统异常!")).body(null);

@@ -96,6 +96,6 @@ public class SystemLogController extends BaseController {
             builder.and(qSystemLog.remark.like(remark.concat("%")));
         }
         Page<SystemLog> page = systemLogRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);
     }
 }

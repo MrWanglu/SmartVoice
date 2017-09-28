@@ -67,7 +67,7 @@ public class CompanyController extends BaseController {
         company.setOperator(user.getRealName());
         company.setOperateTime(ZWDateUtil.getNowDateTime());
         Company result = companyRepository.save(company);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(result);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(result);
     }
 
     /**
@@ -96,7 +96,7 @@ public class CompanyController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User name cannot be repeated", "公司名，公司英文名，公司code不能与其他公司重复")).body(null);
         }
         Company result = companyRepository.save(company);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(result);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(result);
     }
 
     /**
@@ -106,7 +106,7 @@ public class CompanyController extends BaseController {
     public ResponseEntity<Void> deleteCompany(@PathVariable String id) {
         logger.debug("REST request to delete caseInfo : {}", id);
         companyRepository.delete(id);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
     }
 
     /**
@@ -175,7 +175,7 @@ public class CompanyController extends BaseController {
             builder.and(qCompany.contactPerson.like(contactPerson.concat("%")));
         }
         Page<Company> page = companyRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);
     }
 
     /**
@@ -185,7 +185,7 @@ public class CompanyController extends BaseController {
     @ApiOperation(value = "获取所有公司", notes = "获取所有公司")
     public ResponseEntity<List<Company>> getAllCompany() {
         List<Company> list = companyRepository.findAll();
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(list);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(list);
     }
 
     /**
@@ -196,7 +196,7 @@ public class CompanyController extends BaseController {
     public ResponseEntity<Company> getCompanyByCode(@RequestParam String code) {
         QCompany qCompany = QCompany.company;
         Company company = companyRepository.findOne(qCompany.code.eq(code));
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(company);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(company);
     }
 
     /**

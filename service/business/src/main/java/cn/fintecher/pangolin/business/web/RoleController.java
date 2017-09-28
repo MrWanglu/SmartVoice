@@ -94,7 +94,7 @@ public class RoleController extends BaseController {
             builder.and(qRole.operator.like(operator.concat("%")));
         }
         Page<Role> page = roleRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);
     }
 
     /**

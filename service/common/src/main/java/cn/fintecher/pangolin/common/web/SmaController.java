@@ -85,7 +85,7 @@ public class SmaController {
     @ApiOperation(value = "呼叫类型", notes = "呼叫类型")
     public ResponseEntity<List<DataDict>> getSmaType() {
         ResponseEntity<List<DataDict>> dataDict = dataDictClient.getDataDictByTypeCode("0038");
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "invented successfully", "获取成功")).body(dataDict.getBody());
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(dataDict.getBody());
     }
 
     /**
@@ -192,7 +192,7 @@ public class SmaController {
                 falseMap.put("id", request.getTaskId());//呼叫流程id
                 falseMap.put("resultTaskId", "61925452-cbcc-490c-acfd-7e6994a69d68");
                 falseMap.put("taskId", "603881051");
-                return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(falseMap);
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(falseMap);
             }
 
 //         163 erpv3     165  云羿
@@ -236,7 +236,7 @@ public class SmaController {
                     map.put("response", response.toString());
         /* getResponseBodyAsStream start */
                     method.releaseConnection();
-                    return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(map);
+                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(map);
                 } catch (IOException e) {
                     e.printStackTrace();
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "be defeated", "失败")).body(null);
@@ -260,7 +260,7 @@ public class SmaController {
                     sendDataUtf821 = head21 + sendDataUtf821;
                     pw.print(sendDataUtf821);
                     pw.flush();
-                    return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(null);
+                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
                 } catch (IOException e) {
                     e.printStackTrace();
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "be defeated", "失败")).body(null);
