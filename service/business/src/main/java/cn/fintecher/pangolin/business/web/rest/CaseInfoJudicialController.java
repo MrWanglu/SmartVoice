@@ -83,7 +83,7 @@ public class CaseInfoJudicialController extends BaseController{
             }else {
                 for (CaseInfo caseInfo : caseInfoList) {
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); // 催收类型：已结案
-                    caseInfo.setEndType(CaseInfo.EndType.JUDGMENT_CLOSED.getValue()); // 结案方式：核销结案
+                    caseInfo.setEndType(CaseInfo.EndType.JUDGMENT_CLOSED.getValue()); // 结案方式：司法结案
                     caseInfoRepository.save(caseInfo);
                 }
             }

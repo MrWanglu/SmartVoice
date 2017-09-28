@@ -534,9 +534,9 @@ public class OutsourcePoolController extends BaseController {
                     caseInfoVerificationApply.setCompanyCode(caseInfo.getCompanyCode());
                     caseInfoVerificationApply.setCommissionRate(caseInfo.getCommissionRate()); // 佣金比例
                     if (Objects.nonNull(caseInfo.getArea())) {
-                        caseInfoVerificationApply.setCityId(caseInfo.getArea().getId()); // 城市
+                        caseInfoVerificationApply.setCity(caseInfo.getArea().getId()); // 城市
                         if (Objects.nonNull(caseInfo.getArea().getParent())) {
-                            caseInfoVerificationApply.setProvinceId(caseInfo.getArea().getParent().getId()); // 省份
+                            caseInfoVerificationApply.setProvince(caseInfo.getArea().getParent().getId()); // 省份
                         }
                     }
                     if (Objects.nonNull(caseInfo.getPrincipalId())) {

@@ -307,9 +307,9 @@ public class CaseInfoVerificationService {
         apply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue()); // 申请状态：审批待通过
         apply.setCaseId(caseInfo.getId()); // 案件Id
         if (Objects.nonNull(caseInfo.getArea())) {
-            apply.setCityId(caseInfo.getArea().getId()); // 城市
+            apply.setCity(caseInfo.getArea().getId()); // 城市
             if (Objects.nonNull(caseInfo.getArea().getParent())) {
-                apply.setProvinceId(caseInfo.getArea().getParent().getId()); // 省份
+                apply.setProvince(caseInfo.getArea().getParent().getId()); // 省份
             }
         }
         if (Objects.nonNull(caseInfo.getPrincipalId())) {
