@@ -55,6 +55,7 @@ public class ParseExcelTask {
         if (dataIndex.contains(rowIndex)) {
             return;
         }
+        boolean flag = false;
 
         //反射创建实体对象
         Object obj = null;
@@ -69,16 +70,23 @@ public class ParseExcelTask {
                     //获取该列对应的头部信息中文
                     String titleName = headerMap.get(colIndex);
                     Cell cell = dataRow.getCell(colIndex);
-                    matchFields(dataClass, columnErrorList, obj, colIndex, titleName, cell);
+                    if(cell != null && !cell.toString().trim().equals("")) {
+                        flag = true;
+                        matchFields(dataClass, columnErrorList, obj, colIndex, titleName, cell);
+                    }
                 }
-                DataInfoExcel dataInfoExcel = (DataInfoExcel) obj;
-                saveDataInfoExcelAndError(dataInfoExcel, dataImportRecord, columnErrorList, rowError, rowIndex);
+                if(flag == true){
+                    DataInfoExcel dataInfoExcel = (DataInfoExcel) obj;
+                    saveDataInfoExcelAndError(dataInfoExcel, dataImportRecord, columnErrorList, rowError, rowIndex);
+                }
             } else {
                 //配置模板
+                List<ColumnError> columnErrorList = new ArrayList<>();
                 for (TemplateExcelInfo templateExcelInfo : templateExcelInfos) {
                     if (StringUtils.isNotBlank(templateExcelInfo.getRelateName())) {
                         Cell cell = dataRow.getCell(templateExcelInfo.getCellNum());
                         if (cell != null && !cell.toString().trim().equals("")) {
+                            flag = true;
                             //获取类中所有的字段
                             Field[] fields = dataClass.getDeclaredFields();
                             for (Field field : fields) {
@@ -97,6 +105,10 @@ public class ParseExcelTask {
                             }
                         }
                     }
+                }
+                if(flag == true){
+                    DataInfoExcel dataInfoExcel = (DataInfoExcel) obj;
+                    saveDataInfoExcelAndError(dataInfoExcel, dataImportRecord, columnErrorList, rowError, rowIndex);
                 }
             }
         } catch (Exception e) {

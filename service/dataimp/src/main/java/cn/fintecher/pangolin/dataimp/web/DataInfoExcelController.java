@@ -97,7 +97,7 @@ public class DataInfoExcelController {
 
     @PostMapping("/importExcelData")
     @ApiOperation(value = "案件导入", notes = "案件导入")
-    public ResponseEntity<List<CellError>> importExcelData(@RequestBody DataImportRecord dataImportRecord,
+    public ResponseEntity<String> importExcelData(@RequestBody DataImportRecord dataImportRecord,
                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         ResponseEntity<User> userResponseEntity = null;
         try {
@@ -117,8 +117,11 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择委托方!")).body(null);
         }
         try {
-            dataInfoExcelService.importExcelData(dataImportRecord, user);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_NAME, "导入成功")).body(null);
+            String batchNumber = dataInfoExcelService.importExcelData(dataImportRecord, user);
+            if (StringUtils.isBlank(batchNumber)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "导入失败")).body(null);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_NAME, "导入成功")).body(batchNumber);
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
