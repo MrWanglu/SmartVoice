@@ -201,7 +201,7 @@ public class PaymentController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", ENTITY_CASE_PAY_APPLY)).body(url);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_PAY_APPLY, "casePayApply", "导出失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_PAY_APPLY, "casePayApply", e.getMessage())).body(null);
         }
     }
 }
