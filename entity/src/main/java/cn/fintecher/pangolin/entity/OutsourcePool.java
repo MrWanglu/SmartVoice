@@ -62,6 +62,13 @@ public class OutsourcePool extends BaseEntity {
     @ApiModelProperty("委外结案日期")
     private Date endOutsourceTime;
 
+    //Added by huyanmin 2017/9/25
+    @ApiModelProperty("佣金比例")
+    private String commissionRate;
+
+    //Added by huyanmin 2017/9/25
+    @ApiModelProperty("佣金金额")
+    private String commission;
 
     public enum OutStatus {
 
