@@ -89,3 +89,10 @@ ALTER TABLE outsource_pool ADD end_outsource_time date DEFAULT NULL COMMENT '已
 --2017-09-27 huyanmin 增加新的权限码
 INSERT INTO `resource` VALUES ('816', '156', '催大人', '导出还款明细', '06020C', NULL, NULL, NULL, NULL, NULL, 19, NULL, NULL, NULL, NULL, 816);
 INSERT INTO `resource` VALUES ('817', '156', '催大人', '按钮', '06020D', NULL, NULL, NULL, NULL, NULL, 19, NULL, NULL, NULL, NULL, 817);
+
+--2017-09-28 孙艳平 增加数据字典项
+INSERT INTO `data_dict_type` (`id`, `code`, `name`) VALUES ('51', '0051', '策略类型');
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('230', '0051', NULL, '导入案件分配策略', '0');
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('231', '0051', NULL, '内催池案件分配策略', '1');
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('232', '0051', NULL, '委外池案件分配策略', '2');
+

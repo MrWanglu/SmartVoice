@@ -6,7 +6,6 @@ import cn.fintecher.pangolin.dataimp.model.CaseInfoDisModel;
 import cn.fintecher.pangolin.dataimp.repository.CaseStrategyRepository;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
-import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -17,6 +16,7 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import io.swagger.annotations.*;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.kie.api.KieServices;
@@ -63,7 +63,6 @@ public class CaseStrategyController {
     private RestTemplate restTemplate;
 
     private final Logger logger = LoggerFactory.getLogger(CaseStrategy.class);
-    private static final String ENTITY_TEMPLATE = "caseStrategy";
     private static final String ENTITY_NAME = "caseStrategy";
 
     @GetMapping("getCaseStrategy")
@@ -137,46 +136,60 @@ public class CaseStrategyController {
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("预览成功", "")).body(caseInfoLsit);
     }
 
-    @ApiModelProperty
     @PostMapping("/addCaseStrategy")
-    @ApiOperation(value = "生成案件分配策略", notes = "生成案件分配策略")
-    public ResponseEntity addCaseStrategy(@RequestBody CaseStrategy caseStrategy, @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws IOException, TemplateException {
-        caseStrategy = (CaseStrategy) EntityUtil.emptyValueToNull(caseStrategy);
-        if (Objects.isNull(caseStrategy)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no message", "没有分配策略信息")).body(null);
-        }
-        if (ZWStringUtils.isEmpty(caseStrategy.getStrategyJson())) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no message", "没有分配策略信息")).body(null);
-        }
-        //获取用户
-        ResponseEntity<User> userResult = null;
-        try {
-            userResult = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "system error", "系统异常")).body(null);
-        }
-        if (!userResult.hasBody()) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no login", "用户没有登录")).body(null);
-        }
-        try {
-            StringBuilder sb = new StringBuilder();
-            analysisRule(caseStrategy.getStrategyJson(), sb);
-            caseStrategy.setStrategyText(sb.toString());
-        } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
+    @ApiOperation(value = "新增/修改策略", notes = "新增/修改策略")
+    public ResponseEntity addCaseStrategy(@RequestBody CaseStrategy caseStrategy,
+                                          @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws IOException, TemplateException {
 
+        ResponseEntity<User> userResponseEntity = null;
+        try {
+            userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "user", "请登录!")).body(null);
         }
-        User user = userResult.getBody();
-        if (Objects.isNull(user.getCompanyCode())) {//如果是超级管理员，code码为空
-            caseStrategy.setCompanyCode(null);
-        } else {
-            caseStrategy.setCompanyCode(user.getCompanyCode());
+        User user = userResponseEntity.getBody();
+        if (Objects.isNull(user.getCompanyCode())) {
+            if (StringUtils.isBlank(caseStrategy.getCompanyCode())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择公司")).body(null);
+            }
+            user.setCompanyCode(caseStrategy.getCompanyCode());
         }
-        caseStrategy.setCreateTime(ZWDateUtil.getNowDateTime());
-        caseStrategy.setCreator(userResult.getBody().getRealName());
-        CaseStrategy caseStrategyNew = caseStrategyRepository.save(caseStrategy);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("解析成功", "")).body(caseStrategyNew);
+        Integer strategyType = caseStrategy.getStrategyType();
+        StringBuilder sb = new StringBuilder();
+        try {
+            analysisRule(caseStrategy.getStrategyJson(), sb);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+        try {
+            String strategyText = sb.toString();
+            CaseStrategy cs = new CaseStrategy();
+            cs.setCreateTime(new Date());
+            cs.setCreator(user.getRealName());
+            cs.setCreatorId(user.getId());
+            cs.setCompanyCode(user.getCompanyCode());
+            cs.setName(caseStrategy.getName());
+            cs.setStrategyJson(caseStrategy.getStrategyJson());
+            cs.setStrategyText(strategyText);
+            cs.setPriority(caseStrategy.getPriority());
+            if (Objects.isNull(strategyType)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要新增的策略类型")).body(null);
+            } else if (Objects.equals(strategyType, CaseStrategy.StrategyType.IMPORT.getValue())) {
+                cs.setStrategyType(CaseStrategy.StrategyType.IMPORT.getValue());
+            } else if (Objects.equals(strategyType, CaseStrategy.StrategyType.INNER.getValue())) {
+                cs.setStrategyType(CaseStrategy.StrategyType.INNER.getValue());
+            } else if (Objects.equals(strategyType, CaseStrategy.StrategyType.OUTS.getValue())) {
+                cs.setStrategyType(CaseStrategy.StrategyType.OUTS.getValue());
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "未匹配到要新增的策略类型")).body(null);
+            }
+            caseStrategyRepository.save(cs);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("新增成功", "")).body(null);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"", "新增失败!")).body(null);
+        }
     }
 
     @ApiModelProperty
@@ -350,7 +363,7 @@ public class CaseStrategyController {
                 }
             }
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", "")).body(caseInfoObjList);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "分配成功")).body(caseInfoObjList);
     }
 
     @ApiModelProperty
@@ -391,7 +404,7 @@ public class CaseStrategyController {
             logger.error(ex.getMessage(), ex);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "删除分配策略规则失败")).body(null);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功", "")).body(null);
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "删除成功")).body(null);
     }
 
     private String analysisRule(String jsonObject, StringBuilder stringBuilder) {
