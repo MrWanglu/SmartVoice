@@ -33,7 +33,7 @@ public class RecordDayScheduled {
     @Value("${pangolin.yunyi-server.timeout}")
     private int timeout;
 
-    @Scheduled(cron = "0/59 * * * * ?")
+    @Scheduled(cron = "0 59 23 * * ?")
     void callHeartBeat() throws IOException {
         log.info("发送心跳" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
         try {
