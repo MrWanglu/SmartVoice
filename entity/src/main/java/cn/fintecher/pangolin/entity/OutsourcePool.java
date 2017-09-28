@@ -70,6 +70,7 @@ public class OutsourcePool extends BaseEntity {
     @ApiModelProperty("佣金金额")
     private String commission;
 
+
     public enum OutStatus {
 
         //待委外
