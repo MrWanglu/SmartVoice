@@ -133,7 +133,7 @@ public class UserBackcashPlanExcelImportService {
         String username = data.getUserName();
         if (StringUtils.isBlank(username)) {
             CellError cellError = new CellError();
-            cellError.setErrorMsg("用户名不能为空！");
+            cellError.setErrorMsg("导入的用户名不能为空！");
             cellErrorList.add(cellError);
             return false;
         } else {
@@ -192,10 +192,10 @@ public class UserBackcashPlanExcelImportService {
             }
             // 判断用户名和姓名是否对应正确
             String realName = data.getRealName();
-            User user = userRepository.findOne(QUser.user.realName.eq(realName));
-            if (Objects.isNull(user)) {
+            User user = userRepository.findOne(QUser.user.userName.eq(username));
+            if (!Objects.equals(user.getRealName(),realName)) {
                 CellError cellError = new CellError();
-                cellError.setErrorMsg("导入的用户名 [" + username + "]和姓名[" + realName + "]不对应");
+                cellError.setErrorMsg("导入的用户名 [" + username + "] 和姓名 [" + realName + "] 不对应");
                 cellErrorList.add(cellError);
                 return false;
             }
