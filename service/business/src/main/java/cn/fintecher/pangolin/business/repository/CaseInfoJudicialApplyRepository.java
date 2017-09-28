@@ -1,13 +1,14 @@
 package cn.fintecher.pangolin.business.repository;
 
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
-
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -17,7 +18,7 @@ import java.util.Iterator;
 public interface CaseInfoJudicialApplyRepository extends QueryDslPredicateExecutor<CaseInfoJudicialApply>, JpaRepository<CaseInfoJudicialApply, String>, QuerydslBinderCustomizer<QCaseInfoJudicialApply> {
     @Override
     default void customize(final QuerydslBindings bindings, final QCaseInfoJudicialApply root) {
-      /*  // 客户姓名
+        // 客户姓名
         bindings.bind(root.personalName).first((path, value) -> path.contains(StringUtils.trim(value)));
         // 客户手机号
         bindings.bind(root.mobileNo).first((path, value) -> path.eq(StringUtils.trim(value)));
@@ -67,18 +68,24 @@ public interface CaseInfoJudicialApplyRepository extends QueryDslPredicateExecut
         // 申请日期
         bindings.bind(root.applicationDate).all((path, value) -> {
             Iterator<? extends Date> it = value.iterator();
-            Date firstDelegationDate = it.next();
+            Date operatorMinTime = it.next();
             if (it.hasNext()) {
-                Date secondDelegationDate = it.next();
-                return path.between(firstDelegationDate, secondDelegationDate);
+                String date = ZWDateUtil.fomratterDate(it.next(), "yyyy-MM-dd");
+                date = date + " 23:59:59";
+                Date operatorMaxTime = null;
+                try {
+                    operatorMaxTime = ZWDateUtil.getFormatDateTime(date);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                return path.between(operatorMinTime, operatorMaxTime);
             } else {
-                //大于等于
-                return path.goe(firstDelegationDate);
+                return path.goe(operatorMinTime);
             }
         });
         // 委托方
         bindings.bind(root.principalName).first((path, value) -> path.eq(StringUtils.trim(value)));
         // 审批状态
-        bindings.bind(root.approvalStatus).first((path, value) -> path.eq(value));*/
+        bindings.bind(root.approvalStatus).first((path, value) -> path.eq(value));
     }
 }

@@ -147,69 +147,7 @@ public class CaseInfoJudicialController extends BaseController{
         User user;
         try{
             user = getUserByToken(token);
-            CaseInfoJudicialApply caseInfoJudicialApply = caseInfoJudicialApplyRepository.findOne(caseInfoVerficationModel.getId());
-            CaseInfoJudicial caseInfoJudicial = new CaseInfoJudicial();
-            // 超级管理员
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.nonNull(caseInfoVerficationModel.getCompanyCode())) {
-                    caseInfoJudicialApply.setCompanyCode(caseInfoVerficationModel.getCompanyCode());
-                    caseInfoJudicial.setCompanyCode(caseInfoVerficationModel.getCompanyCode());
-                }
-            }else {
-                caseInfoJudicialApply.setCompanyCode(user.getCompanyCode());
-                caseInfoJudicial.setCompanyCode(user.getCompanyCode());
-            }
-            if (Objects.equals(caseInfoVerficationModel.getApprovalResult(), 0)) { // 审批拒绝
-                caseInfoJudicialApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.disapprove.getValue()); // 审批结果：拒绝
-                caseInfoJudicialApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_disapprove.getValue()); // 审批状态：审批拒绝
-                caseInfoJudicialApplyRepository.save(caseInfoJudicialApply);
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoJudicial", "caseInfoJudicial", "核销审批失败")).body(null);
-            } else { // 核销审批通过
-                caseInfoJudicialApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.approve.getValue()); // 审批结果：通过
-                caseInfoJudicialApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_approve.getValue()); // 审批状态：审批通过
-                caseInfoJudicialApply.setOperator(user.getUserName()); // 审批人
-                caseInfoJudicialApply.setOperatorTime(ZWDateUtil.getNowDateTime()); // 审批时间
-                CaseInfo caseInfo = caseInfoRepository.findOne(caseInfoJudicialApply.getCaseId());
-                List<CaseAssist> caseAssistList = new ArrayList<>();
-                //处理协催案件
-                if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //协催标识
-                    //结束协催案件
-                    CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.eq(caseInfo).and(QCaseAssist.caseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
-                    if (Objects.nonNull(one)) {
-                        one.setAssistCloseFlag(0); //手动结束
-                        one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催结束
-                        one.setOperator(user);
-                        one.setOperatorTime(new Date());
-                        one.setCaseFlowinTime(new Date()); //流入时间
-                        caseAssistList.add(one);
-                    }
-                    caseInfo.setAssistFlag(0); //协催标识置0
-                    caseInfo.setAssistStatus(null);//协催状态置空
-                    caseInfo.setAssistWay(null);
-                    caseInfo.setAssistCollector(null);
-                    caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //29-协催完成
-                    //协催结束新增一条流转记录
-                    CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
-                    BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
-                    caseTurnRecord.setId(null); //主键置空
-                    caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
-                    caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
-                    caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
-                    caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
-                    caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
-                    caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-                    caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
-                }
-                caseInfo.setEndType(CaseInfo.EndType.JUDGMENT_CLOSED.getValue()); // 结案类型：司法结案
-                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); // 催收状态：已结案
-                caseInfoRepository.save(caseInfo);
-                caseInfoJudicial.setCaseInfo(caseInfo);
-                caseInfoJudicialRepository.save(caseInfoJudicial);
-                caseInfoJudicial.setOperatorUserName(user.getUserName()); // 操作用户名
-                caseInfoJudicial.setOperatorRealName(user.getRealName()); // 操作姓名
-                caseInfoJudicial.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
-                caseInfoJudicialApplyRepository.save(caseInfoJudicialApply);
-            }
+            caseInfoJudicialService.caseInfoJudicialApply(caseInfoVerficationModel,user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoJudicial")).body(null);
         }catch (Exception e) {
             e.printStackTrace();
