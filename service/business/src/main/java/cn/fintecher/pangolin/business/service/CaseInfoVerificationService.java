@@ -316,9 +316,6 @@ public class CaseInfoVerificationService {
      */
     public void setVerificationApply(CaseInfoVerificationApply apply, CaseInfo caseInfo, User user, String applyReason) {
         BeanUtils.copyProperties(caseInfo, apply);
-        apply.setId(null);
-        /*apply.setOperator(user.getRealName()); // 操作人
-        apply.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间*/
         apply.setApplicant(user.getRealName()); // 申请人
         apply.setApplicationDate(ZWDateUtil.getNowDateTime()); // 申请日期
         apply.setApplicationReason(applyReason); // 申请理由
