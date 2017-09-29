@@ -175,12 +175,42 @@ public class CaseStrategyController {
             cs.setPriority(caseStrategy.getPriority());
             if (Objects.isNull(strategyType)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要新增的策略类型")).body(null);
-            } else if (Objects.equals(strategyType, CaseStrategy.StrategyType.IMPORT.getValue())) {
+            } else if (Objects.equals(strategyType, CaseStrategy.StrategyType.IMPORT.getValue())) {//导入分配策略
                 cs.setStrategyType(CaseStrategy.StrategyType.IMPORT.getValue());
-            } else if (Objects.equals(strategyType, CaseStrategy.StrategyType.INNER.getValue())) {
+                if (Objects.equals(caseStrategy.getAssignType(), CaseStrategy.AssignType.INNER_POOL.getValue())) { //内催池
+                    cs.setAssignType(CaseStrategy.AssignType.INNER_POOL.getValue());
+                } else if (Objects.equals(caseStrategy.getAssignType(), CaseStrategy.AssignType.OUTER_POOL.getValue())) {//委外池
+                    cs.setAssignType(CaseStrategy.AssignType.OUTER_POOL.getValue());
+                } else {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要指定的对象")).body(null);
+                }
+                cs.setAssignType(caseStrategy.getAssignType());
+            } else if (Objects.equals(strategyType, CaseStrategy.StrategyType.INNER.getValue())) {//内催分配策略
                 cs.setStrategyType(CaseStrategy.StrategyType.INNER.getValue());
-            } else if (Objects.equals(strategyType, CaseStrategy.StrategyType.OUTS.getValue())) {
+                Integer assignType = caseStrategy.getAssignType();
+                if (Objects.equals(assignType, CaseStrategy.AssignType.DEPART.getValue())) {//机构
+                    cs.setAssignType(CaseStrategy.AssignType.DEPART.getValue());
+                    cs.setDepartments(caseStrategy.getDepartments());
+                } else if (Objects.equals(assignType, CaseStrategy.AssignType.COLLECTOR.getValue())) {//催收员
+                    cs.setAssignType(CaseStrategy.AssignType.COLLECTOR.getValue());
+                    if (caseStrategy.getUsers().isEmpty()) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要指定的催收员")).body(null);
+                    }
+                    cs.setUsers(caseStrategy.getUsers());
+                } else {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择策略指定的对象")).body(null);
+                }
+            } else if (Objects.equals(strategyType, CaseStrategy.StrategyType.OUTS.getValue())) {//委外分配策略
                 cs.setStrategyType(CaseStrategy.StrategyType.OUTS.getValue());
+                if (Objects.equals(caseStrategy.getAssignType(), CaseStrategy.AssignType.OUTER.getValue())) {
+                    cs.setAssignType(CaseStrategy.AssignType.OUTER.getValue());
+                    if (caseStrategy.getOutsource().isEmpty()) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","")).body(null);
+                    }
+                    cs.setOutsource(caseStrategy.getOutsource());
+                } else {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "","请选择策略指定的对象")).body(null);
+                }
             } else {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "未匹配到要新增的策略类型")).body(null);
             }
