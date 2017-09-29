@@ -349,6 +349,7 @@ public class DataInfoExcelService {
         }
         Iterable<RowError> all = rowErrorRepository.findAll(builder);
         List<RowError> dataList = IterableUtils.toList(all);
+        Collections.sort(dataList, Comparator.comparingInt(RowError::getRowIndex));
         String[] title = {"Excel行号","案件编号","客户姓名","手机号","身份证号","案件金额(元)","错误内容"};
         HashMap<String, String> headMap = ExcelExportUtil.createHeadMap(title, RowError.class);
 
