@@ -1056,7 +1056,7 @@ public class CaseInfoController extends BaseController {
     public ResponseEntity<Page<CaseInfo>> getInnerWaitCollectCase(
             @ApiIgnore Pageable pageable,
             @RequestHeader(value = "X-UserToken") String token,
-            @RequestParam @ApiParam(value = "公司CODE", required = false) String companyCode) {
+            @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
         User user = null;
         try {
             user = getUserByToken(token);
@@ -1090,7 +1090,7 @@ public class CaseInfoController extends BaseController {
     public ResponseEntity<Page<CaseInfo>> getInnerOverCase(
             @ApiIgnore Pageable pageable,
             @RequestHeader(value = "X-UserToken") String token,
-            @RequestParam @ApiParam(value = "公司CODE", required = false) String companyCode) {
+            @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
         User user = null;
         try {
             user = getUserByToken(token);
