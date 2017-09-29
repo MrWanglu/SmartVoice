@@ -7,7 +7,6 @@ import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.util.ZWDateUtil;
-import cn.fintecher.pangolin.util.ZWStringUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -205,9 +204,6 @@ public class PaymentService {
                             caseAssist.setOperator(tokenUser); //操作员
                             caseAssistRepository.saveAndFlush(caseAssist);
 
-                            //同步更新原案件协催状态
-                            caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //29-协催完成
-
                             //协催结束新增一条流转记录
                             CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
                             BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
@@ -221,6 +217,11 @@ public class PaymentService {
                             caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
                         }
                     }
+                    //同步更新原案件协催状态
+                    caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //29-协催完成
+                    caseInfo.setAssistFlag(0);
+                    caseInfo.setAssistWay(null);
+                    caseInfo.setAssistCollector(null);
                 }
             }
             casePayApply.setApprovePayUser(tokenUser.getUserName()); //还款审批人
