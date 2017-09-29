@@ -74,21 +74,27 @@ public class OutsourcePool extends BaseEntity {
     public enum OutStatus {
 
         //待委外
-        TO_OUTSIDE(167),
-        //委外中
-        OUTSIDING(168),
+        TO_OUTSIDE(167, "待委外"),
+        //催收中
+        OUTSIDING(168, "催收中"),
         //委外到期
-        OUTSIDE_EXPIRE(169),
-        //委外结束
-        OUTSIDE_OVER(170);
+        OUTSIDE_EXPIRE(169, "委外到期"),
+        //已结案
+        OUTSIDE_OVER(170, "已结案");
         private Integer code;
+        private String remark;
 
-        OutStatus(Integer code) {
+        OutStatus(Integer code, String remark) {
+
             this.code = code;
+            this.remark = remark;
         }
 
         public Integer getCode() {
             return code;
+        }
+        public String getRemark() {
+            return remark;
         }
     }
 }

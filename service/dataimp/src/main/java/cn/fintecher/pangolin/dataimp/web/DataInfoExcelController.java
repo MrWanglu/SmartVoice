@@ -347,7 +347,7 @@ public class DataInfoExcelController {
             QRowError qRowError = QRowError.rowError;
             BooleanBuilder builder = new BooleanBuilder();
             builder.and(qRowError.batchNumber.eq(batchNumber));
-            builder.and(qRowError.companyCode.eq(companyCode));
+            builder.and(qRowError.companyCode.eq(user.getCompanyCode()));
             Page<RowError> all = rowErrorRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(all);
         } catch (Exception e) {

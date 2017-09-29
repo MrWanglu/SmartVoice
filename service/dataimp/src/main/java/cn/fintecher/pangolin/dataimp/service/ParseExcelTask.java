@@ -10,6 +10,7 @@ import cn.fintecher.pangolin.dataimp.repository.DataInfoExcelRepository;
 import cn.fintecher.pangolin.dataimp.repository.RowErrorRepository;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.IdcardUtils;
+import cn.fintecher.pangolin.entity.util.MobileUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
@@ -139,7 +140,7 @@ public class ParseExcelTask {
             rowError.setName(dataInfoExcel.getPersonalName());
             rowError.setIdCard(dataInfoExcel.getIdCard());
             rowError.setPhone(dataInfoExcel.getMobileNo());
-            rowError.setRowIndex(rowIndex);
+            rowError.setRowIndex(rowIndex + 1);
             rowError.setCaseNumber(caseNumber);
             rowError.setBatchNumber(dataImportRecord.getBatchNumber());
             StringBuilder errorSb = new StringBuilder();
@@ -272,13 +273,12 @@ public class ParseExcelTask {
                 map.put(dou, columnError);
                 break;
             case PHONE_NUMBER:
-                String regExp = "^((13[0-9])|(15[^4])|(18[0,2,3,5-9])|(17[0-8])|(147))\\d{8}$";
                 if (cellValue.length() >= 16) {
                     columnError.setErrorMsg("电话号码长度过长");
                     columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
                     map.put(cellValue, columnError);
                     break;
-                } else if (cellValue != "" && !cellValue.matches(regExp)) {
+                } else if (cellValue != "" && !MobileUtil.checkMobile(cellValue) && !MobileUtil.checkPhone(cellValue)) {
                     columnError.setErrorMsg("电话号码不合规");
                     columnError.setErrorLevel(ColumnError.ErrorLevel.PROMPT.getValue());
                     map.put(cellValue, columnError);

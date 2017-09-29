@@ -44,7 +44,7 @@ public interface CasePayApplyRepository extends QueryDslPredicateExecutor<CasePa
             }
         });
         bindings.bind(root.approveResult).first(SimpleExpression::eq); //审核结果
-        bindings.bind(root.personalName).first((path, value) -> path.like(StringUtils.trim(value)));//客户姓名
+        bindings.bind(root.personalName).first((path, value) -> path.contains(StringUtils.trim(value)));//客户姓名
         bindings.bind(root.batchNumber).first((path, value) -> path.like(StringUtils.trim(value)));//案件批次号
         bindings.bind(root.applyDerateAmt).all((path, value) -> { //减免金额
             Iterator<? extends BigDecimal> it = value.iterator();

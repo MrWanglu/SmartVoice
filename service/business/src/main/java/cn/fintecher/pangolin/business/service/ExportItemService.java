@@ -131,6 +131,14 @@ public class ExportItemService {
         BeanUtils.copyProperties(temp,idCard);
         idCard.setName("身份证号");
         personalItems.add(idCard);
+        ExportItem provice = new ExportItem();
+        BeanUtils.copyProperties(temp,provice);
+        provice.setName("省份");
+        personalItems.add(provice);
+        ExportItem city = new ExportItem();
+        BeanUtils.copyProperties(temp,city);
+        city.setName("城市");
+        personalItems.add(city);
         ExportItem mobile = new ExportItem();
         BeanUtils.copyProperties(temp,mobile);
         mobile.setName("手机号码");
@@ -193,7 +201,7 @@ public class ExportItemService {
         connectItems.add(phone);
         ExportItem address = new ExportItem();
         BeanUtils.copyProperties(temp, address);
-        address.setName("现居地址");
+        address.setName("现居住地址");
         connectItems.add(address);
         ExportItem target = new ExportItem();
         BeanUtils.copyProperties(temp, target);
@@ -355,7 +363,7 @@ public class ExportItemService {
 
         ExportItem endOutsourceTime = new ExportItem();
         BeanUtils.copyProperties(temp, endOutsourceTime);
-        endOutsourceTime.setName(" 结案日期");
+        endOutsourceTime.setName("结案日期");
         caseItems.add(endOutsourceTime);
 
         ExportItem overOutsourceTime = new ExportItem();
@@ -365,7 +373,7 @@ public class ExportItemService {
 
         ExportItem overdueDays = new ExportItem();
         BeanUtils.copyProperties(temp, overdueDays);
-        overdueDays.setName("逾期天数");
+        overdueDays.setName("剩余委托时间(天)");
         caseItems.add(overdueDays);
 
         ExportItem caseStatus = new ExportItem();

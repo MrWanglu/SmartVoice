@@ -7,16 +7,18 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.io.Serializable;
+
 /**
  * Created by sunyanping on 2017/9/22.
  */
 @Data
 @Document
 @ApiModel(description = "数据行错误信息")
-public class RowError {
+public class RowError implements Serializable {
     @ApiModelProperty("唯一标识（主键）")
     @Id
-    private String Id;
+    private String id;
     @ApiModelProperty("sheet名称")
     private String sheetName;
     @ApiModelProperty("行数")

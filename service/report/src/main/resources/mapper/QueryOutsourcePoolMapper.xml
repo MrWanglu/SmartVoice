@@ -28,8 +28,7 @@
         INNER JOIN outsource_pool a on c.id=a.out_id) aa GROUP BY aa.out_batch, aa.outs_name,aa.left_days,aa.over_outsource_time,aa.company_code) as bb LEFT JOIN (SELECT a.out_batch,c.outs_name,count(*) as end_outsource_count,sum(a.contract_amt) as end_outsource_amt
         FROM outsource c
         INNER JOIN outsource_pool a on c.id=a.out_id
-        WHERE a.out_status=170 GROUP BY a.out_batch,c.outs_name) as cc on bb.out_batch=cc.out_batch and bb.outs_name=cc.outs_name
-        WHERE 1=1
+        WHERE a.out_status=170 GROUP BY a.out_batch,c.outs_name) as cc on bb.out_batch=cc.out_batch and bb.outs_name=cc.outs_nameWHERE 1=1
         <if test="companyCode != null">
             AND company_code = #{companyCode}
         </if>
