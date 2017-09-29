@@ -26,7 +26,7 @@ public class CaseStrategy {
     private String creator;
     @ApiModelProperty("创建人ID")
     private String creatorId;
-    @ApiModelProperty("策略指定的分配类型：0-机构，1-催收员，2-内催池待分配池，3-委外池带分配池，4-委外方")
+    @ApiModelProperty("策略指定的分配类型：0-内催机构，1-内催催收员，2-内催待分配池，3-委外待分配池，4-委外方")
     private Integer assignType;
     @ApiModelProperty("创建日期")
     private Date createTime;
@@ -34,9 +34,9 @@ public class CaseStrategy {
     private String strategyJson;
     @ApiModelProperty("策略公式")
     private String strategyText;
-    @ApiModelProperty("策略指定的催收员")
+    @ApiModelProperty("策略指定的内催催收员")
     private List<String> users;
-    @ApiModelProperty("策略指定的机构")
+    @ApiModelProperty("策略指定的内催机构")
     private List<String> departments;
     @ApiModelProperty("策略指定的委外方")
     private List<String> outsource;
@@ -60,6 +60,33 @@ public class CaseStrategy {
         private String remark;
 
         StrategyType(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
+    /**
+     * 策略指定的对象枚举
+     */
+    public enum AssignType {
+        DEPART(0, "内催机构"),
+        COLLECTOR(1, "内催催收员"),
+        INNER_POOL(2, "内催待分配池"),
+        OUTER_POOL(3, "委外待分配池"),
+        OUTER(4, "委外方");
+
+        private Integer value;
+        private String remark;
+
+        AssignType(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }
