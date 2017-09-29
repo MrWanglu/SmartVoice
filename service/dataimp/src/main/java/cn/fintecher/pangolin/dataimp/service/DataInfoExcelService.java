@@ -359,7 +359,7 @@ public class DataInfoExcelService {
             ByteArrayOutputStream out = new ByteArrayOutputStream();) {
             ExcelExportUtil.createExcelData(workbook, headMap, dataList, Constants.ROW_MAX - 1);
             workbook.write(out);
-            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(ZWDateUtil.getFormatNowDate("yyyyMMddhhmmss") + "跟进记录.xlsx");
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(ZWDateUtil.getFormatNowDate("yyyyMMddhhmmss") + "错误报告.xlsx");
             file = new File(filePath);
             fileOutputStream = new FileOutputStream(file);
             fileOutputStream.write(out.toByteArray());
