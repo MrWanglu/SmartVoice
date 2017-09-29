@@ -6,7 +6,6 @@ import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.ExcelExportUtil;
 import cn.fintecher.pangolin.report.mapper.QueryOutsourceFollowupMapper;
 import cn.fintecher.pangolin.report.model.*;
-import cn.fintecher.pangolin.report.service.ExportFollowupService;
 import cn.fintecher.pangolin.report.service.FollowRecordExportService;
 import cn.fintecher.pangolin.report.service.OutsourceFollowRecordExportService;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -19,7 +18,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -49,8 +47,6 @@ public class ExportOutsourceFollowupController extends BaseController {
     private final Logger log = LoggerFactory.getLogger(ExportOutsourceFollowupController.class);
     private static final String ENTITY_NAME = "ExportFollowupController";
 
-    @Autowired
-    private ExportFollowupService exportFollowupService;
     @Inject
     private OutsourceFollowRecordExportService outsourceFollowRecordExportService;
     @Inject
@@ -61,7 +57,7 @@ public class ExportOutsourceFollowupController extends BaseController {
     private RabbitTemplate rabbitTemplate;
 
     @PostMapping(value = "/exportOutsourceFollowupRecord")
-    @ApiOperation(notes = "导出跟进记录", value = "导出跟进记录")
+    @ApiOperation(notes = "导出委外跟进记录", value = "导出委外跟进记录")
     public ResponseEntity exportOutsourceFollowupRecord(@RequestBody ExportOutsourceFollowRecordParams exportOutsourceFollowRecordParams,
                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
 
@@ -72,8 +68,7 @@ public class ExportOutsourceFollowupController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", e.getMessage())).body(null);
         }
-        Integer category = 2;
-        ResponseEntity<ItemsModel> entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getExportItems?token="+token+"&category="+category, ItemsModel.class);
+        ResponseEntity<ItemsModel> entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceExportItems?token="+token, ItemsModel.class);
         ItemsModel itemsModel = entity.getBody();
         if(itemsModel.getPersonalItems().isEmpty() && itemsModel.getJobItems().isEmpty() && itemsModel.getConnectItems().isEmpty()
                 && itemsModel.getCaseItems().isEmpty() && itemsModel.getBankItems().isEmpty() && itemsModel.getFollowItems().isEmpty()){
@@ -156,6 +151,7 @@ public class ExportOutsourceFollowupController extends BaseController {
                             List<String> urls = new ArrayList<>();
                             ListResult listResult = new ListResult();
                             urls.add(url.getBody());
+                            log.info(url.getBody());
                             listResult.setUser(userId);
                             listResult.setResult(urls);
                             listResult.setStatus(ListResult.Status.SUCCESS.getVal()); // 0-成功

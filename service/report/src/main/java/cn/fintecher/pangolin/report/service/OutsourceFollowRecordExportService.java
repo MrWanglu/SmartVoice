@@ -24,7 +24,10 @@ public class OutsourceFollowRecordExportService {
         int i = 0;
         for (ExcportOutsourceResultModel excportResultModel : excportResultModels) {
             log.info("第"+ ++i +"条信息正在导出。。。。。");
-            List<OutsourceFollowRecord> outsourceFollowupRecords = excportResultModel.getOutsourceFollowRecords();
+            List<OutsourceFollowRecord> outsourceFollowupRecords = null;
+            if(Objects.nonNull(excportResultModel.getOutsourceFollowRecords())){
+                outsourceFollowupRecords = excportResultModel.getOutsourceFollowRecords();
+            }
             if (!outsourceFollowupRecords.isEmpty()) {
                 for (OutsourceFollowRecord record : outsourceFollowupRecords) {
                     FollowupExportModel followupExportModel = new FollowupExportModel();
@@ -44,7 +47,12 @@ public class OutsourceFollowRecordExportService {
                     followupExportModel.setOutTime(excportResultModel.getOutTime());
                     followupExportModel.setEndOutTime(excportResultModel.getEndOutTime());
                     followupExportModel.setOverOutTime(excportResultModel.getOverOutTime());
-                    followupExportModel.setOutsourceCaseStatus(excportResultModel.getOutsourceCaseStatus());
+                    if(excportResultModel.getOutStatus()==168){
+                        followupExportModel.setOutsourceCaseStatus("催收中");
+                    }
+                    if(excportResultModel.getOutStatus()==170){
+                        followupExportModel.setOutsourceCaseStatus("已结案");
+                    }
                     followupExportModel.setHasPayAmount(excportResultModel.getHasPayAmount());//已还款金额
                     followupExportModel.setCommissionRate(excportResultModel.getCommissionRate());//佣金比例
                     Personal personalInfo = excportResultModel.getPersonalInfo();
@@ -54,7 +62,7 @@ public class OutsourceFollowRecordExportService {
                     followupExportModel.setIdCard(Objects.isNull(personalInfo) ? "" :personalInfo.getIdCard());//客户身份证号
                     followupExportModel.setMobileNo(personalInfo.getMobileNo());//客户手机号
                     followupExportModel.setIdCardAddress(personalInfo.getIdCardAddress());//客户身份证地址
-                    followupExportModel.setLocalHomeAddress(personalInfo.getLocalHomeAddress());//客户监听地址
+                    followupExportModel.setLocalHomeAddress(personalInfo.getLocalHomeAddress());//客户家庭地址
                     followupExportModel.setLocalPhoneNo(personalInfo.getLocalPhoneNo());//固定电话
                     followupExportModel.setCompanyName(Objects.isNull(personalInfo) ? "": (personalInfo.getPersonalJobs().isEmpty() ? "": personalInfo.getPersonalJobs().iterator().next().getCompanyName()));//工作单位名称
                     followupExportModel.setCompanyPhone(Objects.isNull(personalInfo) ? "": (personalInfo.getPersonalJobs().isEmpty() ? "": personalInfo.getPersonalJobs().iterator().next().getPhone()));//工作单位电话
@@ -63,6 +71,29 @@ public class OutsourceFollowRecordExportService {
                     followupExportModel.setFollTargetName(record.getUserName());//跟进对象姓名
                     followupExportModel.setFollContent(record.getFollowRecord());//跟进内容
                     followupExportModel.setFollOperator(record.getFollowPerson());//跟进人名称
+
+                    OutsourceFollowRecord.FeedBack[]  feedbacks= OutsourceFollowRecord.FeedBack.values(); //催收反馈
+                    for (int j = 0; j < feedbacks.length; j++) {
+                        if (Objects.equals(record.getFollowType(), feedbacks[j].getValue())) {
+                            followupExportModel.setFollFeedback(feedbacks[j].getRemark());
+                            break;
+                        }
+                    }
+                    OutsourceFollowRecord.TelStatus[]  objectType= OutsourceFollowRecord.TelStatus.values(); //跟进对象
+                    for (int j = 0; j < objectType.length; j++) {
+                        if (Objects.equals(record.getFollowType(), objectType[j].getValue())) {
+                            followupExportModel.setFollTarget(objectType[j].getRemark());
+                            break;
+                        }
+                    }
+
+                    OutsourceFollowRecord.TelStatus[]  telStatus= OutsourceFollowRecord.TelStatus.values(); //电话状态
+                    for (int j = 0; j < telStatus.length; j++) {
+                        if (Objects.equals(record.getFollowType(), telStatus[j].getValue())) {
+                            followupExportModel.setFollPhoneNum(telStatus[j].getRemark());
+                            break;
+                        }
+                    }
                     OutsourceFollowRecord.FollowType[] values = OutsourceFollowRecord.FollowType.values(); //跟进方式
                     for (int j = 0; j < values.length; j++) {
                         if (Objects.equals(record.getFollowType(), values[j].getValue())) {

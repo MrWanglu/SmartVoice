@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="cn.fintecher.pangolin.report.mapper.QueryFollowupMapper">
+<mapper namespace="cn.fintecher.pangolin.report.mapper.QueryOutsourceFollowupMapper">
 
     <select id="findOutsourceFollowupRecord" parameterType="cn.fintecher.pangolin.report.model.ExportOutsourceFollowRecordParams" resultMap="outSourceResultMap">
-        SELECT a.id, b.out_batch as batch_name,a.case_number,a.personal_id as personal_info,a.area_id,a.contract_number,c.outs_name,
-        b.contract_amt as outsource_total_amount,b.out_back_amt as has_pay_amount, (contract_amt - has_pay_amount) as left_amount, TIMESTAMPDIFF(DAY,b.out_time,b.over_outsource_time) as left_days,b.over_outsource_time, b.end_outsource_time, b.out_status, b.commission_rate from case_info a
+        SELECT a.id, b.out_batch as batch_name,a.case_number,a.personal_id,a.area_id,g.id as out_follow_id,a.contract_number,c.outs_name,
+        b.contract_amt as outsource_total_amount,b.out_back_amt as has_pay_amount, (b.contract_amt - b.out_back_amt) as left_amount, TIMESTAMPDIFF(DAY,b.out_time,b.over_outsource_time) as left_days,b.out_time,b.over_outsource_time, b.end_outsource_time, b.out_status, b.commission_rate from case_info a
         INNER JOIN outsource_pool b on a.id=b.case_id
         INNER JOIN outsource c ON b.out_id=c.id
         LEFT JOIN personal d ON a.personal_id = d.id
@@ -12,7 +12,8 @@
         LEFT JOIN area_code f ON a.area_id = f.id
         LEFT JOIN outsource_follow_record g ON a.id = g.case_id
         WHERE 1=1
-        and a.case_pool_type = 226
+        AND b.out_status !=167
+        AND a.case_pool_type = 226
         <if test="companyCode != null and companyCode !=''">
             AND a.company_code = #{companyCode}
         </if>
@@ -69,29 +70,28 @@
     <resultMap id="outSourceResultMap" type="cn.fintecher.pangolin.report.model.ExcportOutsourceResultModel">
         <id column="id" property="id"/>
         <result column="case_number" property="caseNumber"/>
-        <result column="batch_number" property="batchNumber"/>
+        <result column="batch_name" property="batchNumber"/>
         <result column="contract_number" property="contractNumber"/>
-        <result column="outsource_total_amount" property="outsourceTotalAmount"/
+        <result column="outsource_total_amount" property="outsourceTotalAmount"/>
         <result column="left_amount" property="leftAmount"/>
         <result column="left_days" property="leftDays"/>
-        <result column="out_Time" property="outTime"/>
         <result column="outs_name" property="outsName"/>
         <result column="has_pay_amount" property="hasPayAmount"/>
-        <result column="endOutTime" property="endOutTime"/>
-        <result column="overOutTime" property="overOutTime"/>
-        <result column="out_status" property="outsourceOutCaseStatus"/>
+        <result column="out_time" property="outTime"/>
+        <result column="over_outsource_time" property="endOutTime"/>
+        <result column="end_outsource_time" property="overOutTime"/>
+        <result column="out_status" property="outStatus"/>
         <result column="commission_rate" property="commissionRate"/>
-        <result column="commission_rate" property="commissionRate"/>
-        <association property="personalInfo" column="personal_id" select="selectPersonal"></association>
-        <association property="areaCode" column="area_id" select="selectCityArea"></association>
-        <collection property="outsourceFollowRecords" column="case_number" ofType="cn.fintecher.pangolin.entity.OutsourceFollowRecord" select="selectOutsourceFollowRecord"></collection>
+        <association property="personalInfo" column="personal_id" select="selectPersonalOutsource"></association>
+        <association property="areaCode" column="area_id" select="selectCityAreaOutsource"></association>
+        <collection property="outsourceFollowRecords" column="out_follow_id" ofType="cn.fintecher.pangolin.entity.OutsourceFollowRecord" select="selectOutsourceFollowRecord"></collection>
     </resultMap>
 
-    <select id="selectPersonal" parameterType="string" resultMap="personalResultMap">
+    <select id="selectPersonalOutsource" parameterType="string" resultMap="personalResultMapOutsource">
         SELECT id,name,id_card,number,mobile_no,local_phone_no,id_card_address,local_home_address FROM personal WHERE id = #{personal_id}
     </select>
 
-    <resultMap id="personalResultMap" type="cn.fintecher.pangolin.entity.Personal">
+    <resultMap id="personalResultMapOutsource" type="cn.fintecher.pangolin.entity.Personal">
         <id column="id" property="id"></id>
         <result column="name" property="name"></result>
         <result column="id_card" property="idCard"/>
@@ -100,38 +100,38 @@
         <result column="id_card_address" property="idCardAddress"/>
         <result column="local_phone_no" property="localPhoneNo"/>
         <result column="local_home_address" property="localHomeAddress"/>
-        <collection property="personalBankInfos" column="id" ofType="cn.fintecher.pangolin.entity.PersonalBank" select="selectPersonalBank"></collection>
-        <collection property="personalJobs" column="id" ofType="cn.fintecher.pangolin.entity.PersonalJob" select="selectPersonalJob"></collection>
-        <collection property="personalContacts" column="id" ofType="cn.fintecher.pangolin.entity.PersonalContact" select="selectPersonalContacts"></collection>
+        <collection property="personalBankInfos" column="id" ofType="cn.fintecher.pangolin.entity.PersonalBank" select="selectPersonalBankOutsource"></collection>
+        <collection property="personalJobs" column="id" ofType="cn.fintecher.pangolin.entity.PersonalJob" select="selectPersonalJobOutsource"></collection>
+        <collection property="personalContacts" column="id" ofType="cn.fintecher.pangolin.entity.PersonalContact" select="selectPersonalContactsOutsource"></collection>
     </resultMap>
 
-    <select id="selectPersonalBank" resultMap="personalBankMap">
+    <select id="selectPersonalBankOutsource" resultMap="personalBankMapOutsource">
         SELECT id,account_number,deposit_bank,card_number FROM personal_bank WHERE personal_id = #{id}
     </select>
 
-    <resultMap id="personalBankMap" type="cn.fintecher.pangolin.entity.PersonalBank">
+    <resultMap id="personalBankMapOutsource" type="cn.fintecher.pangolin.entity.PersonalBank">
         <id column="id" property="id"/>
         <result column="account_number" property="accountNumber"/>
         <result column="deposit_bank" property="depositBank"/>
         <result column="card_number" property="cardNumber"/>
     </resultMap>
 
-    <select id="selectPersonalJob" resultMap="personalJobMap">
+    <select id="selectPersonalJobOutsource" resultMap="personalJobMapOutsource">
         select id,company_name,address,phone from personal_job WHERE personal_id = #{id}
     </select>
 
-    <resultMap id="personalJobMap" type="cn.fintecher.pangolin.entity.PersonalJob">
+    <resultMap id="personalJobMapOutsource" type="cn.fintecher.pangolin.entity.PersonalJob">
         <id column="id" property="id"/>
         <result column="company_name" property="companyName"/>
         <result column="address" property="address"/>
         <result column="phone" property="phone"/>
     </resultMap>
 
-    <select id="selectPersonalContacts" resultMap="personalContactsMap">
+    <select id="selectPersonalContactsOutsource" resultMap="personalContactsMapOutsource">
         select id,name,phone,mobile,address,relation,employer,work_phone from personal_contact WHERE personal_id = #{id}
     </select>
 
-    <resultMap id="personalContactsMap" type="cn.fintecher.pangolin.entity.PersonalContact">
+    <resultMap id="personalContactsMapOutsource" type="cn.fintecher.pangolin.entity.PersonalContact">
         <id column="id" property="id"/>
         <result column="name" property="name"/>
         <result column="phone" property="phone"/>
@@ -141,27 +141,27 @@
         <result column="work_phone" property="workPhone"/>
     </resultMap>
 
-    <select id="selectCityArea" resultMap="city">
+    <select id="selectCityAreaOutsource" resultMap="cityOutsource">
         SELECT id,parent_id,area_name FROM area_code WHERE id = #{area_id}
     </select>
 
-    <resultMap id="city" type="cn.fintecher.pangolin.entity.AreaCode">
+    <resultMap id="cityOutsource" type="cn.fintecher.pangolin.entity.AreaCode">
         <id column="id" property="id"/>
         <result column="area_name" property="areaName"/>
-        <association property="parent" column="parent_id" select="selectProvinceArea"></association>
+        <association property="parent" column="parent_id" select="selectProvinceAreaOutsource"></association>
     </resultMap>
 
-    <select id="selectProvinceArea" resultMap="province">
+    <select id="selectProvinceAreaOutsource" resultMap="provinceOutsource">
         select id,area_name from area_code where id = #{parent_id}
     </select>
 
-    <resultMap id="province" type="cn.fintecher.pangolin.entity.AreaCode">
+    <resultMap id="provinceOutsource" type="cn.fintecher.pangolin.entity.AreaCode">
         <id column="id" property="id"/>
         <result column="area_name" property="areaName"/>
     </resultMap>
 
     <select id="selectOutsourceFollowRecord" resultMap="OutsourceFollowRecord">
-        SELECT * FROM outsource_follow_record WHERE case_num = #{case_number}
+        SELECT * FROM outsource_follow_record WHERE id = #{out_follow_id}
     </select>
 
     <resultMap id="OutsourceFollowRecord" type="cn.fintecher.pangolin.entity.OutsourceFollowRecord">

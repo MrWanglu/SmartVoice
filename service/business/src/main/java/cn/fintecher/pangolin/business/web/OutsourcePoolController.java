@@ -1435,6 +1435,7 @@ public class OutsourcePoolController extends BaseController {
     })
     public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam(required = true) @ApiParam(value = "批次号") String batchNumber,
                                                                          @RequestParam(required = true) @ApiParam(value = "委外方名称") String outsName,
+                                                                          @QuerydslPredicate(root = OutsourcePool.class) Predicate predicate,
                                                                          @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                                          @ApiIgnore Pageable pageable,
                                                                          @RequestHeader(value = "X-UserToken") String token) {
@@ -1448,7 +1449,7 @@ public class OutsourcePoolController extends BaseController {
         }
         try {
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
-            BooleanBuilder builder = new BooleanBuilder();
+            BooleanBuilder builder = new BooleanBuilder(predicate);
             if(Objects.nonNull(batchNumber)){
                 builder.and(qOutsourcePool.outBatch.eq(batchNumber));
             }
@@ -1482,9 +1483,10 @@ public class OutsourcePoolController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<OutsourceFollowRecord>> getOutSourceCaseFollowRecord(@RequestParam(required = true) @ApiParam(value = "案件编号") String caseNumber,
-                                                                          @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                                                          @ApiIgnore Pageable pageable,
-                                                                          @RequestHeader(value = "X-UserToken") String token) {
+                                                                                    @QuerydslPredicate(root = OutsourceFollowRecord.class) Predicate predicate,
+                                                                                    @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                                    @ApiIgnore Pageable pageable,
+                                                                                    @RequestHeader(value = "X-UserToken") String token) {
         log.debug("Rest request get outsource case by batch number");
         User user = null;
         try {
@@ -1494,7 +1496,7 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "user do not log in", e.getMessage())).body(null);
         }
         try {
-            BooleanBuilder builder = new BooleanBuilder();
+            BooleanBuilder builder = new BooleanBuilder(predicate);
             if(Objects.nonNull(caseNumber)){
                 builder.and(QOutsourceFollowRecord.outsourceFollowRecord.caseNum.eq(caseNumber));
             }

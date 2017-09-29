@@ -74,7 +74,7 @@ public class FollowupExportModel {
     @ExcelAnno(cellName = "委案到期日期")
     private Date overOutTime;
     @ExcelAnno(cellName = "案件状态")
-    private Integer outsourceCaseStatus;
+    private String outsourceCaseStatus;
 
     @ExcelAnno(cellName = "客户姓名")
     private String personalName;
@@ -107,9 +107,9 @@ public class FollowupExportModel {
     private String follType;
     @ExcelAnno(cellName = "催收对象")
     private String follTarget;
-    @ExcelAnno(cellName = "催收对象姓名")
+    @ExcelAnno(cellName = "姓名")
     private String follTargetName;
-    @ExcelAnno(cellName = "电话/地址")
+    @ExcelAnno(cellName = "电话状态")
     private String follPhoneNum;
     @ExcelAnno(cellName = "催收反馈")
     private String follFeedback;

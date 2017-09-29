@@ -164,5 +164,35 @@ public class OutsourceFollowRecord extends BaseEntity {
         }
     }
 
+    /**
+     * @Description 有效联络枚举类
+     */
+    public enum FeedBack {
+        //承诺还款
+        PROMISE(90, "承诺还款"),
+        //协商跟进
+        CONSULT(91, "协商跟进"),
+        //拒绝还款
+        REFUSEPAY(92, "拒绝还款"),
+        //客户提示已还款
+        HAVEREPAYMENT(93, "客户提示已还款");
+
+        private Integer value;
+
+        private String remark;
+
+        FeedBack(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
 
 }

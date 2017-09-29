@@ -100,4 +100,8 @@ INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, 
 ALTER TABLE `outsource_pool`
 CHANGE COLUMN `commissionRate` `commission_rate`  varchar(2) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL AFTER `out_batch`;
 
+--2017-09-29 胡艳敏 修改数据字典168-催收中
+UPDATE `pangolin_business`.`data_dict` SET `name`='催收中' WHERE (`id`='168');
+UPDATE `pangolin_business`.`data_dict` SET `name`='已结案'  WHERE (`id`='170');
+
 

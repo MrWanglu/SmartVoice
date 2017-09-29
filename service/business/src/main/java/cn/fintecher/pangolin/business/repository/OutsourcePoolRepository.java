@@ -60,7 +60,7 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
             }
         });
         //案件金额
-        bindings.bind(root.caseInfo.overdueAmount).all((path, value) -> {
+        bindings.bind(root.contractAmt).all((path, value) -> {
             Iterator<? extends BigDecimal> it = value.iterator();
             BigDecimal firstOverdueAmount = it.next();
             if (it.hasNext()) {
@@ -84,8 +84,8 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
         });
         //案件类型
         bindings.bind(root.caseInfo.caseType).first((path, value) -> path.eq(value));
-        //委托方
-        bindings.bind(root.caseInfo.principalId.id).first((path, value) -> path.eq(StringUtils.trim(value)));
+        //委外方
+        bindings.bind(root.outsource.id).first((path, value) -> path.eq(StringUtils.trim(value)));
         //申请省份
         bindings.bind(root.caseInfo.area.parent.id).first((path, value) -> path.eq(value));
         //申请城市
