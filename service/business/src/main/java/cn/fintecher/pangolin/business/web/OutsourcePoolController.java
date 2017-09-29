@@ -1008,6 +1008,7 @@ public class OutsourcePoolController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
             AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
+            OutsourceFollowRecord outsourceFollowRecord = new OutsourceFollowRecord();
             if(type==0){
                 if (Objects.isNull(user.getCompanyCode())) {
                     if (Objects.isNull(companyCode)) {
@@ -1020,6 +1021,9 @@ public class OutsourcePoolController extends BaseController {
                 accFinanceEntry.setCreateTime(ZWDateUtil.getNowDateTime());
                 accFinanceEntry.setCreator(user.getUserName());
                 accFinanceEntry.setFienRemark(fienRemark);
+            } else {
+                outsourceFollowRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
+                outsourceFollowRecord.setOperatorName(user.getUserName());
             }
 
             //查找上传文件
@@ -1041,11 +1045,11 @@ public class OutsourcePoolController extends BaseController {
             if(type==0){
                 Class<?>[] dataClass = {AccFinanceDataExcel.class};
                 //解析Excel并保存到临时表中
-                errorList  = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry,type);
+                errorList  = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry,outsourceFollowRecord,type);
             }else{
                 Class<?>[] dataClass = {OutsourceFollowUpRecordModel.class};
                 //解析Excel并保存到临时表中
-                errorList  = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry,type);
+                errorList  = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry,outsourceFollowRecord,type);
             }
 
             if (errorList.isEmpty()) {

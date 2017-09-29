@@ -96,3 +96,8 @@ INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, 
 INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('231', '0051', NULL, '内催池案件分配策略', '1');
 INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('232', '0051', NULL, '委外池案件分配策略', '2');
 
+--2017-09-29 胡艳敏 修改委外池中佣金比例名
+ALTER TABLE `outsource_pool`
+CHANGE COLUMN `commissionRate` `commission_rate`  varchar(2) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL AFTER `out_batch`;
+
+

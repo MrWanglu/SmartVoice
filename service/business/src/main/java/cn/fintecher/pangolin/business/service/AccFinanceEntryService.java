@@ -35,7 +35,7 @@ public class AccFinanceEntryService {
     @Autowired
     CaseInfoRepository caseInfoRepository;
 
-    public List<CellError> importAccFinanceData(String fileUrl, int[] startRow, int[] startCol, Class<?>[] dataClass, AccFinanceEntry accFinanceEntry, Integer type) throws Exception {
+    public List<CellError> importAccFinanceData(String fileUrl, int[] startRow, int[] startCol, Class<?>[] dataClass, AccFinanceEntry accFinanceEntry, OutsourceFollowRecord outsourceFollowRecord, Integer type) throws Exception {
         List<CellError> errorList = null;
         try {
             //从文件服务器上获取Excel文件并解析：
@@ -44,10 +44,10 @@ public class AccFinanceEntryService {
             //导入错误信息
             errorList = excelSheetObj.getCellErrorList();
             if (errorList.isEmpty()) {
-                if(type==0){
+                if (type == 0) {
                     processFinanceData(dataList, accFinanceEntry, errorList);
-                }else{
-                    processFinanceDataFollowup(dataList,errorList);
+                } else {
+                    processFinanceDataFollowup(dataList, outsourceFollowRecord, errorList);
                 }
 
             }
@@ -121,33 +121,62 @@ public class AccFinanceEntryService {
     }
 
     /**
-     *Created by huyanmin 2017/9/26
-     *  将Excel中的数据存入数据库中
-     *
-     * */
-    public void processFinanceDataFollowup(List datalist, List<CellError> errorList) {
+     * Created by huyanmin 2017/9/26
+     * 将Excel中的数据存入数据库中
+     */
+    public void processFinanceDataFollowup(List datalist, OutsourceFollowRecord outsourceFollowRecord, List<CellError> errorList) {
 
         for (Object obj : datalist) {
             OutsourceFollowRecord out = new OutsourceFollowRecord();
             OutsourceFollowUpRecordModel followUpRecordModel = (OutsourceFollowUpRecordModel) obj;
 
             CaseInfo caseInfo = null;
-            if(Objects.nonNull(followUpRecordModel.getCaseNum())){
+            if (Objects.nonNull(followUpRecordModel.getCaseNum())) {
                 out.setCaseNum(followUpRecordModel.getCaseNum());
                 caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(followUpRecordModel.getCaseNum()));
-                if(Objects.nonNull(caseInfo)){
+                if (Objects.nonNull(caseInfo)) {
                     out.setCaseInfo(caseInfo);
                 }
             }
-            out.setFollowType(followUpRecordModel.getFollowType());
+            OutsourceFollowRecord.FollowType[] followTypes = OutsourceFollowRecord.FollowType.values();
+            Integer followtype = 0;
+            for(int i=0; i<followTypes.length;i++){
+                if(followUpRecordModel.getFollowType().equals("电话")){
+                    followtype = 80;
+                }
+                if(followUpRecordModel.getFollowType().equals("外访")){
+                    followtype = 81;
+                }
+            }
+            out.setFollowType(followtype);
             out.setFollowTime(followUpRecordModel.getFollowTime());
             out.setFollowPerson(followUpRecordModel.getFollowPerson());
             out.setUserName(followUpRecordModel.getUserName());
             out.setObjectName(followUpRecordModel.getObjectName());
             out.setFeedback(followUpRecordModel.getFeedback());
             out.setFollowRecord(followUpRecordModel.getFollowRecord());
-            out.setTelStatus(followUpRecordModel.getTelStatus());
-            out.setImportTime(ZWDateUtil.getNowDateTime());
+            OutsourceFollowRecord.TelStatus[] telStatuslist = OutsourceFollowRecord.TelStatus.values();
+            Integer telStatus = 0;
+            for(int i=0; i<telStatuslist.length;i++){
+                if(followUpRecordModel.getTelStatus().equals("正常")){
+                    telStatus = 64;
+                }
+                if(followUpRecordModel.getTelStatus().equals("空号")){
+                    telStatus = 65;
+                }
+                if(followUpRecordModel.getTelStatus().equals("停机")){
+                    telStatus = 66;
+                }
+                if(followUpRecordModel.getTelStatus().equals("关机")){
+                    telStatus = 67;
+                }
+                if(followUpRecordModel.getTelStatus().equals("未知")){
+                    telStatus = 68;
+                }
+            }
+            out.setTelStatus(telStatus);
+            out.setOperatorName(outsourceFollowRecord.getOperatorName());
+            out.setOperatorTime(ZWDateUtil.getNowDateTime());
 
             //验证必要数据的合法性
             if (!validityFinanceFollowup(errorList, out)) {
@@ -157,11 +186,11 @@ public class AccFinanceEntryService {
 
         }
     }
+
     /**
-     *Created by huyanmin 2017/9/26
-     *  验证案件号是否为空
-     *
-     * */
+     * Created by huyanmin 2017/9/26
+     * 验证案件号是否为空
+     */
     private Boolean validityFinanceFollowup(List<CellError> errorList, OutsourceFollowRecord out) {
 
         if (ZWStringUtils.isEmpty(out.getCaseNum())) {

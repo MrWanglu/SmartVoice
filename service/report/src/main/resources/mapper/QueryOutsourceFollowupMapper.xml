@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.fintecher.pangolin.report.mapper.QueryFollowupMapper">
+
+    <select id="findOutsourceFollowupRecord" parameterType="cn.fintecher.pangolin.report.model.ExportOutsourceFollowRecordParams" resultMap="outSourceResultMap">
+        SELECT a.id, b.out_batch as batch_name,a.case_number,a.personal_id as personal_info,a.area_id,a.contract_number,c.outs_name,
+        b.contract_amt as outsource_total_amount,b.out_back_amt as has_pay_amount, (contract_amt - has_pay_amount) as left_amount, TIMESTAMPDIFF(DAY,b.out_time,b.over_outsource_time) as left_days,b.over_outsource_time, b.end_outsource_time, b.out_status, b.commission_rate from case_info a
+        INNER JOIN outsource_pool b on a.id=b.case_id
+        INNER JOIN outsource c ON b.out_id=c.id
+        LEFT JOIN personal d ON a.personal_id = d.id
+        LEFT JOIN product e ON a.product_id = e.id
+        LEFT JOIN area_code f ON a.area_id = f.id
+        LEFT JOIN outsource_follow_record g ON a.id = g.case_id
+        WHERE 1=1
+        and a.case_pool_type = 226
+        <if test="companyCode != null and companyCode !=''">
+            AND a.company_code = #{companyCode}
+        </if>
+        <if test="batchNumberList != null and batchNumberList.size()>0">
+            AND b.out_batch IN
+            <foreach collection="batchNumberList" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="caseNumber !=null and caseNumber !=''">
+            AND a.case_number = #{caseNumber}
+        </if>
+        <if test="personalName != null and personalName !=''">
+            AND d.name LIKE CONCAT(#{personalName}, '%')
+        </if>
+        <if test="phone != null and phone !=''">
+            AND d.mobile_no = #{phone}
+        </if>
+        <if test="provinceId != null and provinceId !=''">
+            AND f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId})
+        </if>
+        <if test="cityId != null and cityId !=''">
+            AND f.id = #{cityId}
+        </if>
+        <if test="overDayStart != null and overDayStart !=''">
+            AND a.overdue_days &gt; #{overDayStart}
+        </if>
+        <if test="overDayEnd !=null and overDayEnd !=''">
+            AND a.overdue_days &lt; #{overDayEnd}
+        </if>
+        <if test="outCaseAmountStart != null and outCaseAmountStart !=''">
+            AND b.contract_amt &gt; #{outCaseAmountStart}
+        </if>
+        <if test="outCaseAmountEnd != null and outCaseAmountEnd !=''">
+            AND b.contract_amt &lt; #{outCaseAmountEnd}
+        </if>
+        <if test="commissionRateStart != null and commissionRateStart !=''">
+            AND  b.commission_rate &gt; #{commissionRateStart}
+        </if>
+        <if test="commissionRateEnd != null and commissionRateEnd !=''">
+            AND  b.commission_rate &lt; #{commissionRateEnd}
+        </if>
+        <if test="outTime != null and outTime !=''">
+            AND  b.out_ime &lt; #{out_ime}
+        </if>
+        <if test="overOutsourceTime != null and overOutsourceTime !=''">
+            AND  b.over_outsource_time &lt; #{overOutsourceTime}
+        </if>
+        <if test="outsName != null and outsName !=''">
+            AND  c.outs_name &lt; #{outsName}
+        </if>
+    </select>
+
+    <resultMap id="outSourceResultMap" type="cn.fintecher.pangolin.report.model.ExcportOutsourceResultModel">
+        <id column="id" property="id"/>
+        <result column="case_number" property="caseNumber"/>
+        <result column="batch_number" property="batchNumber"/>
+        <result column="contract_number" property="contractNumber"/>
+        <result column="outsource_total_amount" property="outsourceTotalAmount"/
+        <result column="left_amount" property="leftAmount"/>
+        <result column="left_days" property="leftDays"/>
+        <result column="out_Time" property="outTime"/>
+        <result column="outs_name" property="outsName"/>
+        <result column="has_pay_amount" property="hasPayAmount"/>
+        <result column="endOutTime" property="endOutTime"/>
+        <result column="overOutTime" property="overOutTime"/>
+        <result column="out_status" property="outsourceOutCaseStatus"/>
+        <result column="commission_rate" property="commissionRate"/>
+        <result column="commission_rate" property="commissionRate"/>
+        <association property="personalInfo" column="personal_id" select="selectPersonal"></association>
+        <association property="areaCode" column="area_id" select="selectCityArea"></association>
+        <collection property="outsourceFollowRecords" column="case_number" ofType="cn.fintecher.pangolin.entity.OutsourceFollowRecord" select="selectOutsourceFollowRecord"></collection>
+    </resultMap>
+
+    <select id="selectPersonal" parameterType="string" resultMap="personalResultMap">
+        SELECT id,name,id_card,number,mobile_no,local_phone_no,id_card_address,local_home_address FROM personal WHERE id = #{personal_id}
+    </select>
+
+    <resultMap id="personalResultMap" type="cn.fintecher.pangolin.entity.Personal">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="id_card" property="idCard"/>
+        <result column="number" property="number"/>
+        <result column="mobile_no" property="mobileNo"/>
+        <result column="id_card_address" property="idCardAddress"/>
+        <result column="local_phone_no" property="localPhoneNo"/>
+        <result column="local_home_address" property="localHomeAddress"/>
+        <collection property="personalBankInfos" column="id" ofType="cn.fintecher.pangolin.entity.PersonalBank" select="selectPersonalBank"></collection>
+        <collection property="personalJobs" column="id" ofType="cn.fintecher.pangolin.entity.PersonalJob" select="selectPersonalJob"></collection>
+        <collection property="personalContacts" column="id" ofType="cn.fintecher.pangolin.entity.PersonalContact" select="selectPersonalContacts"></collection>
+    </resultMap>
+
+    <select id="selectPersonalBank" resultMap="personalBankMap">
+        SELECT id,account_number,deposit_bank,card_number FROM personal_bank WHERE personal_id = #{id}
+    </select>
+
+    <resultMap id="personalBankMap" type="cn.fintecher.pangolin.entity.PersonalBank">
+        <id column="id" property="id"/>
+        <result column="account_number" property="accountNumber"/>
+        <result column="deposit_bank" property="depositBank"/>
+        <result column="card_number" property="cardNumber"/>
+    </resultMap>
+
+    <select id="selectPersonalJob" resultMap="personalJobMap">
+        select id,company_name,address,phone from personal_job WHERE personal_id = #{id}
+    </select>
+
+    <resultMap id="personalJobMap" type="cn.fintecher.pangolin.entity.PersonalJob">
+        <id column="id" property="id"/>
+        <result column="company_name" property="companyName"/>
+        <result column="address" property="address"/>
+        <result column="phone" property="phone"/>
+    </resultMap>
+
+    <select id="selectPersonalContacts" resultMap="personalContactsMap">
+        select id,name,phone,mobile,address,relation,employer,work_phone from personal_contact WHERE personal_id = #{id}
+    </select>
+
+    <resultMap id="personalContactsMap" type="cn.fintecher.pangolin.entity.PersonalContact">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="phone" property="phone"/>
+        <result column="mobile" property="mobile"/>
+        <result column="address" property="address"/>
+        <result column="relation" property="relation"/>
+        <result column="work_phone" property="workPhone"/>
+    </resultMap>
+
+    <select id="selectCityArea" resultMap="city">
+        SELECT id,parent_id,area_name FROM area_code WHERE id = #{area_id}
+    </select>
+
+    <resultMap id="city" type="cn.fintecher.pangolin.entity.AreaCode">
+        <id column="id" property="id"/>
+        <result column="area_name" property="areaName"/>
+        <association property="parent" column="parent_id" select="selectProvinceArea"></association>
+    </resultMap>
+
+    <select id="selectProvinceArea" resultMap="province">
+        select id,area_name from area_code where id = #{parent_id}
+    </select>
+
+    <resultMap id="province" type="cn.fintecher.pangolin.entity.AreaCode">
+        <id column="id" property="id"/>
+        <result column="area_name" property="areaName"/>
+    </resultMap>
+
+    <select id="selectOutsourceFollowRecord" resultMap="OutsourceFollowRecord">
+        SELECT * FROM outsource_follow_record WHERE case_num = #{case_number}
+    </select>
+
+    <resultMap id="OutsourceFollowRecord" type="cn.fintecher.pangolin.entity.OutsourceFollowRecord">
+        <id column="id" property="id"/>
+        <result column="case_num" property="caseNum"/>
+        <result column="follow_time" property="followTime"/>
+        <result column="follow_type" property="followType"/>
+        <result column="object_name" property="objectName"/>
+        <result column="user_name" property="userName"/>
+        <result column="tel_status" property="telStatus"/>
+        <result column="feedback" property="feedback"/>
+        <result column="follow_record" property="followRecord"/>
+        <result column="follow_person" property="followPerson"/>
+    </resultMap>
+
+</mapper>

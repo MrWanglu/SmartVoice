@@ -1,8 +1,6 @@
 package cn.fintecher.pangolin.report.model;
 
-import cn.fintecher.pangolin.entity.Product;
 import cn.fintecher.pangolin.entity.util.ExcelAnno;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -60,6 +58,23 @@ public class FollowupExportModel {
     private BigDecimal latelyPayAmount;
     @ExcelAnno(cellName = "佣金比例(%)")
     private BigDecimal commissionRate;
+
+    @ExcelAnno(cellName = "委外方")
+    private String outsName;
+    @ExcelAnno(cellName = "委外案件总金额")
+    private BigDecimal outsourceTotalAmount;
+    @ExcelAnno(cellName = "剩余金额(元)")
+    private BigDecimal leftAmount;
+    @ExcelAnno(cellName = "剩余委托时间(天)")
+    private Integer leftDays;
+    @ExcelAnno(cellName = "委案日期")
+    private Date outTime;
+    @ExcelAnno(cellName = "结案日期")
+    private Date endOutTime;
+    @ExcelAnno(cellName = "委案到期日期")
+    private Date overOutTime;
+    @ExcelAnno(cellName = "案件状态")
+    private Integer outsourceCaseStatus;
 
     @ExcelAnno(cellName = "客户姓名")
     private String personalName;

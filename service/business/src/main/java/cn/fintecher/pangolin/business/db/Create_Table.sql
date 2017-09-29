@@ -57,3 +57,25 @@ CREATE TABLE `case_info_judicial` (
   `operator_time` datetime DEFAULT NULL COMMENT '操作时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='司法案件池';
+
+--2017-09-28
+--新增委外跟进记录表
+--胡艳敏
+DROP TABLE IF EXISTS `outsource_follow_record`;
+CREATE TABLE `outsource_follow_record` (
+  `id` varchar(64) NOT NULL,
+  `company_code` varchar(64) DEFAULT NULL COMMENT '公司的标识',
+  `case_id` varchar(64) DEFAULT NULL COMMENT '案件id',
+  `case_num` varchar(64) DEFAULT NULL COMMENT '案件编号',
+  `follow_time` datetime DEFAULT NULL COMMENT '跟进时间',
+  `follow_type` int(4) DEFAULT NULL COMMENT '跟进方式 0：电话 1：邮件',
+  `object_name` varchar(64) DEFAULT NULL COMMENT '催收对象',
+  `user_name` varchar(64) DEFAULT NULL COMMENT '姓名',
+  `tel_status` int(4) DEFAULT NULL COMMENT '电话状态 64, 正常 65, 空号 66, 停机 67, 关机 68, 未知',
+  `feedback` varchar(64) DEFAULT NULL COMMENT '催收反馈',
+  `follow_record` varchar(1024) DEFAULT NULL COMMENT '跟进记录',
+  `follow_person` varchar(64) DEFAULT NULL COMMENT '跟进人',
+  `operator_name` varchar(100) DEFAULT NULL COMMENT '操作人姓名',
+  `operator_time` datetime DEFAULT NULL COMMENT '操作时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='委外案件跟进记录信息';
