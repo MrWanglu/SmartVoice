@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.service;
 
+import cn.fintecher.pangolin.business.model.ItemsModel;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.web.CaseInfoController;
 import cn.fintecher.pangolin.entity.*;
@@ -14,9 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @Author: PeiShouWen
@@ -118,22 +117,59 @@ public class CaseInfoExceptionService {
     }
 
     /**
-     * 更新异常案件
+     * 更新已分配异常案件
      */
-    public List<CaseInfo> updateCaseInfoException(String caseInfoExceptionId, List<String> caseInfoIds, User user) {
-        List<CaseInfoFile> caseInfoFileList = findCaseInfoFileById(caseInfoExceptionId);
+    public CaseInfo updateCaseInfoException(String caseInfoExceptionId, String caseId, User user, ItemsModel itemsModel) {
         CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseInfoExceptionId);
-        List<CaseInfo> caseInfoList = new ArrayList<>();
-        for(String caseInfoId : caseInfoIds){
-            CaseInfo caseInfo = caseInfoRepository.findOne(caseInfoId);
-            addCaseInfo(caseInfo, caseInfoException, user);
-            caseInfoRepository.save(caseInfo);
-            //附件信息
-            saveCaseFile(caseInfoFileList, caseInfo.getId(), caseInfo.getCaseNumber());
-            caseInfoExceptionRepository.delete(caseInfoException);
-            caseInfoList.add(caseInfo);
+        CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+        Personal personal = caseInfo.getPersonalInfo();
+        if (!itemsModel.getPersonalItems().isEmpty()) {
+            personal = updateAssignPersonal(itemsModel.getPersonalItems(), personal, caseInfoException, user);
         }
-        return caseInfoList;
+        if (!itemsModel.getJobItems().isEmpty()) {
+            updateJob(itemsModel.getJobItems(), personal, caseInfoException, user);
+        }
+        if (!itemsModel.getConnectItems().isEmpty()) {
+            addContract(caseInfoException, user, personal);
+        }
+        if (!itemsModel.getCaseItems().isEmpty()) {
+            caseInfo = updateCase(itemsModel.getCaseItems(), caseInfo, caseInfoException, user);
+        }
+        if (!itemsModel.getBankItems().isEmpty()) {
+            updateBank(itemsModel.getBankItems(), personal, caseInfoException, user);
+        }
+        caseInfo.setPersonalInfo(personal);
+        caseInfoRepository.save(caseInfo);
+        caseInfoExceptionRepository.delete(caseInfoException);
+        return caseInfo;
+    }
+
+    /**
+     * 更新待分配异常案件
+     */
+    public CaseInfoDistributed updateCaseDistributeException(String caseInfoExceptionId, String caseId, User user, ItemsModel itemsModel) {
+        CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseInfoExceptionId);
+        CaseInfoDistributed caseInfoDistributed = caseInfoDistributedRepository.findOne(caseId);
+        Personal personal = caseInfoDistributed.getPersonalInfo();
+        if (!itemsModel.getPersonalItems().isEmpty()) {
+            personal = updateAssignPersonal(itemsModel.getPersonalItems(), personal, caseInfoException, user);
+        }
+        if (!itemsModel.getJobItems().isEmpty()) {
+            updateJob(itemsModel.getJobItems(), personal, caseInfoException, user);
+        }
+        if (!itemsModel.getConnectItems().isEmpty()) {
+            addContract(caseInfoException, user, personal);
+        }
+        if (!itemsModel.getCaseItems().isEmpty()) {
+            caseInfoDistributed = updateCaseDistributed(itemsModel.getCaseItems(), caseInfoDistributed, caseInfoException, user);
+        }
+        if (!itemsModel.getBankItems().isEmpty()) {
+            updateBank(itemsModel.getBankItems(), personal, caseInfoException, user);
+        }
+        caseInfoDistributed.setPersonalInfo(personal);
+        caseInfoDistributedRepository.save(caseInfoDistributed);
+        caseInfoExceptionRepository.delete(caseInfoException);
+        return caseInfoDistributed;
     }
 
     /**
@@ -156,7 +192,7 @@ public class CaseInfoExceptionService {
      * @param caseNum
      */
     private void saveCaseFile(List<CaseInfoFile> caseInfoFileList, String caseId, String caseNum) {
-        if (caseInfoFileList.size()>0) {
+        if (caseInfoFileList.size() > 0) {
             for (CaseInfoFile obj : caseInfoFileList) {
                 obj.setCaseId(caseId);
                 obj.setCaseNumber(caseNum);
@@ -258,6 +294,226 @@ public class CaseInfoExceptionService {
         return caseInfo;
     }
 
+    public Personal updateAssignPersonal(List<String> items, Personal personal, CaseInfoException caseInfoException, User user) {
+        if (Objects.isNull(personal)) {
+            personal = new Personal();
+        }
+        if (items.contains("客户姓名")) {
+            personal.setName(caseInfoException.getPersonalName());
+        }
+        if (items.contains("身份证号")) {
+            personal.setIdCard(caseInfoException.getIdCard());
+        }
+        if (items.contains("手机号码")) {
+            personal.setMobileNo(caseInfoException.getMobileNo());
+        }
+        if (items.contains("身份证户籍地址")) {
+            personal.setIdCardAddress(caseInfoException.getIdCardAddress());
+        }
+        if (items.contains("家庭住址")) {
+            personal.setLocalHomeAddress(caseInfoException.getHomeAddress());
+        }
+        if (items.contains("固定电话")) {
+            personal.setLocalPhoneNo(caseInfoException.getHomePhone());
+        }
+        personal.setOperatorTime(ZWDateUtil.getNowDateTime());
+        personal.setOperator(user.getId());
+        return personal;
+    }
+
+    public void updateJob(List<String> items, Personal personal, CaseInfoException caseInfoException, User user) {
+        PersonalJob job = personalJobRepository.findByPersonalId(personal.getId());
+        if (Objects.isNull(job)) {
+            job = new PersonalJob();
+        }
+        if (items.contains("工作单位名称")) {
+            job.setCompanyName(caseInfoException.getCompanyName());
+        }
+        if (items.contains("工作单位地址")) {
+            job.setAddress(caseInfoException.getCompanyAddr());
+        }
+        if (items.contains("工作单位电话")) {
+            job.setPhone(caseInfoException.getCompanyPhone());
+        }
+        job.setOperatorTime(ZWDateUtil.getNowDateTime());
+        job.setOperator(user.getId());
+        personalJobRepository.save(job);
+    }
+
+    public CaseInfo updateCase(List<String> items, CaseInfo caseInfo, CaseInfoException caseInfoException, User user) {
+        if (items.contains("产品系列")) {
+            Product product = caseInfo.getProduct();
+            ProductSeries series = product.getProductSeries();
+            series.setSeriesName(caseInfoException.getProductSeriesName());
+            product.setProductSeries(series);
+            caseInfo.setProduct(product);
+        }
+        if (items.contains("合同编号")) {
+            caseInfo.setContractNumber(caseInfoException.getContractNumber());
+        }
+        if (items.contains("城市")) {
+            caseInfo.setArea(areaHandler(caseInfoException));
+        }
+        if (items.contains("省份")) {
+            caseInfo.setArea(areaHandler(caseInfoException));
+        }
+        if (items.contains("贷款日期")) {
+            caseInfo.setLoanDate(caseInfoException.getLoanDate());
+        }
+        if (items.contains("合同金额")) {
+            caseInfo.setContractAmount(caseInfoException.getContractAmount());
+        }
+        if (items.contains("剩余本金(元)")) {
+            caseInfo.setLeftCapital(caseInfoException.getLeftCapital());
+        }
+        if (items.contains("剩余利息(元)")) {
+            caseInfo.setLeftInterest(caseInfoException.getLeftInterest());
+        }
+        if (items.contains("逾期总金额(元)")) {
+            caseInfo.setOverdueAmount(caseInfoException.getOverdueAmount());
+        }
+        if (items.contains("逾期本金(元)")) {
+            caseInfo.setOverdueCapital(caseInfoException.getOverdueCapital());
+        }
+        if (items.contains("逾期利息(元)")) {
+            caseInfo.setOverdueInterest(caseInfoException.getOverDueInterest());
+        }
+        if (items.contains("逾期罚息(元)")) {
+            caseInfo.setOverdueFine(caseInfoException.getOverdueFine());
+        }
+        if (items.contains("还款期数")) {
+            caseInfo.setPeriods(caseInfoException.getPeriods());
+        }
+        if (items.contains("每期还款金额(元)")) {
+            caseInfo.setPerPayAmount(caseInfoException.getPerPayAmount());
+        }
+        if (items.contains("其他费用(元)")) {
+            caseInfo.setOtherAmt(caseInfoException.getOtherAmt());
+        }
+        if (items.contains("逾期日期")) {
+            caseInfo.setOverDueDate(caseInfoException.getOverDueDate());
+        }
+        if (items.contains("逾期期数")) {
+            caseInfo.setOverduePeriods(caseInfoException.getOverDuePeriods());
+        }
+        if (items.contains("逾期天数")) {
+            caseInfo.setOverdueDays(caseInfoException.getOverDueDays());
+        }
+        if (items.contains("已还款金额(元)")) {
+            caseInfo.setHasPayAmount(caseInfoException.getHasPayAmount());
+        }
+        if (items.contains("已还款期数")) {
+            caseInfo.setHasPayPeriods(caseInfoException.getHasPayPeriods());
+        }
+        if (items.contains("最近还款日期")) {
+            caseInfo.setLatelyPayDate(caseInfoException.getLatelyPayDate());
+        }
+        if (items.contains("最近还款金额(元)")) {
+            caseInfo.setLatelyPayAmount(caseInfoException.getLatelyPayAmount());
+        }
+        if (items.contains("佣金比例(%)")) {
+            caseInfo.setCommissionRate(caseInfoException.getCommissionRate());
+        }
+        caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+        caseInfo.setOperator(user);
+        return caseInfo;
+    }
+
+    public CaseInfoDistributed updateCaseDistributed(List<String> items, CaseInfoDistributed caseInfoDistributed, CaseInfoException caseInfoException, User user) {
+        if (items.contains("产品系列")) {
+            Product product = caseInfoDistributed.getProduct();
+            ProductSeries series = product.getProductSeries();
+            series.setSeriesName(caseInfoException.getProductSeriesName());
+            product.setProductSeries(series);
+            caseInfoDistributed.setProduct(product);
+        }
+        if (items.contains("合同编号")) {
+            caseInfoDistributed.setContractNumber(caseInfoException.getContractNumber());
+        }
+        if (items.contains("城市")) {
+            caseInfoDistributed.setArea(areaHandler(caseInfoException));
+        }
+        if (items.contains("省份")) {
+            caseInfoDistributed.setArea(areaHandler(caseInfoException));
+        }
+        if (items.contains("贷款日期")) {
+            caseInfoDistributed.setLoanDate(caseInfoException.getLoanDate());
+        }
+        if (items.contains("合同金额")) {
+            caseInfoDistributed.setContractAmount(caseInfoException.getContractAmount());
+        }
+        if (items.contains("剩余本金(元)")) {
+            caseInfoDistributed.setLeftCapital(caseInfoException.getLeftCapital());
+        }
+        if (items.contains("剩余利息(元)")) {
+            caseInfoDistributed.setLeftInterest(caseInfoException.getLeftInterest());
+        }
+        if (items.contains("逾期总金额(元)")) {
+            caseInfoDistributed.setOverdueAmount(caseInfoException.getOverdueAmount());
+        }
+        if (items.contains("逾期本金(元)")) {
+            caseInfoDistributed.setOverdueCapital(caseInfoException.getOverdueCapital());
+        }
+        if (items.contains("逾期利息(元)")) {
+            caseInfoDistributed.setOverdueInterest(caseInfoException.getOverDueInterest());
+        }
+        if (items.contains("逾期罚息(元)")) {
+            caseInfoDistributed.setOverdueFine(caseInfoException.getOverdueFine());
+        }
+        if (items.contains("还款期数")) {
+            caseInfoDistributed.setPeriods(caseInfoException.getPeriods());
+        }
+        if (items.contains("每期还款金额(元)")) {
+            caseInfoDistributed.setPerPayAmount(caseInfoException.getPerPayAmount());
+        }
+        if (items.contains("其他费用(元)")) {
+            caseInfoDistributed.setOtherAmt(caseInfoException.getOtherAmt());
+        }
+        if (items.contains("逾期日期")) {
+            caseInfoDistributed.setOverDueDate(caseInfoException.getOverDueDate());
+        }
+        if (items.contains("逾期期数")) {
+            caseInfoDistributed.setOverduePeriods(caseInfoException.getOverDuePeriods());
+        }
+        if (items.contains("逾期天数")) {
+            caseInfoDistributed.setOverdueDays(caseInfoException.getOverDueDays());
+        }
+        if (items.contains("已还款金额(元)")) {
+            caseInfoDistributed.setHasPayAmount(caseInfoException.getHasPayAmount());
+        }
+        if (items.contains("已还款期数")) {
+            caseInfoDistributed.setHasPayPeriods(caseInfoException.getHasPayPeriods());
+        }
+        if (items.contains("最近还款日期")) {
+            caseInfoDistributed.setLatelyPayDate(caseInfoException.getLatelyPayDate());
+        }
+        if (items.contains("最近还款金额(元)")) {
+            caseInfoDistributed.setLatelyPayAmount(caseInfoException.getLatelyPayAmount());
+        }
+        if (items.contains("佣金比例(%)")) {
+            caseInfoDistributed.setCommissionRate(caseInfoException.getCommissionRate());
+        }
+        caseInfoDistributed.setOperatorTime(ZWDateUtil.getNowDateTime());
+        caseInfoDistributed.setOperator(user);
+        return caseInfoDistributed;
+    }
+
+    public void updateBank(List<String> items, Personal personal, CaseInfoException caseInfoException, User user) {
+        PersonalBank bank = personalBankRepository.findOne(QPersonalBank.personalBank.personalId.eq(personal.getId()));
+        if (Objects.isNull(bank)) {
+            bank = new PersonalBank();
+        }
+        if (items.contains("客户还款卡银行")) {
+            bank.setDepositBank(caseInfoException.getDepositBank());
+        }
+        if (items.contains("客户还款卡号")) {
+            bank.setCardNumber(caseInfoException.getCardNumber());
+        }
+        bank.setOperatorTime(ZWDateUtil.getNowDateTime());
+        bank.setOperator(user.getId());
+        personalBankRepository.save(bank);
+    }
+
     /**
      * 工作信息
      *
@@ -342,10 +598,10 @@ public class CaseInfoExceptionService {
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime());
         personalContactList.add(personalContact);
         // 联系人1信息
-        if(Objects.nonNull(caseInfoException.getContactName1())
+        if (Objects.nonNull(caseInfoException.getContactName1())
                 || Objects.nonNull(caseInfoException.getContactPhone1())
-                || Objects.nonNull(caseInfoException.getContactHomePhone1())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone1())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation1()));
             obj.setName(caseInfoException.getContactName1());
@@ -362,10 +618,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人2信息
-        if(Objects.nonNull(caseInfoException.getContactName2())
+        if (Objects.nonNull(caseInfoException.getContactName2())
                 || Objects.nonNull(caseInfoException.getContactPhone2())
-                || Objects.nonNull(caseInfoException.getContactHomePhone2())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone2())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation2()));
             obj.setName(caseInfoException.getContactName2());
@@ -382,10 +638,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人3信息
-        if(Objects.nonNull(caseInfoException.getContactName3())
+        if (Objects.nonNull(caseInfoException.getContactName3())
                 || Objects.nonNull(caseInfoException.getContactPhone3())
-                || Objects.nonNull(caseInfoException.getContactHomePhone3())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone3())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation3()));
             obj.setName(caseInfoException.getContactName3());
@@ -402,10 +658,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人4信息
-        if(Objects.nonNull(caseInfoException.getContactName4())
+        if (Objects.nonNull(caseInfoException.getContactName4())
                 || Objects.nonNull(caseInfoException.getContactPhone4())
-                || Objects.nonNull(caseInfoException.getContactHomePhone4())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone4())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation4()));
             obj.setName(caseInfoException.getContactName4());
@@ -422,10 +678,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人5信息
-        if(Objects.nonNull(caseInfoException.getContactName5())
+        if (Objects.nonNull(caseInfoException.getContactName5())
                 || Objects.nonNull(caseInfoException.getContactPhone5())
-                || Objects.nonNull(caseInfoException.getContactHomePhone5())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone5())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation5()));
             obj.setName(caseInfoException.getContactName5());
@@ -442,10 +698,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人6信息
-        if(Objects.nonNull(caseInfoException.getContactName6())
+        if (Objects.nonNull(caseInfoException.getContactName6())
                 || Objects.nonNull(caseInfoException.getContactPhone6())
-                || Objects.nonNull(caseInfoException.getContactHomePhone6())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone6())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation6()));
             obj.setName(caseInfoException.getContactName6());
@@ -462,10 +718,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人7信息
-        if(Objects.nonNull(caseInfoException.getContactName7())
+        if (Objects.nonNull(caseInfoException.getContactName7())
                 || Objects.nonNull(caseInfoException.getContactPhone7())
-                || Objects.nonNull(caseInfoException.getContactHomePhone7())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone7())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation7()));
             obj.setName(caseInfoException.getContactName7());
@@ -482,10 +738,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人8信息
-        if(Objects.nonNull(caseInfoException.getContactName8())
+        if (Objects.nonNull(caseInfoException.getContactName8())
                 || Objects.nonNull(caseInfoException.getContactPhone8())
-                || Objects.nonNull(caseInfoException.getContactHomePhone8())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone8())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation8()));
             obj.setName(caseInfoException.getContactName8());
@@ -502,10 +758,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人9信息
-        if(Objects.nonNull(caseInfoException.getContactName9())
+        if (Objects.nonNull(caseInfoException.getContactName9())
                 || Objects.nonNull(caseInfoException.getContactPhone9())
-                || Objects.nonNull(caseInfoException.getContactHomePhone9())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone9())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation9()));
             obj.setName(caseInfoException.getContactName9());
@@ -522,10 +778,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人10信息
-        if(Objects.nonNull(caseInfoException.getContactName10())
+        if (Objects.nonNull(caseInfoException.getContactName10())
                 || Objects.nonNull(caseInfoException.getContactPhone10())
-                || Objects.nonNull(caseInfoException.getContactHomePhone10())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone10())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation10()));
             obj.setName(caseInfoException.getContactName10());
@@ -542,10 +798,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人11信息
-        if(Objects.nonNull(caseInfoException.getContactName11())
+        if (Objects.nonNull(caseInfoException.getContactName11())
                 || Objects.nonNull(caseInfoException.getContactPhone11())
-                || Objects.nonNull(caseInfoException.getContactHomePhone11())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone11())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation11()));
             obj.setName(caseInfoException.getContactName11());
@@ -562,10 +818,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人12信息
-        if(Objects.nonNull(caseInfoException.getContactName12())
+        if (Objects.nonNull(caseInfoException.getContactName12())
                 || Objects.nonNull(caseInfoException.getContactPhone12())
-                || Objects.nonNull(caseInfoException.getContactHomePhone12())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone12())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation12()));
             obj.setName(caseInfoException.getContactName12());
@@ -582,10 +838,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人13信息
-        if(Objects.nonNull(caseInfoException.getContactName13())
+        if (Objects.nonNull(caseInfoException.getContactName13())
                 || Objects.nonNull(caseInfoException.getContactPhone13())
-                || Objects.nonNull(caseInfoException.getContactHomePhone13())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone13())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation13()));
             obj.setName(caseInfoException.getContactName13());
@@ -602,10 +858,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人14信息
-        if(Objects.nonNull(caseInfoException.getContactName14())
+        if (Objects.nonNull(caseInfoException.getContactName14())
                 || Objects.nonNull(caseInfoException.getContactPhone14())
-                || Objects.nonNull(caseInfoException.getContactHomePhone14())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone14())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation14()));
             obj.setName(caseInfoException.getContactName14());
@@ -622,10 +878,10 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人15信息
-        if(Objects.nonNull(caseInfoException.getContactName15())
+        if (Objects.nonNull(caseInfoException.getContactName15())
                 || Objects.nonNull(caseInfoException.getContactPhone15())
-                || Objects.nonNull(caseInfoException.getContactHomePhone15())){
-            PersonalContact obj=new PersonalContact();
+                || Objects.nonNull(caseInfoException.getContactHomePhone15())) {
+            PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation15()));
             obj.setName(caseInfoException.getContactName15());
@@ -759,8 +1015,8 @@ public class CaseInfoExceptionService {
             personalAddressList.add(personalAddress);
         }
         //居住地址(联系人5)
-        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress5())){
-            PersonalAddress personalAddress=new PersonalAddress();
+        if (StringUtils.isNotBlank(caseInfoException.getContactCurrAddress5())) {
+            PersonalAddress personalAddress = new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation5()));
             personalAddress.setName(caseInfoException.getContactName5());
@@ -773,8 +1029,8 @@ public class CaseInfoExceptionService {
             personalAddressList.add(personalAddress);
         }
         //居住地址(联系人6)
-        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress6())){
-            PersonalAddress personalAddress=new PersonalAddress();
+        if (StringUtils.isNotBlank(caseInfoException.getContactCurrAddress6())) {
+            PersonalAddress personalAddress = new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation6()));
             personalAddress.setName(caseInfoException.getContactName6());
@@ -787,8 +1043,8 @@ public class CaseInfoExceptionService {
             personalAddressList.add(personalAddress);
         }
         //居住地址(联系人7)
-        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress7())){
-            PersonalAddress personalAddress=new PersonalAddress();
+        if (StringUtils.isNotBlank(caseInfoException.getContactCurrAddress7())) {
+            PersonalAddress personalAddress = new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation7()));
             personalAddress.setName(caseInfoException.getContactName7());
@@ -801,8 +1057,8 @@ public class CaseInfoExceptionService {
             personalAddressList.add(personalAddress);
         }
         //居住地址(联系人8)
-        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress8())){
-            PersonalAddress personalAddress=new PersonalAddress();
+        if (StringUtils.isNotBlank(caseInfoException.getContactCurrAddress8())) {
+            PersonalAddress personalAddress = new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation8()));
             personalAddress.setName(caseInfoException.getContactName8());
@@ -815,8 +1071,8 @@ public class CaseInfoExceptionService {
             personalAddressList.add(personalAddress);
         }
         //居住地址(联系人9)
-        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress9())){
-            PersonalAddress personalAddress=new PersonalAddress();
+        if (StringUtils.isNotBlank(caseInfoException.getContactCurrAddress9())) {
+            PersonalAddress personalAddress = new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation9()));
             personalAddress.setName(caseInfoException.getContactName9());
@@ -829,8 +1085,8 @@ public class CaseInfoExceptionService {
             personalAddressList.add(personalAddress);
         }
         //居住地址(联系人10)
-        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress10())){
-            PersonalAddress personalAddress=new PersonalAddress();
+        if (StringUtils.isNotBlank(caseInfoException.getContactCurrAddress10())) {
+            PersonalAddress personalAddress = new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation10()));
             personalAddress.setName(caseInfoException.getContactName10());
@@ -843,8 +1099,8 @@ public class CaseInfoExceptionService {
             personalAddressList.add(personalAddress);
         }
         //居住地址(联系人11)
-        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress11())){
-            PersonalAddress personalAddress=new PersonalAddress();
+        if (StringUtils.isNotBlank(caseInfoException.getContactCurrAddress11())) {
+            PersonalAddress personalAddress = new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation11()));
             personalAddress.setName(caseInfoException.getContactName11());
@@ -857,8 +1113,8 @@ public class CaseInfoExceptionService {
             personalAddressList.add(personalAddress);
         }
         //居住地址(联系人12)
-        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress12())){
-            PersonalAddress personalAddress=new PersonalAddress();
+        if (StringUtils.isNotBlank(caseInfoException.getContactCurrAddress12())) {
+            PersonalAddress personalAddress = new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation12()));
             personalAddress.setName(caseInfoException.getContactName12());
@@ -871,8 +1127,8 @@ public class CaseInfoExceptionService {
             personalAddressList.add(personalAddress);
         }
         //居住地址(联系人13)
-        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress13())){
-            PersonalAddress personalAddress=new PersonalAddress();
+        if (StringUtils.isNotBlank(caseInfoException.getContactCurrAddress13())) {
+            PersonalAddress personalAddress = new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation13()));
             personalAddress.setName(caseInfoException.getContactName13());
@@ -885,8 +1141,8 @@ public class CaseInfoExceptionService {
             personalAddressList.add(personalAddress);
         }
         //居住地址(联系人14)
-        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress14())){
-            PersonalAddress personalAddress=new PersonalAddress();
+        if (StringUtils.isNotBlank(caseInfoException.getContactCurrAddress14())) {
+            PersonalAddress personalAddress = new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation14()));
             personalAddress.setName(caseInfoException.getContactName14());
@@ -899,8 +1155,8 @@ public class CaseInfoExceptionService {
             personalAddressList.add(personalAddress);
         }
         //居住地址(联系人15)
-        if(StringUtils.isNotBlank(caseInfoException.getContactCurrAddress15())){
-            PersonalAddress personalAddress=new PersonalAddress();
+        if (StringUtils.isNotBlank(caseInfoException.getContactCurrAddress15())) {
+            PersonalAddress personalAddress = new PersonalAddress();
             personalAddress.setPersonalId(personal.getId());
             personalAddress.setRelation(getRelationType(caseInfoException.getContactRelation15()));
             personalAddress.setName(caseInfoException.getContactName4());
@@ -1018,10 +1274,11 @@ public class CaseInfoExceptionService {
 
     /**
      * 地址设置(城市--->家庭住址--->身份证地址)
+     *
      * @param caseInfoException
      * @return
      */
-    private AreaCode areaHandler(CaseInfoException caseInfoException){
+    private AreaCode areaHandler(CaseInfoException caseInfoException) {
         List<String> personalAreaList = new ArrayList<>();
         List<String> emptyList = new ArrayList<>();
         personalAreaList.add(caseInfoException.getCity());
@@ -1029,9 +1286,9 @@ public class CaseInfoExceptionService {
         personalAreaList.add(caseInfoException.getIdCardAddress());
         emptyList.add(null);
         personalAreaList.removeAll(emptyList);
-        for(String area : personalAreaList){
+        for (String area : personalAreaList) {
             AreaCode areaCode = areaCodeService.queryAreaCodeByName(area);
-            if(Objects.nonNull(areaCode)){
+            if (Objects.nonNull(areaCode)) {
                 return areaCode;
             }
         }

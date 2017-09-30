@@ -107,12 +107,15 @@ public class ExportItemService {
         createPersonalItems(user,category);
         createJobItems(user,category);
         createConnectItems(user,category);
-        if(category==1){
+        if(category==1 || category == 3){
             createCaseItems(user,category);
         } else if(category==2){
             createOutsourceCaseItems(user,category);
         }
         createBankItems(user,category);
+        if(category == 3){
+            return ;
+        }
         createFollowItems(user,category);
     }
 
