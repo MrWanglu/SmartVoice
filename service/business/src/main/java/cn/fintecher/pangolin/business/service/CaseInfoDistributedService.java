@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.business.service;
 
 import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
 import cn.fintecher.pangolin.business.model.AllocationCountModel;
+import cn.fintecher.pangolin.business.model.CaseInfoIdList;
 import cn.fintecher.pangolin.business.model.ManualParams;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
@@ -19,10 +20,7 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @Author: PeiShouWen
@@ -87,6 +85,9 @@ public class CaseInfoDistributedService {
 
     @Inject
     CaseInfoService caseInfoService;
+
+    @Inject
+    CaseInfoRemarkRepository caseInfoRemarkRepository;
 
     /**
      * 案件分配
@@ -227,6 +228,7 @@ public class CaseInfoDistributedService {
             List<CaseInfo> caseInfoList = new ArrayList<>();
             List<CaseRepair> caseRepairList = new ArrayList<>();
             List<OutsourcePool> outsourcePoolList = new ArrayList<>();
+            List<CaseInfoRemark> caseInfoRemarkList = new ArrayList<>();
             Integer type = manualParams.getType();
             //内催
             if (Objects.equals(0, type)) {
@@ -253,14 +255,32 @@ public class CaseInfoDistributedService {
                     outsourcePoolList.add(outsourcePool);
                 }
             }
-            caseInfoRepository.save(caseInfoList);
+            List<CaseInfo> save = caseInfoRepository.save(caseInfoList);
             caseRepairRepository.save(caseRepairList);
             outsourcePoolRepository.save(outsourcePoolList);
+            caseInfoRemarkRepository.save(caseInfoRemarkList);
+            if (!save.isEmpty()) {
+                for (CaseInfo caseInfo : save) {
+                    addCaseInfoRemark(caseInfoRemarkList, caseInfo, user);
+                }
+                caseInfoRemarkRepository.save(caseInfoRemarkList);
+            }
             caseInfoDistributedRepository.delete(all);
         } catch (BeansException e) {
             logger.error(e.getMessage(), e);
             throw new RuntimeException("分配失败!");
         }
+    }
+
+    private void addCaseInfoRemark(List<CaseInfoRemark> caseInfoRemarkList,CaseInfo caseInfo, User user) {
+        CaseInfoRemark caseInfoRemark = new CaseInfoRemark();
+        caseInfoRemark.setCaseId(caseInfo.getId());
+        caseInfoRemark.setRemark(caseInfo.getMemo());
+        caseInfoRemark.setCompanyCode(caseInfo.getCompanyCode());
+        caseInfoRemark.setOperatorRealName(user.getRealName());
+        caseInfoRemark.setOperatorUserName(user.getUserName());
+        caseInfoRemark.setOperatorTime(new Date());
+        caseInfoRemarkList.add(caseInfoRemark);
     }
 
     private void setCaseInfo(CaseInfoDistributed caseInfoDistributed, CaseInfo caseInfo, User user) {
@@ -319,5 +339,19 @@ public class CaseInfoDistributedService {
             logger.error(e.getMessage(), e);
             throw new RuntimeException("统计案件信息错误!");
         }
+    }
+
+    public void strategyAllocation(CaseInfoIdList caseInfoIdList, User user) {
+        List<CaseInfoDistributed> all = new ArrayList<>();
+        if (Objects.isNull(caseInfoIdList.getIds()) || caseInfoIdList.getIds().isEmpty()) {
+            all = caseInfoDistributedRepository.findAll();
+        } else {
+            all = caseInfoDistributedRepository.findAll(caseInfoIdList.getIds());
+        }
+        if (all.isEmpty()) {
+            throw new RuntimeException("待分配案件为空!");
+        }
+//        ResponseEntity<CaseStrategy> forEntity = restTemplate.getForEntity("http://dataimp-service/api/caseStrategyResource/getCaseStrategy?".concat("companyCode=").concat(user.getCompanyCode()).concat("&strategyType=").concat(CaseStrategy.StrategyType.IMPORT.getValue().toString()), CaseStrategy.class);
+//        CaseStrategy body = forEntity.getBody();
     }
 }
