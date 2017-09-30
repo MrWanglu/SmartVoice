@@ -210,7 +210,7 @@
   </update>
 
     <select id = "queryCollectingCase" parameterType="cn.fintecher.pangolin.report.model.CollectingCaseParams" resultType="cn.fintecher.pangolin.report.model.CollectingCaseInfo">
-        select a.batch_number as batchNumber,a.name,a.caseFollowInTime,a.delegationDate,a.closeDate,a.leftDate,a.caseNum,a.caseAmt,a.endCaseAmt,ifnull(b.endCaseNum,0) as endCaseNum,ifnull((b.endCaseNum/caseNum),0) as numRate,(endCaseAmt/caseAmt) as amtRate
+        select a.batch_number as batchNumber,a.name,a.caseFollowInTime,a.delegationDate,a.closeDate,a.leftDate,a.caseNum,a.caseAmt,a.endCaseAmt,ifnull(b.endCaseNum,0) as endCaseNum,truncate(ifnull(( b.endCaseNum/caseNum),0),4) as numRate,truncate((endCaseAmt/caseAmt),4) as amtRate
         from
         (
             select aa.batch_number,aa.caseFollowInTime,aa.delegationDate,aa.closeDate,aa.leftDate,aa.caseNum,aa.caseAmt,aa.endCaseAmt,ab.name
