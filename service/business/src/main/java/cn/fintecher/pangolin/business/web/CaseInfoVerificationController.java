@@ -56,9 +56,6 @@ public class CaseInfoVerificationController extends BaseController {
     @Inject
     private CaseInfoVerificationApplyRepository caseInfoVerificationApplyRepository;
 
-    @Inject
-    private CaseFollowupRecordRepository caseFollowupRecordRepository;
-
     @PostMapping("/saveCaseInfoVerification")
     @ApiOperation(value = "案件申请审批", notes = "案件申请审批")
     public ResponseEntity saveCaseInfoVerification(@RequestBody CaseInfoVerficationModel caseInfoVerficationModel,
@@ -146,41 +143,6 @@ public class CaseInfoVerificationController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "查看失败")).body(null);
         }
     }
-
-    @RequestMapping(value = "/getCaseInfoFollow", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
-    @ApiOperation(value = "跟进记录", notes = "跟进记录")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
-                    value = "页数 (0..N)"),
-            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
-                    value = "每页大小."),
-            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
-                    value = "依据什么排序: 属性名(,asc|desc). ")
-    })
-    public ResponseEntity getCaseInfoFollow(@QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
-                                            @ApiIgnore Pageable pageable,
-                                            @RequestHeader(value = "X-UserToken") String token,
-                                            @RequestParam("caseId") @ApiParam("案件编号") String caseId) {
-        User user;
-        try {
-            user = getUserByToken(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
-        }
-        CaseInfoVerificationApply caseInfoVerificationApply = caseInfoVerificationApplyRepository.findOne(QCaseInfoVerificationApply.caseInfoVerificationApply.caseId.eq(caseId));
-        BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-        if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
-            if (StringUtils.isNotBlank(caseInfoVerificationApply.getCompanyCode())) {
-                booleanBuilder.and(QCaseFollowupRecord.caseFollowupRecord.companyCode.eq(caseInfoVerificationApply.getCompanyCode()));
-            }
-        } else { // 普通管理员
-            booleanBuilder.and(QCaseFollowupRecord.caseFollowupRecord.companyCode.eq(user.getCompanyCode()));
-        }
-        Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(booleanBuilder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoVerification")).body(page);
-    }
-
 
     @RequestMapping(value = "/getCaseInfoVerification", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
     @ApiOperation(value = "核销审批通过案件查询", notes = "核销审批通过案件查询")
