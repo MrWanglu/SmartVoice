@@ -1026,6 +1026,9 @@ public class OutsourcePoolController extends BaseController {
             } else {
                 outsourceFollowRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
                 outsourceFollowRecord.setOperatorName(user.getUserName());
+                if(Objects.nonNull(user.getUserName())){
+                    outsourceFollowRecord.setCompanyCode(user.getUserName() );
+                }
             }
 
             //查找上传文件

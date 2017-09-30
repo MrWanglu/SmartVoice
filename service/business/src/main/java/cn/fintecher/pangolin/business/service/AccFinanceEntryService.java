@@ -149,6 +149,9 @@ public class AccFinanceEntryService {
 
             }
             out.setFollowType(followtype);
+            if(Objects.nonNull(outsourceFollowRecord.getCompanyCode())){
+                out.setCompanyCode(outsourceFollowRecord.getCompanyCode());
+            }
             out.setFollowTime(followUpRecordModel.getFollowTime());
             out.setFollowPerson(followUpRecordModel.getFollowPerson());
             out.setUserName(followUpRecordModel.getUserName());
