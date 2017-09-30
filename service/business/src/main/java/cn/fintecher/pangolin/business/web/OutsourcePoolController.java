@@ -1439,11 +1439,10 @@ public class OutsourcePoolController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam(required = true) @ApiParam(value = "批次号") String batchNumber,
-                                                                         @RequestParam(required = true) @ApiParam(value = "委外方名称") String outsName,
+                                                                          @RequestParam(required = true) @ApiParam(value = "委外方名称") String outsName,
                                                                           @QuerydslPredicate(root = OutsourcePool.class) Predicate predicate,
-                                                                         @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                                                         @ApiIgnore Pageable pageable,
-                                                                         @RequestHeader(value = "X-UserToken") String token) {
+                                                                          @ApiIgnore Pageable pageable,
+                                                                          @RequestHeader(value = "X-UserToken") String token) {
         log.debug("Rest request get outsource case by batch number");
         User user = null;
         try {
