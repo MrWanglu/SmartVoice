@@ -210,13 +210,13 @@
   </update>
 
     <select id = "queryCollectingCase" parameterType="cn.fintecher.pangolin.report.model.CollectingCaseParams" resultType="cn.fintecher.pangolin.report.model.CollectingCaseInfo">
-        select a.batch_number as batchNumber,a.name,a.caseFollowInTime,a.delegationDate,a.closeDate,a.leftDate,a.caseNum,a.caseAmt,a.endCaseAmt,ifnull(b.endCaseNum,0) as endCaseNum,truncate(ifnull(( b.endCaseNum/caseNum),0),4) as numRate,truncate((endCaseAmt/caseAmt),4) as amtRate
+        select a.batch_number as batchNumber,a.name,a.caseFollowInTime,a.delegationDate,a.closeDate,a.leftDays,a.caseNum,a.caseAmt,a.endCaseAmt,ifnull(b.endCaseNum,0) as endCaseNum,truncate(ifnull(( b.endCaseNum/caseNum),0),4) as numRate,truncate((endCaseAmt/caseAmt),4) as amtRate
         from
         (
-            select aa.batch_number,aa.caseFollowInTime,aa.delegationDate,aa.closeDate,aa.leftDate,aa.caseNum,aa.caseAmt,aa.endCaseAmt,ab.name
+            select aa.batch_number,aa.caseFollowInTime,aa.delegationDate,aa.closeDate,aa.leftDays,aa.caseNum,aa.caseAmt,aa.endCaseAmt,ab.name
             from
 				(
-				    select batch_number,principal_id,MIN(case_follow_in_time) as caseFollowInTime ,MIN(delegation_date) as delegationDate,Max(close_date) as closeDate,Min(left_days) as leftDate,count(*) as caseNum,sum(overdue_amount) as caseAmt,sum(real_pay_amount+early_real_settle_amt) as endCaseAmt
+				    select batch_number,principal_id,MIN(case_follow_in_time) as caseFollowInTime ,MIN(delegation_date) as delegationDate,Max(close_date) as closeDate,Min(left_days) as leftDays,count(*) as caseNum,sum(overdue_amount) as caseAmt,sum(real_pay_amount+early_real_settle_amt) as endCaseAmt
                     from case_info cc
                     left join department on cc.depart_id = department.id
                     where 1 = 1
