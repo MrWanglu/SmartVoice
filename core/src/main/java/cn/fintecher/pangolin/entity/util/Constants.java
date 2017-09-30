@@ -80,6 +80,8 @@ public final class Constants {
     // 获取上传文件URL
     public static final String UPLOAD_FILE_URL = "http://file-service/api/uploadFile/addUploadFileUrl";
     public static final String DATE_FORMAT = "yyyy-MM-dd";
+    // 获取案件分配策略
+    public static final String CASE_STRATEGY_URL = "http://dataimp-service/api/caseStrategyResource/getCaseStrategy?";
 
     //案件确认数据发送队列
     public static final String DATAINFO_CONFIRM_QE = "dataInfoExcel.confirm.progress.dev";

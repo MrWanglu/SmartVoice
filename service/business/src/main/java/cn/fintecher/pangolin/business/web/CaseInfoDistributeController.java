@@ -1,9 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
-import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
-import cn.fintecher.pangolin.business.model.AllocationCountModel;
-import cn.fintecher.pangolin.business.model.ManualParams;
-import cn.fintecher.pangolin.business.model.UserInfoModel;
+import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.CaseInfoDistributedRepository;
 import cn.fintecher.pangolin.business.repository.PersonalContactRepository;
 import cn.fintecher.pangolin.entity.util.Constants;
@@ -265,6 +262,20 @@ public class CaseInfoDistributeController extends BaseController {
         try {
             AllocationCountModel model = caseInfoDistributedService.allocationCount(manualParams);
             return ResponseEntity.ok().body(model);
+        } catch (Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+    }
+
+    @PostMapping("/strategyAllocation")
+    @ApiOperation(notes = "案件导入分配策略分案", value = "案件导入分配策略分案")
+    public ResponseEntity strategyAllocation(@RequestBody CaseInfoIdList caseInfoIdList,
+                                             @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            caseInfoDistributedService.strategyAllocation(caseInfoIdList, user);
+            return ResponseEntity.ok().body(null);
         } catch (Exception e) {
             logger.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);

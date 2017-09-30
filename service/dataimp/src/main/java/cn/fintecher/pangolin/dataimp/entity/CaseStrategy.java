@@ -1,4 +1,4 @@
-package cn.fintecher.pangolin.entity.strategy;
+package cn.fintecher.pangolin.dataimp.entity;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
