@@ -1443,7 +1443,7 @@ public class OutsourcePoolController extends BaseController {
     })
     public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam(required = true) @ApiParam(value = "批次号") String batchNumber,
                                                                           @RequestParam(required = true) @ApiParam(value = "委外方名称") String outsName,
-                                                                          @RequestParam(required = false) @ApiParam(value = "委外方名称") String companyCode,
+                                                                          @RequestParam(required = false) @ApiParam(value = "公司Code码") String companyCode,
                                                                           @QuerydslPredicate(root = OutsourcePool.class) Predicate predicate,
                                                                           @ApiIgnore Pageable pageable,
                                                                           @RequestHeader(value = "X-UserToken") String token) {
