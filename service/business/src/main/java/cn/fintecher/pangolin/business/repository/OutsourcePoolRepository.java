@@ -86,10 +86,6 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
         bindings.bind(root.caseInfo.caseType).first((path, value) -> path.eq(value));
         //委外方
         bindings.bind(root.outsource.id).first((path, value) -> path.eq(StringUtils.trim(value)));
-        //申请省份
-        bindings.bind(root.caseInfo.area.parent.id).first((path, value) -> path.eq(value));
-        //申请城市
-        bindings.bind(root.caseInfo.area.id).first((path, value) -> path.eq(value));
 
         //佣金比例%
         bindings.bind(root.caseInfo.commissionRate).all((path, value) -> {

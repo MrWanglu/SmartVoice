@@ -385,6 +385,16 @@ public class ExportItemService {
         BeanUtils.copyProperties(temp, rate);
         rate.setName("佣金比例(%)");
         caseItems.add(rate);
+
+        ExportItem city = new ExportItem();
+        BeanUtils.copyProperties(temp, city);
+        city.setName("城市");
+        caseItems.add(city);
+
+        ExportItem province = new ExportItem();
+        BeanUtils.copyProperties(temp, province);
+        province.setName("省份");
+        caseItems.add(province);
         exportItemRepository.save(caseItems);
     }
 
