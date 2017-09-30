@@ -43,6 +43,8 @@ public class QueryOutsourcePool {
     private String outcaseAmtRate;
     /*公司标识码*/
     private String companyCode;
+    /*公司标识码*/
+    private String outsCode;
 
 
 }
