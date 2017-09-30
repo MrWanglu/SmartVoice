@@ -93,6 +93,8 @@ public class CaseInfoController extends BaseController {
     private CaseInfoVerificationService caseInfoVerificationService;
     @Inject
     private CaseInfoVerificationApplyRepository caseInfoVerificationApplyRepository;
+    @Inject
+    private CaseInfoRemarkRepository caseInfoRemarkRepository;
 
     public CaseInfoController(CaseInfoRepository caseInfoRepository) {
         this.caseInfoRepository = caseInfoRepository;
@@ -933,15 +935,28 @@ public class CaseInfoController extends BaseController {
     }
 
     /**
-     * @Description 查询备注信息
+     * @Description 多条件查询备注信息
      */
     @GetMapping("/getCaseInfoRemark")
     @ApiOperation(value = "查询备注信息", notes = "查询备注信息")
-    public ResponseEntity<List<CaseInfoRemark>> getCaseInfoRemark(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseInfoRemark>> getCaseInfoRemark(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+                                                                  @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                                  @ApiIgnore Pageable pageable) {
         log.debug("REST request to get case info remark");
         try {
-            List<CaseInfoRemark> caseInfoRemarks = caseInfoService.getCaseInfoRemark(caseId);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASEINFO_REMARK)).body(caseInfoRemarks);
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            builder.and(QCaseInfoRemark.caseInfoRemark.caseId.eq(caseId)); //案件ID
+            Page<CaseInfoRemark> page = caseInfoRemarkRepository.findAll(builder, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseInfoController/getCaseInfoRemark");
+            return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO_REMARK, "caseInfoRemark", "查询失败")).body(null);
@@ -951,14 +966,14 @@ public class CaseInfoController extends BaseController {
     @PostMapping("/moveToDistribution")
     @ApiOperation(value = "移入待分配案件池", notes = "移入待分配案件池")
     public ResponseEntity moveToDistribution(@RequestHeader(value = "X-UserToken") String token,
-            @RequestBody @ApiParam(value = "案件ID集合", required = true) CaseInfoIdList caseIds) {
+                                             @RequestBody @ApiParam(value = "案件ID集合", required = true) CaseInfoIdList caseIds) {
         log.debug("REST request to moveToDistribution");
         try {
             User user = getUserByToken(token);
             caseInfoService.moveToDistribution(caseIds, user);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功!","")).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功!", "")).body(null);
         } catch (Exception e) {
-            log.error(e.getMessage(),e);
+            log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
     }
@@ -969,8 +984,8 @@ public class CaseInfoController extends BaseController {
     @GetMapping("/getCollectingCase")
     @ApiOperation(value = "内催按批次号查询催收中案件", notes = "内催按批次号查询催收中案件")
     public ResponseEntity<Page<CaseInfo>> getCollectingCase(@RequestHeader(value = "X-UserToken") String token,
-                                                                  @ApiIgnore Pageable pageable,
-                                                                  @RequestParam @ApiParam(value = "批次号", required = true) String batchNumber) {
+                                                            @ApiIgnore Pageable pageable,
+                                                            @RequestParam @ApiParam(value = "批次号", required = true) String batchNumber) {
         log.debug("REST request to get case info remark");
         try {
             User tokenUser = getUserByToken(token);
@@ -982,13 +997,13 @@ public class CaseInfoController extends BaseController {
             status.add(CaseInfo.CollectionStatus.REPAID.getValue());
             BooleanBuilder builder = new BooleanBuilder();
             builder.and(QCaseInfo.caseInfo.batchNumber.eq(batchNumber));
-            if(Objects.nonNull(tokenUser.getCompanyCode())) {
+            if (Objects.nonNull(tokenUser.getCompanyCode())) {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
             }
             builder.and(QCaseInfo.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
             builder.and(QCaseInfo.caseInfo.department.code.startsWith(tokenUser.getDepartment().getCode()));
             builder.and(QCaseInfo.caseInfo.collectionStatus.in(status));
-            Page<CaseInfo> page = caseInfoRepository.findAll(builder,pageable);
+            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -999,9 +1014,9 @@ public class CaseInfoController extends BaseController {
     @GetMapping("/findAllCaseInfoReturn")
     @ApiOperation(notes = "内催案件管理查询回收案件", value = "内催案件管理查询回收案件")
     public ResponseEntity<Page<CaseInfoReturn>> findAllCaseInfoReturn(@RequestHeader(value = "X-UserToken") String token,
-                                                @ApiIgnore Pageable pageable,
-                                                @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode,
-                                                @QuerydslPredicate(root = CaseInfoReturn.class) Predicate predicate) {
+                                                                      @ApiIgnore Pageable pageable,
+                                                                      @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode,
+                                                                      @QuerydslPredicate(root = CaseInfoReturn.class) Predicate predicate) {
         try {
             User user = getUserByToken(token);
             QCaseInfoReturn qCaseInfoReturn = QCaseInfoReturn.caseInfoReturn;

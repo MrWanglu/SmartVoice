@@ -1610,7 +1610,7 @@ public class CaseInfoService {
         //机构分配
         Integer rule = accCaseInfoDisModel.getIsPlan();
         if (Objects.equals(rule, 1)) {
-            for (int i =0;i < caseInfoYes.size();i++) {
+            for (int i = 0; i < caseInfoYes.size(); i++) {
                 CaseInfo caseInfo = caseInfoYes.get(i);
                 String personalName = caseInfo.getPersonalInfo().getName();
                 String idCard = caseInfo.getPersonalInfo().getIdCard();
@@ -1622,33 +1622,33 @@ public class CaseInfoService {
                     caseInfo.setCurrentCollector(null); //当前催收员置空
                     setCollectionType(caseInfo, department, null);
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
-                    updateCaseAndAssist(caseInfo,user);
+                    updateCaseAndAssist(caseInfo, user);
                     caseInfoYes.remove(caseInfo);
                     i--;
                     continue;
                 }
-                Object[] objCollector = (Object[])caseInfoRepository.findCaseByCollector(personalName, idCard, user.getCompanyCode());//按催员分
+                Object[] objCollector = (Object[]) caseInfoRepository.findCaseByCollector(personalName, idCard, user.getCompanyCode());//按催员分
                 if (objCollector.length != 0) {
                     User collector = userRepository.findOne(objCollector[0].toString());
                     caseInfo.setDepartment(collector.getDepartment());
                     caseInfo.setCurrentCollector(collector);
                     setCollectionType(caseInfo, null, collector);
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
-                    updateCaseAndAssist(caseInfo,user);
+                    updateCaseAndAssist(caseInfo, user);
                     caseInfoYes.remove(caseInfo);
                     i--;
                 }
             }
-        }else if(Objects.equals(rule,2)){
+        } else if (Objects.equals(rule, 2)) {
             int caseNum = caseInfoYes.size();
-            int deptOrUserNum = accCaseInfoDisModel.getDepIdList().size() == 0 ? accCaseInfoDisModel.getUserIdList().size():accCaseInfoDisModel.getDepIdList().size();
+            int deptOrUserNum = accCaseInfoDisModel.getDepIdList().size() == 0 ? accCaseInfoDisModel.getUserIdList().size() : accCaseInfoDisModel.getDepIdList().size();
             List<Integer> caseNumList = new ArrayList<>(deptOrUserNum);
-            for(int i =0 ; i< caseNumList.size();i++){
-                caseNumList.set(i,caseNum/deptOrUserNum);
+            for (int i = 0; i < caseNumList.size(); i++) {
+                caseNumList.set(i, caseNum / deptOrUserNum);
             }
-            if(caseNum%deptOrUserNum != 0){
-                for(int i=0; i<caseNum%deptOrUserNum;i++){
-                    caseNumList.set(i,caseNumList.get(i)+1);
+            if (caseNum % deptOrUserNum != 0) {
+                for (int i = 0; i < caseNum % deptOrUserNum; i++) {
+                    caseNumList.set(i, caseNumList.get(i) + 1);
                 }
             }
             accCaseInfoDisModel.setCaseNumList(caseNumList);
@@ -1676,7 +1676,7 @@ public class CaseInfoService {
             for (int j = 0; j < disNum; j++) {
                 //检查输入的案件数量是否和选择的案件数量一致
                 if (alreadyCaseNum == caseInfoYes.size()) {
-                    return ;
+                    return;
                 }
                 String caseId = caseInfoYes.get(alreadyCaseNum).getId();
                 CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
@@ -2040,6 +2040,7 @@ public class CaseInfoService {
             sendReminderMessage.setTitle("案件 [" + caseInfo.getCaseNumber() + "] 的备注信息已修改");
             sendReminderMessage.setContent(caseInfo.getMemo());
             sendReminderMessage.setType(ReminderType.MEMO_MODIFY);
+            sendReminderMessage.setMode(ReminderMode.COMMON); //普通消息
             reminderService.sendReminder(sendReminderMessage);
         }
     }
@@ -2070,22 +2071,8 @@ public class CaseInfoService {
     }
 
     /**
-     * @Description 查询案件备注信息
-     */
-    public List<CaseInfoRemark> getCaseInfoRemark(String caseId) {
-        QCaseInfoRemark qCaseInfoRemark = QCaseInfoRemark.caseInfoRemark;
-        Iterable<CaseInfoRemark> caseInfoRemarks = caseInfoRemarkRepository.findAll(qCaseInfoRemark.caseId.eq(caseId));
-        List<CaseInfoRemark> caseInfoRemarkList = IterableUtils.toList(caseInfoRemarks);
-        if (caseInfoRemarkList.isEmpty()) {
-            return new ArrayList<>();
-        } else {
-            caseInfoRemarkList.sort(((o1, o2) -> o2.getOperatorTime().compareTo(o1.getOperatorTime()))); //创建时间倒序
-            return caseInfoRemarkList;
-        }
-    }
-
-    /**
      * 内催回收案件移入待分配池
+     *
      * @param idList
      * @param user
      */
