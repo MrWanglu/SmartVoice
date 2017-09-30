@@ -618,6 +618,7 @@ public class OutsourcePoolController extends BaseController {
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
+
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.isNull(user.getCompanyCode())) {
