@@ -54,7 +54,7 @@ public class AccFinanceEntryService {
 
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw e;
+            return errorList;
         }
         return errorList;
     }
@@ -138,40 +138,50 @@ public class AccFinanceEntryService {
                     out.setCaseInfo(caseInfo);
                 }
             }
-            OutsourceFollowRecord.FollowType[] followTypes = OutsourceFollowRecord.FollowType.values();
+            OutsourceFollowRecord.FollowType[] followTypes = OutsourceFollowRecord.FollowType.values();//跟进形势
             Integer followtype = 0;
             for(int i=0; i<followTypes.length;i++){
-                if(followUpRecordModel.getFollowType().equals("电话")){
-                    followtype = 80;
+                if(Objects.nonNull(followUpRecordModel.getFollowType())){
+                    if(followTypes[i].getRemark().equals(followUpRecordModel.getFollowType())){
+                        followtype = followTypes[i].getValue();
+                    }
                 }
-                if(followUpRecordModel.getFollowType().equals("外访")){
-                    followtype = 81;
-                }
+
             }
             out.setFollowType(followtype);
             out.setFollowTime(followUpRecordModel.getFollowTime());
             out.setFollowPerson(followUpRecordModel.getFollowPerson());
             out.setUserName(followUpRecordModel.getUserName());
-            out.setObjectName(followUpRecordModel.getObjectName());
-            out.setFeedback(followUpRecordModel.getFeedback());
+            OutsourceFollowRecord.ObjectName[] objectNames = OutsourceFollowRecord.ObjectName.values();//跟进对象
+            Integer objectName = 0;
+            for(int i=0; i<objectNames.length;i++){
+                if(Objects.nonNull(followUpRecordModel.getObjectName())){
+                    if(objectNames[i].getRemark().equals(followUpRecordModel.getObjectName())){
+                        objectName = objectNames[i].getValue();
+                    }
+                }
+
+            }
+            out.setObjectName(objectName);
+            OutsourceFollowRecord.FeedBack[] feedBacks = OutsourceFollowRecord.FeedBack.values();//跟进对象
+            Integer feedBack = 0;
+            for(int i=0; i<feedBacks.length;i++){
+                if(Objects.nonNull(followUpRecordModel.getFeedback())){
+                    if(feedBacks[i].getRemark().equals(followUpRecordModel.getFeedback())){
+                        feedBack = feedBacks[i].getValue();
+                    }
+                }
+
+            }
+            out.setFeedback(feedBack);
             out.setFollowRecord(followUpRecordModel.getFollowRecord());
-            OutsourceFollowRecord.TelStatus[] telStatuslist = OutsourceFollowRecord.TelStatus.values();
+            OutsourceFollowRecord.TelStatus[] telStatuslist = OutsourceFollowRecord.TelStatus.values();//电话状态
             Integer telStatus = 0;
             for(int i=0; i<telStatuslist.length;i++){
-                if(followUpRecordModel.getTelStatus().equals("正常")){
-                    telStatus = 64;
-                }
-                if(followUpRecordModel.getTelStatus().equals("空号")){
-                    telStatus = 65;
-                }
-                if(followUpRecordModel.getTelStatus().equals("停机")){
-                    telStatus = 66;
-                }
-                if(followUpRecordModel.getTelStatus().equals("关机")){
-                    telStatus = 67;
-                }
-                if(followUpRecordModel.getTelStatus().equals("未知")){
-                    telStatus = 68;
+                if(Objects.nonNull(followUpRecordModel.getTelStatus())){
+                    if(telStatuslist[i].getRemark().equals(followUpRecordModel.getTelStatus())){
+                        telStatus = telStatuslist[i].getValue();
+                    }
                 }
             }
             out.setTelStatus(telStatus);

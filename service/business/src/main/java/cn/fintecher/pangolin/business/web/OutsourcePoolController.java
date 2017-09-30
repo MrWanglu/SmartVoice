@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
@@ -297,7 +298,7 @@ public class OutsourcePoolController extends BaseController {
      */
     @GetMapping("/getOutDistributeInfo")
     @ApiOperation(value = "查询委外分配信息", notes = "查询委外分配信息")
-    public ResponseEntity<List<OutDistributeInfo>> query(@RequestParam(required = false) String companyCode,
+    public ResponseEntity<Page<OutDistributeInfo>> query(@RequestParam(required = false) String companyCode,
                                                      @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
@@ -331,7 +332,8 @@ public class OutsourcePoolController extends BaseController {
                 outDistributeInfo.setEndAmt(endAmt);
                 outDistributeInfos.add(outDistributeInfo);
             }
-            return ResponseEntity.ok().body(outDistributeInfos);
+            Page<OutDistributeInfo> page = new PageImpl(outDistributeInfos);
+            return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", ENTITY_NAME1, e.getMessage())).body(null);

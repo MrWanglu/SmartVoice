@@ -37,7 +37,7 @@ public class OutsourceFollowRecord extends BaseEntity {
     private Integer followType;
 
     @ApiModelProperty(notes = "催收对象")
-    private String objectName;
+    private Integer objectName;
 
     @ApiModelProperty(notes = "姓名")
     private String userName;
@@ -46,7 +46,7 @@ public class OutsourceFollowRecord extends BaseEntity {
     private Integer telStatus;
 
     @ApiModelProperty(notes = "催收反馈")
-    private String feedback;
+    private Integer feedback;
 
     @ApiModelProperty(notes = "跟进记录")
     private String followRecord;
