@@ -134,14 +134,6 @@ public class ExportItemService {
         BeanUtils.copyProperties(temp,idCard);
         idCard.setName("身份证号");
         personalItems.add(idCard);
-        ExportItem provice = new ExportItem();
-        BeanUtils.copyProperties(temp,provice);
-        provice.setName("省份");
-        personalItems.add(provice);
-        ExportItem city = new ExportItem();
-        BeanUtils.copyProperties(temp,city);
-        city.setName("城市");
-        personalItems.add(city);
         ExportItem mobile = new ExportItem();
         BeanUtils.copyProperties(temp,mobile);
         mobile.setName("手机号码");
@@ -158,6 +150,14 @@ public class ExportItemService {
         BeanUtils.copyProperties(temp,phone);
         phone.setName("固定电话");
         personalItems.add(phone);
+        ExportItem province = new ExportItem();
+        BeanUtils.copyProperties(temp,province);
+        province.setName("省份");
+        personalItems.add(province);
+        ExportItem city = new ExportItem();
+        BeanUtils.copyProperties(temp,city);
+        city.setName("城市");
+        personalItems.add(city);
         exportItemRepository.save(personalItems);
     }
 
@@ -364,11 +364,6 @@ public class ExportItemService {
         outTime.setName("委案日期");
         caseItems.add(outTime);
 
-        ExportItem endOutsourceTime = new ExportItem();
-        BeanUtils.copyProperties(temp, endOutsourceTime);
-        endOutsourceTime.setName("结案日期");
-        caseItems.add(endOutsourceTime);
-
         ExportItem overOutsourceTime = new ExportItem();
         BeanUtils.copyProperties(temp, overOutsourceTime);
         overOutsourceTime.setName("委案到期日期");
@@ -389,15 +384,11 @@ public class ExportItemService {
         rate.setName("佣金比例(%)");
         caseItems.add(rate);
 
-        ExportItem city = new ExportItem();
-        BeanUtils.copyProperties(temp, city);
-        city.setName("城市");
-        caseItems.add(city);
+        ExportItem endOutsourceTime = new ExportItem();
+        BeanUtils.copyProperties(temp, endOutsourceTime);
+        endOutsourceTime.setName("结案日期");
+        caseItems.add(endOutsourceTime);
 
-        ExportItem province = new ExportItem();
-        BeanUtils.copyProperties(temp, province);
-        province.setName("省份");
-        caseItems.add(province);
         exportItemRepository.save(caseItems);
     }
 

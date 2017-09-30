@@ -32,13 +32,13 @@
         WHERE a.out_status=170 GROUP BY a.out_batch,c.outs_name) as cc on bb.out_batch=cc.out_batch and bb.outs_name=cc.outs_name
         WHERE 1=1
         <if test="companyCode != null">
-            AND company_code = #{companyCode}
+            AND bb.company_code = #{companyCode}
         </if>
         <if test="batchNumber != null">
-            AND out_batch LIKE CONCAT(#{batchNumber}, '%')
+            AND cc.out_batch LIKE CONCAT(#{batchNumber}, '%')
         </if>
         <if test="outsName != null">
-            AND outs_name = #{outsName}
+            AND bb.outs_name = #{outsName}
         </if>
         <if test="outTime != null and overOutsourceTime != null">
             AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') >= DATE_FORMAT(#{outTime},'%Y-%m-%d')]]>

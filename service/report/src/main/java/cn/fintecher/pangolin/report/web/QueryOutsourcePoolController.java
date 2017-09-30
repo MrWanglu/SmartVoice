@@ -17,9 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
-import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author : huyanmin
@@ -38,34 +36,12 @@ public class QueryOutsourcePoolController extends BaseController {
     @ApiOperation(value = "委外催收中查询", notes = "委外催收中查询")
     public ResponseEntity<OutSourcePoolModel> queryAllOutsourcePool(@RequestParam(required = true)@ApiParam(value = "页数") Integer page,
                                                                     @RequestParam(required = true)@ApiParam(value = "大小") Integer size,
-                                                                    @RequestParam(required = false) String companyCode,
-                                                                    @RequestParam(required = false) String batchNumber,
-                                                                    @RequestParam(required = false) String outsourceName,
-                                                                    @RequestParam(required = false) Date outTime,
-                                                                    @RequestParam(required = false) Date overOutsourceTime){
+                                                                    QueryOutsourcePoolParams queryOutsourcePoolParams ){
 
         try {
-            QueryOutsourcePoolParams query = new QueryOutsourcePoolParams();
 
-            if (Objects.nonNull(companyCode)) {
-                query.setCompanyCode(companyCode);
-            }
-            if (Objects.nonNull(batchNumber)) {
-                query.setBatchNumber(batchNumber);
-            }
-
-            if (Objects.nonNull(outsourceName)) {
-                query.setOutsName(outsourceName);
-            }
-
-            if (Objects.nonNull(outTime)) {
-                query.setOutTime(outTime);
-            }
-            if (Objects.nonNull(overOutsourceTime)) {
-                query.setOverOutsourceTime(overOutsourceTime);
-            }
             PageHelper.startPage(page,size);
-            List<QueryOutsourcePool> content = queryOutsourcePoolMapper.getAllOutSourcePoolModel(query);
+            List<QueryOutsourcePool> content = queryOutsourcePoolMapper.getAllOutSourcePoolModel(queryOutsourcePoolParams);
             PageInfo pageInfo = new PageInfo(content);
             OutSourcePoolModel outSourcePoolModel = new OutSourcePoolModel();
             outSourcePoolModel.setContent(content);

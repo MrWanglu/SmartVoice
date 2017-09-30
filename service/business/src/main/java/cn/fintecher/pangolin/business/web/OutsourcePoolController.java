@@ -317,20 +317,23 @@ public class OutsourcePoolController extends BaseController {
             Object[] object = outsourcePoolRepository.getOutDistributeInfo(companyCode);
             for (int i=0;i<object.length;i++){
                 Object[] object1 = (Object[]) object[i];
-                String outCode = (String) object1[1];
-                String outName = (String) object1[2];
-                Integer sumNum = ((BigInteger) object1[3]).intValue();
-                Integer endNum = ((BigInteger) object1[4]).intValue();
-                BigDecimal sumAmt = (BigDecimal) object1[5];
-                BigDecimal endAmt = (BigDecimal) object1[6];
-                OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
-                outDistributeInfo.setOutCode(outCode);
-                outDistributeInfo.setOutName(outName);
-                outDistributeInfo.setCaseCount(sumNum);
-                outDistributeInfo.setEndCount(endNum);
-                outDistributeInfo.setCaseAmt(sumAmt);
-                outDistributeInfo.setEndAmt(endAmt);
-                outDistributeInfos.add(outDistributeInfo);
+                if(Objects.nonNull(object1[1])){
+                    String outCode = (String) object1[1];
+                    String outName = (String) object1[2];
+                    Integer sumNum = ((BigInteger) object1[3]).intValue();
+                    Integer endNum = ((BigInteger) object1[4]).intValue();
+                    BigDecimal sumAmt = (BigDecimal) object1[5];
+                    BigDecimal endAmt = (BigDecimal) object1[6];
+                    OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
+                    outDistributeInfo.setOutCode(outCode);
+                    outDistributeInfo.setOutName(outName);
+                    outDistributeInfo.setCaseCount(sumNum);
+                    outDistributeInfo.setEndCount(endNum);
+                    outDistributeInfo.setCaseAmt(sumAmt);
+                    outDistributeInfo.setEndAmt(endAmt);
+                    outDistributeInfos.add(outDistributeInfo);
+                }
+
             }
             Page<OutDistributeInfo> page = new PageImpl(outDistributeInfos);
             return ResponseEntity.ok().body(page);
@@ -1026,8 +1029,8 @@ public class OutsourcePoolController extends BaseController {
             } else {
                 outsourceFollowRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
                 outsourceFollowRecord.setOperatorName(user.getUserName());
-                if(Objects.nonNull(user.getUserName())){
-                    outsourceFollowRecord.setCompanyCode(user.getUserName() );
+                if(Objects.nonNull(user.getCompanyCode())){
+                    outsourceFollowRecord.setCompanyCode(user.getCompanyCode());
                 }
             }
 

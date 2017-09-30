@@ -2,8 +2,6 @@ package cn.fintecher.pangolin.report.model;
 
 import lombok.Data;
 
-import java.util.Date;
-
 /**
  * @author : huyanmin
  * @Description : 委外催收中查询的Params
@@ -20,8 +18,8 @@ public class  QueryOutsourcePoolParams {
     /*受托方名称*/
     private String outsName;
     /*委案日期*/
-    private Date outTime;
+    private String outTime;
     /*委外到期日期*/
-    private Date overOutsourceTime;
+    private String overOutsourceTime;
 
 }
