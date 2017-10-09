@@ -77,6 +77,4 @@ public class RepeatCaseModel {
     private Integer recoverWay;
     private Integer recoverRemark;
     private Integer casePoolType;
-
-
 }

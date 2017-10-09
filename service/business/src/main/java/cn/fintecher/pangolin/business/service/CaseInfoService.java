@@ -1605,8 +1605,8 @@ public class CaseInfoService {
                 CaseInfo caseInfo = caseInfoYes.get(i);
                 String personalName = caseInfo.getPersonalInfo().getName();
                 String idCard = caseInfo.getPersonalInfo().getIdCard();
-                Object[] objDept = caseInfoRepository.findCaseByDept(personalName, idCard, user.getCompanyCode());//按机构分
-                if (objDept.length != 0) {
+                Object[] objDept = (Object[]) caseInfoRepository.findCaseByDept(personalName, idCard, user.getCompanyCode());//按机构分
+                if (Objects.nonNull(objDept)) {
                     Department department = departmentRepository.findOne(objDept[0].toString());
                     caseInfo.setDepartment(department); //部门
                     caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上个催收员
@@ -1619,7 +1619,7 @@ public class CaseInfoService {
                     continue;
                 }
                 Object[] objCollector = (Object[]) caseInfoRepository.findCaseByCollector(personalName, idCard, user.getCompanyCode());//按催员分
-                if (objCollector.length != 0) {
+                if (Objects.nonNull(objCollector)) {
                     User collector = userRepository.findOne(objCollector[0].toString());
                     caseInfo.setDepartment(collector.getDepartment());
                     caseInfo.setCurrentCollector(collector);

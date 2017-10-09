@@ -217,20 +217,19 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
             "from case_info c " +
             "left join personal p " +
             "on p.id = c.personal_id " +
-            "where collection_type = 15 " +
-            "and current_collector is null " +
+            "where current_collector is null " +
             "and depart_id is not null " +
             "and collection_status in (21,22,23,171,172) " +
             "and c.company_code =:companyCode " +
             "and p.name =:personName " +
             "and p.id_card =:idCard " +
-            "GROUP BY depart_id " +
+            "GROUP BY depart_id,collection_type " +
             "ORDER BY num desc,collection_type " +
             "LIMIT 1", nativeQuery = true)
-    Object[] findCaseByDept(@Param("personName") String personName,@Param("idCard") String idCard,@Param("companyCode") String companyCode);
+    Object findCaseByDept(@Param("personName") String personName,@Param("idCard") String idCard,@Param("companyCode") String companyCode);
 
     /**
-     * 获取部门级别的共债案件
+     * 获取催员级别的共债案件
      *
      * @return
      */
@@ -244,7 +243,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
             "and c.company_code =:companyCode " +
             "and p.name =:personName " +
             "and p.id_card =:idCard " +
-            "GROUP BY current_collector " +
+            "GROUP BY current_collector,collection_type " +
             "ORDER BY num desc,collection_type " +
             "LIMIT 1", nativeQuery = true)
     Object findCaseByCollector(@Param("personName") String personName,@Param("idCard") String idCard,@Param("companyCode") String companyCode);
