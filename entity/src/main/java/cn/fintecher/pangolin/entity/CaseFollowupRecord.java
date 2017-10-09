@@ -42,6 +42,12 @@ public class CaseFollowupRecord extends BaseEntity {
     @ApiModelProperty(notes = "跟进内容")
     private String content;
 
+    @ApiModelProperty(notes = "跟进时间")
+    private Date followTime;
+
+    @ApiModelProperty(notes = "跟进人员")
+    private String followPerson;
+
     @ApiModelProperty(notes = "电话联系状态")
     private Integer contactState;
 
@@ -136,6 +142,9 @@ public class CaseFollowupRecord extends BaseEntity {
 
     @ApiModelProperty(notes = "通话时长默认为秒")
     private Integer connSecs;
+
+    @ApiModelProperty("内催 225 委外 226 司法 227 核销 228")
+    private Integer caseFollowupType;
 
     /**
      * @Description 电话状态枚举类
@@ -429,6 +438,36 @@ public class CaseFollowupRecord extends BaseEntity {
         private String remark;
 
         CollectionWayEnum(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
+
+    /**
+     * @Description 跟踪记录类型
+     */
+    public enum CaseFollowupType {
+        //电催
+        INNER(225, "内催"),
+        //外访
+        OUTER(226, "委外"),
+        //司法
+        JUDICIAL(227, "司法"),
+        //委外
+        DESTORY(228, "核销");
+
+        private Integer value;
+        private String remark;
+
+        CaseFollowupType(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }

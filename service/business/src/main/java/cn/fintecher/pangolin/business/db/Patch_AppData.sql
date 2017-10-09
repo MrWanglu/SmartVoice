@@ -104,4 +104,10 @@ CHANGE COLUMN `commissionRate` `commission_rate`  varchar(2) CHARACTER SET utf8 
 UPDATE `pangolin_business`.`data_dict` SET `name`='催收中' WHERE (`id`='168');
 UPDATE `pangolin_business`.`data_dict` SET `name`='已结案'  WHERE (`id`='170');
 
+--2017-10-09 胡艳敏 增加案件跟踪记录类型
+ALTER TABLE `case_followup_record`
+ADD COLUMN `case_followup_type`  int(4) DEFAULT NULL COMMENT '跟踪记录类型（内催、委外、司法、核销)';
+ADD COLUMN `follow_time`  date DEFAULT NULL COMMENT '跟进时间';
+ADD COLUMN `follow_person`  varchar(64) DEFAULT NULL COMMENT '跟进人员';
+
 

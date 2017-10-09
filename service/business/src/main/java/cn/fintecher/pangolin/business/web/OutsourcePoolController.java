@@ -1014,7 +1014,7 @@ public class OutsourcePoolController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
             AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
-            OutsourceFollowRecord outsourceFollowRecord = new OutsourceFollowRecord();
+            CaseFollowupRecord outsourceFollowRecord = new CaseFollowupRecord();
             if(type==0){
                 if (Objects.isNull(user.getCompanyCode())) {
                     if (Objects.isNull(companyCode)) {
@@ -1029,7 +1029,8 @@ public class OutsourcePoolController extends BaseController {
                 accFinanceEntry.setFienRemark(fienRemark);
             } else {
                 outsourceFollowRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
-                outsourceFollowRecord.setOperatorName(user.getUserName());
+                outsourceFollowRecord.setOperatorName(user.getRealName());
+                outsourceFollowRecord.setOperator(user.getUserName());
                 if(Objects.nonNull(user.getCompanyCode())){
                     outsourceFollowRecord.setCompanyCode(user.getCompanyCode());
                 }

@@ -1,10 +1,7 @@
 package cn.fintecher.pangolin.business.service;
 
 import cn.fintecher.pangolin.business.model.OutsourceFollowUpRecordModel;
-import cn.fintecher.pangolin.business.repository.AccFinanceEntryRepository;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
-import cn.fintecher.pangolin.business.repository.OutsourceFollowupRecordRepository;
-import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
+import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -33,9 +30,11 @@ public class AccFinanceEntryService {
     @Autowired
     OutsourceFollowupRecordRepository outsourceFollowupRecordRepository;
     @Autowired
+    CaseFollowupRecordRepository caseFollowupRecordRepository;
+    @Autowired
     CaseInfoRepository caseInfoRepository;
 
-    public List<CellError> importAccFinanceData(String fileUrl, int[] startRow, int[] startCol, Class<?>[] dataClass, AccFinanceEntry accFinanceEntry, OutsourceFollowRecord outsourceFollowRecord, Integer type) throws Exception {
+    public List<CellError> importAccFinanceData(String fileUrl, int[] startRow, int[] startCol, Class<?>[] dataClass, AccFinanceEntry accFinanceEntry, CaseFollowupRecord outsourceFollowRecord, Integer type) throws Exception {
         List<CellError> errorList = null;
         try {
             //从文件服务器上获取Excel文件并解析：
@@ -47,7 +46,7 @@ public class AccFinanceEntryService {
                 if (type == 0) {
                     processFinanceData(dataList, accFinanceEntry, errorList);
                 } else {
-                    processFinanceDataFollowup(dataList, outsourceFollowRecord, errorList);
+                    errorList = processFinanceDataFollowup(dataList, outsourceFollowRecord, errorList);
                 }
 
             }
@@ -124,21 +123,29 @@ public class AccFinanceEntryService {
      * Created by huyanmin 2017/9/26
      * 将Excel中的数据存入数据库中
      */
-    public void processFinanceDataFollowup(List datalist, OutsourceFollowRecord outsourceFollowRecord, List<CellError> errorList) {
+    public List<CellError> processFinanceDataFollowup(List datalist, CaseFollowupRecord outsourceFollowRecord, List<CellError> errorList) {
 
         for (Object obj : datalist) {
-            OutsourceFollowRecord out = new OutsourceFollowRecord();
+            CaseFollowupRecord out = new CaseFollowupRecord();
             OutsourceFollowUpRecordModel followUpRecordModel = (OutsourceFollowUpRecordModel) obj;
 
             CaseInfo caseInfo = null;
             if (Objects.nonNull(followUpRecordModel.getCaseNum())) {
-                out.setCaseNum(followUpRecordModel.getCaseNum());
+                out.setCaseNumber(followUpRecordModel.getCaseNum());
                 caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(followUpRecordModel.getCaseNum()));
                 if (Objects.nonNull(caseInfo)) {
-                    out.setCaseInfo(caseInfo);
+                    out.setCaseId(caseInfo.getId());
+                }else{
+                    CellError cellError = new CellError();
+                    cellError.setErrorMsg("客户[".concat(out.getCaseNumber()).concat("]的案件编号不存在"));
+                    errorList.add(cellError);
+                    return errorList;
                 }
+            }else {
+                errorList = validityFinanceFollowup(errorList, out);
+                return errorList;
             }
-            OutsourceFollowRecord.FollowType[] followTypes = OutsourceFollowRecord.FollowType.values();//跟进形势
+            CaseFollowupRecord.Type[] followTypes = CaseFollowupRecord.Type.values();//跟进形势
             Integer followtype = 0;
             for(int i=0; i<followTypes.length;i++){
                 if(Objects.nonNull(followUpRecordModel.getFollowType())){
@@ -148,14 +155,14 @@ public class AccFinanceEntryService {
                 }
 
             }
-            out.setFollowType(followtype);
+            out.setType(followtype);
             if(Objects.nonNull(outsourceFollowRecord.getCompanyCode())){
                 out.setCompanyCode(outsourceFollowRecord.getCompanyCode());
             }
             out.setFollowTime(followUpRecordModel.getFollowTime());
             out.setFollowPerson(followUpRecordModel.getFollowPerson());
-            out.setUserName(followUpRecordModel.getUserName());
-            OutsourceFollowRecord.ObjectName[] objectNames = OutsourceFollowRecord.ObjectName.values();//跟进对象
+            out.setTargetName(followUpRecordModel.getUserName());
+            CaseFollowupRecord.Target[] objectNames = CaseFollowupRecord.Target.values();//跟进对象
             Integer objectName = 0;
             for(int i=0; i<objectNames.length;i++){
                 if(Objects.nonNull(followUpRecordModel.getObjectName())){
@@ -165,8 +172,8 @@ public class AccFinanceEntryService {
                 }
 
             }
-            out.setObjectName(objectName);
-            OutsourceFollowRecord.FeedBack[] feedBacks = OutsourceFollowRecord.FeedBack.values();//跟进对象
+            out.setTarget(objectName);
+            CaseFollowupRecord.EffectiveCollection[] feedBacks = CaseFollowupRecord.EffectiveCollection.values();//催收反馈
             Integer feedBack = 0;
             for(int i=0; i<feedBacks.length;i++){
                 if(Objects.nonNull(followUpRecordModel.getFeedback())){
@@ -176,9 +183,9 @@ public class AccFinanceEntryService {
                 }
 
             }
-            out.setFeedback(feedBack);
-            out.setFollowRecord(followUpRecordModel.getFollowRecord());
-            OutsourceFollowRecord.TelStatus[] telStatuslist = OutsourceFollowRecord.TelStatus.values();//电话状态
+            out.setCollectionFeedback(feedBack);
+            out.setContent(followUpRecordModel.getFollowRecord());
+            CaseFollowupRecord.CallType[] telStatuslist = CaseFollowupRecord.CallType.values();//电话状态
             Integer telStatus = 0;
             for(int i=0; i<telStatuslist.length;i++){
                 if(Objects.nonNull(followUpRecordModel.getTelStatus())){
@@ -187,32 +194,30 @@ public class AccFinanceEntryService {
                     }
                 }
             }
-            out.setTelStatus(telStatus);
+            out.setCallType(telStatus);
             out.setOperatorName(outsourceFollowRecord.getOperatorName());
+            out.setOperator(outsourceFollowRecord.getOperator());
             out.setOperatorTime(ZWDateUtil.getNowDateTime());
-
-            //验证必要数据的合法性
-            if (!validityFinanceFollowup(errorList, out)) {
-                return;
-            }
-            outsourceFollowupRecordRepository.save(out);
+            out.setCaseFollowupType(CaseFollowupRecord.CaseFollowupType.OUTER.getValue());
+            caseFollowupRecordRepository.save(out);
 
         }
+        return errorList;
     }
 
     /**
      * Created by huyanmin 2017/9/26
      * 验证案件号是否为空
      */
-    private Boolean validityFinanceFollowup(List<CellError> errorList, OutsourceFollowRecord out) {
+    private List<CellError> validityFinanceFollowup(List<CellError> errorList, CaseFollowupRecord out) {
 
-        if (ZWStringUtils.isEmpty(out.getCaseNum())) {
+        if (ZWStringUtils.isEmpty(out.getCaseNumber())) {
             CellError cellError = new CellError();
-            cellError.setErrorMsg("客户[".concat(out.getCaseNum()).concat("]的案件编号为空"));
+            cellError.setErrorMsg("客户案件编号不能为空！");
             errorList.add(cellError);
-            return false;
+            return errorList;
         }
-        return true;
+        return errorList;
     }
 
 

@@ -14,9 +14,6 @@ import java.util.Date;
  */
 @Data
 public class OutsourceFollowUpRecordModel extends BaseEntity{
-    @ApiModelProperty(notes = "序号")
-    @ExcelAnno(cellName = "序号")
-    private String index;
 
     @ApiModelProperty(notes = "案件编号")
     @ExcelAnno(cellName = "案件编号")
@@ -46,8 +43,8 @@ public class OutsourceFollowUpRecordModel extends BaseEntity{
     @ExcelAnno(cellName = "催收反馈")
     private String feedback;
 
-    @ApiModelProperty(notes = "跟进记录")
-    @ExcelAnno(cellName = "跟进记录")
+    @ApiModelProperty(notes = "跟进内容")
+    @ExcelAnno(cellName = "跟进内容")
     private String followRecord;
 
     @ApiModelProperty(notes = "跟进人员")
