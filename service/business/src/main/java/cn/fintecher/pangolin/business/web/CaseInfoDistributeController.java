@@ -270,12 +270,26 @@ public class CaseInfoDistributeController extends BaseController {
 
     @PostMapping("/strategyAllocation")
     @ApiOperation(notes = "案件导入分配策略分案", value = "案件导入分配策略分案")
-    public ResponseEntity strategyAllocation(@RequestBody CaseInfoIdList caseInfoIdList,
+    public ResponseEntity strategyAllocation(@RequestBody CountStrategyAllocationModel model,
                                              @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
-            Integer num = caseInfoDistributedService.strategyAllocation(caseInfoIdList, user);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", "")).body(num);
+            caseInfoDistributedService.strategyAllocation(model, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", "")).body(null);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+    }
+
+    @PostMapping("/countStrategyAllocation")
+    @ApiOperation(notes = "策略分配情况统计", value = "策略分配情况统计")
+    public ResponseEntity<CountStrategyAllocationModel> countStrategyAllocation(@RequestBody CaseInfoIdList caseInfoIdList,
+                                                  @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            CountStrategyAllocationModel model = caseInfoDistributedService.countStrategyAllocation(caseInfoIdList, user);
+            return ResponseEntity.ok().body(model);
         } catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
