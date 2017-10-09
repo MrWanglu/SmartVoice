@@ -10,10 +10,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,73 +24,95 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Created by luqiang on 2017/8/2.
  */
 @RestController
 @RequestMapping("/api/caseStrategyController")
-@Api(value = "", description = "案件策略")
+@Api(value = "CaseStrategyController", description = "案件策略")
 public class CaseStrategyController {
+
+    private final Logger logger = LoggerFactory.getLogger(CaseStrategy.class);
+    private static final String ENTITY_NAME = "caseStrategy";
+
     @Autowired
     private CaseStrategyRepository caseStrategyRepository;
     @Autowired
     private Configuration freemarkerConfiguration;
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
-    private final Logger logger = LoggerFactory.getLogger(CaseStrategy.class);
-    private static final String ENTITY_NAME = "caseStrategy";
 
-//    @GetMapping("getCaseStrategy")
-//    @ApiOperation(value = "分配策略按条件分页查询", notes = "分配策略按条件分页查询")
-//    @ApiImplicitParams({
-//            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
-//                    value = "页数 (0..N)"),
-//            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
-//                    value = "每页大小."),
-//            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
-//                    value = "依据什么排序: 属性名(,asc|desc). ")
-//    })
-//    public ResponseEntity getCaseStrategy(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-//                                          @QuerydslPredicate(root = CaseStrategy.class) Predicate predicate, @ApiIgnore Pageable pageable,
-//                                          @RequestHeader(value = "X-UserToken") String token) {
-//        try {
-//            ResponseEntity<User> userResponseEntity = null;
-//            try {
-//                userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-//            } catch (Exception e) {
-//                logger.error(e.getMessage(), e);
-//                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
-//            }
-//            User user = userResponseEntity.getBody();
-//            BooleanBuilder builder = new BooleanBuilder(predicate);
-//            if (Objects.isNull(user.getCompanyCode())) {
-//                if (Objects.nonNull(companyCode)) {
-//                    builder.and(QCaseStrategy.caseStrategy.companyCode.eq(companyCode));
-//                }
-//            } else {
-//                builder.and(QCaseStrategy.caseStrategy.companyCode.eq(user.getCompanyCode()));
-//            }
-//            Page<CaseStrategy> page = caseStrategyRepository.findAll(builder, pageable);
-//            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseStrategyController/getCaseStrategy");
-//            return new ResponseEntity<>(page, headers, HttpStatus.OK);
-//        } catch (Exception e) {
-//            logger.error(e.getMessage(), e);
-//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "template", e.getMessage())).body(null);
-//        }
-//    }
+    @GetMapping("/getCaseStrategy")
+    @ApiOperation(value = "分配策略按条件分页查询", notes = "分配策略按条件分页查询")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseStrategy>> getCaseStrategy(@RequestParam(required = false) @ApiParam("公司code码") String companyCode,
+                                                              @RequestParam(required = false) @ApiParam("策略名称") String name,
+                                                              @RequestParam(required = false) @ApiParam("策略类型") Integer strategyType,
+                                                              @ApiIgnore Pageable pageable,
+                                                              @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            ResponseEntity<User> userResponseEntity;
+            try {
+                userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
+            }
+            User user = userResponseEntity.getBody();
+            Query query = new Query();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    query.addCriteria(Criteria.where("companyCode").is(companyCode));
+                }
+            } else {
+                query.addCriteria(Criteria.where("companyCode").is(user.getCompanyCode()));
+            }
+            if (StringUtils.isNotBlank(name)) {
+                Pattern pattern = Pattern.compile("^" + name + ".*$", Pattern.CASE_INSENSITIVE);
+                query.addCriteria(Criteria.where("name").regex(pattern));
+            }
+            if (Objects.nonNull(strategyType)) {
+                query.addCriteria(Criteria.where("strategyType").is(strategyType));
+            }
+            int total = (int) mongoTemplate.count(query, CaseStrategy.class);
+            query.with(pageable);
+            List<CaseStrategy> list = mongoTemplate.find(query, CaseStrategy.class);
+            return ResponseEntity.ok().body(new PageImpl<>(list, pageable, total));
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "查询失败")).body(null);
+        }
+    }
 
-    @ResponseBody
     @PostMapping("/queryCaseInfoByCondition")
     @ApiOperation(value = "预览案件生成规则", notes = "预览案件生成规则")
     public ResponseEntity queryCaseInfoByCondition(@RequestBody CaseStrategy caseStrategy, @RequestHeader(value = "X-UserToken") String token) throws IOException, TemplateException {
@@ -194,11 +213,11 @@ public class CaseStrategyController {
                 if (Objects.equals(caseStrategy.getAssignType(), CaseStrategy.AssignType.OUTER.getValue())) {
                     cs.setAssignType(CaseStrategy.AssignType.OUTER.getValue());
                     if (caseStrategy.getOutsource().isEmpty()) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","")).body(null);
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "")).body(null);
                     }
                     cs.setOutsource(caseStrategy.getOutsource());
                 } else {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "","请选择策略指定的对象")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择策略指定的对象")).body(null);
                 }
             } else {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "未匹配到要新增的策略类型")).body(null);
@@ -207,7 +226,7 @@ public class CaseStrategyController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("新增成功", "")).body(null);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"", "新增失败!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "新增失败!")).body(null);
         }
     }
 
@@ -385,45 +404,37 @@ public class CaseStrategyController {
 //        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "分配成功")).body(caseInfoObjList);
 //    }
 
-//    @ApiModelProperty
-//    @GetMapping("/findCaseStrategy")
-//    @ApiOperation(value = "检查策略名称是否重复", notes = "检查策略名称是否重复")
-//    public ResponseEntity findCaseStrategy(@RequestParam(required = false) String name,@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
-//        ResponseEntity<User> userResult = null;
-//        userResult = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-//        if (!userResult.hasBody()) {
-//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "用户未登录")).body(null);
-//        }
-//        User user = userResult.getBody();
-//        if (ZWStringUtils.isEmpty(name)) {
-//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no name", "没有输入策略名称")).body(null);
-//        }
-//        try {
-//            Iterable<CaseStrategy> caseStrategy = caseStrategyRepository.findAll(QCaseStrategy.caseStrategy.name.eq(name).and(QCaseStrategy.caseStrategy.companyCode.eq(user.getCompanyCode())));
-//            if (caseStrategy.iterator().hasNext()) {
-//                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "exist", "该策略名称已存在")).body(null);
-//            }
-//        } catch (Exception ex) {
-//            logger.error(ex.getMessage(), ex);
-//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "检查策略名称失败")).body(null);
-//        }
-//        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfo")).body(null);
-//    }
+    @GetMapping("/findCaseStrategy")
+    @ApiOperation(value = "检查策略名称是否重复", notes = "检查策略名称是否重复")
+    public ResponseEntity findCaseStrategy(@RequestParam @ApiParam("操作者的Token") String name,
+                                           @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        try {
+            ResponseEntity<User> userResult = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+            User user = userResult.getBody();
+            Query query = new Query();
+            query.addCriteria(Criteria.where("companyCode").is(user.getCompanyCode()));
+            query.addCriteria(Criteria.where("name").is(name));
+            long count = mongoTemplate.count(query, CaseStrategy.class);
+            if (count != 0) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "策略名称已存在")).body(null);
+            }
+            return ResponseEntity.ok().body(null);
+        } catch (RestClientException e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "检查策略异常")).body(null);
+        }
+    }
 
-    @ApiModelProperty
     @GetMapping("/deleteCaseStrategy")
     @ApiOperation(value = "删除分配策略", notes = "删除分配策略")
-    public ResponseEntity queryCaseInfoByCondition(@RequestParam String ruleId) {
-        if (ZWStringUtils.isEmpty(ruleId)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "没有分配规则ID")).body(null);
-        }
+    public ResponseEntity deleteCaseStrategy(@RequestParam @ApiParam("策略ID") String ruleId) {
         try {
             caseStrategyRepository.delete(ruleId);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功", "")).body(null);
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "删除分配策略规则失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "删除失败")).body(null);
         }
-        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "删除成功")).body(null);
     }
 
     private String analysisRule(String jsonObject, StringBuilder stringBuilder) {
