@@ -109,14 +109,17 @@ public class ExportItemService {
         createConnectItems(user,category);
         if(category==1 || category == 3){
             createCaseItems(user,category);
-        } else if(category==2){
+        } else if(category==2 || category == 4){
             createOutsourceCaseItems(user,category);
         }
         createBankItems(user,category);
         if(category == 3){
             return ;
         }
-        createFollowItems(user,category);
+        if(category==1 || category == 2 || category == 3){
+            createFollowItems(user,category);
+        }
+
     }
 
     public void createPersonalItems(User user,Integer category){
@@ -158,6 +161,10 @@ public class ExportItemService {
         BeanUtils.copyProperties(temp,city);
         city.setName("城市");
         personalItems.add(city);
+        ExportItem marital = new ExportItem();
+        BeanUtils.copyProperties(temp,marital);
+        marital.setName("婚姻状况");
+        personalItems.add(marital);
         exportItemRepository.save(personalItems);
     }
 
@@ -334,56 +341,147 @@ public class ExportItemService {
         if(Objects.nonNull(user.getCompanyCode())){
             temp.setCompanyCode(user.getCompanyCode());
         }
-        ExportItem outsourceAmt = new ExportItem();
-        BeanUtils.copyProperties(temp, outsourceAmt);
-        outsourceAmt.setName("委外案件总金额");
-        caseItems.add(outsourceAmt);
 
+        ExportItem product = new ExportItem();
+        BeanUtils.copyProperties(temp, product);
+        product.setName("产品名称");
+        caseItems.add(product);
+        ExportItem contractNum = new ExportItem();
+        BeanUtils.copyProperties(temp, contractNum);
+        contractNum.setName("合同编号");
+        caseItems.add(contractNum);
+        ExportItem caseNumber = new ExportItem();
+        BeanUtils.copyProperties(temp, caseNumber);
+        caseNumber.setName("案件编号");
+        caseItems.add(caseNumber);
+        ExportItem caseBatchNumber = new ExportItem();
+        BeanUtils.copyProperties(temp, caseBatchNumber);
+        caseBatchNumber.setName("案件批次号");
+        caseItems.add(caseBatchNumber);
+        ExportItem loanDate = new ExportItem();
+        BeanUtils.copyProperties(temp, loanDate);
+        loanDate.setName("贷款日期");
+        caseItems.add(loanDate);
+        ExportItem contractAmt = new ExportItem();
+        BeanUtils.copyProperties(temp, contractAmt);
+        contractAmt.setName("合同金额");
+        caseItems.add(contractAmt);
+        ExportItem leftCapital = new ExportItem();
+        BeanUtils.copyProperties(temp, leftCapital);
+        leftCapital.setName("剩余本金(元)");
+        caseItems.add(leftCapital);
+        ExportItem overDueAmt = new ExportItem();
+        BeanUtils.copyProperties(temp, overDueAmt);
+        overDueAmt.setName("逾期总金额(元)");
+        caseItems.add(overDueAmt);
+        ExportItem overdueCapital = new ExportItem();
+        BeanUtils.copyProperties(temp, overdueCapital);
+        overdueCapital.setName("逾期本金(元)");
+        caseItems.add(overdueCapital);
+        ExportItem overdueInterest = new ExportItem();
+        BeanUtils.copyProperties(temp, overdueInterest);
+        overdueInterest.setName("逾期利息(元)");
+        caseItems.add(overdueInterest);
+        ExportItem periods = new ExportItem();
+        BeanUtils.copyProperties(temp, periods);
+        periods.setName("还款期数");
+        caseItems.add(periods);
+        ExportItem perPayDays = new ExportItem();
+        BeanUtils.copyProperties(temp, perPayDays);
+        perPayDays.setName("每期还款日");
+        caseItems.add(perPayDays);
+        ExportItem overDueTotalAmt = new ExportItem();
+        BeanUtils.copyProperties(temp, overDueTotalAmt);
+        overDueTotalAmt.setName("逾期总金额(元)");
+        caseItems.add(overDueTotalAmt);
+        ExportItem overDueDate = new ExportItem();
+        BeanUtils.copyProperties(temp, overDueDate);
+        overDueDate.setName("逾期日期");
+        caseItems.add(overDueDate);
+        ExportItem overduePeriods = new ExportItem();
+        BeanUtils.copyProperties(temp, overduePeriods);
+        overduePeriods.setName("逾期期数");
+        caseItems.add(overduePeriods);
+        ExportItem overdueDays = new ExportItem();
+        BeanUtils.copyProperties(temp, overdueDays);
+        overdueDays.setName("逾期天数");
+        caseItems.add(overdueDays);
         ExportItem hasPayAmt = new ExportItem();
         BeanUtils.copyProperties(temp, hasPayAmt);
         hasPayAmt.setName("已还款金额(元)");
         caseItems.add(hasPayAmt);
+        ExportItem hasPayPeriods = new ExportItem();
+        BeanUtils.copyProperties(temp, hasPayPeriods);
+        hasPayPeriods.setName("已还款期数");
+        caseItems.add(hasPayPeriods);
+        ExportItem leftPayDate = new ExportItem();
+        BeanUtils.copyProperties(temp, leftPayDate);
+        leftPayDate.setName("剩余天数");
+        caseItems.add(leftPayDate);
+        ExportItem paystatus = new ExportItem();
+        BeanUtils.copyProperties(temp, paystatus);
+        paystatus.setName("还款状态");
+        caseItems.add(paystatus);
+        ExportItem rate = new ExportItem();
+        BeanUtils.copyProperties(temp, rate);
+        rate.setName("佣金比例(%)");
+        ExportItem principal = new ExportItem();
+        BeanUtils.copyProperties(temp, principal);
+        principal.setName("委托方");
+        caseItems.add(principal);
+        ExportItem collectionStatus = new ExportItem();
+        BeanUtils.copyProperties(temp, collectionStatus);
+        collectionStatus.setName("催收状态");
+        caseItems.add(collectionStatus);
+        ExportItem overdueManageFee = new ExportItem();
+        BeanUtils.copyProperties(temp, overdueManageFee);
+        overdueManageFee.setName("逾期管理费");
+        caseItems.add(overdueManageFee);
+        ExportItem feedback = new ExportItem();
+        BeanUtils.copyProperties(temp, feedback);
+        feedback.setName("催收反馈");
+        caseItems.add(feedback);
 
-        ExportItem leftCapital = new ExportItem();
-        BeanUtils.copyProperties(temp, leftCapital);
-        leftCapital.setName("剩余金额(元)");
-        caseItems.add(leftCapital);
-
+        ExportItem outsourceAmt = new ExportItem();
+        BeanUtils.copyProperties(temp, outsourceAmt);
+        outsourceAmt.setName("委外案件金额(元)");
+        caseItems.add(outsourceAmt);
+        ExportItem hasPayAmtOutsource = new ExportItem();
+        BeanUtils.copyProperties(temp, hasPayAmtOutsource);
+        hasPayAmtOutsource.setName("委外回款金额(元)");
+        caseItems.add(hasPayAmtOutsource);
+        ExportItem leftCapitalOutsource = new ExportItem();
+        BeanUtils.copyProperties(temp, leftCapitalOutsource);
+        leftCapitalOutsource.setName("剩余金额(元)");
+        caseItems.add(leftCapitalOutsource);
         ExportItem outsourceName = new ExportItem();
         BeanUtils.copyProperties(temp, outsourceName);
         outsourceName.setName("委外方");
         caseItems.add(outsourceName);
-
         ExportItem batchNum = new ExportItem();
         BeanUtils.copyProperties(temp, batchNum);
-        batchNum.setName("批次号");
+        batchNum.setName("委外批次号");
         caseItems.add(batchNum);
-
         ExportItem outTime = new ExportItem();
         BeanUtils.copyProperties(temp, outTime);
         outTime.setName("委案日期");
         caseItems.add(outTime);
-
         ExportItem overOutsourceTime = new ExportItem();
         BeanUtils.copyProperties(temp, overOutsourceTime);
         overOutsourceTime.setName("委案到期日期");
         caseItems.add(overOutsourceTime);
-
-        ExportItem overdueDays = new ExportItem();
-        BeanUtils.copyProperties(temp, overdueDays);
-        overdueDays.setName("剩余委托时间(天)");
-        caseItems.add(overdueDays);
-
+        ExportItem overdueDaysOutsource = new ExportItem();
+        BeanUtils.copyProperties(temp, overdueDaysOutsource);
+        overdueDaysOutsource.setName("剩余委托时间(天)");
+        caseItems.add(overdueDaysOutsource);
         ExportItem caseStatus = new ExportItem();
         BeanUtils.copyProperties(temp, caseStatus);
         caseStatus.setName("案件状态");
         caseItems.add(caseStatus);
-
-        ExportItem rate = new ExportItem();
-        BeanUtils.copyProperties(temp, rate);
-        rate.setName("佣金比例(%)");
-        caseItems.add(rate);
-
+        ExportItem rateOutsource = new ExportItem();
+        BeanUtils.copyProperties(temp, rateOutsource);
+        rateOutsource.setName("委外佣金比例(%)");
+        caseItems.add(rateOutsource);
         ExportItem endOutsourceTime = new ExportItem();
         BeanUtils.copyProperties(temp, endOutsourceTime);
         endOutsourceTime.setName("结案日期");

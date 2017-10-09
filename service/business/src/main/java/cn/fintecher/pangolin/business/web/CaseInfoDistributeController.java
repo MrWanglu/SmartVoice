@@ -263,7 +263,7 @@ public class CaseInfoDistributeController extends BaseController {
             AllocationCountModel model = caseInfoDistributedService.allocationCount(manualParams);
             return ResponseEntity.ok().body(model);
         } catch (Exception e) {
-            logger.debug(e.getMessage());
+            logger.error(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
     }
@@ -277,7 +277,7 @@ public class CaseInfoDistributeController extends BaseController {
             caseInfoDistributedService.strategyAllocation(caseInfoIdList, user);
             return ResponseEntity.ok().body(null);
         } catch (Exception e) {
-            logger.debug(e.getMessage());
+            logger.error(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
     }

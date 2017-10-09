@@ -1,6 +1,6 @@
 package cn.fintecher.pangolin.dataimp.web.rest;
 
-import cn.fintecher.pangolin.dataimp.entity.CaseStrategy;
+import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -38,7 +38,7 @@ public class CaseStrategyResource {
 
     @GetMapping("/getCaseStrategy")
     @ApiOperation(notes = "获取案件分配策略", value = "获取案件分配策略")
-    public ResponseEntity<CaseStrategy> getCaseStrategy(@RequestParam(value = "companyCode") @ApiParam("公司Code") String companyCode,
+    public ResponseEntity<List<CaseStrategy>> getCaseStrategy(@RequestParam(value = "companyCode") @ApiParam("公司Code") String companyCode,
                                                         @RequestParam(value = "strategyType") @ApiParam("策略类型") Integer strategyType) {
         logger.debug("Rest request to getCaseStrategy");
         Query query = new Query();
@@ -46,11 +46,6 @@ public class CaseStrategyResource {
         query.addCriteria(Criteria.where("strategyType").is(strategyType));
         List<CaseStrategy> caseStrategies = mongoTemplate.find(query, CaseStrategy.class);
         Collections.sort(caseStrategies, Comparator.comparingInt(CaseStrategy::getPriority));
-        if (!caseStrategies.isEmpty()) {
-            CaseStrategy caseStrategy = caseStrategies.get(0);
-            return ResponseEntity.ok().body(caseStrategy);
-        }
-        return null;
+        return ResponseEntity.ok().body(caseStrategies);
     }
-
 }

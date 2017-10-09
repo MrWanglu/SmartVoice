@@ -75,6 +75,7 @@ public class ExportItemsController extends BaseController {
     public ResponseEntity<ItemsModel> getUpdateItems(@RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
+
             ItemsModel result = exportItemService.getExportItems(user,ExportItem.Category.CASEUPDATE.getValue());
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(result);
         } catch (Exception e) {
@@ -86,10 +87,17 @@ public class ExportItemsController extends BaseController {
     @PostMapping("/saveOutsourceExportItems")
     @ApiOperation(value = "设置委外导出项", notes = "设置委外导出项")
     public ResponseEntity saveOutsourceExportItems(@RequestBody @ApiParam(value = "导出项", required = true) ItemsModel items,
-                                          @RequestHeader(value = "X-UserToken") String token) {
+                                          @RequestHeader(value = "X-UserToken") String token, Integer category) {
         try {
             User user = getUserByToken(token);
-            exportItemService.saveExportItems(items, user,ExportItem.Category.OUTSOURCE.getValue());
+            Integer categoryOutsource = ExportItem.Category.OUTSOURCE.getValue();
+            Integer categoryFollowup = ExportItem.Category.OUTSOURCEFOLLOWUP.getValue();
+            if (categoryOutsource.equals(category)) {
+                exportItemService.saveExportItems(items, user, categoryOutsource);
+            } else {
+                exportItemService.saveExportItems(items, user, categoryFollowup);
+            }
+
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("设置成功", "")).body(null);
         } catch (Exception e) {
             e.printStackTrace();
@@ -99,10 +107,20 @@ public class ExportItemsController extends BaseController {
 
     @GetMapping("/getOutsourceExportItems")
     @ApiOperation(value = "查询委外导出项", notes = "查询委外导出项")
-    public ResponseEntity<ItemsModel> getOutsourceExportItems(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<ItemsModel> getOutsourceExportItems(@RequestHeader(value = "X-UserToken") String token, Integer category) {
         try {
             User user = getUserByToken(token);
-            ItemsModel result = exportItemService.getExportItems(user,ExportItem.Category.OUTSOURCE.getValue());
+            Integer categoryOutsource = ExportItem.Category.OUTSOURCE.getValue();
+            Integer categoryFollowup = ExportItem.Category.OUTSOURCEFOLLOWUP.getValue();
+            ItemsModel result = null;
+
+            if (categoryOutsource.equals(category)) {
+                //委外案件导出项
+                result = exportItemService.getExportItems(user, categoryOutsource);
+            } else {
+                //委外跟踪记录导出项
+                result = exportItemService.getExportItems(user, categoryFollowup);
+            }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(result);
         } catch (Exception e) {
             e.printStackTrace();

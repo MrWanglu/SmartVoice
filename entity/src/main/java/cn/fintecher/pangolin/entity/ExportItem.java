@@ -59,9 +59,11 @@ public class ExportItem extends BaseEntity{
     public enum Category {
         INRUSH(1, "内催"),
 
-        OUTSOURCE(2, "委外"),
+        OUTSOURCE(2, "委外跟踪记录"),
 
-        CASEUPDATE(3, "案件更新");
+        CASEUPDATE(3, "案件更新"),
+
+        OUTSOURCEFOLLOWUP(4, "委外案件");
 
 
         private Integer value;
