@@ -89,6 +89,8 @@ public class PaymentService {
 
         PaymentModel paymentModel = new PaymentModel();
         BeanUtils.copyProperties(caseInfo, paymentModel);
+        paymentModel.setCasePayApplyId(casePayApplyId); //还款审批ID
+        paymentModel.setCaseId(caseInfo.getId()); //案件ID
         paymentModel.setName(casePayApply.getPersonalName()); //客户姓名
         paymentModel.setIdCardNum(caseInfo.getPersonalInfo().getIdCard()); //客户身份证号
         paymentModel.setPhone(casePayApply.getPersonalPhone()); //客户手机号
