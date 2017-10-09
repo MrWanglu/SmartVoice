@@ -250,7 +250,7 @@ public class CaseInfoDistributeController extends BaseController {
         try {
             User user = getUserByToken(token);
             caseInfoDistributedService.manualAllocation(manualParams, user);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功","")).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", "")).body(null);
         } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
@@ -274,8 +274,8 @@ public class CaseInfoDistributeController extends BaseController {
                                              @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
-            caseInfoDistributedService.strategyAllocation(caseInfoIdList, user);
-            return ResponseEntity.ok().body(null);
+            Integer num = caseInfoDistributedService.strategyAllocation(caseInfoIdList, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", "")).body(num);
         } catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);

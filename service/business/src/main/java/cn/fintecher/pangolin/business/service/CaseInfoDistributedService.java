@@ -281,7 +281,7 @@ public class CaseInfoDistributedService {
         }
     }
 
-    private void addCaseInfoRemark(List<CaseInfoRemark> caseInfoRemarkList,CaseInfo caseInfo, User user) {
+    private void addCaseInfoRemark(List<CaseInfoRemark> caseInfoRemarkList, CaseInfo caseInfo, User user) {
         CaseInfoRemark caseInfoRemark = new CaseInfoRemark();
         caseInfoRemark.setCaseId(caseInfo.getId());
         caseInfoRemark.setRemark(caseInfo.getMemo());
@@ -350,7 +350,13 @@ public class CaseInfoDistributedService {
         }
     }
 
-    public void strategyAllocation(CaseInfoIdList caseInfoIdList, User user) {
+    /**
+     * 案件导入策略分案
+     * @param caseInfoIdList 选择的案件
+     * @param user 用户
+     * @return
+     */
+    public Integer strategyAllocation(CaseInfoIdList caseInfoIdList, User user) {
         List<CaseInfoDistributed> all = new ArrayList<>();
         if (Objects.isNull(caseInfoIdList.getIds()) || caseInfoIdList.getIds().isEmpty()) {
             all = caseInfoDistributedRepository.findAll();
@@ -360,30 +366,76 @@ public class CaseInfoDistributedService {
         if (all.isEmpty()) {
             throw new RuntimeException("待分配案件为空!");
         }
-        ParameterizedTypeReference<List<CaseStrategy>> responseType = new ParameterizedTypeReference<List<CaseStrategy>>(){};
+        ParameterizedTypeReference<List<CaseStrategy>> responseType = new ParameterizedTypeReference<List<CaseStrategy>>() {
+        };
         ResponseEntity<List<CaseStrategy>> forEntity = restTemplate.exchange(Constants.CASE_STRATEGY_URL
                 .concat("companyCode=").concat(user.getCompanyCode())
                 .concat("&strategyType=").concat(CaseStrategy.StrategyType.IMPORT.getValue().toString()), HttpMethod.GET, null, responseType);
-        List<CaseStrategy> caseStrategies = forEntity.getBody();
-        if (caseStrategies.isEmpty()) {
-            throw new RuntimeException("未找到需要执行的策略");
+        if (forEntity.hasBody()) {
+            List<CaseStrategy> caseStrategies = forEntity.getBody();
+            if (caseStrategies.isEmpty()) {
+                throw new RuntimeException("未找到需要执行的策略");
+            }
+            // 策略分配
+            List<CaseInfoDistributed> caseInfoDistributedList = new ArrayList<>();
+            List<CaseInfo> caseInfoList = new ArrayList<>(); // 分配到CaseInfo的案件
+            List<CaseRepair> caseRepairList = new ArrayList<>(); // 分配到内催时添加修复池也新增
+            List<OutsourcePool> outsourcePoolList = new ArrayList<>(); // 分到委外时需要OutsourcePool新增
+            List<CaseInfoRemark> caseInfoRemarkList = new ArrayList<>(); // 分配时备注表新增
+            for (CaseStrategy caseStrategy : caseStrategies) {
+                List<CaseInfoDistributed> checkedList = new ArrayList<>(); // 策略匹配到的案件
+                KieSession kieSession = null;
+                try {
+                    kieSession = runCaseStrategyService.runCaseRun(checkedList, caseStrategy);
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                    throw new RuntimeException(e.getMessage());
+                }
+                for (CaseInfoDistributed caseInfoDistributed : all) {
+                    kieSession.insert(caseInfoDistributed);//插入
+                    kieSession.fireAllRules();//执行规则
+                }
+                kieSession.dispose();
+                if (checkedList.isEmpty()) {
+                    continue;
+                }
+                if (Objects.equals(caseStrategy.getAssignType(), 2)) { // 内催
+                    for (CaseInfoDistributed caseInfoDistributed : checkedList) {
+                        CaseInfo caseInfo = new CaseInfo();
+                        setCaseInfo(caseInfoDistributed, caseInfo, user);
+                        caseInfo.setCasePoolType(CaseInfo.CasePoolType.INNER.getValue());
+                        caseInfoList.add(caseInfo);
+                        addCaseRepair(caseRepairList, caseInfo, user);//修复池增加案件
+                    }
+                }
+                if (Objects.equals(caseStrategy.getAssignType(), 3)) { // 委外
+                    for (CaseInfoDistributed caseInfoDistributed : checkedList) {
+                        CaseInfo caseInfo = new CaseInfo();
+                        setCaseInfo(caseInfoDistributed, caseInfo, user);
+                        caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue());
+                        caseInfoList.add(caseInfo);
+                        OutsourcePool outsourcePool = new OutsourcePool();
+                        outsourcePool.setCaseInfo(caseInfo);
+                        outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
+                        outsourcePoolList.add(outsourcePool);
+                    }
+                }
+                all.removeAll(checkedList);
+                caseInfoDistributedList.addAll(checkedList);
+            }
+            List<CaseInfo> save = caseInfoRepository.save(caseInfoList);
+            caseRepairRepository.save(caseRepairList);
+            outsourcePoolRepository.save(outsourcePoolList);
+            if (!save.isEmpty()) {
+                for (CaseInfo caseInfo : save) {
+                    addCaseInfoRemark(caseInfoRemarkList, caseInfo, user);
+                }
+                caseInfoRemarkRepository.save(caseInfoRemarkList);
+            }
+            caseInfoDistributedRepository.delete(caseInfoDistributedList);
+            return save.size();
+        } else {
+            throw new RuntimeException("获取策略错误");
         }
-        for (CaseStrategy caseStrategy : caseStrategies) {
-            List<CaseInfoDistributed> checkedList = new ArrayList<>();
-            KieSession kieSession = runCaseStrategyService.runCaseRun(checkedList, caseStrategy);
-            List<CaseInfoDistributed> all1 = caseInfoDistributedRepository.findAll();
-            for (CaseInfoDistributed caseInfoDistributed : all1) {
-                kieSession.insert(caseInfoDistributed);//插入
-                kieSession.fireAllRules();//执行规则
-            }
-            kieSession.dispose();
-            if (checkedList.isEmpty()) {
-                continue;
-            }
-            for (CaseInfoDistributed caseInfoDistributed : checkedList) {
-
-            }
-        }
-
     }
 }
