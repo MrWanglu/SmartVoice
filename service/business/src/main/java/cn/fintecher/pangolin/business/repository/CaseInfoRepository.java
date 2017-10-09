@@ -213,7 +213,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
      *
      * @return
      */
-    @Query(value = "select depart_id,count(*) num " +
+    @Query(value = "select depart_id,collection_type,count(*) num " +
             "from case_info c " +
             "left join personal p " +
             "on p.id = c.personal_id " +
@@ -225,7 +225,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
             "and p.name =:personName " +
             "and p.id_card =:idCard " +
             "GROUP BY depart_id " +
-            "ORDER BY num desc " +
+            "ORDER BY num desc,collection_type " +
             "LIMIT 1", nativeQuery = true)
     Object[] findCaseByDept(@Param("personName") String personName,@Param("idCard") String idCard,@Param("companyCode") String companyCode);
 
@@ -235,7 +235,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
      * @return
      */
 
-    @Query(value = "select current_collector,count(*) num " +
+    @Query(value = "select current_collector,collection_type,count(*) num " +
             "from case_info c " +
             "left join personal p " +
             "on p.id = c.personal_id " +
@@ -245,7 +245,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
             "and p.name =:personName " +
             "and p.id_card =:idCard " +
             "GROUP BY current_collector " +
-            "ORDER BY num desc " +
+            "ORDER BY num desc,collection_type " +
             "LIMIT 1", nativeQuery = true)
     Object findCaseByCollector(@Param("personName") String personName,@Param("idCard") String idCard,@Param("companyCode") String companyCode);
 }

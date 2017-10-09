@@ -28,7 +28,7 @@ public class AccCaseInfoDisModel  {
     @ApiModelProperty("机构或用户对应分配的案件数量")
     private List<Integer> caseNumList;
 
-    @ApiModelProperty("0 按新计划 1 按原计划")
+    @ApiModelProperty("0 按新计划 1 共债优先 2 数量平均")
     private Integer isPlan;
 
     @ApiModelProperty("计划后的分配的数据")

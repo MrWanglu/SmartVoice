@@ -264,6 +264,27 @@ public class CaseInfoController extends BaseController {
         }
     }
 
+    @PostMapping(value = "/distributeCeaseInfo")
+    @ApiOperation(value = "内催待分配案件分配", notes = "内催待分配案件分配")
+    public ResponseEntity distributeCeaseInfo(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
+                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        log.debug("REST request to distributeCeaseInfo");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "distributeCeaseInfoAgain", e.getMessage())).body(null);
+        }
+        try {
+            caseInfoService.distributeCeaseInfo(accCaseInfoDisModel, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "errorMessage", e.getMessage())).body(null);
+        }
+    }
+
     @GetMapping("/getCaseInfoDetails")
     @ApiOperation(value = "案件详情查询操作", notes = "案件详情查询操作")
     public ResponseEntity<CaseInfo> getCaseInfoDetails(@RequestParam("id") String id) {

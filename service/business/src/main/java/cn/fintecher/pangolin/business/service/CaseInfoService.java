@@ -1569,6 +1569,177 @@ public class CaseInfoService {
 
 
     /**
+     * 内催待分配案件分配
+     *
+     * @param accCaseInfoDisModel
+     * @param user
+     * @throws Exception
+     */
+    @Transactional
+    public void distributeCeaseInfo(AccCaseInfoDisModel accCaseInfoDisModel, User user) throws Exception {
+        //选择的案件ID列表
+        List<String> caseInfoList = accCaseInfoDisModel.getCaseIdList();
+        //检查案件状态（待分配 待催收 催收中 承诺还款 可以分配）
+        List<CaseInfo> caseInfoYes = new ArrayList<>(); //可分配案件
+        for (String caseId : caseInfoList) {
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+            if (Objects.isNull(caseInfo)) {
+                throw new RuntimeException("有案件未找到!");
+            }
+            caseInfoYes.add(caseInfo);
+        }
+        //案件列表
+        List<CaseInfo> caseInfoObjList = new ArrayList<>();
+        //流转记录列表
+        List<CaseTurnRecord> caseTurnRecordList = new ArrayList<>();
+        //每个机构或人分配的数量
+        List<Integer> disNumList = accCaseInfoDisModel.getCaseNumList();
+        //已经分配的案件数量
+        int alreadyCaseNum = 0;
+        //接收案件列表信息
+        List<String> deptOrUserList = null;
+        //机构分配
+        Integer rule = accCaseInfoDisModel.getIsPlan();
+        if (Objects.equals(rule, 1)) {
+            for (int i = 0; i < caseInfoYes.size(); i++) {
+                CaseInfo caseInfo = caseInfoYes.get(i);
+                String personalName = caseInfo.getPersonalInfo().getName();
+                String idCard = caseInfo.getPersonalInfo().getIdCard();
+                Object[] objDept = caseInfoRepository.findCaseByDept(personalName, idCard, user.getCompanyCode());//按机构分
+                if (objDept.length != 0) {
+                    Department department = departmentRepository.findOne(objDept[0].toString());
+                    caseInfo.setDepartment(department); //部门
+                    caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上个催收员
+                    caseInfo.setCurrentCollector(null); //当前催收员置空
+                    setCollectionType(caseInfo, department, null);
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
+                    updateCase(caseInfo, user);
+                    caseInfoYes.remove(caseInfo);
+                    i--;
+                    continue;
+                }
+                Object[] objCollector = (Object[]) caseInfoRepository.findCaseByCollector(personalName, idCard, user.getCompanyCode());//按催员分
+                if (objCollector.length != 0) {
+                    User collector = userRepository.findOne(objCollector[0].toString());
+                    caseInfo.setDepartment(collector.getDepartment());
+                    caseInfo.setCurrentCollector(collector);
+                    setCollectionType(caseInfo, null, collector);
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
+                    updateCase(caseInfo, user);
+                    caseInfoYes.remove(caseInfo);
+                    i--;
+                }
+            }
+        } else if (Objects.equals(rule, 2)) {
+            int caseNum = caseInfoYes.size();
+            int deptOrUserNum = accCaseInfoDisModel.getDepIdList().size() == 0 ? accCaseInfoDisModel.getUserIdList().size() : accCaseInfoDisModel.getDepIdList().size();
+            List<Integer> caseNumList = new ArrayList<>(deptOrUserNum);
+            for (int i = 0; i < deptOrUserNum; i++) {
+                caseNumList.add(caseNum / deptOrUserNum);
+            }
+            if (caseNum % deptOrUserNum != 0) {
+                for (int i = 0; i < caseNum % deptOrUserNum; i++) {
+                    caseNumList.set(i, caseNumList.get(i) + 1);
+                }
+            }
+            disNumList = caseNumList;
+        }
+
+        if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
+            //所要分配 机构id
+            deptOrUserList = accCaseInfoDisModel.getDepIdList();
+        } else if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.USER_WAY.getValue())) {
+            //得到所有用户ID
+            deptOrUserList = accCaseInfoDisModel.getUserIdList();
+        }
+        for (int i = 0; i < (deptOrUserList != null ? deptOrUserList.size() : 0); i++) {
+            //如果按机构分配则是机构的ID，如果是按用户分配则是用户ID
+            String deptOrUserid = deptOrUserList.get(i);
+            Department department = null;
+            User targetUser = null;
+            if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
+                department = departmentRepository.findOne(deptOrUserid);
+            } else if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.USER_WAY.getValue())) {
+                targetUser = userRepository.findOne(deptOrUserid);
+            }
+            //需要分配的案件数据
+            Integer disNum = disNumList.get(i);
+            for (int j = 0; j < disNum; j++) {
+                //检查输入的案件数量是否和选择的案件数量一致
+                if (alreadyCaseNum == caseInfoYes.size()) {
+                    return;
+                }
+                String caseId = caseInfoYes.get(alreadyCaseNum).getId();
+                CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+                caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型-案件分配
+                //按照部门分
+                if (Objects.nonNull(department)) {
+                    caseInfo.setDepartment(department); //部门
+                    caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上个催收员
+                    caseInfo.setCurrentCollector(null); //当前催收员置空
+                    try {
+                        setCollectionType(caseInfo, department, null);
+                    } catch (final Exception e) {
+                        throw new RuntimeException(e.getMessage());
+                    }
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
+                }
+                //按照用户分
+                if (Objects.nonNull(targetUser)) {
+                    caseInfo.setDepartment(targetUser.getDepartment());
+                    caseInfo.setCurrentCollector(targetUser);
+                    try {
+                        setCollectionType(caseInfo, null, targetUser);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e.getMessage());
+                    }
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
+                }
+                //案件类型
+                caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //流转类型-案件分配
+                caseInfo.setCaseFollowInTime(new Date()); //案件流入时间
+                caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1);//流转次数
+                caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件打标-无色
+                caseInfo.setFollowupBack(null); //催收反馈置空
+                caseInfo.setFollowupTime(null);//跟进时间置空
+                caseInfo.setPromiseAmt(new BigDecimal(0));//承诺还款置0
+                caseInfo.setPromiseTime(null);//承诺还款日期置空
+                caseInfo.setCirculationStatus(null);//小流转状态
+                caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());//留案标识
+                caseInfo.setLeaveDate(null);//留案操作日期
+                caseInfo.setHasLeaveDays(0);//留案天数
+                caseInfo.setHandUpFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());//是否挂起
+                caseInfo.setOperator(user);
+                caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+                //案件流转记录
+                CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+                BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
+                caseTurnRecord.setId(null); //主键置空
+                caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
+                caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
+                if (Objects.nonNull(caseInfo.getCurrentCollector())) {
+                    caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
+                    caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接收人ID
+                    caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
+                } else {
+                    caseTurnRecord.setReceiveDeptName(caseInfo.getDepartment().getName());
+                }
+                caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
+                caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
+                caseTurnRecordList.add(caseTurnRecord);
+                //案件列表
+                caseInfoObjList.add(caseInfo);
+                alreadyCaseNum = alreadyCaseNum + 1;
+            }
+        }
+        //保存案件信息
+        caseInfoRepository.save(caseInfoObjList);
+        //保存流转记录
+        caseTurnRecordRepository.save(caseTurnRecordList);
+    }
+
+    /**
      * 案件重新分配
      *
      * @param accCaseInfoDisModel
@@ -1608,52 +1779,6 @@ public class CaseInfoService {
         //接收案件列表信息
         List<String> deptOrUserList = null;
         //机构分配
-        Integer rule = accCaseInfoDisModel.getIsPlan();
-        if (Objects.equals(rule, 1)) {
-            for (int i = 0; i < caseInfoYes.size(); i++) {
-                CaseInfo caseInfo = caseInfoYes.get(i);
-                String personalName = caseInfo.getPersonalInfo().getName();
-                String idCard = caseInfo.getPersonalInfo().getIdCard();
-                Object[] objDept = caseInfoRepository.findCaseByDept(personalName, idCard, user.getCompanyCode());//按机构分
-                if (objDept.length != 0) {
-                    Department department = departmentRepository.findOne(objDept[0].toString());
-                    caseInfo.setDepartment(department); //部门
-                    caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上个催收员
-                    caseInfo.setCurrentCollector(null); //当前催收员置空
-                    setCollectionType(caseInfo, department, null);
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
-                    updateCaseAndAssist(caseInfo, user);
-                    caseInfoYes.remove(caseInfo);
-                    i--;
-                    continue;
-                }
-                Object[] objCollector = (Object[]) caseInfoRepository.findCaseByCollector(personalName, idCard, user.getCompanyCode());//按催员分
-                if (objCollector.length != 0) {
-                    User collector = userRepository.findOne(objCollector[0].toString());
-                    caseInfo.setDepartment(collector.getDepartment());
-                    caseInfo.setCurrentCollector(collector);
-                    setCollectionType(caseInfo, null, collector);
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
-                    updateCaseAndAssist(caseInfo, user);
-                    caseInfoYes.remove(caseInfo);
-                    i--;
-                }
-            }
-        } else if (Objects.equals(rule, 2)) {
-            int caseNum = caseInfoYes.size();
-            int deptOrUserNum = accCaseInfoDisModel.getDepIdList().size() == 0 ? accCaseInfoDisModel.getUserIdList().size() : accCaseInfoDisModel.getDepIdList().size();
-            List<Integer> caseNumList = new ArrayList<>(deptOrUserNum);
-            for (int i = 0; i < caseNumList.size(); i++) {
-                caseNumList.set(i, caseNum / deptOrUserNum);
-            }
-            if (caseNum % deptOrUserNum != 0) {
-                for (int i = 0; i < caseNum % deptOrUserNum; i++) {
-                    caseNumList.set(i, caseNumList.get(i) + 1);
-                }
-            }
-            accCaseInfoDisModel.setCaseNumList(caseNumList);
-        }
-
         if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
             //所要分配 机构id
             deptOrUserList = accCaseInfoDisModel.getDepIdList();
@@ -2138,27 +2263,9 @@ public class CaseInfoService {
     }
 
     /**
-     * @Description 更新案件信息，协催信息，流转记录
+     * @Description 更新案件信息，流转记录
      */
-    public void updateCaseAndAssist(CaseInfo caseInfo, User user) throws Exception {
-        //处理协催案件
-        if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //协催标识
-            //结束协催案件
-            CaseAssist one = caseAssistRepository.findOne(QCaseAssist.caseAssist.caseId.eq(caseInfo)
-                    .and(QCaseAssist.caseAssist.assistStatus.notIn(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
-            if (Objects.nonNull(one)) {
-                one.setAssistCloseFlag(0); //手动结束
-                one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催结束
-                one.setOperator(user);
-                one.setOperatorTime(new Date());
-                one.setCaseFlowinTime(new Date()); //流入时间
-                caseAssistRepository.save(one);
-            }
-            caseInfo.setAssistFlag(0); //协催标识置0
-            caseInfo.setAssistStatus(null);//协催状态置空
-            caseInfo.setAssistWay(null);
-            caseInfo.setAssistCollector(null);
-        }
+    public void updateCase(CaseInfo caseInfo, User user) throws Exception {
         //案件类型
         caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //流转类型-案件分配
         caseInfo.setCaseFollowInTime(new Date()); //案件流入时间
