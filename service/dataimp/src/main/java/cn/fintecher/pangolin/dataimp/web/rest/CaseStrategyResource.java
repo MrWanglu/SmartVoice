@@ -46,10 +46,6 @@ public class CaseStrategyResource {
         query.addCriteria(Criteria.where("strategyType").is(strategyType));
         List<CaseStrategy> caseStrategies = mongoTemplate.find(query, CaseStrategy.class);
         Collections.sort(caseStrategies, Comparator.comparingInt(CaseStrategy::getPriority));
-        if (!caseStrategies.isEmpty()) {
-            return ResponseEntity.ok().body(caseStrategies);
-        }
-        return null;
+        return ResponseEntity.ok().body(caseStrategies);
     }
-
 }
