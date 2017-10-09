@@ -6,12 +6,18 @@ import cn.fintecher.pangolin.business.model.CaseInfoIdList;
 import cn.fintecher.pangolin.business.model.ManualParams;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -345,26 +351,39 @@ public class CaseInfoDistributedService {
     }
 
     public void strategyAllocation(CaseInfoIdList caseInfoIdList, User user) {
-//        List<CaseInfoDistributed> all = new ArrayList<>();
-//        if (Objects.isNull(caseInfoIdList.getIds()) || caseInfoIdList.getIds().isEmpty()) {
-//            all = caseInfoDistributedRepository.findAll();
-//        } else {
-//            all = caseInfoDistributedRepository.findAll(caseInfoIdList.getIds());
-//        }
-//        if (all.isEmpty()) {
-//            throw new RuntimeException("待分配案件为空!");
-//        }
-//        ResponseEntity<CaseStrategy> forEntity = restTemplate.getForEntity(Constants.CASE_STRATEGY_URL
-//                .concat("companyCode=").concat(user.getCompanyCode())
-//                .concat("&strategyType=").concat(CaseStrategy.StrategyType.IMPORT.getValue().toString()), CaseStrategy.class);
-//        CaseStrategy caseStrategy = forEntity.getBody();
-//        List<CaseInfoDistributed> checkedList = new ArrayList<>();
-//        KieSession kieSession = runCaseStrategyService.runCaseRun(checkedList, caseStrategy);
-//        List<CaseInfoDistributed> all1 = caseInfoDistributedRepository.findAll();
-//        for (CaseInfoDistributed caseInfoDistributed : all1) {
-//            kieSession.insert(caseInfoDistributed);//插入
-//            kieSession.fireAllRules();//执行规则
-//        }
-//        kieSession.dispose();
+        List<CaseInfoDistributed> all = new ArrayList<>();
+        if (Objects.isNull(caseInfoIdList.getIds()) || caseInfoIdList.getIds().isEmpty()) {
+            all = caseInfoDistributedRepository.findAll();
+        } else {
+            all = caseInfoDistributedRepository.findAll(caseInfoIdList.getIds());
+        }
+        if (all.isEmpty()) {
+            throw new RuntimeException("待分配案件为空!");
+        }
+        ParameterizedTypeReference<List<CaseStrategy>> responseType = new ParameterizedTypeReference<List<CaseStrategy>>(){};
+        ResponseEntity<List<CaseStrategy>> forEntity = restTemplate.exchange(Constants.CASE_STRATEGY_URL
+                .concat("companyCode=").concat(user.getCompanyCode())
+                .concat("&strategyType=").concat(CaseStrategy.StrategyType.IMPORT.getValue().toString()), HttpMethod.GET, null, responseType);
+        List<CaseStrategy> caseStrategies = forEntity.getBody();
+        if (caseStrategies.isEmpty()) {
+            throw new RuntimeException("未找到需要执行的策略");
+        }
+        for (CaseStrategy caseStrategy : caseStrategies) {
+            List<CaseInfoDistributed> checkedList = new ArrayList<>();
+            KieSession kieSession = runCaseStrategyService.runCaseRun(checkedList, caseStrategy);
+            List<CaseInfoDistributed> all1 = caseInfoDistributedRepository.findAll();
+            for (CaseInfoDistributed caseInfoDistributed : all1) {
+                kieSession.insert(caseInfoDistributed);//插入
+                kieSession.fireAllRules();//执行规则
+            }
+            kieSession.dispose();
+            if (checkedList.isEmpty()) {
+                continue;
+            }
+            for (CaseInfoDistributed caseInfoDistributed : checkedList) {
+
+            }
+        }
+
     }
 }
