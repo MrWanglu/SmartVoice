@@ -1618,7 +1618,9 @@ public class CaseInfoService {
             String deptOrUserid = deptOrUserList.get(i);
             CaseInfoInnerDistributeModel caseInfoInnerDistributeModel = new CaseInfoInnerDistributeModel();
             caseInfoInnerDistributeModel.setDistributeType(accCaseInfoDisModel.getDisType());
-            caseInfoInnerDistributeModel.setCaseDistributeCount(disNumList.get(i));
+            if (Objects.equals(rule, 1)) {
+                caseInfoInnerDistributeModel.setCaseDistributeCount(disNumList.get(i));
+            }
             Department department = null;
             User targetUser = null;
             if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
