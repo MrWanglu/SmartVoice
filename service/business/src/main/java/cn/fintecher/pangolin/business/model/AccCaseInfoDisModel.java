@@ -28,8 +28,14 @@ public class AccCaseInfoDisModel  {
     @ApiModelProperty("机构或用户对应分配的案件数量")
     private List<Integer> caseNumList;
 
-    @ApiModelProperty("0 按新计划 1 共债优先 2 数量平均")
+    @ApiModelProperty("0 按新计划")
     private Integer isPlan;
+
+    @ApiModelProperty("是否共债优先 0 停用 1 启用")
+    private Integer isDebt;
+
+    @ApiModelProperty("是否数量平均 0 停用 1 启用")
+    private Integer isNumAvg;
 
     @ApiModelProperty("计划后的分配的数据")
     private List<AccReceivePoolModel> accReceivePoolModels;

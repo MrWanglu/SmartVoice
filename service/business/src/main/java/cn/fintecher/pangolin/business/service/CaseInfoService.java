@@ -1588,8 +1588,8 @@ public class CaseInfoService {
         //接收案件列表信息
         List<String> deptOrUserList = null;
         //机构分配
-        Integer rule = accCaseInfoDisModel.getIsPlan();
-        if (Objects.equals(rule, 2)) {
+        Integer rule = accCaseInfoDisModel.getIsNumAvg();
+        if (Objects.equals(rule, 1)) {
             int caseNum = caseInfoYes.size();
             int deptOrUserNum = accCaseInfoDisModel.getDepIdList().size() == 0 ? accCaseInfoDisModel.getUserIdList().size() : accCaseInfoDisModel.getDepIdList().size();
             List<Integer> caseNumList = new ArrayList<>(deptOrUserNum);
@@ -1681,8 +1681,8 @@ public class CaseInfoService {
         //接收案件列表信息
         List<String> deptOrUserList = null;
         //机构分配
-        Integer rule = accCaseInfoDisModel.getIsPlan();
-        if (Objects.equals(rule, 1)) {
+        Integer isDebt = accCaseInfoDisModel.getIsDebt();
+        if (Objects.equals(isDebt, 1)) {
             for (int i = 0; i < caseInfoYes.size(); i++) {
                 CaseInfo caseInfo = caseInfoYes.get(i);
                 String personalName = caseInfo.getPersonalInfo().getName();
@@ -1712,7 +1712,9 @@ public class CaseInfoService {
                     i--;
                 }
             }
-        } else if (Objects.equals(rule, 2)) {
+        }
+        Integer isNumAvg = accCaseInfoDisModel.getIsNumAvg();
+        if (Objects.equals(isNumAvg, 1)) {
             int caseNum = caseInfoYes.size();
             int deptOrUserNum = accCaseInfoDisModel.getDepIdList().size() == 0 ? accCaseInfoDisModel.getUserIdList().size() : accCaseInfoDisModel.getDepIdList().size();
             List<Integer> caseNumList = new ArrayList<>(deptOrUserNum);
