@@ -24,7 +24,7 @@
             resultMap="queryOutsourcePool">
         SELECT bb.outs_name,bb.come_outsource_time,bb.out_batch,DATE_FORMAT(bb.out_time,'%Y-%m-%d') as out_time, bb.over_outsource_time,bb.left_days,bb.total_outsource_count,bb.total_outsource_amt,IFNULL(cc.end_outsource_count,0) as end_outsource_count,IFNULL((cc.end_outsource_count/bb.total_outsource_count),0.00) as outsource_count_rate, IFNULL(cc.end_outsource_amt,0.00) as end_outsource_amt ,IFNULL((cc.end_outsource_amt/bb.total_outsource_amt), 0.00) as outsource_amt_rate, bb.company_code, bb.outs_code
         FROM (SELECT aa.outs_code, aa.outs_name,MIN(aa.come_outsource_time) as come_outsource_time, aa.out_batch, MIN(aa.out_time) as out_time,aa.over_outsource_time, aa.left_days, sum(aa.contract_amt) as total_outsource_amt, count(*) as total_outsource_count,aa.company_code
-        FROM (SELECT c.outs_name,a.out_time as come_outsource_time,a.out_batch,a.out_time,a.over_outsource_time,TIMESTAMPDIFF(DAY,a.out_time,over_outsource_time) as left_days,a.contract_amt,a.out_status, a.company_code, c.outs_code
+        FROM (SELECT c.outs_name,a.out_time as come_outsource_time,a.out_batch,a.out_time,a.over_outsource_time,TIMESTAMPDIFF(DAY,curdate(),over_outsource_time) as left_days,a.contract_amt,a.out_status, a.company_code, c.outs_code
         FROM outsource  c
         INNER JOIN outsource_pool a on c.id=a.out_id) aa GROUP BY aa.out_batch, aa.outs_name,aa.left_days,aa.over_outsource_time,aa.company_code, aa.outs_code) as bb LEFT JOIN (SELECT a.out_batch,c.outs_name,count(*) as end_outsource_count,sum(a.contract_amt) as end_outsource_amt
         FROM outsource c

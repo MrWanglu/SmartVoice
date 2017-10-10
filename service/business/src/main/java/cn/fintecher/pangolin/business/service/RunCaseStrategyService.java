@@ -3,6 +3,8 @@ package cn.fintecher.pangolin.business.service;
 import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
@@ -69,6 +71,34 @@ public class RunCaseStrategyService {
         } catch (Exception e) {
            logger.error(e.getMessage(), e);
            throw new RuntimeException("策略解析失败!");
+        }
+    }
+
+    public String analysisRule(String jsonObject, StringBuilder stringBuilder) {
+        try {
+            JSONArray jsonArray = new JSONArray(jsonObject);
+            int iSize = jsonArray.length();
+            for (int i = 0; i < iSize; i++) {
+                JSONObject jsonObj = jsonArray.getJSONObject(i);
+                if (jsonObj.getBoolean("leaf")) {
+                    stringBuilder.append(jsonObj.get("relation"));
+                    stringBuilder.append(jsonObj.get("variable"));
+                    stringBuilder.append(jsonObj.get("symbol"));
+                    stringBuilder.append("\"");
+                    stringBuilder.append(jsonObj.get("value"));
+                    stringBuilder.append("\"");
+                } else {
+                    stringBuilder.append("(");
+                    analysisRule(jsonObj.getJSONArray("children").toString(), stringBuilder);
+                    stringBuilder.append(")");
+                    if (jsonObj.has("relation")) {
+                        stringBuilder.append(jsonObj.get("relation"));
+                    }
+                }
+            }
+            return stringBuilder.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("策略解析失败");
         }
     }
 }
