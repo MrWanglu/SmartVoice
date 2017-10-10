@@ -11,10 +11,7 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Created by  baizhangyu.
@@ -127,5 +124,9 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
             "SUM(case when a.out_status = 170 then a.out_back_amt else 0 end) as endcase_total_amount,count(case when a.out_status = 168 then 1 end),SUM(case when a.out_status = 168 then a.contract_amt else 0 end) from outsource_pool a \n" +
             "LEFT JOIN outsource b on a.out_id=b.id AND b.company_code=:companyCode GROUP BY a.out_id", nativeQuery = true)
     Object[] getOutDistributeInfo(@Param("companyCode") String companyCode);
+
+
+    @Query(value = "select b.outs_name,b.outs_code,count(*) as case_count,count( case when  a.out_status=170 then a.id end) as end_count,(count( case when  a.out_status=170 then a.id end)/count(*)) as success_rate,sum(a.contract_amt) as overdue_amt  from outsource_pool a,outsource b where a.out_id=b.id and out_id is not null and out_id in (:outsourId) group by out_id ", nativeQuery = true)
+    Object[] getAllOutSourceByCase(@Param("outsourId") Set<String> outsourId);
 
 }

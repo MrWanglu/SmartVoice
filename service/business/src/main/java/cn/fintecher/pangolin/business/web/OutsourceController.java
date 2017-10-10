@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.OutDistributeInfo;
 import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
 import cn.fintecher.pangolin.business.repository.OutsourceRepository;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
@@ -25,9 +26,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
 
 /**
  * Created by  hukaijia.
@@ -153,11 +154,11 @@ public class OutsourceController extends BaseController {
         }
         QOutsource qOutsource = QOutsource.outsource;
         BooleanBuilder builder = new BooleanBuilder();
-        if(Objects.isNull(user.getCompanyCode())){//超级管理员默认查所有记录
-            if(Objects.nonNull(companyCode)){
+        if (Objects.isNull(user.getCompanyCode())) {//超级管理员默认查所有记录
+            if (Objects.nonNull(companyCode)) {
                 builder.and(qOutsource.companyCode.eq(companyCode));
             }
-        }else{
+        } else {
             builder.and(qOutsource.companyCode.eq(user.getCompanyCode()));
         }
         if (Objects.nonNull(outsCode)) {
@@ -234,9 +235,9 @@ public class OutsourceController extends BaseController {
         }
         QOutsource qOutsource = QOutsource.outsource;
         BooleanBuilder builder = new BooleanBuilder();
-        if(Objects.nonNull(user.getCompanyCode())){//超级管理员默認查所有记录
+        if (Objects.nonNull(user.getCompanyCode())) {//超级管理员默認查所有记录
             builder.and(qOutsource.companyCode.eq(user.getCompanyCode()));
-        }else{
+        } else {
             if (Objects.nonNull(companyCode)) {
                 builder.and(qOutsource.companyCode.eq(companyCode));
             }
@@ -245,5 +246,53 @@ public class OutsourceController extends BaseController {
         Iterator<Outsource> outsourceIterator = outsourceRepository.findAll(builder).iterator();
         List<Outsource> outsourceList = IteratorUtils.toList(outsourceIterator);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(outsourceList);
+    }
+
+    /**
+     * @Description : 统计委托方信息的 案件信息
+     */
+    @GetMapping("/getAllOutSourceInfoByCase")
+    @ApiOperation(value = "统计委托方信息的 案件信息 ", notes = "统计委托方信息的 案件信息 ")
+    public ResponseEntity<List<OutDistributeInfo>> getAllOutSourceInfoByCase(@RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        try {
+
+            QOutsource qOutsource = QOutsource.outsource;
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.nonNull(user.getCompanyCode())) {//超级管理员默認查所有记录
+                builder.and(qOutsource.companyCode.eq(user.getCompanyCode()));
+            }
+            builder.and(qOutsource.flag.eq(Outsource.deleteStatus.START.getDeleteCode()));
+            Iterable<Outsource> outsourceIterator = outsourceRepository.findAll(builder);
+            Set<String> outIds = new HashSet<>();
+            for (Outsource outsource : outsourceIterator) {
+                outIds.add(outsource.getId());
+            }
+            List<OutDistributeInfo> outDistributeInfos = new ArrayList<>();
+            Object[] objects = outsourcePoolRepository.getAllOutSourceByCase(outIds);
+            for (int i = 0; i < objects.length; i++) {
+                Object[] object1 = (Object[]) objects[i];
+                if (Objects.nonNull(object1[1])) {
+                    OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
+                    outDistributeInfo.setOutName(Objects.isNull(object1[0]) ? null : object1[0].toString());
+                    outDistributeInfo.setOutCode(Objects.isNull(object1[1]) ? null : object1[1].toString());
+                    outDistributeInfo.setCaseCount(Objects.isNull(object1[2]) ? null : Integer.parseInt(object1[2].toString()));
+                    outDistributeInfo.setEndCount(Objects.isNull(object1[3]) ? null : Integer.parseInt(object1[3].toString()));
+                    outDistributeInfo.setSuccessRate(Objects.isNull(object1[4]) ? null : BigDecimal.valueOf(Double.valueOf(object1[4].toString())));
+                    outDistributeInfo.setCaseAmt(Objects.isNull(object1[5]) ? null : BigDecimal.valueOf(Double.valueOf(object1[5].toString())));
+                    outDistributeInfos.add(outDistributeInfo);
+                }
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(outDistributeInfos);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "获取委外方信息失败")).body(null);
+        }
     }
 }

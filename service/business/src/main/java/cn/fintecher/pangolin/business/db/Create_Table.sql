@@ -79,3 +79,16 @@ CREATE TABLE `outsource_follow_record` (
   `operator_time` datetime DEFAULT NULL COMMENT '操作时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='委外案件跟进记录信息';
+
+--2017-10-10
+--新增委外跟进记录表
+--高贝贝
+CREATE TABLE `export_items` (
+  `id` varchar(64) NOT NULL COMMENT '主键',
+  `company_code` varchar(64) DEFAULT NULL COMMENT '公司code',
+  `category` int(64) DEFAULT NULL COMMENT '类别(内催，委外，案件更新)',
+  `type` int(4) DEFAULT NULL COMMENT '类型(客户，联系人，工作，案件，银行，跟进记录)',
+  `name` varchar(64) DEFAULT NULL COMMENT '属性名称',
+  `statu` int(4) DEFAULT NULL COMMENT '状态',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
