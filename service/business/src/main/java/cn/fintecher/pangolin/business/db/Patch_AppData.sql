@@ -85,7 +85,12 @@ INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f0011', '0001', 'sys
 ALTER TABLE `outsource_pool` ADD COLUMN `company_code` varchar(64) DEFAULT NULL COMMENT '公司特定标识';
 ALTER TABLE `outsource_pool` ADD COLUMN `over_outsource_time` date DEFAULT NULL COMMENT '委外到期时间';
 ALTER TABLE `outsource_pool` ADD COLUMN `end_outsource_time` date DEFAULT NULL COMMENT '已结案日期';
-ALTER TABLE `outsource_pool` ADD COLUMN `out_total_amt`  decimal(18,4) DEFAULT NULL COMMENT '案件总金额';
+ALTER TABLE `outsource_pool`
+MODIFY COLUMN `contract_amt`  decimal(18,4) NULL DEFAULT NULL COMMENT '案件总金额' AFTER `overdue_periods`;
+ALTER TABLE `outsource_pool`
+MODIFY COLUMN `commission_rate`  varchar(2) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '佣金比例' AFTER `out_batch`;
+ALTER TABLE `outsource_pool`
+MODIFY COLUMN `commission`  bigint(100) NULL DEFAULT NULL COMMENT '佣金' AFTER `commission_rate`;
 
 --2017-09-27 huyanmin 增加新的权限码
 INSERT INTO `resource` VALUES ('816', '156', '催大人', '导出还款明细', '06020C', NULL, NULL, NULL, NULL, NULL, 19, NULL, NULL, NULL, NULL, 816);

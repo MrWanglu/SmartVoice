@@ -205,7 +205,7 @@ public class OutsourcePoolController extends BaseController {
                             outsourcePools.remove(0);//添加完后删除案件集合中的所分案件
                         }
                     }
-                } else if (2==rule){//案件平均分法
+                } else if (2==rule){//案件数量平均分法
 
                     if (outCaseIds.size() > outDistributes.size()){//案件数大于委外方数
                         int avgNum = outCaseIds.size() / outDistributes.size();//平均数
@@ -326,6 +326,8 @@ public class OutsourcePoolController extends BaseController {
                     Integer endNum = ((BigInteger) object1[4]).intValue();
                     BigDecimal sumAmt = (BigDecimal) object1[5];
                     BigDecimal endAmt = (BigDecimal) object1[6];
+                    Integer collectionNum = ((BigInteger) object1[7]).intValue();
+                    BigDecimal collectionAmt = (BigDecimal) object1[8];
                     OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
                     outDistributeInfo.setOutCode(outCode);
                     outDistributeInfo.setOutName(outName);
@@ -333,6 +335,8 @@ public class OutsourcePoolController extends BaseController {
                     outDistributeInfo.setEndCount(endNum);
                     outDistributeInfo.setCaseAmt(sumAmt);
                     outDistributeInfo.setEndAmt(endAmt);
+                    outDistributeInfo.setCollectionCount(collectionNum);
+                    outDistributeInfo.setCollectionAmt(collectionAmt);
                     outDistributeInfos.add(outDistributeInfo);
                 }
 
