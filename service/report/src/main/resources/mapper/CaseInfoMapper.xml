@@ -221,7 +221,7 @@
                     left join department on cc.depart_id = department.id
                     where 1 = 1
                     and department.code like CONCAT(#{deptCode}, '%')
-                    and collection_status in (21,22,23,171,172)
+                    and collection_status in (20,21,22,23,171,172)
                     and case_pool_type = 225
                     <if test = "batchNumber != null">
                         and batch_number = #{batchNumber}

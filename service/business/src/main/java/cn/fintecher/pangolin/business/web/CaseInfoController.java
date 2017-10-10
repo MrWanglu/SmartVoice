@@ -1033,6 +1033,7 @@ public class CaseInfoController extends BaseController {
             status.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue());
             status.add(CaseInfo.CollectionStatus.PART_REPAID.getValue());
             status.add(CaseInfo.CollectionStatus.REPAID.getValue());
+            status.add(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue());
             BooleanBuilder builder = new BooleanBuilder();
             builder.and(QCaseInfo.caseInfo.batchNumber.eq(batchNumber));
             if (Objects.nonNull(tokenUser.getCompanyCode())) {
