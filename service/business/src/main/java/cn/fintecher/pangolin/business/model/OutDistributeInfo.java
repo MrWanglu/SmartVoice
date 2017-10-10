@@ -5,7 +5,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 /**
- * Created by Administrator on 2017/9/20.
+ * Created by huyanmin on 2017/9/20.
  */
 @Data
 public class OutDistributeInfo {
