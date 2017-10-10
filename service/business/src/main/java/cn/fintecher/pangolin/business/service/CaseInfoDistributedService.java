@@ -16,6 +16,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.inject.Inject;
@@ -401,8 +402,9 @@ public class CaseInfoDistributedService {
 
     /**
      * 统计策略分配情况
+     *
      * @param caseInfoIdList 选择的案件
-     * @param user 用户
+     * @param user           用户
      * @return
      */
     public CountStrategyAllocationModel countStrategyAllocation(CaseInfoIdList caseInfoIdList, User user) {
@@ -415,59 +417,61 @@ public class CaseInfoDistributedService {
         if (all.isEmpty()) {
             throw new RuntimeException("待分配案件为空!");
         }
-        ParameterizedTypeReference<List<CaseStrategy>> responseType = new ParameterizedTypeReference<List<CaseStrategy>>() {
-        };
-        ResponseEntity<List<CaseStrategy>> forEntity = restTemplate.exchange(Constants.CASE_STRATEGY_URL
-                .concat("companyCode=").concat(user.getCompanyCode())
-                .concat("&strategyType=").concat(CaseStrategy.StrategyType.IMPORT.getValue().toString()), HttpMethod.GET, null, responseType);
-        if (forEntity.hasBody()) {
-            List<CaseStrategy> caseStrategies = forEntity.getBody();
-            if (caseStrategies.isEmpty()) {
-                throw new RuntimeException("未找到需要执行的策略");
-            }
-            // 策略分配
-            CountStrategyAllocationModel model = new CountStrategyAllocationModel();
-            CountAllocationModel modelInner = new CountAllocationModel();
-            modelInner.setType(0);
-            CountAllocationModel modelOuter = new CountAllocationModel();
-            modelOuter.setType(1);
-            for (CaseStrategy caseStrategy : caseStrategies) {
-                List<CaseInfoDistributed> checkedList = new ArrayList<>(); // 策略匹配到的案件
-                KieSession kieSession = null;
-                try {
-                    kieSession = runCaseStrategyService.runCaseRun(checkedList, caseStrategy);
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                    throw new RuntimeException(e.getMessage());
-                }
-                for (CaseInfoDistributed caseInfoDistributed : all) {
-                    kieSession.insert(caseInfoDistributed);//插入
-                    kieSession.fireAllRules();//执行规则
-                }
-                kieSession.dispose();
-                if (checkedList.isEmpty()) {
-                    continue;
-                }
-                if (Objects.equals(caseStrategy.getAssignType(), 2)) { // 内催
-                    for (CaseInfoDistributed caseInfoDistributed : checkedList) {
-                        countAllocation(caseInfoDistributed, modelInner);
-                    }
-                }
-                if (Objects.equals(caseStrategy.getAssignType(), 3)) { // 委外
-                    for (CaseInfoDistributed caseInfoDistributed : checkedList) {
-                        countAllocation(caseInfoDistributed, modelOuter);
-                    }
-                }
-                all.removeAll(checkedList);
-            }
-            List<CountAllocationModel> modelList = model.getModelList();
-            modelList.add(modelInner);
-            modelList.add(modelOuter);
-            model.setModelList(modelList);
-            return model;
-        } else {
+        ResponseEntity<List<CaseStrategy>> forEntity = null;
+        try {
+            ParameterizedTypeReference<List<CaseStrategy>> responseType = new ParameterizedTypeReference<List<CaseStrategy>>() {
+            };
+            forEntity = restTemplate.exchange(Constants.CASE_STRATEGY_URL
+                    .concat("companyCode=").concat(user.getCompanyCode())
+                    .concat("&strategyType=").concat(CaseStrategy.StrategyType.IMPORT.getValue().toString()), HttpMethod.GET, null, responseType);
+        } catch (RestClientException e) {
+            logger.error(e.getMessage(), e);
             throw new RuntimeException("获取策略错误");
         }
+        List<CaseStrategy> caseStrategies = forEntity.getBody();
+        if (caseStrategies.isEmpty()) {
+            throw new RuntimeException("未找到需要执行的策略");
+        }
+        // 策略分配
+        CountStrategyAllocationModel model = new CountStrategyAllocationModel();
+        CountAllocationModel modelInner = new CountAllocationModel();
+        modelInner.setType(0);
+        CountAllocationModel modelOuter = new CountAllocationModel();
+        modelOuter.setType(1);
+        for (CaseStrategy caseStrategy : caseStrategies) {
+            List<CaseInfoDistributed> checkedList = new ArrayList<>(); // 策略匹配到的案件
+            KieSession kieSession = null;
+            try {
+                kieSession = runCaseStrategyService.runCaseRun(checkedList, caseStrategy);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                throw new RuntimeException(e.getMessage());
+            }
+            for (CaseInfoDistributed caseInfoDistributed : all) {
+                kieSession.insert(caseInfoDistributed);//插入
+                kieSession.fireAllRules();//执行规则
+            }
+            kieSession.dispose();
+            if (checkedList.isEmpty()) {
+                continue;
+            }
+            if (Objects.equals(caseStrategy.getAssignType(), 2)) { // 内催
+                for (CaseInfoDistributed caseInfoDistributed : checkedList) {
+                    countAllocation(caseInfoDistributed, modelInner);
+                }
+            }
+            if (Objects.equals(caseStrategy.getAssignType(), 3)) { // 委外
+                for (CaseInfoDistributed caseInfoDistributed : checkedList) {
+                    countAllocation(caseInfoDistributed, modelOuter);
+                }
+            }
+            all.removeAll(checkedList);
+        }
+        List<CountAllocationModel> modelList = model.getModelList();
+        modelList.add(modelInner);
+        modelList.add(modelOuter);
+        model.setModelList(modelList);
+        return model;
     }
 
     private void countAllocation(CaseInfoDistributed caseInfoDistributed, CountAllocationModel model) {

@@ -559,41 +559,44 @@ public class ExportItemService {
     }
 
     public ItemsModel getExportItems(User user,Integer category){
-        List<ExportItem> personalList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
-                .and(QExportItem.exportItem.statu.eq(0))
-                .and(QExportItem.exportItem.type.eq(ExportItem.Type.PERSONAL.getValue()))
-                .and(QExportItem.exportItem.category.eq(category))));
-        List<ExportItem> jobList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
-                .and(QExportItem.exportItem.statu.eq(0))
-                .and(QExportItem.exportItem.type.eq(ExportItem.Type.JOB.getValue()))
-                .and(QExportItem.exportItem.category.eq(category))));
-        List<ExportItem> connectList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
-                .and(QExportItem.exportItem.statu.eq(0))
-                .and(QExportItem.exportItem.type.eq(ExportItem.Type.CONCAT.getValue()))
-                .and(QExportItem.exportItem.category.eq(category))));
-        List<ExportItem> caseList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
-                .and(QExportItem.exportItem.statu.eq(0))
-                .and(QExportItem.exportItem.type.eq(ExportItem.Type.CASE.getValue()))
-                .and(QExportItem.exportItem.category.eq(category))));
-        List<ExportItem> bankList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
-                .and(QExportItem.exportItem.statu.eq(0))
-                .and(QExportItem.exportItem.type.eq(ExportItem.Type.BANK.getValue()))
-                .and(QExportItem.exportItem.category.eq(category))));
-        List<ExportItem> followList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
-                .and(QExportItem.exportItem.statu.eq(0))
-                .and(QExportItem.exportItem.type.eq(ExportItem.Type.FOLLOW.getValue()))
-                .and(QExportItem.exportItem.category.eq(category))));
-        if (exportItemRepository.count(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
-                .and(QExportItem.exportItem.category.eq(category))) == 0) {
-            createExportItems(user,category);
-        }
         ItemsModel model = new ItemsModel();
-        model.setPersonalItems(parseItems(personalList));
-        model.setJobItems(parseItems(jobList));
-        model.setConnectItems(parseItems(connectList));
-        model.setCaseItems(parseItems(caseList));
-        model.setBankItems(parseItems(bankList));
-        model.setFollowItems(parseItems(followList));
+        if(Objects.nonNull(user.getCompanyCode())){
+            List<ExportItem> personalList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
+                    .and(QExportItem.exportItem.statu.eq(0))
+                    .and(QExportItem.exportItem.type.eq(ExportItem.Type.PERSONAL.getValue()))
+                    .and(QExportItem.exportItem.category.eq(category))));
+            List<ExportItem> jobList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
+                    .and(QExportItem.exportItem.statu.eq(0))
+                    .and(QExportItem.exportItem.type.eq(ExportItem.Type.JOB.getValue()))
+                    .and(QExportItem.exportItem.category.eq(category))));
+            List<ExportItem> connectList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
+                    .and(QExportItem.exportItem.statu.eq(0))
+                    .and(QExportItem.exportItem.type.eq(ExportItem.Type.CONCAT.getValue()))
+                    .and(QExportItem.exportItem.category.eq(category))));
+            List<ExportItem> caseList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
+                    .and(QExportItem.exportItem.statu.eq(0))
+                    .and(QExportItem.exportItem.type.eq(ExportItem.Type.CASE.getValue()))
+                    .and(QExportItem.exportItem.category.eq(category))));
+            List<ExportItem> bankList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
+                    .and(QExportItem.exportItem.statu.eq(0))
+                    .and(QExportItem.exportItem.type.eq(ExportItem.Type.BANK.getValue()))
+                    .and(QExportItem.exportItem.category.eq(category))));
+            List<ExportItem> followList = IterableUtils.toList(exportItemRepository.findAll(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
+                    .and(QExportItem.exportItem.statu.eq(0))
+                    .and(QExportItem.exportItem.type.eq(ExportItem.Type.FOLLOW.getValue()))
+                    .and(QExportItem.exportItem.category.eq(category))));
+            if (exportItemRepository.count(QExportItem.exportItem.companyCode.eq(user.getCompanyCode())
+                    .and(QExportItem.exportItem.category.eq(category))) == 0) {
+                createExportItems(user,category);
+            }
+            model.setPersonalItems(parseItems(personalList));
+            model.setJobItems(parseItems(jobList));
+            model.setConnectItems(parseItems(connectList));
+            model.setCaseItems(parseItems(caseList));
+            model.setBankItems(parseItems(bankList));
+            model.setFollowItems(parseItems(followList));
+        }
+
         return model;
     }
 

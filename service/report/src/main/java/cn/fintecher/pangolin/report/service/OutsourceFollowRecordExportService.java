@@ -1,6 +1,9 @@
 package cn.fintecher.pangolin.report.service;
 
-import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.AreaCode;
+import cn.fintecher.pangolin.entity.CaseFollowupRecord;
+import cn.fintecher.pangolin.entity.Personal;
+import cn.fintecher.pangolin.entity.PersonalContact;
 import cn.fintecher.pangolin.report.model.ExcportOutsourceResultModel;
 import cn.fintecher.pangolin.report.model.FollowupExportModel;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -24,12 +27,12 @@ public class OutsourceFollowRecordExportService {
         int i = 0;
         for (ExcportOutsourceResultModel excportResultModel : excportResultModels) {
             log.info("第"+ ++i +"条信息正在导出。。。。。");
-            List<OutsourceFollowRecord> outsourceFollowupRecords = null;
+            List<CaseFollowupRecord> outsourceFollowupRecords = null;
             if(Objects.nonNull(excportResultModel.getOutsourceFollowRecords())){
                 outsourceFollowupRecords = excportResultModel.getOutsourceFollowRecords();
             }
             if (!outsourceFollowupRecords.isEmpty()) {
-                for (OutsourceFollowRecord record : outsourceFollowupRecords) {
+                for (CaseFollowupRecord record : outsourceFollowupRecords) {
                     FollowupExportModel followupExportModel = new FollowupExportModel();
                     AreaCode city = excportResultModel.getAreaCode();
                     if(Objects.nonNull(city)) {
@@ -40,21 +43,46 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setCityName(city.getAreaName());
 
                     }
-                    followupExportModel.setOutsName(excportResultModel.getOutsName());
-                    followupExportModel.setOutsourceTotalAmount(excportResultModel.getOutsourceTotalAmount());
-                    followupExportModel.setLeftAmount(excportResultModel.getLeftAmount());
-                    followupExportModel.setLeftDays(excportResultModel.getLeftDays());
-                    followupExportModel.setOutTime(excportResultModel.getOutTime());
-                    followupExportModel.setEndOutTime(excportResultModel.getEndOutTime());
-                    followupExportModel.setOverOutTime(excportResultModel.getOverOutTime());
+
+                    followupExportModel.setBatchNumber(excportResultModel.getBatchNumber());//案件批次号
+                    followupExportModel.setCaseNumber(excportResultModel.getCaseNumber());//案件编号
+                    followupExportModel.setProductName(excportResultModel.getProductName());//产品名称
+                    followupExportModel.setContractNumber(excportResultModel.getContractNumber());//合同编号
+                    followupExportModel.setContractAmount(excportResultModel.getContractAmount());//合同金额
+                    followupExportModel.setOverdueAmount(excportResultModel.getOverdueAmount());//逾期总金额(元)
+                    followupExportModel.setLeftCapital(excportResultModel.getLeftCapital());//剩余本金(元)
+                    followupExportModel.setOverdueCapital(excportResultModel.getOverdueCapital());//逾期本金(元)
+                    followupExportModel.setOverdueInterest(excportResultModel.getOverdueInterest());//逾期利息(元)
+                    followupExportModel.setPeriods(excportResultModel.getPeriods());//还款期数
+                    followupExportModel.setPerDueDate(excportResultModel.getPerDueDate());//每期还款日
+                    followupExportModel.setOverduePeriods(excportResultModel.getOverduePeriods());//逾期期数
+                    followupExportModel.setOverdueDays(excportResultModel.getOverdueDays());//逾期天数
+                    followupExportModel.setHasPayAmount(excportResultModel.getHasPayAmount());//已还款金额
+                    followupExportModel.setHasPayPeriods(excportResultModel.getHasPayPeriods());//已还款期数
+                    followupExportModel.setLeftDays(excportResultModel.getLeftDays());//剩余天数
+                    followupExportModel.setPayStatus(excportResultModel.getPayStatus());//还款状态
+                    followupExportModel.setPrincipalName(excportResultModel.getPrincipalName());//委托方
+                    followupExportModel.setCollectionStatus(excportResultModel.getCollectionStatus());//催收状态
+                    followupExportModel.setCommissionRate(excportResultModel.getCommissionRate());//佣金比例(%)
+                    followupExportModel.setLoanDate(excportResultModel.getLoanDate());//贷款日期
+                    followupExportModel.setOverdueManageFee(excportResultModel.getOverdueManageFee());//逾期管理费
+                    followupExportModel.setOutsourceBackAmount(excportResultModel.getOutsourceTotalAmount());//委外回款金额(元)
+                    followupExportModel.setOutsName(excportResultModel.getOutsName());//委外方
+                    followupExportModel.setOutsourceTotalAmount(excportResultModel.getOutsourceTotalAmount());//委外案件金额(元)
+                    followupExportModel.setLeftAmount(excportResultModel.getLeftAmount());//剩余金额(元)
+
+                    followupExportModel.setLeftDaysOutsource(excportResultModel.getLeftDaysOutsource());//剩余委托时间(天)
+                    followupExportModel.setBatchNumberOutsource(excportResultModel.getBatchNumberOutsource());//委外批次号
+                    followupExportModel.setOutTime(excportResultModel.getOutTime());//委案日期
+                    followupExportModel.setEndOutTime(excportResultModel.getEndOutTime());//结案日期
+                    followupExportModel.setOverOutTime(excportResultModel.getOverOutTime());//委案到期日期
                     if(excportResultModel.getOutStatus()==168){
                         followupExportModel.setOutsourceCaseStatus("催收中");
                     }
                     if(excportResultModel.getOutStatus()==170){
                         followupExportModel.setOutsourceCaseStatus("已结案");
                     }
-                    followupExportModel.setHasPayAmount(excportResultModel.getHasPayAmount());//已还款金额
-                    followupExportModel.setCommissionRate(excportResultModel.getCommissionRate());//佣金比例
+                    followupExportModel.setCommissionRateOutsource(excportResultModel.getCommissionRateOutsource());//委外佣金比例
                     Personal personalInfo = excportResultModel.getPersonalInfo();
                     followupExportModel.setDepositBank(Objects.isNull(personalInfo) ? "": (personalInfo.getPersonalBankInfos().isEmpty() ? "": personalInfo.getPersonalBankInfos().iterator().next().getDepositBank()));//客户银行
                     followupExportModel.setCardNumber(Objects.isNull(personalInfo) ? "": (personalInfo.getPersonalBankInfos().isEmpty() ? "": personalInfo.getPersonalBankInfos().iterator().next().getCardNumber()));//客户卡号
@@ -67,39 +95,51 @@ public class OutsourceFollowRecordExportService {
                     followupExportModel.setCompanyName(Objects.isNull(personalInfo) ? "": (personalInfo.getPersonalJobs().isEmpty() ? "": personalInfo.getPersonalJobs().iterator().next().getCompanyName()));//工作单位名称
                     followupExportModel.setCompanyPhone(Objects.isNull(personalInfo) ? "": (personalInfo.getPersonalJobs().isEmpty() ? "": personalInfo.getPersonalJobs().iterator().next().getPhone()));//工作单位电话
                     followupExportModel.setCompanyAddress(Objects.isNull(personalInfo) ? "": (personalInfo.getPersonalJobs().isEmpty() ? "": personalInfo.getPersonalJobs().iterator().next().getAddress()));//工作单位地址
-                    followupExportModel.setFollTime(ZWDateUtil.fomratterDate(record.getOperatorTime(), null));//跟进时间
-                    followupExportModel.setFollTargetName(record.getUserName());//跟进对象姓名
-                    followupExportModel.setFollContent(record.getFollowRecord());//跟进内容
+                    followupExportModel.setFollTime(ZWDateUtil.fomratterDate(record.getFollowTime(), null));//跟进时间
+                    followupExportModel.setFollTargetName(record.getTargetName());//跟进对象姓名
+                    followupExportModel.setFollContent(record.getContent());//跟进内容
                     followupExportModel.setFollOperator(record.getFollowPerson());//跟进人名称
-
-                    OutsourceFollowRecord.FeedBack[]  feedbacks= OutsourceFollowRecord.FeedBack.values(); //催收反馈
-                    for (int j = 0; j < feedbacks.length; j++) {
-                        if (Objects.equals(record.getFollowType(), feedbacks[j].getValue())) {
-                            followupExportModel.setFollFeedback(feedbacks[j].getRemark());
-                            break;
+                    CaseFollowupRecord.EffectiveCollection[]  feedBacks= CaseFollowupRecord.EffectiveCollection.values(); //催收反馈
+                    for (int j = 0; j < feedBacks.length; j++) {
+                        if(Objects.nonNull(record.getCollectionFeedback())){
+                            if (Objects.equals(record.getCollectionFeedback(), feedBacks[j].getValue())) {
+                                followupExportModel.setFollFeedback(feedBacks[j].getRemark());//催收反馈
+                                break;
+                            }
                         }
+
                     }
-                    OutsourceFollowRecord.TelStatus[]  objectType= OutsourceFollowRecord.TelStatus.values(); //跟进对象
+                    CaseFollowupRecord.Target[]  objectType= CaseFollowupRecord.Target.values(); //跟进对象
                     for (int j = 0; j < objectType.length; j++) {
-                        if (Objects.equals(record.getFollowType(), objectType[j].getValue())) {
-                            followupExportModel.setFollTarget(objectType[j].getRemark());
-                            break;
+                        if(Objects.nonNull(record.getTarget())){
+                            if (Objects.equals(record.getTarget(), objectType[j].getValue())) {
+                                followupExportModel.setFollTarget(objectType[j].getRemark());
+                                break;
+                            }
+
                         }
+
                     }
 
-                    OutsourceFollowRecord.TelStatus[]  telStatus= OutsourceFollowRecord.TelStatus.values(); //电话状态
+                    CaseFollowupRecord.ContactState[]  telStatus= CaseFollowupRecord.ContactState.values(); //电话状态
                     for (int j = 0; j < telStatus.length; j++) {
-                        if (Objects.equals(record.getFollowType(), telStatus[j].getValue())) {
-                            followupExportModel.setFollPhoneNum(telStatus[j].getRemark());
-                            break;
+                        if(Objects.nonNull(record.getContactState())){
+                            if (Objects.equals(record.getContactState(), telStatus[j].getValue())) {
+                                followupExportModel.setFollPhoneNum(telStatus[j].getRemark());
+                                break;
+                            }
                         }
+
                     }
-                    OutsourceFollowRecord.FollowType[] values = OutsourceFollowRecord.FollowType.values(); //跟进方式
+                    CaseFollowupRecord.Type[] values = CaseFollowupRecord.Type.values(); //跟进方式
                     for (int j = 0; j < values.length; j++) {
-                        if (Objects.equals(record.getFollowType(), values[j].getValue())) {
-                            followupExportModel.setFollType(values[j].getRemark());
-                            break;
+                        if(Objects.nonNull(record.getSource())){
+                            if (Objects.equals(record.getType(), values[j].getValue())) {
+                                followupExportModel.setFollType(values[j].getRemark());
+                                break;
+                            }
                         }
+
                     }
 
                     CaseFollowupRecord.Target[] relationValues = CaseFollowupRecord.Target.values(); //联系人关系
@@ -113,7 +153,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat1Employer(personalContact.getEmployer());
                         followupExportModel.setConcat1WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat1Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -128,7 +168,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat2Employer(personalContact.getEmployer());
                         followupExportModel.setConcat2WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat2Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -143,7 +183,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat3Employer(personalContact.getEmployer());
                         followupExportModel.setConcat3WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat3Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -158,7 +198,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat4Employer(personalContact.getEmployer());
                         followupExportModel.setConcat4WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat4Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -173,7 +213,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat5Employer(personalContact.getEmployer());
                         followupExportModel.setConcat5WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat5Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -188,7 +228,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat6Employer(personalContact.getEmployer());
                         followupExportModel.setConcat6WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat6Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -203,7 +243,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat7Employer(personalContact.getEmployer());
                         followupExportModel.setConcat7WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat7Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -218,7 +258,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat8Employer(personalContact.getEmployer());
                         followupExportModel.setConcat8WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat8Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -233,7 +273,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat9Employer(personalContact.getEmployer());
                         followupExportModel.setConcat9WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat9Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -248,7 +288,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat10Employer(personalContact.getEmployer());
                         followupExportModel.setConcat10WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat10Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -263,7 +303,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat11Employer(personalContact.getEmployer());
                         followupExportModel.setConcat11WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat11Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -278,7 +318,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat12Employer(personalContact.getEmployer());
                         followupExportModel.setConcat12WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat12Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -293,7 +333,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat13Employer(personalContact.getEmployer());
                         followupExportModel.setConcat13WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat13Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -308,7 +348,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat14Employer(personalContact.getEmployer());
                         followupExportModel.setConcat14WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat14Relation(relationValues[j].getRemark());
                                 break;
                             }
@@ -323,7 +363,7 @@ public class OutsourceFollowRecordExportService {
                         followupExportModel.setConcat15Employer(personalContact.getEmployer());
                         followupExportModel.setConcat15WorkPhone(personalContact.getWorkPhone());
                         for (int j = 0; j < relationValues.length; j++) {
-                            if (Objects.equals(record.getFollowType(), relationValues[j].getValue())) {
+                            if (Objects.equals(record.getTarget(), relationValues[j].getValue())) {
                                 followupExportModel.setConcat15Relation(relationValues[j].getRemark());
                                 break;
                             }

@@ -52,7 +52,7 @@ public class ParseExcelTask {
     public void parseRow(Class<?> dataClass, Row dataRow, int startCol, Map<Integer, String> headerMap, RowError rowError,
                          DataImportRecord dataImportRecord, int rowIndex, List<TemplateExcelInfo> templateExcelInfos,
                          CopyOnWriteArrayList<Integer> dataIndex) {
-        logger.debug("线程{}正在解析第{}行数据...",Thread.currentThread(), rowIndex);
+        logger.debug("线程{}正在解析第{}行数据...", Thread.currentThread(), rowIndex);
         if (dataIndex.contains(rowIndex)) {
             return;
         }
@@ -71,12 +71,12 @@ public class ParseExcelTask {
                     //获取该列对应的头部信息中文
                     String titleName = headerMap.get(colIndex);
                     Cell cell = dataRow.getCell(colIndex);
-                    if(cell != null && !cell.toString().trim().equals("")) {
+                    if (cell != null && !cell.toString().trim().equals("")) {
                         flag = true;
                         matchFields(dataClass, columnErrorList, obj, colIndex, titleName, cell);
                     }
                 }
-                if(flag == true){
+                if (flag == true) {
                     DataInfoExcel dataInfoExcel = (DataInfoExcel) obj;
                     saveDataInfoExcelAndError(dataInfoExcel, dataImportRecord, columnErrorList, rowError, rowIndex);
                 }
@@ -101,22 +101,23 @@ public class ParseExcelTask {
                                     try {
                                         field.set(obj, getObj(field.getType(), cell));
                                     } catch (Exception e) {
+                                        logger.error(e.getMessage(), e);
                                     }
                                 }
                             }
                         }
                     }
                 }
-                if(flag == true){
+                if (flag == true) {
                     DataInfoExcel dataInfoExcel = (DataInfoExcel) obj;
                     saveDataInfoExcelAndError(dataInfoExcel, dataImportRecord, columnErrorList, rowError, rowIndex);
                 }
             }
         } catch (Exception e) {
-            logger.debug("线程解析行错误");
+            logger.error("线程解析第行{}数据错误", rowIndex);
         }
         dataIndex.add(rowIndex);
-        logger.debug("线程{}解析完成第{}行数据...",Thread.currentThread(), rowIndex);
+        logger.debug("线程{}解析完成第{}行数据...", Thread.currentThread(), rowIndex);
         return;
     }
 

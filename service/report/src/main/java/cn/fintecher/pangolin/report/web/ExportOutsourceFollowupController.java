@@ -68,7 +68,12 @@ public class ExportOutsourceFollowupController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", e.getMessage())).body(null);
         }
-        ResponseEntity<ItemsModel> entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceExportItems?token="+token, ItemsModel.class);
+        ResponseEntity<ItemsModel> entity = null;
+        if(exportOutsourceFollowRecordParams.getType()==0){
+            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceExportItems?token="+token, ItemsModel.class);
+        }else{
+            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceFollowUpExportItems?token="+token, ItemsModel.class);
+        }
         ItemsModel itemsModel = entity.getBody();
         if(itemsModel.getPersonalItems().isEmpty() && itemsModel.getJobItems().isEmpty() && itemsModel.getConnectItems().isEmpty()
                 && itemsModel.getCaseItems().isEmpty() && itemsModel.getBankItems().isEmpty() && itemsModel.getFollowItems().isEmpty()){

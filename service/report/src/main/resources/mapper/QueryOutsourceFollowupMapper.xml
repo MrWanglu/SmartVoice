@@ -3,17 +3,20 @@
 <mapper namespace="cn.fintecher.pangolin.report.mapper.QueryOutsourceFollowupMapper">
 
     <select id="findOutsourceFollowupRecord" parameterType="cn.fintecher.pangolin.report.model.ExportOutsourceFollowRecordParams" resultMap="outSourceResultMap">
-        SELECT a.id, b.out_batch as batch_name,a.case_number,a.personal_id,a.area_id,g.id as out_follow_id,a.contract_number,c.outs_name,
-        b.contract_amt as outsource_total_amount,b.out_back_amt as has_pay_amount, (b.contract_amt - b.out_back_amt) as left_amount, TIMESTAMPDIFF(DAY,b.out_time,b.over_outsource_time) as left_days,b.out_time,b.over_outsource_time, b.end_outsource_time, b.out_status, b.commission_rate from case_info a
+        SELECT a.id, b.out_batch as batch_num,a.case_number,a.personal_id,a.area_id,g.id as out_follow_id,a.contract_number,c.outs_name,
+        b.contract_amt as outsource_total_amount,b.out_back_amt as has_pay_amount_outsource, (b.contract_amt - b.out_back_amt) as left_amount, TIMESTAMPDIFF(DAY,b.out_time,b.over_outsource_time) as left_days_outsource,b.out_time,b.over_outsource_time, b.end_outsource_time, b.out_status, b.commission_rate as commission_rate_outsource,
+        a.batch_number, e.id as product_id, e.prodcut_name, a.contract_number, a.contract_amount, a.overdue_amount, a.left_capital, a.overdue_capital, a.overdue_interest, a.periods, a.per_due_date,
+        a.overdue_periods, a.overdue_days, a.has_pay_amount, a.has_pay_periods, a.left_days, a.pay_status, j.id as principal_id, j.`name` as principal_name, a.collection_status, a.commission_rate, a.loan_date,a.overdue_manage_fee,a.followup_back from case_info a
         INNER JOIN outsource_pool b on a.id=b.case_id
         INNER JOIN outsource c ON b.out_id=c.id
         LEFT JOIN personal d ON a.personal_id = d.id
         LEFT JOIN product e ON a.product_id = e.id
         LEFT JOIN area_code f ON a.area_id = f.id
-        LEFT JOIN outsource_follow_record g ON a.id = g.case_id
-        WHERE 1=1
-        AND b.out_status !=167
+        LEFT JOIN principal j ON a.principal_id = j.id
+        LEFT JOIN case_followup_record g ON a.id = g.case_id
+        WHERE b.out_status !=167
         AND a.case_pool_type = 226
+        AND g.case_followup_type = 226
         <if test="companyCode != null and companyCode !=''">
             AND a.company_code = #{companyCode}
         </if>
@@ -70,20 +73,43 @@
     <resultMap id="outSourceResultMap" type="cn.fintecher.pangolin.report.model.ExcportOutsourceResultModel">
         <id column="id" property="id"/>
         <result column="case_number" property="caseNumber"/>
-        <result column="batch_name" property="batchNumber"/>
+        <result column="batch_num" property="batchNumberOutsource"/>
         <result column="contract_number" property="contractNumber"/>
         <result column="outsource_total_amount" property="outsourceTotalAmount"/>
         <result column="left_amount" property="leftAmount"/>
-        <result column="left_days" property="leftDays"/>
+        <result column="left_days_outsource" property="leftDaysOutsource"/>
         <result column="outs_name" property="outsName"/>
-        <result column="has_pay_amount" property="hasPayAmount"/>
+        <result column="has_pay_amount_outsource" property="hasPayAmountOutsource"/>
         <result column="out_time" property="outTime"/>
         <result column="over_outsource_time" property="endOutTime"/>
         <result column="end_outsource_time" property="overOutTime"/>
         <result column="out_status" property="outStatus"/>
+        <result column="commission_rate_outsource" property="commissionRateOutsource"/>
+        <result column="batch_number" property="batchNumber"/>
+        <result column="contract_amount" property="contractAmount"/>
+        <result column="overdue_amount" property="overdueAmount"/>
+        <result column="overdue_capital" property="overdueInterest"/>
+        <result column="left_capital" property="leftCapital"/>
+        <result column="periods" property="periods"/>
+        <result column="overdue_interest" property="overdueInterest"/>
+        <result column="per_due_date" property="perDueDate"/>
+        <result column="overdue_periods" property="overduePeriods"/>
+        <result column="overdue_days" property="overdueDays"/>
+        <result column="has_pay_amount" property="hasPayAmount"/>
+        <result column="has_pay_periods" property="hasPayPeriods"/>
+        <result column="left_days" property="leftDays"/>
+        <result column="pay_status" property="payStatus"/>
+        <result column="collection_status" property="collectionStatus"/>
         <result column="commission_rate" property="commissionRate"/>
+        <result column="loan_date" property="loanDate"/>
+        <result column="overdue_manage_fee" property="overdueManageFee"/>
+        <result column="followup_back" property="followupBack"/>
+        <result column="principal_name" property="principalName"/>
+        <result column="prodcut_name" property="productName"/>
         <association property="personalInfo" column="personal_id" select="selectPersonalOutsource"></association>
         <association property="areaCode" column="area_id" select="selectCityAreaOutsource"></association>
+        <association property="product" column="product_id" select="selectProductOutsource"></association>
+        <association property="principal" column="principal_id" select="selectPrincipalOutsource"></association>
         <collection property="outsourceFollowRecords" column="out_follow_id" ofType="cn.fintecher.pangolin.entity.OutsourceFollowRecord" select="selectOutsourceFollowRecord"></collection>
     </resultMap>
 
@@ -151,6 +177,15 @@
         <association property="parent" column="parent_id" select="selectProvinceAreaOutsource"></association>
     </resultMap>
 
+    <select id="selectPrincipalOutsource" resultMap="principalMapOutsource">
+        select id,name from principal where id = #{principal_id}
+    </select>
+
+    <resultMap id="principalMapOutsource" type="cn.fintecher.pangolin.entity.Principal">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+    </resultMap>
+
     <select id="selectProvinceAreaOutsource" resultMap="provinceOutsource">
         select id,area_name from area_code where id = #{parent_id}
     </select>
@@ -160,20 +195,30 @@
         <result column="area_name" property="areaName"/>
     </resultMap>
 
-    <select id="selectOutsourceFollowRecord" resultMap="OutsourceFollowRecord">
-        SELECT * FROM outsource_follow_record WHERE id = #{out_follow_id}
+    <select id="selectProductOutsource" resultMap="productMapOutsource">
+        select id,prodcut_name from product where id = #{product_id}
     </select>
 
-    <resultMap id="OutsourceFollowRecord" type="cn.fintecher.pangolin.entity.OutsourceFollowRecord">
+    <resultMap id="productMapOutsource" type="cn.fintecher.pangolin.entity.Product">
         <id column="id" property="id"/>
-        <result column="case_num" property="caseNum"/>
+        <result column="prodcut_name" property="prodcutName"/>
+    </resultMap>
+
+    <select id="selectOutsourceFollowRecord" resultMap="OutsourceFollowRecord">
+        SELECT * FROM case_followup_record WHERE id = #{out_follow_id}
+    </select>
+
+    <resultMap id="OutsourceFollowRecord" type="cn.fintecher.pangolin.entity.CaseFollowupRecord">
+        <id column="id" property="id"/>
+        <result column="case_number" property="caseNumber"/>
+        <result column="target" property="target"/>
+        <result column="target_name" property="targetName"/>
+        <result column="type" property="type"/>
+        <result column="contact_phone" property="contactPhone"/>
+        <result column="contact_state" property="contactState"/>
+        <result column="collection_feedback" property="collectionFeedback"/>
+        <result column="content" property="content"/>
         <result column="follow_time" property="followTime"/>
-        <result column="follow_type" property="followType"/>
-        <result column="object_name" property="objectName"/>
-        <result column="user_name" property="userName"/>
-        <result column="tel_status" property="telStatus"/>
-        <result column="feedback" property="feedback"/>
-        <result column="follow_record" property="followRecord"/>
         <result column="follow_person" property="followPerson"/>
     </resultMap>
 

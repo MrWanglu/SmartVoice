@@ -14,6 +14,9 @@ import java.util.List;
 @Data
 @ApiModel("导出跟进记录")
 public class ExportOutsourceFollowRecordParams {
+
+    @ApiModelProperty(notes = "导出案件标识符，0 案件导出 1 跟踪记录导出")
+    private Integer type;
     @ApiModelProperty(notes = "选择的批次号集合")
     private List<String> batchNumberList;
     @ApiModelProperty(notes = "选择的案件编号")
@@ -38,7 +41,7 @@ public class ExportOutsourceFollowRecordParams {
     private BigDecimal outCaseAmountStart;
     @ApiModelProperty(notes = "案件金额")
     private BigDecimal outCaseAmountEnd;
-    @ApiModelProperty(notes = "佣金比例")
+    @ApiModelProperty(notes = "佣金比例开始")
     private BigDecimal commissionRateStart;
     @ApiModelProperty(notes = "佣金比例")
     private BigDecimal commissionRateEnd;
