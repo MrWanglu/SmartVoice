@@ -1611,6 +1611,9 @@ public class CaseInfoService {
             deptOrUserList = accCaseInfoDisModel.getUserIdList();
         }
         for (int i = 0; i < (deptOrUserList != null ? deptOrUserList.size() : 0); i++) {
+            if (alreadyCaseNum == caseInfoYes.size()) {
+                return list;
+            }
             //如果按机构分配则是机构的ID，如果是按用户分配则是用户ID
             String deptOrUserid = deptOrUserList.get(i);
             CaseInfoInnerDistributeModel caseInfoInnerDistributeModel = new CaseInfoInnerDistributeModel();
@@ -1630,17 +1633,18 @@ public class CaseInfoService {
                 caseInfoInnerDistributeModel.setCaseCurrentCount(caseInfoRepository.getCaseCount(targetUser.getId()));
                 caseInfoInnerDistributeModel.setCaseMoneyCurrentCount(caseInfoRepository.getUserCaseAmt(targetUser.getId()));
             }
-            //需要分配的案件数据
-            Integer disNum = disNumList.get(i);
-            for (int j = 0; j < disNum; j++) {
-                //检查输入的案件数量是否和选择的案件数量一致
-                if (alreadyCaseNum == caseInfoYes.size()) {
-                    return list;
-                }
-                String caseId = caseInfoYes.get(alreadyCaseNum).getId();
-                CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
-                caseInfoInnerDistributeModel.setCaseDistributeMoneyCount(caseInfoInnerDistributeModel.getCaseDistributeMoneyCount().add(caseInfo.getOverdueAmount()));
+            if(Objects.equals(rule, 0)){
                 alreadyCaseNum = alreadyCaseNum + 1;
+            } else {
+                //需要分配的案件数据
+                Integer disNum = disNumList.get(i);
+                for (int j = 0; j < disNum; j++) {
+                    //检查输入的案件数量是否和选择的案件数量一致
+                    String caseId = caseInfoYes.get(alreadyCaseNum).getId();
+                    CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+                    caseInfoInnerDistributeModel.setCaseDistributeMoneyCount(caseInfoInnerDistributeModel.getCaseDistributeMoneyCount().add(caseInfo.getOverdueAmount()));
+                    alreadyCaseNum = alreadyCaseNum + 1;
+                }
             }
             caseInfoInnerDistributeModel.setCaseTotalCount(caseInfoInnerDistributeModel.getCaseCurrentCount()+caseInfoInnerDistributeModel.getCaseDistributeCount());
             caseInfoInnerDistributeModel.setCaseMoneyTotalCount(caseInfoInnerDistributeModel.getCaseMoneyCurrentCount().add(caseInfoInnerDistributeModel.getCaseDistributeMoneyCount()));
