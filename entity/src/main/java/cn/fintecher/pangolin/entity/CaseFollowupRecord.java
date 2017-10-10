@@ -408,7 +408,9 @@ public class CaseFollowupRecord extends BaseEntity {
         //中通天鸿
         TIANHONG(164, "中通天鸿"),
         //云羿
-        YUNYI(165, "云羿");
+        YUNYI(165, "云羿"),
+        //汉天
+        HANTIAN(233,"汉天");
         private Integer value;
 
         private String remark;

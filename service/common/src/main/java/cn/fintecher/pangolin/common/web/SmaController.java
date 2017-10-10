@@ -15,6 +15,7 @@ import cn.fintecher.pangolin.entity.message.AddTaskVoiceFileMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.MD5;
 import cn.fintecher.pangolin.web.HeaderUtil;
+import com.alibaba.fastjson.JSONObject;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.httpclient.HttpClient;
@@ -30,10 +31,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 
 /**
@@ -78,6 +76,13 @@ public class SmaController {
     @Value("${pangolin.yunyi-server.agentPwd}")
     private String agentPwd;
 
+    // 汉天参数
+    @Value("${hantian-server.callengine}")
+    private String callengine;
+
+    @Value("${hantian-server.token}")
+    private String hantianToken;
+
     /**
      * @Description : 呼叫类型设置
      */
@@ -108,7 +113,8 @@ public class SmaController {
                 return smaRequestService.smaRequest("validateTaskIdInEmpid.html", paramMap);
             }
             //164  中通天鸿 对呼绑定 在user中的callPhone 字段
-            if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
+            if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue()) ||
+                    Objects.equals(CaseFollowupRecord.CallType.HANTIAN.getValue().toString(),sysParam.getValue())) {
                 if (Objects.nonNull(user.getCallPhone())) {
                     Map paramMap = new HashMap();
                     paramMap.put("callPhone", user.getCallPhone());
@@ -147,7 +153,8 @@ public class SmaController {
                 return smaRequestService.smaRequest("bindTaskDataByCallerid.html", paramMap);
             }
             //164  中通天鸿 对呼绑定 在user中的callPhone 字段
-            if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue())) {
+            if (Objects.equals(CaseFollowupRecord.CallType.TIANHONG.getValue().toString(), sysParam.getValue()) || Objects.equals(CaseFollowupRecord.CallType.YUNYI.getValue().toString(), sysParam.getValue()) ||
+                    Objects.equals(CaseFollowupRecord.CallType.HANTIAN.getValue().toString(),sysParam.getValue())) {
                 if (Objects.nonNull(user.getCallPhone())) {
                     Map paramMap = new HashMap();
                     paramMap.put("callPhone", user.getCallPhone());
@@ -266,7 +273,30 @@ public class SmaController {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "be defeated", "失败")).body(null);
                 }
             }
+            //    233 汉天呼叫中心
+            if (Objects.equals(CaseFollowupRecord.CallType.HANTIAN.getValue().toString(), sysParam.getValue())) {
+                if (Objects.isNull(user.getCallPhone())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
+                }
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("command","dial");
+                jsonObject.put("src",user.getCallPhone()); //主叫号码
+                jsonObject.put("dest",request.getCallee()); //被叫号码
+                jsonObject.put("ext_field", UUID.randomUUID().toString());
+                Map<String, Object> vars = new HashMap<>();
+                vars.put("json",jsonObject.toJSONString());
 
+                String callbackP2PUrl = callengine + "?json={json}";
+                RestTemplate hantianRest = new RestTemplate();
+                String result = hantianRest.getForObject(callbackP2PUrl,String.class,vars);
+                JSONObject resultJson = JSONObject.parseObject(result);
+                if(resultJson.getIntValue("code") ==  0){
+                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
+                }else {
+                    logger.error("汉天呼叫系统呼叫失败:" + resultJson.toJSONString());
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failure", "操作失败")).body(null);
+                }
+            }
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -414,6 +444,68 @@ public class SmaController {
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "失败")).body(null);
+        }
+    }
+
+
+    /**
+     * @Description : 233 汉天双向回拨-呼叫
+     */
+    @PostMapping("/addTaskRecorder")
+    @ApiOperation(value = "汉天双向回拨-开始呼叫", notes = "汉天双向回拨-开始呼叫")
+    public ResponseEntity<Map<String, String>> hantianP2P(@RequestBody AddTaskRecorderRequest request,
+                                                               @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = userClient.getUserByToken(token).getBody();
+//        呼叫中心配置
+            SysParam sysParam = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + request.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
+            if (Objects.isNull(sysParam)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
+            }
+            //是否虚拟拨打 若是，则直接返回拨打成功
+            SysParam sysObj = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + request.getCompanyCode() + "&code=" + Constants.PHONE_ISREALCALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
+            if (Objects.isNull(sysObj)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
+            }
+            Integer status = sysObj.getStatus();
+            if (Objects.nonNull(status) && 0 == status){//虚拟拨打(此处的值写死)
+                Map falseMap = new HashMap();
+                falseMap.put("id", request.getTaskId());//呼叫流程id
+                falseMap.put("resultTaskId", "62925452-cbcc-490c-acfd-7e6994a69d68");
+                falseMap.put("taskId", "603881051");
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(falseMap);
+            }
+            //    233 汉天呼叫中心
+            if (Objects.equals(CaseFollowupRecord.CallType.HANTIAN.getValue().toString(), sysParam.getValue())) {
+                if (Objects.isNull(user.getCallPhone())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User does not bind the main call number", "用户未绑定主叫号码")).body(null);
+                }
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("command","callbackP2P");
+                jsonObject.put("callerNum",request.getCaller()); //主叫号码
+                jsonObject.put("calleeNum",request.getCallee()); //被叫号码
+                jsonObject.put("callerShowNum",request.getCaller());
+                jsonObject.put("calleeShowNum",request.getCallee());
+                jsonObject.put("token",hantianToken);
+                jsonObject.put("ext_field", UUID.randomUUID().toString());
+                Map<String, Object> vars = new HashMap<>();
+                vars.put("json",jsonObject.toJSONString());
+
+                String callbackP2PUrl = callengine + "?json={json}";
+                RestTemplate hantianRest = new RestTemplate();
+                String result = hantianRest.getForObject(callbackP2PUrl,String.class,vars);
+                JSONObject resultJson = JSONObject.parseObject(result);
+                if(resultJson.getIntValue("code") ==  0){
+                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
+                }else {
+                    logger.error("汉天呼叫系统呼叫失败:" + resultJson.toJSONString());
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failure", "操作失败")).body(null);
+                }
+            }
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Unknown system parameters of the call center", "未知呼叫中心的系统参数")).body(null);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failure", "操作失败")).body(null);
         }
     }
 
