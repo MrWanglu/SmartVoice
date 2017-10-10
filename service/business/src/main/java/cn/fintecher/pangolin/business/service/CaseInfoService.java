@@ -1722,7 +1722,12 @@ public class CaseInfoService {
         Integer isNumAvg = accCaseInfoDisModel.getIsNumAvg();
         if (Objects.equals(isNumAvg, 1)) {
             int caseNum = caseInfoYes.size();
-            int deptOrUserNum = accCaseInfoDisModel.getDepIdList().size() == 0 ? accCaseInfoDisModel.getUserIdList().size() : accCaseInfoDisModel.getDepIdList().size();
+            int deptOrUserNum;
+            if(Objects.isNull(accCaseInfoDisModel.getDepIdList()) || Objects.equals(accCaseInfoDisModel.getDepIdList().size(),0)){
+                deptOrUserNum = accCaseInfoDisModel.getUserIdList().size();
+            }else{
+                deptOrUserNum = accCaseInfoDisModel.getDepIdList().size();
+            }
             List<Integer> caseNumList = new ArrayList<>(deptOrUserNum);
             for (int i = 0; i < deptOrUserNum; i++) {
                 caseNumList.add(caseNum / deptOrUserNum);
