@@ -8,6 +8,7 @@ import cn.fintecher.pangolin.business.service.FollowRecordExportService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
+import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
@@ -31,6 +32,7 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -38,6 +40,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
@@ -267,7 +270,7 @@ public class CaseInfoController extends BaseController {
     @PostMapping(value = "/distributeCeaseInfo")
     @ApiOperation(value = "内催待分配案件分配", notes = "内催待分配案件分配")
     public ResponseEntity distributeCeaseInfo(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
-                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                              @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to distributeCeaseInfo");
         User user = null;
         try {
@@ -1153,6 +1156,51 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "查询失败")).body(null);
         }
     }
+
+    /**
+     * 内催案件 待分配案件 策略分配
+     */
+    @GetMapping("/strategyDistribute")
+    @ApiOperation(value = "内催案件 待分配案件 策略分配", notes = "内催案件 待分配案件 策略分配")
+    public ResponseEntity<List<?>> strategyDistribute(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                      @RequestHeader(value = "X-UserToken") String token,
+                                                      @RequestBody @ApiParam(value = "所有的待分配案件ID集合") CaseDistributeInfoModel caseDistributeInfoModel) {
+        User user = null;
+        try {
+            user = getUserByToken(token);
+            if (Objects.isNull(caseDistributeInfoModel) || Objects.isNull(caseDistributeInfoModel.getCaseIdList()) || caseDistributeInfoModel.getCaseIdList().isEmpty()) {
+                //没有勾选案件,分配所有的案件
+                QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+                BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+                booleanBuilder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()));
+                booleanBuilder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
+                Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(booleanBuilder);
+                if (!caseInfos.iterator().hasNext()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
+                }
+                ParameterizedTypeReference<List<CaseStrategy>> responseType = new ParameterizedTypeReference<List<CaseStrategy>>() {
+                };
+                ResponseEntity<List<CaseStrategy>> responseEntity = restTemplate.exchange(Constants.CASE_STRATEGY_URL
+                        .concat("companyCode=").concat(user.getCompanyCode())
+                        .concat("&strategyType=").concat(CaseStrategy.StrategyType.INNER.getValue().toString()), HttpMethod.GET, null, responseType);
+                if (Objects.isNull(responseEntity) || !responseEntity.hasBody()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
+                }
+            } else {
+                //分配勾选的案件
+            }
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", e.getMessage())).body(null);
+        }
+        try {
+            return ResponseEntity.ok().body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "分配失败")).body(null);
+        }
+    }
+
 
 }
 

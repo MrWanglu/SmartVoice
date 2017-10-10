@@ -1,19 +1,17 @@
 package cn.fintecher.pangolin.dataimp.web;
 
-import cn.fintecher.pangolin.dataimp.entity.QScoreRule;
-import cn.fintecher.pangolin.dataimp.entity.ScoreFormula;
-import cn.fintecher.pangolin.dataimp.entity.ScoreRule;
 import cn.fintecher.pangolin.dataimp.model.JsonObj;
 import cn.fintecher.pangolin.dataimp.repository.ScoreRuleRepository;
 import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
+import cn.fintecher.pangolin.entity.strategy.ScoreFormula;
+import cn.fintecher.pangolin.entity.strategy.ScoreRule;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import cn.fintecher.pangolin.web.PaginationUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import freemarker.template.Configuration;
 import io.swagger.annotations.Api;
@@ -23,11 +21,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -44,12 +43,16 @@ import java.util.Objects;
 @RequestMapping("/api/scoreStrategyController")
 @Api(value = "案件评分", description = "案件评分")
 public class ScoreStrategyController {
+
     @Autowired
     private ScoreRuleRepository scoreRuleRepository;
     @Autowired
     private Configuration freemarkerConfiguration;
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    MongoTemplate mongoTemplate;
+
     private final Logger logger = LoggerFactory.getLogger(ScoreStrategyController.class);
 
     @GetMapping("/query")
@@ -66,17 +69,18 @@ public class ScoreStrategyController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", "请登录")).body(null);
             }
             User user = userResponseEntity.getBody();
-            BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.isNull(user.getCompanyCode())){
-                if(Objects.nonNull(companyCode)){
-                    builder.and(QScoreRule.scoreRule.companyCode.eq(companyCode));
+            Query query = new Query();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.nonNull(companyCode)) {
+                    query.addCriteria(Criteria.where("companyCode").is(companyCode));
                 }
-            }else {
-                builder.and(QScoreRule.scoreRule.companyCode.eq(user.getCompanyCode()));
+            } else {
+                query.addCriteria(Criteria.where("companyCode").is(user.getCompanyCode()));
             }
-            Page<ScoreRule> page = scoreRuleRepository.findAll(builder, pageable);
-            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/scoreStrategyController/query");
-            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+            int total = (int) mongoTemplate.count(query, CaseStrategy.class);
+            query.with(pageable);
+            List<CaseStrategy> list = mongoTemplate.find(query, CaseStrategy.class);
+            return ResponseEntity.ok().body(new PageImpl<>(list, pageable, total));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStrategy", "", e.getMessage())).body(null);

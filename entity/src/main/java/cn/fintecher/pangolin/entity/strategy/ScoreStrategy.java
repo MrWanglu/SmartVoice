@@ -1,4 +1,4 @@
-package cn.fintecher.pangolin.dataimp.entity;
+package cn.fintecher.pangolin.entity.strategy;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -34,4 +34,31 @@ public class ScoreStrategy {
     private String createName;
     @ApiModelProperty(notes = "操作日期")
     private Date creatime;
+    @ApiModelProperty("策略类型：230-导入案件分配策略，231-内催池案件分配策略，232-委外池案件分配策略")
+    private Integer strategyType;
+
+    /**
+     * 策略类型枚举
+     */
+    public enum StrategyType {
+        IMPORT(230, "导入案件分配策略"),
+        INNER(231, "内催池案件分配策略"),
+        OUTS(232, "委外池案件分配策略");
+
+        private Integer value;
+        private String remark;
+
+        StrategyType(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
 }

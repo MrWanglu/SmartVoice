@@ -1,6 +1,6 @@
 package cn.fintecher.pangolin.dataimp.model;
 
-import cn.fintecher.pangolin.dataimp.entity.ScoreRule;
+import cn.fintecher.pangolin.entity.strategy.ScoreRule;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 

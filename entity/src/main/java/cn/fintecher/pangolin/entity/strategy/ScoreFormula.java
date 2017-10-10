@@ -1,4 +1,4 @@
-package cn.fintecher.pangolin.dataimp.entity;
+package cn.fintecher.pangolin.entity.strategy;
 
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
@@ -17,5 +17,6 @@ public class ScoreFormula {
     private String name;
     private String strategy;
     private String strategyJson;
+
     private BigDecimal score;
 }

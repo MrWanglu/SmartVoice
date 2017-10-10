@@ -1,12 +1,15 @@
 package cn.fintecher.pangolin.dataimp.web.rest;
 
-import cn.fintecher.pangolin.dataimp.entity.QScoreRule;
-import cn.fintecher.pangolin.dataimp.entity.ScoreRule;
 import cn.fintecher.pangolin.dataimp.model.ScoreRules;
 import cn.fintecher.pangolin.dataimp.repository.ScoreRuleRepository;
+import cn.fintecher.pangolin.entity.strategy.ScoreRule;
+import cn.fintecher.pangolin.util.ZWStringUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,13 +33,21 @@ public class ScoreResource {
     private ScoreRuleRepository scoreRuleRepository;
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
     @GetMapping("/getScoreRules")
     @ApiOperation(value = "获取案件评分规则", notes = "获取案件评分规则")
-   public ResponseEntity<ScoreRules> getScoreRules(@RequestParam String comanyCode){
-        Iterable<ScoreRule> allList = scoreRuleRepository.findAll(QScoreRule.scoreRule.companyCode.eq(comanyCode));
+    public ResponseEntity<ScoreRules> getScoreRules(@RequestParam String comanyCode) {
+
+        Query query = new Query();
+        if (ZWStringUtils.isNotEmpty(comanyCode)) {
+            query.addCriteria(Criteria.where("companyCode").is(comanyCode));
+        }
+        List<ScoreRule> scoreRules = mongoTemplate.find(query, ScoreRule.class);
         List<ScoreRule> caseInfoList1 = new ArrayList<>();
-        allList.forEach(single ->caseInfoList1.add(single));
-        ScoreRules result=new ScoreRules();
+        scoreRules.forEach(single -> caseInfoList1.add(single));
+        ScoreRules result = new ScoreRules();
         result.setScoreRules(caseInfoList1);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
