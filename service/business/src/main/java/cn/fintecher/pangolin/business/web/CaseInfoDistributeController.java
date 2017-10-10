@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
@@ -294,6 +295,27 @@ public class CaseInfoDistributeController extends BaseController {
             logger.error(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
+    }
+
+    @GetMapping("/previewResult")
+    @ApiOperation(value = "策略预览结果", notes = "策略预览结果")
+    public ResponseEntity<Page> previewResult(@RequestParam @ApiParam("策略JSON") String jsonString,
+                                        @RequestParam @ApiParam("策略类型：230-案件导入分配策略，231-内催池分配策略，232-委外池分配策略") Integer type) {
+        if(StringUtils.isBlank(jsonString)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先配置策略")).body(null);
+        }
+        if (Objects.isNull(type)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择策略类型")).body(null);
+        }
+        try {
+            List<?> checkList = caseInfoDistributedService.previewResult(jsonString, type);
+            Page page = new PageImpl(checkList);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+
     }
 
 }
