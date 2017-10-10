@@ -168,6 +168,24 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
     Integer getCaseCount(@Param("userId") String userId);
 
     /**
+     * @Description 获得指定用户所持有的未结案案件总金额
+     */
+    @Query(value = "select sum(overdue_amount) from case_info where current_collector = :userId and collection_status in (20,21,22,23,25,171,172)", nativeQuery = true)
+    BigDecimal getUserCaseAmt(@Param("userId") String userId);
+
+    /**
+     * @Description 获得指定部门所持有的未结案案件总数
+     */
+    @Query(value = "select count(*) from case_info where depart_id = :deptId and collection_status in (20,21,22,23,25,171,172)", nativeQuery = true)
+    Integer getDeptCaseCount(@Param("deptId") String deptId);
+
+    /**
+     * @Description 获得指定部门所持有的未结案案件总金额
+     */
+    @Query(value = "select sum(overdue_amount) from case_info where depart_id = :deptId and collection_status in (20,21,22,23,25,171,172)", nativeQuery = true)
+    BigDecimal getDeptCaseAmt(@Param("deptId") String deptId);
+
+    /**
      * @Description 获得指定用户的待催收金额
      */
     @Query(value = "select sum(overdue_amount+early_settle_amt-early_real_settle_amt-real_pay_amount) from case_info where current_collector = :id or assist_collector = :id and collection_status = :collectionStatus", nativeQuery = true)

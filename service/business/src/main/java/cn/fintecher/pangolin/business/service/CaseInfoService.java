@@ -1567,6 +1567,88 @@ public class CaseInfoService {
         return caseInfoRepository.count(builder);
     }
 
+    public List<CaseInfoInnerDistributeModel> distributePreview(AccCaseInfoDisModel accCaseInfoDisModel) {
+        //选择的案件ID列表
+        List<String> caseInfoList = accCaseInfoDisModel.getCaseIdList();
+        List<CaseInfo> caseInfoYes = new ArrayList<>(); //可分配案件
+        for (String caseId : caseInfoList) {
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+            if (Objects.isNull(caseInfo)) {
+                throw new RuntimeException("有案件未找到!");
+            }
+            caseInfoYes.add(caseInfo);
+        }
+        //案件列表
+        List<CaseInfo> caseInfoObjList = new ArrayList<>();
+        //每个机构或人分配的数量
+        List<Integer> disNumList = accCaseInfoDisModel.getCaseNumList();
+        List<CaseInfoInnerDistributeModel> list = new ArrayList<>();
+        //已经分配的案件数量
+        int alreadyCaseNum = 0;
+        //接收案件列表信息
+        List<String> deptOrUserList = null;
+        //机构分配
+        Integer rule = accCaseInfoDisModel.getIsPlan();
+        if (Objects.equals(rule, 2)) {
+            int caseNum = caseInfoYes.size();
+            int deptOrUserNum = accCaseInfoDisModel.getDepIdList().size() == 0 ? accCaseInfoDisModel.getUserIdList().size() : accCaseInfoDisModel.getDepIdList().size();
+            List<Integer> caseNumList = new ArrayList<>(deptOrUserNum);
+            for (int i = 0; i < deptOrUserNum; i++) {
+                caseNumList.add(caseNum / deptOrUserNum);
+            }
+            if (caseNum % deptOrUserNum != 0) {
+                for (int i = 0; i < caseNum % deptOrUserNum; i++) {
+                    caseNumList.set(i, caseNumList.get(i) + 1);
+                }
+            }
+            disNumList = caseNumList;
+        }
+        if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
+            //所要分配 机构id
+            deptOrUserList = accCaseInfoDisModel.getDepIdList();
+        } else if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.USER_WAY.getValue())) {
+            //得到所有用户ID
+            deptOrUserList = accCaseInfoDisModel.getUserIdList();
+        }
+        for (int i = 0; i < (deptOrUserList != null ? deptOrUserList.size() : 0); i++) {
+            //如果按机构分配则是机构的ID，如果是按用户分配则是用户ID
+            String deptOrUserid = deptOrUserList.get(i);
+            CaseInfoInnerDistributeModel caseInfoInnerDistributeModel = new CaseInfoInnerDistributeModel();
+            caseInfoInnerDistributeModel.setDistributeType(accCaseInfoDisModel.getDisType());
+            caseInfoInnerDistributeModel.setCaseDistributeCount(disNumList.get(i));
+            Department department = null;
+            User targetUser = null;
+            if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
+                department = departmentRepository.findOne(deptOrUserid);
+                caseInfoInnerDistributeModel.setDepartmentName(department.getName());
+                caseInfoInnerDistributeModel.setCaseCurrentCount(caseInfoRepository.getDeptCaseCount(department.getId()));
+                caseInfoInnerDistributeModel.setCaseMoneyCurrentCount(caseInfoRepository.getDeptCaseAmt(department.getId()));
+            } else if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.USER_WAY.getValue())) {
+                targetUser = userRepository.findOne(deptOrUserid);
+                caseInfoInnerDistributeModel.setUserName(targetUser.getUserName());
+                caseInfoInnerDistributeModel.setUserRealName(targetUser.getRealName());
+                caseInfoInnerDistributeModel.setCaseCurrentCount(caseInfoRepository.getCaseCount(targetUser.getId()));
+                caseInfoInnerDistributeModel.setCaseMoneyCurrentCount(caseInfoRepository.getUserCaseAmt(targetUser.getId()));
+            }
+            //需要分配的案件数据
+            Integer disNum = disNumList.get(i);
+            for (int j = 0; j < disNum; j++) {
+                //检查输入的案件数量是否和选择的案件数量一致
+                if (alreadyCaseNum == caseInfoYes.size()) {
+                    return list;
+                }
+                String caseId = caseInfoYes.get(alreadyCaseNum).getId();
+                CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+                caseInfoInnerDistributeModel.setCaseDistributeMoneyCount(caseInfoInnerDistributeModel.getCaseDistributeMoneyCount().add(caseInfo.getOverdueAmount()));
+                alreadyCaseNum = alreadyCaseNum + 1;
+            }
+            caseInfoInnerDistributeModel.setCaseTotalCount(caseInfoInnerDistributeModel.getCaseCurrentCount()+caseInfoInnerDistributeModel.getCaseDistributeCount());
+            caseInfoInnerDistributeModel.setCaseMoneyTotalCount(caseInfoInnerDistributeModel.getCaseMoneyCurrentCount().add(caseInfoInnerDistributeModel.getCaseDistributeMoneyCount()));
+            list.add(caseInfoInnerDistributeModel);
+        }
+        return list;
+    }
+
 
     /**
      * 内催待分配案件分配

@@ -76,6 +76,13 @@ pangolin:
     timeout: 10000000
     customerDisplayNum: 51300794
     agentPwd : zhiwang123
+  hantian-server:
+    host: 192.168.3.16
+    port: 8088
+    callengine: http://${pangolin.hantian-server.host}:${pangolin.hantian-server.port}/callengine/http/operation
+    cdr: http://${pangolin.hantian-server.host}:${pangolin.hantian-server.port}/callengine/http/pull_cdr
+    record: http://${pangolin.hantian-server.host}:${pangolin.hantian-server.port}/recordings
+    token:
   jiguang:
     appKey: a06c080ce726b538738b18c9
     masterSecret: 0c1f4c5b6599df23fe1c3f42
