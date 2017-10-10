@@ -264,6 +264,20 @@ public class CaseInfoController extends BaseController {
         }
     }
 
+    @PostMapping(value = "/distributePreview")
+    @ApiOperation(value = "内催待分配预览", notes = "内催待分配预览")
+    public ResponseEntity<List<CaseInfoInnerDistributeModel>> distributePreview(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
+                                              @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        log.debug("REST request to distributeCeaseInfo");
+        try {
+            List<CaseInfoInnerDistributeModel> list = caseInfoService.distributePreview(accCaseInfoDisModel);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(list);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "errorMessage", e.getMessage())).body(null);
+        }
+    }
+
     @PostMapping(value = "/distributeCeaseInfo")
     @ApiOperation(value = "内催待分配案件分配", notes = "内催待分配案件分配")
     public ResponseEntity distributeCeaseInfo(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
