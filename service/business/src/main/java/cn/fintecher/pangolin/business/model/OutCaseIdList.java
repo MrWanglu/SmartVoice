@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.model;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.List;
@@ -9,5 +10,10 @@ import java.util.List;
  */
 @Data
 public class OutCaseIdList {
+    @ApiModelProperty("委外案件ID")
     private List<String> outCaseIds; //案件ID
+    @ApiModelProperty("回收说明")
+    private String returnReason;
+    @ApiModelProperty("公司Code")
+    private String companyCode;
 }

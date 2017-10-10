@@ -1545,46 +1545,42 @@ public class OutsourcePoolController extends BaseController {
     }
 
     @PostMapping("/returnOutsourceCase")
-    @ApiOperation(value = "收回委外案件", notes = "收回委外案件")
+    @ApiOperation(value = "回收委外案件", notes = "回收委外案件")
     public ResponseEntity<List<CaseInfoReturn>> returnOutsourceCase(@RequestBody OutCaseIdList outCaseIdList,
-                                                                    @RequestParam(required = true) String returnReason,
-                                                                    @RequestParam(required = false) String companyCode,
-                                                                    @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+                                                                    @RequestHeader(value = "X-UserToken") String token) {
         try {
             List<String> outCaseIds = outCaseIdList.getOutCaseIds();
-            List<OutsourcePool> outsourcePools = new ArrayList<>();
-            List<CaseInfo> caseInfos = new ArrayList<>();
-            List<CaseInfoReturn> caseInfoReturns = new ArrayList<>();
+            if (Objects.isNull(outCaseIds) || outCaseIds.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要回收的案件")).body(null);
+            }
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
-            for (String outId : outCaseIds) {
-                OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
-                if(Objects.nonNull(outsourcePool)){
-                    if(Objects.nonNull(outsourcePool.getCaseInfo())){
-                        if(Objects.isNull(outsourcePool.getCaseInfo().getRecoverRemark()) || outsourcePool.getCaseInfo().getRecoverRemark()==0 ){
-                            outsourcePool.getCaseInfo().setRecoverRemark(1);
-                            caseInfos.add(outsourcePool.getCaseInfo());
-                            CaseInfoReturn caseInfoReturn = new CaseInfoReturn();
-                            caseInfoReturn.setCaseId(outsourcePool.getCaseInfo());
-                            caseInfoReturn.setOutsourcePool(outsourcePool);
-                            caseInfoReturn.setOperator(user.getUserName());
-                            caseInfoReturn.setOperatorTime(ZWDateUtil.getNowDateTime());
-                            caseInfoReturn.setReason(returnReason);
-                            caseInfoReturn.setSource(CaseInfoReturn.Source.OUTSOURCE.getValue());
-                            caseInfoReturns.add(caseInfoReturn);
-                        }else{
-                            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("案件已回收", "", "已回收案件不能再回收")).body(null);
-                        }
-                        outsourcePools.add(outsourcePool);
-                    }
-                }
+            List<OutsourcePool> all = outsourcePoolRepository.findAll(outCaseIds);
+            Iterator<OutsourcePool> iterator = all.iterator();
+            List<CaseInfoReturn> caseInfoReturnList = new ArrayList<>();
+            List<OutsourcePool> outsourcePoolList = new ArrayList<>();
+            while (iterator.hasNext()) {
+                OutsourcePool outsourcePool = iterator.next();
+                CaseInfo caseInfo = outsourcePool.getCaseInfo();
+                caseInfo.setOperatorTime(new Date());
+                caseInfo.setOperator(user);
+                caseInfo.setRecoverRemark(CaseInfo.RecoverRemark.RECOVERED.getValue());
+                outsourcePool.setCaseInfo(caseInfo);
+                outsourcePoolList.add(outsourcePool);
+
+                CaseInfoReturn caseInfoReturn = new CaseInfoReturn();
+                caseInfoReturn.setSource(CaseInfoReturn.Source.OUTSOURCE.getValue());
+                caseInfoReturn.setOutsourcePool(outsourcePool);
+                caseInfoReturn.setOperatorTime(new Date());
+                caseInfoReturn.setOperator(user.getId());
+                caseInfoReturn.setReason(outCaseIdList.getReturnReason());
+                caseInfoReturnList.add(caseInfoReturn);
             }
-            caseInfoReturns = caseInfoReturnRepository.save(caseInfoReturns);
-            caseInfoRepository.save(caseInfos);
-            outsourcePoolRepository.delete(outsourcePools);
-            return ResponseEntity.ok().body(caseInfoReturns);
+            outsourcePoolRepository.save(outsourcePoolList);
+            caseInfoReturnRepository.save(caseInfoReturnList);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("回收成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("案件回收失败", ENTITY_NAME1, e.getMessage())).body(null);

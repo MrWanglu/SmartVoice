@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.ReDisRecoverCaseParams;
 import cn.fintecher.pangolin.business.model.RecoverCaseParams;
 import cn.fintecher.pangolin.business.service.RecoverCaseService;
 import cn.fintecher.pangolin.entity.User;
@@ -27,7 +28,7 @@ public class CaseReturnController extends BaseController {
     private RecoverCaseService recoverCaseService;
 
     @PostMapping("/recoverCase")
-    @ApiOperation(notes = "回收案件", value = "回收案件")
+    @ApiOperation(notes = "内催回收案件", value = "内催回收案件")
     public ResponseEntity recoverCase(@RequestHeader(value = "X-UserToken") String token,
                                       @RequestBody RecoverCaseParams recoverCaseParams) {
         try {
@@ -38,7 +39,20 @@ public class CaseReturnController extends BaseController {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
+    }
 
+    @PostMapping("/reDisRecoverCase")
+    @ApiOperation(notes = "重新分配回收案件", value = "重新分配回收案件")
+    public ResponseEntity reDisRecoverCase(@RequestBody ReDisRecoverCaseParams params,
+                                           @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            recoverCaseService.reDisRecoverCase(params, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功!", "")).body(null);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
     }
 
 }
