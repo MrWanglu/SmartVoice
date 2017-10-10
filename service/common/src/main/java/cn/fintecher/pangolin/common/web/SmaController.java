@@ -451,7 +451,7 @@ public class SmaController {
     /**
      * @Description : 233 汉天双向回拨-呼叫
      */
-    @PostMapping("/addTaskRecorder")
+    @PostMapping("/hantianP2P")
     @ApiOperation(value = "汉天双向回拨-开始呼叫", notes = "汉天双向回拨-开始呼叫")
     public ResponseEntity<Map<String, String>> hantianP2P(@RequestBody AddTaskRecorderRequest request,
                                                                @RequestHeader(value = "X-UserToken") String token) {
