@@ -59,22 +59,49 @@ public class FollowupExportModel {
     @ExcelAnno(cellName = "佣金比例(%)")
     private BigDecimal commissionRate;
 
+    @ExcelAnno(cellName = "委托方")
+    private String principalName;
+    @ExcelAnno(cellName = "产品名称")
+    private String productName;
+    @ExcelAnno(cellName = "案件批次号")
+    private String batchNumber;
+    @ExcelAnno(cellName = "案件编号")
+    private String caseNumber;
+    @ExcelAnno(cellName = "每期还款日")
+    private Date perDueDate;
+    @ExcelAnno(cellName = "剩余天数")
+    private Integer leftDays;
+    @ExcelAnno(cellName = "还款状态")
+    private String payStatus;
+    @ExcelAnno(cellName = "催收状态")
+    private Integer collectionStatus;
+    @ExcelAnno(cellName = "逾期管理费")
+    private BigDecimal overdueManageFee;
+    @ExcelAnno(cellName = "催收反馈")
+    private Integer followupBack;
+    @ExcelAnno(cellName = "委外批次号")
+    private String batchNumberOutsource;
     @ExcelAnno(cellName = "委外方")
     private String outsName;
-    @ExcelAnno(cellName = "委外案件总金额")
+    @ExcelAnno(cellName = "委外案件金额(元)")
     private BigDecimal outsourceTotalAmount;
+    @ExcelAnno(cellName = "委外回款金额(元)")
+    private BigDecimal outsourceBackAmount;
     @ExcelAnno(cellName = "剩余金额(元)")
     private BigDecimal leftAmount;
     @ExcelAnno(cellName = "剩余委托时间(天)")
-    private Integer leftDays;
+    private Integer leftDaysOutsource;
     @ExcelAnno(cellName = "委案日期")
     private Date outTime;
     @ExcelAnno(cellName = "结案日期")
     private Date endOutTime;
-    @ExcelAnno(cellName = "委案到期日期")
+    @ExcelAnno(cellName = "委外到期日期")
     private Date overOutTime;
+    @ExcelAnno(cellName = "委外佣金比例(%)")
+    private BigDecimal commissionRateOutsource;
     @ExcelAnno(cellName = "案件状态")
     private String outsourceCaseStatus;
+
 
     @ExcelAnno(cellName = "客户姓名")
     private String personalName;

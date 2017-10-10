@@ -85,7 +85,8 @@ public class OutsourcePoolController extends BaseController {
     @Autowired
     SysParamRepository sysParamRepository;
     @Autowired
-    OutsourceFollowupRecordRepository outsourceFollowupRecordRepository;
+    CaseFollowupRecordRepository caseFollowupRecordRepository;
+
     @Inject
     private Configuration freemarkerConfiguration;
     @Inject
@@ -1492,8 +1493,8 @@ public class OutsourcePoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<OutsourceFollowRecord>> getOutSourceCaseFollowRecord(@RequestParam(required = true) @ApiParam(value = "案件编号") String caseNumber,
-                                                                                    @QuerydslPredicate(root = OutsourceFollowRecord.class) Predicate predicate,
+    public ResponseEntity<Page<CaseFollowupRecord>> getOutSourceCaseFollowRecord(@RequestParam(required = true) @ApiParam(value = "案件编号") String caseNumber,
+                                                                                    @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
                                                                                     @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                                                     @ApiIgnore Pageable pageable,
                                                                                     @RequestHeader(value = "X-UserToken") String token) {
@@ -1508,9 +1509,11 @@ public class OutsourcePoolController extends BaseController {
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if(Objects.nonNull(caseNumber)){
-                builder.and(QOutsourceFollowRecord.outsourceFollowRecord.caseNum.eq(caseNumber));
+                builder.and(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(caseNumber));
             }
-            Page<OutsourceFollowRecord> page = outsourceFollowupRecordRepository.findAll(builder, pageable);
+
+            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseFollowupType.eq(CaseFollowupRecord.CaseFollowupType.OUTER.getValue()));
+            Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
