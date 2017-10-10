@@ -123,7 +123,9 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
      * @param
      * @return
      */
-    @Query(value = "select a.out_id,b.outs_code,b.outs_name,COUNT(*) as sumNum,count(case when a.out_status = 170 then 1 end) as endNum,SUM(a.out_back_amt),SUM(case when a.out_status = 170 then a.out_back_amt else 0 end) from outsource_pool a LEFT JOIN outsource b on a.out_id=b.id AND b.company_code=:companyCode GROUP BY a.out_id", nativeQuery = true)
+    @Query(value = "select a.out_id,b.outs_code,b.outs_name,COUNT(*) as sumNum,count(case when a.out_status = 170 then 1 end) as endNum,SUM(a.out_total_amt),\n" +
+            "SUM(case when a.out_status = 170 then a.out_back_amt else 0 end) as endcase_total_amount from outsource_pool a \n" +
+            "LEFT JOIN outsource b on a.out_id=b.id AND b.company_code=:companyCode GROUP BY a.out_id", nativeQuery = true)
     Object[] getOutDistributeInfo(@Param("companyCode") String companyCode);
 
 }

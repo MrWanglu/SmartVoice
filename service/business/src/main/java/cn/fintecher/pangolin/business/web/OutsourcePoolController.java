@@ -297,16 +297,17 @@ public class OutsourcePoolController extends BaseController {
     /**
      * @Description : 查询委外分配信息
      */
-    @GetMapping("/getOutDistributeInfo")
+    @PostMapping("/getOutDistributeInfo")
     @ApiOperation(value = "查询委外分配信息", notes = "查询委外分配信息")
-    public ResponseEntity<Page<OutDistributeInfo>> query(@RequestParam(required = false) String companyCode,
-                                                     @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<Page<OutDistributeInfo>> query(@RequestBody OutCodeList outCodeList,
+                                                         @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
             BooleanBuilder builder = new BooleanBuilder();
+            String companyCode = outCodeList.getCompanyCode();
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(companyCode)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
@@ -335,6 +336,19 @@ public class OutsourcePoolController extends BaseController {
                     outDistributeInfos.add(outDistributeInfo);
                 }
 
+            }
+            if(Objects.nonNull(outCodeList.getOutCode())){
+                List<OutDistributeInfo> outDistributeInfos1 = new ArrayList<>();//存储选择的委外方
+                for(OutDistributeInfo out: outDistributeInfos){
+                   for(String outcode: outCodeList.getOutCode()){
+                       if(outcode.equals(out.getOutCode())){
+                           outDistributeInfos1.add(out);
+                       }
+                   }
+
+                }
+                Page<OutDistributeInfo> page1 = new PageImpl(outDistributeInfos1);
+                return ResponseEntity.ok().body(page1);
             }
             Page<OutDistributeInfo> page = new PageImpl(outDistributeInfos);
             return ResponseEntity.ok().body(page);
@@ -417,10 +431,15 @@ public class OutsourcePoolController extends BaseController {
         freemarker.template.Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
         ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode), ScoreRules.class);
         List<ScoreRule> rules = null;
-        if (responseEntity.hasBody()) {
-            ScoreRules scoreRules = responseEntity.getBody();
-            rules = scoreRules.getScoreRules();
+        if (Objects.nonNull(responseEntity.hasBody())) {
+            if (responseEntity.hasBody()) {
+                ScoreRules scoreRules = responseEntity.getBody();
+                rules = scoreRules.getScoreRules();
+            }
+        } else {
+            throw new IllegalStateException("请设置案件评分策略！");
         }
+
         StringBuilder sb = new StringBuilder();
         if (Objects.nonNull(rules)) {
             for (ScoreRule rule : rules) {

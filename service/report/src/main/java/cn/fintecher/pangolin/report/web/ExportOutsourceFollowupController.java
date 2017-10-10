@@ -40,7 +40,7 @@ import java.util.Map;
  * @Date : 2017/9/27.
  */
 @RestController
-@RequestMapping("/api/ExportOutsourceFollowupController")
+@RequestMapping("/api/exportOutsourceFollowupController")
 @Api(value = "ExportOutsourceFollowupController", description = "导出委外跟进记录")
 public class ExportOutsourceFollowupController extends BaseController {
 
