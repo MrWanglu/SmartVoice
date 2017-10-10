@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.report.model;
 
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Entity;
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ public class QueryOutsourcePool {
     /*受托方名称*/
     private String outsName;
     /*案件流入时间*/
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date comeOutsourceTime;
     /*案件批次号*/
     private String batchNumber;
