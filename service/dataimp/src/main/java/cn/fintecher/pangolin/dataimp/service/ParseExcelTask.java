@@ -273,7 +273,9 @@ public class ParseExcelTask {
                     case INTEGER:
                         Integer inte = 0;
                         try {
-                            inte = Integer.parseInt(cellValue);
+                            if (cellValue != null && !cellValue.equals("")) {
+                                inte = Integer.parseInt(cellValue);
+                            }
                         } catch (NumberFormatException e) {
                             columnError.setErrorMsg("数据类型错误");
                             columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
@@ -285,14 +287,16 @@ public class ParseExcelTask {
                     case DOUBLE:
                         Double dou1 = 0D;
                         try {
-                            dou = Double.parseDouble(cellValue);
+                            if (cellValue != null && !cellValue.equals("")) {
+                                dou1 = Double.parseDouble(cellValue);
+                            }
                         } catch (NumberFormatException e) {
                             columnError.setErrorMsg("数据类型错误");
                             columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
                             map.put(dou1, columnError);
                             break;
                         }
-                        map.put(dou, columnError);
+                        map.put(dou1, columnError);
                         break;
                     case DATE:
                         if (cellValue.matches("\\d{4}/\\d{1,2}/\\d{1,2}")) {
@@ -306,6 +310,9 @@ public class ParseExcelTask {
                             break;
                         } else if (cellValue.matches("\\d{4}.\\d{1,2}.\\d{1,2}")) {
                             map.put(ZWDateUtil.getUtilDate(cellValue, "yyyy.MM.dd"), columnError);
+                            break;
+                        } else if (cellValue == null || cellValue.equals("")) {
+                            map.put(null, columnError);
                             break;
                         } else {
                             columnError.setErrorMsg("日期格式错误");
