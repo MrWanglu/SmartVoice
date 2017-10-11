@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by  hukaijia.
@@ -252,7 +254,8 @@ public class OutsourceController extends BaseController {
      */
     @GetMapping("/getAllOutSourceInfoByCase")
     @ApiOperation(value = "统计委托方信息的 案件信息 ", notes = "统计委托方信息的 案件信息 ")
-    public ResponseEntity<List<OutDistributeInfo>> getAllOutSourceInfoByCase(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<Page<OutDistributeInfo>> getAllOutSourceInfoByCase(@RequestHeader(value = "X-UserToken") String token,
+                                                                             @ApiIgnore Pageable pageable) {
         User user;
         try {
             user = getUserByToken(token);
@@ -286,11 +289,14 @@ public class OutsourceController extends BaseController {
                         outDistributeInfo.setEndCount(Objects.isNull(object1[3]) ? null : Integer.parseInt(object1[3].toString()));
                         outDistributeInfo.setSuccessRate(Objects.isNull(object1[4]) ? null : BigDecimal.valueOf(Double.valueOf(object1[4].toString())));
                         outDistributeInfo.setCaseAmt(Objects.isNull(object1[5]) ? null : BigDecimal.valueOf(Double.valueOf(object1[5].toString())));
+                        outDistributeInfo.setOutId(Objects.isNull(object1[6]) ? null : object1[6].toString());
                         outDistributeInfos.add(outDistributeInfo);
                     }
                 }
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(outDistributeInfos);
+            Page<OutDistributeInfo> outDistributeInfos1 = new PageImpl<>(
+                    outDistributeInfos.stream().skip(pageable.getPageNumber() * pageable.getPageSize()).limit(pageable.getPageSize()).collect(Collectors.toList()), pageable, outDistributeInfos.size());
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(outDistributeInfos1);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "获取委外方信息失败")).body(null);

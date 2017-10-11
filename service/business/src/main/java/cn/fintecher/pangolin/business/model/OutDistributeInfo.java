@@ -18,4 +18,5 @@ public class OutDistributeInfo {
     private Integer collectionCount;//催收中数量
     private BigDecimal collectionAmt;//催收中案件金额
     private BigDecimal successRate;//历史催收成功率 此实体用于分配策略选择委外方用
+    private String outId; //委外方ID 此实体用于分配策略选择委外方用
 }
