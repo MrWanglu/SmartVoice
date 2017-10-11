@@ -294,7 +294,7 @@ public class OutsourceController extends BaseController {
                     query.append(" and b.outs_code = ").append(code);
                 }
                 if (Objects.nonNull(name)) {
-                    query.append(" and b.outs_name = ").append(name);
+                    query.append(" and b.outs_name like %").append(name).append("%");
                 }
                 query.append("group by out_id");
                 List<Objects[]> list = em.createNativeQuery(query.toString()).getResultList();
