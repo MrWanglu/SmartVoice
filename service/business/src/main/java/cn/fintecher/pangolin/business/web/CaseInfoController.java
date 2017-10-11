@@ -1217,11 +1217,6 @@ public class CaseInfoController extends BaseController {
                 }
                 caseInfoService.innerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
             }
-        } catch (final Exception e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", e.getMessage())).body(null);
-        }
-        try {
             return ResponseEntity.ok().body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
