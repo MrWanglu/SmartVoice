@@ -56,7 +56,8 @@ public class ParseExcelTask {
         if (dataIndex.contains(rowIndex)) {
             return;
         }
-        boolean flag = false;
+        List flag = new ArrayList<>();
+        List<ColumnError> columnErrorList = new ArrayList<>();
 
         //反射创建实体对象
         Object obj = null;
@@ -66,52 +67,24 @@ public class ParseExcelTask {
             //默认数据模板
             if (Objects.isNull(templateExcelInfos)) {
                 //循环解析每行中的每个单元格
-                List<ColumnError> columnErrorList = new ArrayList<>();
                 for (int colIndex = startCol; colIndex < dataRow.getLastCellNum(); colIndex++) {
                     //获取该列对应的头部信息中文
                     String titleName = headerMap.get(colIndex);
                     Cell cell = dataRow.getCell(colIndex);
-                    if (cell != null && !cell.toString().trim().equals("")) {
-                        flag = true;
-                        matchFields(dataClass, columnErrorList, obj, colIndex, titleName, cell);
-                    }
-                }
-                if (flag == true) {
-                    DataInfoExcel dataInfoExcel = (DataInfoExcel) obj;
-                    saveDataInfoExcelAndError(dataInfoExcel, dataImportRecord, columnErrorList, rowError, rowIndex);
+                    matchFields(dataClass, columnErrorList, obj, colIndex, titleName, cell, flag);
                 }
             } else {
                 //配置模板
-                List<ColumnError> columnErrorList = new ArrayList<>();
                 for (TemplateExcelInfo templateExcelInfo : templateExcelInfos) {
                     if (StringUtils.isNotBlank(templateExcelInfo.getRelateName())) {
                         Cell cell = dataRow.getCell(templateExcelInfo.getCellNum());
-                        if (cell != null && !cell.toString().trim().equals("")) {
-                            flag = true;
-                            //获取类中所有的字段
-                            Field[] fields = dataClass.getDeclaredFields();
-                            for (Field field : fields) {
-                                //实体中的属性名称
-                                String proName = field.getName();
-                                //匹配到实体中相应的字段
-                                if (proName.equals(templateExcelInfo.getRelateName())) {
-                                    //打开实体中私有变量的权限
-                                    field.setAccessible(true);
-                                    //实体中变量赋值
-                                    try {
-                                        field.set(obj, getObj(field.getType(), cell));
-                                    } catch (Exception e) {
-                                        logger.error(e.getMessage(), e);
-                                    }
-                                }
-                            }
-                        }
+                        matchFields(dataClass, columnErrorList, obj, templateExcelInfo.getCellNum(), templateExcelInfo.getCellName(), cell, flag);
                     }
                 }
-                if (flag == true) {
-                    DataInfoExcel dataInfoExcel = (DataInfoExcel) obj;
-                    saveDataInfoExcelAndError(dataInfoExcel, dataImportRecord, columnErrorList, rowError, rowIndex);
-                }
+            }
+            if (!flag.isEmpty()) {
+                DataInfoExcel dataInfoExcel = (DataInfoExcel) obj;
+                saveDataInfoExcelAndError(dataInfoExcel, dataImportRecord, columnErrorList, rowError, rowIndex);
             }
         } catch (Exception e) {
             logger.error("线程解析第行{}数据错误", rowIndex);
@@ -169,7 +142,7 @@ public class ParseExcelTask {
         dataInfoExcelRepository.save(dataInfoExcel);
     }
 
-    private void matchFields(Class<?> dataClass, List<ColumnError> columnErrorList, Object obj, int colIndex, String titleName, Cell cell) throws Exception {
+    private void matchFields(Class<?> dataClass, List<ColumnError> columnErrorList, Object obj, int colIndex, String titleName, Cell cell, List flag) throws Exception {
         //获取类中所有的字段
         Field[] fields = dataClass.getDeclaredFields();
         int fieldCount = 0;
@@ -191,7 +164,7 @@ public class ParseExcelTask {
                         //实体中变量赋值
                         try {
                             // 获取数据或者错误信息
-                            Map<Object, ColumnError> map = validityDataGetFieldValue(field, cell, columnError);
+                            Map<Object, ColumnError> map = validityDataGetFieldValue(field, cell, columnError, flag);
                             Map.Entry<Object, ColumnError> next = map.entrySet().iterator().next();
                             field.set(obj, next.getKey());
                             if (StringUtils.isNotBlank(next.getValue().getErrorMsg())) {
@@ -216,10 +189,13 @@ public class ParseExcelTask {
         }
     }
 
-    private Map<Object, ColumnError> validityDataGetFieldValue(Field field, Cell cell, ColumnError columnError) throws ParseException {
+    private Map<Object, ColumnError> validityDataGetFieldValue(Field field, Cell cell, ColumnError columnError, List flag) throws ParseException {
         Map<Object, ColumnError> map = new HashedMap(1);
         String cellValue = getCellValue(cell);
         cellValue = filterEmoji(cellValue, "");
+        if (cellValue != null || !cellValue.equals("")) {
+            flag.add(true);
+        }
         ExcelAnno.FieldCheck fieldCheck = field.getAnnotation(ExcelAnno.class).fieldCheck();
         switch (fieldCheck) {
             case PERSONAL_NAME:
@@ -363,7 +339,7 @@ public class ParseExcelTask {
         if (cell == null) {
             return "";
         }
-        String cellValue = null;
+        String cellValue = "";
         //根据CellTYpe动态获取Excel中的值
         switch (cell.getCellType()) {
             case Cell.CELL_TYPE_BLANK:
