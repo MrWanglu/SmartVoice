@@ -291,12 +291,13 @@ public class OutsourceController extends BaseController {
                     }
                 }
                 if (Objects.nonNull(outCode)) {
-                    query.append(" and b.outs_code = ").append(outCode);
+                    query.append(" and b.outs_code = '").append(outCode).append("'");
                 }
                 if (Objects.nonNull(outName)) {
-                    query.append(" and b.outs_name like %").append(outName).append("%");
+                    query.append(" and b.outs_name like '%").append(outName).append("%").append("'");
                 }
                 query.append("group by out_id");
+                log.debug(query.toString());
                 List<Objects[]> list = em.createNativeQuery(query.toString()).getResultList();
                 for (Object[] obj : list) {
                     for (int i = 0; i < obj.length; i++) {
