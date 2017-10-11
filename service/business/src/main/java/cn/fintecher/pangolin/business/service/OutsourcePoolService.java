@@ -9,10 +9,12 @@ import cn.fintecher.pangolin.business.repository.OutsourceRepository;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import freemarker.template.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -44,6 +46,10 @@ public class OutsourcePoolService {
 
     @Autowired
     OutsourceRecordRepository outsourceRecordRepository;
+    @Inject
+    private Configuration freemarkerConfiguration;
+    @Autowired
+    RestTemplate restTemplate;
 
 
     /**
@@ -249,6 +255,9 @@ public class OutsourcePoolService {
         gc.setTime(ZWDateUtil.getNowDateTime());
         gc.add(2, 3);
         outsourcePool.setOverOutsourceTime(gc.getTime());
+        if(Objects.nonNull(user.getCompanyCode())){
+            outsourcePool.setCompanyCode(user.getCompanyCode());
+        }
         outsourcePoolList.add(outsourcePool);
     }
 
