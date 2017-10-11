@@ -1041,7 +1041,8 @@ public class CaseInfoController extends BaseController {
             }
             builder.and(QCaseInfo.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
             builder.and(QCaseInfo.caseInfo.department.code.startsWith(tokenUser.getDepartment().getCode()));
-            builder.and(QCaseInfo.caseInfo.collectionStatus.in(status));
+            builder.andAnyOf(QCaseInfo.caseInfo.collectionStatus.in(status),QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue())
+                                .and(QCaseInfo.caseInfo.department.isNotNull()));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(page);
         } catch (Exception e) {
