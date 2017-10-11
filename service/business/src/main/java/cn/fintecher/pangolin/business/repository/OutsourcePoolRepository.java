@@ -120,14 +120,14 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
      * @param
      * @return
      */
-    @Query(value = "select a.out_id,b.outs_code,b.outs_name,COUNT(*) as sumNum,count(case when a.out_status = 170 then 1 end) as endNum,SUM(a.contract_amt),\n" +
-            "SUM(case when a.out_status = 170 then a.out_back_amt else 0 end) as endcase_total_amount,count(case when a.out_status = 168 then 1 end),SUM(case when a.out_status = 168 then a.contract_amt else 0 end) from outsource_pool a \n" +
-            "LEFT JOIN outsource b on a.out_id=b.id AND b.company_code=:companyCode GROUP BY a.out_id", nativeQuery = true)
-    Object[] getOutDistributeInfo(@Param("companyCode") String companyCode);
+    @Query(value = "select b.outs_name,b.outs_code,count(case when a.out_status<>167 then a.id end) as case_count,count( case when  a.out_status=170 then a.id end) as end_count," +
+           "(count( case when  a.out_status=170 then a.id end)/count(case when a.out_status <>167 then a.id end)) as success_rate,sum(case when a.out_status = 170 then a.contract_amt end) as end_amt,a.out_id from outsource_pool a,outsource b where a.out_id=b.id and a.company_code = :companyCode group by out_id ", nativeQuery = true)
+    Object[] getAllOutSourceByCase(@Param("companyCode") String companyCode);
 
+    @Query(value = "SELECT count(*) FROM `outsource_pool` where out_status=168 and out_id= :outsourceId", nativeQuery = true)
+    Integer getOutsourceCaseCount(@Param("outsourceId") String outsouceId);
 
-//    @Query(value = "select b.outs_name,b.outs_code,count(case when a.out_status<>167 then a.id end) as case_count,count( case when  a.out_status=170 then a.id end) as end_count," +
-//            "(count( case when  a.out_status=170 then a.id end)/count(case when a.out_status<>167 then a.id end)) as success_rate,sum(case when a.out_status <>167 then a.contract_amt end) as overdue_amt,a.out_id from outsource_pool a,outsource b where a.out_id=b.id and out_id is not null and out_id in (:outsourId) group by out_id ", nativeQuery = true)
-//    Object[] getAllOutSourceByCase(@Param("outsourId") Set<String> outsourId);
+    @Query(value = "SELECT sum(contract_amt) FROM `outsource_pool` where out_status=168 and out_id= :outsourceId", nativeQuery = true)
+    BigDecimal getOutsourceAmtCount(@Param("outsourceId") String outsouceId);
 
 }

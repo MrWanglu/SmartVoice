@@ -7,6 +7,6 @@ import lombok.Data;
  */
 @Data
 public class OutDistributeParam {
-    private String outId; //委外案件id
+    private String outId; //委外方的Id
     private Integer distributionCount;//分配数量
 }
