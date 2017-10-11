@@ -281,9 +281,9 @@ public class CaseInfoController extends BaseController {
         }
     }
 
-    @PostMapping(value = "/distributeCeaseInfo")
+    @PostMapping(value = "/distributeCaseInfo")
     @ApiOperation(value = "内催待分配案件分配", notes = "内催待分配案件分配")
-    public ResponseEntity distributeCeaseInfo(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
+    public ResponseEntity distributeCaseInfo(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to distributeCeaseInfo");
         User user = null;
