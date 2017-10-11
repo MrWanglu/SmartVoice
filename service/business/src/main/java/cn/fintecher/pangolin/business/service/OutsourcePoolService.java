@@ -107,19 +107,22 @@ public class OutsourcePoolService {
             if(Objects.equals(rule, 0)){
                 alreadyCaseNum = alreadyCaseNum + 1;
             } else {
-                //需要分配的案件数据
-                Integer disNumber = disNumList.get(i);
-                for (int j = 0; j < disNumber; j++) {
-                    //检查输入的案件数量是否和选择的案件数量一致
-                    String caseId = caseInfoYes.get(alreadyCaseNum).getId();
-                    OutsourcePool outsourcePool = outsourcePoolRepository.findOne(QOutsourcePool.outsourcePool.caseInfo.id.eq(caseId));
-                    CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
-                    if(Objects.nonNull(outsourcePool) && Objects.nonNull(caseInfo)){
-                        BigDecimal amount = caseInfo.getOverdueAmount().subtract(caseInfo.getHasPayAmount()); //案件需要委外的金额
-                        outDistributeInfo.setCaseDistributeMoneyCount(outDistributeInfo.getCaseDistributeMoneyCount().add(amount));
+                if(Objects.nonNull(disNumList)){
+                    //需要分配的案件数据
+                    Integer disNumber = disNumList.get(i);
+                    for (int j = 0; j < disNumber; j++) {
+                        //检查输入的案件数量是否和选择的案件数量一致
+                        String caseId = caseInfoYes.get(alreadyCaseNum).getId();
+                        OutsourcePool outsourcePool = outsourcePoolRepository.findOne(QOutsourcePool.outsourcePool.caseInfo.id.eq(caseId));
+                        CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+                        if(Objects.nonNull(outsourcePool) && Objects.nonNull(caseInfo)){
+                            BigDecimal amount = caseInfo.getOverdueAmount().subtract(caseInfo.getHasPayAmount()); //案件需要委外的金额
+                            outDistributeInfo.setCaseDistributeMoneyCount(outDistributeInfo.getCaseDistributeMoneyCount().add(amount));
+                        }
+                        alreadyCaseNum = alreadyCaseNum + 1;
                     }
-                    alreadyCaseNum = alreadyCaseNum + 1;
                 }
+
             }
             outDistributeInfo.setCaseTotalCount(outDistributeInfo.getCollectionCount()+outDistributeInfo.getCaseDistributeCount());
             outDistributeInfo.setCaseMoneyTotalCount(outDistributeInfo.getCollectionAmt().add(outDistributeInfo.getCaseDistributeMoneyCount()));
