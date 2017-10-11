@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -275,18 +274,20 @@ public class OutsourceController extends BaseController {
                 outIds.add(outsource.getId());
             }
             List<OutDistributeInfo> outDistributeInfos = new ArrayList<>();
-            Object[] objects = outsourcePoolRepository.getAllOutSourceByCase(outIds);
-            for (int i = 0; i < objects.length; i++) {
-                Object[] object1 = (Object[]) objects[i];
-                if (Objects.nonNull(object1[1])) {
-                    OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
-                    outDistributeInfo.setOutName(Objects.isNull(object1[0]) ? null : object1[0].toString());
-                    outDistributeInfo.setOutCode(Objects.isNull(object1[1]) ? null : object1[1].toString());
-                    outDistributeInfo.setCaseCount(Objects.isNull(object1[2]) ? null : Integer.parseInt(object1[2].toString()));
-                    outDistributeInfo.setEndCount(Objects.isNull(object1[3]) ? null : Integer.parseInt(object1[3].toString()));
-                    outDistributeInfo.setSuccessRate(Objects.isNull(object1[4]) ? null : BigDecimal.valueOf(Double.valueOf(object1[4].toString())));
-                    outDistributeInfo.setCaseAmt(Objects.isNull(object1[5]) ? null : BigDecimal.valueOf(Double.valueOf(object1[5].toString())));
-                    outDistributeInfos.add(outDistributeInfo);
+            if (!outIds.isEmpty()) {
+                Object[] objects = outsourcePoolRepository.getAllOutSourceByCase(outIds);
+                for (int i = 0; i < objects.length; i++) {
+                    Object[] object1 = (Object[]) objects[i];
+                    if (Objects.nonNull(object1[1])) {
+                        OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
+                        outDistributeInfo.setOutName(Objects.isNull(object1[0]) ? null : object1[0].toString());
+                        outDistributeInfo.setOutCode(Objects.isNull(object1[1]) ? null : object1[1].toString());
+                        outDistributeInfo.setCaseCount(Objects.isNull(object1[2]) ? null : Integer.parseInt(object1[2].toString()));
+                        outDistributeInfo.setEndCount(Objects.isNull(object1[3]) ? null : Integer.parseInt(object1[3].toString()));
+                        outDistributeInfo.setSuccessRate(Objects.isNull(object1[4]) ? null : BigDecimal.valueOf(Double.valueOf(object1[4].toString())));
+                        outDistributeInfo.setCaseAmt(Objects.isNull(object1[5]) ? null : BigDecimal.valueOf(Double.valueOf(object1[5].toString())));
+                        outDistributeInfos.add(outDistributeInfo);
+                    }
                 }
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(outDistributeInfos);
