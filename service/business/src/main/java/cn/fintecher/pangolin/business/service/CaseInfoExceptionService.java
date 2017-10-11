@@ -117,32 +117,51 @@ public class CaseInfoExceptionService {
     }
 
     /**
-     * 更新已分配异常案件
+     * 更新异常案件
      */
-    public CaseInfo updateCaseInfoException(String caseInfoExceptionId, String caseId, User user, ItemsModel itemsModel) {
+    public List<CaseInfo> updateCaseInfoException(String caseInfoExceptionId, List<String> caseInfoIds, User user) {
+        List<CaseInfoFile> caseInfoFileList = findCaseInfoFileById(caseInfoExceptionId);
         CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseInfoExceptionId);
-        CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
-        Personal personal = caseInfo.getPersonalInfo();
-        if (!itemsModel.getPersonalItems().isEmpty()) {
-            personal = updateAssignPersonal(itemsModel.getPersonalItems(), personal, caseInfoException, user);
+        List<CaseInfo> caseInfoList = new ArrayList<>();
+        for(String caseInfoId : caseInfoIds){
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseInfoId);
+            addCaseInfo(caseInfo, caseInfoException, user);
+            caseInfoRepository.save(caseInfo);
+            //附件信息
+            saveCaseFile(caseInfoFileList, caseInfo.getId(), caseInfo.getCaseNumber());
+            caseInfoExceptionRepository.delete(caseInfoException);
+            caseInfoList.add(caseInfo);
         }
-        if (!itemsModel.getJobItems().isEmpty()) {
-            updateJob(itemsModel.getJobItems(), personal, caseInfoException, user);
-        }
-        if (!itemsModel.getConnectItems().isEmpty()) {
-            addContract(caseInfoException, user, personal);
-        }
-        if (!itemsModel.getCaseItems().isEmpty()) {
-            caseInfo = updateCase(itemsModel.getCaseItems(), caseInfo, caseInfoException, user);
-        }
-        if (!itemsModel.getBankItems().isEmpty()) {
-            updateBank(itemsModel.getBankItems(), personal, caseInfoException, user);
-        }
-        caseInfo.setPersonalInfo(personal);
-        caseInfoRepository.save(caseInfo);
-        caseInfoExceptionRepository.delete(caseInfoException);
-        return caseInfo;
+        return caseInfoList;
     }
+
+//    /**
+//     * 更新已分配异常案件
+//     */
+//    public CaseInfo updateCaseInfoException(String caseInfoExceptionId, String caseId, User user, ItemsModel itemsModel) {
+//        CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseInfoExceptionId);
+//        CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+//        Personal personal = caseInfo.getPersonalInfo();
+//        if (!itemsModel.getPersonalItems().isEmpty()) {
+//            personal = updateAssignPersonal(itemsModel.getPersonalItems(), personal, caseInfoException, user);
+//        }
+//        if (!itemsModel.getJobItems().isEmpty()) {
+//            updateJob(itemsModel.getJobItems(), personal, caseInfoException, user);
+//        }
+//        if (!itemsModel.getConnectItems().isEmpty()) {
+//            addContract(caseInfoException, user, personal);
+//        }
+//        if (!itemsModel.getCaseItems().isEmpty()) {
+//            caseInfo = updateCase(itemsModel.getCaseItems(), caseInfo, caseInfoException, user);
+//        }
+//        if (!itemsModel.getBankItems().isEmpty()) {
+//            updateBank(itemsModel.getBankItems(), personal, caseInfoException, user);
+//        }
+//        caseInfo.setPersonalInfo(personal);
+//        caseInfoRepository.save(caseInfo);
+//        caseInfoExceptionRepository.delete(caseInfoException);
+//        return caseInfo;
+//    }
 
     /**
      * 更新待分配异常案件

@@ -117,6 +117,30 @@ public class CaseInfoExceptionController extends BaseController {
     }
 
     /**
+     * 更新案件
+     *
+     * @param caseUpdateParams
+     * @param token
+     * @return
+     * @throws URISyntaxException
+     */
+    @PostMapping("/updateCaseInfoException")
+    @ApiOperation(value = "更新案件", notes = "更新案件")
+    public ResponseEntity<CaseInfo> updateCaseInfoException(@RequestBody CaseUpdateParams caseUpdateParams,
+                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
+        log.debug("REST request to update CaseInfo");
+        CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseUpdateParams.getCaseInfoExceptionId());
+        if (Objects.isNull(caseInfoException)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Exception Case", "异常案件已经被更新")).body(null);
+        }
+        List<CaseInfo> caseInfoList = caseInfoExceptionService.updateCaseInfoException(caseUpdateParams.getCaseInfoExceptionId(), caseUpdateParams.getCaseInfoIds(), getUserByToken(token));
+        if (caseInfoList.isEmpty()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseNotFound", "不存在相同案件，无法更新")).body(null);
+        }
+        return ResponseEntity.ok().body(null);
+    }
+
+    /**
      * 删除异常池案件
      *
      * @param caseInfoExceptionId
@@ -174,48 +198,48 @@ public class CaseInfoExceptionController extends BaseController {
         }
     }
 
-    @PostMapping("/updateCaseInfoException")
-    @ApiOperation(value = "更新案件", notes = "更新案件")
-    public ResponseEntity<CaseInfo> updateCaseInfoException(@RequestBody CaseUpdateParams caseUpdateParams,
-                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
-        try {
-            log.debug("REST request to update CaseInfo");
-            User user = getUserByToken(token);
-            ItemsModel itemsModel = exportItemService.getExportItems(user, ExportItem.Category.CASEUPDATE.getValue());
-            if (itemsModel.getPersonalItems().isEmpty() && itemsModel.getJobItems().isEmpty() && itemsModel.getConnectItems().isEmpty()
-                    && itemsModel.getCaseItems().isEmpty() && itemsModel.getBankItems().isEmpty() && itemsModel.getFollowItems().isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先设置导出项")).body(null);
-            }
-            CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseUpdateParams.getCaseInfoExceptionId());
-            if (Objects.isNull(caseInfoException)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Exception Case", "异常案件已经被更新")).body(null);
-            }
-            String assigned = caseInfoException.getAssignedRepeat();
-            assigned = assigned.substring(1, assigned.length() - 1);
-            String[] assigneds = assigned.split(",");
-            List<String> assignedList = Arrays.asList(assigneds);
-            String distribute = caseInfoException.getDistributeRepeat();
-            distribute = distribute.substring(1, distribute.length() - 1);
-            String[] distributes = distribute.split(",");
-            List<String> distributeList = Arrays.asList(distributes);
-            for (String id : caseUpdateParams.getCaseInfoIds()) {
-                if (assignedList.contains(id)) {
-                    CaseInfo caseInfo = caseInfoExceptionService.updateCaseInfoException(caseUpdateParams.getCaseInfoExceptionId(), id, user, itemsModel);
-                    if (Objects.isNull(caseInfo)) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "不存在相同案件，无法更新")).body(null);
-                    }
-                } else if (distributeList.contains(id)) {
-                    CaseInfoDistributed caseInfoDistributed = caseInfoExceptionService.updateCaseDistributeException(caseUpdateParams.getCaseInfoExceptionId(), id, user, itemsModel);
-                    if (Objects.isNull(caseInfoDistributed)) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "不存在相同案件，无法更新")).body(null);
-                    }
-                }
-            }
-            return ResponseEntity.ok().body(null);
-        }catch (Exception e){
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "更新失败")).body(null);
-        }
-    }
+//    @PostMapping("/updateCaseInfoException")
+//    @ApiOperation(value = "更新案件", notes = "更新案件")
+//    public ResponseEntity<CaseInfo> updateCaseInfoException(@RequestBody CaseUpdateParams caseUpdateParams,
+//                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
+//        try {
+//            log.debug("REST request to update CaseInfo");
+//            User user = getUserByToken(token);
+//            ItemsModel itemsModel = exportItemService.getExportItems(user, ExportItem.Category.CASEUPDATE.getValue());
+//            if (itemsModel.getPersonalItems().isEmpty() && itemsModel.getJobItems().isEmpty() && itemsModel.getConnectItems().isEmpty()
+//                    && itemsModel.getCaseItems().isEmpty() && itemsModel.getBankItems().isEmpty() && itemsModel.getFollowItems().isEmpty()) {
+//                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先设置导出项")).body(null);
+//            }
+//            CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseUpdateParams.getCaseInfoExceptionId());
+//            if (Objects.isNull(caseInfoException)) {
+//                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Exception Case", "异常案件已经被更新")).body(null);
+//            }
+//            String assigned = caseInfoException.getAssignedRepeat();
+//            assigned = assigned.substring(1, assigned.length() - 1);
+//            String[] assigneds = assigned.split(",");
+//            List<String> assignedList = Arrays.asList(assigneds);
+//            String distribute = caseInfoException.getDistributeRepeat();
+//            distribute = distribute.substring(1, distribute.length() - 1);
+//            String[] distributes = distribute.split(",");
+//            List<String> distributeList = Arrays.asList(distributes);
+//            for (String id : caseUpdateParams.getCaseInfoIds()) {
+//                if (assignedList.contains(id)) {
+//                    CaseInfo caseInfo = caseInfoExceptionService.updateCaseInfoException(caseUpdateParams.getCaseInfoExceptionId(), id, user, itemsModel);
+//                    if (Objects.isNull(caseInfo)) {
+//                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "不存在相同案件，无法更新")).body(null);
+//                    }
+//                } else if (distributeList.contains(id)) {
+//                    CaseInfoDistributed caseInfoDistributed = caseInfoExceptionService.updateCaseDistributeException(caseUpdateParams.getCaseInfoExceptionId(), id, user, itemsModel);
+//                    if (Objects.isNull(caseInfoDistributed)) {
+//                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "不存在相同案件，无法更新")).body(null);
+//                    }
+//                }
+//            }
+//            return ResponseEntity.ok().body(null);
+//        }catch (Exception e){
+//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "更新失败")).body(null);
+//        }
+//    }
 
     /**
      * 获取所有重复案件
