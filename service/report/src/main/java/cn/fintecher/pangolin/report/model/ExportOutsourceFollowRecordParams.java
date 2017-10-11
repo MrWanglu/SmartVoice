@@ -19,8 +19,8 @@ public class ExportOutsourceFollowRecordParams {
     private Integer type;
     @ApiModelProperty(notes = "选择的批次号集合")
     private List<String> batchNumberList;
-    @ApiModelProperty(notes = "选择的案件编号")
-    private String caseNumber;
+    @ApiModelProperty(notes = "选择的案件编号集合")
+    private List<String> caseNumberList;
     @ApiModelProperty(notes = "导出项集合")
     private List<String> exportItemList;
     @ApiModelProperty(notes = "客户姓名")

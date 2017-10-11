@@ -442,7 +442,7 @@ public class CaseInfoDistributedService {
             List<CaseInfoDistributed> checkedList = new ArrayList<>(); // 策略匹配到的案件
             KieSession kieSession = null;
             try {
-                kieSession = runCaseStrategyService.runCaseRun(checkedList, caseStrategy);
+                kieSession = runCaseStrategyService.runCaseRule(checkedList, caseStrategy,Constants.CASE_INFO_DISTRIBUTE_RULE);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 throw new RuntimeException(e.getMessage());
@@ -484,64 +484,16 @@ public class CaseInfoDistributedService {
         model.setIds(ids);
     }
 
-
-
-    public List<?> previewResult(String jsonString, Integer type) {
+    public CaseStrategy previewResult(String jsonString) {
         StringBuilder sb = new StringBuilder();
-        String jsonText = null;
         try {
-            jsonText = runCaseStrategyService.analysisRule(jsonString, sb);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
-        try {
+            String jsonText = runCaseStrategyService.analysisRule(jsonString, sb);
             CaseStrategy caseStrategy = new CaseStrategy();
             caseStrategy.setId(UUID.randomUUID().toString());
             caseStrategy.setStrategyText(jsonText);
-            if (Objects.equals(type, CaseStrategy.StrategyType.IMPORT.getValue())) {// 案件导入策略分配
-                List<CaseInfoDistributed> checkList = new ArrayList<>();
-                List<CaseInfoDistributed> all = caseInfoDistributedRepository.findAll();
-                KieSession kieSession = runCaseStrategyService.runCaseRun(checkList, caseStrategy);
-                for (CaseInfoDistributed caseInfoDistributed : all) {
-                    kieSession.insert(caseInfoDistributed);//插入
-                    kieSession.fireAllRules();//执行规则
-                }
-                kieSession.dispose();
-                return checkList;
-            } else if (Objects.equals(type, CaseStrategy.StrategyType.INNER.getValue())) {// 内催策略分配
-                List<CaseInfoDistributed> checkList = new ArrayList<>();
-                QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-                Iterable<CaseInfo> all = caseInfoRepository.findAll(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue())
-                        .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())));
-                Iterator<CaseInfo> iterator = all.iterator();
-                KieSession kieSession = runCaseStrategyService.runCaseRun(checkList, caseStrategy);
-                while (iterator.hasNext()) {
-                    CaseInfo next = iterator.next();
-                    kieSession.insert(next);
-                    kieSession.fireAllRules();
-                }
-                kieSession.dispose();
-                return checkList;
-            } else if (Objects.equals(type, CaseStrategy.StrategyType.OUTS.getValue())) {// 委外策略分配
-                List<OutsourcePool> checkList = new ArrayList<>();
-                QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
-                Iterable<OutsourcePool> all = outsourcePoolRepository.findAll(qOutsourcePool.outStatus.ne(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode()) // 委外见排除
-                        .and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())));// 未回收
-                Iterator<OutsourcePool> iterator = all.iterator();
-                KieSession kieSession = runCaseStrategyService.runCaseRun(checkList, caseStrategy);
-                while (iterator.hasNext()) {
-                    OutsourcePool outsourcePool = iterator.next();
-                    kieSession.insert(outsourcePool);
-                    kieSession.fireAllRules();
-                }
-                kieSession.dispose();
-                return checkList;
-            } else {
-                throw new RuntimeException("预览失败");
-            }
+            return caseStrategy;
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException("预览失败");
+            throw new RuntimeException("策略解析失败!");
         }
     }
 }
