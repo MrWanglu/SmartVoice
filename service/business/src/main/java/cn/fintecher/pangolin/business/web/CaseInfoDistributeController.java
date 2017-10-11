@@ -336,12 +336,24 @@ public class CaseInfoDistributeController extends BaseController {
                 List<CaseInfoDistributed> checkList = new ArrayList<>();
                 QCaseInfoDistributed qCaseInfoDistributed = QCaseInfoDistributed.caseInfoDistributed;
                 BooleanBuilder builder = new BooleanBuilder();
-                builder.and(qCaseInfoDistributed.personalInfo.name.like(personalName));
-                builder.and(qCaseInfoDistributed.personalInfo.mobileNo.eq(phone));
-                builder.and(qCaseInfoDistributed.personalInfo.idCard.eq(idCard));
-                builder.and(qCaseInfoDistributed.batchNumber.eq(batchNumber));
-                builder.and(qCaseInfoDistributed.overdueAmount.gt(startAmount));
-                builder.and(qCaseInfoDistributed.overdueAmount.lt(endAmount));
+                if (StringUtils.isNotBlank(personalName)) {
+                    builder.and(qCaseInfoDistributed.personalInfo.name.like(personalName));
+                }
+                if (StringUtils.isNotBlank(phone)) {
+                    builder.and(qCaseInfoDistributed.personalInfo.mobileNo.eq(phone));
+                }
+                if (StringUtils.isNotBlank(idCard)) {
+                    builder.and(qCaseInfoDistributed.personalInfo.idCard.eq(idCard));
+                }
+                if (StringUtils.isNotBlank(batchNumber)) {
+                    builder.and(qCaseInfoDistributed.batchNumber.eq(batchNumber));
+                }
+                if (Objects.nonNull(startAmount)) {
+                    builder.and(qCaseInfoDistributed.overdueAmount.gt(startAmount));
+                }
+                if (Objects.nonNull(startAmount)) {
+                    builder.and(qCaseInfoDistributed.overdueAmount.lt(endAmount));
+                }
                 Iterable<CaseInfoDistributed> iterable = caseInfoDistributedRepository.findAll(builder);
                 Iterator<CaseInfoDistributed> iterator = iterable.iterator();
                 KieSession kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_DISTRIBUTE_RULE);
@@ -368,12 +380,24 @@ public class CaseInfoDistributeController extends BaseController {
                 BooleanBuilder builder = new BooleanBuilder();
                 builder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
                 builder.and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
-                builder.and(qCaseInfo.personalInfo.name.like(personalName));
-                builder.and(qCaseInfo.personalInfo.mobileNo.eq(phone));
-                builder.and(qCaseInfo.personalInfo.idCard.eq(idCard));
-                builder.and(qCaseInfo.batchNumber.eq(batchNumber));
-                builder.and(qCaseInfo.overdueAmount.gt(startAmount));
-                builder.and(qCaseInfo.overdueAmount.lt(endAmount));
+                if (StringUtils.isNotBlank(personalName)) {
+                    builder.and(qCaseInfo.personalInfo.name.like(personalName));
+                }
+                if (StringUtils.isNotBlank(phone)) {
+                    builder.and(qCaseInfo.personalInfo.mobileNo.eq(phone));
+                }
+                if (StringUtils.isNotBlank(idCard)) {
+                    builder.and(qCaseInfo.personalInfo.idCard.eq(idCard));
+                }
+                if (StringUtils.isNotBlank(batchNumber)) {
+                    builder.and(qCaseInfo.batchNumber.eq(batchNumber));
+                }
+                if (Objects.nonNull(startAmount)) {
+                    builder.and(qCaseInfo.overdueAmount.gt(startAmount));
+                }
+                if (Objects.nonNull(startAmount)) {
+                    builder.and(qCaseInfo.overdueAmount.lt(endAmount));
+                }
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 Iterator<CaseInfo> iterator = all.iterator();
                 KieSession kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_RULE);
@@ -399,12 +423,24 @@ public class CaseInfoDistributeController extends BaseController {
                 List<OutsourcePool> checkList = new ArrayList<>();
                 QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
                 BooleanBuilder builder = new BooleanBuilder();
-                builder.and(qOutsourcePool.caseInfo.personalInfo.name.like(personalName));
-                builder.and(qOutsourcePool.caseInfo.personalInfo.mobileNo.eq(phone));
-                builder.and(qOutsourcePool.caseInfo.personalInfo.idCard.eq(idCard));
-                builder.and(qOutsourcePool.caseInfo.batchNumber.eq(batchNumber));
-                builder.and(qOutsourcePool.caseInfo.overdueAmount.gt(startAmount));
-                builder.and(qOutsourcePool.caseInfo.overdueAmount.lt(endAmount));
+                if (StringUtils.isNotBlank(personalName)) {
+                    builder.and(qOutsourcePool.caseInfo.personalInfo.name.like(personalName));
+                }
+                if (StringUtils.isNotBlank(phone)) {
+                    builder.and(qOutsourcePool.caseInfo.personalInfo.mobileNo.eq(phone));
+                }
+                if (StringUtils.isNotBlank(idCard)) {
+                    builder.and(qOutsourcePool.caseInfo.personalInfo.idCard.eq(idCard));
+                }
+                if (StringUtils.isNotBlank(batchNumber)) {
+                    builder.and(qOutsourcePool.caseInfo.batchNumber.eq(batchNumber));
+                }
+                if (Objects.nonNull(startAmount)) {
+                    builder.and(qOutsourcePool.caseInfo.overdueAmount.gt(startAmount));
+                }
+                if (Objects.nonNull(startAmount)) {
+                    builder.and(qOutsourcePool.caseInfo.overdueAmount.lt(endAmount));
+                }
                 Iterable<OutsourcePool> all = outsourcePoolRepository.findAll(qOutsourcePool.outStatus.ne(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode()) // 委外见排除
                         .and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())));// 未回收
                 Iterator<OutsourcePool> iterator = all.iterator();
