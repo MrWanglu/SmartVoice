@@ -241,14 +241,32 @@ public class CaseInfoExceptionController extends BaseController {
 //        }
 //    }
 
+    @GetMapping("/findRepeatCaseInfo")
+    @ApiOperation(value = "获取重复案件", notes = "获取重复案件")
+    public ResponseEntity<Page<CaseInfo>> findRepeatCaseInfo(@QuerydslPredicate(root = CaseInfoException.class) Predicate predicate,
+                                                                       @ApiIgnore Pageable pageable,
+                                                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                                       @RequestParam(value = "caseInfoExceptionId", required = true) @ApiParam("异常案件ID") String caseInfoExceptionId) {
+        try {
+            CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseInfoExceptionId);
+            String assigned = caseInfoException.getAssignedRepeat();
+            assigned = assigned.substring(1, assigned.length() - 1);
+            String[] assigneds = assigned.split(",");
+            Page<CaseInfo> page = caseInfoRepository.findAll(QCaseInfo.caseInfo.id.in(assigneds),pageable);
+            return ResponseEntity.ok().body(page);
+        }catch(Exception e){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
+        }
+    }
+
     /**
      * 获取所有重复案件
      *
      * @return CaseInfoExceptionList
      */
-    @GetMapping("/findAllRepeatCaseInfoRepeat")
+    @GetMapping("/findAllRepeatCaseInfo")
     @ApiOperation(value = "获取所有重复案件", notes = "获取所有重复案件")
-    public ResponseEntity<Page<RepeatCaseModel>> findAllRepeatCaseInfoRepeat(@QuerydslPredicate(root = CaseInfoException.class) Predicate predicate,
+    public ResponseEntity<Page<RepeatCaseModel>> findAllRepeatCaseInfo(@QuerydslPredicate(root = CaseInfoException.class) Predicate predicate,
                                                                                @ApiIgnore Pageable pageable,
                                                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
                                                                                @RequestParam(value = "caseInfoExceptionId", required = true) @ApiParam("异常案件ID") String caseInfoExceptionId,
