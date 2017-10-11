@@ -282,10 +282,10 @@ public class OutsourceController extends BaseController {
             if (!outIds.isEmpty()) {
                 StringBuilder query = new StringBuilder("select b.outs_name,b.outs_code,count(case when a.out_status<>167 then a.id end) as case_count," +
                         "count( case when  a.out_status=170 then a.id end) as end_count,(count( case when  a.out_status=170 then a.id end)/count(case when a.out_status<>167 then a.id end)) as success_rate," +
-                        "sum(case when a.out_status <>167 then a.contract_amt end) as overdue_amt,a.out_id from outsource_pool a,outsource b where a.out_id=b.id and out_id is not null and out_id in (");
+                        "sum(case when a.out_status <>167 then a.contract_amt end) as overdue_amt,a.out_id from outsource_pool a,outsource b where a.out_id=b.id and out_id is not null and out_id in ('");
                 for (int i = 0; i < outIds.size(); i++) {
                     if (i < outIds.size() - 1) {
-                        query.append(outIds.toArray()[i]).append("',");
+                        query.append(outIds.toArray()[i]).append("','");
                     } else {
                         query.append(outIds.toArray()[i]).append("')");
                     }
