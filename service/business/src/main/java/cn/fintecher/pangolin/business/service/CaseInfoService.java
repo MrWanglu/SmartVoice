@@ -1630,7 +1630,7 @@ public class CaseInfoService {
             if (Objects.equals(rule, 1)) {
                 caseInfoInnerDistributeModel.setCaseDistributeCount(disNumList.get(i));
             }
-            if(Objects.equals(accCaseInfoDisModel.getDisType(),0)){
+            if (Objects.equals(accCaseInfoDisModel.getDisType(), 0)) {
                 caseInfoInnerDistributeModel.setCaseDistributeCount(caseInfoYes.size());
             }
             Department department = null;
@@ -2477,4 +2477,18 @@ public class CaseInfoService {
         }
     }
 
+    /**
+     * @Description 计算公债案件数量
+     */
+    public Integer getCommonCaseCount(String caseId) {
+        CaseInfo caseInfo = caseInfoRepository.findOne(caseId); //获取案件信息
+        if (Objects.isNull(caseInfo)) {
+            throw new RuntimeException("该案件未找到");
+        }
+        QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+        //计算共债案件数量
+        long count = caseInfoRepository.count(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard()).
+                and(qCaseInfo.personalInfo.name.eq(caseInfo.getPersonalInfo().getName())));
+        return (int) count - 1;
+    }
 }

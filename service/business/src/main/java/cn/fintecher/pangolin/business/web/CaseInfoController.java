@@ -284,7 +284,7 @@ public class CaseInfoController extends BaseController {
     @PostMapping(value = "/distributeCaseInfo")
     @ApiOperation(value = "内催待分配案件分配", notes = "内催待分配案件分配")
     public ResponseEntity distributeCaseInfo(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
-                                              @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                             @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to distributeCeaseInfo");
         User user = null;
         try {
@@ -1226,6 +1226,21 @@ public class CaseInfoController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "分配失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 查询公债案件数量
+     */
+    @GetMapping("/getCommonCaseCount")
+    @ApiOperation(value = "查询公债案件数量", notes = "查询公债案件数量")
+    public ResponseEntity<Integer> getCommonCaseCount(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+        try {
+            Integer count = caseInfoService.getCommonCaseCount(caseId);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(count);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", e.getMessage())).body(null);
         }
     }
 }
