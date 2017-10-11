@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -579,7 +580,7 @@ public class AccVisitPoolController extends BaseController {
             }
             builder.and(qCaseAdvanceTurnApplay.collectionType.eq(1)); //外访
             if (Objects.nonNull(custName)) {
-                builder.and(qCaseAdvanceTurnApplay.personalName.like(custName.concat("%")));
+                builder.and(qCaseAdvanceTurnApplay.personalName.like("%".concat(StringUtils.trim(custName)).concat("%")));
             }
             if (Objects.nonNull(approveState)) {
                 builder.and(qCaseAdvanceTurnApplay.approveResult.eq(approveState));
@@ -669,7 +670,7 @@ public class AccVisitPoolController extends BaseController {
      * @Description 多条件查询外访待催收案件
      */
     @GetMapping("/getVisitWaitCollection")
-    @ApiOperation(value = "多条件查询外访待催收案件",notes = "多条件查询外访待催收案件")
+    @ApiOperation(value = "多条件查询外访待催收案件", notes = "多条件查询外访待催收案件")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
                     value = "页数 (0..N)"),
@@ -689,14 +690,14 @@ public class AccVisitPoolController extends BaseController {
         Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
         Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
         Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
-        try{
+        try {
             user = getUserByToken(token);
             BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
             if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
                 if (Objects.nonNull(companyCode)) {
                     booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-            }else {
+            } else {
                 booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
             }
             if (Objects.equals(user.getManager(), 1)) {
@@ -721,8 +722,8 @@ public class AccVisitPoolController extends BaseController {
             pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
             Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "accVisitPoolController")).body(page);
-        }catch (Exception e) {
-            log.error(e.getMessage(),e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfo", "caseInfo", "查询失败")).body(null);
         }
     }
@@ -731,7 +732,7 @@ public class AccVisitPoolController extends BaseController {
      * @Description 多条件查询外访催收中案件
      */
     @GetMapping("/getVisitCollectioning")
-    @ApiOperation(value = "多条件查询外访催收中或还款审核中案件",notes = "多条件查询外访催收中或还款审核中案件")
+    @ApiOperation(value = "多条件查询外访催收中或还款审核中案件", notes = "多条件查询外访催收中或还款审核中案件")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
                     value = "页数 (0..N)"),
@@ -741,10 +742,10 @@ public class AccVisitPoolController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity getVisitCollectioning(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                                        @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
-                                                        @ApiIgnore Pageable pageable,
-                                                        @RequestHeader(value = "X-UserToken") String token,
-                                                        @RequestParam(required = false) @ApiParam(value = "案件状态") String status) {
+                                                @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                @ApiIgnore Pageable pageable,
+                                                @RequestHeader(value = "X-UserToken") String token,
+                                                @RequestParam(required = false) @ApiParam(value = "案件状态") String status) {
         Sort.Order followupBackOrder1 = new Sort.Order(Sort.Direction.ASC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
         Sort.Order followupBackOrder2 = new Sort.Order(Sort.Direction.DESC, "followupBack", Sort.NullHandling.NULLS_LAST); //催收反馈默认排序
         Sort.Order followupTime1 = new Sort.Order(Sort.Direction.ASC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间正序
@@ -752,7 +753,7 @@ public class AccVisitPoolController extends BaseController {
         Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
         Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
         User user;
-        try{
+        try {
             if (Objects.isNull(status)) {
                 Page<CaseInfo> page = new PageImpl<>(new ArrayList<>(), pageable, 0);
                 HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getAllTelCollecting");
@@ -771,7 +772,7 @@ public class AccVisitPoolController extends BaseController {
                 if (Objects.nonNull(companyCode)) {
                     booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-            }else {
+            } else {
                 booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
             }
             if (Objects.equals(user.getManager(), 1)) {
@@ -796,8 +797,8 @@ public class AccVisitPoolController extends BaseController {
             pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
             Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "accVisitPoolController")).body(page);
-        }catch (Exception e) {
-            log.error(e.getMessage(),e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "accVisitPoolController", e.getMessage())).body(null);
         }
     }
@@ -806,7 +807,7 @@ public class AccVisitPoolController extends BaseController {
      * @Description 多条件查询外访待结案案件
      */
     @GetMapping("/getVisitRepaid")
-    @ApiOperation(value = "多条件查询外访待结案案件",notes = "多条件查询外访待结案案件")
+    @ApiOperation(value = "多条件查询外访待结案案件", notes = "多条件查询外访待结案案件")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
                     value = "页数 (0..N)"),
@@ -826,14 +827,14 @@ public class AccVisitPoolController extends BaseController {
         Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
         Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
         Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
-        try{
+        try {
             user = getUserByToken(token);
             BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
             if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
                 if (Objects.nonNull(companyCode)) {
                     booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-            }else {
+            } else {
                 booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
             }
             if (Objects.equals(user.getManager(), 1)) {
@@ -858,8 +859,8 @@ public class AccVisitPoolController extends BaseController {
             pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
             Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "accVisitPoolController")).body(page);
-        }catch (Exception e) {
-            log.error(e.getMessage(),e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "accVisitPoolController", e.getMessage())).body(null);
         }
     }
@@ -868,7 +869,7 @@ public class AccVisitPoolController extends BaseController {
      * @Description 多条件查询外访已结案案件
      */
     @GetMapping("/getVisitCaseOver")
-    @ApiOperation(value = "多条件查询外访已结案案件",notes = "多条件查询外访已结案案件")
+    @ApiOperation(value = "多条件查询外访已结案案件", notes = "多条件查询外访已结案案件")
 
     public ResponseEntity getVisitCaseOver(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                            @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
@@ -881,14 +882,14 @@ public class AccVisitPoolController extends BaseController {
         Sort.Order followupTime2 = new Sort.Order(Sort.Direction.DESC, "followupTime", Sort.NullHandling.NULLS_LAST); //跟进时间倒序
         Sort.Order color = new Sort.Order(Sort.Direction.DESC, "caseMark", Sort.NullHandling.NULLS_LAST); //案件打标
         Sort.Order personalName = new Sort.Order(Sort.Direction.ASC, "personalInfo.name"); //客户姓名正序
-        try{
+        try {
             user = getUserByToken(token);
             BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
             if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
                 if (Objects.nonNull(companyCode)) {
                     booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
                 }
-            }else {
+            } else {
                 booleanBuilder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
             }
             if (Objects.equals(user.getManager(), 1)) {
@@ -913,8 +914,8 @@ public class AccVisitPoolController extends BaseController {
             pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort().and(new Sort(color)).and(new Sort(personalName)));
             Page<CaseInfo> page = caseInfoRepository.findAll(booleanBuilder, pageable);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "accVisitPoolController")).body(page);
-        }catch (Exception e) {
-            log.error(e.getMessage(),e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "accVisitPoolController", e.getMessage())).body(null);
         }
     }
