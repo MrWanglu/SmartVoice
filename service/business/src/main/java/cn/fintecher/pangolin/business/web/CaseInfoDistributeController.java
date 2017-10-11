@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @Author: PeiShouWen
@@ -337,7 +338,7 @@ public class CaseInfoDistributeController extends BaseController {
                 QCaseInfoDistributed qCaseInfoDistributed = QCaseInfoDistributed.caseInfoDistributed;
                 BooleanBuilder builder = new BooleanBuilder();
                 if (StringUtils.isNotBlank(personalName)) {
-                    builder.and(qCaseInfoDistributed.personalInfo.name.like(personalName));
+                    builder.and(qCaseInfoDistributed.personalInfo.name.like("%" + personalName.trim() + "%"));
                 }
                 if (StringUtils.isNotBlank(phone)) {
                     builder.and(qCaseInfoDistributed.personalInfo.mobileNo.eq(phone));
@@ -381,7 +382,7 @@ public class CaseInfoDistributeController extends BaseController {
                 builder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
                 builder.and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
                 if (StringUtils.isNotBlank(personalName)) {
-                    builder.and(qCaseInfo.personalInfo.name.like(personalName));
+                    builder.and(qCaseInfo.personalInfo.name.like("%" + personalName.trim() + "%"));
                 }
                 if (StringUtils.isNotBlank(phone)) {
                     builder.and(qCaseInfo.personalInfo.mobileNo.eq(phone));
@@ -424,7 +425,7 @@ public class CaseInfoDistributeController extends BaseController {
                 QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
                 BooleanBuilder builder = new BooleanBuilder();
                 if (StringUtils.isNotBlank(personalName)) {
-                    builder.and(qOutsourcePool.caseInfo.personalInfo.name.like(personalName));
+                    builder.and(qOutsourcePool.caseInfo.personalInfo.name.like("%" + personalName.trim() + "%"));
                 }
                 if (StringUtils.isNotBlank(phone)) {
                     builder.and(qOutsourcePool.caseInfo.personalInfo.mobileNo.eq(phone));
@@ -467,7 +468,7 @@ public class CaseInfoDistributeController extends BaseController {
             } else {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择策略类型再预览")).body(null);
             }
-            Page<StrategyPreviewModel> page = new PageImpl<>(modelList, pageable, modelList.size());
+            Page<StrategyPreviewModel> page = new PageImpl<>(modelList.stream().skip(pageable.getPageNumber() * pageable.getPageSize()).limit(pageable.getPageSize()).collect(Collectors.toList()), pageable, modelList.size());
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
