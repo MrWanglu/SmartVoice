@@ -331,13 +331,6 @@ public class OutsourcePoolController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
             QCaseInfoReturn qCaseInfoReturn = QCaseInfoReturn.caseInfoReturn;
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoReturn", "", "")).body(null);
-                }
-            } else {
-                builder.and(qCaseInfoReturn.caseId.companyCode.eq(user.getCompanyCode())); //限制公司code码
-            }
             builder.and(qCaseInfoReturn.source.eq(CaseInfo.CasePoolType.OUTER.getValue())); //委外
             Page<CaseInfoReturn> page = caseInfoReturnRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/OutsourcePoolController/getReturnCaseByConditions");
