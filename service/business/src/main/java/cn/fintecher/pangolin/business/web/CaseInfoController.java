@@ -1129,7 +1129,7 @@ public class CaseInfoController extends BaseController {
             } else {
                 builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode())); //公司
             }
-            builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));
+            builder.and(qCaseInfo.department.isNull());
             builder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()));
             builder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
