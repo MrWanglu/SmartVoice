@@ -2480,7 +2480,7 @@ public class CaseInfoService {
     /**
      * @Description 计算共债案件数量
      */
-    public Integer getCommonCaseCount(String caseId) {
+    public CommonCaseCountModel getCommonCaseCount(String caseId) {
         CaseInfo caseInfo = caseInfoRepository.findOne(caseId); //获取案件信息
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
@@ -2490,6 +2490,8 @@ public class CaseInfoService {
         long count = caseInfoRepository.count(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard()).
                 and(qCaseInfo.personalInfo.name.eq(caseInfo.getPersonalInfo().getName())).
                 and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue(), CaseInfo.CollectionStatus.CASE_OUT.getValue()))); //不包括已结案和已委外的案件
-        return (int) count - 1;
+        CommonCaseCountModel commonCaseCountModel = new CommonCaseCountModel();
+        commonCaseCountModel.setCount((int) count - 1);
+        return commonCaseCountModel;
     }
 }

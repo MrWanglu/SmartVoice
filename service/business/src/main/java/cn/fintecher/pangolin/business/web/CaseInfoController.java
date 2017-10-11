@@ -1234,11 +1234,11 @@ public class CaseInfoController extends BaseController {
      */
     @GetMapping("/getCommonCaseCount")
     @ApiOperation(value = "查询共债案件数量", notes = "查询共债案件数量")
-    public ResponseEntity<Integer> getCommonCaseCount(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+    public ResponseEntity<CommonCaseCountModel> getCommonCaseCount(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
         log.debug("REST request to get common case count");
         try {
-            Integer count = caseInfoService.getCommonCaseCount(caseId);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(count);
+            CommonCaseCountModel commonCaseCountModel = caseInfoService.getCommonCaseCount(caseId);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(commonCaseCountModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", e.getMessage())).body(null);
