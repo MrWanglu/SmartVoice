@@ -13,6 +13,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -291,10 +292,10 @@ public class OutsourceController extends BaseController {
                     }
                 }
                 if (Objects.nonNull(outCode)) {
-                    query.append(" and b.outs_code = '").append(outCode).append("'");
+                    query.append(" and b.outs_code = '").append(StringUtils.trim(outCode)).append("'");
                 }
                 if (Objects.nonNull(outName)) {
-                    query.append(" and b.outs_name like '%").append(outName).append("%").append("'");
+                    query.append(" and b.outs_name like '%").append(StringUtils.trim(outName)).append("%").append("'");
                 }
                 query.append("group by out_id");
                 log.debug(query.toString());
