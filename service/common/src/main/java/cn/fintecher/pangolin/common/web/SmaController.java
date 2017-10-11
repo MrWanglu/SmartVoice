@@ -77,10 +77,10 @@ public class SmaController {
     private String agentPwd;
 
     // 汉天参数
-    @Value("${hantian-server.callengine}")
+    @Value("${pangolin.hantian-server.callengine}")
     private String callengine;
 
-    @Value("${hantian-server.token}")
+    @Value("${pangolin.hantian-server.token}")
     private String hantianToken;
 
     /**
