@@ -142,8 +142,7 @@ public class OutsourcePoolController extends BaseController {
      */
     @PostMapping("/getOutDistributeInfo")
     @ApiOperation(value = "查询委外分配信息", notes = "查询委外分配信息")
-    public ResponseEntity<Page<OutDistributeInfo>> query(@RequestBody OutCodeList outCodeList,
-                                                         @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<Page<OutDistributeInfo>> query(@RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
@@ -152,7 +151,7 @@ public class OutsourcePoolController extends BaseController {
             BooleanBuilder builder = new BooleanBuilder();
             String companyCode = null;
             if (Objects.nonNull(user.getCompanyCode())) {
-                companyCode= outCodeList.getCompanyCode();
+                companyCode= user.getCompanyCode();
             }
             List<OutDistributeInfo> outDistributeInfos = new ArrayList<>();
             Object[] object = outsourcePoolRepository.getAllOutSourceByCase(companyCode);
