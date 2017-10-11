@@ -789,6 +789,143 @@ public class CaseInfoController extends BaseController {
         }
     }
 
+
+    @GetMapping("/updateInnerWaitCollScore")
+    @ApiOperation(value = "内催待分配案件评分", notes = "内催待分配案件评分")
+    public ResponseEntity updateInnerWaitCollScore(@RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            String companyCode = user.getCompanyCode();
+            StopWatch watch1 = new StopWatch();
+            watch1.start();
+            KieSession kieSession = null;
+            try {
+                kieSession = createSorceRule(companyCode, CaseStrategy.StrategyType.INNER.getValue());
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+            }
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    builder.and(qCaseInfo.companyCode.eq(companyCode)); //公司
+                }
+            } else {
+                builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode())); //公司
+            }
+            builder.and(qCaseInfo.department.isNull());
+            builder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()));
+            builder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
+            Iterable<CaseInfo> caseInfoList = caseInfoRepository.findAll(builder);
+            List<CaseInfo> accCaseInfoList = new ArrayList<>();
+            List<CaseInfo> caseInfoList1 = new ArrayList<>();
+            caseInfoList.forEach(single -> accCaseInfoList.add(single));
+            ScoreNumbersModel scoreNumbersModel = new ScoreNumbersModel();
+            scoreNumbersModel.setTotal(accCaseInfoList.size());
+            if (accCaseInfoList.size() > 0) {
+                for (CaseInfo caseInfo : accCaseInfoList) {
+                    ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
+                    int age = caseInfo.getPersonalInfo().getAge();
+                    scoreRuleModel.setAge(age);
+                    scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
+                    scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
+                    scoreRuleModel.setProId(caseInfo.getArea().getId());//省份id
+                    Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
+                    if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
+                        scoreRuleModel.setIsWork(1);
+                    } else {
+                        scoreRuleModel.setIsWork(0);
+                    }
+                    kieSession.insert(scoreRuleModel);//插入
+                    kieSession.fireAllRules();//执行规则
+                    caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                    caseInfoList1.add(caseInfo);
+                }
+                kieSession.dispose();
+                caseInfoRepository.save(caseInfoList1);
+                watch1.stop();
+                log.info("耗时：" + watch1.getTotalTimeMillis());
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
+            }
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
+        }
+    }
+
+    @GetMapping("/updateInnerCollectIngScore")
+    @ApiOperation(value = "内催待分配案件评分", notes = "内催待分配案件评分")
+    public ResponseEntity updateInnerCollectIngScore(@RequestHeader(value = "X-UserToken") String token,
+                                                     @RequestParam @ApiParam(value = "批次号", required = true) String batchNumber) {
+        try {
+            User user = getUserByToken(token);
+            String companyCode = user.getCompanyCode();
+            StopWatch watch1 = new StopWatch();
+            watch1.start();
+            KieSession kieSession = null;
+            try {
+                kieSession = createSorceRule(companyCode, CaseStrategy.StrategyType.INNER.getValue());
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+            }
+            User tokenUser = getUserByToken(token);
+            List<Integer> status = new ArrayList<>();
+            status.add(CaseInfo.CollectionStatus.COLLECTIONING.getValue());
+            status.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue());
+            status.add(CaseInfo.CollectionStatus.EARLY_PAYING.getValue());
+            status.add(CaseInfo.CollectionStatus.PART_REPAID.getValue());
+            status.add(CaseInfo.CollectionStatus.REPAID.getValue());
+            status.add(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue());
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(QCaseInfo.caseInfo.batchNumber.eq(batchNumber));
+            if (Objects.nonNull(tokenUser.getCompanyCode())) {
+                builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
+            }
+            builder.and(QCaseInfo.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
+            builder.and(QCaseInfo.caseInfo.department.code.startsWith(tokenUser.getDepartment().getCode()));
+            builder.andAnyOf(QCaseInfo.caseInfo.collectionStatus.in(status), QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue())
+                    .and(QCaseInfo.caseInfo.department.isNotNull()));
+            Iterable<CaseInfo> caseInfoList = caseInfoRepository.findAll(builder);
+            List<CaseInfo> accCaseInfoList = new ArrayList<>();
+            List<CaseInfo> caseInfoList1 = new ArrayList<>();
+            caseInfoList.forEach(single -> accCaseInfoList.add(single));
+            ScoreNumbersModel scoreNumbersModel = new ScoreNumbersModel();
+            scoreNumbersModel.setTotal(accCaseInfoList.size());
+            if (accCaseInfoList.size() > 0) {
+                for (CaseInfo caseInfo : accCaseInfoList) {
+                    ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
+                    int age = caseInfo.getPersonalInfo().getAge();
+                    scoreRuleModel.setAge(age);
+                    scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
+                    scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
+                    scoreRuleModel.setProId(caseInfo.getArea().getId());//省份id
+                    Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
+                    if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
+                        scoreRuleModel.setIsWork(1);
+                    } else {
+                        scoreRuleModel.setIsWork(0);
+                    }
+                    kieSession.insert(scoreRuleModel);//插入
+                    kieSession.fireAllRules();//执行规则
+                    caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                    caseInfoList1.add(caseInfo);
+                }
+                kieSession.dispose();
+                caseInfoRepository.save(caseInfoList1);
+                watch1.stop();
+                log.info("耗时：" + watch1.getTotalTimeMillis());
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
+            }
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
+        }
+    }
+
     /**
      * 动态生成规则
      *

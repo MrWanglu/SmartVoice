@@ -7,6 +7,7 @@ import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.business.service.OutsourcePoolService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
+import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import cn.fintecher.pangolin.entity.util.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -14,7 +15,6 @@ import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import freemarker.template.Configuration;
-import freemarker.template.TemplateException;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -188,7 +188,6 @@ public class OutsourcePoolController extends BaseController {
     @GetMapping("/outCaseScore")
     @ApiOperation(value = "案件评分(手动)", notes = "案件评分(手动)")
     public ResponseEntity outCaseScore(@RequestParam(required = false) String companyCode,
-                                       @RequestParam @ApiParam(required = true) Integer strategyType,
                                        @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = null;
@@ -199,7 +198,7 @@ public class OutsourcePoolController extends BaseController {
             }
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "")).body(null);
                 }
             } else {
                 companyCode = user.getCompanyCode();
@@ -209,11 +208,11 @@ public class OutsourcePoolController extends BaseController {
             KieSession kieSession = null;
             try {
                 try {
-                    kieSession = createSorceRule(companyCode,strategyType);
-                } catch (IOException e) {
+                    kieSession = createSorceRule(companyCode, CaseStrategy.StrategyType.OUTS.getValue());
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-            } catch (TemplateException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(QOutsourcePool.outsourcePool.outStatus.eq(OutsourcePool.OutStatus.TO_OUTSIDE.getCode())
@@ -259,53 +258,54 @@ public class OutsourcePoolController extends BaseController {
      * @throws IOException
      * @throws
      */
-    private KieSession createSorceRule(String comanyCode, Integer strategyType) throws IOException, TemplateException {
-        freemarker.template.Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
-        freemarker.template.Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
-        ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode).concat("&strategyType=").concat(strategyType.toString()), ScoreRules.class);
-        List<ScoreRule> rules = null;
-        if (Objects.nonNull(responseEntity.hasBody())) {
+    private KieSession createSorceRule(String comanyCode, Integer strategyType) {
+        try {
+            freemarker.template.Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
+            freemarker.template.Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
+            ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode).concat("&strategyType=").concat(strategyType.toString()), ScoreRules.class);
+            List<ScoreRule> rules = null;
             if (responseEntity.hasBody()) {
                 ScoreRules scoreRules = responseEntity.getBody();
                 rules = scoreRules.getScoreRules();
             }
-        } else {
-            throw new IllegalStateException("请设置案件评分策略！");
-        }
-
-        StringBuilder sb = new StringBuilder();
-        if (Objects.nonNull(rules)) {
-            for (ScoreRule rule : rules) {
-                for (int i = 0; i < rule.getFormulas().size(); i++) {
-                    ScoreFormula scoreFormula = rule.getFormulas().get(i);
-                    Map<String, String> map = new HashMap<>();
-                    map.put("id", rule.getId());
-                    map.put("index", String.valueOf(i));
-                    map.put("strategy", scoreFormula.getStrategy());
-                    map.put("score", String.valueOf(scoreFormula.getScore()));
-                    map.put("weight", String.valueOf(rule.getWeight()));
-                    sb.append(FreeMarkerTemplateUtils.processTemplateIntoString(scoreFormulaTemplate, map));
+            StringBuilder sb = new StringBuilder();
+            if (Objects.nonNull(rules)) {
+                for (ScoreRule rule : rules) {
+                    for (int i = 0; i < rule.getFormulas().size(); i++) {
+                        ScoreFormula scoreFormula = rule.getFormulas().get(i);
+                        Map<String, String> map = new HashMap<>();
+                        map.put("id", rule.getId());
+                        map.put("index", String.valueOf(i));
+                        map.put("strategy", scoreFormula.getStrategy());
+                        map.put("score", String.valueOf(scoreFormula.getScore()));
+                        map.put("weight", String.valueOf(rule.getWeight()));
+                        sb.append(FreeMarkerTemplateUtils.processTemplateIntoString(scoreFormulaTemplate, map));
+                    }
                 }
             }
+            KieServices kieServices = KieServices.Factory.get();
+            KieFileSystem kfs = kieServices.newKieFileSystem();
+            Map<String, String> map = new HashMap<>();
+            map.put("allRules", sb.toString());
+            String text = FreeMarkerTemplateUtils.processTemplateIntoString(scoreRuleTemplate, map);
+            kfs.write("src/main/resources/simple.drl",
+                    kieServices.getResources().newReaderResource(new StringReader(text)));
+            KieBuilder kieBuilder = kieServices.newKieBuilder(kfs).buildAll();
+            Results results = kieBuilder.getResults();
+            if (results.hasMessages(org.kie.api.builder.Message.Level.ERROR)) {
+                log.error(results.getMessages().toString());
+                throw new IllegalStateException("策略生成错误");
+            }
+            KieContainer kieContainer =
+                    kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
+            KieSession kieSession = kieContainer.newKieSession();
+            return kieSession;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException("策略生成失败");
         }
-        KieServices kieServices = KieServices.Factory.get();
-        KieFileSystem kfs = kieServices.newKieFileSystem();
-        Map<String, String> map = new HashMap<>();
-        map.put("allRules", sb.toString());
-        String text = FreeMarkerTemplateUtils.processTemplateIntoString(scoreRuleTemplate, map);
-        kfs.write("src/main/resources/simple.drl",
-                kieServices.getResources().newReaderResource(new StringReader(text)));
-        KieBuilder kieBuilder = kieServices.newKieBuilder(kfs).buildAll();
-        Results results = kieBuilder.getResults();
-        if (results.hasMessages(org.kie.api.builder.Message.Level.ERROR)) {
-            System.out.println(results.getMessages());
-            throw new IllegalStateException("### errors ###");
-        }
-        KieContainer kieContainer =
-                kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
-        KieSession kieSession = kieContainer.newKieSession();
-        return kieSession;
     }
+
 
     /**
      * @Description 多条件查询回收案件
@@ -331,13 +331,6 @@ public class OutsourcePoolController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
             QCaseInfoReturn qCaseInfoReturn = QCaseInfoReturn.caseInfoReturn;
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoReturn", "", "请选择公司")).body(null);
-                }
-            } else {
-                builder.and(qCaseInfoReturn.caseId.companyCode.eq(user.getCompanyCode())); //限制公司code码
-            }
             builder.and(qCaseInfoReturn.source.eq(CaseInfo.CasePoolType.OUTER.getValue())); //委外
             Page<CaseInfoReturn> page = caseInfoReturnRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/OutsourcePoolController/getReturnCaseByConditions");
@@ -476,7 +469,7 @@ public class OutsourcePoolController extends BaseController {
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "")).body(null);
                 }
             } else {
                 builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
@@ -612,7 +605,7 @@ public class OutsourcePoolController extends BaseController {
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(ourBatchList.getCompanyCode())) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "")).body(null);
                 }
                 builder.and(qOutsourcePool.caseInfo.companyCode.eq(ourBatchList.getCompanyCode()));
             } else {
@@ -793,7 +786,7 @@ public class OutsourcePoolController extends BaseController {
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.isNull(tokenUser.getCompanyCode())) {
                 if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "请选择公司")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASEINFO, "caseInfo", "")).body(null);
                 }
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
             } else {
@@ -823,7 +816,7 @@ public class OutsourcePoolController extends BaseController {
             }
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userBackcashPlan", "请选择公司")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "userBackcashPlan", "")).body(null);
                 }
             } else {
                 companyCode = user.getCompanyCode();
@@ -871,7 +864,7 @@ public class OutsourcePoolController extends BaseController {
             if (type == 0) {
                 if (Objects.isNull(user.getCompanyCode())) {
                     if (Objects.isNull(companyCode)) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "")).body(null);
                     }
                     accFinanceEntry.setCompanyCode(companyCode);
                 } else {
@@ -995,7 +988,7 @@ public class OutsourcePoolController extends BaseController {
             AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "")).body(null);
                 }
                 accFinanceEntry.setCompanyCode(companyCode);
             } else {
@@ -1105,7 +1098,7 @@ public class OutsourcePoolController extends BaseController {
                 BooleanBuilder builder = new BooleanBuilder();
                 if (Objects.isNull(user.getCompanyCode())) {
                     if (Objects.isNull(companyCode)) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutsourcePool", "请选择公司")).body(null);
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutsourcePool", "")).body(null);
                     }
                     builder.and(qAccFinanceEntry.companyCode.eq(companyCode));
                 } else {
@@ -1259,7 +1252,7 @@ public class OutsourcePoolController extends BaseController {
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourceRecord", "OutsourceRecord", "请选择公司")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourceRecord", "OutsourceRecord", "")).body(null);
                 }
                 builder.and(qOutsourceRecord.caseInfo.companyCode.eq(companyCode));
             } else {

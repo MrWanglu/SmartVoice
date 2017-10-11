@@ -878,7 +878,7 @@ public class AccTelPoolController extends BaseController {
             }
             builder.and(qCaseAdvanceTurnApplay.collectionType.eq(0)); //电催
             if (Objects.nonNull(custName)) {
-                builder.and(qCaseAdvanceTurnApplay.personalName.like(custName.concat("%")));
+                builder.and(qCaseAdvanceTurnApplay.personalName.like("%".concat(StringUtils.trim(custName)).concat("%")));
             }
             if (Objects.nonNull(approveState)) {
                 builder.and(qCaseAdvanceTurnApplay.approveResult.eq(approveState));
