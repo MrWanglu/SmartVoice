@@ -50,7 +50,7 @@ public class CaseInfoService {
 
     public List<CollectingCaseInfo> queryCollectingCase(CollectingCaseParams collectingCaseParams, int page, int size){
         List<CollectingCaseInfo> list = null;
-        PageHelper.startPage(page, size);
+        PageHelper.startPage(page+1, size);
         list = caseInfoMapper.queryCollectingCase(collectingCaseParams);
         return list;
     }
