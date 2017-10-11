@@ -25,7 +25,7 @@
             </foreach>
         </if>
         <if test="caseNumberList != null and caseNumberList.size()>0">
-            AND b.out_batch IN
+            AND a.case_number IN
             <foreach collection="caseNumberList" index="index" item="item" open="(" separator="," close=")">
                 #{item}
             </foreach>
@@ -101,7 +101,7 @@
             </foreach>
         </if>
         <if test="caseNumberList != null and caseNumberList.size()>0">
-            AND b.out_batch IN
+            AND a.case_number IN
             <foreach collection="caseNumberList" index="index" item="item" open="(" separator="," close=")">
                 #{item}
             </foreach>
