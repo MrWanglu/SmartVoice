@@ -3,7 +3,6 @@ package cn.fintecher.pangolin.dataimp.web;
 import cn.fintecher.pangolin.dataimp.model.JsonObj;
 import cn.fintecher.pangolin.dataimp.repository.ScoreRuleRepository;
 import cn.fintecher.pangolin.entity.User;
-import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import cn.fintecher.pangolin.entity.strategy.ScoreFormula;
 import cn.fintecher.pangolin.entity.strategy.ScoreRule;
 import cn.fintecher.pangolin.entity.util.Constants;
@@ -71,9 +70,9 @@ public class ScoreStrategyController {
             } else {
                 query.addCriteria(Criteria.where("companyCode").is(user.getCompanyCode()));
             }
-            int total = (int) mongoTemplate.count(query, CaseStrategy.class);
+            int total = (int) mongoTemplate.count(query, ScoreRule.class);
             query.with(pageable);
-            List<CaseStrategy> list = mongoTemplate.find(query, CaseStrategy.class);
+            List<ScoreRule> list = mongoTemplate.find(query, ScoreRule.class);
             return ResponseEntity.ok().body(new PageImpl<>(list, pageable, total));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
