@@ -111,7 +111,7 @@ public class ExportOutsourceFollowupController extends BaseController {
                     List<ExcportOutsourceResultModel> all = null;
                     if(exportOutsourceFollowRecordParams.getType()==0){
                         all = queryOutsourceFollowupMapper.findOutsourceRecord(exportOutsourceFollowRecordParams);
-                    }else if(exportOutsourceFollowRecordParams.getType()==1 || exportOutsourceFollowRecordParams.getType()==2){
+                    }else {
                         all = queryOutsourceFollowupMapper.findOutsourceFollowupRecord(exportOutsourceFollowRecordParams);
                     }
                     ResponseEntity<String> url = null;
@@ -122,7 +122,7 @@ public class ExportOutsourceFollowupController extends BaseController {
                         List<FollowupExportModel> dataList = null;
                         if (exportOutsourceFollowRecordParams.getType()==0){
                             dataList = outsourceFollowRecordExportService.getFollowupData(all);
-                        }else if(exportOutsourceFollowRecordParams.getType()==1 || exportOutsourceFollowRecordParams.getType()==2){
+                        }else {
                             dataList = outsourceFollowRecordExportService.getOutsourceRecordData(all);
                         }
                         String[] title = followRecordExportService.getTitle(exportOutsourceFollowRecordParams.getExportItemList(), maxNum);
@@ -142,7 +142,7 @@ public class ExportOutsourceFollowupController extends BaseController {
                         param.add("file", resource);
                         url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
                     }
-                    if (url == null && !all.isEmpty()) {
+                        if (url == null && !all.isEmpty()) {
                         List<String> urls = new ArrayList<>();
                         ListResult listResult = new ListResult();
                         listResult.setUser(userId);

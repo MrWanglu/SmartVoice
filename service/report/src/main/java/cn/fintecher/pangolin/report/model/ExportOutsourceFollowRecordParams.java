@@ -15,7 +15,7 @@ import java.util.List;
 @ApiModel("导出跟进记录")
 public class ExportOutsourceFollowRecordParams {
 
-    @ApiModelProperty(notes = "导出案件标识符，0 案件导出 1 跟踪记录导出")
+    @ApiModelProperty(notes = "导出案件标识符，0 案件导出 1 催收中跟踪记录 2 已结案跟进记录")
     private Integer type;
     @ApiModelProperty(notes = "选择的批次号集合")
     private List<String> batchNumberList;
