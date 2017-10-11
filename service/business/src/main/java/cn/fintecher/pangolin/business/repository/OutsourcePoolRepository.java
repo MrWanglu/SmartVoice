@@ -126,8 +126,8 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
     Object[] getOutDistributeInfo(@Param("companyCode") String companyCode);
 
 
-    @Query(value = "select b.outs_name,b.outs_code,count(case when a.out_status<>167 then a.id end) as case_count,count( case when  a.out_status=170 then a.id end) as end_count," +
-            "(count( case when  a.out_status=170 then a.id end)/count(case when a.out_status<>167 then a.id end)) as success_rate,sum(case when a.out_status <>167 then a.contract_amt end) as overdue_amt,a.out_id from outsource_pool a,outsource b where a.out_id=b.id and out_id is not null and out_id in (:outsourId) group by out_id ", nativeQuery = true)
-    Object[] getAllOutSourceByCase(@Param("outsourId") Set<String> outsourId);
+//    @Query(value = "select b.outs_name,b.outs_code,count(case when a.out_status<>167 then a.id end) as case_count,count( case when  a.out_status=170 then a.id end) as end_count," +
+//            "(count( case when  a.out_status=170 then a.id end)/count(case when a.out_status<>167 then a.id end)) as success_rate,sum(case when a.out_status <>167 then a.contract_amt end) as overdue_amt,a.out_id from outsource_pool a,outsource b where a.out_id=b.id and out_id is not null and out_id in (:outsourId) group by out_id ", nativeQuery = true)
+//    Object[] getAllOutSourceByCase(@Param("outsourId") Set<String> outsourId);
 
 }

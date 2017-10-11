@@ -11,10 +11,7 @@ import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,6 +46,8 @@ public class OutsourceController extends BaseController {
     private BatchSeqService batchSeqService;
     @Autowired
     private OutsourcePoolRepository outsourcePoolRepository;
+    @Autowired
+    private EntityManager em;
 
     /**
      * @Description : 新增/修改委外方管理
@@ -254,7 +254,9 @@ public class OutsourceController extends BaseController {
      */
     @GetMapping("/getAllOutSourceInfoByCase")
     @ApiOperation(value = "统计委托方信息的 案件信息 ", notes = "统计委托方信息的 案件信息 ")
-    public ResponseEntity<Page<OutDistributeInfo>> getAllOutSourceInfoByCase(@RequestHeader(value = "X-UserToken") String token,
+    public ResponseEntity<Page<OutDistributeInfo>> getAllOutSourceInfoByCase(@RequestParam(required = false) @ApiParam(value = "委外方编号") String code,
+                                                                             @RequestParam(required = false) @ApiParam(value = "委外方") String name,
+                                                                             @RequestHeader(value = "X-UserToken") String token,
                                                                              @ApiIgnore Pageable pageable) {
         User user;
         try {
@@ -278,18 +280,34 @@ public class OutsourceController extends BaseController {
             }
             List<OutDistributeInfo> outDistributeInfos = new ArrayList<>();
             if (!outIds.isEmpty()) {
-                Object[] objects = outsourcePoolRepository.getAllOutSourceByCase(outIds);
-                for (int i = 0; i < objects.length; i++) {
-                    Object[] object1 = (Object[]) objects[i];
-                    if (Objects.nonNull(object1[1])) {
+                StringBuilder query = new StringBuilder("select b.outs_name,b.outs_code,count(case when a.out_status<>167 then a.id end) as case_count," +
+                        "count( case when  a.out_status=170 then a.id end) as end_count,(count( case when  a.out_status=170 then a.id end)/count(case when a.out_status<>167 then a.id end)) as success_rate," +
+                        "sum(case when a.out_status <>167 then a.contract_amt end) as overdue_amt,a.out_id from outsource_pool a,outsource b where a.out_id=b.id and out_id is not null and out_id in (");
+                for (int i = 0; i < outIds.size(); i++) {
+                    if (i < outIds.size() - 1) {
+                        query.append(outIds.toArray()[i]).append("',");
+                    } else {
+                        query.append(outIds.toArray()[i]).append("')");
+                    }
+                }
+                if (Objects.nonNull(code)) {
+                    query.append(" and b.outs_code = ").append(code);
+                }
+                if (Objects.nonNull(name)) {
+                    query.append(" and b.outs_name = ").append(name);
+                }
+                query.append("group by out_id");
+                List<Objects[]> list = em.createNativeQuery(query.toString()).getResultList();
+                for (Object[] obj : list) {
+                    for (int i = 0; i < obj.length; i++) {
                         OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
-                        outDistributeInfo.setOutName(Objects.isNull(object1[0]) ? null : object1[0].toString());
-                        outDistributeInfo.setOutCode(Objects.isNull(object1[1]) ? null : object1[1].toString());
-                        outDistributeInfo.setCaseCount(Objects.isNull(object1[2]) ? null : Integer.parseInt(object1[2].toString()));
-                        outDistributeInfo.setEndCount(Objects.isNull(object1[3]) ? null : Integer.parseInt(object1[3].toString()));
-                        outDistributeInfo.setSuccessRate(Objects.isNull(object1[4]) ? null : BigDecimal.valueOf(Double.valueOf(object1[4].toString())));
-                        outDistributeInfo.setCaseAmt(Objects.isNull(object1[5]) ? null : BigDecimal.valueOf(Double.valueOf(object1[5].toString())));
-                        outDistributeInfo.setOutId(Objects.isNull(object1[6]) ? null : object1[6].toString());
+                        outDistributeInfo.setOutName(Objects.isNull(obj[0]) ? null : obj[0].toString());
+                        outDistributeInfo.setOutCode(Objects.isNull(obj[1]) ? null : obj[1].toString());
+                        outDistributeInfo.setCaseCount(Objects.isNull(obj[2]) ? null : Integer.parseInt(obj[2].toString()));
+                        outDistributeInfo.setEndCount(Objects.isNull(obj[3]) ? null : Integer.parseInt(obj[3].toString()));
+                        outDistributeInfo.setSuccessRate(Objects.isNull(obj[4]) ? null : BigDecimal.valueOf(Double.valueOf(obj[4].toString())));
+                        outDistributeInfo.setCaseAmt(Objects.isNull(obj[5]) ? null : BigDecimal.valueOf(Double.valueOf(obj[5].toString())));
+                        outDistributeInfo.setOutId(Objects.isNull(obj[6]) ? null : obj[6].toString());
                         outDistributeInfos.add(outDistributeInfo);
                     }
                 }
