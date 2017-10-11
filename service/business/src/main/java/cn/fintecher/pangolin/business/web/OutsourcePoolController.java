@@ -1396,7 +1396,6 @@ public class OutsourcePoolController extends BaseController {
 
                 CaseInfoReturn caseInfoReturn = new CaseInfoReturn();
                 caseInfoReturn.setSource(CaseInfoReturn.Source.OUTSOURCE.getValue());
-                caseInfoReturn.setCaseId(caseInfo);
                 caseInfoReturn.setOutsourcePool(outsourcePool);
                 caseInfoReturn.setOperatorTime(new Date());
                 caseInfoReturn.setOperator(user.getId());
