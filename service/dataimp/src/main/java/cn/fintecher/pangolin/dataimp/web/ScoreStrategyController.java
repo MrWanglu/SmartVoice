@@ -12,8 +12,6 @@ import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.querydsl.core.types.Predicate;
-import freemarker.template.Configuration;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -26,7 +24,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -47,8 +44,6 @@ public class ScoreStrategyController {
     @Autowired
     private ScoreRuleRepository scoreRuleRepository;
     @Autowired
-    private Configuration freemarkerConfiguration;
-    @Autowired
     private RestTemplate restTemplate;
     @Autowired
     MongoTemplate mongoTemplate;
@@ -58,7 +53,6 @@ public class ScoreStrategyController {
     @GetMapping("/query")
     @ApiOperation(value = "查询所有规则属性", notes = "查询所有规则属性")
     public ResponseEntity query(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                @QuerydslPredicate(root = ScoreRule.class) Predicate predicate,
                                 @RequestHeader(value = "X-UserToken") String token, @ApiIgnore Pageable pageable) {
         try {
             ResponseEntity<User> userResponseEntity = null;
