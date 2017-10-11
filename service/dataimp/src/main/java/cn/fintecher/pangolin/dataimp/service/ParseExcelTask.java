@@ -120,7 +120,7 @@ public class ParseExcelTask {
             StringBuilder errorSb = new StringBuilder();
             int mark = DataInfoExcel.Color.NONE.getValue();
             for (ColumnError columnError : columnErrorList) {
-                errorSb.append("列【".concat(columnError.getColumnIndex().toString()).concat("】"));
+                errorSb.append("列【".concat(excelColIndexToStr(columnError.getColumnIndex())).concat("】"));
                 errorSb.append(columnError.getTitleMsg().concat(","));
                 errorSb.append(columnError.getErrorMsg());
                 if (columnError.getErrorLevel() == ColumnError.ErrorLevel.FORCE.getValue()) {
@@ -140,6 +140,27 @@ public class ParseExcelTask {
             rowErrorRepository.save(rowError);
         }
         dataInfoExcelRepository.save(dataInfoExcel);
+    }
+
+    /**
+     * 列转换为字母
+     * @param columnIndex
+     * @return
+     */
+    public String excelColIndexToStr(int columnIndex) {
+        if (columnIndex <= 0) {
+            return null;
+        }
+        String columnStr = "";
+        columnIndex--;
+        do {
+            if (columnStr.length() > 0) {
+                columnIndex--;
+            }
+            columnStr = ((char) (columnIndex % 26 + (int) 'A')) + columnStr;
+            columnIndex = (int) ((columnIndex - columnIndex % 26) / 26);
+        } while (columnIndex > 0);
+        return columnStr;
     }
 
     private void matchFields(Class<?> dataClass, List<ColumnError> columnErrorList, Object obj, int colIndex, String titleName, Cell cell, List flag) throws Exception {
