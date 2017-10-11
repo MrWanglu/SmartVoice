@@ -254,8 +254,8 @@ public class OutsourceController extends BaseController {
      */
     @GetMapping("/getAllOutSourceInfoByCase")
     @ApiOperation(value = "统计委托方信息的 案件信息 ", notes = "统计委托方信息的 案件信息 ")
-    public ResponseEntity<Page<OutDistributeInfo>> getAllOutSourceInfoByCase(@RequestParam(required = false) @ApiParam(value = "委外方编号") String code,
-                                                                             @RequestParam(required = false) @ApiParam(value = "委外方") String name,
+    public ResponseEntity<Page<OutDistributeInfo>> getAllOutSourceInfoByCase(@RequestParam(required = false) @ApiParam(value = "委外方编号") String outCode,
+                                                                             @RequestParam(required = false) @ApiParam(value = "委外方") String outName,
                                                                              @RequestHeader(value = "X-UserToken") String token,
                                                                              @ApiIgnore Pageable pageable) {
         User user;
@@ -290,11 +290,11 @@ public class OutsourceController extends BaseController {
                         query.append(outIds.toArray()[i]).append("')");
                     }
                 }
-                if (Objects.nonNull(code)) {
-                    query.append(" and b.outs_code = ").append(code);
+                if (Objects.nonNull(outCode)) {
+                    query.append(" and b.outs_code = ").append(outCode);
                 }
-                if (Objects.nonNull(name)) {
-                    query.append(" and b.outs_name like %").append(name).append("%");
+                if (Objects.nonNull(outName)) {
+                    query.append(" and b.outs_name like %").append(outName).append("%");
                 }
                 query.append("group by out_id");
                 List<Objects[]> list = em.createNativeQuery(query.toString()).getResultList();
