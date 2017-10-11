@@ -282,7 +282,7 @@ public class DataInfoExcelService {
             DataInfoExcel dataInfoExcel = (DataInfoExcel) iterator.next();
             //包含严重错误的一批案件不允许确认
             if (Objects.equals(dataInfoExcel.getColor(),DataInfoExcel.Color.RED.getValue())) {
-                throw new RuntimeException("此批案件存在严重错误,不允许确认");
+                throw new RuntimeException("此批案件存在严重错误不允许确认");
             }
             DataInfoExcelModel dataInfoExcelModel = new DataInfoExcelModel();
             BeanUtils.copyProperties(dataInfoExcel, dataInfoExcelModel);
