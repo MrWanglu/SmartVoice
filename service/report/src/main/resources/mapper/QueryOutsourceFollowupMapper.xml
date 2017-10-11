@@ -24,8 +24,11 @@
                 #{item}
             </foreach>
         </if>
-        <if test="caseNumber !=null and caseNumber !=''">
-            AND a.case_number = #{caseNumber}
+        <if test="caseNumberList != null and caseNumberList.size()>0">
+            AND b.out_batch IN
+            <foreach collection="caseNumberList" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
         </if>
         <if test="personalName != null and personalName !=''">
             AND d.name LIKE CONCAT(#{personalName}, '%')
@@ -97,8 +100,11 @@
                 #{item}
             </foreach>
         </if>
-        <if test="caseNumber !=null and caseNumber !=''">
-            AND a.case_number = #{caseNumber}
+        <if test="caseNumberList != null and caseNumberList.size()>0">
+            AND b.out_batch IN
+            <foreach collection="caseNumberList" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
         </if>
         <if test="personalName != null and personalName !=''">
             AND d.name LIKE CONCAT(#{personalName}, '%')
