@@ -1,22 +1,23 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.*;
-import cn.fintecher.pangolin.business.repository.CaseInfoDistributedRepository;
-import cn.fintecher.pangolin.business.repository.PersonalContactRepository;
-import cn.fintecher.pangolin.entity.util.Constants;
-import cn.fintecher.pangolin.util.ZWDateUtil;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
-import cn.fintecher.pangolin.business.repository.UserRepository;
+import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoDistributedService;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
+import cn.fintecher.pangolin.business.service.RunCaseStrategyService;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
+import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
+import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -27,7 +28,9 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -56,6 +59,10 @@ public class CaseInfoDistributeController extends BaseController {
     CaseInfoDistributedService caseInfoDistributedService;
     @Inject
     PersonalContactRepository personalContactRepository;
+    @Inject
+    RunCaseStrategyService runCaseStrategyService;
+    @Inject
+    OutsourcePoolRepository outsourcePoolRepository;
 
     @RequestMapping(value = "/distributeCeaseInfo", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ResponseBody
@@ -299,8 +306,23 @@ public class CaseInfoDistributeController extends BaseController {
 
     @GetMapping("/previewResult")
     @ApiOperation(value = "策略预览结果", notes = "策略预览结果")
-    public ResponseEntity<Page> previewResult(@RequestParam @ApiParam("策略JSON") String jsonString,
-                                        @RequestParam @ApiParam("策略类型：230-案件导入分配策略，231-内催池分配策略，232-委外池分配策略") Integer type) {
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity previewResult(@RequestParam @ApiParam("策略JSON") String jsonString,
+                                        @RequestParam @ApiParam("策略类型：230-案件导入分配策略，231-内催池分配策略，232-委外池分配策略") Integer type,
+                                        @RequestParam(required = false) @ApiParam("客户姓名") String personalName,
+                                        @RequestParam(required = false) @ApiParam("手机号") String phone,
+                                        @RequestParam(required = false) @ApiParam("身份证号") String idCard,
+                                        @RequestParam(required = false) @ApiParam("批次号") String batchNumber,
+                                        @RequestParam(required = false) @ApiParam("案件金额（最小）") BigDecimal startAmount,
+                                        @RequestParam(required = false) @ApiParam("案件金额（最大）") BigDecimal endAmount,
+                                        @ApiIgnore Pageable pageable) {
         if(StringUtils.isBlank(jsonString)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先配置策略")).body(null);
         }
@@ -308,8 +330,108 @@ public class CaseInfoDistributeController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择策略类型")).body(null);
         }
         try {
-            List<?> checkList = caseInfoDistributedService.previewResult(jsonString, type);
-            Page page = new PageImpl(checkList);
+            CaseStrategy caseStrategy = caseInfoDistributedService.previewResult(jsonString);
+            List<StrategyPreviewModel> modelList = new ArrayList<>();
+            if (Objects.equals(type, CaseStrategy.StrategyType.IMPORT.getValue())) {// 案件导入策略分配
+                List<CaseInfoDistributed> checkList = new ArrayList<>();
+                QCaseInfoDistributed qCaseInfoDistributed = QCaseInfoDistributed.caseInfoDistributed;
+                BooleanBuilder builder = new BooleanBuilder();
+                builder.and(qCaseInfoDistributed.personalInfo.name.like(personalName));
+                builder.and(qCaseInfoDistributed.personalInfo.mobileNo.eq(phone));
+                builder.and(qCaseInfoDistributed.personalInfo.idCard.eq(idCard));
+                builder.and(qCaseInfoDistributed.batchNumber.eq(batchNumber));
+                builder.and(qCaseInfoDistributed.overdueAmount.gt(startAmount));
+                builder.and(qCaseInfoDistributed.overdueAmount.lt(endAmount));
+                Iterable<CaseInfoDistributed> iterable = caseInfoDistributedRepository.findAll(builder);
+                Iterator<CaseInfoDistributed> iterator = iterable.iterator();
+                KieSession kieSession = runCaseStrategyService.runCaseRun(checkList, caseStrategy);
+                while (iterator.hasNext()){
+                    kieSession.insert(iterator.next());//插入
+                    kieSession.fireAllRules();//执行规则
+                }
+                kieSession.dispose();
+                if (!checkList.isEmpty()) {
+                    for (CaseInfoDistributed distributed : checkList) {
+                        StrategyPreviewModel model = new StrategyPreviewModel();
+                        BeanUtils.copyProperties(distributed, model);
+                        model.setCity(Objects.isNull(distributed.getArea())? null : distributed.getArea().getAreaName());
+                        model.setIdCard(Objects.isNull(distributed.getPersonalInfo()) ? null : distributed.getPersonalInfo().getIdCard());
+                        model.setPersonalName(Objects.isNull(distributed.getPersonalInfo()) ? null : distributed.getPersonalInfo().getName());
+                        model.setPhone(Objects.isNull(distributed.getPersonalInfo()) ? null : distributed.getPersonalInfo().getMobileNo());
+                        model.setPrincipalName(Objects.isNull(distributed.getPrincipalId()) ? null : distributed.getPrincipalId().getName());
+                        modelList.add(model);
+                    }
+                }
+            } else if (Objects.equals(type, CaseStrategy.StrategyType.INNER.getValue())) {// 内催策略分配
+                List<CaseInfo> checkList = new ArrayList<>();
+                QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+                BooleanBuilder builder = new BooleanBuilder();
+                builder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
+                builder.and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
+                builder.and(qCaseInfo.personalInfo.name.like(personalName));
+                builder.and(qCaseInfo.personalInfo.mobileNo.eq(phone));
+                builder.and(qCaseInfo.personalInfo.idCard.eq(idCard));
+                builder.and(qCaseInfo.batchNumber.eq(batchNumber));
+                builder.and(qCaseInfo.overdueAmount.gt(startAmount));
+                builder.and(qCaseInfo.overdueAmount.lt(endAmount));
+                Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
+                Iterator<CaseInfo> iterator = all.iterator();
+                KieSession kieSession = runCaseStrategyService.runCaseRun(checkList, caseStrategy);
+                while (iterator.hasNext()) {
+                    CaseInfo next = iterator.next();
+                    kieSession.insert(next);
+                    kieSession.fireAllRules();
+                }
+                kieSession.dispose();
+                if (!checkList.isEmpty()) {
+                    for (CaseInfo caseInfo : checkList) {
+                        StrategyPreviewModel model = new StrategyPreviewModel();
+                        BeanUtils.copyProperties(caseInfo, model);
+                        model.setCity(Objects.isNull(caseInfo.getArea())? null : caseInfo.getArea().getAreaName());
+                        model.setIdCard(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getIdCard());
+                        model.setPersonalName(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getName());
+                        model.setPhone(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getMobileNo());
+                        model.setPrincipalName(Objects.isNull(caseInfo.getPrincipalId()) ? null : caseInfo.getPrincipalId().getName());
+                        modelList.add(model);
+                    }
+                }
+            } else if (Objects.equals(type, CaseStrategy.StrategyType.OUTS.getValue())) {// 委外策略分配
+                List<OutsourcePool> checkList = new ArrayList<>();
+                QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+                BooleanBuilder builder = new BooleanBuilder();
+                builder.and(qOutsourcePool.caseInfo.personalInfo.name.like(personalName));
+                builder.and(qOutsourcePool.caseInfo.personalInfo.mobileNo.eq(phone));
+                builder.and(qOutsourcePool.caseInfo.personalInfo.idCard.eq(idCard));
+                builder.and(qOutsourcePool.caseInfo.batchNumber.eq(batchNumber));
+                builder.and(qOutsourcePool.caseInfo.overdueAmount.gt(startAmount));
+                builder.and(qOutsourcePool.caseInfo.overdueAmount.lt(endAmount));
+                Iterable<OutsourcePool> all = outsourcePoolRepository.findAll(qOutsourcePool.outStatus.ne(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode()) // 委外见排除
+                        .and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())));// 未回收
+                Iterator<OutsourcePool> iterator = all.iterator();
+                KieSession kieSession = runCaseStrategyService.runCaseRun(checkList, caseStrategy);
+                while (iterator.hasNext()) {
+                    OutsourcePool outsourcePool = iterator.next();
+                    kieSession.insert(outsourcePool);
+                    kieSession.fireAllRules();
+                }
+                kieSession.dispose();
+                if (!checkList.isEmpty()) {
+                    for (OutsourcePool outsourcePool : checkList) {
+                        StrategyPreviewModel model = new StrategyPreviewModel();
+                        CaseInfo caseInfo = outsourcePool.getCaseInfo();
+                        BeanUtils.copyProperties(outsourcePool.getCaseInfo(), model);
+                        model.setCity(Objects.isNull(caseInfo.getArea())? null : caseInfo.getArea().getAreaName());
+                        model.setIdCard(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getIdCard());
+                        model.setPersonalName(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getName());
+                        model.setPhone(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getMobileNo());
+                        model.setPrincipalName(Objects.isNull(caseInfo.getPrincipalId()) ? null : caseInfo.getPrincipalId().getName());
+                        modelList.add(model);
+                    }
+                }
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择策略类型再预览")).body(null);
+            }
+            Page<StrategyPreviewModel> page = new PageImpl<>(modelList, pageable, modelList.size());
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
