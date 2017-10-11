@@ -1616,9 +1616,6 @@ public class CaseInfoService {
             deptOrUserList = accCaseInfoDisModel.getUserIdList();
         }
         for (int i = 0; i < (deptOrUserList != null ? deptOrUserList.size() : 0); i++) {
-            if (alreadyCaseNum == caseInfoYes.size()) {
-                return list;
-            }
             //如果按机构分配则是机构的ID，如果是按用户分配则是用户ID
             String deptOrUserid = deptOrUserList.get(i);
             CaseInfoInnerDistributeModel caseInfoInnerDistributeModel = new CaseInfoInnerDistributeModel();
