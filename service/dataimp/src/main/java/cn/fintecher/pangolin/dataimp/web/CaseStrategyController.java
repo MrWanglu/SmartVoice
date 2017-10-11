@@ -173,6 +173,9 @@ public class CaseStrategyController {
         try {
             String strategyText = sb.toString();
             CaseStrategy cs = new CaseStrategy();
+            if (Objects.nonNull(caseStrategy.getId()) && StringUtils.isNotBlank(caseStrategy.getId())) {
+                cs.setId(caseStrategy.getId());
+            }
             cs.setCreateTime(new Date());
             cs.setCreator(user.getRealName());
             cs.setCreatorId(user.getId());
