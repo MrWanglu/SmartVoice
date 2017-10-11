@@ -1230,10 +1230,10 @@ public class CaseInfoController extends BaseController {
     }
 
     /**
-     * @Description 查询公债案件数量
+     * @Description 查询共债案件数量
      */
     @GetMapping("/getCommonCaseCount")
-    @ApiOperation(value = "查询公债案件数量", notes = "查询公债案件数量")
+    @ApiOperation(value = "查询共债案件数量", notes = "查询共债案件数量")
     public ResponseEntity<Integer> getCommonCaseCount(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
         try {
             Integer count = caseInfoService.getCommonCaseCount(caseId);
