@@ -18,4 +18,11 @@ public interface QueryOutsourceFollowupMapper {
      */
     List<ExcportOutsourceResultModel> findOutsourceFollowupRecord(ExportOutsourceFollowRecordParams exportFollowupParams);
 
+    /**
+     * 导出委外案件数据
+     * @return
+     */
+    List<ExcportOutsourceResultModel> findOutsourceRecord(ExportOutsourceFollowRecordParams exportFollowupParams);
+
+
 }

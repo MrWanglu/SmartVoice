@@ -2,9 +2,75 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="cn.fintecher.pangolin.report.mapper.QueryOutsourceFollowupMapper">
 
+    <select id="findOutsourceRecord" parameterType="cn.fintecher.pangolin.report.model.ExportOutsourceFollowRecordParams" resultMap="outSourceResultMap">
+        SELECT a.id, b.out_batch as batch_num,a.case_number,a.personal_id,a.area_id,a.contract_number,c.outs_name,
+        b.contract_amt as outsource_total_amount,b.out_back_amt as has_pay_amount_outsource, (b.contract_amt - b.out_back_amt) as left_amount, TIMESTAMPDIFF(DAY,curdate(),b.over_outsource_time) as left_days_outsource,b.out_time,b.over_outsource_time, b.end_outsource_time, b.out_status, b.commission_rate as commission_rate_outsource,
+        a.batch_number, e.id as product_id, e.prodcut_name, a.contract_number, a.contract_amount, a.overdue_amount, a.left_capital, a.overdue_capital, a.overdue_interest, a.periods, a.per_due_date,
+        a.overdue_periods, a.overdue_days, a.has_pay_amount, a.has_pay_periods, a.left_days, a.pay_status, j.id as principal_id, j.`name` as principal_name, a.collection_status, a.commission_rate, a.loan_date,a.overdue_manage_fee,a.followup_back from case_info a
+        INNER JOIN outsource_pool b on a.id=b.case_id
+        INNER JOIN outsource c ON b.out_id=c.id
+        LEFT JOIN personal d ON a.personal_id = d.id
+        LEFT JOIN product e ON a.product_id = e.id
+        LEFT JOIN area_code f ON a.area_id = f.id
+        LEFT JOIN principal j ON a.principal_id = j.id
+        WHERE a.case_pool_type = 226
+        AND b.out_status =168
+        <if test="companyCode != null and companyCode !=''">
+            AND a.company_code = #{companyCode}
+        </if>
+        <if test="batchNumberList != null and batchNumberList.size()>0">
+            AND b.out_batch IN
+            <foreach collection="batchNumberList" index="index" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="caseNumber !=null and caseNumber !=''">
+            AND a.case_number = #{caseNumber}
+        </if>
+        <if test="personalName != null and personalName !=''">
+            AND d.name LIKE CONCAT(#{personalName}, '%')
+        </if>
+        <if test="phone != null and phone !=''">
+            AND d.mobile_no = #{phone}
+        </if>
+        <if test="provinceId != null and provinceId !=''">
+            AND f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId})
+        </if>
+        <if test="cityId != null and cityId !=''">
+            AND f.id = #{cityId}
+        </if>
+        <if test="overDayStart != null and overDayStart !=''">
+            AND a.overdue_days &gt; #{overDayStart}
+        </if>
+        <if test="overDayEnd !=null and overDayEnd !=''">
+            AND a.overdue_days &lt; #{overDayEnd}
+        </if>
+        <if test="outCaseAmountStart != null and outCaseAmountStart !=''">
+            AND b.contract_amt &gt; #{outCaseAmountStart}
+        </if>
+        <if test="outCaseAmountEnd != null and outCaseAmountEnd !=''">
+            AND b.contract_amt &lt; #{outCaseAmountEnd}
+        </if>
+        <if test="commissionRateStart != null and commissionRateStart !=''">
+            AND  b.commission_rate &gt; #{commissionRateStart}
+        </if>
+        <if test="commissionRateEnd != null and commissionRateEnd !=''">
+            AND  b.commission_rate &lt; #{commissionRateEnd}
+        </if>
+        <if test="outTime != null and outTime !=''">
+            AND  b.out_ime &lt; #{out_ime}
+        </if>
+        <if test="overOutsourceTime != null and overOutsourceTime !=''">
+            AND  b.over_outsource_time &lt; #{overOutsourceTime}
+        </if>
+        <if test="outsName != null and outsName !=''">
+            AND  c.outs_name &lt; #{outsName}
+        </if>
+    </select>
+
     <select id="findOutsourceFollowupRecord" parameterType="cn.fintecher.pangolin.report.model.ExportOutsourceFollowRecordParams" resultMap="outSourceResultMap">
         SELECT a.id, b.out_batch as batch_num,a.case_number,a.personal_id,a.area_id,g.id as out_follow_id,a.contract_number,c.outs_name,
-        b.contract_amt as outsource_total_amount,b.out_back_amt as has_pay_amount_outsource, (b.contract_amt - b.out_back_amt) as left_amount, TIMESTAMPDIFF(DAY,b.out_time,b.over_outsource_time) as left_days_outsource,b.out_time,b.over_outsource_time, b.end_outsource_time, b.out_status, b.commission_rate as commission_rate_outsource,
+        b.contract_amt as outsource_total_amount,b.out_back_amt as has_pay_amount_outsource, (b.contract_amt - b.out_back_amt) as left_amount, TIMESTAMPDIFF(DAY,curdate(),b.over_outsource_time) as left_days_outsource,b.out_time,b.over_outsource_time, b.end_outsource_time, b.out_status, b.commission_rate as commission_rate_outsource,
         a.batch_number, e.id as product_id, e.prodcut_name, a.contract_number, a.contract_amount, a.overdue_amount, a.left_capital, a.overdue_capital, a.overdue_interest, a.periods, a.per_due_date,
         a.overdue_periods, a.overdue_days, a.has_pay_amount, a.has_pay_periods, a.left_days, a.pay_status, j.id as principal_id, j.`name` as principal_name, a.collection_status, a.commission_rate, a.loan_date,a.overdue_manage_fee,a.followup_back from case_info a
         INNER JOIN outsource_pool b on a.id=b.case_id
@@ -14,9 +80,14 @@
         LEFT JOIN area_code f ON a.area_id = f.id
         LEFT JOIN principal j ON a.principal_id = j.id
         LEFT JOIN case_followup_record g ON a.id = g.case_id
-        WHERE b.out_status !=167
-        AND a.case_pool_type = 226
+        WHERE a.case_pool_type = 226
         AND g.case_followup_type = 226
+        <if test="type == 1">
+            AND b.out_status =168
+        </if>
+        <if test="type == 2">
+            AND b.out_status =170
+        </if>
         <if test="companyCode != null and companyCode !=''">
             AND a.company_code = #{companyCode}
         </if>

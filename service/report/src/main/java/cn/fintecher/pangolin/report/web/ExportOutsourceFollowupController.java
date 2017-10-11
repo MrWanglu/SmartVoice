@@ -108,13 +108,23 @@ public class ExportOutsourceFollowupController extends BaseController {
                     //正在处理数据
                     progressMessage.setText("正在处理数据");
                     rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
-                    List<ExcportOutsourceResultModel> all = queryOutsourceFollowupMapper.findOutsourceFollowupRecord(exportOutsourceFollowRecordParams);
+                    List<ExcportOutsourceResultModel> all = null;
+                    if(exportOutsourceFollowRecordParams.getType()==0){
+                        all = queryOutsourceFollowupMapper.findOutsourceRecord(exportOutsourceFollowRecordParams);
+                    }else if(exportOutsourceFollowRecordParams.getType()==1 || exportOutsourceFollowRecordParams.getType()==2){
+                        all = queryOutsourceFollowupMapper.findOutsourceFollowupRecord(exportOutsourceFollowRecordParams);
+                    }
                     ResponseEntity<String> url = null;
                     if (!all.isEmpty()) {
                         progressMessage.setCurrent(2);
                         rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
                         int maxNum = outsourceFollowRecordExportService.getMaxNum(all);
-                        List<FollowupExportModel> dataList = outsourceFollowRecordExportService.getFollowupData(all);
+                        List<FollowupExportModel> dataList = null;
+                        if (exportOutsourceFollowRecordParams.getType()==0){
+                            dataList = outsourceFollowRecordExportService.getFollowupData(all);
+                        }else if(exportOutsourceFollowRecordParams.getType()==1 || exportOutsourceFollowRecordParams.getType()==2){
+                            dataList = outsourceFollowRecordExportService.getOutsourceRecordData(all);
+                        }
                         String[] title = followRecordExportService.getTitle(exportOutsourceFollowRecordParams.getExportItemList(), maxNum);
                         Map<String, String> headMap = ExcelExportUtil.createHeadMap(title, FollowupExportModel.class);
                         progressMessage.setCurrent(3);

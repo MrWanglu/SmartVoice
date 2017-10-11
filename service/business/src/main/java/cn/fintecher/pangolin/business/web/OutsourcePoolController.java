@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.AccFinanceEntryService;
 import cn.fintecher.pangolin.business.service.BatchSeqService;
+import cn.fintecher.pangolin.business.service.OutsourcePoolService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.*;
@@ -86,6 +87,8 @@ public class OutsourcePoolController extends BaseController {
     SysParamRepository sysParamRepository;
     @Autowired
     CaseFollowupRecordRepository caseFollowupRecordRepository;
+    @Autowired
+    OutsourcePoolService outsourcePoolService;
 
     @Inject
     private Configuration freemarkerConfiguration;
@@ -292,6 +295,20 @@ public class OutsourcePoolController extends BaseController {
         gc.add(2,3);
         outsourcePool.setOverOutsourceTime(gc.getTime());
         outsourcePoolList.add(outsourcePool);
+    }
+
+    @PostMapping(value = "/outsourceDistributePreview")
+    @ApiOperation(value = "内催待分配预览", notes = "内催待分配预览")
+    public ResponseEntity<List<OutDistributeInfo>> outsourceDistributePreview(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
+                                                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        log.debug("REST request to distributeCeaseInfo");
+        try {
+            List<OutDistributeInfo> list = outsourcePoolService.distributePreview(accCaseInfoDisModel);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(list);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "errorMessage", e.getMessage())).body(null);
+        }
     }
 
     /**
