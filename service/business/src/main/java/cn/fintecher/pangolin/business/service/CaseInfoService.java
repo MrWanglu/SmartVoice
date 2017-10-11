@@ -5,12 +5,14 @@ import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.message.SendReminderMessage;
+import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.IteratorUtils;
+import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -34,6 +36,8 @@ import static cn.fintecher.pangolin.entity.QCaseInfo.caseInfo;
 
 @Service("caseInfoService")
 public class CaseInfoService {
+
+
     final Logger log = LoggerFactory.getLogger(CaseInfoService.class);
 
 
@@ -105,6 +109,9 @@ public class CaseInfoService {
 
     @Inject
     CaseInfoRemarkRepository caseInfoRemarkRepository;
+
+    @Inject
+    RunCaseStrategyService runCaseStrategyService;
 
     /**
      * @Description 重新分配
@@ -1592,9 +1599,9 @@ public class CaseInfoService {
         if (Objects.equals(rule, 1)) {
             int caseNum = caseInfoYes.size();
             int deptOrUserNum;
-            if(Objects.isNull(accCaseInfoDisModel.getDepIdList()) || Objects.equals(accCaseInfoDisModel.getDepIdList().size(),0)){
+            if (Objects.isNull(accCaseInfoDisModel.getDepIdList()) || Objects.equals(accCaseInfoDisModel.getDepIdList().size(), 0)) {
                 deptOrUserNum = accCaseInfoDisModel.getUserIdList().size();
-            }else{
+            } else {
                 deptOrUserNum = accCaseInfoDisModel.getDepIdList().size();
             }
             List<Integer> caseNumList = new ArrayList<>(deptOrUserNum);
@@ -1640,7 +1647,7 @@ public class CaseInfoService {
                 caseInfoInnerDistributeModel.setCaseCurrentCount(caseInfoRepository.getCaseCount(targetUser.getId()));
                 caseInfoInnerDistributeModel.setCaseMoneyCurrentCount(caseInfoRepository.getUserCaseAmt(targetUser.getId()));
             }
-            if(Objects.equals(rule, 0)){
+            if (Objects.equals(rule, 0)) {
                 alreadyCaseNum = alreadyCaseNum + 1;
             } else {
                 //需要分配的案件数据
@@ -1653,7 +1660,7 @@ public class CaseInfoService {
                     alreadyCaseNum = alreadyCaseNum + 1;
                 }
             }
-            caseInfoInnerDistributeModel.setCaseTotalCount(caseInfoInnerDistributeModel.getCaseCurrentCount()+caseInfoInnerDistributeModel.getCaseDistributeCount());
+            caseInfoInnerDistributeModel.setCaseTotalCount(caseInfoInnerDistributeModel.getCaseCurrentCount() + caseInfoInnerDistributeModel.getCaseDistributeCount());
             caseInfoInnerDistributeModel.setCaseMoneyTotalCount(caseInfoInnerDistributeModel.getCaseMoneyCurrentCount().add(caseInfoInnerDistributeModel.getCaseDistributeMoneyCount()));
             list.add(caseInfoInnerDistributeModel);
         }
@@ -1728,9 +1735,9 @@ public class CaseInfoService {
         if (Objects.equals(isNumAvg, 1)) {
             int caseNum = caseInfoYes.size();
             int deptOrUserNum;
-            if(Objects.isNull(accCaseInfoDisModel.getDepIdList()) || Objects.equals(accCaseInfoDisModel.getDepIdList().size(),0)){
+            if (Objects.isNull(accCaseInfoDisModel.getDepIdList()) || Objects.equals(accCaseInfoDisModel.getDepIdList().size(), 0)) {
                 deptOrUserNum = accCaseInfoDisModel.getUserIdList().size();
-            }else{
+            } else {
                 deptOrUserNum = accCaseInfoDisModel.getDepIdList().size();
             }
             List<Integer> caseNumList = new ArrayList<>(deptOrUserNum);
@@ -2401,4 +2408,73 @@ public class CaseInfoService {
         caseInfoRepository.saveAndFlush(caseInfo);
         caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
     }
+
+    /**
+     * 内催 策略分配
+     *
+     * @param caseStrategies 全部的策略
+     * @param caseInfos      全部的案件
+     */
+    public void innerStrategyDistribute(List<CaseStrategy> caseStrategies, List<CaseInfo> caseInfos, User user) throws Exception {
+        for (CaseStrategy caseStrategy : caseStrategies) {
+            List<CaseInfo> checkedList = new ArrayList<>(); // 策略匹配到的案件
+            KieSession kieSession = null;
+            try {
+                kieSession = runCaseStrategyService.runCaseRule(checkedList, caseStrategy, Constants.CASE_INFO_RULE);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                throw new RuntimeException(e.getMessage());
+            }
+            for (CaseInfo caseInfo : caseInfos) {
+                kieSession.insert(caseInfo);//插入
+                kieSession.fireAllRules();//执行规则
+            }
+            kieSession.dispose();
+            if (checkedList.isEmpty()) {
+                continue;
+            }
+            List<String> ids = new ArrayList<>();
+            List<Integer> caseNumList = new ArrayList<>();
+            checkedList.forEach(e -> ids.add(e.getId()));
+            setDistributeNum(checkedList, caseStrategy.getAssignType() == 1 ? caseStrategy.getUsers() : caseStrategy.getDepartments(), caseNumList);
+            AccCaseInfoDisModel accCaseInfoDisModel = new AccCaseInfoDisModel();
+            accCaseInfoDisModel.setCaseIdList(ids);
+            accCaseInfoDisModel.setCaseNumList(caseNumList);
+            accCaseInfoDisModel.setDepIdList(caseStrategy.getDepartments());
+            accCaseInfoDisModel.setIsDebt(0);
+            accCaseInfoDisModel.setDisType(caseStrategy.getAssignType());
+            accCaseInfoDisModel.setUserIdList(caseStrategy.getUsers());
+            distributeCeaseInfo(accCaseInfoDisModel, user);
+            caseInfos.removeAll(checkedList);
+        }
+    }
+
+    /**
+     * 策略分配中的平均分配计算
+     *
+     * @param caseInfos  案件数
+     * @param dataList   用户数
+     * @param disNumList 分配结果数
+     */
+    public void setDistributeNum(List<CaseInfo> caseInfos, List<String> dataList, List<Integer> disNumList) {
+        int i = caseInfos.size();
+        int j = dataList.size();
+        if (i % j == 0) {
+            int g = i / j;
+            for (int m = 1; m <= j; m++) {
+                disNumList.add(g);
+            }
+        } else {
+            int a = i / j;
+            int b = i % j;
+            for (int m = 0; m < j; m++) {
+                if (m > b - 1) {
+                    disNumList.add(a);
+                } else {
+                    disNumList.add(a + 1);
+                }
+            }
+        }
+    }
+
 }

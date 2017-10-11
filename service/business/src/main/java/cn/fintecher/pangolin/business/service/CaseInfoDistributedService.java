@@ -442,7 +442,7 @@ public class CaseInfoDistributedService {
             List<CaseInfoDistributed> checkedList = new ArrayList<>(); // 策略匹配到的案件
             KieSession kieSession = null;
             try {
-                kieSession = runCaseStrategyService.runCaseRun(checkedList, caseStrategy);
+                kieSession = runCaseStrategyService.runCaseRule(checkedList, caseStrategy,Constants.CASE_INFO_DISTRIBUTE_RULE);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 throw new RuntimeException(e.getMessage());

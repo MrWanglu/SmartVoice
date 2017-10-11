@@ -293,7 +293,7 @@ public class CaseInfoDistributeController extends BaseController {
     @PostMapping("/countStrategyAllocation")
     @ApiOperation(notes = "策略分配情况统计", value = "策略分配情况统计")
     public ResponseEntity<CountStrategyAllocationModel> countStrategyAllocation(@RequestBody CaseInfoIdList caseInfoIdList,
-                                                  @RequestHeader(value = "X-UserToken") String token) {
+                                                                                @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
             CountStrategyAllocationModel model = caseInfoDistributedService.countStrategyAllocation(caseInfoIdList, user);
@@ -323,7 +323,7 @@ public class CaseInfoDistributeController extends BaseController {
                                         @RequestParam(required = false) @ApiParam("案件金额（最小）") BigDecimal startAmount,
                                         @RequestParam(required = false) @ApiParam("案件金额（最大）") BigDecimal endAmount,
                                         @ApiIgnore Pageable pageable) {
-        if(StringUtils.isBlank(jsonString)) {
+        if (StringUtils.isBlank(jsonString)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先配置策略")).body(null);
         }
         if (Objects.isNull(type)) {
@@ -344,8 +344,8 @@ public class CaseInfoDistributeController extends BaseController {
                 builder.and(qCaseInfoDistributed.overdueAmount.lt(endAmount));
                 Iterable<CaseInfoDistributed> iterable = caseInfoDistributedRepository.findAll(builder);
                 Iterator<CaseInfoDistributed> iterator = iterable.iterator();
-                KieSession kieSession = runCaseStrategyService.runCaseRun(checkList, caseStrategy);
-                while (iterator.hasNext()){
+                KieSession kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_DISTRIBUTE_RULE);
+                while (iterator.hasNext()) {
                     kieSession.insert(iterator.next());//插入
                     kieSession.fireAllRules();//执行规则
                 }
@@ -354,7 +354,7 @@ public class CaseInfoDistributeController extends BaseController {
                     for (CaseInfoDistributed distributed : checkList) {
                         StrategyPreviewModel model = new StrategyPreviewModel();
                         BeanUtils.copyProperties(distributed, model);
-                        model.setCity(Objects.isNull(distributed.getArea())? null : distributed.getArea().getAreaName());
+                        model.setCity(Objects.isNull(distributed.getArea()) ? null : distributed.getArea().getAreaName());
                         model.setIdCard(Objects.isNull(distributed.getPersonalInfo()) ? null : distributed.getPersonalInfo().getIdCard());
                         model.setPersonalName(Objects.isNull(distributed.getPersonalInfo()) ? null : distributed.getPersonalInfo().getName());
                         model.setPhone(Objects.isNull(distributed.getPersonalInfo()) ? null : distributed.getPersonalInfo().getMobileNo());
@@ -376,7 +376,7 @@ public class CaseInfoDistributeController extends BaseController {
                 builder.and(qCaseInfo.overdueAmount.lt(endAmount));
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 Iterator<CaseInfo> iterator = all.iterator();
-                KieSession kieSession = runCaseStrategyService.runCaseRun(checkList, caseStrategy);
+                KieSession kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_RULE);
                 while (iterator.hasNext()) {
                     CaseInfo next = iterator.next();
                     kieSession.insert(next);
@@ -387,7 +387,7 @@ public class CaseInfoDistributeController extends BaseController {
                     for (CaseInfo caseInfo : checkList) {
                         StrategyPreviewModel model = new StrategyPreviewModel();
                         BeanUtils.copyProperties(caseInfo, model);
-                        model.setCity(Objects.isNull(caseInfo.getArea())? null : caseInfo.getArea().getAreaName());
+                        model.setCity(Objects.isNull(caseInfo.getArea()) ? null : caseInfo.getArea().getAreaName());
                         model.setIdCard(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getIdCard());
                         model.setPersonalName(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getName());
                         model.setPhone(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getMobileNo());
@@ -408,7 +408,7 @@ public class CaseInfoDistributeController extends BaseController {
                 Iterable<OutsourcePool> all = outsourcePoolRepository.findAll(qOutsourcePool.outStatus.ne(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode()) // 委外见排除
                         .and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())));// 未回收
                 Iterator<OutsourcePool> iterator = all.iterator();
-                KieSession kieSession = runCaseStrategyService.runCaseRun(checkList, caseStrategy);
+                KieSession kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_RULE);
                 while (iterator.hasNext()) {
                     OutsourcePool outsourcePool = iterator.next();
                     kieSession.insert(outsourcePool);
@@ -420,7 +420,7 @@ public class CaseInfoDistributeController extends BaseController {
                         StrategyPreviewModel model = new StrategyPreviewModel();
                         CaseInfo caseInfo = outsourcePool.getCaseInfo();
                         BeanUtils.copyProperties(outsourcePool.getCaseInfo(), model);
-                        model.setCity(Objects.isNull(caseInfo.getArea())? null : caseInfo.getArea().getAreaName());
+                        model.setCity(Objects.isNull(caseInfo.getArea()) ? null : caseInfo.getArea().getAreaName());
                         model.setIdCard(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getIdCard());
                         model.setPersonalName(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getName());
                         model.setPhone(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getMobileNo());

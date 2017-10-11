@@ -1042,8 +1042,8 @@ public class CaseInfoController extends BaseController {
             }
             builder.and(QCaseInfo.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
             builder.and(QCaseInfo.caseInfo.department.code.startsWith(tokenUser.getDepartment().getCode()));
-            builder.andAnyOf(QCaseInfo.caseInfo.collectionStatus.in(status),QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue())
-                                .and(QCaseInfo.caseInfo.department.isNotNull()));
+            builder.andAnyOf(QCaseInfo.caseInfo.collectionStatus.in(status), QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue())
+                    .and(QCaseInfo.caseInfo.department.isNotNull()));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(page);
         } catch (Exception e) {
@@ -1177,14 +1177,22 @@ public class CaseInfoController extends BaseController {
     /**
      * 内催案件 待分配案件 策略分配
      */
-    @GetMapping("/strategyDistribute")
+    @GetMapping("/innerStrategyDistribute")
     @ApiOperation(value = "内催案件 待分配案件 策略分配", notes = "内催案件 待分配案件 策略分配")
-    public ResponseEntity<List<?>> strategyDistribute(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
-                                                      @RequestHeader(value = "X-UserToken") String token,
-                                                      @RequestBody @ApiParam(value = "所有的待分配案件ID集合") CaseDistributeInfoModel caseDistributeInfoModel) {
+    public ResponseEntity<List<CaseInfo>> innerStrategyDistribute(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                                  @RequestHeader(value = "X-UserToken") String token,
+                                                                  @ApiParam(value = "所有的待分配案件ID集合") CaseDistributeInfoModel caseDistributeInfoModel) {
         User user = null;
         try {
             user = getUserByToken(token);
+            ParameterizedTypeReference<List<CaseStrategy>> responseType = new ParameterizedTypeReference<List<CaseStrategy>>() {
+            };
+            ResponseEntity<List<CaseStrategy>> caseStrategies = restTemplate.exchange(Constants.CASE_STRATEGY_URL
+                    .concat("companyCode=").concat(user.getCompanyCode())
+                    .concat("&strategyType=").concat(CaseStrategy.StrategyType.INNER.getValue().toString()), HttpMethod.GET, null, responseType);
+            if (Objects.isNull(caseStrategies) || !caseStrategies.hasBody() || caseStrategies.getBody().size() == 0) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有分配策略信息")).body(null);
+            }
             if (Objects.isNull(caseDistributeInfoModel) || Objects.isNull(caseDistributeInfoModel.getCaseIdList()) || caseDistributeInfoModel.getCaseIdList().isEmpty()) {
                 //没有勾选案件,分配所有的案件
                 QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
@@ -1195,16 +1203,19 @@ public class CaseInfoController extends BaseController {
                 if (!caseInfos.iterator().hasNext()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
                 }
-                ParameterizedTypeReference<List<CaseStrategy>> responseType = new ParameterizedTypeReference<List<CaseStrategy>>() {
-                };
-                ResponseEntity<List<CaseStrategy>> responseEntity = restTemplate.exchange(Constants.CASE_STRATEGY_URL
-                        .concat("companyCode=").concat(user.getCompanyCode())
-                        .concat("&strategyType=").concat(CaseStrategy.StrategyType.INNER.getValue().toString()), HttpMethod.GET, null, responseType);
-                if (Objects.isNull(responseEntity) || !responseEntity.hasBody()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
-                }
+                caseInfoService.innerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
             } else {
                 //分配勾选的案件
+                QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+                BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+                booleanBuilder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()));
+                booleanBuilder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
+                booleanBuilder.and(qCaseInfo.id.in(caseDistributeInfoModel.getCaseIdList()));
+                Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(booleanBuilder);
+                if (!caseInfos.iterator().hasNext()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
+                }
+                caseInfoService.innerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
             }
         } catch (final Exception e) {
             log.debug(e.getMessage());

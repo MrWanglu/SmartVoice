@@ -364,4 +364,13 @@ public final class Constants {
     public final static String MONGODB_BACKUP_ADDRESS_TYPE = "9001";
     public final static String MONGODB_RECOVER_ADDRESS_CODE = "Sysparam.mongodbrecover.address";
     public final static String MONGODB_RECOVER_ADDRESS_TYPE = "9001";
+
+    /**
+     * 策略分配相关参数
+     */
+    public final static String CASE_INFO_DISTRIBUTE_RULE = "caseInfoDistribute.ftl";
+    public final static String CASE_INFO_RULE = "caseInfo.ftl";
+    public final static String OUTSOURCE = "outsource.ftl";
+
+
 }

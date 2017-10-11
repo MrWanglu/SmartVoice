@@ -44,9 +44,9 @@ public class RunCaseStrategyService {
      * @throws IOException
      * @throws TemplateException
      */
-    public KieSession runCaseRun(List<?> checkedList, CaseStrategy caseStrategy) {
+    public KieSession runCaseRule(List<?> checkedList, CaseStrategy caseStrategy,String ruleName) {
         try {
-            freemarker.template.Template template = freemarkerConfiguration.getTemplate("caseInfo.ftl", "UTF-8");
+            freemarker.template.Template template = freemarkerConfiguration.getTemplate(ruleName, "UTF-8");
             Map<String, String> map = new HashMap<>();
             map.put("id", caseStrategy.getId());
             map.put("strategyText", caseStrategy.getStrategyText());
