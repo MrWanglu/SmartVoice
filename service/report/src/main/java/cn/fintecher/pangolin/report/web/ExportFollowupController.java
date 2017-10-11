@@ -157,7 +157,7 @@ public class ExportFollowupController extends BaseController {
 
     @PostMapping(value = "/exportFollowupRecord")
     @ApiOperation(notes = "导出跟进记录", value = "导出跟进记录")
-    public ResponseEntity exportFollowupRecord(@RequestBody ExportFollowRecordParams exportFollowupParams,
+    public ResponseEntity exportFollowupRecord(@RequestBody(required = false) ExportFollowRecordParams exportFollowupParams,
                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
 
         User user = null;
