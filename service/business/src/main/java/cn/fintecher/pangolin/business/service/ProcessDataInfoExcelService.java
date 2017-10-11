@@ -207,7 +207,6 @@ public class ProcessDataInfoExcelService {
     private CaseInfoDistributed addCaseInfoDistributed(DataInfoExcelModel dataInfoExcelModel, Product product, User user, Personal personal) {
         CaseInfoDistributed caseInfoDistributed = new CaseInfoDistributed();
         caseInfoDistributed.setArea(areaHandler(dataInfoExcelModel));
-        caseInfoDistributed.setDepartment(user.getDepartment());
         caseInfoDistributed.setPersonalInfo(personal);
         caseInfoDistributed.setBatchNumber(dataInfoExcelModel.getBatchNumber());
         caseInfoDistributed.setCaseNumber(dataInfoExcelModel.getCaseNumber());
