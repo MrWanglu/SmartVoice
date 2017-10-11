@@ -270,7 +270,7 @@ public class CaseInfoController extends BaseController {
     @PostMapping(value = "/distributePreview")
     @ApiOperation(value = "内催待分配预览", notes = "内催待分配预览")
     public ResponseEntity<List<CaseInfoInnerDistributeModel>> distributePreview(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
-                                              @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to distributeCeaseInfo");
         try {
             List<CaseInfoInnerDistributeModel> list = caseInfoService.distributePreview(accCaseInfoDisModel);
@@ -731,7 +731,8 @@ public class CaseInfoController extends BaseController {
 
     @GetMapping("/updateAllScoreStrategyManual")
     @ApiOperation(value = "更新案件评分(手动)", notes = "更新案件评分(手动)")
-    public ResponseEntity updateAllScoreStrategyManual(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity updateAllScoreStrategyManual(@RequestParam @ApiParam(required = true) Integer strategyType,
+                                                       @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
             String companyCode = user.getCompanyCode();
@@ -739,7 +740,7 @@ public class CaseInfoController extends BaseController {
             watch1.start();
             KieSession kieSession = null;
             try {
-                kieSession = createSorceRule(companyCode);
+                kieSession = createSorceRule(companyCode, strategyType);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
@@ -795,11 +796,11 @@ public class CaseInfoController extends BaseController {
      * @throws IOException
      * @throws
      */
-    private KieSession createSorceRule(String comanyCode) {
+    private KieSession createSorceRule(String comanyCode, Integer strategyType) {
         try {
             Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
             Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
-            ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode), ScoreRules.class);
+            ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode).concat("&strategyType=").concat(strategyType.toString()), ScoreRules.class);
             List<ScoreRule> rules = null;
             if (responseEntity.hasBody()) {
                 ScoreRules scoreRules = responseEntity.getBody();
@@ -1216,8 +1217,6 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "分配失败")).body(null);
         }
     }
-
-
 }
 
 

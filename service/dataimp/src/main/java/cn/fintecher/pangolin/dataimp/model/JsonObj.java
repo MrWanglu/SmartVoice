@@ -8,4 +8,5 @@ import lombok.Data;
 @Data
 public class JsonObj {
     private String jsonStr;
+    private Integer strategyType; //策略类型：230-导入案件分配策略，231-内催池案件分配策略，232-委外池案件分配策略
 }

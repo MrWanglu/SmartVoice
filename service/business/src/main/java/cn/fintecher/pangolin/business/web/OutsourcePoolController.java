@@ -108,23 +108,23 @@ public class OutsourcePoolController extends BaseController {
     public ResponseEntity<Void> batchDistribution(@RequestBody OutsourceInfo outsourceInfo, @RequestHeader(value = "X-UserToken") String token) {
         try {
             List<String> outCaseIds = outsourceInfo.getOutCaseIds();//待委外的案件id集合
-            if (outCaseIds.isEmpty()){
+            if (outCaseIds.isEmpty()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "未选择案件")).body(null);
             }
             List<OutsourcePool> outsourcePools = new ArrayList<>();
-            for (String outCaseId : outCaseIds){//获取未分配的案件信息
+            for (String outCaseId : outCaseIds) {//获取未分配的案件信息
                 OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outCaseId);
-                if (Objects.isNull(outsourcePool)){
+                if (Objects.isNull(outsourcePool)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "案件查询异常")).body(null);
                 }
                 outsourcePools.add(outsourcePool);
             }
             List<OutsourcePool> outsourcePoolList = new ArrayList<>();//用于批量保存已分配出去案件的空盒子
-            List<OutDistributeParam> outDistributes =  outsourceInfo.getOutDistributes();//委外分配信息
-            if (outDistributes.isEmpty()){
+            List<OutDistributeParam> outDistributes = outsourceInfo.getOutDistributes();//委外分配信息
+            if (outDistributes.isEmpty()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "", "未选择委外方")).body(null);
             }
-            Integer rule =  outsourceInfo.getRule();//分配规则
+            Integer rule = outsourceInfo.getRule();//分配规则
             List<OutsourceRecord> outsourceRecords = new ArrayList<>();//待保存的案件委外记录集合
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
@@ -132,129 +132,129 @@ public class OutsourcePoolController extends BaseController {
             }
             LabelValue seqResult = batchSeqService.nextSeq(CASE_SEQ, 5);
             String ouorBatch = seqResult.getValue();
-                if (1 == rule){//优先共債案件
-                    Map<String,Integer> map = new HashMap();
-                    for (int i=0;i<outsourcePools.size();i++) {//遍历所有所选案件以便查询所有共债案件
-                        OutsourcePool outsourcePool = outsourcePools.get(i);
-                        if (Objects.isNull(outsourcePool) || Objects.isNull(outsourcePool.getCaseInfo())){
-                            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfo", "", "案件查询异常")).body(null);
-                        }
-                        String custName = outsourcePool.getCaseInfo().getPersonalInfo().getName();
-                        if (Objects.isNull(custName)){
-                            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalInfo", "", "客户名称查询异常")).body(null);
-                        }
-                        String idCard = outsourcePool.getCaseInfo().getPersonalInfo().getIdCard();
-                        if (Objects.isNull(idCard)){
-                            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalInfo", "", "客户身份证号查询异常")).body(null);
-                        }
-                        Object[] nums = outsourcePoolRepository.getGzNum(custName,idCard);
-                        if (Objects.nonNull(nums) && nums.length > 0){//
-                            int lastNum = 0;//上一委外方的案件共债数
-                            String lastOutId = null;//上一委外方id
-                            for (int j=0;j<nums.length;j++){
-                                Object[] object = (Object[]) nums[j];
-                                int num = ((BigInteger)object[1]).intValue();//案件共债数
-                                String outId = (String)object[0];//委外方id
-                                if (j != 0){
-                                    if (lastNum <= num){//本次>上次
-                                        lastNum = num;
-                                        lastOutId = outId;
-                                    }
-                                } else {
+            if (1 == rule) {//优先共債案件
+                Map<String, Integer> map = new HashMap();
+                for (int i = 0; i < outsourcePools.size(); i++) {//遍历所有所选案件以便查询所有共债案件
+                    OutsourcePool outsourcePool = outsourcePools.get(i);
+                    if (Objects.isNull(outsourcePool) || Objects.isNull(outsourcePool.getCaseInfo())) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfo", "", "案件查询异常")).body(null);
+                    }
+                    String custName = outsourcePool.getCaseInfo().getPersonalInfo().getName();
+                    if (Objects.isNull(custName)) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalInfo", "", "客户名称查询异常")).body(null);
+                    }
+                    String idCard = outsourcePool.getCaseInfo().getPersonalInfo().getIdCard();
+                    if (Objects.isNull(idCard)) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("PersonalInfo", "", "客户身份证号查询异常")).body(null);
+                    }
+                    Object[] nums = outsourcePoolRepository.getGzNum(custName, idCard);
+                    if (Objects.nonNull(nums) && nums.length > 0) {//
+                        int lastNum = 0;//上一委外方的案件共债数
+                        String lastOutId = null;//上一委外方id
+                        for (int j = 0; j < nums.length; j++) {
+                            Object[] object = (Object[]) nums[j];
+                            int num = ((BigInteger) object[1]).intValue();//案件共债数
+                            String outId = (String) object[0];//委外方id
+                            if (j != 0) {
+                                if (lastNum <= num) {//本次>上次
                                     lastNum = num;
                                     lastOutId = outId;
                                 }
-                            }
-
-                            Outsource outsource = outsourceRepository.findOne(lastOutId);
-                            if (Objects.isNull(outsource)){
-                                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "", "委外方查询异常")).body(null);
-                            }
-                            //优先将案件委外给有共债案件的委外方
-                            setOutsourcePool(outsourcePool,outsource,ouorBatch,user,outsourcePoolList);
-                            outsourcePools.remove(0);//干掉已经分出去的案件
-                            //添加委外记录
-                            saveOutsourceRecord(outsourcePool,outsource,user,ouorBatch,outsourceRecords);
-
-                            i--;//如果有删除则向前补一位
-                            //记录已经分配的委外方及分配数
-                            if (map.containsKey(lastOutId)) {
-                                map.put(lastOutId,map.get(lastOutId)+1);
                             } else {
-                                map.put(lastOutId,1);
+                                lastNum = num;
+                                lastOutId = outId;
                             }
                         }
-                    }
 
-                    //共债剩余未分配案件按手动输入个数依次填满，共债分配数大于等于手动输入个数的则不再分配
-                    for (OutDistributeParam outDistributeParam:outDistributes){
-                        String outId = outDistributeParam.getOutId();
-                        int distributionCount = outDistributeParam.getDistributionCount();//应分配案件数
-                        int alreadyDistributionCount = map.get(outId);//已分配案件数
-                        if (Objects.nonNull(map.get(outId))){
-                            outDistributeParam.setDistributionCount(distributionCount-alreadyDistributionCount);
+                        Outsource outsource = outsourceRepository.findOne(lastOutId);
+                        if (Objects.isNull(outsource)) {
+                            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "", "委外方查询异常")).body(null);
                         }
-                        distributionCount = outDistributeParam.getDistributionCount();//共债分完后还可分配的案件数
-                        while (distributionCount > 0){
-                            OutsourcePool outsourcePool = outsourcePools.get(0);
-                            Outsource outsource = outsourceRepository.findOne(outId);
-                            if (Objects.isNull(outsource)){
-                                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "", "委外方查询异常")).body(null);
-                            }
-                            setOutsourcePool(outsourcePool,outsource,ouorBatch,user,outsourcePoolList);
-                            //添加委外记录
-                            saveOutsourceRecord(outsourcePool,outsource,user,ouorBatch,outsourceRecords);
-                            distributionCount--;//分配数-1
-                            outsourcePools.remove(0);//添加完后删除案件集合中的所分案件
-                        }
-                    }
-                } else if (2==rule){//案件数量平均分法
-
-                    if (outCaseIds.size() > outDistributes.size()){//案件数大于委外方数
-                        int avgNum = outCaseIds.size() / outDistributes.size();//平均数
-                        //先给每个委外方分配avgNum个案件，剩余的按顺序依次分配
-                        for (OutDistributeParam outDistributeParam:outDistributes){
-                            String outId = outDistributeParam.getOutId();
-                            for (int i=0;i<avgNum;i++){
-                                Outsource outsource = outsourceRepository.findOne(outId);
-                                OutsourcePool outsourcePool = outsourcePools.get(0);
-                                setOutsourcePool(outsourcePool,outsource,ouorBatch,user,outsourcePoolList);
-                                outsourcePools.remove(0);
-                                //添加委外记录
-                                saveOutsourceRecord(outsourcePool,outsource,user,ouorBatch,outsourceRecords);
-                            }
-                        }
-                    }
-                    //案件数不足的情况（案件数<=委外方数）
-                    for (OutsourcePool outsourcePool:outsourcePools) {
-                        String outId = outDistributes.get(0).getOutId();
-                        Outsource outsource = outsourceRepository.findOne(outId);
-                        setOutsourcePool(outsourcePool,outsource,ouorBatch,user,outsourcePoolList);
-                        //每个委外方分到案件后就不再分配
-                        outDistributes.remove(0);
+                        //优先将案件委外给有共债案件的委外方
+                        setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
+                        outsourcePools.remove(0);//干掉已经分出去的案件
                         //添加委外记录
-                        saveOutsourceRecord(outsourcePool,outsource,user,ouorBatch,outsourceRecords);
-                    }
-                } else {//无规则分配(按手动输入案件数分配)
-                    for (OutDistributeParam outDistributeParam:outDistributes){
-                        String outId = outDistributeParam.getOutId();
-                        int distributionCount = outDistributeParam.getDistributionCount();//应分配案件数
-                        while (distributionCount > 0){
-                            OutsourcePool outsourcePool = outsourcePools.get(0);
-                            Outsource outsource = outsourceRepository.findOne(outId);
-                            if (Objects.isNull(outsource)){
-                                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "", "委外方查询异常")).body(null);
-                            }
-                            setOutsourcePool(outsourcePool,outsource,ouorBatch,user,outsourcePoolList);
-                            outsourcePools.remove(0);//添加完后删除案件集合中的所分案件
-                            //添加委外记录
-                            saveOutsourceRecord(outsourcePool,outsource,user,ouorBatch,outsourceRecords);
-                            distributionCount--;//分配数-1
+                        saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
+
+                        i--;//如果有删除则向前补一位
+                        //记录已经分配的委外方及分配数
+                        if (map.containsKey(lastOutId)) {
+                            map.put(lastOutId, map.get(lastOutId) + 1);
+                        } else {
+                            map.put(lastOutId, 1);
                         }
                     }
                 }
-           outsourcePoolRepository.save(outsourcePoolList);//批量保存分配的案子
-           outsourceRecordRepository.save(outsourceRecords);
+
+                //共债剩余未分配案件按手动输入个数依次填满，共债分配数大于等于手动输入个数的则不再分配
+                for (OutDistributeParam outDistributeParam : outDistributes) {
+                    String outId = outDistributeParam.getOutId();
+                    int distributionCount = outDistributeParam.getDistributionCount();//应分配案件数
+                    int alreadyDistributionCount = map.get(outId);//已分配案件数
+                    if (Objects.nonNull(map.get(outId))) {
+                        outDistributeParam.setDistributionCount(distributionCount - alreadyDistributionCount);
+                    }
+                    distributionCount = outDistributeParam.getDistributionCount();//共债分完后还可分配的案件数
+                    while (distributionCount > 0) {
+                        OutsourcePool outsourcePool = outsourcePools.get(0);
+                        Outsource outsource = outsourceRepository.findOne(outId);
+                        if (Objects.isNull(outsource)) {
+                            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "", "委外方查询异常")).body(null);
+                        }
+                        setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
+                        //添加委外记录
+                        saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
+                        distributionCount--;//分配数-1
+                        outsourcePools.remove(0);//添加完后删除案件集合中的所分案件
+                    }
+                }
+            } else if (2 == rule) {//案件数量平均分法
+
+                if (outCaseIds.size() > outDistributes.size()) {//案件数大于委外方数
+                    int avgNum = outCaseIds.size() / outDistributes.size();//平均数
+                    //先给每个委外方分配avgNum个案件，剩余的按顺序依次分配
+                    for (OutDistributeParam outDistributeParam : outDistributes) {
+                        String outId = outDistributeParam.getOutId();
+                        for (int i = 0; i < avgNum; i++) {
+                            Outsource outsource = outsourceRepository.findOne(outId);
+                            OutsourcePool outsourcePool = outsourcePools.get(0);
+                            setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
+                            outsourcePools.remove(0);
+                            //添加委外记录
+                            saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
+                        }
+                    }
+                }
+                //案件数不足的情况（案件数<=委外方数）
+                for (OutsourcePool outsourcePool : outsourcePools) {
+                    String outId = outDistributes.get(0).getOutId();
+                    Outsource outsource = outsourceRepository.findOne(outId);
+                    setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
+                    //每个委外方分到案件后就不再分配
+                    outDistributes.remove(0);
+                    //添加委外记录
+                    saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
+                }
+            } else {//无规则分配(按手动输入案件数分配)
+                for (OutDistributeParam outDistributeParam : outDistributes) {
+                    String outId = outDistributeParam.getOutId();
+                    int distributionCount = outDistributeParam.getDistributionCount();//应分配案件数
+                    while (distributionCount > 0) {
+                        OutsourcePool outsourcePool = outsourcePools.get(0);
+                        Outsource outsource = outsourceRepository.findOne(outId);
+                        if (Objects.isNull(outsource)) {
+                            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Outsource", "", "委外方查询异常")).body(null);
+                        }
+                        setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
+                        outsourcePools.remove(0);//添加完后删除案件集合中的所分案件
+                        //添加委外记录
+                        saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
+                        distributionCount--;//分配数-1
+                    }
+                }
+            }
+            outsourcePoolRepository.save(outsourcePoolList);//批量保存分配的案子
+            outsourceRecordRepository.save(outsourceRecords);
             return ResponseEntity.ok().body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -283,16 +283,16 @@ public class OutsourcePoolController extends BaseController {
         outsourcePool.setOperator(user.getUserName());
         outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDING.getCode());
         outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
-        BigDecimal b2=outsourcePool.getCaseInfo().getHasPayAmount();//已还款金额
-        if (Objects.isNull(b2)){
+        BigDecimal b2 = outsourcePool.getCaseInfo().getHasPayAmount();//已还款金额
+        if (Objects.isNull(b2)) {
             outsourcePool.getCaseInfo().setHasPayAmount(BigDecimal.ZERO);
         }
-        BigDecimal b1=outsourcePool.getCaseInfo().getOverdueAmount();//原案件金额
+        BigDecimal b1 = outsourcePool.getCaseInfo().getOverdueAmount();//原案件金额
         outsourcePool.setContractAmt(b1.subtract(b2));//委外案件金额=原案件金额-已还款金额
         outsourcePool.setOverduePeriods(outsourcePool.getOverduePeriods());//逾期时段
-        GregorianCalendar gc=new GregorianCalendar();
+        GregorianCalendar gc = new GregorianCalendar();
         gc.setTime(ZWDateUtil.getNowDateTime());
-        gc.add(2,3);
+        gc.add(2, 3);
         outsourcePool.setOverOutsourceTime(gc.getTime());
         outsourcePoolList.add(outsourcePool);
     }
@@ -334,9 +334,9 @@ public class OutsourcePoolController extends BaseController {
             }
             List<OutDistributeInfo> outDistributeInfos = new ArrayList<>();
             Object[] object = outsourcePoolRepository.getOutDistributeInfo(companyCode);
-            for (int i=0;i<object.length;i++){
+            for (int i = 0; i < object.length; i++) {
                 Object[] object1 = (Object[]) object[i];
-                if(Objects.nonNull(object1[1])){
+                if (Objects.nonNull(object1[1])) {
                     String outCode = (String) object1[1];
                     String outName = (String) object1[2];
                     Integer sumNum = ((BigInteger) object1[3]).intValue();
@@ -358,14 +358,14 @@ public class OutsourcePoolController extends BaseController {
                 }
 
             }
-            if(Objects.nonNull(outCodeList.getOutCode())){
+            if (Objects.nonNull(outCodeList.getOutCode())) {
                 List<OutDistributeInfo> outDistributeInfos1 = new ArrayList<>();//存储选择的委外方
-                for(OutDistributeInfo out: outDistributeInfos){
-                   for(String outcode: outCodeList.getOutCode()){
-                       if(outcode.equals(out.getOutCode())){
-                           outDistributeInfos1.add(out);
-                       }
-                   }
+                for (OutDistributeInfo out : outDistributeInfos) {
+                    for (String outcode : outCodeList.getOutCode()) {
+                        if (outcode.equals(out.getOutCode())) {
+                            outDistributeInfos1.add(out);
+                        }
+                    }
 
                 }
                 Page<OutDistributeInfo> page1 = new PageImpl(outDistributeInfos1);
@@ -381,7 +381,9 @@ public class OutsourcePoolController extends BaseController {
 
     @GetMapping("/outCaseScore")
     @ApiOperation(value = "案件评分(手动)", notes = "案件评分(手动)")
-    public ResponseEntity outCaseScore(@RequestParam(required = false) String companyCode,@RequestHeader(value = "X-UserToken") String token) throws IOException {
+    public ResponseEntity outCaseScore(@RequestParam(required = false) String companyCode,
+                                       @RequestParam @ApiParam(required = true) Integer strategyType,
+                                       @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = null;
             try {
@@ -389,7 +391,7 @@ public class OutsourcePoolController extends BaseController {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            if (Objects.isNull(user.getCompanyCode())){
+            if (Objects.isNull(user.getCompanyCode())) {
                 if (Objects.isNull(companyCode)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "请选择公司")).body(null);
                 }
@@ -400,13 +402,17 @@ public class OutsourcePoolController extends BaseController {
             watch1.start();
             KieSession kieSession = null;
             try {
-                kieSession = createSorceRule(companyCode);
+                try {
+                    kieSession = createSorceRule(companyCode,strategyType);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             } catch (TemplateException e) {
                 e.printStackTrace();
             }
             Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(QOutsourcePool.outsourcePool.outStatus.eq(OutsourcePool.OutStatus.TO_OUTSIDE.getCode())
                     .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())));
-            List<OutsourcePool> outsourcePoolList = (List<OutsourcePool>)outsourcePools;
+            List<OutsourcePool> outsourcePoolList = (List<OutsourcePool>) outsourcePools;
             ScoreNumbersModel scoreNumbersModel = new ScoreNumbersModel();
             scoreNumbersModel.setTotal(outsourcePoolList.size());
             if (outsourcePoolList.size() > 0) {
@@ -447,10 +453,10 @@ public class OutsourcePoolController extends BaseController {
      * @throws IOException
      * @throws
      */
-    private KieSession createSorceRule(String comanyCode) throws IOException, TemplateException {
+    private KieSession createSorceRule(String comanyCode, Integer strategyType) throws IOException, TemplateException {
         freemarker.template.Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
         freemarker.template.Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
-        ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode), ScoreRules.class);
+        ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode).concat("&strategyType=").concat(strategyType.toString()), ScoreRules.class);
         List<ScoreRule> rules = null;
         if (Objects.nonNull(responseEntity.hasBody())) {
             if (responseEntity.hasBody()) {
@@ -509,9 +515,9 @@ public class OutsourcePoolController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseInfoReturn>> getReturnCaseByConditions(@QuerydslPredicate(root = CaseInfoReturn.class) Predicate predicate,
-                                                                         @ApiIgnore Pageable pageable,
+                                                                          @ApiIgnore Pageable pageable,
                                                                           @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                                                         @RequestHeader(value = "X-UserToken") String token) {
+                                                                          @RequestHeader(value = "X-UserToken") String token) {
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
             User user = getUserByToken(token);
@@ -548,7 +554,7 @@ public class OutsourcePoolController extends BaseController {
             }
             for (String id : ids) {
                 CaseInfoReturn caseInfoReturn = caseInfoReturnRepository.findOne(id);
-                if (Objects.isNull(caseInfoReturn)){
+                if (Objects.isNull(caseInfoReturn)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoReturn", "", "获取回收案件信息失败")).body(null);
                 }
                 CaseInfoVerificationApply caseInfoVerificationApply = new CaseInfoVerificationApply();
@@ -615,7 +621,7 @@ public class OutsourcePoolController extends BaseController {
             }
             for (String id : ids) {
                 CaseInfoReturn caseInfoReturn = caseInfoReturnRepository.findOne(id);
-                if (Objects.isNull(caseInfoReturn)){
+                if (Objects.isNull(caseInfoReturn)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoReturn", "", "获取回收案件信息失败")).body(null);
                 }
                 CaseInfo caseInfo = caseInfoReturn.getCaseId();
@@ -670,9 +676,9 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
             }
             builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));//委外类型
-            if (1 == flag){
+            if (1 == flag) {
                 builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.TO_OUTSIDE.getCode())); //待分配
-            }else if (2 == flag){
+            } else if (2 == flag) {
                 builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode())); //已结案
             }
             Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
@@ -695,15 +701,15 @@ public class OutsourcePoolController extends BaseController {
             List<OutsourcePool> outsourcePools = new ArrayList<>();
             for (String id : ids) {
                 OutsourcePool outsourcePool = outsourcePoolRepository.findOne(id);
-                if (Objects.isNull(outsourcePool)){
+                if (Objects.isNull(outsourcePool)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "案件查询异常")).body(null);
                 }
                 Date outTime = outsourcePool.getOutTime();
-                if (Objects.isNull(outTime)){
+                if (Objects.isNull(outTime)) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "获取委外时间异常")).body(null);
                 }
-                Integer days = ZWDateUtil.getBetween(outTime,ZWDateUtil.getNowDateTime(), ChronoUnit.DAYS);
-                if (days >= 3){
+                Integer days = ZWDateUtil.getBetween(outTime, ZWDateUtil.getNowDateTime(), ChronoUnit.DAYS);
+                if (days >= 3) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "委外已超过3天，不能撤回")).body(null);
                 }
                 outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
@@ -1002,7 +1008,7 @@ public class OutsourcePoolController extends BaseController {
     @ResponseBody
     @ApiOperation(value = "下载模板", notes = "下载模板")
     public ResponseEntity<String> loadTemplate(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                               @RequestParam(required = true)  @ApiParam(value = "下载模板的类型") Integer type,
+                                               @RequestParam(required = true) @ApiParam(value = "下载模板的类型") Integer type,
                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         try {
             User user = getUserByToken(token);
@@ -1018,11 +1024,11 @@ public class OutsourcePoolController extends BaseController {
             }
             QSysParam qSysParam = QSysParam.sysParam;
             SysParam sysParam = null;
-            if(type==0){
+            if (type == 0) {
                 sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
                         .and(qSysParam.code.eq(Constants.SMS_OUTCASE_ACCOUNT_URL_CODE))
                         .and(qSysParam.type.eq(Constants.SMS_OUTCASE_ACCOUNT_URL_TYPE)));
-            }else{
+            } else {
                 sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(companyCode)
                         .and(qSysParam.code.eq(Constants.SMS_OUTCASE_FOLLOWUP_URL_CODE))
                         .and(qSysParam.type.eq(Constants.SMS_OUTCASE_FOLLOWUP_URL_TYPE)));
@@ -1056,7 +1062,7 @@ public class OutsourcePoolController extends BaseController {
             }
             AccFinanceEntry accFinanceEntry = new AccFinanceEntry();
             CaseFollowupRecord outsourceFollowRecord = new CaseFollowupRecord();
-            if(type==0){
+            if (type == 0) {
                 if (Objects.isNull(user.getCompanyCode())) {
                     if (Objects.isNull(companyCode)) {
                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("AccFinanceEntry", "AccFinanceEntry", "请选择公司")).body(null);
@@ -1072,7 +1078,7 @@ public class OutsourcePoolController extends BaseController {
                 outsourceFollowRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
                 outsourceFollowRecord.setOperatorName(user.getRealName());
                 outsourceFollowRecord.setOperator(user.getUserName());
-                if(Objects.nonNull(user.getCompanyCode())){
+                if (Objects.nonNull(user.getCompanyCode())) {
                     outsourceFollowRecord.setCompanyCode(user.getCompanyCode());
                 }
             }
@@ -1093,14 +1099,14 @@ public class OutsourcePoolController extends BaseController {
             }
 
             List<CellError> errorList = null;
-            if(type==0){
+            if (type == 0) {
                 Class<?>[] dataClass = {AccFinanceDataExcel.class};
                 //解析Excel并保存到临时表中
-                errorList  = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry,outsourceFollowRecord,type);
-            }else{
+                errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
+            } else {
                 Class<?>[] dataClass = {OutsourceFollowUpRecordModel.class};
                 //解析Excel并保存到临时表中
-                errorList  = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry,outsourceFollowRecord,type);
+                errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
             }
 
             if (errorList.isEmpty()) {
@@ -1134,9 +1140,9 @@ public class OutsourcePoolController extends BaseController {
                     //对委外客户池已还款金额做累加
                     for (CaseInfo caseInfo : caseInfos) {
                         //对委外客户池中回款金额累加外部已还款金额
-                        if(Objects.nonNull(caseInfo.getId())){
+                        if (Objects.nonNull(caseInfo.getId())) {
                             OutsourcePool outsource = outsourcePoolRepository.findOne(caseInfo.getId());
-                            if(Objects.nonNull(outsource)){
+                            if (Objects.nonNull(outsource)) {
                                 outsource.setOutBackAmt(outsource.getOutBackAmt().add(financeEntryCase.getFienPayback()));
                                 outsourcePools.add(outsource);
                             }
@@ -1152,7 +1158,8 @@ public class OutsourcePoolController extends BaseController {
             //同步更新临时表中的数据状态为已确认
             accFinanceEntryRepository.save(accFinanceEntryList);
             //更新委外的案件池里的已还款金额
-            outsourcePoolRepository.save(outsourcePools);;
+            outsourcePoolRepository.save(outsourcePools);
+            ;
             return ResponseEntity.ok().body(unableMatchList);
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -1501,10 +1508,10 @@ public class OutsourcePoolController extends BaseController {
         try {
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.nonNull(batchNumber)){
+            if (Objects.nonNull(batchNumber)) {
                 builder.and(qOutsourcePool.outBatch.eq(batchNumber));
             }
-            if(Objects.nonNull(outsName)){
+            if (Objects.nonNull(outsName)) {
                 Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
                 builder.and(qOutsourcePool.outsource.id.eq(outsource.getId()));
             }
@@ -1535,10 +1542,10 @@ public class OutsourcePoolController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseFollowupRecord>> getOutSourceCaseFollowRecord(@RequestParam(required = true) @ApiParam(value = "案件编号") String caseNumber,
-                                                                                    @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
-                                                                                    @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                                                                    @ApiIgnore Pageable pageable,
-                                                                                    @RequestHeader(value = "X-UserToken") String token) {
+                                                                                 @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
+                                                                                 @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                                 @ApiIgnore Pageable pageable,
+                                                                                 @RequestHeader(value = "X-UserToken") String token) {
         log.debug("Rest request get outsource case by batch number");
         User user = null;
         try {
@@ -1549,7 +1556,7 @@ public class OutsourcePoolController extends BaseController {
         }
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.nonNull(caseNumber)){
+            if (Objects.nonNull(caseNumber)) {
                 builder.and(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(caseNumber));
             }
 

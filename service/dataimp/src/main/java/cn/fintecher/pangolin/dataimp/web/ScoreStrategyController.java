@@ -112,6 +112,7 @@ public class ScoreStrategyController {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
                 scoreRule.setName(jsonObject.getString("name"));
                 scoreRule.setWeight(jsonObject.getDouble("weight"));
+                scoreRule.setStrategyType(jsonStr.getStrategyType()); //策略类型
                 if (Objects.isNull(user.getCompanyCode())) {//如果是超级管理员，code码为空
                     scoreRule.setCompanyCode(null);
                 } else {
@@ -152,7 +153,6 @@ public class ScoreStrategyController {
                 logger.error(ex.getMessage(), ex);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStregy", "operate failed", "刪除的信息不存在")).body(null);
             }
-        } else {
         }
         return ResponseEntity.ok().body(null);
     }

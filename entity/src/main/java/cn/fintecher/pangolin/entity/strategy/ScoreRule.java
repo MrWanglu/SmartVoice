@@ -27,4 +27,6 @@ public class ScoreRule {
     private List<ScoreFormula> formulas;
     @ApiModelProperty(notes = "公司code码")
     private String companyCode;
+    @ApiModelProperty(notes = "策略类型")
+    private Integer strategyType;
 }

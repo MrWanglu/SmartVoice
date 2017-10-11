@@ -147,7 +147,7 @@ public class CaseStrategyController {
     @PostMapping("/addCaseStrategy")
     @ApiOperation(value = "新增/修改策略", notes = "新增/修改策略")
     public ResponseEntity addCaseStrategy(@RequestBody CaseStrategy caseStrategy,
-                                          @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws IOException, TemplateException {
+                                          @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
 
         ResponseEntity<User> userResponseEntity = null;
         try {

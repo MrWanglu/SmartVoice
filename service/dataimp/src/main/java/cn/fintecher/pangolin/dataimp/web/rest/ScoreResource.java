@@ -38,12 +38,14 @@ public class ScoreResource {
 
     @GetMapping("/getScoreRules")
     @ApiOperation(value = "获取案件评分规则", notes = "获取案件评分规则")
-    public ResponseEntity<ScoreRules> getScoreRules(@RequestParam String comanyCode) {
+    public ResponseEntity<ScoreRules> getScoreRules(@RequestParam String comanyCode,
+                                                    @RequestParam Integer strategyType) {
 
         Query query = new Query();
         if (ZWStringUtils.isNotEmpty(comanyCode)) {
             query.addCriteria(Criteria.where("companyCode").is(comanyCode));
         }
+        query.addCriteria(Criteria.where("strategyType").is(strategyType));
         List<ScoreRule> scoreRules = mongoTemplate.find(query, ScoreRule.class);
         List<ScoreRule> caseInfoList1 = new ArrayList<>();
         scoreRules.forEach(single -> caseInfoList1.add(single));
