@@ -1620,8 +1620,11 @@ public class CaseInfoService {
             String deptOrUserid = deptOrUserList.get(i);
             CaseInfoInnerDistributeModel caseInfoInnerDistributeModel = new CaseInfoInnerDistributeModel();
             caseInfoInnerDistributeModel.setDistributeType(accCaseInfoDisModel.getDisType());
-            if (Objects.equals(rule, 1) || Objects.equals(accCaseInfoDisModel.getDisType(),0)) {
+            if (Objects.equals(rule, 1)) {
                 caseInfoInnerDistributeModel.setCaseDistributeCount(disNumList.get(i));
+            }
+            if(Objects.equals(accCaseInfoDisModel.getDisType(),0)){
+                caseInfoInnerDistributeModel.setCaseDistributeCount(caseInfoYes.size());
             }
             Department department = null;
             User targetUser = null;
@@ -1637,7 +1640,7 @@ public class CaseInfoService {
                 caseInfoInnerDistributeModel.setCaseCurrentCount(caseInfoRepository.getCaseCount(targetUser.getId()));
                 caseInfoInnerDistributeModel.setCaseMoneyCurrentCount(caseInfoRepository.getUserCaseAmt(targetUser.getId()));
             }
-            if(Objects.equals(rule, 0) && Objects.equals(accCaseInfoDisModel.getDisType(),1)){
+            if(Objects.equals(rule, 0)){
                 alreadyCaseNum = alreadyCaseNum + 1;
             } else {
                 //需要分配的案件数据
