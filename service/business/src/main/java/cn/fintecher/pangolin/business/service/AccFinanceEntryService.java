@@ -135,28 +135,28 @@ public class AccFinanceEntryService {
                 caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(followUpRecordModel.getCaseNum()));
                 if (Objects.nonNull(caseInfo)) {
                     out.setCaseId(caseInfo.getId());
-                }else{
+                } else {
                     CellError cellError = new CellError();
                     cellError.setErrorMsg("客户[".concat(out.getCaseNumber()).concat("]的案件编号不存在"));
                     errorList.add(cellError);
                     return errorList;
                 }
-            }else {
+            } else {
                 errorList = validityFinanceFollowup(errorList, out);
                 return errorList;
             }
-            CaseFollowupRecord.Type[] followTypes = CaseFollowupRecord.Type.values();//跟进形势
+            CaseFollowupRecord.Type[] followTypes = CaseFollowupRecord.Type.values();//跟进方式
             Integer followtype = 0;
-            for(int i=0; i<followTypes.length;i++){
-                if(Objects.nonNull(followUpRecordModel.getFollowType())){
-                    if(followTypes[i].getRemark().equals(followUpRecordModel.getFollowType())){
+            for (int i = 0; i < followTypes.length; i++) {
+                if (Objects.nonNull(followUpRecordModel.getFollowType())) {
+                    if (followTypes[i].getRemark().equals(followUpRecordModel.getFollowType())) {
                         followtype = followTypes[i].getValue();
                     }
                 }
 
             }
             out.setType(followtype);
-            if(Objects.nonNull(outsourceFollowRecord.getCompanyCode())){
+            if (Objects.nonNull(outsourceFollowRecord.getCompanyCode())) {
                 out.setCompanyCode(outsourceFollowRecord.getCompanyCode());
             }
             out.setFollowTime(followUpRecordModel.getFollowTime());
@@ -164,9 +164,9 @@ public class AccFinanceEntryService {
             out.setTargetName(followUpRecordModel.getUserName());
             CaseFollowupRecord.Target[] objectNames = CaseFollowupRecord.Target.values();//跟进对象
             Integer objectName = 0;
-            for(int i=0; i<objectNames.length;i++){
-                if(Objects.nonNull(followUpRecordModel.getObjectName())){
-                    if(objectNames[i].getRemark().equals(followUpRecordModel.getObjectName())){
+            for (int i = 0; i < objectNames.length; i++) {
+                if (Objects.nonNull(followUpRecordModel.getObjectName())) {
+                    if (objectNames[i].getRemark().equals(followUpRecordModel.getObjectName())) {
                         objectName = objectNames[i].getValue();
                     }
                 }
@@ -175,9 +175,9 @@ public class AccFinanceEntryService {
             out.setTarget(objectName);
             CaseFollowupRecord.EffectiveCollection[] feedBacks = CaseFollowupRecord.EffectiveCollection.values();//催收反馈
             Integer feedBack = 0;
-            for(int i=0; i<feedBacks.length;i++){
-                if(Objects.nonNull(followUpRecordModel.getFeedback())){
-                    if(feedBacks[i].getRemark().equals(followUpRecordModel.getFeedback())){
+            for (int i = 0; i < feedBacks.length; i++) {
+                if (Objects.nonNull(followUpRecordModel.getFeedback())) {
+                    if (feedBacks[i].getRemark().equals(followUpRecordModel.getFeedback())) {
                         feedBack = feedBacks[i].getValue();
                     }
                 }
@@ -187,14 +187,14 @@ public class AccFinanceEntryService {
             out.setContent(followUpRecordModel.getFollowRecord());
             CaseFollowupRecord.ContactState[] telStatuslist = CaseFollowupRecord.ContactState.values();//电话状态
             Integer telStatus = 0;
-            for(int i=0; i<telStatuslist.length;i++){
-                if(Objects.nonNull(followUpRecordModel.getTelStatus())){
-                    if(telStatuslist[i].getRemark().equals(followUpRecordModel.getTelStatus())){
+            for (int i = 0; i < telStatuslist.length; i++) {
+                if (Objects.nonNull(followUpRecordModel.getTelStatus())) {
+                    if (telStatuslist[i].getRemark().equals(followUpRecordModel.getTelStatus())) {
                         telStatus = telStatuslist[i].getValue();
                     }
                 }
             }
-            out.setCallType(telStatus);
+            out.setContactState(telStatus);
             out.setOperatorName(outsourceFollowRecord.getOperatorName());
             out.setOperator(outsourceFollowRecord.getOperator());
             out.setOperatorTime(ZWDateUtil.getNowDateTime());

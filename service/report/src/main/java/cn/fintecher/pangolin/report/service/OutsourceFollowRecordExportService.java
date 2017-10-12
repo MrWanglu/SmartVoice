@@ -54,7 +54,7 @@ public class OutsourceFollowRecordExportService {
                     for (int j = 0; j < feedBacks.length; j++) {
                         if (Objects.nonNull(record.getCollectionFeedback())) {
                             if (Objects.equals(record.getCollectionFeedback(), feedBacks[j].getValue())) {
-                                followupExportModel.setFollFeedback(feedBacks[j].getRemark());//催收反馈
+                                followupExportModel.setFollFeedback(feedBacks[j].getRemark());
                                 break;
                             }
                         }
