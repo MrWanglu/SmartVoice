@@ -50,7 +50,6 @@ import springfox.documentation.annotations.ApiIgnore;
 import javax.inject.Inject;
 import java.io.*;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -120,7 +119,7 @@ public class OutsourcePoolController extends BaseController {
     @PostMapping(value = "/outsourceDistributeCeaseInfo")
     @ApiOperation(value = "委外待分配案件分配", notes = "委外待分配案件分配")
     public ResponseEntity outsourceDistributeCeaseInfo(@RequestBody OutsourceInfo outsourceInfo,
-                                              @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to outsourceDistributeCeaseInfo");
         User user = null;
         try {
@@ -137,6 +136,7 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "errorMessage", e.getMessage())).body(null);
         }
     }
+
     /**
      * @Description : 查询委外分配信息
      */
@@ -151,31 +151,23 @@ public class OutsourcePoolController extends BaseController {
             BooleanBuilder builder = new BooleanBuilder();
             String companyCode = null;
             if (Objects.nonNull(user.getCompanyCode())) {
-                companyCode= user.getCompanyCode();
+                companyCode = user.getCompanyCode();
             }
             List<OutDistributeInfo> outDistributeInfos = new ArrayList<>();
             Object[] object = outsourcePoolRepository.getAllOutSourceByCase(companyCode);
             for (int i = 0; i < object.length; i++) {
                 Object[] object1 = (Object[]) object[i];
                 if (Objects.nonNull(object1[1])) {
-                    String outName = (String) object1[0];
-                    String outCode = (String) object1[1];
-                    Integer sumNum = ((BigInteger) object1[2]).intValue();
-                    Integer endNum = ((BigInteger) object1[3]).intValue();
-                    BigDecimal successRate = (BigDecimal) object1[4];
-                    BigDecimal endAmt = (BigDecimal) object1[5];
-                    String outId = (String) object1[6];
                     OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
-                    outDistributeInfo.setOutCode(outCode);
-                    outDistributeInfo.setOutName(outName);
-                    outDistributeInfo.setCaseCount(sumNum);
-                    outDistributeInfo.setEndCount(endNum);
-                    outDistributeInfo.setSuccessRate(successRate);
-                    outDistributeInfo.setEndAmt(endAmt);
-                    outDistributeInfo.setOutId(outId);
+                    outDistributeInfo.setOutCode(Objects.isNull(object1[0]) ? null : object1[0].toString());
+                    outDistributeInfo.setOutName(Objects.isNull(object1[1]) ? null : object1[1].toString());
+                    outDistributeInfo.setCaseCount(Objects.isNull(object1[3]) ? null : Integer.valueOf(object1[3].toString()));
+                    outDistributeInfo.setEndCount(Objects.isNull(object1[5]) ? null : Integer.valueOf(object1[5].toString()));
+                    outDistributeInfo.setSuccessRate(Objects.isNull(object1[6]) ? null : BigDecimal.valueOf(Double.valueOf(object1[6].toString())));
+                    outDistributeInfo.setEndAmt(Objects.isNull(object1[4]) ? null : BigDecimal.valueOf(Double.valueOf(object1[4].toString())));
+                    outDistributeInfo.setOutId(Objects.isNull(object1[2]) ? null : object1[2].toString());
                     outDistributeInfos.add(outDistributeInfo);
                 }
-
             }
             Page<OutDistributeInfo> page = new PageImpl(outDistributeInfos);
             return ResponseEntity.ok().body(page);

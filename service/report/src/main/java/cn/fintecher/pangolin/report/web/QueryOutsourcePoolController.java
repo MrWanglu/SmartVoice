@@ -48,8 +48,8 @@ public class QueryOutsourcePoolController extends BaseController {
             PageInfo pageInfo = new PageInfo(content);
             OutSourcePoolModel outSourcePoolModel = new OutSourcePoolModel();
             outSourcePoolModel.setContent(content);
-            outSourcePoolModel.setGetTotalPages(pageInfo.getPages());
-            outSourcePoolModel.setGetTotalElements(pageInfo.getTotal());
+            outSourcePoolModel.setTotalPages(pageInfo.getPages());
+            outSourcePoolModel.setTotalElements(pageInfo.getTotal());
             return ResponseEntity.ok().body(outSourcePoolModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

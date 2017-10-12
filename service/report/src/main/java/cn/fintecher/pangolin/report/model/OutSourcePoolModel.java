@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.report.model;
 import lombok.Data;
 
 import java.util.List;
+
 /**
  * Created by Administrator on 2017/9/26.
  */
@@ -12,8 +13,8 @@ public class OutSourcePoolModel {
 
     List<QueryOutsourcePool> content;
 
-    int getTotalPages;
+    int totalPages;
 
-    long getTotalElements;
+    long totalElements;
 
 }

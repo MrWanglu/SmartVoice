@@ -120,8 +120,7 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
      * @param
      * @return
      */
-    @Query(value = "select b.outs_name,b.outs_code,count(case when a.out_status<>167 then a.id end) as case_count,count( case when  a.out_status=170 then a.id end) as end_count," +
-           "(count( case when  a.out_status=170 then a.id end)/count(case when a.out_status <>167 then a.id end)) as success_rate,sum(case when a.out_status = 170 then a.contract_amt end) as end_amt,a.out_id from outsource_pool a,outsource b where a.out_id=b.id and a.company_code = :companyCode group by out_id ", nativeQuery = true)
+    @Query(value = "select b.outs_code,b.outs_name,b.id,c.case_count,c.end_amt,c.end_count,c.success_rate from outsource b left JOIN (select a.out_id, count(case when a.out_status<>167 then a.id end) as case_count,count( case when  a.out_status=170 then a.id end) as end_count,(count( case when  a.out_status=170 then a.id end)/count(case when a.out_status <>167 then a.id end)) as success_rate,sum(case when a.out_status = 170 then a.contract_amt end) as end_amt from outsource_pool a group by a.out_id ) c on b.id =c.out_id where b.company_code=:companyCode", nativeQuery = true)
     Object[] getAllOutSourceByCase(@Param("companyCode") String companyCode);
 
     @Query(value = "SELECT count(*) FROM `outsource_pool` where out_status=168 and out_id= :outsourceId", nativeQuery = true)
