@@ -255,6 +255,7 @@ public class CaseStrategyController {
     @GetMapping("/findCaseStrategy")
     @ApiOperation(value = "检查策略名称是否重复", notes = "检查策略名称是否重复")
     public ResponseEntity findCaseStrategy(@RequestParam @ApiParam("操作者的Token") String name,
+                                           @RequestParam(required = false) @ApiParam("策略ID") String id,
                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         try {
             ResponseEntity<User> userResult = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
@@ -262,6 +263,9 @@ public class CaseStrategyController {
             Query query = new Query();
             query.addCriteria(Criteria.where("companyCode").is(user.getCompanyCode()));
             query.addCriteria(Criteria.where("name").is(name));
+            if (StringUtils.isNotBlank(id)) {
+                query.addCriteria(Criteria.where("id").ne(id));
+            }
             long count = mongoTemplate.count(query, CaseStrategy.class);
             if (count != 0) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "策略名称已存在")).body(null);
