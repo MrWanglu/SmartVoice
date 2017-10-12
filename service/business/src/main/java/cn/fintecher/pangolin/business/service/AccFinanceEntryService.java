@@ -185,7 +185,7 @@ public class AccFinanceEntryService {
             }
             out.setCollectionFeedback(feedBack);
             out.setContent(followUpRecordModel.getFollowRecord());
-            CaseFollowupRecord.CallType[] telStatuslist = CaseFollowupRecord.CallType.values();//电话状态
+            CaseFollowupRecord.ContactState[] telStatuslist = CaseFollowupRecord.ContactState.values();//电话状态
             Integer telStatus = 0;
             for(int i=0; i<telStatuslist.length;i++){
                 if(Objects.nonNull(followUpRecordModel.getTelStatus())){

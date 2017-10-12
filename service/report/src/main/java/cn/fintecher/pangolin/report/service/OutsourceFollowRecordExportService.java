@@ -152,7 +152,7 @@ public class OutsourceFollowRecordExportService {
         followupExportModel.setCommissionRate(excportResultModel.getCommissionRate());//佣金比例(%)
         followupExportModel.setLoanDate(excportResultModel.getLoanDate());//贷款日期
         followupExportModel.setOverdueManageFee(excportResultModel.getOverdueManageFee());//逾期管理费
-        followupExportModel.setOutsourceBackAmount(excportResultModel.getOutsourceTotalAmount());//委外回款金额(元)
+        followupExportModel.setOutsourceBackAmount(excportResultModel.getHasPayAmountOutsource());//委外回款金额(元)
         followupExportModel.setOutsName(excportResultModel.getOutsName());//委外方
         followupExportModel.setOutsourceTotalAmount(excportResultModel.getOutsourceTotalAmount());//委外案件金额(元)
         followupExportModel.setLeftAmount(excportResultModel.getLeftAmount());//剩余金额(元)
