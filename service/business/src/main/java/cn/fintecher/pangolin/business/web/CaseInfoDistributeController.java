@@ -380,6 +380,7 @@ public class CaseInfoDistributeController extends BaseController {
                 QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
                 BooleanBuilder builder = new BooleanBuilder();
                 builder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
+                builder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()));
                 builder.and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
                 if (StringUtils.isNotBlank(personalName)) {
                     builder.and(qCaseInfo.personalInfo.name.like("%" + personalName.trim() + "%"));
@@ -424,7 +425,7 @@ public class CaseInfoDistributeController extends BaseController {
                 List<CaseInfo> checkList = new ArrayList<>();
                 QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
                 BooleanBuilder builder = new BooleanBuilder();
-                builder.and(qOutsourcePool.outStatus.ne(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode()));
+                builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.TO_OUTSIDE.getCode()));
                 builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
                 if (StringUtils.isNotBlank(personalName)) {
                     builder.and(qOutsourcePool.caseInfo.personalInfo.name.like("%" + personalName.trim() + "%"));
