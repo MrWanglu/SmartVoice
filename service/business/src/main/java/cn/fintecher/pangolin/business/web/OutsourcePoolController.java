@@ -13,7 +13,6 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.jpa.impl.JPAQuery;
 import freemarker.template.Configuration;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
@@ -51,7 +50,6 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
@@ -840,15 +838,14 @@ public class OutsourcePoolController extends BaseController {
     @GetMapping("/importFinancData")
     @ResponseBody
     @ApiOperation(value = "账目导入/委外跟进记录导入", notes = "账目导入/委外跟进记录导入")
-    public ResponseEntity<List> importExcelData(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
-                                                @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                                @RequestParam(required = false) @ApiParam(value = "文件ID") String fileId,
-                                                @RequestParam(required = false) @ApiParam(value = "备注") String fienRemark,
-                                                @RequestParam(required = true) @ApiParam(value = "导入类型") Integer type) {
+    public ResponseEntity<List<CellError>> importExcelData(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                           @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                           @RequestParam(required = false) @ApiParam(value = "文件ID") String fileId,
+                                                           @RequestParam(required = false) @ApiParam(value = "备注") String fienRemark,
+                                                           @RequestParam(required = true) @ApiParam(value = "导入类型") Integer type) {
         try {
             int[] startRow = {0};
             int[] startCol = {0};
-
             User user = getUserByToken(token);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
@@ -1333,7 +1330,7 @@ public class OutsourcePoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CaseFollowupRecord>> getOutSourceCaseFollowRecord(@RequestParam @ApiParam(value = "案件编号",required = true) String caseNumber,
+    public ResponseEntity<Page<CaseFollowupRecord>> getOutSourceCaseFollowRecord(@RequestParam @ApiParam(value = "案件编号", required = true) String caseNumber,
                                                                                  @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
                                                                                  @RequestParam(required = false) @ApiParam(value = "公司标识码") String companyCode,
                                                                                  @ApiIgnore Pageable pageable,

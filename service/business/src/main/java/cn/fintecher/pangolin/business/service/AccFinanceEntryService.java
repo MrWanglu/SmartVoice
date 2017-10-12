@@ -48,9 +48,7 @@ public class AccFinanceEntryService {
                 } else {
                     processFinanceDataFollowup(dataList, outsourceFollowRecord, errorList);
                 }
-
             }
-
         } catch (Exception e) {
             logger.error(e.getMessage());
             return errorList;
@@ -126,10 +124,8 @@ public class AccFinanceEntryService {
     public void processFinanceDataFollowup(List datalist, CaseFollowupRecord outsourceFollowRecord, List<CellError> errorList) {
 
         CaseFollowupRecord out = new CaseFollowupRecord();
-        for (Object obj : datalist) {
-
-            OutsourceFollowUpRecordModel followUpRecordModel = (OutsourceFollowUpRecordModel) obj;
-
+        for (int m = 0; m < datalist.size(); m++) {
+            OutsourceFollowUpRecordModel followUpRecordModel = (OutsourceFollowUpRecordModel) datalist.get(m);
             CaseInfo caseInfo = null;
             if (Objects.nonNull(followUpRecordModel.getCaseNum())) {
                 out.setCaseNumber(followUpRecordModel.getCaseNum());
@@ -138,10 +134,10 @@ public class AccFinanceEntryService {
                 if (Objects.nonNull(caseInfo)) {
                     out.setCaseId(caseInfo.getId());
                 } else {
-                    throw new RuntimeException("客户[".concat(out.getCaseNumber()).concat("]的案件编号不存在"));
+                    errorList.add(new CellError("", m + 1, 1, "", "", "客户[".concat(out.getCaseNumber()).concat("]的案件编号不存在"), null));
                 }
             } else {
-                throw new RuntimeException("客户案件编号不能为空");
+                errorList.add(new CellError("", m + 1, 1, "", "", "案件编号不存在", null));
             }
             CaseFollowupRecord.Type[] followTypes = CaseFollowupRecord.Type.values();//跟进方式
             Integer followtype = 0;
