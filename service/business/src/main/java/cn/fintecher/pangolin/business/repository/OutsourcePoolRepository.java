@@ -126,7 +126,7 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
     @Query(value = "SELECT count(*) FROM `outsource_pool` where out_status=168 and out_id= :outsourceId", nativeQuery = true)
     Integer getOutsourceCaseCount(@Param("outsourceId") String outsouceId);
 
-    @Query(value = "SELECT sum(contract_amt) FROM `outsource_pool` where out_status=168 and out_id= :outsourceId", nativeQuery = true)
+    @Query(value = "SELECT ifnull(sum(contract_amt),0) FROM `outsource_pool` where out_status=168 and out_id= :outsourceId", nativeQuery = true)
     BigDecimal getOutsourceAmtCount(@Param("outsourceId") String outsouceId);
 
 }
