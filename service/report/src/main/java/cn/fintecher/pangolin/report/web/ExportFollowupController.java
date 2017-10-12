@@ -203,7 +203,12 @@ public class ExportFollowupController extends BaseController {
                     //正在处理数据
                     progressMessage.setText("正在处理数据");
                     rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
-                    List<ExcportResultModel> all = queryFollowupMapper.findFollowupRecord(exportFollowupParams);
+                    List<ExcportResultModel> all = new ArrayList<>();
+                    if(Objects.equals(exportFollowupParams.getType(),1)) {
+                        all = queryFollowupMapper.findFollowupRecord(exportFollowupParams);
+                    }else{
+                        all = queryFollowupMapper.findCollingFollowupRecord(exportFollowupParams);
+                    }
                     ResponseEntity<String> url = null;
                     if (!all.isEmpty()) {
                         progressMessage.setCurrent(2);
@@ -316,5 +321,4 @@ public class ExportFollowupController extends BaseController {
         //发送消息
         rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, sendReminderMessage);
     }
-
 }

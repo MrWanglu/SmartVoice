@@ -24,4 +24,6 @@ public interface QueryFollowupMapper {
 
     List<ExcportResultModel> findFollowupRecord(ExportFollowRecordParams exportFollowupParams);
 
+    List<ExcportResultModel> findCollingFollowupRecord(ExportFollowRecordParams exportFollowupParams);
+
 }

@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,8 +26,8 @@ public class ExportFollowRecordParams {
     private Integer provinceId;
     @ApiModelProperty(notes = "申请城市")
     private Integer cityId;
-    @ApiModelProperty(notes = "批次号")
-    private String batchNumber;
+    @ApiModelProperty(notes = "批次号集合")
+    private List<String> batchNumberList;
     @ApiModelProperty(notes = "还款状态")
     private String payStatus;
     @ApiModelProperty(notes = "逾期天数开始")
@@ -67,5 +68,10 @@ public class ExportFollowRecordParams {
     private String departmentCode;
     @ApiModelProperty(notes = "公司Code")
     private String companyCode;
-
+    @ApiModelProperty(notes = "委案日期")
+    private String delegationDate;
+    @ApiModelProperty(notes = "结案日期")
+    private String closeDate;
+    @ApiModelProperty(notes = "标志：0 催收中 1 已结案")
+    private Integer type;
 }
