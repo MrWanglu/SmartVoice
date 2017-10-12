@@ -717,6 +717,9 @@ public class CaseInfoController extends BaseController {
         }
 
         CaseInfo caseInfo = caseInfoRepository.findOne(id);
+        if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) { //如果案件为已结案状态
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "已结案案件不存在共债案件")).body(null);
+        }
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
         BooleanBuilder builder = new BooleanBuilder();
         if (Objects.nonNull(companyCode)) {

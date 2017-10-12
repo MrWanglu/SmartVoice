@@ -2485,12 +2485,16 @@ public class CaseInfoService {
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
+        CommonCaseCountModel commonCaseCountModel = new CommonCaseCountModel();
+        if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) { //案件催收状态为已结案
+            commonCaseCountModel.setCount(0);
+            return commonCaseCountModel;
+        }
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
         //计算共债案件数量
         long count = caseInfoRepository.count(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard()).
                 and(qCaseInfo.personalInfo.name.eq(caseInfo.getPersonalInfo().getName())).
                 and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue(), CaseInfo.CollectionStatus.CASE_OUT.getValue()))); //不包括已结案和已委外的案件
-        CommonCaseCountModel commonCaseCountModel = new CommonCaseCountModel();
         commonCaseCountModel.setCount((int) count - 1);
         return commonCaseCountModel;
     }
