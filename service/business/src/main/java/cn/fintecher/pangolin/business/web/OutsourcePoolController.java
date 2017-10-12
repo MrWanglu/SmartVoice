@@ -13,8 +13,10 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
+import com.querydsl.jpa.impl.JPAQuery;
 import freemarker.template.Configuration;
 import io.swagger.annotations.*;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -29,6 +31,7 @@ import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
@@ -36,6 +39,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
@@ -47,6 +51,7 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
@@ -1396,6 +1401,56 @@ public class OutsourcePoolController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("案件回收失败", ENTITY_NAME1, e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * 委外案件 待分配案件 策略分配
+     */
+    @GetMapping("/outerStrategyDistribute")
+    @ApiOperation(value = "委外案件 待分配案件 策略分配", notes = "委外案件 待分配案件 策略分配")
+    public ResponseEntity<List<CaseInfo>> outerStrategyDistribute(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                                  @RequestHeader(value = "X-UserToken") String token,
+                                                                  @ApiParam(value = "所有的待分配委外案件集合") OutsourceInfo outsourceInfo) {
+        User user = null;
+        try {
+            user = getUserByToken(token);
+            ParameterizedTypeReference<List<CaseStrategy>> responseType = new ParameterizedTypeReference<List<CaseStrategy>>() {
+            };
+            ResponseEntity<List<CaseStrategy>> caseStrategies = restTemplate.exchange(Constants.CASE_STRATEGY_URL
+                    .concat("companyCode=").concat(user.getCompanyCode())
+                    .concat("&strategyType=").concat(CaseStrategy.StrategyType.OUTS.getValue().toString()), HttpMethod.GET, null, responseType);
+            if (Objects.isNull(caseStrategies) || !caseStrategies.hasBody() || caseStrategies.getBody().size() == 0) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有分配策略信息")).body(null);
+            }
+            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+            if (Objects.isNull(outsourceInfo) || Objects.isNull(outsourceInfo.getOutCaseIds()) || outsourceInfo.getOutCaseIds().isEmpty()) {
+                //没有勾选案件,分配所有的案件
+                BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+                booleanBuilder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.TO_OUTSIDE.getCode()));
+                Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(booleanBuilder);
+                if (!outsourcePools.iterator().hasNext()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
+                }
+                List<String> caseIds = new ArrayList<>();
+                outsourcePools.forEach(e -> caseIds.add(e.getCaseInfo().getId()));
+                Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(caseIds);
+                if (!caseInfos.iterator().hasNext()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
+                }
+                outsourcePoolService.outerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
+            } else {
+                //分配勾选的案件
+                Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(outsourceInfo.getOutCaseIds());
+                if (!caseInfos.iterator().hasNext()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
+                }
+                outsourcePoolService.outerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
+            }
+            return ResponseEntity.ok().body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "分配失败")).body(null);
         }
     }
 

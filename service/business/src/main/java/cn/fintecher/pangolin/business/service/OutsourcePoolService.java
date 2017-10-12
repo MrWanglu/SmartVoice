@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.service;
 
+import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
 import cn.fintecher.pangolin.business.model.OutDistributeInfo;
 import cn.fintecher.pangolin.business.model.OutsourceInfo;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
@@ -7,9 +8,12 @@ import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
 import cn.fintecher.pangolin.business.repository.OutsourceRecordRepository;
 import cn.fintecher.pangolin.business.repository.OutsourceRepository;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import freemarker.template.Configuration;
+import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +31,6 @@ import java.util.Objects;
 /**
  * Created by huyanmin on 2017/10/11.
  * Description: 委外池service
- *
  */
 @Service("outsourcePoolService")
 public class OutsourcePoolService {
@@ -50,6 +53,9 @@ public class OutsourcePoolService {
     private Configuration freemarkerConfiguration;
     @Autowired
     RestTemplate restTemplate;
+
+    @Inject
+    RunCaseStrategyService runCaseStrategyService;
 
 
     /**
@@ -82,9 +88,9 @@ public class OutsourcePoolService {
         Integer rule = outsourceInfo.getIsNumAvg();
 
         //平均分配案件数，如果无法平均，则依次分配
-        if(Objects.equals(rule, 1)){
+        if (Objects.equals(rule, 1)) {
             int caseNum = caseInfoYes.size();
-            int outsourceNum=outsourceList.size();
+            int outsourceNum = outsourceList.size();
             List<Integer> caseNumList = new ArrayList<>(outsourceNum);
             for (int i = 0; i < outsourceNum; i++) {
                 caseNumList.add(caseNum / outsourceNum);
@@ -96,13 +102,13 @@ public class OutsourcePoolService {
             }
             disNumList = caseNumList;
         }
-        for(int i=0; i<(outsourceList!=null?outsourceList.size():0);i++){
+        for (int i = 0; i < (outsourceList != null ? outsourceList.size() : 0); i++) {
             if (alreadyCaseNum == caseInfoYes.size()) {
                 return list;
             }
             String outsourceId = outsourceList.get(i);
             OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
-            if(Objects.equals(rule, 1)){
+            if (Objects.equals(rule, 1)) {
                 outDistributeInfo.setCaseDistributeCount(disNumList.get(i));
             }
             Outsource outsource = outsourceRepository.findOne(outsourceId);
@@ -110,10 +116,10 @@ public class OutsourcePoolService {
             outDistributeInfo.setOutName(outsource.getOutsName());
             outDistributeInfo.setCollectionCount(outsourcePoolRepository.getOutsourceCaseCount(outsourceId));
             outDistributeInfo.setCollectionAmt(outsourcePoolRepository.getOutsourceAmtCount(outsourceId));
-            if(Objects.equals(rule, 0)){
+            if (Objects.equals(rule, 0)) {
                 alreadyCaseNum = alreadyCaseNum + 1;
             } else {
-                if(Objects.nonNull(disNumList)){
+                if (Objects.nonNull(disNumList)) {
                     //需要分配的案件数据
                     Integer disNumber = disNumList.get(i);
                     for (int j = 0; j < disNumber; j++) {
@@ -121,7 +127,7 @@ public class OutsourcePoolService {
                         String caseId = caseInfoYes.get(alreadyCaseNum).getId();
                         OutsourcePool outsourcePool = outsourcePoolRepository.findOne(QOutsourcePool.outsourcePool.caseInfo.id.eq(caseId));
                         CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
-                        if(Objects.nonNull(outsourcePool) && Objects.nonNull(caseInfo)){
+                        if (Objects.nonNull(outsourcePool) && Objects.nonNull(caseInfo)) {
                             BigDecimal amount = caseInfo.getOverdueAmount().subtract(caseInfo.getHasPayAmount()); //案件需要委外的金额
                             outDistributeInfo.setCaseDistributeMoneyCount(outDistributeInfo.getCaseDistributeMoneyCount().add(amount));
                         }
@@ -130,7 +136,7 @@ public class OutsourcePoolService {
                 }
 
             }
-            outDistributeInfo.setCaseTotalCount(outDistributeInfo.getCollectionCount()+outDistributeInfo.getCaseDistributeCount());
+            outDistributeInfo.setCaseTotalCount(outDistributeInfo.getCollectionCount() + outDistributeInfo.getCaseDistributeCount());
             outDistributeInfo.setCaseMoneyTotalCount(outDistributeInfo.getCollectionAmt().add(outDistributeInfo.getCaseDistributeMoneyCount()));
             list.add(outDistributeInfo);
         }
@@ -189,54 +195,54 @@ public class OutsourcePoolService {
                     i--;
                     continue;
                 }
-              }
-               //保存共债分配的案件
-               outsourcePoolRepository.save(outsourcePoolList);//批量保存分配的案子
-               outsourceRecordRepository.save(outsourceRecords);
             }
-            //按数量分配
-            Integer rule = outsourceInfo.getIsNumAvg();
-            //平均分配案件数，如果无法平均，则依次分配
-            if(Objects.equals(rule, 1)){
-                int caseNum = caseInfoYes.size();
-                int outsourceNum=outsourceList.size();
-                List<Integer> caseNumList = new ArrayList<>(outsourceNum);
-                for (int i = 0; i < outsourceNum; i++) {
-                    caseNumList.add(caseNum / outsourceNum);
-                }
-                if (caseNum % outsourceNum != 0) {
-                    for (int i = 0; i < caseNum % outsourceNum; i++) {
-                        caseNumList.set(i, caseNumList.get(i) + 1);
-                    }
-                }
-                disNumList = caseNumList;
+            //保存共债分配的案件
+            outsourcePoolRepository.save(outsourcePoolList);//批量保存分配的案子
+            outsourceRecordRepository.save(outsourceRecords);
+        }
+        //按数量分配
+        Integer rule = outsourceInfo.getIsNumAvg();
+        //平均分配案件数，如果无法平均，则依次分配
+        if (Objects.equals(rule, 1)) {
+            int caseNum = caseInfoYes.size();
+            int outsourceNum = outsourceList.size();
+            List<Integer> caseNumList = new ArrayList<>(outsourceNum);
+            for (int i = 0; i < outsourceNum; i++) {
+                caseNumList.add(caseNum / outsourceNum);
             }
+            if (caseNum % outsourceNum != 0) {
+                for (int i = 0; i < caseNum % outsourceNum; i++) {
+                    caseNumList.set(i, caseNumList.get(i) + 1);
+                }
+            }
+            disNumList = caseNumList;
+        }
 
-            for(int i=0; i<(outsourceList!=null?outsourceList.size():0);i++){
-                String outsourceId = outsourceList.get(i);
-                Outsource outsource = outsourceRepository.findOne(outsourceId);
-                //需要分配的案件数据
-                Integer disNum = disNumList.get(i);
-                for (int j = 0; j < disNum; j++) {
-                    //检查输入的案件数量是否和选择的案件数量一致
-                    if (alreadyCaseNum == caseInfoYes.size()) {
-                        return;
-                    }
-                    String outId = caseInfoYes.get(alreadyCaseNum).getId();
-                    OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
-                    setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
-                    //添加委外记录
-                    saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
-                    alreadyCaseNum = alreadyCaseNum + 1;
+        for (int i = 0; i < (outsourceList != null ? outsourceList.size() : 0); i++) {
+            String outsourceId = outsourceList.get(i);
+            Outsource outsource = outsourceRepository.findOne(outsourceId);
+            //需要分配的案件数据
+            Integer disNum = disNumList.get(i);
+            for (int j = 0; j < disNum; j++) {
+                //检查输入的案件数量是否和选择的案件数量一致
+                if (alreadyCaseNum == caseInfoYes.size()) {
+                    return;
                 }
+                String outId = caseInfoYes.get(alreadyCaseNum).getId();
+                OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
+                setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
+                //添加委外记录
+                saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
+                alreadyCaseNum = alreadyCaseNum + 1;
             }
+        }
         outsourcePoolRepository.save(outsourcePoolList);//批量保存分配的案子
         outsourceRecordRepository.save(outsourceRecords);
     }
+
     /**
      * 分配案件信息
-     *
-     * */
+     */
     private void setOutsourcePool(OutsourcePool outsourcePool, Outsource outsource, String ouorBatch, User user, List<OutsourcePool> outsourcePoolList) {
         outsourcePool.setOutsource(outsource);
         outsourcePool.setOutBatch(ouorBatch);
@@ -255,17 +261,15 @@ public class OutsourcePoolService {
         gc.setTime(ZWDateUtil.getNowDateTime());
         gc.add(2, 3);
         outsourcePool.setOverOutsourceTime(gc.getTime());
-        if(Objects.nonNull(user.getCompanyCode())){
+        if (Objects.nonNull(user.getCompanyCode())) {
             outsourcePool.setCompanyCode(user.getCompanyCode());
         }
         outsourcePoolList.add(outsourcePool);
     }
 
     /**
-     *
      * 添加委外记录
-     *
-     * */
+     */
     private void saveOutsourceRecord(OutsourcePool outsourcePool, Outsource outsource, User user, String ouorBatch, List<OutsourceRecord> outsourceRecords) {
         //委外记录
         OutsourceRecord outsourceRecord = new OutsourceRecord();
@@ -278,4 +282,42 @@ public class OutsourcePoolService {
         outsourceRecords.add(outsourceRecord);
     }
 
+    /**
+     * 委外 策略分配
+     *
+     * @param caseStrategies 全部的策略
+     * @param caseInfos      全部的案件
+     */
+    public void outerStrategyDistribute(List<CaseStrategy> caseStrategies, List<CaseInfo> caseInfos, User user) throws Exception {
+        for (CaseStrategy caseStrategy : caseStrategies) {
+            List<CaseInfo> checkedList = new ArrayList<>(); // 策略匹配到的案件
+            KieSession kieSession = null;
+            try {
+                kieSession = runCaseStrategyService.runCaseRule(checkedList, caseStrategy, Constants.CASE_INFO_RULE);
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                throw new RuntimeException(e.getMessage());
+            }
+            for (CaseInfo caseInfo : caseInfos) {
+                kieSession.insert(caseInfo);//插入
+                kieSession.fireAllRules();//执行规则
+            }
+            kieSession.dispose();
+            if (checkedList.isEmpty()) {
+                continue;
+            }
+            List<String> caseIds = new ArrayList<>();
+            List<Integer> caseNumList = new ArrayList<>();
+            checkedList.forEach(e -> caseIds.add(e.getId()));
+            runCaseStrategyService.setDistributeNum(checkedList, caseStrategy.getOutsource(), caseNumList);
+            OutsourceInfo outsourceInfo = new OutsourceInfo();
+            outsourceInfo.setOutCaseIds(caseIds);
+            outsourceInfo.setOutId(caseStrategy.getOutsource());
+            outsourceInfo.setDistributionCount(caseNumList);
+            outsourceInfo.setIsDebt(0);
+            outsourceInfo.setIsNumAvg(0);
+            distributeCeaseInfo(outsourceInfo, user);
+            caseInfos.removeAll(checkedList);
+        }
+    }
 }

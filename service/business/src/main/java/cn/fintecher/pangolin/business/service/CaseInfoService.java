@@ -2436,7 +2436,7 @@ public class CaseInfoService {
             List<String> ids = new ArrayList<>();
             List<Integer> caseNumList = new ArrayList<>();
             checkedList.forEach(e -> ids.add(e.getId()));
-            setDistributeNum(checkedList, caseStrategy.getAssignType() == 1 ? caseStrategy.getUsers() : caseStrategy.getDepartments(), caseNumList);
+            runCaseStrategyService.setDistributeNum(checkedList, caseStrategy.getAssignType() == 1 ? caseStrategy.getUsers() : caseStrategy.getDepartments(), caseNumList);
             AccCaseInfoDisModel accCaseInfoDisModel = new AccCaseInfoDisModel();
             accCaseInfoDisModel.setCaseIdList(ids);
             accCaseInfoDisModel.setCaseNumList(caseNumList);
@@ -2449,33 +2449,6 @@ public class CaseInfoService {
         }
     }
 
-    /**
-     * 策略分配中的平均分配计算
-     *
-     * @param caseInfos  案件数
-     * @param dataList   用户数
-     * @param disNumList 分配结果数
-     */
-    public void setDistributeNum(List<CaseInfo> caseInfos, List<String> dataList, List<Integer> disNumList) {
-        int i = caseInfos.size();
-        int j = dataList.size();
-        if (i % j == 0) {
-            int g = i / j;
-            for (int m = 1; m <= j; m++) {
-                disNumList.add(g);
-            }
-        } else {
-            int a = i / j;
-            int b = i % j;
-            for (int m = 0; m < j; m++) {
-                if (m > b - 1) {
-                    disNumList.add(a);
-                } else {
-                    disNumList.add(a + 1);
-                }
-            }
-        }
-    }
 
     /**
      * @Description 计算共债案件数量
