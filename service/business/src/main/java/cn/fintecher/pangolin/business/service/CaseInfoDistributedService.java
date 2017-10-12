@@ -373,6 +373,7 @@ public class CaseInfoDistributedService {
                     caseInfo.setCasePoolType(CaseInfo.CasePoolType.INNER.getValue());
                     caseInfoList.add(caseInfo);
                     addCaseRepair(caseRepairList, caseInfo, user);//修复池增加案件
+                    caseInfoDistributedList.add(caseInfoDistributed);
                 }
             }
             if (Objects.equals(aModel.getType(), 1)) { // 委外
@@ -385,6 +386,7 @@ public class CaseInfoDistributedService {
                     outsourcePool.setCaseInfo(caseInfo);
                     outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
                     outsourcePoolList.add(outsourcePool);
+                    caseInfoDistributedList.add(caseInfoDistributed);
                 }
             }
         }
