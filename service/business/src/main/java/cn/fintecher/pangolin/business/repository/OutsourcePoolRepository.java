@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.repository;
 
+import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.OutsourcePool;
 import cn.fintecher.pangolin.entity.QOutsourcePool;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +33,32 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
         bindings.bind(root.caseInfo.personalInfo.idCard).first((path, value) -> path.contains(StringUtils.trim(value)));
         //批次号
         bindings.bind(root.caseInfo.batchNumber).first((path, value) -> path.eq(StringUtils.trim(value)));
+        //案件金额
+        bindings.bind(root.caseInfo.overdueAmount).all((path, value) -> {
+            Iterator<? extends BigDecimal> it = value.iterator();
+            BigDecimal firstOverdueAmount = it.next();
+            if (it.hasNext()) {
+                BigDecimal secondOverDueAmont = it.next();
+                return path.between(firstOverdueAmount, secondOverDueAmont);
+            } else {
+                //大于等于
+                return path.goe(firstOverdueAmount);
+            }
+        });
+        //还款状态
+        List<String> list = new ArrayList<>();
+        list.add("M1");
+        list.add("M2");
+        list.add("M3");
+        list.add("M4");
+        list.add("M5");
+        bindings.bind(root.caseInfo.payStatus).first((path, value) -> {
+            if (Objects.equals(StringUtils.trim(value), CaseInfo.PayStatus.M6_PLUS.getRemark())) {
+                return path.notIn(list);
+            } else {
+                return path.eq(value);
+            }
+        });
         //委案日期
         bindings.bind(root.caseInfo.delegationDate).all((path, value) -> {
             Iterator<? extends Date> it = value.iterator();
@@ -94,6 +121,18 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
             } else {
                 //大于等于
                 return path.goe(firstCommissionRate);
+            }
+        });
+
+        //逾期天数
+        bindings.bind(root.caseInfo.overdueDays).all((path, value) -> {
+            Iterator<? extends Integer> it = value.iterator();
+            Integer firstOverdueDays = it.next();
+            if (it.hasNext()) {
+                Integer secondOverdueDays = it.next();
+                return path.between(firstOverdueDays, secondOverdueDays);
+            } else {
+                return path.goe(firstOverdueDays);
             }
         });
     }

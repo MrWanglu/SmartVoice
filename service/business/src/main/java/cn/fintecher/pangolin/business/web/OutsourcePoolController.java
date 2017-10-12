@@ -3,7 +3,6 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.AccFinanceEntryService;
-import cn.fintecher.pangolin.business.service.BatchSeqService;
 import cn.fintecher.pangolin.business.service.OutsourcePoolService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
@@ -68,8 +67,6 @@ public class OutsourcePoolController extends BaseController {
     public final static String CASE_SEQ = "caseSeq";
     @Autowired
     private OutsourceRepository outsourceRepository;
-    @Autowired
-    private BatchSeqService batchSeqService;
     @Autowired
     private CaseInfoRepository caseInfoRepository;
     @Autowired
@@ -447,7 +444,7 @@ public class OutsourcePoolController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<OutsourcePool>> query(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                                     @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                     @QuerydslPredicate(root = OutsourcePool.class) Predicate predicate,
                                                      @ApiIgnore Pageable pageable,
                                                      @RequestHeader(value = "X-UserToken") String token,
                                                      @RequestParam @ApiParam(value = "tab页标识 1待分配;2已结案", required = true) Integer flag) {
@@ -1331,12 +1328,12 @@ public class OutsourcePoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CaseFollowupRecord>> getOutSourceCaseFollowRecord(@RequestParam(required = true) @ApiParam(value = "案件编号") String caseNumber,
+    public ResponseEntity<Page<CaseFollowupRecord>> getOutSourceCaseFollowRecord(@RequestParam @ApiParam(value = "案件编号",required = true) String caseNumber,
                                                                                  @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
-                                                                                 @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                                                                 @RequestParam(required = false) @ApiParam(value = "公司标识码") String companyCode,
                                                                                  @ApiIgnore Pageable pageable,
                                                                                  @RequestHeader(value = "X-UserToken") String token) {
-        log.debug("Rest request get outsource case by batch number");
+        log.debug("Rest request get outsource case by case number");
         User user = null;
         try {
             user = getUserByToken(token);
