@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.service;
 
+import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
@@ -44,7 +45,7 @@ public class RunCaseStrategyService {
      * @throws IOException
      * @throws TemplateException
      */
-    public KieSession runCaseRule(List<?> checkedList, CaseStrategy caseStrategy,String ruleName) {
+    public KieSession runCaseRule(List<?> checkedList, CaseStrategy caseStrategy, String ruleName) {
         try {
             freemarker.template.Template template = freemarkerConfiguration.getTemplate(ruleName, "UTF-8");
             Map<String, String> map = new HashMap<>();
@@ -69,8 +70,8 @@ public class RunCaseStrategyService {
             kieSession.setGlobal("checkedList", checkedList);
             return kieSession;
         } catch (Exception e) {
-           logger.error(e.getMessage(), e);
-           throw new RuntimeException("策略解析失败!");
+            logger.error(e.getMessage(), e);
+            throw new RuntimeException("策略解析失败!");
         }
     }
 
@@ -99,6 +100,34 @@ public class RunCaseStrategyService {
             return stringBuilder.toString();
         } catch (Exception e) {
             throw new RuntimeException("策略解析失败");
+        }
+    }
+
+    /**
+     * 策略分配中的平均分配计算
+     *
+     * @param caseInfos  案件数
+     * @param dataList   用户数
+     * @param disNumList 分配结果数
+     */
+    public void setDistributeNum(List<?> caseInfos, List<String> dataList, List<Integer> disNumList) {
+        int i = caseInfos.size();
+        int j = dataList.size();
+        if (i % j == 0) {
+            int g = i / j;
+            for (int m = 1; m <= j; m++) {
+                disNumList.add(g);
+            }
+        } else {
+            int a = i / j;
+            int b = i % j;
+            for (int m = 0; m < j; m++) {
+                if (m > b - 1) {
+                    disNumList.add(a);
+                } else {
+                    disNumList.add(a + 1);
+                }
+            }
         }
     }
 }
