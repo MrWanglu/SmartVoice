@@ -352,7 +352,7 @@ public class CaseInfoDistributeController extends BaseController {
                 if (Objects.nonNull(startAmount)) {
                     builder.and(qCaseInfoDistributed.overdueAmount.gt(startAmount));
                 }
-                if (Objects.nonNull(startAmount)) {
+                if (Objects.nonNull(endAmount)) {
                     builder.and(qCaseInfoDistributed.overdueAmount.lt(endAmount));
                 }
                 Iterable<CaseInfoDistributed> iterable = caseInfoDistributedRepository.findAll(builder);
@@ -396,7 +396,7 @@ public class CaseInfoDistributeController extends BaseController {
                 if (Objects.nonNull(startAmount)) {
                     builder.and(qCaseInfo.overdueAmount.gt(startAmount));
                 }
-                if (Objects.nonNull(startAmount)) {
+                if (Objects.nonNull(endAmount)) {
                     builder.and(qCaseInfo.overdueAmount.lt(endAmount));
                 }
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
@@ -421,9 +421,11 @@ public class CaseInfoDistributeController extends BaseController {
                     }
                 }
             } else if (Objects.equals(type, CaseStrategy.StrategyType.OUTS.getValue())) {// 委外策略分配
-                List<OutsourcePool> checkList = new ArrayList<>();
+                List<CaseInfo> checkList = new ArrayList<>();
                 QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
                 BooleanBuilder builder = new BooleanBuilder();
+                builder.and(qOutsourcePool.outStatus.ne(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode()));
+                builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
                 if (StringUtils.isNotBlank(personalName)) {
                     builder.and(qOutsourcePool.caseInfo.personalInfo.name.like("%" + personalName.trim() + "%"));
                 }
@@ -439,24 +441,28 @@ public class CaseInfoDistributeController extends BaseController {
                 if (Objects.nonNull(startAmount)) {
                     builder.and(qOutsourcePool.caseInfo.overdueAmount.gt(startAmount));
                 }
-                if (Objects.nonNull(startAmount)) {
+                if (Objects.nonNull(endAmount)) {
                     builder.and(qOutsourcePool.caseInfo.overdueAmount.lt(endAmount));
                 }
-                Iterable<OutsourcePool> all = outsourcePoolRepository.findAll(qOutsourcePool.outStatus.ne(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode()) // 委外见排除
-                        .and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())));// 未回收
+                Iterable<OutsourcePool> all = outsourcePoolRepository.findAll(builder);// 未回收
                 Iterator<OutsourcePool> iterator = all.iterator();
-                KieSession kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_RULE);
+                List<CaseInfo> caseInfoList = new ArrayList<>();
                 while (iterator.hasNext()) {
                     OutsourcePool outsourcePool = iterator.next();
-                    kieSession.insert(outsourcePool);
-                    kieSession.fireAllRules();
+                    caseInfoList.add(outsourcePool.getCaseInfo());
+                }
+                KieSession kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_RULE);
+                if (!caseInfoList.isEmpty()) {
+                    for (CaseInfo caseInfo : caseInfoList) {
+                        kieSession.insert(caseInfo);
+                        kieSession.fireAllRules();
+                    }
                 }
                 kieSession.dispose();
                 if (!checkList.isEmpty()) {
-                    for (OutsourcePool outsourcePool : checkList) {
+                    for (CaseInfo caseInfo : checkList) {
                         StrategyPreviewModel model = new StrategyPreviewModel();
-                        CaseInfo caseInfo = outsourcePool.getCaseInfo();
-                        BeanUtils.copyProperties(outsourcePool.getCaseInfo(), model);
+                        BeanUtils.copyProperties(caseInfo, model);
                         model.setCity(Objects.isNull(caseInfo.getArea()) ? null : caseInfo.getArea().getAreaName());
                         model.setIdCard(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getIdCard());
                         model.setPersonalName(Objects.isNull(caseInfo.getPersonalInfo()) ? null : caseInfo.getPersonalInfo().getName());
