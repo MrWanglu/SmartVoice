@@ -135,6 +135,12 @@ public class CaseInfoService {
         if (Objects.equals(reDistributionParams.getIsAssist(), false)) { //不是协催案件
             if (Objects.equals(user.getType(), User.Type.TEL.getValue())) { //分配给15-电催
                 setAttribute(caseInfo, user, tokenUser);
+                //查询是否有协催案件
+                CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseInfo.getId()));
+                if (Objects.nonNull(caseAssist)) { //如果有协催案件，则同步更换当前催收员
+                    caseAssist.setCurrentCollector(user);
+                    caseAssistRepository.save(caseAssist);
+                }
             } else if (Objects.equals(user.getType(), User.Type.VISIT.getValue())) { //分配给16-外访
                 if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                     if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
@@ -730,6 +736,12 @@ public class CaseInfoService {
                             throw new RuntimeException("协催案件不能分配给外访以外的人员");
                         }
                         setAttribute(caseInfo, batchInfoModel.getCollectionUser(), tokenUser);
+                        //查询是否有协催案件
+                        CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseInfo.getId()));
+                        if (Objects.nonNull(caseAssist)) { //如果有协催案件，则同步更换当前催收员
+                            caseAssist.setCurrentCollector(batchInfoModel.getCollectionUser());
+                            caseAssistRepository.save(caseAssist);
+                        }
                     } else { //没有协催标识
                         setAttribute(caseInfo, batchInfoModel.getCollectionUser(), tokenUser);
                     }
