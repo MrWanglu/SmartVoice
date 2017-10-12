@@ -39,6 +39,10 @@ public class ExportFollowRecordParams {
     private BigDecimal overDueAmountStart;
     @ApiModelProperty(notes = "案件金额")
     private BigDecimal overDueAmountEnd;
+    @ApiModelProperty(notes = "回款金额")
+    private BigDecimal payAmtStart;
+    @ApiModelProperty(notes = "回款金额")
+    private BigDecimal payAmtEnd;
     @ApiModelProperty(notes = "手数")
     private Integer handNumberStart;
     @ApiModelProperty(notes = "手数")

@@ -859,7 +859,7 @@ public class CaseInfoController extends BaseController {
     }
 
     @GetMapping("/updateInnerCollectIngScore")
-    @ApiOperation(value = "内催待分配案件评分", notes = "内催待分配案件评分")
+    @ApiOperation(value = "内催催收中案件评分", notes = "内催催收中案件评分")
     public ResponseEntity updateInnerCollectIngScore(@RequestHeader(value = "X-UserToken") String token,
                                                      @RequestParam @ApiParam(value = "批次号", required = true) String batchNumber) {
         try {

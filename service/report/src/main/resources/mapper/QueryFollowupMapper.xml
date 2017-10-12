@@ -41,6 +41,7 @@
         LEFT JOIN area_code f ON a.area_id = f.id
         LEFT JOIN department i ON a.depart_id = i.id
         WHERE 1=1
+        and a.collection_status = 24
         and a.case_pool_type = 225
         <if test="companyCode != null and companyCode !=''">
             AND a.company_code = #{companyCode}
@@ -85,6 +86,12 @@
         </if>
         <if test="overDueAmountEnd != null and overDueAmountEnd !=''">
             AND a.overdue_amount &lt; #{overDueAmountEnd}
+        </if>
+        <if test = "payAmtStart != null and payAmtStart != ''">
+            AND a.real_pay_amount+a.early_real_settle_amt > #{payAmtStart}
+        </if>
+        <if test = "payAmtEnd != null and payAmtEnd != ''">
+            AND a.real_pay_amount+a.early_real_settle_amt &lt; #{payAmtEnd}
         </if>
         <if test="handNumberStart != null and handNumberStart !=''">
             AND a.hand_number &gt; #{handNumberStart}
