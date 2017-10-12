@@ -19,7 +19,11 @@ public class  QueryOutsourcePoolParams {
     private String outsName;
     /*委案日期*/
     private String outTime;
-    /*委外到期日期*/
+    /*委外结案日期*/
     private String overOutsourceTime;
+    /*页码数*/
+    private Integer page;
+    /*每一页显示的数量*/
+    private Integer size;
 
 }

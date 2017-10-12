@@ -27,7 +27,7 @@ public class QueryOutsourcePool {
     private String batchNumber;
     /*委案日期*/
     private Date outsourceTime;
-    /*委外到期日期*/
+    /*委外结案日期*/
     private Date overOutsourceTime;
     /*剩余委托时间(天)*/
     private BigInteger leftDay;
@@ -47,6 +47,5 @@ public class QueryOutsourcePool {
     private String companyCode;
     /*公司标识码*/
     private String outsCode;
-
 
 }

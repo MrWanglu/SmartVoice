@@ -9,8 +9,8 @@
         <result column="out_time" property="outsourceTime"/>
         <result column="over_outsource_time" property="overOutsourceTime"/>
         <result column="left_days" property="leftDay"/>
-        <result column="total_outsource_count" property="outcaseTotalAmt"/>
-        <result column="total_outsource_amt" property="outcaseTotalCount"/>
+        <result column="total_outsource_count" property="outcaseTotalCount"/>
+        <result column="total_outsource_amt" property="outcaseTotalAmt"/>
         <result column="end_outsource_count" property="outcaseClosedCount"/>
         <result column="outsource_count_rate" property="outcaseCountRate"/>
         <result column="end_outsource_amt" property="outcaseClosedAmt"/>

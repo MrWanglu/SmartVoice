@@ -9,13 +9,11 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
@@ -39,11 +37,9 @@ public class QueryOutsourcePoolController extends BaseController {
 
     @GetMapping("/queryAllOutsourcePool")
     @ApiOperation(value = "委外催收中查询", notes = "委外催收中查询")
-    public ResponseEntity<OutSourcePoolModel> queryAllOutsourcePool(@RequestParam @ApiParam(value = "页数") Integer page,
-                                                                    @RequestParam @ApiParam(value = "大小") Integer size,
-                                                                    QueryOutsourcePoolParams queryOutsourcePoolParams) {
+    public ResponseEntity<OutSourcePoolModel> queryAllOutsourcePool(QueryOutsourcePoolParams queryOutsourcePoolParams) {
         try {
-            PageHelper.startPage(page + 1, size);
+            PageHelper.startPage(queryOutsourcePoolParams.getPage() + 1, queryOutsourcePoolParams.getSize());
             List<QueryOutsourcePool> content = queryOutsourcePoolMapper.getAllOutSourcePoolModel(queryOutsourcePoolParams);
             PageInfo pageInfo = new PageInfo(content);
             OutSourcePoolModel outSourcePoolModel = new OutSourcePoolModel();

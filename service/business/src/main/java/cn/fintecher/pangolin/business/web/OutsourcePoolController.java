@@ -950,7 +950,6 @@ public class OutsourcePoolController extends BaseController {
             accFinanceEntryRepository.save(accFinanceEntryList);
             //更新委外的案件池里的已还款金额
             outsourcePoolRepository.save(outsourcePools);
-            ;
             return ResponseEntity.ok().body(unableMatchList);
         } catch (Exception e) {
             log.error(e.getMessage());
