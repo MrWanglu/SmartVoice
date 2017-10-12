@@ -15,5 +15,5 @@ public class ItemsModel {
     private List<String> caseItems;
     private List<String> bankItems;
     private List<String> followItems;
-
+    private Integer category;
 }

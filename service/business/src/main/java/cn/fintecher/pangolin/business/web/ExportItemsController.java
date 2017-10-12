@@ -87,12 +87,12 @@ public class ExportItemsController extends BaseController {
     @PostMapping("/saveOutsourceExportItems")
     @ApiOperation(value = "设置委外导出项", notes = "设置委外导出项")
     public ResponseEntity saveOutsourceExportItems(@RequestBody @ApiParam(value = "导出项", required = true) ItemsModel items,
-                                          @RequestHeader(value = "X-UserToken") String token, Integer category) {
+                                          @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
             Integer categoryOutsource = ExportItem.Category.OUTSOURCE.getValue();
             Integer categoryFollowup = ExportItem.Category.OUTSOURCEFOLLOWUP.getValue();
-            if (categoryOutsource.equals(category)) {
+            if (categoryOutsource.equals(items.getCategory())) {
                 exportItemService.saveExportItems(items, user, categoryOutsource);
             } else {
                 exportItemService.saveExportItems(items, user, categoryFollowup);
