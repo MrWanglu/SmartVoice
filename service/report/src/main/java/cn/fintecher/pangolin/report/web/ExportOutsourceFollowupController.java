@@ -117,9 +117,9 @@ public class ExportOutsourceFollowupController extends BaseController {
                     int maxNum = outsourceFollowRecordExportService.getMaxNum(all);
                     List<FollowupExportModel> dataList = null;
                     if (exportOutsourceFollowRecordParams.getType()==0){
-                        dataList = outsourceFollowRecordExportService.getFollowupData(all);
-                    }else {
                         dataList = outsourceFollowRecordExportService.getOutsourceRecordData(all);
+                    }else {
+                        dataList = outsourceFollowRecordExportService.getFollowupData(all);
                     }
                     String[] title = followRecordExportService.getTitle(exportOutsourceFollowRecordParams.getExportItemList(), maxNum);
                     Map<String, String> headMap = ExcelExportUtil.createHeadMap(title, FollowupExportModel.class);
