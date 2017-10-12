@@ -173,9 +173,7 @@ public class CaseStrategyController {
         try {
             String strategyText = sb.toString();
             CaseStrategy cs = new CaseStrategy();
-            if (Objects.nonNull(caseStrategy.getId()) && StringUtils.isNotBlank(caseStrategy.getId())) {
-                cs.setId(caseStrategy.getId());
-            }
+
             cs.setCreateTime(new Date());
             cs.setCreator(user.getRealName());
             cs.setCreatorId(user.getId());
@@ -225,6 +223,27 @@ public class CaseStrategyController {
             } else {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "未匹配到要新增的策略类型")).body(null);
             }
+            if (Objects.nonNull(caseStrategy.getId()) && StringUtils.isNotBlank(caseStrategy.getId())) { // 修改
+                cs.setId(caseStrategy.getId());
+                // 检查名称重复
+                Query query = new Query();
+                query.addCriteria(Criteria.where("id").ne(cs.getId()));
+                query.addCriteria(Criteria.where("name").is(cs.getName()));
+                query.addCriteria(Criteria.where("companyCode").is(user.getCompanyCode()));
+                List<CaseStrategy> caseStrategies = mongoTemplate.find(query, CaseStrategy.class);
+                if (!caseStrategies.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "策略名称已存在!")).body(null);
+                }
+            } else { // 新增
+                // 检查重复名字
+                Query query = new Query();
+                query.addCriteria(Criteria.where("name").is(cs.getName()));
+                query.addCriteria(Criteria.where("companyCode").is(user.getCompanyCode()));
+                List<CaseStrategy> caseStrategies = mongoTemplate.find(query, CaseStrategy.class);
+                if (!caseStrategies.isEmpty()) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "策略名称已存在!")).body(null);
+                }
+            }
             caseStrategyRepository.save(cs);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("新增成功", "")).body(null);
         } catch (Exception e) {
@@ -232,180 +251,6 @@ public class CaseStrategyController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "新增失败!")).body(null);
         }
     }
-
-//    @ApiModelProperty
-//    @PostMapping("/smartDistribute")
-//    @ApiOperation(value = "策略分配案件", notes = "策略分配案件")
-//    public ResponseEntity smartDistribute(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
-//
-//        ResponseEntity<User> userResult = null;
-//        userResult = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-//        if (!userResult.hasBody()) {
-//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "用户未登录")).body(null);
-//        }
-//        User user = userResult.getBody();
-//        String cmpanyCode = user.getCompanyCode();
-//        ParameterizedTypeReference<List<CaseInfoException>> responseType = new ParameterizedTypeReference<List<CaseInfoException>>() {
-//        };
-//        ResponseEntity<List<CaseInfoException>> resp = restTemplate.exchange(Constants.BUSINESS_SERVICE_URL.concat("getAllExceptionCaseInfo").concat("?companyCode=").concat(cmpanyCode),
-//                HttpMethod.GET, null, responseType);
-//        List<CaseInfoException> caseInfoExceptions = resp.getBody();
-//        if (caseInfoExceptions.size() > 0) {
-//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "有异常案件未处理请先处理")).body(null);
-//        }
-//        Iterable<CaseStrategy> caseStrategies = caseStrategyRepository.findAll(QCaseStrategy.caseStrategy.companyCode.eq(user.getCompanyCode()), new Sort(Sort.Direction.ASC, "priority"));
-//
-//        if (Objects.isNull(caseStrategies) || !caseStrategies.iterator().hasNext()) {
-//            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "no strategy", "暂无分配策略")).body("");
-//        }
-//        //案件列表
-//        List<CaseInfo> caseInfoObjList = new ArrayList<>();
-//        //接收案件列表信息
-//        List<String> dataList = null;
-//        //计算平均分配案件数
-//        // List<Integer> disNumList = new ArrayList<>();
-//        for (CaseStrategy caseStrategy : caseStrategies) {
-//            String companyCode = user.getCompanyCode();
-//            //得到符合分配策略的案件 caseInfos
-//            List<CaseInfoDistributed> caseInfos = runCaseRun(caseStrategy, false, companyCode);
-//            if (Objects.isNull(caseInfos) || caseInfos.isEmpty()) {
-//                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "not in line with the strategy of the case", "没有符合策略的案件")).body("");
-//            } else {
-//                //走案件分配流程
-//
-//                //流转记录列表
-//                List<CaseTurnRecord> caseTurnRecordList = new ArrayList<>();
-//                List<CaseRepair> caseRepairList = new ArrayList<>();
-//                List<String> caseIds = new ArrayList<>();
-//                //符合策略的案件id列表
-//                for (CaseInfoDistributed caseInfoDistributed : caseInfos) {
-//                    caseIds.add(caseInfoDistributed.getId());//案件id集合
-//                }
-//                //每个机构或人分配案件的数量
-//                // List<Integer> caseInfoDisModelList = caseInfoDisModel.getCaseNumList();
-//                //已经分配的案件数量
-//                int alreadyCaseNum = 0;
-//                //接收案件列表信息
-//                List<String> deptOrUserList = null;
-//                if (caseStrategy.getAssignType().equals(CaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
-//                    //所要分配 机构id
-//                    deptOrUserList = caseStrategy.getDepartments();
-//                } else if (caseStrategy.getAssignType().equals(CaseInfoDisModel.DisType.USER_WAY.getValue())) {
-//                    //得到所有用户ID
-//                    deptOrUserList = caseStrategy.getUsers();
-//                }
-//                for (int i = 0; i < (deptOrUserList != null ? deptOrUserList.size() : 0); i++) {
-//                    //如果按机构分配则是机构的ID，如果是按用户分配则是用户ID
-//                    String deptOrUserid = deptOrUserList.get(i);
-//                    Department department = null;
-//                    User targetUser = null;
-//                    if (caseStrategy.getAssignType().equals(CaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
-//                        ResponseEntity<Department> departmentResponseEntity = restTemplate.getForEntity(Constants.ORG_SERVICE_URL.concat("getDepartmentById").concat("?deptId=").concat(deptOrUserid), Department.class);
-//                        department = departmentResponseEntity.getBody();
-//                    } else if (caseStrategy.getAssignType().equals(CaseInfoDisModel.DisType.USER_WAY.getValue())) {
-//                        ResponseEntity<User> userResponseEntity = restTemplate.getForEntity("http://business-service/api/userResource/findUserById?id=" + deptOrUserid, User.class);
-//
-//                        targetUser = userResponseEntity.getBody();
-//                    }
-//                    //计算平均分配案件数
-//                    List<Integer> disNumList = new ArrayList<>();
-//                    setDistributeNum(caseInfos, deptOrUserList, disNumList);
-//                    Integer disNum = disNumList.get(i);//每个人分配的案件数
-//                    for (int j = 0; j < disNum; j++) {
-//                        CaseInfoDistributed caseInfoDistributed = caseInfos.get(alreadyCaseNum);
-//                        if (Objects.nonNull(caseInfoDistributed)) {
-//                            CaseInfo caseInfo = new CaseInfo();
-//                            BeanUtils.copyProperties(caseInfoDistributed, caseInfo);
-//                            if (Objects.nonNull(department)) {
-//                                caseInfo.setDepartment(department); //部门
-//                                if (Objects.equals(department.getType(), Department.Type.TELEPHONE_COLLECTION.getValue())) {
-//                                    caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
-//                                } else if (Objects.equals(department.getType(), Department.Type.OUTBOUND_COLLECTION.getValue())) {
-//                                    caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
-//                                } else if (Objects.equals(department.getType(), Department.Type.JUDICIAL_COLLECTION.getValue())) {
-//                                    caseInfo.setCollectionType(CaseInfo.CollectionType.JUDICIAL.getValue());
-//                                } else if (Objects.equals(department.getType(), Department.Type.OUTSOURCING_COLLECTION.getValue())) {
-//                                    caseInfo.setCollectionType(CaseInfo.CollectionType.outside.getValue());
-//                                } else if (Objects.equals(department.getType(), Department.Type.REMIND_COLLECTION.getValue())) {
-//                                    caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
-//                                }
-//                                caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //案件流入时间
-//                                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
-//                            }
-//                            if (Objects.nonNull(targetUser)) {
-//                                caseInfo.setDepartment(targetUser.getDepartment());
-//                                caseInfo.setCurrentCollector(targetUser);
-//                                if (Objects.equals(targetUser.getType(), User.Type.TEL.getValue())) {
-//                                    caseInfo.setCollectionType(CaseInfo.CollectionType.TEL.getValue());
-//                                } else if (Objects.equals(targetUser.getType(), User.Type.VISIT.getValue())) {
-//                                    caseInfo.setCollectionType(CaseInfo.CollectionType.VISIT.getValue());
-//                                } else if (Objects.equals(targetUser.getType(), User.Type.JUD.getValue())) {
-//                                    caseInfo.setCollectionType(CaseInfo.CollectionType.JUDICIAL.getValue());
-//                                } else if (Objects.equals(targetUser.getType(), User.Type.OUT.getValue())) {
-//                                    caseInfo.setCollectionType(CaseInfo.CollectionType.outside.getValue());
-//                                } else if (Objects.equals(targetUser.getType(), User.Type.REMINDER.getValue())) {
-//                                    caseInfo.setCollectionType(CaseInfo.CollectionType.remind.getValue());
-//                                }
-//                                caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime());
-//                                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收
-//                            }
-//                            caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
-//                            caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
-//                            //案件剩余天数(结案日期-当前日期)
-//                            caseInfo.setLeftDays(ZWDateUtil.getBetween(ZWDateUtil.getNowDate(), caseInfo.getCloseDate(), ChronoUnit.DAYS));
-//                            //案件类型
-//                            caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue());
-//                            caseInfo.setOperator(user);
-//                            caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue());//打标标记
-//                            caseInfo.setFollowUpNum(0);//流转次数
-//                            caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
-//                            //案件流转记录
-//                            CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
-//                            BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
-//                            caseTurnRecord.setId(null); //主键置空
-//                            caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
-//                            caseTurnRecord.setDepartId(caseInfo.getDepartment().getId()); //部门ID
-//
-//                            if (Objects.nonNull(caseInfo.getCurrentCollector())) {
-//                                caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
-//                                caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
-//                                caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接收人ID
-//                            } else {
-//                                caseTurnRecord.setReceiveDeptName(caseInfo.getDepartment().getName());
-//                            }
-//                            caseTurnRecord.setCirculationType(3); //流转类型 3-正常流转
-//                            caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员
-//                            caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-//                            caseTurnRecordList.add(caseTurnRecord);
-//
-//                            //进入案件修复池
-//                            CaseRepair caseRepair = new CaseRepair();
-//                            caseRepair.setCaseId(caseInfo);
-//                            caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRING.getValue());
-//                            caseRepair.setOperatorTime(ZWDateUtil.getNowDateTime());
-//                            caseRepair.setCompanyCode(user.getCompanyCode());
-//                            caseRepairList.add(caseRepair);
-//                            caseInfo.setId(null);
-//                            //案件列表
-//                            caseInfoObjList.add(caseInfo);
-//                        }
-//                        alreadyCaseNum = alreadyCaseNum + 1;
-//                    }
-//                }
-//                //保存案件信息
-//                //  restTemplate.postForEntity(Constants.BUSINESS_SERVICE_URL.concat("saveCaseInfo"), caseInfoObjList, CaseInfo.class);
-//                //保存流转记录
-//                restTemplate.postForEntity(Constants.BUSINESS_SERVICE_URL.concat("saveCaseInfoRecord"), caseTurnRecordList, CaseTurnRecord.class);
-//                //保存修复信息
-//                restTemplate.postForEntity(Constants.BUSINESS_SERVICE_URL.concat("saveRepair"), caseRepairList, CaseRepair.class);
-//                //删除待分配案件
-//                for (String id : caseIds) {
-//                    restTemplate.delete(Constants.BUSINESS_SERVICE_URL.concat("deleteCaseInfoDistributed").concat("?id=").concat(id));
-//                }
-//            }
-//        }
-//        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, " successfully", "分配成功")).body(caseInfoObjList);
-//    }
 
     @GetMapping("/findCaseStrategy")
     @ApiOperation(value = "检查策略名称是否重复", notes = "检查策略名称是否重复")
