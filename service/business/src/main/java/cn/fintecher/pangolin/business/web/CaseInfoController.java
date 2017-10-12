@@ -1165,6 +1165,7 @@ public class CaseInfoController extends BaseController {
     @GetMapping("/getCollectingCase")
     @ApiOperation(value = "内催按批次号查询催收中案件", notes = "内催按批次号查询催收中案件")
     public ResponseEntity<Page<CaseInfo>> getCollectingCase(@RequestHeader(value = "X-UserToken") String token,
+                                                            @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                             @ApiIgnore Pageable pageable,
                                                             @RequestParam @ApiParam(value = "批次号", required = true) String batchNumber) {
         log.debug("REST request to get case info remark");
@@ -1177,7 +1178,7 @@ public class CaseInfoController extends BaseController {
             status.add(CaseInfo.CollectionStatus.PART_REPAID.getValue());
             status.add(CaseInfo.CollectionStatus.REPAID.getValue());
             status.add(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue());
-            BooleanBuilder builder = new BooleanBuilder();
+            BooleanBuilder builder = new BooleanBuilder(predicate);
             builder.and(QCaseInfo.caseInfo.batchNumber.eq(batchNumber));
             if (Objects.nonNull(tokenUser.getCompanyCode())) {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
@@ -1252,6 +1253,7 @@ public class CaseInfoController extends BaseController {
     @GetMapping("/getInnerWaitCollectCase")
     @ApiOperation(value = "分页查询内催待分配案件", notes = "分页查询内催待分配案件")
     public ResponseEntity<Page<CaseInfo>> getInnerWaitCollectCase(
+            @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
             @ApiIgnore Pageable pageable,
             @RequestHeader(value = "X-UserToken") String token,
             @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
@@ -1264,7 +1266,7 @@ public class CaseInfoController extends BaseController {
         }
         try {
             QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-            BooleanBuilder builder = new BooleanBuilder();
+            BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.isNull(user.getCompanyCode())) {
                 if (StringUtils.isNotBlank(companyCode)) {
                     builder.and(qCaseInfo.companyCode.eq(companyCode)); //公司
@@ -1287,10 +1289,11 @@ public class CaseInfoController extends BaseController {
     @GetMapping("/getInnerOverCase")
     @ApiOperation(value = "分页查询内催结案案件", notes = "分页查询内催结案案件")
     public ResponseEntity<Page<CaseInfo>> getInnerOverCase(
+            @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
             @ApiIgnore Pageable pageable,
             @RequestHeader(value = "X-UserToken") String token,
             @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
-        User user = null;
+            User user = null;
         try {
             user = getUserByToken(token);
         } catch (final Exception e) {
@@ -1299,7 +1302,7 @@ public class CaseInfoController extends BaseController {
         }
         try {
             QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-            BooleanBuilder builder = new BooleanBuilder();
+            BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.isNull(user.getCompanyCode())) {
                 if (StringUtils.isNotBlank(companyCode)) {
                     builder.and(qCaseInfo.companyCode.eq(companyCode)); //公司
