@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.service.reminder.service.impl;
 import cn.fintecher.pangolin.service.reminder.model.AppMsg;
 import cn.fintecher.pangolin.service.reminder.model.ReminderMessage;
 import cn.fintecher.pangolin.service.reminder.model.ReminderWebSocketMessage;
+import cn.fintecher.pangolin.service.reminder.repository.AppMsgRepository;
 import cn.fintecher.pangolin.service.reminder.repository.ReminderMessageRepository;
 import cn.fintecher.pangolin.service.reminder.service.AppMsgService;
 import cn.fintecher.pangolin.service.reminder.service.ReminderMessageService;
@@ -41,6 +42,8 @@ public class ReminderMessageServiceImpl implements ReminderMessageService {
     private UserService userService;
     @Autowired
     private AppMsgService appMsgService;
+    @Autowired
+    private AppMsgRepository appMsgRepository;
 
     @Autowired
     public ReminderMessageServiceImpl(ReminderMessageRepository reminderMessageRepository) {
@@ -107,6 +110,7 @@ public class ReminderMessageServiceImpl implements ReminderMessageService {
             request.setId(null);
             request.setAppMsgUnRead(Long.valueOf(count).intValue());
             request.setContent(result.getContent());
+            appMsgRepository.save(request);
             try {
                 appMsgService.sendPush(request);
             } catch (Exception e) {
