@@ -47,5 +47,10 @@ public class QueryOutsourcePool {
     private String companyCode;
     /*公司标识码*/
     private String outsCode;
+    /*催收中案件数*/
+    private BigInteger currentOutsourceCount;
+    /*催收中案件金额*/
+    private BigDecimal currentOutsourceAmt;
+
 
 }

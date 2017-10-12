@@ -46,7 +46,7 @@ public class AccFinanceEntryService {
                 if (type == 0) {
                     processFinanceData(dataList, accFinanceEntry, errorList);
                 } else {
-                    errorList = processFinanceDataFollowup(dataList, outsourceFollowRecord, errorList);
+                    processFinanceDataFollowup(dataList, outsourceFollowRecord, errorList);
                 }
 
             }
@@ -123,27 +123,25 @@ public class AccFinanceEntryService {
      * Created by huyanmin 2017/9/26
      * 将Excel中的数据存入数据库中
      */
-    public List<CellError> processFinanceDataFollowup(List datalist, CaseFollowupRecord outsourceFollowRecord, List<CellError> errorList) {
+    public void processFinanceDataFollowup(List datalist, CaseFollowupRecord outsourceFollowRecord, List<CellError> errorList) {
 
+        CaseFollowupRecord out = new CaseFollowupRecord();
         for (Object obj : datalist) {
-            CaseFollowupRecord out = new CaseFollowupRecord();
+
             OutsourceFollowUpRecordModel followUpRecordModel = (OutsourceFollowUpRecordModel) obj;
 
             CaseInfo caseInfo = null;
             if (Objects.nonNull(followUpRecordModel.getCaseNum())) {
                 out.setCaseNumber(followUpRecordModel.getCaseNum());
                 caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(followUpRecordModel.getCaseNum()));
+                //案件编号是否存在
                 if (Objects.nonNull(caseInfo)) {
                     out.setCaseId(caseInfo.getId());
                 } else {
-                    CellError cellError = new CellError();
-                    cellError.setErrorMsg("客户[".concat(out.getCaseNumber()).concat("]的案件编号不存在"));
-                    errorList.add(cellError);
-                    return errorList;
+                    throw new RuntimeException("客户[".concat(out.getCaseNumber()).concat("]的案件编号不存在"));
                 }
             } else {
-                errorList = validityFinanceFollowup(errorList, out);
-                return errorList;
+                throw new RuntimeException("客户案件编号不能为空");
             }
             CaseFollowupRecord.Type[] followTypes = CaseFollowupRecord.Type.values();//跟进方式
             Integer followtype = 0;
@@ -199,26 +197,8 @@ public class AccFinanceEntryService {
             out.setOperator(outsourceFollowRecord.getOperator());
             out.setOperatorTime(ZWDateUtil.getNowDateTime());
             out.setCaseFollowupType(CaseFollowupRecord.CaseFollowupType.OUTER.getValue());
-            caseFollowupRecordRepository.save(out);
-
         }
-        return errorList;
+        caseFollowupRecordRepository.save(out);
     }
-
-    /**
-     * Created by huyanmin 2017/9/26
-     * 验证案件号是否为空
-     */
-    private List<CellError> validityFinanceFollowup(List<CellError> errorList, CaseFollowupRecord out) {
-
-        if (ZWStringUtils.isEmpty(out.getCaseNumber())) {
-            CellError cellError = new CellError();
-            cellError.setErrorMsg("客户案件编号不能为空！");
-            errorList.add(cellError);
-            return errorList;
-        }
-        return errorList;
-    }
-
 
 }
