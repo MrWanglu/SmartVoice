@@ -2492,13 +2492,13 @@ public class CaseInfoService {
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
         }
-        int day = (int) (caseInfo.getCloseDate().getTime() - new Date().getTime());
+        long day = caseInfo.getCloseDate().getTime() - new Date().getTime();
         QSysParam qSysParam = QSysParam.sysParam;
         SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq("SysParam.caseinfo.remind").
                 and(qSysParam.companyCode.eq(tokenUser.getCompanyCode())).
                 and(qSysParam.type.eq("9001")));
         if (Objects.nonNull(sysParam)) {
-            int value = Integer.parseInt(sysParam.getValue());
+            long value = Long.valueOf(sysParam.getValue());
             return day <= value * 86400000;
         } else {
             return false;
