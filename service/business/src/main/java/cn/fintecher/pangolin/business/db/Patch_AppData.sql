@@ -116,4 +116,6 @@ ADD COLUMN `case_followup_type`  int(4) DEFAULT NULL COMMENT '跟踪记录类型
 ADD COLUMN `follow_time`  date DEFAULT NULL COMMENT '跟进时间';
 ADD COLUMN `follow_person`  varchar(64) DEFAULT NULL COMMENT '跟进人员';
 
+--2017-10-12 夏群 增加数据字段项
+INSERT INTO `data_dict` VALUES ('234', '0051', null, '核销案件策略', '3');
 

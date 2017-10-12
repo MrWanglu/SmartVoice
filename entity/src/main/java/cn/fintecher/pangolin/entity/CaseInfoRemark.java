@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.entity;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -30,6 +31,7 @@ public class CaseInfoRemark extends BaseEntity {
     private String operatorRealName;
 
     @ApiModelProperty(notes = "操作时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date operatorTime;
 
     @ApiModelProperty(notes = "公司code码")
