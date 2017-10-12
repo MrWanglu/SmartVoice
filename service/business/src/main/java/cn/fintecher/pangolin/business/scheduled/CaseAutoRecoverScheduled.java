@@ -3,7 +3,9 @@ package cn.fintecher.pangolin.business.scheduled;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoReturnRepository;
 import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
+import cn.fintecher.pangolin.business.service.ReminderService;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,11 +31,13 @@ public class CaseAutoRecoverScheduled {
     private CaseInfoReturnRepository caseInfoReturnRepository;
     @Inject
     private OutsourcePoolRepository outsourcePoolRepository;
+    @Inject
+    private ReminderService reminderService;
 
     @Scheduled(cron = "0 59 23 * * ?")
     private void caseAutoRecoverTask() {
-        log.debug("案件自动回收任务调度开始...");
         try {
+            log.debug("案件自动回收任务调度开始...");
             // 内催自动回收
             QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
             Iterable<CaseInfo> all = caseInfoRepository.findAll(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue())
@@ -79,10 +83,42 @@ public class CaseAutoRecoverScheduled {
             }
             caseInfoRepository.save(caseInfoList);
             caseInfoReturnRepository.save(caseInfoReturnList);
+            log.debug("案件自动回收任务调度结束...");
         } catch (Exception e) {
             log.error("案件自动回收任务调度错误");
             log.error(e.getMessage(), e);
         }
-        log.debug("案件自动回收任务调度结束");
+        try {
+            log.debug("案件手动回收提醒任务调度开始...");
+            // 内催的手动回收
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            Iterable<CaseInfo> allM = caseInfoRepository.findAll(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue())
+                    .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())//除过已结案
+                            .and(qCaseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()))//未回收的
+                            .and(qCaseInfo.recoverWay.eq(CaseInfo.RecoverWay.MANUAL.getValue()))//需要手动回收的
+                            .and(qCaseInfo.closeDate.before(new Date()))));//到期日期
+            Iterator<CaseInfo> iteratorM = allM.iterator();
+            while (iteratorM.hasNext()) {
+                CaseInfo caseInfo = iteratorM.next();
+                if (Objects.nonNull(caseInfo.getCurrentCollector())) {
+                    String id = caseInfo.getCurrentCollector().getId();
+                    String title = "案件到期";
+                    String content = "案件编号[".concat(caseInfo.getCaseNumber()).concat("],批次号[").concat(caseInfo.getBatchNumber()).concat("]的案件到期,请进行回收。");
+                    SendReminderMessage sendReminderMessage = new SendReminderMessage();
+                    sendReminderMessage.setTitle(title);
+                    sendReminderMessage.setContent(content);
+                    sendReminderMessage.setType(ReminderType.CASE_EXPIRE);
+                    sendReminderMessage.setMode(ReminderMode.POPUP);
+                    sendReminderMessage.setCreateTime(new Date());
+                    sendReminderMessage.setUserId(id);
+                    reminderService.sendReminder(sendReminderMessage);
+                }
+            }
+            log.debug("案件手动回收提醒任务调度结束...");
+        } catch (Exception e) {
+            log.error("案件自动回收任务调度错误");
+            log.error(e.getMessage(), e);
+        }
+        log.debug("案件回收任务调度结束");
     }
 }
