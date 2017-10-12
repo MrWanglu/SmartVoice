@@ -70,8 +70,10 @@ public class ParseExcelTask {
                 for (int colIndex = startCol; colIndex < dataRow.getLastCellNum(); colIndex++) {
                     //获取该列对应的头部信息中文
                     String titleName = headerMap.get(colIndex);
-                    Cell cell = dataRow.getCell(colIndex);
-                    matchFields(dataClass, columnErrorList, obj, colIndex, titleName, cell, flag);
+                    if (StringUtils.isNotBlank(titleName)) {
+                        Cell cell = dataRow.getCell(colIndex);
+                        matchFields(dataClass, columnErrorList, obj, colIndex, titleName, cell, flag);
+                    }
                 }
             } else {
                 //配置模板
@@ -167,6 +169,7 @@ public class ParseExcelTask {
         //获取类中所有的字段
         Field[] fields = dataClass.getDeclaredFields();
         int fieldCount = 0;
+        boolean flagM = false;
         for (Field field : fields) {
             fieldCount++;
             //获取标记了ExcelAnno的注解字段
@@ -177,6 +180,7 @@ public class ParseExcelTask {
                 if (cellName != null && !cellName.isEmpty()) {
                     //匹配到实体中相应的字段
                     if (chineseCompare(cellName, titleName, "UTF-8")) {
+                        flagM = true;
                         ColumnError columnError = new ColumnError();
                         columnError.setColumnIndex(colIndex + 1);
                         columnError.setTitleMsg(cellName);
@@ -207,6 +211,9 @@ public class ParseExcelTask {
                     logger.info(Thread.currentThread() + "模板中的：[" + titleName + "]未与实体：" + obj.getClass().getSimpleName() + " 对应");
                 }
             }
+        }
+        if (flagM == false) {
+            logger.info("行[{}]列[{}],表头[{}]未与任何实体属性匹配", cell.getRowIndex(), cell.getColumnIndex(), titleName);
         }
     }
 
@@ -355,10 +362,12 @@ public class ParseExcelTask {
     }
 
     private Boolean chineseCompare(String str1, String str2, String engCode) throws Exception {
-        String tmpStr1 = new String(str1.getBytes(engCode));
-        String tmpStr2 = new String(str2.getBytes(engCode));
-        if (tmpStr1.equals(tmpStr2)) {
-            return true;
+        if (StringUtils.isNotBlank(str1) && StringUtils.isNotBlank(str2)) {
+            String tmpStr1 = new String(str1.getBytes(engCode));
+            String tmpStr2 = new String(str2.getBytes(engCode));
+            if (tmpStr1.equals(tmpStr2)) {
+                return true;
+            }
         }
         return false;
     }

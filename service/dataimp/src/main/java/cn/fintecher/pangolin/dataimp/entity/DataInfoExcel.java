@@ -92,7 +92,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("案件金额")
     @ExcelAnno(cellName = "逾期总金额(元)",
-            fieldType = ExcelAnno.FieldType.DOUBLE)
+            fieldCheck = ExcelAnno.FieldCheck.CASE_AMOUNT)
     private Double overdueAmount = new Double(0);
 
     @ApiModelProperty("逾期本金(元)")
