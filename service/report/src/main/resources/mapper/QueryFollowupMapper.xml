@@ -43,6 +43,7 @@
         WHERE 1=1
         and a.collection_status = 24
         and a.case_pool_type = 225
+        and a.recover_remark = 0
         <if test="companyCode != null and companyCode !=''">
             AND a.company_code = #{companyCode}
         </if>
@@ -145,6 +146,7 @@
         WHERE 1=1
         and (collection_status in (20,21,22,23,171,172) or (collection_status =25 and depart_id is not null))
         and a.case_pool_type = 225
+        and a.recover_remark = 0
         <if test="companyCode != null and companyCode !=''">
             AND a.company_code = #{companyCode}
         </if>

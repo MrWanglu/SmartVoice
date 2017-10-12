@@ -819,6 +819,7 @@ public class CaseInfoController extends BaseController {
             }
             builder.and(qCaseInfo.department.isNull());
             builder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()));
+            builder.and(qCaseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
             builder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
             Iterable<CaseInfo> caseInfoList = caseInfoRepository.findAll(builder);
             List<CaseInfo> accCaseInfoList = new ArrayList<>();
@@ -888,6 +889,7 @@ public class CaseInfoController extends BaseController {
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode()));
             }
             builder.and(QCaseInfo.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
+            builder.and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
             builder.and(QCaseInfo.caseInfo.department.code.startsWith(tokenUser.getDepartment().getCode()));
             builder.andAnyOf(QCaseInfo.caseInfo.collectionStatus.in(status), QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue())
                     .and(QCaseInfo.caseInfo.department.isNotNull()));
@@ -1182,6 +1184,7 @@ public class CaseInfoController extends BaseController {
             }
             builder.and(QCaseInfo.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
             builder.and(QCaseInfo.caseInfo.department.code.startsWith(tokenUser.getDepartment().getCode()));
+            builder.and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
             builder.andAnyOf(QCaseInfo.caseInfo.collectionStatus.in(status), QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue())
                     .and(QCaseInfo.caseInfo.department.isNotNull()));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
@@ -1272,6 +1275,7 @@ public class CaseInfoController extends BaseController {
             builder.and(qCaseInfo.department.isNull());
             builder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()));
             builder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
+            builder.and(qCaseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
@@ -1306,6 +1310,7 @@ public class CaseInfoController extends BaseController {
             builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));
             builder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
             builder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
+            builder.and(qCaseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
