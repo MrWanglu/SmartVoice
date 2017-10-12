@@ -119,7 +119,7 @@ public class CaseInfoReportController extends BaseController{
                                                    @RequestParam(required = false) @ApiParam(value = "批次号") String batchNumber,
                                                    @RequestParam(required = false) @ApiParam(value = "委托方") String principalId,
                                                    @RequestParam(required = false) @ApiParam(value = "委案日期") String delegationDate,
-                                                   @RequestParam(required = false) @ApiParam(value = "委案日期") String closeDate,
+                                                   @RequestParam(required = false) @ApiParam(value = "结案日期") String closeDate,
                                                    @RequestParam(required = false) @ApiParam(value = "公司CODE") String companyCode) {
         User user = null;
         try {
