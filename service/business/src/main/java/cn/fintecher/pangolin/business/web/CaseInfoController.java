@@ -1293,7 +1293,7 @@ public class CaseInfoController extends BaseController {
             @ApiIgnore Pageable pageable,
             @RequestHeader(value = "X-UserToken") String token,
             @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
-            User user = null;
+        User user = null;
         try {
             user = getUserByToken(token);
         } catch (final Exception e) {
@@ -1385,6 +1385,23 @@ public class CaseInfoController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", e.getMessage())).body(null);
+        }
+    }
+
+    /**
+     * @Description 案件到期提醒
+     */
+    @GetMapping("/maturityRemind")
+    @ApiOperation(value = "案件到期提醒", notes = "案件到期提醒")
+    public ResponseEntity<Boolean> maturityRemind(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+                                                  @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User tokenUser = getUserByToken(token);
+            Boolean flag = caseInfoService.maturityRemind(caseId, tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("提醒成功", ENTITY_NAME)).body(flag);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("提醒成功", ENTITY_NAME)).body(false);
         }
     }
 }
