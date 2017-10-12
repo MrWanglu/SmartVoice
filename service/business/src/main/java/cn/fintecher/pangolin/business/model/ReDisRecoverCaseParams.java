@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -16,4 +17,6 @@ public class ReDisRecoverCaseParams {
     private List<String> ids;
     @ApiModelProperty(value = "分配目标：0-内催待分配池，1-委外待分配池", required = true)
     private Integer type;
+    @ApiModelProperty("结案日期")
+    private Date closeDate;
 }

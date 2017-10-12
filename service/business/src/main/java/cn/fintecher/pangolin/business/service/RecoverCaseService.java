@@ -82,11 +82,13 @@ public class RecoverCaseService {
             Integer source = caseInfoReturn.getSource();
             if (Objects.equals(source, CaseInfoReturn.Source.INTERNALCOLLECTION.getValue())) { // 内催回收的案件
                 CaseInfo caseInfo = caseInfoReturn.getCaseId();
+                caseInfo.setCloseDate(params.getCloseDate());
                 setAttr(caseInfo,caseAssistList, caseInfoList,outsourcePoolList, user, params.getType());
                 caseInfoReturnList.add(caseInfoReturn);
             }
             if (Objects.equals(source, CaseInfoReturn.Source.OUTSOURCE.getValue())) { // 委外回收的案件
                 CaseInfo caseInfo = caseInfoReturn.getOutsourcePool().getCaseInfo();
+                caseInfo.setCloseDate(params.getCloseDate());
                 outsourcePools.add(caseInfoReturn.getOutsourcePool());
                 setAttr(caseInfo,caseAssistList, caseInfoList,outsourcePoolList, user, params.getType());
                 caseInfoReturnList.add(caseInfoReturn);
