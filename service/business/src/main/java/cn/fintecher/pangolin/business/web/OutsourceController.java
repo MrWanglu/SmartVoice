@@ -281,37 +281,26 @@ public class OutsourceController extends BaseController {
             }
             List<OutDistributeInfo> outDistributeInfos = new ArrayList<>();
             if (!outIds.isEmpty()) {
-                StringBuilder query = new StringBuilder("select b.outs_name,b.outs_code,count(case when a.out_status<>167 then a.id end) as case_count," +
-                        "count( case when  a.out_status=170 then a.id end) as end_count,(count( case when  a.out_status=170 then a.id end)/count(case when a.out_status<>167 then a.id end)) as success_rate," +
-                        "sum(case when a.out_status <>167 then a.contract_amt end) as overdue_amt,a.out_id from outsource_pool a,outsource b where a.out_id=b.id and out_id is not null and out_id in ('");
-                for (int i = 0; i < outIds.size(); i++) {
-                    if (i < outIds.size() - 1) {
-                        query.append(outIds.toArray()[i]).append("','");
-                    } else {
-                        query.append(outIds.toArray()[i]).append("')");
-                    }
-                }
+                StringBuilder query = new StringBuilder("select b.outs_code,b.outs_name,b.id,c.case_count,c.end_amt,c.end_count,c.success_rate, b.company_code from outsource b left JOIN (select a.out_id, count(case when a.out_status<>167 then a.id end) as case_count,count( case when  a.out_status=170 then a.id end) as end_count,(count( case when  a.out_status=170 then a.id end)/count(case when a.out_status <>167 then a.id end)) as success_rate,sum(case when a.out_status = 170 then a.contract_amt end) as end_amt from outsource_pool a group by a.out_id ) c on b.id =c.out_id where b.company_code='");
+                query.append(user.getCompanyCode()).append("' ");
                 if (Objects.nonNull(outCode)) {
                     query.append(" and b.outs_code = '").append(StringUtils.trim(outCode)).append("'");
                 }
                 if (Objects.nonNull(outName)) {
                     query.append(" and b.outs_name like '%").append(StringUtils.trim(outName)).append("%").append("'");
                 }
-                query.append("group by out_id");
                 log.debug(query.toString());
                 List<Objects[]> list = em.createNativeQuery(query.toString()).getResultList();
                 for (Object[] obj : list) {
-                    for (int i = 0; i < obj.length; i++) {
-                        OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
-                        outDistributeInfo.setOutName(Objects.isNull(obj[0]) ? null : obj[0].toString());
-                        outDistributeInfo.setOutCode(Objects.isNull(obj[1]) ? null : obj[1].toString());
-                        outDistributeInfo.setCaseCount(Objects.isNull(obj[2]) ? null : Integer.parseInt(obj[2].toString()));
-                        outDistributeInfo.setEndCount(Objects.isNull(obj[3]) ? null : Integer.parseInt(obj[3].toString()));
-                        outDistributeInfo.setSuccessRate(Objects.isNull(obj[4]) ? null : BigDecimal.valueOf(Double.valueOf(obj[4].toString())));
-                        outDistributeInfo.setCaseAmt(Objects.isNull(obj[5]) ? null : BigDecimal.valueOf(Double.valueOf(obj[5].toString())));
-                        outDistributeInfo.setOutId(Objects.isNull(obj[6]) ? null : obj[6].toString());
-                        outDistributeInfos.add(outDistributeInfo);
-                    }
+                    OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
+                    outDistributeInfo.setOutName(Objects.isNull(obj[1]) ? null : obj[1].toString());
+                    outDistributeInfo.setOutCode(Objects.isNull(obj[0]) ? null : obj[0].toString());
+                    outDistributeInfo.setCaseCount(Objects.isNull(obj[3]) ? null : Integer.parseInt(obj[3].toString()));
+                    outDistributeInfo.setEndCount(Objects.isNull(obj[5]) ? null : Integer.parseInt(obj[5].toString()));
+                    outDistributeInfo.setSuccessRate(Objects.isNull(obj[6]) ? null : BigDecimal.valueOf(Double.valueOf(obj[6].toString())));
+                    outDistributeInfo.setCaseAmt(Objects.isNull(obj[4]) ? null : BigDecimal.valueOf(Double.valueOf(obj[4].toString())));
+                    outDistributeInfo.setOutId(Objects.isNull(obj[2]) ? null : obj[2].toString());
+                    outDistributeInfos.add(outDistributeInfo);
                 }
             }
             Page<OutDistributeInfo> outDistributeInfos1 = new PageImpl<>(
