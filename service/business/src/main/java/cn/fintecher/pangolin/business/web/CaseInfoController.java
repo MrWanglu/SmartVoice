@@ -1129,7 +1129,7 @@ public class CaseInfoController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseInfoRemark>> getCaseInfoRemark(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
-                                                                  @QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+                                                                  @QuerydslPredicate(root = CaseInfoRemark.class) Predicate predicate,
                                                                   @ApiIgnore Pageable pageable) {
         log.debug("REST request to get case info remark");
         try {
