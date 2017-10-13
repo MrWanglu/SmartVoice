@@ -1,6 +1,5 @@
 package cn.fintecher.pangolin.business.service;
 
-import cn.fintecher.pangolin.business.model.AccCaseInfoDisModel;
 import cn.fintecher.pangolin.business.model.OutDistributeInfo;
 import cn.fintecher.pangolin.business.model.OutsourceInfo;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
@@ -181,17 +180,20 @@ public class OutsourcePoolService {
                 CaseInfo caseInfo = caseInfoRepository.findOne(outsourcePool.getCaseInfo().getId());
                 String personalName = caseInfo.getPersonalInfo().getName();
                 String idCard = caseInfo.getPersonalInfo().getIdCard();
-                Object[] nums = outsourcePoolRepository.getGzNum(personalName, idCard);
+                String companyCode=null;
+                if(Objects.nonNull(user.getCompanyCode())){
+                    companyCode=user.getCompanyCode();
+                }
+                Object[] nums = (Object[])outsourcePoolRepository.getGzNum(personalName, idCard, companyCode);
                 if (Objects.nonNull(nums)) {
-                    Outsource outsource = outsourceRepository.findOne(nums[0].toString());
-                    if (Objects.isNull(outsource)) {
-                        throw new RuntimeException("有案件未找到!");
+                    Outsource outsource = outsourceRepository.findOne(Objects.nonNull(nums[0].toString())?null:nums[0].toString());
+                    if (Objects.nonNull(outsource)) {
+                        //优先将案件委外给有共债案件的委外方
+                        setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
+                        //添加委外记录
+                        saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
+                        caseInfoYes.remove(outsourcePool);
                     }
-                    //优先将案件委外给有共债案件的委外方
-                    setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
-                    //添加委外记录
-                    saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
-                    caseInfoYes.remove(outsourcePool);
                     i--;
                     continue;
                 }

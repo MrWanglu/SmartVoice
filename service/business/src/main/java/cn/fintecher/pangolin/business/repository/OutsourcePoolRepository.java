@@ -146,11 +146,12 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
     @Query(value = "select a.out_id,COUNT(*) from outsource_pool a " +
             "LEFT JOIN case_info b on a.case_id=b.id " +
             "LEFT JOIN personal c on b.personal_id=c.id " +
-            "where c.`name`=:name " +
+            "where c.`name`=:personalName " +
             "and c.id_card=:idCard " +
+            "and a.company_code=:companyCode " +
             "and a.out_status=168 " +
             "GROUP BY a.out_id", nativeQuery = true)
-    Object[] getGzNum(@Param("name") String name, @Param("idCard") String idCard);
+    Object getGzNum(@Param("personalName") String personalName, @Param("idCard") String idCard, @Param("companyCode") String companyCode);
 
 
     /**

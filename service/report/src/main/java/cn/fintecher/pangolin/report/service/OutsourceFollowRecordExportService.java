@@ -50,7 +50,7 @@ public class OutsourceFollowRecordExportService {
                     followupExportModel.setFollTargetName(record.getTargetName());//跟进对象姓名
                     followupExportModel.setFollContent(record.getContent());//跟进内容
                     followupExportModel.setFollOperator(record.getFollowPerson());//跟进人名称
-                    CaseFollowupRecord.EffectiveCollection[] feedBacks = CaseFollowupRecord.EffectiveCollection.values(); //催收反馈
+                    CaseFollowupRecord.EffectiveCollection[] feedBacks = CaseFollowupRecord.EffectiveCollection.values(); //有效催收反馈
                     for (int j = 0; j < feedBacks.length; j++) {
                         if (Objects.nonNull(record.getCollectionFeedback())) {
                             if (Objects.equals(record.getCollectionFeedback(), feedBacks[j].getValue())) {
@@ -58,8 +58,17 @@ public class OutsourceFollowRecordExportService {
                                 break;
                             }
                         }
-
                     }
+                    CaseFollowupRecord.InvalidCollection[] InvalidFeedBacks = CaseFollowupRecord.InvalidCollection.values(); //无效催收反馈
+                    for (int j = 0; j < InvalidFeedBacks.length; j++) {
+                        if (Objects.nonNull(record.getCollectionFeedback())) {
+                            if (Objects.equals(record.getCollectionFeedback(), InvalidFeedBacks[j].getValue())) {
+                                followupExportModel.setFollFeedback(InvalidFeedBacks[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+
                     CaseFollowupRecord.Target[] objectType = CaseFollowupRecord.Target.values(); //跟进对象
                     for (int j = 0; j < objectType.length; j++) {
                         if (Objects.nonNull(record.getTarget())) {
