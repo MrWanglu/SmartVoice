@@ -317,16 +317,19 @@ public class OutsourcePoolController extends BaseController {
                                                                           @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                                           @RequestHeader(value = "X-UserToken") String token) {
         try {
-            BooleanBuilder builder = new BooleanBuilder(predicate);
             User user = getUserByToken(token);
-            if (Objects.isNull(user)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
-            }
+            BooleanBuilder builder = new BooleanBuilder(predicate);
             QCaseInfoReturn qCaseInfoReturn = QCaseInfoReturn.caseInfoReturn;
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    builder.and(qCaseInfoReturn.companyCode.eq(companyCode));
+                }
+            } else {
+                builder.and(qCaseInfoReturn.companyCode.eq(user.getCompanyCode()));
+            }
             builder.and(qCaseInfoReturn.source.eq(CaseInfo.CasePoolType.OUTER.getValue())); //委外
             Page<CaseInfoReturn> page = caseInfoReturnRepository.findAll(builder, pageable);
-            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/OutsourcePoolController/getReturnCaseByConditions");
-            return new ResponseEntity<>(page, headers, HttpStatus.OK);
+            return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoReturn", "", "查询失败")).body(null);
@@ -1360,40 +1363,45 @@ public class OutsourcePoolController extends BaseController {
 
     @PostMapping("/returnOutsourceCase")
     @ApiOperation(value = "回收委外案件", notes = "回收委外案件")
-    public ResponseEntity<List<CaseInfoReturn>> returnOutsourceCase(@RequestBody OutCaseIdList outCaseIdList,
-                                                                    @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity returnOutsourceCase(@RequestBody OutCaseIdList outCaseIdList,
+                                              @RequestHeader(value = "X-UserToken") String token) {
         try {
             List<String> outCaseIds = outCaseIdList.getOutCaseIds();
             if (Objects.isNull(outCaseIds) || outCaseIds.isEmpty()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要回收的案件")).body(null);
             }
             User user = getUserByToken(token);
-            if (Objects.isNull(user)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
-            }
             List<OutsourcePool> all = outsourcePoolRepository.findAll(outCaseIds);
             Iterator<OutsourcePool> iterator = all.iterator();
             List<CaseInfoReturn> caseInfoReturnList = new ArrayList<>();
             List<OutsourcePool> outsourcePoolList = new ArrayList<>();
+            List<CaseInfo> caseInfoList = new ArrayList<>();
             while (iterator.hasNext()) {
                 OutsourcePool outsourcePool = iterator.next();
+                outsourcePoolList.add(outsourcePool);
+
                 CaseInfo caseInfo = outsourcePool.getCaseInfo();
                 caseInfo.setOperatorTime(new Date());
                 caseInfo.setOperator(user);
                 caseInfo.setRecoverRemark(CaseInfo.RecoverRemark.RECOVERED.getValue());
-                outsourcePool.setCaseInfo(caseInfo);
-                outsourcePoolList.add(outsourcePool);
+                caseInfoList.add(caseInfo);
 
                 CaseInfoReturn caseInfoReturn = new CaseInfoReturn();
                 caseInfoReturn.setSource(CaseInfoReturn.Source.OUTSOURCE.getValue());
-                caseInfoReturn.setOutsourcePool(outsourcePool);
                 caseInfoReturn.setOperatorTime(new Date());
+                caseInfoReturn.setCaseId(caseInfo);
                 caseInfoReturn.setOperator(user.getId());
                 caseInfoReturn.setReason(outCaseIdList.getReturnReason());
+                caseInfoReturn.setOutBatch(outsourcePool.getOutBatch());
+                caseInfoReturn.setOutsName(outsourcePool.getOutsource().getOutsName());
+                caseInfoReturn.setOutTime(outsourcePool.getOutTime());
+                caseInfoReturn.setOverOutsourceTime(outsourcePool.getOverOutsourceTime());
+                caseInfoReturn.setCompanyCode(outsourcePool.getCompanyCode());
                 caseInfoReturnList.add(caseInfoReturn);
             }
-            outsourcePoolRepository.save(outsourcePoolList);
+            caseInfoRepository.save(caseInfoList);
             caseInfoReturnRepository.save(caseInfoReturnList);
+            outsourcePoolRepository.delete(outsourcePoolList);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("回收成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

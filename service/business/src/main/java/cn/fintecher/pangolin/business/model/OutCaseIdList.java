@@ -10,8 +10,8 @@ import java.util.List;
  */
 @Data
 public class OutCaseIdList {
-    @ApiModelProperty("委外案件ID")
-    private List<String> outCaseIds; //案件ID
+    @ApiModelProperty("回收案件ID")
+    private List<String> outCaseIds;
     @ApiModelProperty("回收说明")
     private String returnReason;
     @ApiModelProperty("公司Code")

@@ -8,6 +8,7 @@ import cn.fintecher.pangolin.business.repository.CaseInfoReturnRepository;
 import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -37,9 +38,9 @@ public class RecoverCaseService {
         if (recoverCaseParams.getIds().isEmpty()) {
             throw new RuntimeException("请选择要回收的案件!");
         }
-//        if (StringUtils.isBlank(recoverCaseParams.getReason())) {
-//            throw new RuntimeException("回收说明不能为空!");
-//        }
+        if (StringUtils.isBlank(recoverCaseParams.getReason())) {
+            throw new RuntimeException("回收说明不能为空!");
+        }
         try {
             Iterable<CaseInfo> all = caseInfoRepository.findAll(QCaseInfo.caseInfo.id.in(recoverCaseParams.getIds()));
             Iterator<CaseInfo> iterator = all.iterator();
@@ -55,6 +56,7 @@ public class RecoverCaseService {
                 caseInfoReturn.setReason(recoverCaseParams.getReason());
                 caseInfoReturn.setOperator(user.getId());
                 caseInfoReturn.setOperatorTime(new Date());
+                caseInfoReturn.setCompanyCode(user.getCompanyCode());
                 caseInfoReturnRepository.save(caseInfoReturn);
             }
         } catch (Exception e) {
@@ -76,7 +78,6 @@ public class RecoverCaseService {
         List<CaseAssist> caseAssistList = new ArrayList<>();
         List<CaseInfoReturn> caseInfoReturnList = new ArrayList<>();
         List<OutsourcePool> outsourcePoolList = new ArrayList<>();
-        List<OutsourcePool> outsourcePools = new ArrayList<>();
         while (iterator.hasNext()) {
             CaseInfoReturn caseInfoReturn = iterator.next();
             Integer source = caseInfoReturn.getSource();
@@ -87,9 +88,8 @@ public class RecoverCaseService {
                 caseInfoReturnList.add(caseInfoReturn);
             }
             if (Objects.equals(source, CaseInfoReturn.Source.OUTSOURCE.getValue())) { // 委外回收的案件
-                CaseInfo caseInfo = caseInfoReturn.getOutsourcePool().getCaseInfo();
+                CaseInfo caseInfo = caseInfoReturn.getCaseId();
                 caseInfo.setCloseDate(params.getCloseDate());
-                outsourcePools.add(caseInfoReturn.getOutsourcePool());
                 setAttr(caseInfo,caseAssistList, caseInfoList,outsourcePoolList, user, params.getType());
                 caseInfoReturnList.add(caseInfoReturn);
             }
@@ -98,7 +98,6 @@ public class RecoverCaseService {
         caseInfoRepository.save(caseInfoList);
         outsourcePoolRepository.save(outsourcePoolList);
         caseInfoReturnRepository.delete(caseInfoReturnList);
-        outsourcePoolRepository.delete(outsourcePools);
     }
 
     private void setAttr(CaseInfo caseInfo, List<CaseAssist> caseAssistList, List<CaseInfo> caseInfoList,List<OutsourcePool> outsourcePoolList, User user, Integer type) {

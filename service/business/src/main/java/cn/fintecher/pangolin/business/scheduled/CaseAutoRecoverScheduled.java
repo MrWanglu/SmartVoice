@@ -58,28 +58,9 @@ public class CaseAutoRecoverScheduled {
                 caseInfoReturn.setOperatorTime(new Date());
                 caseInfoReturn.setSource(CaseInfoReturn.Source.INTERNALCOLLECTION.getValue()); // 回收来源-内催
                 caseInfoReturn.setCaseId(caseInfo);
+                caseInfoReturn.setCompanyCode(caseInfo.getCompanyCode());
                 caseInfoList.add(caseInfo);
                 caseInfoReturnList.add(caseInfoReturn);
-            }
-            // 委外自动回收
-            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
-            Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()) // 未回收的
-                    .and(qOutsourcePool.caseInfo.closeDate.before(new Date())) // 到期的
-                    .and(qOutsourcePool.outStatus.ne(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode())));// 除过委外已结案的
-            Iterator<OutsourcePool> iterator1 = outsourcePools.iterator();
-            while (iterator1.hasNext()) {
-                OutsourcePool outsourcePool = iterator1.next();
-                CaseInfo caseInfo = outsourcePool.getCaseInfo();
-                caseInfo.setOperatorTime(ZWDateUtil.getNowDate());
-                caseInfo.setRecoverRemark(CaseInfo.RecoverRemark.RECOVERED.getValue());
-
-                CaseInfoReturn caseInfoReturn = new CaseInfoReturn();
-                caseInfoReturn.setReason("案件到期自动回收");
-                caseInfoReturn.setOperatorTime(new Date());
-                caseInfoReturn.setSource(CaseInfoReturn.Source.OUTSOURCE.getValue()); // 回收来源-委外
-                caseInfoReturn.setOutsourcePool(outsourcePool);
-                caseInfoReturnList.add(caseInfoReturn);
-                caseInfoList.add(caseInfo);
             }
             caseInfoRepository.save(caseInfoList);
             caseInfoReturnRepository.save(caseInfoReturnList);
@@ -88,6 +69,48 @@ public class CaseAutoRecoverScheduled {
             log.error("案件自动回收任务调度错误");
             log.error(e.getMessage(), e);
         }
+
+        try {
+            log.debug("委外案件自动回收任务调度开始...");
+            // 委外自动回收
+            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+            Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()) // 未回收的
+                    .and(qOutsourcePool.caseInfo.closeDate.before(new Date())) // 到期的
+                    .and(qOutsourcePool.outStatus.ne(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode())));// 除过委外已结案的
+            Iterator<OutsourcePool> iterator1 = outsourcePools.iterator();
+            List<CaseInfo> caseInfoList = new ArrayList<>();
+            List<CaseInfoReturn> caseInfoReturnList = new ArrayList<>();
+            List<OutsourcePool> outsourcePoolList = new ArrayList<>();
+            while (iterator1.hasNext()) {
+                OutsourcePool outsourcePool = iterator1.next();
+                outsourcePoolList.add(outsourcePool);
+
+                CaseInfo caseInfo = outsourcePool.getCaseInfo();
+                caseInfo.setOperatorTime(ZWDateUtil.getNowDate());
+                caseInfo.setRecoverRemark(CaseInfo.RecoverRemark.RECOVERED.getValue());
+                caseInfoList.add(caseInfo);
+
+                CaseInfoReturn caseInfoReturn = new CaseInfoReturn();
+                caseInfoReturn.setReason("案件到期自动回收");
+                caseInfoReturn.setOperatorTime(new Date());
+                caseInfoReturn.setSource(CaseInfoReturn.Source.OUTSOURCE.getValue()); // 回收来源-委外
+                caseInfoReturn.setCaseId(caseInfo);
+                caseInfoReturn.setOutBatch(outsourcePool.getOutBatch());
+                caseInfoReturn.setOutsName(outsourcePool.getOutsource().getOutsName());
+                caseInfoReturn.setOutTime(outsourcePool.getOutTime());
+                caseInfoReturn.setOverOutsourceTime(outsourcePool.getOverOutsourceTime());
+                caseInfoReturn.setCompanyCode(outsourcePool.getCompanyCode());
+                caseInfoReturnList.add(caseInfoReturn);
+            }
+            caseInfoRepository.save(caseInfoList);
+            caseInfoReturnRepository.save(caseInfoReturnList);
+            outsourcePoolRepository.delete(outsourcePoolList);
+            log.debug("委外案件自动回收任务调度结束...");
+        } catch (Exception e) {
+            log.error("委外案件自动回收任务调度错误");
+            log.error(e.getMessage(), e);
+        }
+
         try {
             log.debug("案件手动回收提醒任务调度开始...");
             // 内催的手动回收
