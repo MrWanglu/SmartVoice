@@ -298,7 +298,6 @@ public class OutsourcePoolController extends BaseController {
         }
     }
 
-
     /**
      * @Description 多条件查询回收案件
      */
@@ -434,7 +433,6 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("核销申请失败", ENTITY_NAME1, e.getMessage())).body(null);
         }
     }
-
 
     /**
      * @Description : 查询委外案件
