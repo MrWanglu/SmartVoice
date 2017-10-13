@@ -10,5 +10,6 @@ import lombok.Data;
 
 @Data
 public class CommonCaseCountModel {
-    private Integer count;
+    private Integer count; //共债案件个数
+    private Boolean flag;  //案件到期是否提醒
 }

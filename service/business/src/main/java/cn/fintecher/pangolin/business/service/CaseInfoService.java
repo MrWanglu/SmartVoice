@@ -139,7 +139,7 @@ public class CaseInfoService {
                 setAttribute(caseInfo, user, tokenUser);
                 //查询是否有协催案件
                 CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseInfo.getId()).
-                        and(qCaseAssist.assistStatus.in(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue(),CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue(),CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue())));
+                        and(qCaseAssist.assistStatus.in(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue(), CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue(), CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue())));
                 if (Objects.nonNull(caseAssist)) { //如果有协催案件，则同步更换当前催收员
                     caseAssist.setCurrentCollector(user);
                     caseAssistRepository.save(caseAssist);
@@ -741,7 +741,7 @@ public class CaseInfoService {
                         setAttribute(caseInfo, batchInfoModel.getCollectionUser(), tokenUser);
                         //查询是否有协催案件
                         CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseInfo.getId()).
-                                and(qCaseAssist.assistStatus.in(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue(),CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue(),CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue())));
+                                and(qCaseAssist.assistStatus.in(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue(), CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue(), CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue())));
                         if (Objects.nonNull(caseAssist)) { //如果有协催案件，则同步更换当前催收员
                             caseAssist.setCurrentCollector(batchInfoModel.getCollectionUser());
                             caseAssistRepository.save(caseAssist);
@@ -2504,7 +2504,8 @@ public class CaseInfoService {
     /**
      * @Descirption 案件到期提醒
      */
-    public Boolean maturityRemind(String caseId, User tokenUser) {
+    public CommonCaseCountModel maturityRemind(String caseId, User tokenUser) {
+        CommonCaseCountModel commonCaseCountModel = new CommonCaseCountModel();
         CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
@@ -2516,9 +2517,11 @@ public class CaseInfoService {
                 and(qSysParam.type.eq("9001")));
         if (Objects.nonNull(sysParam)) {
             long value = Long.valueOf(sysParam.getValue());
-            return day <= value * 86400000;
+            commonCaseCountModel.setFlag(day <= value * 86400000);
+            return commonCaseCountModel;
         } else {
-            return false;
+            commonCaseCountModel.setFlag(false);
+            return commonCaseCountModel;
         }
     }
 }

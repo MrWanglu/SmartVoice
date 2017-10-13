@@ -1393,15 +1393,15 @@ public class CaseInfoController extends BaseController {
      */
     @GetMapping("/maturityRemind")
     @ApiOperation(value = "案件到期提醒", notes = "案件到期提醒")
-    public ResponseEntity<Boolean> maturityRemind(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
-                                                  @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<CommonCaseCountModel> maturityRemind(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+                                                               @RequestHeader(value = "X-UserToken") String token) {
         try {
             User tokenUser = getUserByToken(token);
-            Boolean flag = caseInfoService.maturityRemind(caseId, tokenUser);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("提醒成功", ENTITY_NAME)).body(flag);
+            CommonCaseCountModel commonCaseCountModel = caseInfoService.maturityRemind(caseId, tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("提醒成功", ENTITY_NAME)).body(commonCaseCountModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("提醒成功", ENTITY_NAME)).body(false);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("提醒成功", ENTITY_NAME)).body(null);
         }
     }
 }
