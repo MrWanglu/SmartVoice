@@ -43,5 +43,9 @@ fdfs:
   trackerList:            #TrackerList参数,支持多个
     - 192.168.3.10:22122
 
+gridfs:
+  path: 192.168.3.10:9000/file-service
+  localPath: 127.0.0.7:9000/file-service
+
 server:
     port: 9004
