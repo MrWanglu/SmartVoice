@@ -121,6 +121,7 @@ public class AccVisitPoolController extends BaseController {
             builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(), CaseInfo.CaseType.OUTLEAVETURN.getValue())); //只查案件类型为案件分配的
             builder.and(QCaseInfo.caseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())); //不查询已结案案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); //只查询外访案件
+            builder.and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())); //只查询没有回收的案件
             if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
             }
@@ -716,6 +717,7 @@ public class AccVisitPoolController extends BaseController {
             }
             booleanBuilder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue())); //催收状态：待催收
             booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); // 催收类型:外访
+            booleanBuilder.and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())); //只查询没有回收的案件
             if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
             }
@@ -791,6 +793,7 @@ public class AccVisitPoolController extends BaseController {
             }
             booleanBuilder.and(QCaseInfo.caseInfo.collectionStatus.in(statusList)); //只查传入的案件状态的案件
             booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); //只查询外访案件
+            booleanBuilder.and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())); //只查询没有回收的案件
             if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
             }
@@ -853,6 +856,7 @@ public class AccVisitPoolController extends BaseController {
             }
             booleanBuilder.and(QCaseInfo.caseInfo.collectionStatus.in(CaseInfo.CollectionStatus.REPAID.getValue())); //催收状态：待结案
             booleanBuilder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue())); //只查询外访案件
+            booleanBuilder.and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())); //只查询没有回收的案件
             if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
             }

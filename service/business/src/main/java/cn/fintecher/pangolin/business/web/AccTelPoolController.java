@@ -288,6 +288,7 @@ public class AccTelPoolController extends BaseController {
             }
             builder.and(QCaseInfo.caseInfo.caseType.in(CaseInfo.CaseType.DISTRIBUTE.getValue(), CaseInfo.CaseType.PHNONELEAVETURN.getValue())); //只查案件类型为案件分配的
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())); //只查询电催案件
+            builder.and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())); //只查询没有回收的案件
             if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
             }
@@ -351,6 +352,7 @@ public class AccTelPoolController extends BaseController {
             }
             builder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue())); //只查待催收的案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())); //只查询电催案件
+            builder.and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())); //只查询没有回收的案件
             if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
             }
@@ -427,6 +429,7 @@ public class AccTelPoolController extends BaseController {
             }
             builder.and(QCaseInfo.caseInfo.collectionStatus.in(statusList)); //只查传入的案件状态的案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())); //只查询电催案件
+            builder.and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())); //只查询没有回收的案件
             if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
             }
@@ -490,6 +493,7 @@ public class AccTelPoolController extends BaseController {
             }
             builder.and(QCaseInfo.caseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.REPAID.getValue())); //只查案件状态为已还款的案件
             builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.TEL.getValue())); //只查询电催案件
+            builder.and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())); //只查询没有回收的案件
             if (pageable.getSort().toString().contains("followupBack") && pageable.getSort().toString().contains("ASC")) {
                 pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(followupBackOrder1));
             }
