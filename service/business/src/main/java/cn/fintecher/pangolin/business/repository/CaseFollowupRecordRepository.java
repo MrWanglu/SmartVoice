@@ -31,6 +31,18 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
         bindings.bind(root.collectionFeedback).first(SimpleExpression::eq); //催收反馈
         bindings.bind(root.type).first(SimpleExpression::eq); //跟进方式
         bindings.bind(root.source).first(SimpleExpression::eq); //跟进来源
+        //跟进时间
+        bindings.bind(root.followTime).all((path, value) -> {
+            Iterator<? extends Date> it = value.iterator();
+            Date firstDelegationDate = it.next();
+            if (it.hasNext()) {
+                Date secondDelegationDate = it.next();
+                return path.between(firstDelegationDate, secondDelegationDate);
+            } else {
+                //大于等于
+                return path.goe(firstDelegationDate);
+            }
+        });
         bindings.bind(root.operatorTime).all((DateTimePath<Date> path, Collection<? extends Date> value) -> { //跟进时间
             Iterator<? extends Date> it = value.iterator();
             Date operatorMinTime = it.next();

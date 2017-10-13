@@ -18,7 +18,7 @@ public class  QueryOutsourcePoolParams {
     /*受托方名称*/
     private String outsName;
     /*委案日期*/
-    private String outTime;
+    private String outsourceTime;
     /*委外结案日期*/
     private String overOutsourceTime;
     /*页码数*/

@@ -545,7 +545,7 @@ public class OutsourcePoolController extends BaseController {
                 }
                 outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode());//状态改为委外结束
                 outsourcePool.setOperator(user.getUserName());//委外结案人
-                outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());//委外结案时间
+                outsourcePool.setEndOutsourceTime(ZWDateUtil.getNowDateTime());//委外结案时间
                 outsourcePools.add(outsourcePool);
             }
             outsourcePools = outsourcePoolRepository.save(outsourcePools);

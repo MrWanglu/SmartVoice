@@ -82,15 +82,14 @@ public class OutsourceFollowRecordExportService {
                         }
 
                     }
-                    CaseFollowupRecord.Type[] values = CaseFollowupRecord.Type.values(); //跟进方式
-                    for (int j = 0; j < values.length; j++) {
-                        if (Objects.nonNull(record.getSource())) {
-                            if (Objects.equals(record.getType(), values[j].getValue())) {
-                                followupExportModel.setFollType(values[j].getRemark());
+                    CaseFollowupRecord.Type[] followType = CaseFollowupRecord.Type.values(); //跟进方式
+                    for (int j = 0; j < followType.length; j++) {
+                        if (Objects.nonNull(record.getType())) {
+                            if (Objects.equals(record.getType(), followType[j].getValue())) {
+                                followupExportModel.setFollType(followType[j].getRemark());
                                 break;
                             }
                         }
-
                     }
 
                     followupExportModels.add(followupExportModel);
