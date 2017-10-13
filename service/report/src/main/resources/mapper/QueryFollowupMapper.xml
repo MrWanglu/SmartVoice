@@ -112,8 +112,8 @@
         <if test="collectionStatus != null and collectionStatus !=''">
             AND a.collection_status = #{collectionStatus}
         </if>
-        <if test="principalName != null and principalName !=''">
-            AND e.name = #{principalName}
+        <if test="principalId != null and principalId !=''">
+            AND e.id = #{principalId}
         </if>
         <if test="assistFlag != null and assistFlag !=''">
             AND a.assist_flag = #{assistFlag}

@@ -54,8 +54,8 @@ public class ExportFollowRecordParams {
     private BigDecimal commissionRateEnd;
     @ApiModelProperty(notes = "催收状态")
     private Integer collectionStatus;
-    @ApiModelProperty(notes = "委托方名称")
-    private String principalName;
+    @ApiModelProperty(notes = "委托方ID")
+    private String principalId;
     @ApiModelProperty(notes = "是否协催")
     private Integer assistFlag;
     @ApiModelProperty("催收反馈")
