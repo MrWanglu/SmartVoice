@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
@@ -14,9 +15,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.*;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -243,20 +246,26 @@ public class AccVisitPoolController extends BaseController {
     @ApiOperation(value = "下载外访资料", notes = "下载外访资料")
     public ResponseEntity<List<UploadFile>> getVisitFiles(@ApiParam(value = "跟进ID", required = true) @RequestParam String follId) {
         //下载外访资料
-        List<UploadFile> uploadFiles = new ArrayList<>();//文件对象集合
+        List<UploadFile> uploadFiles;//文件对象集合
         try {
             QCaseFlowupFile qCaseFlowupFile = QCaseFlowupFile.caseFlowupFile;
             Iterable<CaseFlowupFile> caseFlowupFiles = caseFlowupFileRepository.findAll(qCaseFlowupFile.followupId.id.eq(follId));
             Iterator<CaseFlowupFile> it = caseFlowupFiles.iterator();
+            StringBuilder sb = new StringBuilder();
             while (it.hasNext()) {
-                CaseFlowupFile caseFlowupFile = it.next();
-                ResponseEntity<UploadFile> entity = restTemplate.getForEntity("http://file-service/api/uploadFile/" + caseFlowupFile.getFileid(), UploadFile.class);
-                if (!entity.hasBody()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("UploadFile", "Load Fail", "下载失败")).body(null);
-                } else {
-                    UploadFile uploadFile = entity.getBody();//文件对象
-                    uploadFiles.add(uploadFile);
-                }
+                CaseFlowupFile file = it.next();
+                String id = file.getFileid();
+                sb.append(id).append(",");
+            }
+            String ids = sb.toString();
+            ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>() {
+            };
+            ResponseEntity<List<UploadFile>> entity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(ids),
+                    HttpMethod.GET, null, responseType);
+            if (!entity.hasBody()) {
+                throw new RuntimeException("下载失败");
+            } else {
+                uploadFiles = entity.getBody();//文件对象
             }
             return new ResponseEntity<>(uploadFiles, HttpStatus.OK);
         } catch (Exception e) {

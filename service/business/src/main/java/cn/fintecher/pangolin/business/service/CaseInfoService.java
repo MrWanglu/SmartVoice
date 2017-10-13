@@ -17,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -969,38 +971,51 @@ public class CaseInfoService {
      */
     public List<UploadFile> getRepaymentVoucher(String casePayId) {
         //下载外访资料
-        List<UploadFile> uploadFiles = new ArrayList<>();//文件对象集合
+        List<UploadFile> uploadFiles;
         QCasePayFile qCasePayFile = QCasePayFile.casePayFile;
         Iterable<CasePayFile> caseFlowupFiles = casePayFileRepository.findAll(qCasePayFile.payId.eq(casePayId));
         Iterator<CasePayFile> it = caseFlowupFiles.iterator();
+
+        StringBuilder sb = new StringBuilder();
         while (it.hasNext()) {
             CasePayFile casePayFile = it.next();
-            ResponseEntity<UploadFile> entity = restTemplate.getForEntity("http://file-service/api/uploadFile/" + casePayFile.getFileid(), UploadFile.class);
-            if (!entity.hasBody()) {
-                throw new RuntimeException("下载失败");
-            } else {
-                UploadFile uploadFile = entity.getBody();//文件对象
-                uploadFiles.add(uploadFile);
-            }
+            String id = casePayFile.getFileid();
+            sb.append(id).append(",");
+        }
+        String ids = sb.toString();
+        ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>() {
+        };
+        ResponseEntity<List<UploadFile>> entity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(ids),
+                HttpMethod.GET, null, responseType);
+        if (!entity.hasBody()) {
+            throw new RuntimeException("下载失败");
+        } else {
+            uploadFiles = entity.getBody();//文件对象
         }
         return uploadFiles;
     }
 
     public List<UploadFile> getFollowupFile(String followId) {
         //下载跟进记录凭证
-        List<UploadFile> uploadFiles = new ArrayList<>();//文件对象集合
+        List<UploadFile> uploadFiles;//文件对象集合
         QCaseFlowupFile qCaseFlowupFile = QCaseFlowupFile.caseFlowupFile;
         Iterable<CaseFlowupFile> caseFlowupFiles = caseFlowupFileRepository.findAll(qCaseFlowupFile.followupId.id.eq(followId));
         Iterator<CaseFlowupFile> it = caseFlowupFiles.iterator();
+        StringBuilder sb = new StringBuilder();
         while (it.hasNext()) {
             CaseFlowupFile file = it.next();
-            ResponseEntity<UploadFile> entity = restTemplate.getForEntity("http://file-service/api/uploadFile/" + file.getFileid(), UploadFile.class);
-            if (!entity.hasBody()) {
-                throw new RuntimeException("下载失败");
-            } else {
-                UploadFile uploadFile = entity.getBody();//文件对象
-                uploadFiles.add(uploadFile);
-            }
+            String id = file.getFileid();
+            sb.append(id).append(",");
+        }
+        String ids = sb.toString();
+        ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>() {
+        };
+        ResponseEntity<List<UploadFile>> entity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(ids),
+                HttpMethod.GET, null, responseType);
+        if (!entity.hasBody()) {
+            throw new RuntimeException("下载失败");
+        } else {
+            uploadFiles = entity.getBody();//文件对象
         }
         return uploadFiles;
     }
