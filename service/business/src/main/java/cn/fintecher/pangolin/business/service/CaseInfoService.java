@@ -136,7 +136,8 @@ public class CaseInfoService {
             if (Objects.equals(user.getType(), User.Type.TEL.getValue())) { //分配给15-电催
                 setAttribute(caseInfo, user, tokenUser);
                 //查询是否有协催案件
-                CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseInfo.getId()));
+                CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseInfo.getId()).
+                        and(qCaseAssist.assistStatus.in(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue(),CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue(),CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue())));
                 if (Objects.nonNull(caseAssist)) { //如果有协催案件，则同步更换当前催收员
                     caseAssist.setCurrentCollector(user);
                     caseAssistRepository.save(caseAssist);
@@ -737,7 +738,8 @@ public class CaseInfoService {
                         }
                         setAttribute(caseInfo, batchInfoModel.getCollectionUser(), tokenUser);
                         //查询是否有协催案件
-                        CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseInfo.getId()));
+                        CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseInfo.getId()).
+                                and(qCaseAssist.assistStatus.in(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue(),CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue(),CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue())));
                         if (Objects.nonNull(caseAssist)) { //如果有协催案件，则同步更换当前催收员
                             caseAssist.setCurrentCollector(batchInfoModel.getCollectionUser());
                             caseAssistRepository.save(caseAssist);
