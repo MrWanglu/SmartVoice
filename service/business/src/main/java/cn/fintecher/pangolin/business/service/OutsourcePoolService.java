@@ -162,7 +162,6 @@ public class OutsourcePoolService {
             }
             caseInfoYes.add(outsourcePool);
         }
-
         List<OutsourcePool> outsourcePoolList = new ArrayList<>();//用于批量保存已分配出去案件的空盒子
         List<OutsourceRecord> outsourceRecords = new ArrayList<>();//待保存的案件委外记录集合
         //每个委外方分配的数量
