@@ -116,4 +116,16 @@ ADD COLUMN `case_followup_type`  int(4) DEFAULT NULL COMMENT '跟踪记录类型
 ADD COLUMN `follow_time`  date DEFAULT NULL COMMENT '跟进时间';
 ADD COLUMN `follow_person`  varchar(64) DEFAULT NULL COMMENT '跟进人员';
 
+--2017-10-11 baizhangyu 近期sql修改记录整理
+INSERT INTO `data_dict` VALUES (229, '0038', NULL, 'BeauPhone语音卡', 3);
+INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f0013', '0001', 'SysParam.bfyuyin.url', 'BeauPhone语音卡参数地址', 0, '9001', '192.168.3.79:8080', 0, 'administrator', '2017-9-29 10:46:40', NULL, NULL);
+ALTER TABLE `user`
+ADD COLUMN `channel_no`  varchar(64) NULL COMMENT '通道号码';
+ALTER TABLE `user`
+ADD COLUMN `zoneno`  varchar(10) NULL COMMENT '主叫电话区号';
+ALTER TABLE `case_followup_record`
+ADD COLUMN `file_name`  varchar(200) NULL COMMENT '录音文件名称';
+ALTER TABLE `case_followup_record`
+ADD COLUMN `file_path`  varchar(100) NULL COMMENT '录音文件在服务器上的目录';
+
 
