@@ -78,10 +78,10 @@ public class CaseRepairController extends BaseController{
             ResponseEntity<List<UploadFile>> resp = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(fileId.toString()),
                     HttpMethod.GET, null, responseType);
             List<UploadFile> uploadFiles = resp.getBody();
-            for (UploadFile uploadFile : uploadFiles) {
-                for(String fileId1 : fileIds) {
+                for(int i = 0;i < uploadFiles.size();i++) {
+                    UploadFile uploadFile = uploadFiles.get(i);
                     CaseRepairRecord caseRepairRecord = new CaseRepairRecord();
-                    caseRepairRecord.setFileId(fileId1);
+                    caseRepairRecord.setFileId(fileIds.get(i));
                     caseRepairRecord.setCaseId(caseRepair.getCaseId().getId());
                     caseRepairRecord.setOperator(userByToken.getUserName());
                     caseRepairRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
@@ -90,7 +90,6 @@ public class CaseRepairController extends BaseController{
                     caseRepairRecord.setFileType(uploadFile.getType());
                     caseRepairRecordList.add(caseRepairRecordRepository.saveAndFlush(caseRepairRecord));
                 }
-            }
             if (!Objects.equals(caseRepair.getRepairStatus(),CaseRepair.CaseRepairStatus.DISTRIBUTE.getValue())) {
                 // 修改状态为已修复
                 caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRED.getValue());
