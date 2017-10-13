@@ -128,23 +128,6 @@ public class FollowupExportModel {
     @ExcelAnno(cellName = "工作单位电话")
     private String companyPhone;
 
-    @ExcelAnno(cellName = "跟进时间")
-    private String follTime;
-    @ExcelAnno(cellName = "跟进方式")
-    private String follType;
-    @ExcelAnno(cellName = "催收对象")
-    private String follTarget;
-    @ExcelAnno(cellName = "姓名")
-    private String follTargetName;
-    @ExcelAnno(cellName = "电话状态")
-    private String follPhoneNum;
-    @ExcelAnno(cellName = "催收反馈")
-    private String follFeedback;
-    @ExcelAnno(cellName = "跟进记录")
-    private String follContent;
-    @ExcelAnno(cellName = "跟进人员")
-    private String follOperator;
-
     @ExcelAnno(cellName = "联系人1姓名")
     private String concat1Name;
     @ExcelAnno(cellName = "联系人1手机号码")
@@ -369,4 +352,21 @@ public class FollowupExportModel {
     private String concat15Employer;
     @ExcelAnno(cellName = "联系人15单位电话")
     private String concat15WorkPhone;
+
+    @ExcelAnno(cellName = "跟进时间")
+    private String follTime;
+    @ExcelAnno(cellName = "跟进方式")
+    private String follType;
+    @ExcelAnno(cellName = "催收对象")
+    private String follTarget;
+    @ExcelAnno(cellName = "姓名")
+    private String follTargetName;
+    @ExcelAnno(cellName = "电话状态")
+    private String follPhoneNum;
+    @ExcelAnno(cellName = "催收反馈")
+    private String follFeedback;
+    @ExcelAnno(cellName = "跟进记录")
+    private String follContent;
+    @ExcelAnno(cellName = "跟进人员")
+    private String follOperator;
 }
