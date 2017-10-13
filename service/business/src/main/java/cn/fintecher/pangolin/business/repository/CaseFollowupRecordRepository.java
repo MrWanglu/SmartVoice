@@ -111,15 +111,15 @@ public interface CaseFollowupRecordRepository extends QueryDslPredicateExecutor<
      * @Description : 中通天鸿 164 双向外呼通话个数统计
      */
 
-    @Query(value = "select count(*) a,operator,operator_name from case_followup_record where operator_time>:startTime and operator_time<:endTime and company_code =:companyCode and call_type ='164' GROUP BY operator,operator_name ORDER BY a DESC", nativeQuery = true)
-    List<Object[]> getCountSmaRecord(@Param("startTime") String startTime, @Param("endTime") String endTime, @Param("companyCode") String companyCode);
+    @Query(value = "select count(*) a,operator,operator_name from case_followup_record where operator_time>:startTime and operator_time<:endTime and company_code =:companyCode and call_type =:callType GROUP BY operator,operator_name ORDER BY a DESC", nativeQuery = true)
+    List<Object[]> getCountSmaRecord(@Param("startTime") String startTime, @Param("endTime") String endTime, @Param("companyCode") String companyCode, @Param("callType") Integer callType);
 
     /**
      * @Description : 中通天鸿 164 双向外呼通话时长统计
      */
 
-    @Query(value = "select sum(conn_secs) a ,operator,operator_name from case_followup_record where operator_time>:startTime and operator_time<:endTime and company_code =:companyCode and call_type ='164' GROUP BY operator,operator_name ORDER BY a DESC", nativeQuery = true)
-    List<Object[]> getCountTimeSmaRecord(@Param("startTime") String startTime, @Param("endTime") String endTime, @Param("companyCode") String companyCode);
+    @Query(value = "select sum(conn_secs) a ,operator,operator_name from case_followup_record where operator_time>:startTime and operator_time<:endTime and company_code =:companyCode and call_type =:callType GROUP BY operator,operator_name ORDER BY a DESC", nativeQuery = true)
+    List<Object[]> getCountTimeSmaRecord(@Param("startTime") String startTime, @Param("endTime") String endTime, @Param("companyCode") String companyCode, @Param("callType") Integer callType);
 
     /**
      * 导出跟进记录

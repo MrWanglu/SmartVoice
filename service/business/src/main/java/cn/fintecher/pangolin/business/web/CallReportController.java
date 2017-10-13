@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.business.model.SmaRecordReport;
 import cn.fintecher.pangolin.business.model.SmaRecordReturn;
 import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.Api;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
@@ -36,6 +38,8 @@ public class CallReportController extends BaseController {
     private static final String ENTITY_NAME = "CallReport";
     @Autowired
     private CaseFollowupRecordRepository caseFollowupRecordRepository;
+    @Autowired
+    private RestTemplate restTemplate;
 
     /**
      * @Description : 查询对呼数据
@@ -85,7 +89,8 @@ public class CallReportController extends BaseController {
     @ApiOperation(notes = "双向外呼通话个数统计", value = "双向外呼通话个数统计")
     public ResponseEntity<List<SmaRecordReturn>> getCountSmaRecord(@RequestBody SmaRecordReport request) {
         try {
-            List<Object[]> objects = caseFollowupRecordRepository.getCountSmaRecord(request.getStartTime(), request.getEndTime(), request.getCompanyCode());
+            SysParam param = restTemplate.getForEntity("http://business-service/api/sysParamResource?companyCode=" + request.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
+            List<Object[]> objects = caseFollowupRecordRepository.getCountSmaRecord(request.getStartTime(), request.getEndTime(), request.getCompanyCode(), Integer.parseInt(param.getValue().trim()));
             List<SmaRecordReturn> smaRecordReturns = new ArrayList<>();
             for (Object[] objects1 : objects) {
                 SmaRecordReturn smaRecordReturn = new SmaRecordReturn();
@@ -108,7 +113,8 @@ public class CallReportController extends BaseController {
     @ApiOperation(notes = "双向外呼通话时长统计", value = "双向外呼通话时长统计")
     public ResponseEntity<List<SmaRecordReturn>> getCountTimeSmaRecord(@RequestBody SmaRecordReport request) {
         try {
-            List<Object[]> objects = caseFollowupRecordRepository.getCountTimeSmaRecord(request.getStartTime(), request.getEndTime(), request.getCompanyCode());
+            SysParam param = restTemplate.getForEntity("http://business-service/api/sysParamResource?companyCode=" + request.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
+            List<Object[]> objects = caseFollowupRecordRepository.getCountTimeSmaRecord(request.getStartTime(), request.getEndTime(), request.getCompanyCode(), Integer.parseInt(param.getValue().trim()));
             List<SmaRecordReturn> smaRecordReturns = new ArrayList<>();
             for (Object[] objects1 : objects) {
                 SmaRecordReturn smaRecordReturn = new SmaRecordReturn();
