@@ -258,6 +258,7 @@ public class CaseInfoDistributedService {
                     caseInfoList.add(caseInfo);
                     OutsourcePool outsourcePool = new OutsourcePool();
                     outsourcePool.setCaseInfo(caseInfo);
+                    outsourcePool.setCompanyCode(user.getCompanyCode());
                     outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
                     outsourcePoolList.add(outsourcePool);
                 }
