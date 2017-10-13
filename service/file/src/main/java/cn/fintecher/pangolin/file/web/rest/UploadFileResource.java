@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.file.web.rest;
 
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.file.repository.UploadFileRepository;
+import cn.fintecher.pangolin.file.service.UploadFileCridFsService;
 import cn.fintecher.pangolin.file.service.UploadFileService;
 import com.google.common.collect.Lists;
 import io.swagger.annotations.*;
@@ -14,9 +15,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +35,10 @@ public class UploadFileResource {
     private UploadFileService uploadFileService;
     @Autowired
     private UploadFileRepository uploadFileRepository;
+    @Autowired
+    private RestTemplate restTemplate;
+    @Autowired
+    UploadFileCridFsService uploadFileCridFsService;
 
     @GetMapping("/{id}")
     @ApiOperation(value = "获取文件信息", notes = "获取文件信息")
@@ -76,8 +81,9 @@ public class UploadFileResource {
 
     @PostMapping("/addUploadFileUrl")
     @ApiOperation(value = "上传文件返回文件地址", notes = "上传文件返回文件地址")
-    public ResponseEntity<String> addUploadFileUrl(@RequestParam("file") MultipartFile file) throws IOException {
-        String url = uploadFileService.uploadFileUrl(file);
-        return new ResponseEntity<>(url, HttpStatus.OK);
+    public ResponseEntity<String> addUploadFileUrl(@RequestParam("file") MultipartFile file) throws Exception {
+        UploadFile uploadFile = uploadFileCridFsService.uploadFile(file);
+        //String url = uploadFileService.uploadFileUrl(file);
+       return new ResponseEntity<>(uploadFile.getUrl(), HttpStatus.OK);
     }
 }

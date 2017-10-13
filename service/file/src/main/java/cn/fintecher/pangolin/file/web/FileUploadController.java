@@ -6,21 +6,26 @@ import cn.fintecher.pangolin.entity.message.ImportFileUploadSuccessMessage;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.file.model.UnZipCaseFileRequest;
 import cn.fintecher.pangolin.file.repository.UploadFileRepository;
+import cn.fintecher.pangolin.file.service.UploadFileCridFsService;
 import cn.fintecher.pangolin.file.service.UploadFileService;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.google.common.collect.Lists;
+import com.mongodb.gridfs.GridFSDBFile;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,6 +44,8 @@ public class FileUploadController {
     private RabbitTemplate rabbitTemplate;
     @Autowired
     private UploadFileRepository uploadFileRepository;
+    @Autowired
+    UploadFileCridFsService uploadFileCridFsService;
 
     @CrossOrigin(origins = "*", maxAge = 3600)
     @RequestMapping(value = "/upload", method = RequestMethod.POST, headers = {"content-type=multipart/mixed", "content-type=multipart/form-data"}, consumes = {"multipart/form-data"})
@@ -49,12 +56,29 @@ public class FileUploadController {
             throw new RuntimeException("MultipartFile是空的");
         }
         ResponseEntity<User> entity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-        if (file.isEmpty()) {
+        if (Objects.isNull(entity)) {
             throw new RuntimeException("请先登录");
         }
         UploadFile uploadFile = uploadFileService.uploadFile(file, entity.getBody().getUserName());
         return new ResponseEntity<>(uploadFile, HttpStatus.OK);
     }
+
+    @CrossOrigin(origins = "*", maxAge = 3600)
+    @RequestMapping(value = "/uploadFileGrid", method = RequestMethod.POST, headers = {"content-type=multipart/mixed", "content-type=multipart/form-data"}, consumes = {"multipart/form-data"})
+    @ResponseBody
+    @ApiOperation(value = "Grid方式上传文件", notes = "返回JSON data 为UploadFile 对象")
+    ResponseEntity<UploadFile> uploadFileGrid(@RequestParam("file") MultipartFile file, @RequestHeader(value = "X-UserToken") String token) throws Exception {
+        if (Objects.isNull(file)) {
+            throw new RuntimeException("MultipartFile是空的");
+        }
+        ResponseEntity<User> entity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+        if (Objects.isNull(entity)) {
+            throw new RuntimeException("请先登录");
+        }
+        UploadFile uploadFile = uploadFileCridFsService.uploadFile(file);
+        return new ResponseEntity<>(uploadFile, HttpStatus.OK);
+    }
+
 
     @PostMapping("/unZipCaseFile")
     @ResponseBody
@@ -100,4 +124,75 @@ public class FileUploadController {
         List<UploadFile> uploadFiles = Lists.newArrayList(uploadFileRepository.findAll(fileIds));
         return ResponseEntity.ok(uploadFiles);
     }
+    /**
+     * 在线显示文件
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/view/{id}")
+    @ResponseBody
+    @ApiOperation(value = "在线显示文件", notes = "在线显示文件")
+    public ResponseEntity<Object> serveFileOnline(@PathVariable String id) throws IOException {
+        UploadFile file = uploadFileCridFsService.getFileById(id);
+        if (file != null) {
+            GridFSDBFile gridFSDBFile = uploadFileCridFsService.getFileContent(id);
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            gridFSDBFile.writeTo(os);
+            return ResponseEntity
+                    .ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "fileName=\"" + new String(file.getRealName().getBytes("UTF-8"), "ISO-8859-1") + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, "application/".concat(file.getType()))
+                    .header(HttpHeaders.CONTENT_LENGTH, file.getSize() + "")
+                    .header("Connection", "close")
+                    .body(os.toByteArray());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File was not fount");
+        }
+    }
+    /**
+     * 下载文件
+     *
+     * @param id
+     * @return
+     */
+    @GetMapping("/file/{id}")
+    @ResponseBody
+    @ApiOperation(value = "下载文件", notes = "下载文件")
+    public ResponseEntity<Object> downFile(@PathVariable String id) throws IOException {
+        UploadFile file = uploadFileCridFsService.getFileById(id);
+        if (file != null) {
+            GridFSDBFile gridFSDBFile = uploadFileCridFsService.getFileContent(id);
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            gridFSDBFile.writeTo(os);
+            return ResponseEntity
+                    .ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; fileName=\"" + file.getRealName() + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, "application/octet-stream")
+                    .header(HttpHeaders.CONTENT_LENGTH, file.getSize() + "")
+                    .header("Connection", "close")
+                    .body(os.toByteArray());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File was not fount");
+        }
+    }
+
+    /**
+     * 删除文件
+     *
+     * @param id
+     * @return
+     */
+    @DeleteMapping("/{id}")
+    @ResponseBody
+    @ApiOperation(value = "删除文件", notes = "删除文件")
+    public ResponseEntity<String> deleteFile(@PathVariable String id) {
+        try {
+            uploadFileCridFsService.removeFile(id);
+            return ResponseEntity.status(HttpStatus.OK).body("DELETE Success!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
 }

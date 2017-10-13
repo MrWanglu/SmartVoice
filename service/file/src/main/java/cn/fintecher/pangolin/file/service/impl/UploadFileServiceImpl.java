@@ -75,7 +75,7 @@ public class UploadFileServiceImpl implements UploadFileService {
         uploadFile.setUrl(url);
         uploadFile.setLocalUrl(localUrl);
         uploadFile.setType(fileExtName);
-        uploadFile.setCreator(creator);
+        //uploadFile.setCreator(creator);
         uploadFile.setSize(fileSize);
         uploadFile.setName(FilenameUtils.getName(StorePath.praseFromUrl(url).getPath()));
         uploadFile = uploadFileRepository.save(uploadFile);
