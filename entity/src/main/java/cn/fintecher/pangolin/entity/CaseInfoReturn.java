@@ -23,22 +23,32 @@ public class CaseInfoReturn extends BaseEntity {
     @JoinColumn(name = "case_id")
     private CaseInfo caseId;
 
-    @OneToOne
-    @ApiModelProperty(notes = "委外案件ID")
-    @JoinColumn(name = "outsource_id")
-    private OutsourcePool outsourcePool;
-
     @ApiModelProperty(notes = "操作时间")
     private Date operatorTime;
 
     @ApiModelProperty(notes = "操作人用户名")
     private String operator;
 
-    @ApiModelProperty(notes = "退案原因")
+    @ApiModelProperty(notes = "回收说明")
     private String reason;
 
     @ApiModelProperty(notes = "退回来源 内催，委外，司法，核销")
     private Integer source;
+
+    @ApiModelProperty("委外方名称")
+    private String outsName;
+
+    @ApiModelProperty("委外时间")
+    private Date outTime;
+
+    @ApiModelProperty("委外结案日期")
+    private Date overOutsourceTime;
+
+    @ApiModelProperty("委外批次号")
+    private String outBatch;
+
+    @ApiModelProperty("公司Code")
+    private String companyCode;
 
     /**
      * 案件退回来源

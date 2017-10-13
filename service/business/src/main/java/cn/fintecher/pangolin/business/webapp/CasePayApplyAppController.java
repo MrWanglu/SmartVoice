@@ -106,6 +106,7 @@ public class CasePayApplyAppController extends BaseController {
                 caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
                 one.setCaseId(caseInfo);
                 caseAssistRepository.save(one);
+                caseInfoRepository.save(caseInfo);
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("申请还款成功", "CasePayApply")).body(null);
         }catch(Exception e){

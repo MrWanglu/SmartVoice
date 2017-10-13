@@ -129,3 +129,11 @@ ALTER TABLE `case_followup_record`
 ADD COLUMN `file_path`  varchar(100) NULL COMMENT '录音文件在服务器上的目录';
 
 
+--2017-10-13 孙艳平 案件回收表修改
+ALTER TABLE `case_info_return`
+DROP COLUMN `outsource_id`,
+ADD COLUMN `outs_name`  varchar(100) NULL DEFAULT NULL COMMENT '委外方名称' AFTER `source`,
+ADD COLUMN `out_time`  datetime NULL DEFAULT NULL COMMENT '委外日期' AFTER `outs_name`,
+ADD COLUMN `over_outsource_time`  date NULL DEFAULT NULL COMMENT '委外结案日期' AFTER `out_time`,
+ADD COLUMN `out_batch`  varchar(64) NULL DEFAULT NULL COMMENT '委外批次号' AFTER `over_outsource_time`,
+ADD COLUMN `company_code`  varchar(64) NULL DEFAULT NULL COMMENT '公司Code' AFTER `out_batch`;
