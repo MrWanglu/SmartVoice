@@ -147,7 +147,6 @@ public class AccFinanceEntryService {
                         followtype = followTypes[i].getValue();
                     }
                 }
-
             }
             out.setType(followtype);
             if (Objects.nonNull(outsourceFollowRecord.getCompanyCode())) {
@@ -164,10 +163,9 @@ public class AccFinanceEntryService {
                         objectName = objectNames[i].getValue();
                     }
                 }
-
             }
             out.setTarget(objectName);
-            CaseFollowupRecord.EffectiveCollection[] feedBacks = CaseFollowupRecord.EffectiveCollection.values();//催收反馈
+            CaseFollowupRecord.EffectiveCollection[] feedBacks = CaseFollowupRecord.EffectiveCollection.values();//有效催收反馈
             Integer feedBack = 0;
             for (int i = 0; i < feedBacks.length; i++) {
                 if (Objects.nonNull(followUpRecordModel.getFeedback())) {
@@ -175,16 +173,23 @@ public class AccFinanceEntryService {
                         feedBack = feedBacks[i].getValue();
                     }
                 }
-
+            }
+            CaseFollowupRecord.InvalidCollection[] InvalidFeedBacks = CaseFollowupRecord.InvalidCollection.values();//无效催收反馈
+            for (int i = 0; i < InvalidFeedBacks.length; i++) {
+                if (Objects.nonNull(followUpRecordModel.getFeedback())) {
+                    if (InvalidFeedBacks[i].getRemark().equals(followUpRecordModel.getFeedback())) {
+                        feedBack = InvalidFeedBacks[i].getValue();
+                    }
+                }
             }
             out.setCollectionFeedback(feedBack);
             out.setContent(followUpRecordModel.getFollowRecord());
-            CaseFollowupRecord.ContactState[] telStatuslist = CaseFollowupRecord.ContactState.values();//电话状态
+            CaseFollowupRecord.ContactState[] telStatusList = CaseFollowupRecord.ContactState.values();//电话状态
             Integer telStatus = 0;
-            for (int i = 0; i < telStatuslist.length; i++) {
+            for (int i = 0; i < telStatusList.length; i++) {
                 if (Objects.nonNull(followUpRecordModel.getTelStatus())) {
-                    if (telStatuslist[i].getRemark().equals(followUpRecordModel.getTelStatus())) {
-                        telStatus = telStatuslist[i].getValue();
+                    if (telStatusList[i].getRemark().equals(followUpRecordModel.getTelStatus())) {
+                        telStatus = telStatusList[i].getValue();
                     }
                 }
             }
