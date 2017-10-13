@@ -234,10 +234,10 @@
             AND i.code LIKE concat(#{departmentCode},'%')
         </if>
         <if test="delegationDate != null and delegationDate != ''">
-            AND a.delegation_date = #{delegationDate}
+            <![CDATA[AND a.delegation_date >= #{delegationDate} ]]>
         </if>
         <if test="closeDate != null and closeDate != ''">
-            AND a.close_date = #{closeDate}
+            <![CDATA[AND a.close_date <= #{closeDate} ]]>
         </if>
     </select>
 

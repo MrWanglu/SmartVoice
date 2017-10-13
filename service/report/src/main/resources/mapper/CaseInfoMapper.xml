@@ -228,10 +228,10 @@
                         and batch_number = #{batchNumber}
                     </if>
                     <if test = "delegationDate != null">
-                        and delegation_date = #{delegationDate}
+                        <![CDATA[and delegation_date >= #{delegationDate} ]]>
                     </if>
                     <if test = "closeDate != null">
-                        and close_date = #{closeDate}
+                        <![CDATA[and close_date <= #{closeDate} ]]>
                     </if>
                     <if test = "companyCode != null">
                         and cc.company_code = #{companyCode}
