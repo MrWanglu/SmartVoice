@@ -25,12 +25,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.*;
 
 
@@ -273,6 +281,30 @@ public class SmaController {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "be defeated", "失败")).body(null);
                 }
             }
+            //       229 BeauPhone语音卡
+            if (Objects.equals(CaseFollowupRecord.CallType.BPYUYIN.getValue().toString(), sysParam.getValue())) {
+                RestTemplate template = new RestTemplate();
+                SysParam param = restTemplate.getForEntity("http://business-service/api/sysParamResource?userId=" + user.getId() + "&companyCode=" + request.getCompanyCode() + "&code=" + Constants.PHONE_BF_URL + "&type=" + Constants.PHONE_BF_TYPE, SysParam.class).getBody();
+                if (Objects.isNull(param)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Did not get call configuration of system parameters", "未获取呼叫配置的系统参数")).body(null);
+                }
+                String sysValue = param.getValue();//系统参数值
+                String mobileno = request.getCallee();//主叫号码
+                String zoneno = getZoneno(sysValue,mobileno);//主叫区号
+                //如果外地号码，号码前+ 0
+                if (zoneno != null && user.getZoneno()!=null && !zoneno.equals(user.getZoneno())){
+                    mobileno = "0"+mobileno;
+                }
+                ResponseEntity entity = template.getForEntity("http://"+sysValue+"/startdialpassive?channelno="+user.getChannelNo()+"&telephoneno="+mobileno,String.class);
+                Map paramMap = new HashMap();
+                if (entity.hasBody()){
+                    String fileStr = entity.getBody().toString();
+                    JSONObject jsonObject = JSONObject.parseObject(URLDecoder.decode(URLEncoder.encode(fileStr,"UTF-8").replaceAll("%5C","//"),"UTF-8"));
+                    paramMap.put("filepath",jsonObject.get("filepath"));
+                    paramMap.put("filename",jsonObject.get("filename"));
+                    return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(paramMap);
+                }
+            }
             //    233 汉天呼叫中心
             if (Objects.equals(CaseFollowupRecord.CallType.HANTIAN.getValue().toString(), sysParam.getValue())) {
                 if (Objects.isNull(user.getCallPhone())) {
@@ -302,6 +334,33 @@ public class SmaController {
             logger.error(e.getMessage(), e);
             return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failure", "操作失败")).body(null);
         }
+    }
+
+    private String getZoneno(String sysValue,String mobileno) {
+        RestTemplate template = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        HttpEntity<String> requestEntity = new HttpEntity<String>(headers);
+        List<HttpMessageConverter<?>> converterList=template.getMessageConverters();
+        HttpMessageConverter<?> converterTarget = null;
+        for (HttpMessageConverter<?> item : converterList) {
+            if (item.getClass() == StringHttpMessageConverter.class) {
+                converterTarget = item;
+                break;
+            }
+        }
+
+        if (converterTarget != null) {
+            converterList.remove(converterTarget);
+        }
+        HttpMessageConverter<?> converter = new StringHttpMessageConverter(Charset.forName("GB2312"));
+        converterList.add(converter);
+        //查询手机归属
+        ResponseEntity<String> entity = template.exchange("http://"+sysValue+"/gethomelocation?mobileno="+mobileno, org.springframework.http.HttpMethod.GET, requestEntity, String.class);
+        String fileStr = entity.getBody().toString();
+        JSONObject jsonObject = JSONObject.parseObject(fileStr);
+        String zoneno  = jsonObject.getString("固话区号");
+        return  zoneno;
     }
 
     /**
