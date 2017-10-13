@@ -32,6 +32,10 @@ public class User extends BaseEntity {
     private Date passwordInvalidTime;
     @ApiModelProperty("电话呼叫绑定的电话号码")
     private String callPhone;
+    @ApiModelProperty("电话呼叫绑定的通道号码")
+    private String channelNo;
+    @ApiModelProperty("主叫电话的区号")
+    private String zoneno;
     @ApiModelProperty("用户绑定的消息推送的注册标识")
     private String messagePushId;
     @ApiModelProperty("是否具有查看下级用户的权限")

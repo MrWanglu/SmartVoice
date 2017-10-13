@@ -146,6 +146,12 @@ public class CaseFollowupRecord extends BaseEntity {
     @ApiModelProperty("内催 225 委外 226 司法 227 核销 228")
     private Integer caseFollowupType;
 
+    @ApiModelProperty(notes = "录音文件名称")
+    private String fileName;
+
+    @ApiModelProperty(notes = "录音文件目录")
+    private String filePath;
+
     /**
      * @Description 电话状态枚举类
      */
@@ -409,6 +415,8 @@ public class CaseFollowupRecord extends BaseEntity {
         TIANHONG(164, "中通天鸿"),
         //云羿
         YUNYI(165, "云羿"),
+        //BeauPhone语音卡
+        BPYUYIN(229, "BeauPhone语音卡"),
         //汉天
         HANTIAN(233,"汉天");
         private Integer value;
