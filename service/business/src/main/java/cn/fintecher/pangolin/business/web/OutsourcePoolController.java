@@ -931,7 +931,7 @@ public class OutsourcePoolController extends BaseController {
                     for (CaseInfo caseInfo : caseInfos) {
                         //对委外客户池中回款金额累加外部已还款金额
                         if (Objects.nonNull(caseInfo.getId())) {
-                            OutsourcePool outsource = outsourcePoolRepository.findOne(caseInfo.getId());
+                            OutsourcePool outsource = outsourcePoolRepository.findOne(QOutsourcePool.outsourcePool.caseInfo.id.eq(caseInfo.getId()));
                             if (Objects.nonNull(outsource)) {
                                 outsource.setOutBackAmt(outsource.getOutBackAmt().add(financeEntryCase.getFienPayback()));
                                 outsourcePools.add(outsource);
