@@ -77,8 +77,6 @@ public class FollowupExportModel {
     private Integer collectionStatus;
     @ExcelAnno(cellName = "逾期管理费")
     private BigDecimal overdueManageFee;
-    @ExcelAnno(cellName = "催收反馈")
-    private Integer followupBack;
     @ExcelAnno(cellName = "委外批次号")
     private String batchNumberOutsource;
     @ExcelAnno(cellName = "委外方")
