@@ -54,10 +54,10 @@
             </foreach>
         </if>
         <if test="personalName != null and personalName !=''">
-            AND cc.name = #{personalName}
+            AND c.name = #{personalName}
         </if>
         <if test="phone != null and phone !=''">
-            AND cc.mobile_no = #{phone}
+            AND c.mobile_no = #{phone}
         </if>
         <if test="provinceId != null and provinceId !=''">
             AND f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId})
@@ -157,10 +157,10 @@
             </foreach>
         </if>
         <if test="personalName != null and personalName !=''">
-            AND cc.name = #{personalName}
+            AND c.name = #{personalName}
         </if>
         <if test="phone != null and phone !=''">
-            AND cc.mobile_no = #{phone}
+            AND c.mobile_no = #{phone}
         </if>
         <if test="provinceId != null and provinceId !=''">
             AND f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId})
