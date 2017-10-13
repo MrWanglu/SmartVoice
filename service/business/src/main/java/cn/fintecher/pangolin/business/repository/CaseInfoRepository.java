@@ -237,7 +237,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
             "on p.id = c.personal_id " +
             "where current_collector is null " +
             "and depart_id is not null " +
-            "and collection_status in (21,22,23,171,172) " +
+            "and collection_status in (20,21,22,23,171,172) " +
             "and c.company_code =:companyCode " +
             "and p.name =:personName " +
             "and p.id_card =:idCard " +
@@ -257,7 +257,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
             "left join personal p " +
             "on p.id = c.personal_id " +
             "where current_collector is not null " +
-            "and collection_status in (21,22,23,171,172) " +
+            "and collection_status in (20,21,22,23,171,172) " +
             "and c.company_code =:companyCode " +
             "and p.name =:personName " +
             "and p.id_card =:idCard " +
