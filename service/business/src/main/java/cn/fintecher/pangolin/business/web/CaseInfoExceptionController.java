@@ -208,7 +208,7 @@ public class CaseInfoExceptionController extends BaseController {
             ItemsModel itemsModel = exportItemService.getExportItems(user, ExportItem.Category.CASEUPDATE.getValue());
             if (itemsModel.getPersonalItems().isEmpty() && itemsModel.getJobItems().isEmpty() && itemsModel.getConnectItems().isEmpty()
                     && itemsModel.getCaseItems().isEmpty() && itemsModel.getBankItems().isEmpty() && itemsModel.getFollowItems().isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先设置导出项")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先设置更新项")).body(null);
             }
             CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseUpdateParams.getCaseInfoExceptionId());
             if (Objects.isNull(caseInfoException)) {
