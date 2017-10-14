@@ -123,6 +123,7 @@ public interface CaseInfoReturnRepository extends QueryDslPredicateExecutor<Case
         bindings.bind(root.caseId.caseMark).first((path, value) -> path.eq(value));
         //还款状态
         List<String> list = new ArrayList<>();
+        list.add("M0");
         list.add("M1");
         list.add("M2");
         list.add("M3");

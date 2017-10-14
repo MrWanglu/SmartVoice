@@ -299,7 +299,7 @@ public class CaseAssistApplyController extends BaseController {
                 caseInfo.setAssistWay(null); //协催方式
                 // 提醒申请人
                 title = "协催申请被拒绝!";
-                content = "你于["+apply.getApplyDate()+"]申请协催案件["+apply.getCaseNumber()+"]被电催主管["+user.getRealName()+"]拒绝!";
+                content = "协催案件["+apply.getCaseNumber()+"]被电催主管["+user.getRealName()+"]拒绝!";
                 userId = userRepository.findByUserName(apply.getApplyUserName()).getId();
             }
             // 审批通过

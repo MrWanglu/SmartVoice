@@ -137,3 +137,13 @@ ADD COLUMN `out_time`  datetime NULL DEFAULT NULL COMMENT '委外日期' AFTER `
 ADD COLUMN `over_outsource_time`  date NULL DEFAULT NULL COMMENT '委外结案日期' AFTER `out_time`,
 ADD COLUMN `out_batch`  varchar(64) NULL DEFAULT NULL COMMENT '委外批次号' AFTER `over_outsource_time`,
 ADD COLUMN `company_code`  varchar(64) NULL DEFAULT NULL COMMENT '公司Code' AFTER `out_batch`;
+
+--2017-10-14 祁吉贵 增加了M0 配置了顺序
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('190', '0043', NULL, 'M1', '1');
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('191', '0043', NULL, 'M2', '2');
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('192', '0043', NULL, 'M3', '3');
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('193', '0043', NULL, 'M4', '4');
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('194', '0043', NULL, 'M5', '5');
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('195', '0043', NULL, 'M6+', '6');
+INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('244', '0043', NULL, 'M0', '0');
+

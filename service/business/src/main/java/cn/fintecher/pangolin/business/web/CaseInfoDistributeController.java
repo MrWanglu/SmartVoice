@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -305,7 +304,7 @@ public class CaseInfoDistributeController extends BaseController {
         }
     }
 
-    @GetMapping("/previewResult")
+    @PostMapping("/previewResult")
     @ApiOperation(value = "策略预览结果", notes = "策略预览结果")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -315,45 +314,49 @@ public class CaseInfoDistributeController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity previewResult(@RequestParam @ApiParam("策略JSON") String jsonString,
-                                        @RequestParam @ApiParam("策略类型：230-案件导入分配策略，231-内催池分配策略，232-委外池分配策略") Integer type,
-                                        @RequestParam(required = false) @ApiParam("客户姓名") String personalName,
-                                        @RequestParam(required = false) @ApiParam("手机号") String phone,
-                                        @RequestParam(required = false) @ApiParam("身份证号") String idCard,
-                                        @RequestParam(required = false) @ApiParam("批次号") String batchNumber,
-                                        @RequestParam(required = false) @ApiParam("案件金额（最小）") BigDecimal startAmount,
-                                        @RequestParam(required = false) @ApiParam("案件金额（最大）") BigDecimal endAmount,
-                                        @ApiIgnore Pageable pageable) {
-        if (StringUtils.isBlank(jsonString)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先配置策略")).body(null);
-        }
-        if (Objects.isNull(type)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择策略类型")).body(null);
-        }
+    public ResponseEntity previewResult(@RequestBody PreviewParams previewParams,
+                                        @ApiIgnore Pageable pageable,
+                                        @RequestHeader(value = "X-UserToken") String token) {
+
         try {
-            CaseStrategy caseStrategy = caseInfoDistributedService.previewResult(jsonString);
+            User user = getUserByToken(token);
+
+            if (StringUtils.isBlank(previewParams.getJsonString())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先配置策略")).body(null);
+            }
+            if (Objects.isNull(previewParams.getType())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择策略类型")).body(null);
+            }
+            CaseStrategy caseStrategy = caseInfoDistributedService.previewResult(previewParams.getJsonString());
             List<StrategyPreviewModel> modelList = new ArrayList<>();
-            if (Objects.equals(type, CaseStrategy.StrategyType.IMPORT.getValue())) {// 案件导入策略分配
+            if (Objects.equals(previewParams.getType(), CaseStrategy.StrategyType.IMPORT.getValue())) {// 案件导入策略分配
                 List<CaseInfoDistributed> checkList = new ArrayList<>();
                 QCaseInfoDistributed qCaseInfoDistributed = QCaseInfoDistributed.caseInfoDistributed;
                 BooleanBuilder builder = new BooleanBuilder();
-                if (StringUtils.isNotBlank(personalName)) {
-                    builder.and(qCaseInfoDistributed.personalInfo.name.like("%" + personalName.trim() + "%"));
+                if (Objects.isNull(user.getCompanyCode())) {
+                    if (StringUtils.isNotBlank(previewParams.getCompanyCode())) {
+                        builder.and(qCaseInfoDistributed.companyCode.eq(previewParams.getCompanyCode()));
+                    }
+                } else {
+                    builder.and(qCaseInfoDistributed.companyCode.eq(user.getCompanyCode()));
                 }
-                if (StringUtils.isNotBlank(phone)) {
-                    builder.and(qCaseInfoDistributed.personalInfo.mobileNo.eq(phone));
+                if (StringUtils.isNotBlank(previewParams.getPersonalName())) {
+                    builder.and(qCaseInfoDistributed.personalInfo.name.like("%" + previewParams.getPersonalName().trim() + "%"));
                 }
-                if (StringUtils.isNotBlank(idCard)) {
-                    builder.and(qCaseInfoDistributed.personalInfo.idCard.eq(idCard));
+                if (StringUtils.isNotBlank(previewParams.getPhone())) {
+                    builder.and(qCaseInfoDistributed.personalInfo.mobileNo.eq(previewParams.getPhone()));
                 }
-                if (StringUtils.isNotBlank(batchNumber)) {
-                    builder.and(qCaseInfoDistributed.batchNumber.eq(batchNumber));
+                if (StringUtils.isNotBlank(previewParams.getIdCard())) {
+                    builder.and(qCaseInfoDistributed.personalInfo.idCard.eq(previewParams.getIdCard()));
                 }
-                if (Objects.nonNull(startAmount)) {
-                    builder.and(qCaseInfoDistributed.overdueAmount.gt(startAmount));
+                if (StringUtils.isNotBlank(previewParams.getBatchNumber())) {
+                    builder.and(qCaseInfoDistributed.batchNumber.eq(previewParams.getBatchNumber()));
                 }
-                if (Objects.nonNull(endAmount)) {
-                    builder.and(qCaseInfoDistributed.overdueAmount.lt(endAmount));
+                if (Objects.nonNull(previewParams.getStartAmount())) {
+                    builder.and(qCaseInfoDistributed.overdueAmount.gt(previewParams.getStartAmount()));
+                }
+                if (Objects.nonNull(previewParams.getEndAmount())) {
+                    builder.and(qCaseInfoDistributed.overdueAmount.lt(previewParams.getEndAmount()));
                 }
                 Iterable<CaseInfoDistributed> iterable = caseInfoDistributedRepository.findAll(builder);
                 Iterator<CaseInfoDistributed> iterator = iterable.iterator();
@@ -375,30 +378,37 @@ public class CaseInfoDistributeController extends BaseController {
                         modelList.add(model);
                     }
                 }
-            } else if (Objects.equals(type, CaseStrategy.StrategyType.INNER.getValue())) {// 内催策略分配
+            } else if (Objects.equals(previewParams.getType(), CaseStrategy.StrategyType.INNER.getValue())) {// 内催策略分配
                 List<CaseInfo> checkList = new ArrayList<>();
                 QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
                 BooleanBuilder builder = new BooleanBuilder();
+                if (Objects.isNull(user.getCompanyCode())) {
+                    if (StringUtils.isNotBlank(previewParams.getCompanyCode())) {
+                        builder.and(qCaseInfo.companyCode.eq(previewParams.getCompanyCode()));
+                    }
+                } else {
+                    builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+                }
                 builder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
                 builder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()));
                 builder.and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue()));
-                if (StringUtils.isNotBlank(personalName)) {
-                    builder.and(qCaseInfo.personalInfo.name.like("%" + personalName.trim() + "%"));
+                if (StringUtils.isNotBlank(previewParams.getPersonalName())) {
+                    builder.and(qCaseInfo.personalInfo.name.like("%" + previewParams.getPersonalName().trim() + "%"));
                 }
-                if (StringUtils.isNotBlank(phone)) {
-                    builder.and(qCaseInfo.personalInfo.mobileNo.eq(phone));
+                if (StringUtils.isNotBlank(previewParams.getPhone())) {
+                    builder.and(qCaseInfo.personalInfo.mobileNo.eq(previewParams.getPhone()));
                 }
-                if (StringUtils.isNotBlank(idCard)) {
-                    builder.and(qCaseInfo.personalInfo.idCard.eq(idCard));
+                if (StringUtils.isNotBlank(previewParams.getIdCard())) {
+                    builder.and(qCaseInfo.personalInfo.idCard.eq(previewParams.getIdCard()));
                 }
-                if (StringUtils.isNotBlank(batchNumber)) {
-                    builder.and(qCaseInfo.batchNumber.eq(batchNumber));
+                if (StringUtils.isNotBlank(previewParams.getBatchNumber())) {
+                    builder.and(qCaseInfo.batchNumber.eq(previewParams.getBatchNumber()));
                 }
-                if (Objects.nonNull(startAmount)) {
-                    builder.and(qCaseInfo.overdueAmount.gt(startAmount));
+                if (Objects.nonNull(previewParams.getStartAmount())) {
+                    builder.and(qCaseInfo.overdueAmount.gt(previewParams.getStartAmount()));
                 }
-                if (Objects.nonNull(endAmount)) {
-                    builder.and(qCaseInfo.overdueAmount.lt(endAmount));
+                if (Objects.nonNull(previewParams.getEndAmount())) {
+                    builder.and(qCaseInfo.overdueAmount.lt(previewParams.getEndAmount()));
                 }
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 Iterator<CaseInfo> iterator = all.iterator();
@@ -421,29 +431,36 @@ public class CaseInfoDistributeController extends BaseController {
                         modelList.add(model);
                     }
                 }
-            } else if (Objects.equals(type, CaseStrategy.StrategyType.OUTS.getValue())) {// 委外策略分配
+            } else if (Objects.equals(previewParams.getType(), CaseStrategy.StrategyType.OUTS.getValue())) {// 委外策略分配
                 List<CaseInfo> checkList = new ArrayList<>();
                 QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
                 BooleanBuilder builder = new BooleanBuilder();
+                if (Objects.isNull(user.getCompanyCode())) {
+                    if (StringUtils.isNotBlank(previewParams.getCompanyCode())) {
+                        builder.and(qOutsourcePool.companyCode.eq(previewParams.getCompanyCode()));
+                    }
+                } else {
+                    builder.and(qOutsourcePool.companyCode.eq(user.getCompanyCode()));
+                }
                 builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.TO_OUTSIDE.getCode()));
                 builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
-                if (StringUtils.isNotBlank(personalName)) {
-                    builder.and(qOutsourcePool.caseInfo.personalInfo.name.like("%" + personalName.trim() + "%"));
+                if (StringUtils.isNotBlank(previewParams.getPersonalName())) {
+                    builder.and(qOutsourcePool.caseInfo.personalInfo.name.like("%" + previewParams.getPersonalName().trim() + "%"));
                 }
-                if (StringUtils.isNotBlank(phone)) {
-                    builder.and(qOutsourcePool.caseInfo.personalInfo.mobileNo.eq(phone));
+                if (StringUtils.isNotBlank(previewParams.getPhone())) {
+                    builder.and(qOutsourcePool.caseInfo.personalInfo.mobileNo.eq(previewParams.getPhone()));
                 }
-                if (StringUtils.isNotBlank(idCard)) {
-                    builder.and(qOutsourcePool.caseInfo.personalInfo.idCard.eq(idCard));
+                if (StringUtils.isNotBlank(previewParams.getIdCard())) {
+                    builder.and(qOutsourcePool.caseInfo.personalInfo.idCard.eq(previewParams.getIdCard()));
                 }
-                if (StringUtils.isNotBlank(batchNumber)) {
-                    builder.and(qOutsourcePool.caseInfo.batchNumber.eq(batchNumber));
+                if (StringUtils.isNotBlank(previewParams.getBatchNumber())) {
+                    builder.and(qOutsourcePool.caseInfo.batchNumber.eq(previewParams.getBatchNumber()));
                 }
-                if (Objects.nonNull(startAmount)) {
-                    builder.and(qOutsourcePool.caseInfo.overdueAmount.gt(startAmount));
+                if (Objects.nonNull(previewParams.getStartAmount())) {
+                    builder.and(qOutsourcePool.caseInfo.overdueAmount.gt(previewParams.getStartAmount()));
                 }
-                if (Objects.nonNull(endAmount)) {
-                    builder.and(qOutsourcePool.caseInfo.overdueAmount.lt(endAmount));
+                if (Objects.nonNull(previewParams.getEndAmount())) {
+                    builder.and(qOutsourcePool.caseInfo.overdueAmount.lt(previewParams.getEndAmount()));
                 }
                 Iterable<OutsourcePool> all = outsourcePoolRepository.findAll(builder);// 未回收
                 Iterator<OutsourcePool> iterator = all.iterator();

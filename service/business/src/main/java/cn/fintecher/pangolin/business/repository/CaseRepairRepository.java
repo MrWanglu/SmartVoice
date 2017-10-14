@@ -29,6 +29,7 @@ public interface CaseRepairRepository extends QueryDslPredicateExecutor<CaseRepa
         // 还款状态
         bindings.bind(root.caseId.payStatus).first((path, value) -> {
             List<String> list = new ArrayList<>();
+            list.add("M0");
             list.add("M1");
             list.add("M2");
             list.add("M3");
