@@ -1411,10 +1411,11 @@ public class OutsourcePoolController extends BaseController {
      */
     @GetMapping("/outerStrategyDistribute")
     @ApiOperation(value = "委外案件 待分配案件 策略分配", notes = "委外案件 待分配案件 策略分配")
-    public ResponseEntity<List<CaseInfo>> outerStrategyDistribute(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
+    public ResponseEntity<List<OutDistributeInfo>> outerStrategyDistribute(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                                   @RequestHeader(value = "X-UserToken") String token,
                                                                   @ApiParam(value = "所有的待分配委外案件集合") OutsourceInfo outsourceInfo) {
         User user = null;
+        List<OutDistributeInfo> list;
         try {
             user = getUserByToken(token);
             ParameterizedTypeReference<List<CaseStrategy>> responseType = new ParameterizedTypeReference<List<CaseStrategy>>() {
@@ -1440,16 +1441,16 @@ public class OutsourcePoolController extends BaseController {
                 if (!caseInfos.iterator().hasNext()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
                 }
-                outsourcePoolService.outerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
+                list = outsourcePoolService.outerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
             } else {
                 //分配勾选的案件
                 Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(outsourceInfo.getOutCaseIds());
                 if (!caseInfos.iterator().hasNext()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
                 }
-                outsourcePoolService.outerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
+                list = outsourcePoolService.outerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
             }
-            return ResponseEntity.ok().body(null);
+            return ResponseEntity.ok().body(list);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "分配失败")).body(null);
