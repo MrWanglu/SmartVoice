@@ -362,7 +362,6 @@ public class OutsourcePoolService {
             if (!state) {
                 newDistributeModel.add(oldDistributeModel);
             }
-            infoInnerDistributeDepartModels.remove(oldDistributeModel);
         }
     }
 }
