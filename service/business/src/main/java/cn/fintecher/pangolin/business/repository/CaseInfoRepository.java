@@ -97,7 +97,7 @@ public interface CaseInfoRepository extends QueryDslPredicateExecutor<CaseInfo>,
                 return path.between(firstCloseDate, secondCloseDate);
             } else {
                 //大于等于
-                return path.gt(firstCloseDate);
+                return path.lt(firstCloseDate);
             }
         });
         //委托方
