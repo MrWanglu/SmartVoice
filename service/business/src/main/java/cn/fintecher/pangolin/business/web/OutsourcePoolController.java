@@ -87,6 +87,8 @@ public class OutsourcePoolController extends BaseController {
     CaseFollowupRecordRepository caseFollowupRecordRepository;
     @Inject
     OutsourcePoolService outsourcePoolService;
+    @Inject
+    OutBackSourceRepository outBackSourceRepository;
 
     @Inject
     private Configuration freemarkerConfiguration;
@@ -913,8 +915,10 @@ public class OutsourcePoolController extends BaseController {
     @PostMapping("/affirmReconciliation")
     @ResponseBody
     @ApiOperation(value = "财务数据确认操作", notes = "财务数据确认操作")
-    public ResponseEntity<List> affirmReconciliation(@RequestBody FienCasenums fienCasenums) {
+    public ResponseEntity<List> affirmReconciliation(@RequestBody FienCasenums fienCasenums,
+                                                     @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         try {
+            User user = getUserByToken(token);
             if (fienCasenums.getIdList().isEmpty()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("没有可确认的数据", "", "没有可确认的数据")).body(null);
             }
@@ -923,6 +927,7 @@ public class OutsourcePoolController extends BaseController {
             List<AccFinanceEntry> unableMatchList = new ArrayList<>();  //在委外池中没有匹配的财务数据
             List<OutsourcePool> outsourcePools = new ArrayList<>();  //在委外池中没有匹配的财务数据
             List<AccFinanceEntry> accFinanceEntrieAll = accFinanceEntryRepository.findAll(fienCasenums.getIdList());
+            List<OutBackSource> outBackSourceList = new ArrayList<>();
             for (AccFinanceEntry financeEntryCase : accFinanceEntrieAll) {
                 String caseNum = financeEntryCase.getFienCasenum();
                 List<CaseInfo> caseInfos = caseInfoRepository.findByCaseNumber(caseNum);
@@ -935,6 +940,16 @@ public class OutsourcePoolController extends BaseController {
                             if (Objects.nonNull(outsource)) {
                                 outsource.setOutBackAmt(outsource.getOutBackAmt().add(financeEntryCase.getFienPayback()));
                                 outsourcePools.add(outsource);
+
+                                OutBackSource outBackSource = new OutBackSource();
+                                outBackSource.setOutId(outsource.getOutsource().getId());
+                                outBackSource.setOutcaseId(outsource.getId());
+                                outBackSource.setOperator(user.getUserName());
+                                outBackSource.setOperateTime(new Date());
+                                outBackSource.setCompanyCode(user.getCompanyCode());
+                                outBackSource.setBackAmt(outsource.getOutBackAmt());
+                                outBackSource.setOperationType(OutBackSource.operationType.OUTBACKAMT.getCode());
+                                outBackSourceList.add(outBackSource);
                             }
                         }
                     }
@@ -949,6 +964,7 @@ public class OutsourcePoolController extends BaseController {
             accFinanceEntryRepository.save(accFinanceEntryList);
             //更新委外的案件池里的已还款金额
             outsourcePoolRepository.save(outsourcePools);
+            outBackSourceRepository.save(outBackSourceList);
             return ResponseEntity.ok().body(unableMatchList);
         } catch (Exception e) {
             log.error(e.getMessage());
