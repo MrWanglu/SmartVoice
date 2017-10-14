@@ -41,11 +41,11 @@ public class CaseInfoReturn extends BaseEntity {
     private String outsName;
 
     @ApiModelProperty("委外时间")
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date outTime;
 
     @ApiModelProperty("委外结案日期")
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date overOutsourceTime;
 
     @ApiModelProperty("委外批次号")

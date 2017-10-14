@@ -2,7 +2,7 @@ package cn.fintecher.pangolin.entity;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
+import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -31,6 +31,7 @@ public class OutsourceFollowRecord extends BaseEntity {
     private String caseNum;
 
     @ApiModelProperty(notes = "跟进时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date followTime;
 
     @ApiModelProperty(notes = "跟进方式")

@@ -72,7 +72,7 @@ public class ParseExcelTask {
                     String titleName = headerMap.get(colIndex);
                     if (StringUtils.isNotBlank(titleName)) {
                         Cell cell = dataRow.getCell(colIndex);
-                        matchFields(dataClass, columnErrorList, obj, colIndex, titleName, cell, flag);
+                        matchFields(dataClass, columnErrorList, obj, rowIndex + 1, colIndex, titleName, cell, flag);
                     }
                 }
             } else {
@@ -80,7 +80,7 @@ public class ParseExcelTask {
                 for (TemplateExcelInfo templateExcelInfo : templateExcelInfos) {
                     if (StringUtils.isNotBlank(templateExcelInfo.getRelateName())) {
                         Cell cell = dataRow.getCell(templateExcelInfo.getCellNum());
-                        matchFields(dataClass, columnErrorList, obj, templateExcelInfo.getCellNum(), templateExcelInfo.getCellName(), cell, flag);
+                        matchFields(dataClass, columnErrorList, obj,rowIndex + 1, templateExcelInfo.getCellNum(), templateExcelInfo.getCellName(), cell, flag);
                     }
                 }
             }
@@ -146,6 +146,7 @@ public class ParseExcelTask {
 
     /**
      * 列转换为字母
+     *
      * @param columnIndex
      * @return
      */
@@ -165,7 +166,7 @@ public class ParseExcelTask {
         return columnStr;
     }
 
-    private void matchFields(Class<?> dataClass, List<ColumnError> columnErrorList, Object obj, int colIndex, String titleName, Cell cell, List flag) throws Exception {
+    private void matchFields(Class<?> dataClass, List<ColumnError> columnErrorList, Object obj, int rowIndex, int colIndex, String titleName, Cell cell, List flag) throws Exception {
         //获取类中所有的字段
         Field[] fields = dataClass.getDeclaredFields();
         int fieldCount = 0;
@@ -213,7 +214,7 @@ public class ParseExcelTask {
             }
         }
         if (flagM == false) {
-            logger.info("行[{}]列[{}],表头[{}]未与任何实体属性匹配", cell.getRowIndex(), cell.getColumnIndex(), titleName);
+            logger.info("行[{}]列[{}],表头[{}]未与任何实体属性匹配", rowIndex, colIndex, titleName);
         }
     }
 
@@ -221,7 +222,7 @@ public class ParseExcelTask {
         Map<Object, ColumnError> map = new HashedMap(1);
         String cellValue = getCellValue(cell);
         cellValue = filterEmoji(cellValue, "");
-        if (cellValue != null || !cellValue.equals("")) {
+        if (cellValue != null && !cellValue.equals("")) {
             flag.add(true);
         }
         ExcelAnno.FieldCheck fieldCheck = field.getAnnotation(ExcelAnno.class).fieldCheck();
@@ -278,7 +279,7 @@ public class ParseExcelTask {
                 map.put(dou, columnError);
                 break;
             case PHONE_NUMBER:
-                if (cellValue.length() >= 16) {
+                if (cellValue.length() >= 32) {
                     columnError.setErrorMsg("电话号码长度过长");
                     columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
                     map.put(cellValue, columnError);
