@@ -15,7 +15,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
-import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -172,7 +171,7 @@ public class CaseInfoExceptionController extends BaseController {
                 }
             }
             if (caseInfoExceptionService.checkCaseExceptionExist(user)) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "异常池有异常案件，请先处理!")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请先处理重复案件!")).body(null);
             }
             return ResponseEntity.ok().body(null);
         } catch (Exception e) {
