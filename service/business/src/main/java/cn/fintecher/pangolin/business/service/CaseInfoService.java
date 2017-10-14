@@ -2444,7 +2444,10 @@ public class CaseInfoService {
      * @param caseStrategies 全部的策略
      * @param caseInfos      全部的案件
      */
-    public void innerStrategyDistribute(List<CaseStrategy> caseStrategies, List<CaseInfo> caseInfos, User user) throws Exception {
+    public CaseInfoInnerStrategyResultModel innerStrategyDistribute(List<CaseStrategy> caseStrategies, List<CaseInfo> caseInfos, User user) throws Exception {
+        CaseInfoInnerStrategyResultModel caseInfoInnerStrategyResultModel = new CaseInfoInnerStrategyResultModel();
+        List<CaseInfoInnerDistributeModel> infoInnerDistributeUserModels = new ArrayList<>();
+        List<CaseInfoInnerDistributeModel> infoInnerDistributeDepartModels = new ArrayList<>();
         for (CaseStrategy caseStrategy : caseStrategies) {
             List<CaseInfo> checkedList = new ArrayList<>(); // 策略匹配到的案件
             KieSession kieSession = null;
@@ -2474,7 +2477,69 @@ public class CaseInfoService {
             accCaseInfoDisModel.setDisType(caseStrategy.getAssignType());
             accCaseInfoDisModel.setUserIdList(caseStrategy.getUsers());
             distributeCeaseInfo(accCaseInfoDisModel, user);
+            accCaseInfoDisModel.setIsNumAvg(1);
+            List<CaseInfoInnerDistributeModel> caseInfoInnerDistributeModelTemp = distributePreview(accCaseInfoDisModel);
             caseInfos.removeAll(checkedList);
+            if (Objects.equals(accCaseInfoDisModel.getDisType(), "0")) { //分配到机构
+                infoInnerDistributeDepartModels.addAll(caseInfoInnerDistributeModelTemp);
+            } else {
+                infoInnerDistributeUserModels.addAll(caseInfoInnerDistributeModelTemp);
+            }
+        }
+
+        //生成策略分配结果
+        if (!infoInnerDistributeDepartModels.isEmpty()) {
+            List<CaseInfoInnerDistributeModel> newDistributeModel = new ArrayList<>();
+            setModelValue(infoInnerDistributeDepartModels, newDistributeModel);
+            caseInfoInnerStrategyResultModel.setInnerDistributeDepartModelList(newDistributeModel);
+        }
+        if (!infoInnerDistributeUserModels.isEmpty()) {
+            List<CaseInfoInnerDistributeModel> newDistributeModel = new ArrayList<>();
+            setModelValue(infoInnerDistributeDepartModels, newDistributeModel);
+            caseInfoInnerStrategyResultModel.setInnerDistributeUserModelList(newDistributeModel);
+        }
+        return caseInfoInnerStrategyResultModel;
+    }
+
+    /**
+     * 给策略分配的返回结果赋值
+     *
+     * @param infoInnerDistributeDepartModels
+     * @param newDistributeModel
+     */
+    private void setModelValue(List<CaseInfoInnerDistributeModel> infoInnerDistributeDepartModels, List<CaseInfoInnerDistributeModel> newDistributeModel) {
+        for (CaseInfoInnerDistributeModel oldDistributeModel : infoInnerDistributeDepartModels) {
+            boolean state = false;
+            for (CaseInfoInnerDistributeModel newDistributeModelTemp : newDistributeModel) {
+                if (newDistributeModelTemp.getUserName().equals(oldDistributeModel.getUserName())) {
+                    //当前
+                    Integer caseCurrentCount = newDistributeModelTemp.getCaseCurrentCount();
+                    caseCurrentCount += oldDistributeModel.getCaseCurrentCount();
+                    newDistributeModelTemp.setCaseCurrentCount(caseCurrentCount);
+                    BigDecimal caseMoneyCurrentCount = newDistributeModelTemp.getCaseMoneyCurrentCount();
+                    caseMoneyCurrentCount = caseMoneyCurrentCount.add(oldDistributeModel.getCaseMoneyCurrentCount());
+                    newDistributeModelTemp.setCaseMoneyCurrentCount(caseMoneyCurrentCount);
+                    //刚才分配的
+                    Integer caseDistributeCount = newDistributeModelTemp.getCaseDistributeCount();
+                    caseDistributeCount += oldDistributeModel.getCaseDistributeCount();
+                    newDistributeModelTemp.setCaseDistributeCount(caseDistributeCount);
+                    BigDecimal caseDistributeMoneyCount = newDistributeModelTemp.getCaseDistributeMoneyCount();
+                    caseDistributeMoneyCount = caseDistributeMoneyCount.add(oldDistributeModel.getCaseDistributeMoneyCount());
+                    newDistributeModelTemp.setCaseDistributeMoneyCount(caseDistributeMoneyCount);
+                    //最后的
+                    Integer caseTotalCount = newDistributeModelTemp.getCaseTotalCount();
+                    caseTotalCount += oldDistributeModel.getCaseTotalCount();
+                    newDistributeModelTemp.setCaseTotalCount(caseTotalCount);
+                    BigDecimal caseMoneyTotalCount = newDistributeModelTemp.getCaseMoneyTotalCount();
+                    caseMoneyTotalCount = caseMoneyTotalCount.add(oldDistributeModel.getCaseMoneyTotalCount());
+                    newDistributeModelTemp.setCaseMoneyTotalCount(caseMoneyTotalCount);
+                    state = true;
+                }
+            }
+            if (!state) {
+                newDistributeModel.add(oldDistributeModel);
+            }
+            infoInnerDistributeDepartModels.remove(oldDistributeModel);
         }
     }
 
