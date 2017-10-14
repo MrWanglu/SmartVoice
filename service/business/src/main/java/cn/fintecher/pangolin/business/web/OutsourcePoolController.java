@@ -1430,6 +1430,8 @@ public class OutsourcePoolController extends BaseController {
             if (Objects.isNull(outsourceInfo) || Objects.isNull(outsourceInfo.getOutCaseIds()) || outsourceInfo.getOutCaseIds().isEmpty()) {
                 //没有勾选案件,分配所有的案件
                 BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+                booleanBuilder.and(qOutsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())); //限制公司code码
+                booleanBuilder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));//委外类型
                 booleanBuilder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.TO_OUTSIDE.getCode()));
                 Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(booleanBuilder);
                 if (!outsourcePools.iterator().hasNext()) {
