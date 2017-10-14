@@ -1361,12 +1361,7 @@ public class CaseInfoController extends BaseController {
                 caseInfoInnerStrategyResultModel = caseInfoService.innerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
             } else {
                 //分配勾选的案件
-                QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-                BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
-                booleanBuilder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()));
-                booleanBuilder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
-                booleanBuilder.and(qCaseInfo.id.in(caseDistributeInfoModel.getCaseIdList()));
-                Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(booleanBuilder);
+                Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(caseDistributeInfoModel.getCaseIdList());
                 if (!caseInfos.iterator().hasNext()) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
                 }
