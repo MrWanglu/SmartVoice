@@ -121,6 +121,7 @@ public interface CaseInfoVerificationRepository extends QueryDslPredicateExecuto
         bindings.bind(root.caseInfo.caseMark).first((path, value) -> path.eq(value));
         //还款状态
         List<String> list = new ArrayList<>();
+        list.add("M0");
         list.add("M1");
         list.add("M2");
         list.add("M3");
