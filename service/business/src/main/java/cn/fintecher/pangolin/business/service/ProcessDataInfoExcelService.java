@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -69,7 +68,6 @@ public class ProcessDataInfoExcelService {
     CaseInfoFileRepository caseInfoFileRepository;
 
     @Async
-    @Transactional
     public void doTask(DataInfoExcelModel dataInfoExcelModel, ConcurrentHashMap<String, DataInfoExcelModel> dataInfoExcelModelMap,
                        User user, int index) {
         logger.info("{}  处理案件信息开始 {}......", Thread.currentThread(), index);
@@ -78,6 +76,7 @@ public class ProcessDataInfoExcelService {
         String key = dataInfoExcelModel.getPersonalName().concat("_").concat(dataInfoExcelModel.getIdCard()).concat("_")
                 .concat(dataInfoExcelModel.getPrinCode()).concat("_").concat(dataInfoExcelModel.getProductName())
                 .concat("_").concat(dataInfoExcelModel.getCompanyCode());
+
         //案件附件信息
         List<CaseInfoFile> caseInfoFileList = dataInfoExcelModel.getCaseInfoFileList();
         //产品信息
@@ -96,6 +95,16 @@ public class ProcessDataInfoExcelService {
             Set<String> caseInfoDistributedSets = new HashSet<>();
             for (Iterator<CaseInfoDistributed> it = caseInfoDistributedIterable.iterator(); it.hasNext(); ) {
                 caseInfoDistributedSets.add(it.next().getId());
+            }
+            while(caseInfoDistributedSets.isEmpty()) {
+                Iterable<CaseInfoDistributed> cd = caseInfoDistributedRepository.findAll(qCaseInfoDistributed.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
+                        .and(qCaseInfoDistributed.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
+                        .and(qCaseInfoDistributed.principalId.code.eq(dataInfoExcelModel.getPrinCode()))
+                        .and(qCaseInfoDistributed.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
+                        .and(qCaseInfoDistributed.companyCode.eq(dataInfoExcelModel.getCompanyCode())));
+                for (Iterator<CaseInfoDistributed> it1 = cd.iterator(); it1.hasNext(); ) {
+                    caseInfoDistributedSets.add(it1.next().getId());
+                }
             }
             Set<String> caseInfoSets = checkCaseInfoExist(dataInfoExcelModel);
             caseInfoExceptionRepository.save(addCaseInfoException(dataInfoExcelModel, user, caseInfoDistributedSets, caseInfoSets));
