@@ -289,7 +289,9 @@ public class OutsourcePoolService {
      * @param caseStrategies 全部的策略
      * @param caseInfos      全部的案件
      */
-    public void outerStrategyDistribute(List<CaseStrategy> caseStrategies, List<CaseInfo> caseInfos, User user) throws Exception {
+    public List<OutDistributeInfo> outerStrategyDistribute(List<CaseStrategy> caseStrategies, List<CaseInfo> caseInfos, User user) throws Exception {
+        List<OutDistributeInfo> list = new ArrayList<>();
+        List<OutDistributeInfo> result = new ArrayList<>();
         for (CaseStrategy caseStrategy : caseStrategies) {
             List<CaseInfo> checkedList = new ArrayList<>(); // 策略匹配到的案件
             KieSession kieSession = null;
@@ -310,15 +312,56 @@ public class OutsourcePoolService {
             List<String> caseIds = new ArrayList<>();
             List<Integer> caseNumList = new ArrayList<>();
             checkedList.forEach(e -> caseIds.add(e.getId()));
-            runCaseStrategyService.setDistributeNum(checkedList, caseStrategy.getOutsource(), caseNumList);
             OutsourceInfo outsourceInfo = new OutsourceInfo();
             outsourceInfo.setOutCaseIds(caseIds);
             outsourceInfo.setOutId(caseStrategy.getOutsource());
             outsourceInfo.setDistributionCount(caseNumList);
             outsourceInfo.setIsDebt(0);
-            outsourceInfo.setIsNumAvg(0);
+            outsourceInfo.setIsNumAvg(1);
+            list.addAll(distributePreview(outsourceInfo));
             distributeCeaseInfo(outsourceInfo, user);
             caseInfos.removeAll(checkedList);
+        }
+
+        if(!list.isEmpty()){
+            result = new ArrayList<>();
+            setModelValue(list, result);
+        }
+        return result;
+    }
+
+    private void setModelValue(List<OutDistributeInfo> infoInnerDistributeDepartModels, List<OutDistributeInfo> newDistributeModel) {
+        for (OutDistributeInfo oldDistributeModel : infoInnerDistributeDepartModels) {
+            boolean state = false;
+            for (OutDistributeInfo newDistributeModelTemp : newDistributeModel) {
+                if (newDistributeModelTemp.getOutName().equals(oldDistributeModel.getOutName())) {
+                    //当前
+                    Integer collectionCount = newDistributeModelTemp.getCollectionCount();
+                    collectionCount += oldDistributeModel.getCollectionCount();
+                    newDistributeModelTemp.setCollectionCount(collectionCount);
+                    BigDecimal collectionAmt = newDistributeModelTemp.getCollectionAmt();
+                    collectionAmt = collectionAmt.add(oldDistributeModel.getCollectionAmt());
+                    newDistributeModelTemp.setCollectionAmt(collectionAmt);
+                    //刚才分配的
+                    Integer caseDistributeCount = newDistributeModelTemp.getCaseDistributeCount();
+                    caseDistributeCount += oldDistributeModel.getCaseDistributeCount();
+                    newDistributeModelTemp.setCaseDistributeCount(caseDistributeCount);
+                    BigDecimal caseDistributeMoneyCount = newDistributeModelTemp.getCaseDistributeMoneyCount();
+                    caseDistributeMoneyCount = caseDistributeMoneyCount.add(oldDistributeModel.getCaseDistributeMoneyCount());
+                    newDistributeModelTemp.setCaseDistributeMoneyCount(caseDistributeMoneyCount);
+                    //最后的
+                    Integer caseTotalCount = newDistributeModelTemp.getCaseTotalCount();
+                    caseTotalCount += oldDistributeModel.getCaseTotalCount();
+                    newDistributeModelTemp.setCaseTotalCount(caseTotalCount);
+                    BigDecimal caseMoneyTotalCount = newDistributeModelTemp.getCaseMoneyTotalCount();
+                    caseMoneyTotalCount = caseMoneyTotalCount.add(oldDistributeModel.getCaseMoneyTotalCount());
+                    newDistributeModelTemp.setCaseMoneyTotalCount(caseMoneyTotalCount);
+                    state = true;
+                }
+            }
+            if (!state) {
+                newDistributeModel.add(oldDistributeModel);
+            }
         }
     }
 }
