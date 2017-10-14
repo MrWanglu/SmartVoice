@@ -48,7 +48,6 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
 import javax.inject.Inject;
 import java.io.*;
 import java.math.BigDecimal;
@@ -97,7 +96,8 @@ public class OutsourcePoolController extends BaseController {
     private CaseInfoReturnRepository caseInfoReturnRepository;
     @Inject
     private CaseInfoVerificationApplyRepository caseInfoVerificationApplyRepository;
-
+    @Inject
+    private OutsourceFollowupRecordRepository outsourceFollowupRecordRepository;
     private static final String ENTITY_NAME = "OutSource";
     private static final String ENTITY_NAME1 = "OutSourcePool";
     private static final String ENTITY_CASEINFO = "CaseInfo";
@@ -1331,8 +1331,8 @@ public class OutsourcePoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<CaseFollowupRecord>> getOutSourceCaseFollowRecord(@RequestParam @ApiParam(value = "案件编号", required = true) String caseNumber,
-                                                                                 @QuerydslPredicate(root = CaseFollowupRecord.class) Predicate predicate,
+    public ResponseEntity<Page<OutsourceFollowRecord>> getOutSourceCaseFollowRecord(@RequestParam @ApiParam(value = "案件编号", required = true) String caseNumber,
+                                                                                 @QuerydslPredicate(root = OutsourceFollowRecord.class) Predicate predicate,
                                                                                  @RequestParam(required = false) @ApiParam(value = "公司标识码") String companyCode,
                                                                                  @ApiIgnore Pageable pageable,
                                                                                  @RequestHeader(value = "X-UserToken") String token) {
@@ -1347,11 +1347,11 @@ public class OutsourcePoolController extends BaseController {
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
             if (Objects.nonNull(caseNumber)) {
-                builder.and(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(caseNumber));
+                builder.and(QOutsourceFollowRecord.outsourceFollowRecord.caseNum.eq(caseNumber));
             }
 
-            builder.and(QCaseFollowupRecord.caseFollowupRecord.caseFollowupType.eq(CaseFollowupRecord.CaseFollowupType.OUTER.getValue()));
-            Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
+            //builder.and(QCaseFollowupRecord.caseFollowupRecord.caseFollowupType.eq(CaseFollowupRecord.CaseFollowupType.OUTER.getValue()));
+            Page<OutsourceFollowRecord> page = outsourceFollowupRecordRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

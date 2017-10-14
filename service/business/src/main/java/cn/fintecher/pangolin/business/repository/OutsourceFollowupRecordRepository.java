@@ -1,14 +1,16 @@
 package cn.fintecher.pangolin.business.repository;
 
-
 import cn.fintecher.pangolin.entity.OutsourceFollowRecord;
 import cn.fintecher.pangolin.entity.QOutsourceFollowRecord;
+import cn.fintecher.pangolin.util.ZWDateUtil;
+import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
-
+import java.text.ParseException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 
@@ -19,19 +21,22 @@ public interface OutsourceFollowupRecordRepository extends QueryDslPredicateExec
 
         bindings.bind(root.feedback).first(SimpleExpression::eq); //催收反馈
         bindings.bind(root.followType).first(SimpleExpression::eq); //跟进方式
-
-        //跟进日期
-        bindings.bind(root.followTime).all((path, value) -> {
+        bindings.bind(root.followTime).all((DateTimePath<Date> path, Collection<? extends Date> value) -> { //跟进时间
             Iterator<? extends Date> it = value.iterator();
-            Date firstDelegationDate = it.next();
+            Date operatorMinTime = it.next();
             if (it.hasNext()) {
-                Date secondDelegationDate = it.next();
-                return path.between(firstDelegationDate, secondDelegationDate);
+                String date = ZWDateUtil.fomratterDate(it.next(), "yyyy-MM-dd");
+                date = date + " 23:59:59";
+                Date operatorMaxTime = null;
+                try {
+                    operatorMaxTime = ZWDateUtil.getFormatDateTime(date);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                return path.between(operatorMinTime, operatorMaxTime);
             } else {
-                //大于等于
-                return path.goe(firstDelegationDate);
+                return path.goe(operatorMinTime);
             }
         });
-
     }
 }

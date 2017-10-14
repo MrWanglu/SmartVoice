@@ -43,6 +43,7 @@ public class CaseFollowupRecord extends BaseEntity {
     private String content;
 
     @ApiModelProperty(notes = "跟进时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date followTime;
 
     @ApiModelProperty(notes = "跟进人员")
