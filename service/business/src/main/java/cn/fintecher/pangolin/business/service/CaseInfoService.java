@@ -2468,25 +2468,23 @@ public class CaseInfoService {
             List<String> ids = new ArrayList<>();
             List<Integer> caseNumList = new ArrayList<>();
             checkedList.forEach(e -> ids.add(e.getId()));
-            runCaseStrategyService.setDistributeNum(checkedList, caseStrategy.getAssignType() == 1 ? caseStrategy.getUsers() : caseStrategy.getDepartments(), caseNumList);
             AccCaseInfoDisModel accCaseInfoDisModel = new AccCaseInfoDisModel();
             accCaseInfoDisModel.setCaseIdList(ids);
             accCaseInfoDisModel.setCaseNumList(caseNumList);
             accCaseInfoDisModel.setDepIdList(caseStrategy.getDepartments());
             accCaseInfoDisModel.setIsDebt(0);
+            accCaseInfoDisModel.setIsNumAvg(1);
             accCaseInfoDisModel.setDisType(caseStrategy.getAssignType());
             accCaseInfoDisModel.setUserIdList(caseStrategy.getUsers());
             distributeCeaseInfo(accCaseInfoDisModel, user);
-            accCaseInfoDisModel.setIsNumAvg(1);
             List<CaseInfoInnerDistributeModel> caseInfoInnerDistributeModelTemp = distributePreview(accCaseInfoDisModel);
             caseInfos.removeAll(checkedList);
-            if (Objects.equals(accCaseInfoDisModel.getDisType(), "0")) { //分配到机构
+            if (accCaseInfoDisModel.getDisType() == 0) { //分配到机构
                 infoInnerDistributeDepartModels.addAll(caseInfoInnerDistributeModelTemp);
             } else {
                 infoInnerDistributeUserModels.addAll(caseInfoInnerDistributeModelTemp);
             }
         }
-
         //生成策略分配结果
         if (!infoInnerDistributeDepartModels.isEmpty()) {
             List<CaseInfoInnerDistributeModel> newDistributeModel = new ArrayList<>();
@@ -2495,7 +2493,7 @@ public class CaseInfoService {
         }
         if (!infoInnerDistributeUserModels.isEmpty()) {
             List<CaseInfoInnerDistributeModel> newDistributeModel = new ArrayList<>();
-            setModelValue(infoInnerDistributeDepartModels, newDistributeModel);
+            setModelValue(infoInnerDistributeUserModels, newDistributeModel);
             caseInfoInnerStrategyResultModel.setInnerDistributeUserModelList(newDistributeModel);
         }
         return caseInfoInnerStrategyResultModel;
@@ -2539,7 +2537,6 @@ public class CaseInfoService {
             if (!state) {
                 newDistributeModel.add(oldDistributeModel);
             }
-            infoInnerDistributeDepartModels.remove(oldDistributeModel);
         }
     }
 

@@ -1329,8 +1329,11 @@ public class CaseInfoController extends BaseController {
     @ApiOperation(value = "内催案件 待分配案件 策略分配", notes = "内催案件 待分配案件 策略分配")
 
     public ResponseEntity<CaseInfoInnerStrategyResultModel> innerStrategyDistribute(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
-                                                                                      @RequestHeader(value = "X-UserToken") String token,
-                                                                                      @ApiParam(value = "所有的待分配案件ID集合") CaseDistributeInfoModel caseDistributeInfoModel) {
+                                                                                    @RequestHeader(value = "X-UserToken") String token,
+                                                                                    @ApiParam(value = "所有的待分配案件ID集合") CaseDistributeInfoModel caseDistributeInfoModel) {
+        StopWatch watch = new StopWatch();
+        watch.start();
+        log.debug("开始分配。。。");
         CaseInfoInnerStrategyResultModel caseInfoInnerStrategyResultModel = null;
         User user = null;
         try {
@@ -1367,6 +1370,8 @@ public class CaseInfoController extends BaseController {
                 }
                 caseInfoInnerStrategyResultModel = caseInfoService.innerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
             }
+            watch.stop();
+            log.debug("分配完成，耗时{}", watch.getTotalTimeMillis());
             return ResponseEntity.ok().body(caseInfoInnerStrategyResultModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
