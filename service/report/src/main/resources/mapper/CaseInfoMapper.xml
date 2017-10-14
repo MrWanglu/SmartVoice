@@ -243,7 +243,7 @@
 				    select id,name from principal
                     where 1 = 1
                     <if test = "principalId != null">
-                        and principalId = #{principalId}
+                        and id = #{principalId}
                     </if>
 				) as ab
                 on aa.principal_id = ab.id
