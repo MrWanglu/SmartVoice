@@ -1350,6 +1350,8 @@ public class CaseInfoController extends BaseController {
                 //没有勾选案件,分配所有的案件
                 QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
                 BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+                booleanBuilder.and(qCaseInfo.department.isNull());
+                booleanBuilder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
                 booleanBuilder.and(qCaseInfo.collectionStatus.eq(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()));
                 booleanBuilder.and(qCaseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
                 Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(booleanBuilder);
