@@ -180,7 +180,7 @@ public class OutsourcePoolController extends BaseController {
     }
 
     @GetMapping("/outCaseScore")
-    @ApiOperation(value = "案件评分(手动)", notes = "案件评分(手动)")
+    @ApiOperation(value = "待委外案件评分(手动)", notes = "待委外案件评分(手动)")
     public ResponseEntity outCaseScore(@RequestParam(required = false) String companyCode,
                                        @RequestHeader(value = "X-UserToken") String token) {
         try {
@@ -203,6 +203,9 @@ public class OutsourcePoolController extends BaseController {
             try {
                 try {
                     kieSession = createSorceRule(companyCode, CaseStrategy.StrategyType.OUTS.getValue());
+                    if(Objects.isNull(kieSession)){
+                        return ResponseEntity.ok().headers(HeaderUtil.createAlert("无评分策略！", "failed")).body(null);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -244,6 +247,73 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
         }
     }
+
+    @GetMapping("/outCurrentCaseScore")
+    @ApiOperation(value = "委外中案件评分(手动)", notes = "委外中案件评分(手动)")
+    public ResponseEntity outCurrentCaseScore(@RequestParam @ApiParam(value = "批次号", required = true) String batchNumber,
+                                              @RequestParam @ApiParam(value = "委外方名称", required = true) String outsName,
+                                       @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = null;
+            try {
+                user = getUserByToken(token);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            String companyCode = null;
+            if (Objects.isNull(user.getCompanyCode())) {
+                companyCode = user.getCompanyCode();
+            }
+            StopWatch watch1 = new StopWatch();
+            watch1.start();
+            KieSession kieSession = null;
+            try {
+                try {
+                    kieSession = createSorceRule(companyCode, CaseStrategy.StrategyType.OUTS.getValue());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
+            Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(QOutsourcePool.outsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode())
+                    .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())).and(QOutsourcePool.outsourcePool.outBatch.eq(batchNumber)).and(QOutsourcePool.outsourcePool.outsource.eq(outsource))
+                    .and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())));
+            List<OutsourcePool> outsourcePoolList = (List<OutsourcePool>) outsourcePools;
+            ScoreNumbersModel scoreNumbersModel = new ScoreNumbersModel();
+            scoreNumbersModel.setTotal(outsourcePoolList.size());
+            if (outsourcePoolList.size() > 0) {
+                for (OutsourcePool outsourcePool : outsourcePoolList) {
+                    ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
+                    int age = IdcardUtils.getAgeByIdCard(outsourcePool.getCaseInfo().getPersonalInfo().getIdCard());
+                    scoreRuleModel.setAge(age);
+                    scoreRuleModel.setOverDueAmount(outsourcePool.getCaseInfo().getOverdueAmount().doubleValue());
+                    scoreRuleModel.setOverDueDays(outsourcePool.getCaseInfo().getOverdueDays());
+                    scoreRuleModel.setProId(outsourcePool.getCaseInfo().getArea().getId());//省份id
+                    Personal personal = personalRepository.findOne(outsourcePool.getCaseInfo().getPersonalInfo().getId());
+                    if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
+                        scoreRuleModel.setIsWork(1);
+                    } else {
+                        scoreRuleModel.setIsWork(0);
+                    }
+                    kieSession.insert(scoreRuleModel);//插入
+                    kieSession.fireAllRules();//执行规则
+                    outsourcePool.getCaseInfo().setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                }
+                kieSession.dispose();
+                outsourcePoolRepository.save(outsourcePoolList);
+                watch1.stop();
+                log.info("耗时：" + watch1.getTotalTimeMillis());
+                return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
+            }
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
+        }
+    }
+
 
     /**
      * 动态生成规则
