@@ -18,11 +18,11 @@ public class FollowupExportModel {
     private String contractNumber;
     @ExcelAnno(cellName = "贷款日期")
     private Date loanDate;
-    @ExcelAnno(cellName = "合同金额")
-    private String cityName;
     @ExcelAnno(cellName = "城市")
-    private String provinceName;
+    private String cityName;
     @ExcelAnno(cellName = "省份")
+    private String provinceName;
+    @ExcelAnno(cellName = "合同金额")
     private BigDecimal contractAmount;
     @ExcelAnno(cellName = "剩余本金(元)")
     private BigDecimal leftCapital;
