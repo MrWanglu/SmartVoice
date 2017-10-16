@@ -89,6 +89,7 @@ public class CaseInfoVerificationController extends BaseController {
                     caseInfoVerificationService.setVerificationApply(apply,caseInfo,user,caseInfoVerficationModel.getApplicationReason());
                     caseInfoVerificationApplyRepository.save(apply);
                 }
+                return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("核销申请审批成功", "CaseInfoVerificationModel")).body(null);
             }else {
                 for (CaseInfo caseInfo : caseInfoList) {
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); // 催收类型：已结案
@@ -101,8 +102,8 @@ public class CaseInfoVerificationController extends BaseController {
                     caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime());// 操作时间
                     caseInfoVerificationRepository.save(caseInfoVerification);
                 }
+                return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("核销结案成功", "CaseInfoVerificationModel")).body(null);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "CaseInfoVerificationModel")).body(null);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "操作失败!")).body(null);
@@ -163,7 +164,7 @@ public class CaseInfoVerificationController extends BaseController {
         try{
             user = getUserByToken(token);
             caseInfoVerificationService.caseInfoVerificationApply(caseInfoVerficationModel,user);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("核销审批成功", "caseInfoVerification")).body(null);
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "查看失败")).body(null);
