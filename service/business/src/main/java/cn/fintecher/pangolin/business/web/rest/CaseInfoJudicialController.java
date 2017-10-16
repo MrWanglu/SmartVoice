@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoJudicialService;
 import cn.fintecher.pangolin.business.web.BaseController;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
@@ -72,9 +73,22 @@ public class CaseInfoJudicialController extends BaseController{
                 }
             }else {
                 for (CaseInfo caseInfo : caseInfoList) {
+                    List<CaseInfoJudicialApply> list = caseInfoJudicialApplyRepository.findAll();
+                    for (int i=0;i<list.size();i++) {
+                        if (caseInfoVerficationModel.getIds().contains(list.get(i).getCaseId())) {
+                            if (Objects.equals(list.get(i).getApprovalStatus(),CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue())) {
+                                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "不能提交重复申请!")).body(null);
+                            }
+                        }
+                    }
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); // 催收类型：已结案
                     caseInfo.setEndType(CaseInfo.EndType.JUDGMENT_CLOSED.getValue()); // 结案方式：司法结案
                     caseInfoRepository.save(caseInfo);
+                    CaseInfoJudicial caseInfoJudicial = new CaseInfoJudicial();
+                    caseInfoJudicial.setCaseInfo(caseInfo);// 核销的案件信息
+                    caseInfoJudicial.setCompanyCode(caseInfo.getCompanyCode());// 公司code码
+                    caseInfoJudicial.setOperatorTime(ZWDateUtil.getNowDateTime());// 操作时间
+                    caseInfoJudicialRepository.save(caseInfoJudicial);
                 }
             }
             return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoJudicial")).body(null);

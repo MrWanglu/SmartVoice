@@ -56,6 +56,9 @@ public class CaseInfoVerificationController extends BaseController {
     @Inject
     private CaseInfoVerificationApplyRepository caseInfoVerificationApplyRepository;
 
+    @Inject
+    private SysParamRepository sysParamRepository;
+
     @PostMapping("/saveCaseInfoVerification")
     @ApiOperation(value = "案件申请审批", notes = "案件申请审批")
     public ResponseEntity saveCaseInfoVerification(@RequestBody CaseInfoVerficationModel caseInfoVerficationModel,
@@ -71,10 +74,33 @@ public class CaseInfoVerificationController extends BaseController {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "已委外案件不能核销!")).body(null);
                 }
             }
-            CaseInfoVerificationApply apply = new CaseInfoVerificationApply();
-            for (CaseInfo caseInfo : caseInfoList) {
-                caseInfoVerificationService.setVerificationApply(apply,caseInfo,user,caseInfoVerficationModel.getApplicationReason());
-                caseInfoVerificationApplyRepository.save(apply);
+            SysParam sysParam = sysParamRepository.findOne(QSysParam.sysParam.code.eq("SysParam.isVerApply"));
+            if (Integer.parseInt(sysParam.getValue()) == 1) { // 申请审批
+                CaseInfoVerificationApply apply = new CaseInfoVerificationApply();
+                for (CaseInfo caseInfo : caseInfoList) {
+                    List<CaseInfoVerificationApply> list = caseInfoVerificationApplyRepository.findAll();
+                    for (int i=0;i<list.size();i++) {
+                        if (caseInfoVerficationModel.getIds().contains(list.get(i).getCaseId())) {
+                            if (Objects.equals(list.get(i).getApprovalStatus(),CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue())) {
+                                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "不能提交重复审批申请!")).body(null);
+                            }
+                        }
+                    }
+                    caseInfoVerificationService.setVerificationApply(apply,caseInfo,user,caseInfoVerficationModel.getApplicationReason());
+                    caseInfoVerificationApplyRepository.save(apply);
+                }
+            }else {
+                for (CaseInfo caseInfo : caseInfoList) {
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); // 催收类型：已结案
+                    caseInfo.setEndType(CaseInfo.EndType.CLOSE_CASE.getValue()); // 结案方式：核销结案
+                    caseInfoRepository.save(caseInfo);
+                    CaseInfoVerification caseInfoVerification = new CaseInfoVerification();
+                    caseInfoVerification.setCaseInfo(caseInfo);// 核销的案件信息
+                    caseInfoVerification.setCompanyCode(caseInfo.getCompanyCode());// 公司code码
+                    caseInfoVerification.setOperator(user.getRealName());// 操作人
+                    caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime());// 操作时间
+                    caseInfoVerificationRepository.save(caseInfoVerification);
+                }
             }
             return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "CaseInfoVerificationModel")).body(null);
         } catch (Exception e) {
