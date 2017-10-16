@@ -198,7 +198,7 @@ public class UserController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "This user is not allowed to modify", "该用户不允许修改")).body(null);
         }
-        if (user.getDepartment().getLevel() <= 9 && !Objects.equals(Constants.ADMIN_USER_NAME, userToken.getUserName())) {
+        if (user.getDepartment().getLevel() <= 9 && !Objects.equals(Constants.ADMIN_USER_NAME, userToken.getUserName()) && userToken.getDepartment().getLevel() > 9) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
                     "New user institutions must be greater than the first class", "修改用户，用户机构等级必须大于一级")).body(null);
         }
