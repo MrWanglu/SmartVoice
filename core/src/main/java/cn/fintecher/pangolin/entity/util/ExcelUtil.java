@@ -88,14 +88,13 @@ public class ExcelUtil {
      * @param startCol
      * @return
      */
-    public static ExcelSheetObj parseExcelSingle(String filePath, Class<?>[] dataClass, int[] startRow, int[] startCol) throws Exception {
+    public static ExcelSheetObj parseExcelSingle(String filePath, String fileType, Class<?>[] dataClass, int[] startRow, int[] startCol) throws Exception {
         logger.info("线程 {} 开始解析Excel..............................................", Thread.currentThread());
         long startTime = System.currentTimeMillis();
         Workbook workbook = null;
         ExcelSheetObj excelSheetObj = null;
         InputStream inputStream = null;
         try {
-            String fileType = filePath.substring(filePath.lastIndexOf('.') + 1);
             HttpHeaders headers = new HttpHeaders();
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<byte[]> response = restTemplate.exchange(filePath,
@@ -758,21 +757,22 @@ public class ExcelUtil {
 
     /**
      * 动态导出数据到Excel（只支持最新的xlsx文件,支持多sheet页数据导出）
-     * @param dataList 数据
-     * @param excelTitleMap 文件头 属性：头名称
-     * @param titleFlag 是否写入头文件
-     * @param file 存储文件对象
-     * @param  sheetDataCount 每个sheet页的允许的最大数据量
-     * @param  dataStartCol 写入开始列
-     * @param  dataStartRow 写入开始行
+     *
+     * @param dataList       数据
+     * @param excelTitleMap  文件头 属性：头名称
+     * @param titleFlag      是否写入头文件
+     * @param file           存储文件对象
+     * @param sheetDataCount 每个sheet页的允许的最大数据量
+     * @param dataStartCol   写入开始列
+     * @param dataStartRow   写入开始行
      */
-    public static void  exportDataToExcel(List<T> dataList, Map<String,String> excelTitleMap, File file,
-                                          boolean titleFlag, String sheetDataCount, int dataStartCol, int dataStartRow) throws Exception {
+    public static void exportDataToExcel(List<T> dataList, Map<String, String> excelTitleMap, File file,
+                                         boolean titleFlag, String sheetDataCount, int dataStartCol, int dataStartRow) throws Exception {
         if (dataList.size() > Integer.parseInt(sheetDataCount)) {
             throw new Exception("数据总条数[".concat(String.valueOf(dataList.size())).concat("] 超过单sheet页允许的最大数据量[".concat(sheetDataCount)).concat("]"));
         }
-        FileOutputStream fOut =null;
-        try{
+        FileOutputStream fOut = null;
+        try {
             // 在内存中保持1000行，超过1000行将被刷新到磁盘
             SXSSFWorkbook wb = new SXSSFWorkbook(1000);
             int titleCol = dataStartCol;//数据开始列
@@ -803,10 +803,10 @@ public class ExcelUtil {
             fOut = new FileOutputStream(file);
             wb.write(fOut);
 
-        }catch (Exception e){
-            logger.error(e.getMessage(),e);
-            throw  new Exception("写入Excel文件失败");
-        }finally {
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw new Exception("写入Excel文件失败");
+        } finally {
             fOut.flush();       //刷新缓冲区
             fOut.close();
         }
