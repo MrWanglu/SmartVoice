@@ -90,7 +90,7 @@ public class CaseRecoverJob implements Job {
                 // 委外自动回收
                 QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
                 Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()) // 未回收的
-                        .and(qOutsourcePool.caseInfo.closeDate.before(new Date())) // 到期的
+                        .and(qOutsourcePool.overOutsourceTime.before(new Date())) // 到期的
                         .and(qOutsourcePool.outStatus.ne(OutsourcePool.OutStatus.OUTSIDE_OVER.getCode())));// 除过委外已结案的
                 Iterator<OutsourcePool> iterator1 = outsourcePools.iterator();
                 List<CaseInfo> caseInfoList = new ArrayList<>();

@@ -17,6 +17,6 @@ public class ReDisRecoverCaseParams {
     private List<String> ids;
     @ApiModelProperty(value = "分配目标：0-内催待分配池，1-委外待分配池", required = true)
     private Integer type;
-    @ApiModelProperty("结案日期")
+    @ApiModelProperty(value = "选择到期日期", required = true)
     private Date closeDate;
 }
