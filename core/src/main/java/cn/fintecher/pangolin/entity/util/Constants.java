@@ -221,6 +221,18 @@ public final class Constants {
     public final static String SYSPARAM_REMINDER_STATUS = "Sysparam.reminder.status";
 
     /**
+     * 案件回收相关调度
+     */
+    public final static String RECOVER_TRIGGER_GROUP = "recoverTriggerGroup";
+    public final static String RECOVER_TRIGGER_NAME = "recoverTriggerName";
+    public final static String RECOVER_TRIGGER_DESC = "案件回收触发器";
+    public final static String RECOVER_JOB_GROUP = "recoverJobGroup";
+    public final static String RECOVER_JOB_NAME = "recoverJobName";
+    public final static String RECOVER_JOB_DESC = "案件回收相关";
+    public final static String SYSPARAM_RECOVER = "Sysparam.recover";
+    public final static String SYSPARAM_RECOVER_STATUS = "Sysparam.recover.status";
+
+    /**
      * 批量执行状态
      */
     public enum BatchStatus {
