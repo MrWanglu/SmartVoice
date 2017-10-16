@@ -43,7 +43,7 @@ fdfs:
     - 192.168.3.10:22122
 
 gridfs:
-  path: 192.168.3.79:9000/file-service
+  path: 192.168.3.11:9000/file-service
   localPath: 127.0.0.7:9000/file-service
 
 server:
