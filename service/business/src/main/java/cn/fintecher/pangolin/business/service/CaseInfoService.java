@@ -505,8 +505,7 @@ public class CaseInfoService {
 
         //同步更新案件
         if (Objects.equals(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue(), caseInfo.getCollectionStatus())
-                || Objects.equals(CaseInfo.CollectionStatus.PART_REPAID.getValue(), caseInfo.getCollectionStatus())
-                || Objects.equals(CaseInfo.CollectionStatus.REPAID.getValue(), caseInfo.getCollectionStatus())) {
+                || Objects.equals(CaseInfo.CollectionStatus.PART_REPAID.getValue(), caseInfo.getCollectionStatus())) {
             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.COLLECTIONING.getValue());//首次跟进将催收状态变为催收中
         }
         caseInfo.setFollowupTime(caseFollowupRecord.getOperatorTime()); //最新跟进时间
