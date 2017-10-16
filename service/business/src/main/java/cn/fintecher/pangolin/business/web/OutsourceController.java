@@ -281,7 +281,7 @@ public class OutsourceController extends BaseController {
             }
             List<OutDistributeInfo> outDistributeInfos = new ArrayList<>();
             if (!outIds.isEmpty()) {
-                StringBuilder query = new StringBuilder("select b.outs_code,b.outs_name,b.id,c.case_count,c.end_amt,c.end_count,c.success_rate, b.company_code from outsource b left JOIN (select a.out_id, count(case when a.out_status<>167 then a.id end) as case_count,count( case when  a.out_status=170 then a.id end) as end_count,(count( case when  a.out_status=170 then a.id end)/count(case when a.out_status <>167 then a.id end)) as success_rate,sum(case when a.out_status = 170 then a.contract_amt end) as end_amt from outsource_pool a group by a.out_id ) c on b.id =c.out_id where b.company_code='");
+                StringBuilder query = new StringBuilder("select b.outs_code,b.outs_name,b.id,c.case_count,c.end_amt,c.end_count,c.success_rate, b.company_code from outsource b left JOIN (select a.out_id, count(case when a.out_status<>167 then a.id end) as case_count,count( case when  a.out_status=170 then a.id end) as end_count,(count( case when  a.out_status=170 then a.id end)/count(case when a.out_status <>167 then a.id end)) as success_rate,sum(case when a.out_status = 170 then a.contract_amt end) as end_amt from outsource_pool a group by a.out_id ) c on b.id =c.out_id where b.flag=0 and b.company_code='");
                 query.append(user.getCompanyCode()).append("' ");
                 if (Objects.nonNull(outCode)) {
                     query.append(" and b.outs_code = '").append(StringUtils.trim(outCode)).append("'");
