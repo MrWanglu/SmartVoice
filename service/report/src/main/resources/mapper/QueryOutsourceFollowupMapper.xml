@@ -160,8 +160,8 @@
         <result column="outs_name" property="outsName"/>
         <result column="has_pay_amount_outsource" property="hasPayAmountOutsource"/>
         <result column="out_time" property="outTime"/>
-        <result column="over_outsource_time" property="endOutTime"/>
-        <result column="end_outsource_time" property="overOutTime"/>
+        <result column="over_outsource_time" property="overOutTime"/>
+        <result column="end_outsource_time" property="endOutTime"/>
         <result column="out_status" property="outStatus"/>
         <result column="commission_rate_outsource" property="commissionRateOutsource"/>
         <result column="batch_number" property="batchNumber"/>

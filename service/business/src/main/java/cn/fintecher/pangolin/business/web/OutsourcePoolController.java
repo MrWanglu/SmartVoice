@@ -1415,8 +1415,8 @@ public class OutsourcePoolController extends BaseController {
     @GetMapping("/outerStrategyDistribute")
     @ApiOperation(value = "委外案件 待分配案件 策略分配", notes = "委外案件 待分配案件 策略分配")
     public ResponseEntity<List<OutDistributeInfo>> outerStrategyDistribute(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
-                                                                  @RequestHeader(value = "X-UserToken") String token,
-                                                                  @ApiParam(value = "所有的待分配委外案件集合") OutsourceInfo outsourceInfo) {
+                                                                           @RequestHeader(value = "X-UserToken") String token,
+                                                                           @ApiParam(value = "所有的待分配委外案件集合") OutsourceInfo outsourceInfo) {
         User user = null;
         List<OutDistributeInfo> list;
         try {

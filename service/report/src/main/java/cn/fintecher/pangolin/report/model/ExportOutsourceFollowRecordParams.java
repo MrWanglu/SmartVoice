@@ -47,7 +47,7 @@ public class ExportOutsourceFollowRecordParams {
     private BigDecimal commissionRateEnd;
     @ApiModelProperty(notes = "委案日期")
     private Date outTime;
-    @ApiModelProperty(notes = "结案日期")
+    @ApiModelProperty(notes = "到期日期")
     private Date overOutsourceTime;
     @ApiModelProperty(notes = "委托方")
     private String outsName;
