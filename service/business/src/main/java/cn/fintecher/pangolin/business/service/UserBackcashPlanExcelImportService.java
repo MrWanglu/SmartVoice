@@ -39,7 +39,7 @@ public class UserBackcashPlanExcelImportService {
         List<CellError> cellErrorList = null;
         try {
             //从文件服务器上获取Excel文件并解析：
-            ExcelSheetObj excelSheetObj = ExcelUtil.parseExcelSingle(params.getLocalUrl(), params.getDataClass(), params.getStartRow(), params.getStartCol());
+            ExcelSheetObj excelSheetObj = ExcelUtil.parseExcelSingle(params.getLocalUrl(),params.getType(), params.getDataClass(), params.getStartRow(), params.getStartCol());
             List dataList = excelSheetObj.getDatasList();
             //导入错误信息
             cellErrorList = excelSheetObj.getCellErrorList();

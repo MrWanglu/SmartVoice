@@ -35,11 +35,11 @@ public class AccFinanceEntryService {
     @Autowired
     CaseInfoRepository caseInfoRepository;
 
-    public List<CellError> importAccFinanceData(String fileUrl, int[] startRow, int[] startCol, Class<?>[] dataClass, AccFinanceEntry accFinanceEntry, CaseFollowupRecord outsourceFollowRecord, Integer type) throws Exception {
+    public List<CellError> importAccFinanceData(String fileUrl,String fileType, int[] startRow, int[] startCol, Class<?>[] dataClass, AccFinanceEntry accFinanceEntry, CaseFollowupRecord outsourceFollowRecord, Integer type) throws Exception {
         List<CellError> errorList = null;
         try {
             //从文件服务器上获取Excel文件并解析：
-            ExcelSheetObj excelSheetObj = ExcelUtil.parseExcelSingle(fileUrl, dataClass, startRow, startCol);
+            ExcelSheetObj excelSheetObj = ExcelUtil.parseExcelSingle(fileUrl,fileType, dataClass, startRow, startCol);
             List dataList = excelSheetObj.getDatasList();
             //导入错误信息
             errorList = excelSheetObj.getCellErrorList();
@@ -52,7 +52,7 @@ public class AccFinanceEntryService {
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return errorList;
+            throw new RuntimeException(e.getMessage());
         }
         return errorList;
     }

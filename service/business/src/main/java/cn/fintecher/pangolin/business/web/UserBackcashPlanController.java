@@ -317,6 +317,7 @@ public class UserBackcashPlanController extends BaseController {
         backPlanImportParams.setStartRow(startRow);
         backPlanImportParams.setStartCol(startCol);
         backPlanImportParams.setDataClass(dataClass);
+        backPlanImportParams.setType(uploadFile.getType());
         //解析Excel并保存到数据库中
         List<CellError> cellErrorList = new ArrayList<>();
         try {

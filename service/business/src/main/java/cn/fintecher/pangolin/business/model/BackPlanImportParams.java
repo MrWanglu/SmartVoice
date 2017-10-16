@@ -14,6 +14,7 @@ import java.util.List;
 @Data
 public class BackPlanImportParams {
     private String localUrl;
+    private String type;
     private String operator;
     private String CompanyCode;
     private List<String> usernameList;

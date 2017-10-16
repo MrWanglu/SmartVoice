@@ -48,6 +48,7 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import javax.inject.Inject;
 import java.io.*;
 import java.math.BigDecimal;
@@ -894,20 +895,19 @@ public class OutsourcePoolController extends BaseController {
             if (type == 0) {
                 Class<?>[] dataClass = {AccFinanceDataExcel.class};
                 //解析Excel并保存到临时表中
-                errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
+                errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), uploadFile.getType(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
             } else {
                 Class<?>[] dataClass = {OutsourceFollowUpRecordModel.class};
                 //解析Excel并保存到临时表中
-                errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
+                errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), uploadFile.getType(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
             }
-
             if (errorList.isEmpty()) {
                 return ResponseEntity.ok().body(null);
             } else {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Excel数据有误", "", "Excel数据有误")).body(errorList);
             }
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("导入失败", "", e.getMessage())).body(null);
         }
     }
