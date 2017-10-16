@@ -934,24 +934,11 @@ public class OutsourcePoolController extends BaseController {
                 if (Objects.nonNull(caseInfos) && !caseInfos.isEmpty()) {
                     //对委外客户池已还款金额做累加
                     for (CaseInfo caseInfo : caseInfos) {
-                        //对委外客户池中回款金额累加外部已还款金额
-                        if (Objects.nonNull(caseInfo.getId())) {
-                            OutsourcePool outsource = outsourcePoolRepository.findOne(QOutsourcePool.outsourcePool.caseInfo.id.eq(caseInfo.getId()));
-                            if (Objects.nonNull(outsource)) {
-                                outsource.setOutBackAmt(outsource.getOutBackAmt().add(financeEntryCase.getFienPayback()));
-                                outsourcePools.add(outsource);
-
-                                OutBackSource outBackSource = new OutBackSource();
-                                outBackSource.setOutId(outsource.getOutsource().getId());
-                                outBackSource.setOutcaseId(outsource.getId());
-                                outBackSource.setOperator(user.getUserName());
-                                outBackSource.setOperateTime(new Date());
-                                outBackSource.setCompanyCode(user.getCompanyCode());
-                                outBackSource.setBackAmt(outsource.getOutBackAmt());
-                                outBackSource.setOperationType(OutBackSource.operationType.OUTBACKAMT.getCode());
-                                outBackSourceList.add(outBackSource);
-                            }
+                        if (Objects.isNull(caseInfo.getHasPayAmount())) {
+                            caseInfo.setHasPayAmount(new BigDecimal(0));
                         }
+                        caseInfo.setHasPayAmount(caseInfo.getHasPayAmount().add(financeEntryCase.getFienPayback()));
+                        caseInfoList.add(caseInfo);
                     }
                 } else {
                     unableMatchList.add(financeEntryCase);   //未有匹配委外案件
