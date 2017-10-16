@@ -47,6 +47,7 @@ public class Personal extends BaseEntity {
 
     @OneToMany(cascade = CascadeType.REFRESH)
     @JoinColumn(name = "personalId", insertable = false, updatable = false)
+    @OrderBy("relation asc")
     private Set<PersonalContact> personalContacts; //客户联系人
 
     @OneToMany(cascade = CascadeType.REFRESH)
