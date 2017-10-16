@@ -187,6 +187,7 @@ public class OutsourcePoolService {
                 if (Objects.nonNull(nums)) {
                     Outsource outsource = outsourceRepository.findOne(Objects.nonNull(nums[0].toString())?null:nums[0].toString());
                     if (Objects.nonNull(outsource)) {
+                        outsourcePool.setOverduePeriods(caseInfo.getOverduePeriods().toString());
                         //优先将案件委外给有共债案件的委外方
                         setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
                         //添加委外记录
@@ -231,9 +232,14 @@ public class OutsourcePoolService {
                 }
                 String outId = caseInfoYes.get(alreadyCaseNum).getId();
                 OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
-                setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
-                //添加委外记录
-                saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
+                if(Objects.nonNull(outsourcePool)){
+                    CaseInfo caseInfo = outsourcePool.getCaseInfo();
+                    outsourcePool.setOverduePeriods(caseInfo.getOverduePeriods().toString());
+                    setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
+                    //添加委外记录
+                    saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
+                }
+
                 alreadyCaseNum = alreadyCaseNum + 1;
             }
         }
@@ -257,7 +263,7 @@ public class OutsourcePoolService {
         }
         BigDecimal b1 = outsourcePool.getCaseInfo().getOverdueAmount();//原案件金额
         outsourcePool.setContractAmt(b1.subtract(b2));//委外案件金额=原案件金额-已还款金额
-        outsourcePool.setOverduePeriods(outsourcePool.getOverduePeriods());//逾期时段
+        //outsourcePool.setOverduePeriods(outsourcePool.getOverduePeriods());//逾期时段
         GregorianCalendar gc = new GregorianCalendar();
         gc.setTime(ZWDateUtil.getNowDateTime());
         gc.add(2, 3);

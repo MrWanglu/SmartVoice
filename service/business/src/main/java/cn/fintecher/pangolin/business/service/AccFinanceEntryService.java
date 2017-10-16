@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -123,8 +124,9 @@ public class AccFinanceEntryService {
      */
     public void processFinanceDataFollowup(List datalist, CaseFollowupRecord outsourceFollowRecord, List<CellError> errorList) {
 
-        CaseFollowupRecord out = new CaseFollowupRecord();
+        List<CaseFollowupRecord> outList = new ArrayList<>();
         for (int m = 0; m < datalist.size(); m++) {
+            CaseFollowupRecord out = new CaseFollowupRecord();
             OutsourceFollowUpRecordModel followUpRecordModel = (OutsourceFollowUpRecordModel) datalist.get(m);
             CaseInfo caseInfo = null;
             if (Objects.nonNull(followUpRecordModel.getCaseNum())) {
@@ -198,8 +200,9 @@ public class AccFinanceEntryService {
             out.setOperator(outsourceFollowRecord.getOperator());
             out.setOperatorTime(ZWDateUtil.getNowDateTime());
             out.setCaseFollowupType(CaseFollowupRecord.CaseFollowupType.OUTER.getValue());
+            outList.add(out);
         }
-        caseFollowupRecordRepository.save(out);
+        caseFollowupRecordRepository.save(outList);
     }
 
 }
