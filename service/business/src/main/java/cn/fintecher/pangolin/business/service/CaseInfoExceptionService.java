@@ -148,9 +148,10 @@ public class CaseInfoExceptionService {
         if (!itemsModel.getJobItems().isEmpty()) {
             updateJob(itemsModel.getJobItems(), personal, caseInfoException, user);
         }
-        if (!itemsModel.getConnectItems().isEmpty()) {
-            addContract(caseInfoException, user, personal);
-        }
+//        if (!itemsModel.getConnectItems().isEmpty()) {
+//            addContract(caseInfoException, user, personal);
+//        }
+        addContract(caseInfoException, user, personal);
         if (!itemsModel.getCaseItems().isEmpty()) {
             caseInfo = updateCase(itemsModel.getCaseItems(), caseInfo, caseInfoException, user);
         }
@@ -176,9 +177,10 @@ public class CaseInfoExceptionService {
         if (!itemsModel.getJobItems().isEmpty()) {
             updateJob(itemsModel.getJobItems(), personal, caseInfoException, user);
         }
-        if (!itemsModel.getConnectItems().isEmpty()) {
-            addContract(caseInfoException, user, personal);
-        }
+//        if (!itemsModel.getConnectItems().isEmpty()) {
+//            addContract(caseInfoException, user, personal);
+//        }
+        addContract(caseInfoException, user, personal);
         if (!itemsModel.getCaseItems().isEmpty()) {
             caseInfoDistributed = updateCaseDistributed(itemsModel.getCaseItems(), caseInfoDistributed, caseInfoException, user);
         }
