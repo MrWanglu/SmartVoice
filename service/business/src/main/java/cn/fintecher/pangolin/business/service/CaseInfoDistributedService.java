@@ -260,6 +260,7 @@ public class CaseInfoDistributedService {
                     outsourcePool.setCaseInfo(caseInfo);
                     outsourcePool.setCompanyCode(user.getCompanyCode());
                     outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
+                    outsourcePool.setOverOutsourceTime(caseInfo.getCloseDate());
                     outsourcePoolList.add(outsourcePool);
                 }
             }
@@ -386,6 +387,7 @@ public class CaseInfoDistributedService {
                     OutsourcePool outsourcePool = new OutsourcePool();
                     outsourcePool.setCaseInfo(caseInfo);
                     outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
+                    outsourcePool.setOverOutsourceTime(caseInfoDistributed.getCloseDate());
                     outsourcePoolList.add(outsourcePool);
                     caseInfoDistributedList.add(caseInfoDistributed);
                 }

@@ -147,3 +147,7 @@ INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, 
 INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('195', '0043', NULL, 'M6+', '6');
 INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('244', '0043', NULL, 'M0', '0');
 
+--2017-10-16 孙艳平 增加系统参数
+INSERT INTO `pangolin_business`.`sys_param` (`id`, `company_code`, `code`, `name`, `status`, `type`, `value`, `sign`, `operator`, `operate_time`, `remark`, `field`) VALUES (UUID(), '0001', 'Sysparam.recover', '案件到期批量回收、回收提醒调度时间', '0', '9001', '000100', '0', 'administrator', '2017-10-16 13:45:51', '案件到期批量回收、提醒调度时间', NULL);
+INSERT INTO `pangolin_business`.`sys_param` (`id`, `company_code`, `code`, `name`, `status`, `type`, `value`, `sign`, `operator`, `operate_time`, `remark`, `field`) VALUES (UUID(), '0001', 'Sysparam.recover.status', '案件到期批量回收、回收提醒状态', '0', '9001', '0', '0', 'administrator', '2017-10-16 11:37:13', '案件到期批量处理状态0-启用 1-停用', NULL);
+

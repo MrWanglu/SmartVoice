@@ -69,6 +69,9 @@ public class RecoverCaseService {
         if (Objects.isNull(params) || params.getIds().isEmpty()) {
             throw new RuntimeException("请选择重新分配的案件");
         }
+        if (Objects.isNull(params) || Objects.isNull(params.getCloseDate())) {
+            throw new RuntimeException("请选择案件到期时间");
+        }
         Iterable<CaseInfoReturn> all = caseInfoReturnRepository.findAll(QCaseInfoReturn.caseInfoReturn.id.in(params.getIds()));
         Iterator<CaseInfoReturn> iterator = all.iterator();
         if (!iterator.hasNext()) {
@@ -83,14 +86,12 @@ public class RecoverCaseService {
             Integer source = caseInfoReturn.getSource();
             if (Objects.equals(source, CaseInfoReturn.Source.INTERNALCOLLECTION.getValue())) { // 内催回收的案件
                 CaseInfo caseInfo = caseInfoReturn.getCaseId();
-                caseInfo.setCloseDate(params.getCloseDate());
-                setAttr(caseInfo,caseAssistList, caseInfoList,outsourcePoolList, user, params.getType());
+                setAttr(caseInfo,caseAssistList, caseInfoList,outsourcePoolList, user, params);
                 caseInfoReturnList.add(caseInfoReturn);
             }
             if (Objects.equals(source, CaseInfoReturn.Source.OUTSOURCE.getValue())) { // 委外回收的案件
                 CaseInfo caseInfo = caseInfoReturn.getCaseId();
-                caseInfo.setCloseDate(params.getCloseDate());
-                setAttr(caseInfo,caseAssistList, caseInfoList,outsourcePoolList, user, params.getType());
+                setAttr(caseInfo,caseAssistList, caseInfoList,outsourcePoolList, user, params);
                 caseInfoReturnList.add(caseInfoReturn);
             }
         }
@@ -100,7 +101,7 @@ public class RecoverCaseService {
         caseInfoReturnRepository.delete(caseInfoReturnList);
     }
 
-    private void setAttr(CaseInfo caseInfo, List<CaseAssist> caseAssistList, List<CaseInfo> caseInfoList,List<OutsourcePool> outsourcePoolList, User user, Integer type) {
+    private void setAttr(CaseInfo caseInfo, List<CaseAssist> caseAssistList, List<CaseInfo> caseInfoList,List<OutsourcePool> outsourcePoolList, User user, ReDisRecoverCaseParams params) {
         caseInfo.setRecoverRemark(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue());//未回收
         caseInfo.setCollectionType(null);//催收类型
         caseInfo.setCaseType(null);//案件类型
@@ -121,8 +122,9 @@ public class RecoverCaseService {
         caseInfo.setHandUpFlag(CaseInfo.HandUpFlag.NO_HANG.getValue());//是否挂起
         caseInfo.setOperator(user);
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
-        if (Objects.equals(type, 0)) {
+        if (Objects.equals(params.getType(), 0)) { // 分到内催池
             caseInfo.setCasePoolType(CaseInfo.CasePoolType.INNER.getValue()); // 内催
+            caseInfo.setCloseDate(params.getCloseDate()); // 案件到期日期
             //处理协催案件
             if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //协催标识
                 //结束协催案件
@@ -141,13 +143,14 @@ public class RecoverCaseService {
                 caseInfo.setAssistWay(null);
                 caseInfo.setAssistCollector(null);
             }
-        } else if (Objects.equals(type, 1)){
+        } else if (Objects.equals(params.getType(), 1)){ // 分到委外池
             caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue()); // 委外
             OutsourcePool outsourcePool = new OutsourcePool();
             outsourcePool.setCaseInfo(caseInfo);
             outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode()); //待委外
             outsourcePool.setOperateTime(new Date());
             outsourcePool.setOperator(user.getId());
+            outsourcePool.setOverOutsourceTime(params.getCloseDate()); // 到期时间
             outsourcePoolList.add(outsourcePool);
         } else {
             throw new RuntimeException("选择的要分配的目标池未知");
