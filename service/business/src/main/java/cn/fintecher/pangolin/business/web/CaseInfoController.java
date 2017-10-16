@@ -858,7 +858,7 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord",e.getMessage())).body(null);
         }
     }
 
@@ -930,7 +930,7 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", e.getMessage())).body(null);
         }
     }
 
@@ -942,15 +942,21 @@ public class CaseInfoController extends BaseController {
      * @throws
      */
     private KieSession createSorceRule(String comanyCode, Integer strategyType) {
+        List<ScoreRule> rules = null;
         try {
-            Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
-            Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
             ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode).concat("&strategyType=").concat(strategyType.toString()), ScoreRules.class);
-            List<ScoreRule> rules = null;
             if (responseEntity.hasBody()) {
                 ScoreRules scoreRules = responseEntity.getBody();
                 rules = scoreRules.getScoreRules();
+            } else {
+                throw new IllegalStateException("请先设置评分策略");
             }
+        }catch(Exception e) {
+            throw new IllegalStateException("获取策略失败");
+        }
+        try {
+            Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
+            Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
             StringBuilder sb = new StringBuilder();
             if (Objects.nonNull(rules)) {
                 for (ScoreRule rule : rules) {
