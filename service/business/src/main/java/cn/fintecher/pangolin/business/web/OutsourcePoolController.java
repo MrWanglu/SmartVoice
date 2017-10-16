@@ -229,7 +229,7 @@ public class OutsourcePoolController extends BaseController {
                         scoreRuleModel.setIsWork(0);
                     }
                     if(Objects.isNull(kieSession)){
-                        return ResponseEntity.ok().headers(HeaderUtil.createAlert("无评分策略！", "failed")).body(null);
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "无评分策略")).body(null);
                     }else{
                         kieSession.insert(scoreRuleModel);//插入
                         kieSession.fireAllRules();//执行规则
@@ -242,10 +242,10 @@ public class OutsourcePoolController extends BaseController {
                 log.info("耗时：" + watch1.getTotalTimeMillis());
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
             }
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "案件为空")).body(null);
         } catch (IllegalStateException e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
         }
     }
 
