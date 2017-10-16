@@ -431,6 +431,7 @@ public class CaseInfoService {
             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); //催收状态 24-已结案
             caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
             caseInfo.setOperator(tokenUser); //操作人
+            caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件打标为无色
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseInfo.setEndRemark(endCaseParams.getEndRemark()); //结案说明
             caseInfo.setEndType(endCaseParams.getEndType()); //结案方式
@@ -475,6 +476,7 @@ public class CaseInfoService {
                 caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
                 caseInfo.setOperator(tokenUser); //操作人
                 caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件打标为无色
                 caseInfo.setEndRemark(endCaseParams.getEndRemark()); //结案说明
                 caseInfo.setEndType(endCaseParams.getEndType()); //结案方式
                 caseInfoRepository.saveAndFlush(caseInfo);
