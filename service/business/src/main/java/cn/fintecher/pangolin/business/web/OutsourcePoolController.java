@@ -203,9 +203,6 @@ public class OutsourcePoolController extends BaseController {
             try {
                 try {
                     kieSession = createSorceRule(companyCode, CaseStrategy.StrategyType.OUTS.getValue());
-                    if(Objects.isNull(kieSession)){
-                        return ResponseEntity.ok().headers(HeaderUtil.createAlert("无评分策略！", "failed")).body(null);
-                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -231,8 +228,12 @@ public class OutsourcePoolController extends BaseController {
                     } else {
                         scoreRuleModel.setIsWork(0);
                     }
-                    kieSession.insert(scoreRuleModel);//插入
-                    kieSession.fireAllRules();//执行规则
+                    if(Objects.isNull(kieSession)){
+                        return ResponseEntity.ok().headers(HeaderUtil.createAlert("无评分策略！", "failed")).body(null);
+                    }else{
+                        kieSession.insert(scoreRuleModel);//插入
+                        kieSession.fireAllRules();//执行规则
+                    }
                     outsourcePool.getCaseInfo().setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
                 }
                 kieSession.dispose();
@@ -297,8 +298,13 @@ public class OutsourcePoolController extends BaseController {
                     } else {
                         scoreRuleModel.setIsWork(0);
                     }
-                    kieSession.insert(scoreRuleModel);//插入
-                    kieSession.fireAllRules();//执行规则
+
+                    if(Objects.isNull(kieSession)){
+                        return ResponseEntity.ok().headers(HeaderUtil.createAlert("无评分策略！", "failed")).body(null);
+                    }else {
+                        kieSession.insert(scoreRuleModel);//插入
+                        kieSession.fireAllRules();//执行规则
+                    }
                     outsourcePool.getCaseInfo().setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
                 }
                 kieSession.dispose();
