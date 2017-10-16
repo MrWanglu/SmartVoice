@@ -410,7 +410,7 @@ public class CaseInfoVerificationService {
             sendReminderMessage.setUserId(user.getId());
             sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 的核销申请审批" + (Objects.equals(caseInfoVerficationModel.getApprovalResult(), 0) ? "拒绝" : "通过"));
             sendReminderMessage.setContent(caseInfoVerficationModel.getApprovalOpinion());
-            sendReminderMessage.setType(ReminderType.verification);
+            sendReminderMessage.setType(ReminderType.VERIFICATION);
             reminderService.sendReminder(sendReminderMessage);
         }
     }

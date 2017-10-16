@@ -141,7 +141,7 @@ public class CaseInfoJudicialService {
             sendReminderMessage.setUserId(user.getId());
             sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 的司法申请审批" + (Objects.equals(caseInfoVerficationModel.getApprovalResult(), 0) ? "拒绝" : "通过"));
             sendReminderMessage.setContent(caseInfoVerficationModel.getApprovalOpinion());
-            sendReminderMessage.setType(ReminderType.judicial);
+            sendReminderMessage.setType(ReminderType.JUDICIAL);
             reminderService.sendReminder(sendReminderMessage);
         }
     }
