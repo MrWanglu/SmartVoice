@@ -3,8 +3,8 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.model.UpdatePassword;
 import cn.fintecher.pangolin.business.model.UserDeviceReset;
 import cn.fintecher.pangolin.business.model.UserLoginResponse;
-import cn.fintecher.pangolin.business.repository.RoleRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
+import cn.fintecher.pangolin.business.repository.UserDeviceRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.business.session.SessionStore;
@@ -29,6 +29,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
@@ -55,7 +59,7 @@ public class LoginController extends BaseController {
     private SysParamRepository sysParamRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
+    private UserDeviceRepository userDeviceRepository;
 
     /**
      * 无MD5加密用户登录 开发使用
@@ -85,6 +89,32 @@ public class LoginController extends BaseController {
         loginRequest.setPassword(MD5.MD5Encode(loginRequest.getPassword()));
         return login(loginRequest, request);
     }
+
+    /**
+     * 根据ip获取MAC地址
+     */
+    private String getLocalMac(InetAddress ia) throws SocketException {
+        // TODO Auto-generated method stub
+        //获取网卡，获取地址
+        byte[] mac = NetworkInterface.getByInetAddress(ia).getHardwareAddress();
+        System.out.println("mac数组长度："+mac.length);
+        StringBuffer sb = new StringBuffer("");
+        for(int i=0; i<mac.length; i++) {
+            if(i!=0) {
+                sb.append("-");
+            }
+            //字节转换为整数
+            int temp = mac[i]&0xff;
+            String str = Integer.toHexString(temp);
+            System.out.println("每8位:"+str);
+            if(str.length()==1) {
+                sb.append("0"+str);
+            }else {
+                sb.append(str);
+            }
+        }
+        return sb.toString().toUpperCase();
+}
 
     /**
      * @Description : 用户登录返回部门和角色
@@ -128,12 +158,27 @@ public class LoginController extends BaseController {
                             if (Objects.equals(loginRequest.getUsdeType(), Status.Enable.getValue())) {
                                 String ip = GetClientIp.getIp(request);
                                 if (ZWStringUtils.isEmpty(userDevice.getCode())) {
+                                    String mac = "";
+                                    try {
+                                        mac = getLocalMac(InetAddress.getLocalHost());
+                                    } catch (UnknownHostException e) {
+                                        e.printStackTrace();
+                                    } catch (SocketException e) {
+                                        e.printStackTrace();
+                                    }
                                     // 判断用户请求的设备状态(PC端：0，移动端：1)
                                     loginRequest.setUsdeCode(ip);
                                     userDevice.setCode(ip);
+                                    userDevice.setMac(mac);
                                 } else {
-                                    if (!Objects.equals(ip, userDevice.getCode())) {
-                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "This login and the last login address are not consistent", "本次登录和上次登录地址不一致！")).body(null);
+                                    try {
+                                        if (!Objects.equals(getLocalMac(InetAddress.getLocalHost()), userDevice.getMac())) {
+                                            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "This login and the last login address are not consistent", "本次登录和上次登录地址不一致！")).body(null);
+                                        }
+                                    } catch (SocketException e) {
+                                        e.printStackTrace();
+                                    } catch (UnknownHostException e) {
+                                        e.printStackTrace();
                                     }
                                 }
                             } else {
@@ -148,6 +193,7 @@ public class LoginController extends BaseController {
                         }
                     }
                 }
+                userDeviceRepository.save(userDevice);
             }
             userRepository.save(user);
             //用户设定修改密码的时间限制
