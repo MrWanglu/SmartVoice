@@ -30,12 +30,6 @@ public class CaseInfoHistoryController extends BaseController {
 
     private static final String ENTITY_NAME = "CaseInfoHistory";
     private final Logger log = LoggerFactory.getLogger(CaseInfoHistoryController.class);
-    private final CaseInfoHistoryRepository caseInfoHistoryRepository;
-
-
-    public CaseInfoHistoryController(CaseInfoHistoryRepository caseInfoHistoryRepository) {
-        this.caseInfoHistoryRepository = caseInfoHistoryRepository;
-    }
 
     @Autowired
     private CaseInfoRepository caseInfoRepository;
@@ -57,6 +51,9 @@ public class CaseInfoHistoryController extends BaseController {
 
     @Inject
     private CaseInfoReturnRepository caseInfoReturnRepository;
+
+    @Inject
+    private CaseInfoHistoryRepository caseInfoHistoryRepository;
 
     @PostMapping("/deleteReturnCase")
     @ApiOperation(value = "回收案件删除", notes = "回收案件删除")
