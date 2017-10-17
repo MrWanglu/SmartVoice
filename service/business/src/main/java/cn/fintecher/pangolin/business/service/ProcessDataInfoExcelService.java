@@ -351,9 +351,9 @@ public class ProcessDataInfoExcelService {
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime());
         personalContactList.add(personalContact);
         // 联系人1信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName1())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone1())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone1())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName1())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone1())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone1())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation1()));
@@ -371,9 +371,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人2信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName2())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone2())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone2())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName2())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone2())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone2())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation2()));
@@ -391,9 +391,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人3信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName3())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone3())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone3())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName3())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone3())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone3())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation3()));
@@ -411,9 +411,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人4信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName4())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone4())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone4())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName4())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone4())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone4())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation4()));
@@ -431,9 +431,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人5信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName5())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone5())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone5())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName5())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone5())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone5())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation5()));
@@ -451,9 +451,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人6信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName6())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone6())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone6())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName6())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone6())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone6())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation6()));
@@ -471,9 +471,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人7信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName7())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone7())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone7())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName7())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone7())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone7())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation7()));
@@ -491,9 +491,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人8信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName8())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone8())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone8())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName8())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone8())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone8())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation8()));
@@ -511,9 +511,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人9信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName9())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone9())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone9())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName9())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone9())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone9())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation9()));
@@ -531,9 +531,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人10信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName10())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone10())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone10())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName10())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone10())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone10())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation10()));
@@ -551,9 +551,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人11信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName11())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone11())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone11())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName11())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone11())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone11())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation11()));
@@ -571,9 +571,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人12信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName12())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone12())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone12())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName12())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone12())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone12())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation12()));
@@ -591,9 +591,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人13信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName13())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone13())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone13())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName13())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone13())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone13())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation13()));
@@ -611,9 +611,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人14信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName14())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone14())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone14())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName14())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone14())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone14())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation14()));
@@ -631,9 +631,9 @@ public class ProcessDataInfoExcelService {
             personalContactList.add(obj);
         }
         //联系人15信息
-        if (Objects.nonNull(dataInfoExcelModel.getContactName15())
-                || Objects.nonNull(dataInfoExcelModel.getContactPhone15())
-                || Objects.nonNull(dataInfoExcelModel.getContactHomePhone15())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getContactName15())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactPhone15())
+                || StringUtils.isNotBlank(dataInfoExcelModel.getContactHomePhone15())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(dataInfoExcelModel.getContactRelation15()));
@@ -932,8 +932,8 @@ public class ProcessDataInfoExcelService {
      * @param personal
      */
     private void addBankInfo(DataInfoExcelModel dataInfoExcelModel, User user, Personal personal) {
-        if (Objects.nonNull(dataInfoExcelModel.getDepositBank()) ||
-                Objects.nonNull(dataInfoExcelModel.getCardNumber())) {
+        if (StringUtils.isNotBlank(dataInfoExcelModel.getDepositBank()) ||
+                StringUtils.isNotBlank(dataInfoExcelModel.getCardNumber())) {
             PersonalBank personalBank = new PersonalBank();
             personalBank.setDepositBank(dataInfoExcelModel.getDepositBank());
             personalBank.setCardNumber(dataInfoExcelModel.getCardNumber());
@@ -1015,7 +1015,7 @@ public class ProcessDataInfoExcelService {
      */
     private Integer getRelationType(String relationName) {
         //关系判断
-        if (Objects.nonNull(relationName)) {
+        if (StringUtils.isNotBlank(relationName)) {
             for (Personal.RelationEnum relation : Personal.RelationEnum.values()) {
                 if (relation.getRemark().equals(relationName)) {
                     return relation.getValue();

@@ -1,29 +1,22 @@
 package cn.fintecher.pangolin.business.web;
 
-import cn.fintecher.pangolin.business.model.CaseInfoIdList;
-import cn.fintecher.pangolin.business.repository.CaseInfoHistoryRepository;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
-import cn.fintecher.pangolin.entity.CaseInfo;
-import cn.fintecher.pangolin.entity.CaseInfoHistory;
-import cn.fintecher.pangolin.entity.QCaseInfo;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.business.model.DeleteCaseParams;
+import cn.fintecher.pangolin.business.repository.*;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.web.HeaderUtil;
-import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Predicate;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.apache.commons.collections4.IterableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.annotations.ApiIgnore;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -47,85 +40,178 @@ public class CaseInfoHistoryController extends BaseController {
     @Autowired
     private CaseInfoRepository caseInfoRepository;
 
-    /**
-     * @Description : 查询结案案件
-     */
-    @GetMapping("/getAllCaseInfo")
-    @ApiOperation(value = "分页查询结案案件", notes = "分页查询结案案件")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
-                    value = "页数 (0..N)"),
-            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
-                    value = "每页大小."),
-            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
-                    value = "依据什么排序: 属性名(,asc|desc). ")
-    })
-    public ResponseEntity<Page<CaseInfo>> getAllCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
-                                                         @ApiIgnore Pageable pageable,
-                                                         @RequestHeader(value = "X-UserToken") String token,
-                                                         @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code码") String companyCode) {
-        log.debug("REST request to getAllCaseInfo");
-        User user = null;
-        try {
-            user = getUserByToken(token);
-        } catch (final Exception e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllCaseInfo", e.getMessage())).body(null);
-        }
-        try {
-            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
-            BooleanBuilder builder = new BooleanBuilder(predicate);
+    @Inject
+    private CaseInfoJudicialRepository caseInfoJudicialRepository;
 
-            // 超级管理员
-            if (Objects.isNull(user.getCompanyCode())) {
-                if (Objects.nonNull(companyCode)) {
-                    builder.and(qCaseInfo.companyCode.eq(companyCode)); //公司
-                }
-            }else{
-                builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode())); //公司
+    @Inject
+    private CaseAssistRepository caseAssistRepository;
+
+    @Inject
+    private CaseInfoVerificationRepository caseInfoVerificationRepository;
+
+    @Inject
+    private OutsourcePoolRepository outsourcePoolRepository;
+
+    @Inject
+    private CaseRepairRepository caseRepairRepository;
+
+    @Inject
+    private CaseInfoReturnRepository caseInfoReturnRepository;
+
+    @PostMapping("/deleteReturnCase")
+    @ApiOperation(value = "回收案件删除", notes = "回收案件删除")
+    public ResponseEntity deleteReturnCase(@RequestBody DeleteCaseParams params,
+                                           @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            if (Objects.isNull(params.getIds()) || params.getIds().isEmpty()) {
+                throw new RuntimeException("请选择要删除的案件");
             }
-            builder.and(qCaseInfo.endType.eq(CaseInfo.EndType.REPAID.getValue())); //以结案
-            if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) { //管理者
-                builder.and(qCaseInfo.department.code.startsWith(user.getDepartment().getCode()));
+
+            List<CaseInfo> caseInfoList = new ArrayList<>();
+            List<CaseAssist> assistList = new ArrayList<>();
+            List<CaseInfoJudicial> judicialList = new ArrayList<>();
+            List<CaseInfoVerification> verificationList = new ArrayList<>();
+            List<OutsourcePool> outsourcePoolList = new ArrayList<>();
+            List<CaseRepair> caseRepairList = new ArrayList<>();
+            List<CaseInfoHistory> caseInfoHistoryList = new ArrayList<>();
+            List<CaseInfoReturn> all = caseInfoReturnRepository.findAll(params.getIds());
+            for (CaseInfoReturn caseInfoReturn : all) {
+                CaseInfo caseInfo = caseInfoReturn.getCaseId();
+                caseInfoList.add(caseInfo);
+                CaseInfoHistory history = new CaseInfoHistory();
+                saveHistory(caseInfo, history, caseInfoHistoryList, user);
+                deleteCaseInfo(caseInfo, assistList, judicialList, verificationList, outsourcePoolList, caseRepairList);
             }
-            if (Objects.equals(user.getManager(), User.MANAGER_TYPE.NO_DATA_AUTH.getValue())) { //不是管理者
-                builder.and(qCaseInfo.currentCollector.eq(user).or(qCaseInfo.assistCollector.eq(user)));
-            }
-            Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);
+            caseInfoHistoryRepository.save(caseInfoHistoryList);
+            caseAssistRepository.delete(assistList);
+            caseInfoJudicialRepository.delete(judicialList);
+            caseInfoVerificationRepository.delete(verificationList);
+            outsourcePoolRepository.delete(outsourcePoolList);
+            caseRepairRepository.delete(caseRepairList);
+            caseInfoRepository.delete(caseInfoList);
+            caseInfoReturnRepository.delete(all);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "getAllCaseInfo", "系统异常!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
     }
 
-    /**
-     * @Description : 删除案件放到caseInfoHistory
-     */
-    @PostMapping("/deleteCaseInfo")
-    public ResponseEntity<List<CaseInfo>> deleteCaseInfo(@RequestBody CaseInfoIdList request) {
+    @PostMapping("/deleteInnerCase")
+    @ApiOperation(value = "内催已结案案件删除", notes = "内催已结案案件删除")
+    public ResponseEntity deleteInnerCase(@RequestBody DeleteCaseParams params,
+                                          @RequestHeader(value = "X-UserToken") String token) {
         try {
-            if (Objects.isNull(request.getIds()) || request.getIds().isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","请选择要删除的案件!")).body(null);
+            User user = getUserByToken(token);
+            if (Objects.isNull(params.getIds()) || params.getIds().isEmpty()) {
+                throw new RuntimeException("请选择要删除的案件");
             }
-            List<CaseInfo> caseInfoList = caseInfoRepository.findAll(request.getIds());
-            List<CaseInfoHistory> caseInfoHistories = new ArrayList<>();
-            List<CaseInfo> caseInfos = new ArrayList<>();
-            for (CaseInfo caseInfo : caseInfoList) {
-                if (!Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
-                    caseInfos.add(caseInfo);
-                } else {
-                    CaseInfoHistory caseInfoHistory = new CaseInfoHistory();
-                    BeanUtils.copyProperties(caseInfo, caseInfoHistory);
-                    caseInfoHistory.setCaseId(caseInfo.getId());
-                    caseInfoHistories.add(caseInfoHistory);
-                }
+
+            List<CaseInfo> caseInfoList = new ArrayList<>();
+            List<CaseAssist> assistList = new ArrayList<>();
+            List<CaseInfoJudicial> judicialList = new ArrayList<>();
+            List<CaseInfoVerification> verificationList = new ArrayList<>();
+            List<OutsourcePool> outsourcePoolList = new ArrayList<>();
+            List<CaseRepair> caseRepairList = new ArrayList<>();
+            List<CaseInfoHistory> caseInfoHistoryList = new ArrayList<>();
+            List<CaseInfo> all = caseInfoRepository.findAll(params.getIds());
+            caseInfoList.addAll(all);
+            for (CaseInfo caseInfo : all) {
+                CaseInfoHistory history = new CaseInfoHistory();
+                saveHistory(caseInfo, history, caseInfoHistoryList, user);
+                deleteCaseInfo(caseInfo, assistList, judicialList, verificationList, outsourcePoolList, caseRepairList);
             }
-            caseInfoHistoryRepository.save(caseInfoHistories);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert( "删除成功","")).body(caseInfos);
-        } catch (BeansException e) {
-            log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "删除失败")).body(null);
+            caseInfoHistoryRepository.save(caseInfoHistoryList);
+            caseAssistRepository.delete(assistList);
+            caseInfoJudicialRepository.delete(judicialList);
+            caseInfoVerificationRepository.delete(verificationList);
+            outsourcePoolRepository.delete(outsourcePoolList);
+            caseRepairRepository.delete(caseRepairList);
+            caseInfoRepository.delete(caseInfoList);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功", "")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
+    }
+
+    @PostMapping("/deleteOuterCase")
+    @ApiOperation(value = "委外已结案案件删除", notes = "委外已结案案件删除")
+    public ResponseEntity deleteOuterCase(@RequestBody DeleteCaseParams params,
+                                          @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            if (Objects.isNull(params.getIds()) || params.getIds().isEmpty()) {
+                throw new RuntimeException("请选择要删除的案件");
+            }
+
+            List<CaseInfo> caseInfoList = new ArrayList<>();
+            List<CaseAssist> assistList = new ArrayList<>();
+            List<CaseInfoJudicial> judicialList = new ArrayList<>();
+            List<CaseInfoVerification> verificationList = new ArrayList<>();
+            List<OutsourcePool> outsourcePoolList = new ArrayList<>();
+            List<CaseRepair> caseRepairList = new ArrayList<>();
+            List<CaseInfoHistory> caseInfoHistoryList = new ArrayList<>();
+            List<OutsourcePool> all = outsourcePoolRepository.findAll(params.getIds());
+            for (OutsourcePool pool : all) {
+                CaseInfo caseInfo = pool.getCaseInfo();
+                caseInfoList.add(caseInfo);
+                CaseInfoHistory history = new CaseInfoHistory();
+                saveHistory(caseInfo, history, caseInfoHistoryList, user);
+                deleteCaseInfo(caseInfo, assistList, judicialList, verificationList, outsourcePoolList, caseRepairList);
+            }
+            caseInfoHistoryRepository.save(caseInfoHistoryList);
+            caseAssistRepository.delete(assistList);
+            caseInfoJudicialRepository.delete(judicialList);
+            caseInfoVerificationRepository.delete(verificationList);
+            outsourcePoolRepository.delete(outsourcePoolList);
+            caseRepairRepository.delete(caseRepairList);
+            caseInfoRepository.delete(caseInfoList);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功", "")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+    }
+
+    private void saveHistory(CaseInfo caseInfo, CaseInfoHistory history, List<CaseInfoHistory> caseInfoHistoryList, User user) {
+        BeanUtils.copyProperties(caseInfo, history);
+        history.setId(null);
+        history.setCaseId(caseInfo.getId());
+        history.setOperator(user);
+        history.setOperatorTime(new Date());
+        caseInfoHistoryList.add(history);
+    }
+
+    private void deleteCaseInfo(CaseInfo caseInfo, List<CaseAssist> assistList, List<CaseInfoJudicial> judicialList,
+                                List<CaseInfoVerification> verificationList, List<OutsourcePool> outsourcePoolList,
+                                List<CaseRepair> caseRepairList) {
+        String id = caseInfo.getId();
+        // 删除协催案件
+        QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+        Iterable<CaseAssist> assists = caseAssistRepository.findAll(qCaseAssist.caseId.id.eq(id));
+        List<CaseAssist> caseAssistList = IterableUtils.toList(assists);
+        assistList.addAll(caseAssistList);
+        // 删除核销
+        QCaseInfoVerification qCaseInfoVerification = QCaseInfoVerification.caseInfoVerification;
+        Iterable<CaseInfoVerification> verifications = caseInfoVerificationRepository.findAll(qCaseInfoVerification.caseInfo.id.eq(id));
+        List<CaseInfoVerification> caseInfoVerifications = IterableUtils.toList(verifications);
+        verificationList.addAll(caseInfoVerifications);
+        // 删除司法
+        QCaseInfoJudicial qCaseInfoJudicial = QCaseInfoJudicial.caseInfoJudicial;
+        Iterable<CaseInfoJudicial> judicials = caseInfoJudicialRepository.findAll(qCaseInfoJudicial.caseInfo.id.eq(id));
+        List<CaseInfoJudicial> caseInfoJudicials = IterableUtils.toList(judicials);
+        judicialList.addAll(caseInfoJudicials);
+        // 删除委外
+        QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+        Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(qOutsourcePool.caseInfo.id.eq(id));
+        List<OutsourcePool> pools = IterableUtils.toList(outsourcePools);
+        outsourcePoolList.addAll(pools);
+        // 删除修复
+        QCaseRepair qcaseRepair = QCaseRepair.caseRepair;
+        Iterable<CaseRepair> caseRepairs = caseRepairRepository.findAll(qcaseRepair.caseId.id.eq(id));
+        List<CaseRepair> repairs = IterableUtils.toList(caseRepairs);
+        caseRepairList.addAll(repairs);
     }
 }
