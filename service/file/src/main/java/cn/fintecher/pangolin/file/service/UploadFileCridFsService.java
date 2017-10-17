@@ -49,5 +49,5 @@ public interface UploadFileCridFsService {
      * @param userName
      * @param batchNum
      */
-    void uploadCaseFileReduce(InputStream inputStream, String userId, String userName, String batchNum);
+    void uploadCaseFileReduce(InputStream inputStream, String userId, String userName, String batchNum, String companyCode) throws Exception ;
 }
