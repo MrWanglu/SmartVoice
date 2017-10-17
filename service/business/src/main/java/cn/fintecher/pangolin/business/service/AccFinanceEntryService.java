@@ -125,7 +125,7 @@ public class AccFinanceEntryService {
     public List<CellError> processFinanceDataFollowup(List datalist, CaseFollowupRecord outsourceFollowRecord, List<CellError> errorList) {
 
         List<CaseFollowupRecord> outList = new ArrayList<>();
-        if (Objects.nonNull(datalist)) {
+        if (Objects.nonNull(datalist.get(0))) {
             for (int m = 0; m < datalist.size(); m++) {
                 CaseFollowupRecord out = new CaseFollowupRecord();
                 OutsourceFollowUpRecordModel followUpRecordModel = (OutsourceFollowUpRecordModel) datalist.get(m);
