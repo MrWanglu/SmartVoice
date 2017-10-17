@@ -3,6 +3,8 @@ package cn.fintecher.pangolin.business.repository;
 import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.OutsourcePool;
 import cn.fintecher.pangolin.entity.QOutsourcePool;
+import cn.fintecher.pangolin.util.ZWDateUtil;
+import com.querydsl.core.types.dsl.DateTimePath;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +14,7 @@ import org.springframework.data.querydsl.binding.QuerydslBindings;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -61,27 +64,58 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
             }
         });
         //委案日期
-        bindings.bind(root.outTime).all((path, value) -> {
+        bindings.bind(root.outTime).all((DateTimePath<Date> path, Collection<? extends Date> value) -> {
             Iterator<? extends Date> it = value.iterator();
-            Date firstDelegationDate = it.next();
+            Date operatorMinTime = it.next();
             if (it.hasNext()) {
-                Date secondDelegationDate = it.next();
-                return path.between(firstDelegationDate, secondDelegationDate);
+                String date = ZWDateUtil.fomratterDate(it.next(), "yyyy-MM-dd");
+                date = date + " 23:59:59";
+                Date operatorMaxTime = null;
+                try {
+                    operatorMaxTime = ZWDateUtil.getFormatDateTime(date);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                return path.between(operatorMinTime, operatorMaxTime);
             } else {
-                //大于等于
-                return path.goe(firstDelegationDate);
+                return path.goe(operatorMinTime);
             }
         });
-        //结案日期
-        bindings.bind(root.overOutsourceTime).all((path, value) -> {
+        //到期日期
+        bindings.bind(root.overOutsourceTime).all((DateTimePath<Date> path, Collection<? extends Date> value) -> {
             Iterator<? extends Date> it = value.iterator();
-            Date firstCloseDate = it.next();
+            Date operatorMinTime = it.next();
             if (it.hasNext()) {
-                Date secondCloseDate = it.next();
-                return path.between(firstCloseDate, secondCloseDate);
+                String date = ZWDateUtil.fomratterDate(it.next(), "yyyy-MM-dd");
+                date = date + " 23:59:59";
+                Date operatorMaxTime = null;
+                try {
+                    operatorMaxTime = ZWDateUtil.getFormatDateTime(date);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                return path.between(operatorMinTime, operatorMaxTime);
             } else {
-                //大于等于
-                return path.goe(firstCloseDate);
+                return path.goe(operatorMinTime);
+            }
+        });
+
+        //结案日期
+        bindings.bind(root.endOutsourceTime).all((DateTimePath<Date> path, Collection<? extends Date> value) -> {
+            Iterator<? extends Date> it = value.iterator();
+            Date operatorMinTime = it.next();
+            if (it.hasNext()) {
+                String date = ZWDateUtil.fomratterDate(it.next(), "yyyy-MM-dd");
+                date = date + " 23:59:59";
+                Date operatorMaxTime = null;
+                try {
+                    operatorMaxTime = ZWDateUtil.getFormatDateTime(date);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                return path.between(operatorMinTime, operatorMaxTime);
+            } else {
+                return path.goe(operatorMinTime);
             }
         });
         //案件金额

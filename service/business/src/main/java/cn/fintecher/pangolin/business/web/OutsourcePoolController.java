@@ -228,9 +228,9 @@ public class OutsourcePoolController extends BaseController {
                     } else {
                         scoreRuleModel.setIsWork(0);
                     }
-                    if(Objects.isNull(kieSession)){
+                    if (Objects.isNull(kieSession)) {
                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "无评分策略")).body(null);
-                    }else{
+                    } else {
                         kieSession.insert(scoreRuleModel);//插入
                         kieSession.fireAllRules();//执行规则
                     }
@@ -253,7 +253,7 @@ public class OutsourcePoolController extends BaseController {
     @ApiOperation(value = "委外中案件评分(手动)", notes = "委外中案件评分(手动)")
     public ResponseEntity outCurrentCaseScore(@RequestParam @ApiParam(value = "批次号", required = true) String batchNumber,
                                               @RequestParam @ApiParam(value = "委外方名称", required = true) String outsName,
-                                       @RequestHeader(value = "X-UserToken") String token) {
+                                              @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = null;
             try {
@@ -299,9 +299,9 @@ public class OutsourcePoolController extends BaseController {
                         scoreRuleModel.setIsWork(0);
                     }
 
-                    if(Objects.isNull(kieSession)){
+                    if (Objects.isNull(kieSession)) {
                         return ResponseEntity.ok().headers(HeaderUtil.createAlert("无评分策略！", "failed")).body(null);
-                    }else {
+                    } else {
                         kieSession.insert(scoreRuleModel);//插入
                         kieSession.fireAllRules();//执行规则
                     }
@@ -968,7 +968,7 @@ public class OutsourcePoolController extends BaseController {
             }
 
             List<CellError> errorList = null;
-            try{
+            try {
                 if (type == 0) {
                     Class<?>[] dataClass = {AccFinanceDataExcel.class};
                     //解析Excel并保存到临时表中
@@ -978,7 +978,7 @@ public class OutsourcePoolController extends BaseController {
                     //解析Excel并保存到临时表中
                     errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), uploadFile.getType(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("导入失败", "", e.getMessage())).body(null);
             }
@@ -1382,7 +1382,7 @@ public class OutsourcePoolController extends BaseController {
         try {
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.nonNull(user.getCompanyCode())){
+            if (Objects.nonNull(user.getCompanyCode())) {
                 builder.and(qOutsourcePool.companyCode.eq(user.getCompanyCode()));
             }
             if (Objects.nonNull(batchNumber)) {
@@ -1436,7 +1436,7 @@ public class OutsourcePoolController extends BaseController {
             if (Objects.nonNull(caseNumber)) {
                 builder.and(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(caseNumber));
             }
-            if(Objects.nonNull(user.getCompanyCode())){
+            if (Objects.nonNull(user.getCompanyCode())) {
                 builder.and(QCaseFollowupRecord.caseFollowupRecord.companyCode.eq(user.getCompanyCode()));
             }
             builder.and(QCaseFollowupRecord.caseFollowupRecord.caseFollowupType.eq(CaseFollowupRecord.CaseFollowupType.OUTER.getValue()));
