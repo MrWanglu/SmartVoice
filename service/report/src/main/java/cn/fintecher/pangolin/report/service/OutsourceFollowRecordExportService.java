@@ -169,7 +169,7 @@ public class OutsourceFollowRecordExportService {
         followupExportModel.setBatchNumberOutsource(excportResultModel.getBatchNumberOutsource());//委外批次号
         followupExportModel.setOutTime(excportResultModel.getOutTime());//委案日期
         followupExportModel.setEndOutTime(excportResultModel.getEndOutTime());//结案日期
-        followupExportModel.setOverOutTime(excportResultModel.getOverOutTime());//委案到期日期
+        followupExportModel.setOverOutTime(excportResultModel.getOverOutsourceTime());//委案到期日期
         if (excportResultModel.getOutStatus() == 168) {
             followupExportModel.setOutsourceCaseStatus("催收中");
         }

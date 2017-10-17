@@ -62,13 +62,13 @@
             AND  b.commission_rate &lt; #{commissionRateEnd}
         </if>
         <if test="outTime != null and outTime !=''">
-            AND  b.out_ime &lt; #{out_ime}
+            AND  b.out_ime = #{outTime}
         </if>
         <if test="overOutsourceTime != null and overOutsourceTime !=''">
-            AND  b.over_outsource_time &lt; #{overOutsourceTime}
+            AND  b.over_outsource_time = #{overOutsourceTime}
         </if>
         <if test="outsName != null and outsName !=''">
-            AND  c.outs_name &lt; #{outsName}
+            AND  c.outs_name = #{outsName}
         </if>
     </select>
 
@@ -139,13 +139,16 @@
             AND  b.commission_rate &lt; #{commissionRateEnd}
         </if>
         <if test="outTime != null and outTime !=''">
-            AND  b.out_ime &lt; #{out_ime}
+            AND  b.out_ime = #{outTime}
         </if>
         <if test="overOutsourceTime != null and overOutsourceTime !=''">
-            AND  b.over_outsource_time &lt; #{overOutsourceTime}
+            AND  b.over_outsource_time = #{overOutsourceTime}
+        </if>
+        <if test="endOutsourceTime != null and endOutsourceTime !=''">
+            AND  b.end_outsource_time = #{endOutsourceTime}
         </if>
         <if test="outsName != null and outsName !=''">
-            AND  c.outs_name &lt; #{outsName}
+            AND  c.outs_name = #{outsName}
         </if>
     </select>
 
@@ -160,7 +163,7 @@
         <result column="outs_name" property="outsName"/>
         <result column="has_pay_amount_outsource" property="hasPayAmountOutsource"/>
         <result column="out_time" property="outTime"/>
-        <result column="over_outsource_time" property="overOutTime"/>
+        <result column="over_outsource_time" property="overOutsourceTime"/>
         <result column="end_outsource_time" property="endOutTime"/>
         <result column="out_status" property="outStatus"/>
         <result column="commission_rate_outsource" property="commissionRateOutsource"/>

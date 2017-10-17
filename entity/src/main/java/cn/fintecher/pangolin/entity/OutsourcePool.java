@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.entity;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -23,6 +24,7 @@ public class OutsourcePool extends BaseEntity {
     private Outsource outsource;
 
     @ApiModelProperty("委外时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date outTime;
 
     @ApiModelProperty("操作时间")
@@ -56,10 +58,12 @@ public class OutsourcePool extends BaseEntity {
 
     //Added by huyanmin 2017/9/25
     @ApiModelProperty("委外到期时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date overOutsourceTime;
 
     //Added by huyanmin 2017/9/25
     @ApiModelProperty("委外结案日期")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date endOutsourceTime;
 
     //Added by huyanmin 2017/9/25
