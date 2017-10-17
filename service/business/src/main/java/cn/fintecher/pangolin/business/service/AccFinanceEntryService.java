@@ -206,25 +206,14 @@ public class AccFinanceEntryService {
             caseFollowupRecordRepository.save(outList);
 
         } else {
-            if (validityFinance(errorList, datalist)) {
-                return errorList;
-            }
+            CellError cellError = new CellError();
+            cellError.setErrorMsg("数据不能为空");
+            errorList.add(cellError);
+            return errorList;
+
         }
         return errorList;
 
-    }
-
-
-
-
-    private Boolean validityFinance(List<CellError> errorList, List datalist) {
-        if (ZWStringUtils.isEmpty(datalist)) {
-            CellError cellError = new CellError();
-            cellError.setErrorMsg("数据为空");
-            errorList.add(cellError);
-            return false;
-        }
-        return true;
     }
 }
 
