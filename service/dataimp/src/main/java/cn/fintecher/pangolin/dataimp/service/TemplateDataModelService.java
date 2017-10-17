@@ -38,7 +38,7 @@ public class TemplateDataModelService {
     @Autowired
     private RestTemplate restTemplate;
 
-    public List<TemplateExcelInfo> importExcelData(String filePath, String rowNum, String colNum) throws Exception {
+    public List<TemplateExcelInfo> importExcelData(String filePath,String fileType, String rowNum, String colNum) throws Exception {
         long startTime = System.currentTimeMillis();
         logger.info("线程 {} 开始解析Excel..............................................", Thread.currentThread() + "开始时间" + startTime);
         int rowIndex = 0;
@@ -66,7 +66,6 @@ public class TemplateDataModelService {
 
         List<TemplateExcelInfo> list = new ArrayList();
         TemplateExcelInfo excelTemplate = null;
-        String fileType = filePath.substring(filePath.lastIndexOf('.') + 1);
         HttpHeaders headers = new HttpHeaders();
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<byte[]> response = restTemplate.exchange(filePath,
