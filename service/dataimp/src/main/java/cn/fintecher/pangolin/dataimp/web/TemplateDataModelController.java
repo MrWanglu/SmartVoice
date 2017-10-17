@@ -159,7 +159,7 @@ public class TemplateDataModelController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
             }
             try {
-                List<TemplateExcelInfo> cellList = templateDataModelService.importExcelData(uploadFile.getLocalUrl(), rowNum, colNum);
+                List<TemplateExcelInfo> cellList = templateDataModelService.importExcelData(uploadFile.getLocalUrl(),uploadFile.getType(), rowNum, colNum);
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "")).body(cellList);
             } catch (IndexOutOfBoundsException e) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("上传文件失败", "", e.getMessage())).body(null);
