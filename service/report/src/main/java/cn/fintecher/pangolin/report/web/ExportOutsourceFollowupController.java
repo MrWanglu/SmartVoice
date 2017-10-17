@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -63,6 +64,9 @@ public class ExportOutsourceFollowupController extends BaseController {
         User user = null;
         try {
             user = getUserByToken(token);
+            if(Objects.nonNull(user.getCompanyCode())){
+                exportOutsourceFollowRecordParams.setCompanyCode(user.getCompanyCode());
+            }
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", e.getMessage())).body(null);

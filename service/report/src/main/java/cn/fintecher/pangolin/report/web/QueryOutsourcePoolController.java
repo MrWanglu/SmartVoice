@@ -49,11 +49,10 @@ public class QueryOutsourcePoolController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
             }
             PageHelper.startPage(queryOutsourcePoolParams.getPage() + 1, queryOutsourcePoolParams.getSize());
-            List<QueryOutsourcePool> content = null;
             if(Objects.nonNull(tokenUser.getCompanyCode())) {
                 queryOutsourcePoolParams.setCompanyCode(tokenUser.getCompanyCode());
             }
-            content = queryOutsourcePoolMapper.getAllOutSourcePoolModel(queryOutsourcePoolParams);
+            List<QueryOutsourcePool> content = queryOutsourcePoolMapper.getAllOutSourcePoolModel(queryOutsourcePoolParams);
             PageInfo pageInfo = new PageInfo(content);
             OutSourcePoolModel outSourcePoolModel = new OutSourcePoolModel();
             outSourcePoolModel.setContent(content);
