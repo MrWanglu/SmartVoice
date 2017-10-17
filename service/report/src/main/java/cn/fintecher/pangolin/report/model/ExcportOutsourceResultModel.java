@@ -28,7 +28,7 @@ public class ExcportOutsourceResultModel {
     private Integer leftDaysOutsource;
     private Date outTime;
     private Date endOutTime;
-    private Date overOutTime;
+    private Date overOutsourceTime;
     private Integer outStatus;
     private BigDecimal commissionRateOutsource;
     private String batchNumber;

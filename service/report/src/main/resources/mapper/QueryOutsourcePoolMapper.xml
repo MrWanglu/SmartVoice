@@ -44,7 +44,7 @@
         <if test="outsName != null">
             AND bb.outs_name = #{outsName}
         </if>
-        <if test="outsourceTime != null">
+        <if test="outTime != null">
             AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') >= DATE_FORMAT(#{outsourceTime},'%Y-%m-%d')]]>
         </if>
         <if test="overOutsourceTime != null">

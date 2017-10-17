@@ -34,7 +34,7 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
         //批次号
         bindings.bind(root.caseInfo.batchNumber).first((path, value) -> path.eq(StringUtils.trim(value)));
         //案件金额
-        bindings.bind(root.caseInfo.overdueAmount).all((path, value) -> {
+        bindings.bind(root.contractAmt).all((path, value) -> {
             Iterator<? extends BigDecimal> it = value.iterator();
             BigDecimal firstOverdueAmount = it.next();
             if (it.hasNext()) {
@@ -61,7 +61,7 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
             }
         });
         //委案日期
-        bindings.bind(root.caseInfo.delegationDate).all((path, value) -> {
+        bindings.bind(root.outTime).all((path, value) -> {
             Iterator<? extends Date> it = value.iterator();
             Date firstDelegationDate = it.next();
             if (it.hasNext()) {
@@ -73,7 +73,7 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
             }
         });
         //结案日期
-        bindings.bind(root.caseInfo.closeDate).all((path, value) -> {
+        bindings.bind(root.overOutsourceTime).all((path, value) -> {
             Iterator<? extends Date> it = value.iterator();
             Date firstCloseDate = it.next();
             if (it.hasNext()) {
@@ -110,7 +110,7 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
         //案件类型
         bindings.bind(root.caseInfo.caseType).first((path, value) -> path.eq(value));
         //委外方
-        bindings.bind(root.outsource.id).first((path, value) -> path.eq(StringUtils.trim(value)));
+        bindings.bind(root.outsource.outsName).first((path, value) -> path.eq(StringUtils.trim(value)));
 
         //佣金比例%
         bindings.bind(root.caseInfo.commissionRate).all((path, value) -> {
@@ -141,7 +141,7 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
     /**
      * 获取特定委外方下的特定案件的个数（共债案件）
      *
-     * @param name,idCard,outIds
+     * @param personalName,idCard,outIds
      * @return
      */
     @Query(value = "select a.out_id,COUNT(*) from outsource_pool a " +
