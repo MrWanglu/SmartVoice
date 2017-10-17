@@ -8,6 +8,7 @@ import cn.fintecher.pangolin.entity.message.SendReminderMessage;
 import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import cn.fintecher.pangolin.util.ZWStringUtils;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import org.apache.commons.collections4.IterableUtils;
@@ -591,8 +592,8 @@ public class CaseInfoService {
         caseAssistApply.setOverduePeriods(caseInfo.getOverduePeriods()); //逾期期数
         caseAssistApply.setHoldDays(caseInfo.getHoldDays()); //持案天数
         caseAssistApply.setLeftDays(caseInfo.getLeftDays()); //剩余天数
-        caseAssistApply.setAreaId(caseInfo.getArea().getId()); //省份编号
-        caseAssistApply.setAreaName(caseInfo.getArea().getAreaName()); //城市名称
+        caseAssistApply.setAreaId(ZWStringUtils.isEmpty(caseInfo.getArea()) ? null : caseInfo.getArea().getId()); //省份编号
+        caseAssistApply.setAreaName(ZWStringUtils.isEmpty(caseInfo.getArea()) ? null : caseInfo.getArea().getAreaName()); //城市名称
         caseAssistApply.setApplyUserName(tokenUser.getUserName()); //申请人
         caseAssistApply.setApplyRealName(tokenUser.getRealName()); //申请人姓名
         caseAssistApply.setApplyDeptName(tokenUser.getDepartment().getName()); //申请人部门名称
