@@ -71,7 +71,8 @@ public class CaseInfoVerificationService {
      * @Description 查询核销案件
      */
     public List<Object[]> getCastInfoList(CaseInfoVerficationModel caseInfoVerificationModel, User tokenUser) {
-        StringBuilder queryCon = new StringBuilder("SELECT b.case_number,c.`name`,c.mobile_no,c.id_card,b.batch_number,b.overdue_days,b.overdue_amount,d.`name` AS pname,e.real_name,b.collection_status " +
+        StringBuilder queryCon = new StringBuilder("SELECT b.case_number,b.batch_number,d.`name` AS pname,f.area_name,c.`name` AS cname,c.mobile_no,b.pay_status,b.overdue_days,b.overdue_amount,b.hand_number,b.commission_rate,b.delegation_date,b.close_date,g.name AS gname, " +
+                "e.real_name,b.collection_status,b.assist_flag,b.followup_back,b.assist_way " +
                 "FROM (SELECT id,case_id FROM case_info_verification WHERE 1=1 ");
         List<String> ids = caseInfoVerificationModel.getIds();
         if (Objects.nonNull(caseInfoVerificationModel.getIds())) {
@@ -92,7 +93,8 @@ public class CaseInfoVerificationService {
         }else {
             queryCon.append(" AND company_code = ").append("'").append(tokenUser.getCompanyCode()).append("'");
         }
-        queryCon.append(") AS a LEFT JOIN case_info b ON a.case_id = b.id LEFT JOIN personal c ON b.personal_id = c.id LEFT JOIN principal d ON b.principal_id = d.id LEFT JOIN `user` e ON b.current_collector = e.id");
+        queryCon.append(") AS a LEFT JOIN case_info b ON a.case_id = b.id LEFT JOIN personal c ON b.personal_id = c.id LEFT JOIN principal d ON b.principal_id = d.id LEFT JOIN `user` e ON b.current_collector = e.id LEFT JOIN area_code f ON b.area_id = f.id " +
+                "LEFT JOIN department g on b.depart_id = g.id");
         logger.debug(queryCon.toString());
         List<Object[]> resultList = em.createNativeQuery(queryCon.toString()).getResultList();
         return resultList;
@@ -149,15 +151,24 @@ public class CaseInfoVerificationService {
         FileOutputStream fileOutputStream = null;
         Map<String, String> headMap = new LinkedHashMap<>(); // Excel头
         headMap.put("caseNumber", "案件编号");
+        headMap.put("batchNumber", "批次号");
+        headMap.put("principalName", "委托方");
+        headMap.put("city", "申请城市");
         headMap.put("personalName", "客户姓名");
         headMap.put("personalMobileNo", "手机号");
-        headMap.put("personalIdCard", "身份证号");
-        headMap.put("batchNumber", "批次号");
+        headMap.put("payStatus","还款状态");
         headMap.put("overdueDays", "逾期天数");
-        headMap.put("overdueAmount", "逾期总金额");
-        headMap.put("principalName", "委托方");
+        headMap.put("overdueAmount", "案件金额");
+        headMap.put("handNumber", "案件手数");
+        headMap.put("commissionRate","佣金比例");
+        headMap.put("delegationDate","委案日期");
+        headMap.put("closeDate","结案日期");
+        headMap.put("departName","机构名称");
         headMap.put("currentCollector", "催收员");
         headMap.put("collectionStatus", "催收状态");
+        headMap.put("assistFlag", "是否协催");
+        headMap.put("followupBack", "催收反馈");
+        headMap.put("assistWay", "协催方式");
         List<Map<String, Object>> dataList = new ArrayList<>();
         try {
             caseInfoVerificationList.get(0);
@@ -165,22 +176,33 @@ public class CaseInfoVerificationService {
             for (Object[] caseInfoVerification : caseInfoVerificationList) {
                 map = new LinkedHashMap<>();
                 map.put("caseNumber", caseInfoVerification[0]); // 案件编号
-                map.put("personalName", caseInfoVerification[1]); // 客户姓名
-                map.put("personalMobileNo", caseInfoVerification[2]); // 手机号
+                map.put("batchNumber", caseInfoVerification[1]); // 批次号
+                if (Objects.nonNull(caseInfoVerification[2])) {
+                    map.put("principalName", caseInfoVerification[2]); // 委托方
+                }
                 if (Objects.nonNull(caseInfoVerification[3])) {
-                    map.put("personalIdCard", caseInfoVerification[3]); // 身份证号
+                    map.put("city", caseInfoVerification[3]); // 城市
                 }
-                map.put("batchNumber", caseInfoVerification[4]); // 批次号
-                map.put("overdueDays", caseInfoVerification[5]); // 逾期天数
-                map.put("overdueAmount", caseInfoVerification[6]); // 逾期总金额
-                if (Objects.nonNull(caseInfoVerification[7])) {
-                    map.put("principalName", caseInfoVerification[7]); // 委托方
+                map.put("personalName", caseInfoVerification[4]); // 客户姓名
+                map.put("personalMobileNo", caseInfoVerification[5]); // 手机号
+                map.put("payStatus", caseInfoVerification[6]); // 还款状态
+                map.put("overdueDays", caseInfoVerification[7]); // 逾期天数
+                map.put("overdueAmount", caseInfoVerification[8]); // 逾期总金额
+                map.put("handNumber", caseInfoVerification[9]); // 案件手数
+                map.put("commissionRate", caseInfoVerification[10]); // 佣金比例
+                map.put("delegationDate", caseInfoVerification[11]); // 委案日期
+                map.put("closeDate", caseInfoVerification[12]); // 结案日期
+                if (Objects.nonNull(caseInfoVerification[13])) {
+                    map.put("departName", caseInfoVerification[13]); // 机构名称
                 }
-                if (Objects.nonNull(caseInfoVerification[8])) {
-                    map.put("currentCollector", caseInfoVerification[8]); // 催收员
+                if (Objects.nonNull(caseInfoVerification[14])) {
+                    map.put("currentCollector", caseInfoVerification[14]); // 催收员
                 }
-                DataDict dataDict = dataDictRepository.findOne(QDataDict.dataDict.id.eq(Integer.parseInt(caseInfoVerification[9].toString())));
+                DataDict dataDict = dataDictRepository.findOne(QDataDict.dataDict.id.eq(Integer.parseInt(caseInfoVerification[15].toString())));
                 map.put("collectionStatus", dataDict.getName()); // 催收状态
+                map.put("assistFlag", caseInfoVerification[16]); // 是否协催
+                map.put("followupBack", caseInfoVerification[17]); // 催收反馈
+                map.put("assistWay", caseInfoVerification[18]); // 协催方式
                 dataList.add(map);
             }
             workbook = new HSSFWorkbook();
