@@ -52,7 +52,7 @@ public class ExportOutsourceFollowRecordParams {
     @ApiModelProperty(notes = "结案日期")
     private Date endOutsourceTime;
     @ApiModelProperty(notes = "委托方")
-    private String outsName;
+    private List<String> outsNameList;
     @ApiModelProperty(notes = "公司Code")
     private String companyCode;
 

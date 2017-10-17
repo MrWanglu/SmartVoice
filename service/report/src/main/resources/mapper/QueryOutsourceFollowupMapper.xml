@@ -67,8 +67,11 @@
         <if test="overOutsourceTime != null and overOutsourceTime !=''">
             AND  b.over_outsource_time = #{overOutsourceTime}
         </if>
-        <if test="outsName != null and outsName !=''">
-            AND  c.outs_name = #{outsName}
+        <if test="outsNameList != null and outsNameList !=''">
+            AND  c.outs_name in
+            <foreach collection="outsNameList" index="index" item="outsName" open="(" separator="," close=")">
+                #{outsName}
+            </foreach>
         </if>
     </select>
 
@@ -147,8 +150,11 @@
         <if test="endOutsourceTime != null and endOutsourceTime !=''">
             AND  b.end_outsource_time = #{endOutsourceTime}
         </if>
-        <if test="outsName != null and outsName !=''">
-            AND  c.outs_name = #{outsName}
+        <if test="outsNameList != null and outsNameList !=''">
+            AND  c.outs_name in
+            <foreach collection="outsNameList" index="index" item="outsName" open="(" separator="," close=")">
+                #{outsName}
+            </foreach>
         </if>
     </select>
 
