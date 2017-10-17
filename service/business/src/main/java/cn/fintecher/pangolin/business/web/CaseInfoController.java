@@ -1222,7 +1222,7 @@ public class CaseInfoController extends BaseController {
                 builder.and(qCaseInfoReturn.caseId.companyCode.eq(user.getCompanyCode()));//公司
             }
             builder.and(qCaseInfoReturn.caseId.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));//内催
-            builder.and(qCaseInfoReturn.caseId.department.code.startsWith(user.getDepartment().getCode()));//部门下
+//            builder.and(qCaseInfoReturn.caseId.department.code.startsWith(user.getDepartment().getCode()));//部门下
             Page<CaseInfoReturn> all = caseInfoReturnRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(all);
         } catch (Exception e) {
