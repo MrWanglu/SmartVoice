@@ -51,6 +51,9 @@ public class UserDevice extends BaseEntity{
     @ApiModelProperty("备用字段")
     private String field;
 
+    @ApiModelProperty("MAC地址")
+    private String mac;
+
     @Column(name = "user_id")
     private String userId;
 
