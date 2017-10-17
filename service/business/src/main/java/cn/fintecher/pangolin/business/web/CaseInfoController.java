@@ -726,10 +726,9 @@ public class CaseInfoController extends BaseController {
             builder.and(qCaseInfo.companyCode.eq(companyCode));
         }
         if (Objects.nonNull(caseInfo.getPersonalInfo())) {
-            builder.and(qCaseInfo.personalInfo.name.eq(caseInfo.getPersonalInfo().getName()).
-                    and(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard())).
+            builder.and(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard())).
                     and(qCaseInfo.id.ne(caseInfo.getId())).
-                    and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue(), CaseInfo.CollectionStatus.CASE_OUT.getValue())));
+                    and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue(), CaseInfo.CollectionStatus.CASE_OUT.getValue()));
         }
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
