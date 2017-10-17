@@ -111,7 +111,7 @@ public class CaseRecoverJob implements Job {
                     caseInfoReturn.setSource(CaseInfoReturn.Source.OUTSOURCE.getValue()); // 回收来源-委外
                     caseInfoReturn.setCaseId(caseInfo);
                     caseInfoReturn.setOutBatch(outsourcePool.getOutBatch());
-                    caseInfoReturn.setOutsName(outsourcePool.getOutsource().getOutsName());
+                    caseInfoReturn.setOutsName(Objects.nonNull(outsourcePool.getOutsource()) ? outsourcePool.getOutsource().getOutsName() : "");
                     caseInfoReturn.setOutTime(outsourcePool.getOutTime());
                     caseInfoReturn.setOverOutsourceTime(outsourcePool.getOverOutsourceTime());
                     caseInfoReturn.setCompanyCode(outsourcePool.getCompanyCode());
