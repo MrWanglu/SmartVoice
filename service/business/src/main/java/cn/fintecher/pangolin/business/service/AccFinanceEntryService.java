@@ -35,11 +35,11 @@ public class AccFinanceEntryService {
     @Autowired
     CaseInfoRepository caseInfoRepository;
 
-    public List<CellError> importAccFinanceData(String fileUrl,String fileType, int[] startRow, int[] startCol, Class<?>[] dataClass, AccFinanceEntry accFinanceEntry, CaseFollowupRecord outsourceFollowRecord, Integer type) throws Exception {
+    public List<CellError> importAccFinanceData(String fileUrl, String fileType, int[] startRow, int[] startCol, Class<?>[] dataClass, AccFinanceEntry accFinanceEntry, CaseFollowupRecord outsourceFollowRecord, Integer type) throws Exception {
         List<CellError> errorList = null;
         try {
             //从文件服务器上获取Excel文件并解析：
-            ExcelSheetObj excelSheetObj = ExcelUtil.parseExcelSingle(fileUrl,fileType, dataClass, startRow, startCol);
+            ExcelSheetObj excelSheetObj = ExcelUtil.parseExcelSingle(fileUrl, fileType, dataClass, startRow, startCol);
             List dataList = excelSheetObj.getDatasList();
             //导入错误信息
             errorList = excelSheetObj.getCellErrorList();
@@ -47,7 +47,7 @@ public class AccFinanceEntryService {
                 if (type == 0) {
                     processFinanceData(dataList, accFinanceEntry, errorList);
                 } else {
-                    processFinanceDataFollowup(dataList, outsourceFollowRecord, errorList);
+                    errorList = processFinanceDataFollowup(dataList, outsourceFollowRecord, errorList);
                 }
             }
         } catch (Exception e) {
@@ -122,87 +122,109 @@ public class AccFinanceEntryService {
      * Created by huyanmin 2017/9/26
      * 将Excel中的数据存入数据库中
      */
-    public void processFinanceDataFollowup(List datalist, CaseFollowupRecord outsourceFollowRecord, List<CellError> errorList) {
+    public List<CellError> processFinanceDataFollowup(List datalist, CaseFollowupRecord outsourceFollowRecord, List<CellError> errorList) {
 
         List<CaseFollowupRecord> outList = new ArrayList<>();
-        for (int m = 0; m < datalist.size(); m++) {
-            CaseFollowupRecord out = new CaseFollowupRecord();
-            OutsourceFollowUpRecordModel followUpRecordModel = (OutsourceFollowUpRecordModel) datalist.get(m);
-            CaseInfo caseInfo = null;
-            if (Objects.nonNull(followUpRecordModel.getCaseNum())) {
-                out.setCaseNumber(followUpRecordModel.getCaseNum());
-                caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(followUpRecordModel.getCaseNum()));
-                //案件编号是否存在
-                if (Objects.nonNull(caseInfo)) {
-                    out.setCaseId(caseInfo.getId());
+        if (Objects.nonNull(datalist)) {
+            for (int m = 0; m < datalist.size(); m++) {
+                CaseFollowupRecord out = new CaseFollowupRecord();
+                OutsourceFollowUpRecordModel followUpRecordModel = (OutsourceFollowUpRecordModel) datalist.get(m);
+                CaseInfo caseInfo = null;
+                if (Objects.nonNull(followUpRecordModel.getCaseNum())) {
+                    out.setCaseNumber(followUpRecordModel.getCaseNum());
+                    caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(followUpRecordModel.getCaseNum()));
+                    //案件编号是否存在
+                    if (Objects.nonNull(caseInfo)) {
+                        out.setCaseId(caseInfo.getId());
+                    } else {
+                        errorList.add(new CellError("", m + 1, 1, "", "", "客户[".concat(out.getCaseNumber()).concat("]的案件编号不存在"), null));
+                    }
                 } else {
-                    errorList.add(new CellError("", m + 1, 1, "", "", "客户[".concat(out.getCaseNumber()).concat("]的案件编号不存在"), null));
+                    errorList.add(new CellError("", m + 1, 1, "", "", "案件编号不存在", null));
                 }
-            } else {
-                errorList.add(new CellError("", m + 1, 1, "", "", "案件编号不存在", null));
-            }
-            CaseFollowupRecord.Type[] followTypes = CaseFollowupRecord.Type.values();//跟进方式
-            Integer followtype = 0;
-            for (int i = 0; i < followTypes.length; i++) {
-                if (Objects.nonNull(followUpRecordModel.getFollowType())) {
-                    if (followTypes[i].getRemark().equals(followUpRecordModel.getFollowType())) {
-                        followtype = followTypes[i].getValue();
+                CaseFollowupRecord.Type[] followTypes = CaseFollowupRecord.Type.values();//跟进方式
+                Integer followtype = 0;
+                for (int i = 0; i < followTypes.length; i++) {
+                    if (Objects.nonNull(followUpRecordModel.getFollowType())) {
+                        if (followTypes[i].getRemark().equals(followUpRecordModel.getFollowType())) {
+                            followtype = followTypes[i].getValue();
+                        }
                     }
                 }
-            }
-            out.setType(followtype);
-            if (Objects.nonNull(outsourceFollowRecord.getCompanyCode())) {
-                out.setCompanyCode(outsourceFollowRecord.getCompanyCode());
-            }
-            out.setFollowTime(followUpRecordModel.getFollowTime());
-            out.setFollowPerson(followUpRecordModel.getFollowPerson());
-            out.setTargetName(followUpRecordModel.getUserName());
-            CaseFollowupRecord.Target[] objectNames = CaseFollowupRecord.Target.values();//跟进对象
-            Integer objectName = 0;
-            for (int i = 0; i < objectNames.length; i++) {
-                if (Objects.nonNull(followUpRecordModel.getObjectName())) {
-                    if (objectNames[i].getRemark().equals(followUpRecordModel.getObjectName())) {
-                        objectName = objectNames[i].getValue();
+                out.setType(followtype);
+                if (Objects.nonNull(outsourceFollowRecord.getCompanyCode())) {
+                    out.setCompanyCode(outsourceFollowRecord.getCompanyCode());
+                }
+                out.setFollowTime(followUpRecordModel.getFollowTime());
+                out.setFollowPerson(followUpRecordModel.getFollowPerson());
+                out.setTargetName(followUpRecordModel.getUserName());
+                CaseFollowupRecord.Target[] objectNames = CaseFollowupRecord.Target.values();//跟进对象
+                Integer objectName = 0;
+                for (int i = 0; i < objectNames.length; i++) {
+                    if (Objects.nonNull(followUpRecordModel.getObjectName())) {
+                        if (objectNames[i].getRemark().equals(followUpRecordModel.getObjectName())) {
+                            objectName = objectNames[i].getValue();
+                        }
                     }
                 }
-            }
-            out.setTarget(objectName);
-            CaseFollowupRecord.EffectiveCollection[] feedBacks = CaseFollowupRecord.EffectiveCollection.values();//有效催收反馈
-            Integer feedBack = 0;
-            for (int i = 0; i < feedBacks.length; i++) {
-                if (Objects.nonNull(followUpRecordModel.getFeedback())) {
-                    if (feedBacks[i].getRemark().equals(followUpRecordModel.getFeedback())) {
-                        feedBack = feedBacks[i].getValue();
+                out.setTarget(objectName);
+                CaseFollowupRecord.EffectiveCollection[] feedBacks = CaseFollowupRecord.EffectiveCollection.values();//有效催收反馈
+                Integer feedBack = 0;
+                for (int i = 0; i < feedBacks.length; i++) {
+                    if (Objects.nonNull(followUpRecordModel.getFeedback())) {
+                        if (feedBacks[i].getRemark().equals(followUpRecordModel.getFeedback())) {
+                            feedBack = feedBacks[i].getValue();
+                        }
                     }
                 }
-            }
-            CaseFollowupRecord.InvalidCollection[] InvalidFeedBacks = CaseFollowupRecord.InvalidCollection.values();//无效催收反馈
-            for (int i = 0; i < InvalidFeedBacks.length; i++) {
-                if (Objects.nonNull(followUpRecordModel.getFeedback())) {
-                    if (InvalidFeedBacks[i].getRemark().equals(followUpRecordModel.getFeedback())) {
-                        feedBack = InvalidFeedBacks[i].getValue();
+                CaseFollowupRecord.InvalidCollection[] InvalidFeedBacks = CaseFollowupRecord.InvalidCollection.values();//无效催收反馈
+                for (int i = 0; i < InvalidFeedBacks.length; i++) {
+                    if (Objects.nonNull(followUpRecordModel.getFeedback())) {
+                        if (InvalidFeedBacks[i].getRemark().equals(followUpRecordModel.getFeedback())) {
+                            feedBack = InvalidFeedBacks[i].getValue();
+                        }
                     }
                 }
-            }
-            out.setCollectionFeedback(feedBack);
-            out.setContent(followUpRecordModel.getFollowRecord());
-            CaseFollowupRecord.ContactState[] telStatusList = CaseFollowupRecord.ContactState.values();//电话状态
-            Integer telStatus = 0;
-            for (int i = 0; i < telStatusList.length; i++) {
-                if (Objects.nonNull(followUpRecordModel.getTelStatus())) {
-                    if (telStatusList[i].getRemark().equals(followUpRecordModel.getTelStatus())) {
-                        telStatus = telStatusList[i].getValue();
+                out.setCollectionFeedback(feedBack);
+                out.setContent(followUpRecordModel.getFollowRecord());
+                CaseFollowupRecord.ContactState[] telStatusList = CaseFollowupRecord.ContactState.values();//电话状态
+                Integer telStatus = 0;
+                for (int i = 0; i < telStatusList.length; i++) {
+                    if (Objects.nonNull(followUpRecordModel.getTelStatus())) {
+                        if (telStatusList[i].getRemark().equals(followUpRecordModel.getTelStatus())) {
+                            telStatus = telStatusList[i].getValue();
+                        }
                     }
                 }
+                out.setContactState(telStatus);
+                out.setOperatorName(outsourceFollowRecord.getOperatorName());
+                out.setOperator(outsourceFollowRecord.getOperator());
+                out.setOperatorTime(ZWDateUtil.getNowDateTime());
+                out.setCaseFollowupType(CaseFollowupRecord.CaseFollowupType.OUTER.getValue());
+                outList.add(out);
             }
-            out.setContactState(telStatus);
-            out.setOperatorName(outsourceFollowRecord.getOperatorName());
-            out.setOperator(outsourceFollowRecord.getOperator());
-            out.setOperatorTime(ZWDateUtil.getNowDateTime());
-            out.setCaseFollowupType(CaseFollowupRecord.CaseFollowupType.OUTER.getValue());
-            outList.add(out);
+            caseFollowupRecordRepository.save(outList);
+
+        } else {
+            if (validityFinance(errorList, datalist)) {
+                return errorList;
+            }
         }
-        caseFollowupRecordRepository.save(outList);
+        return errorList;
+
     }
 
+
+
+
+    private Boolean validityFinance(List<CellError> errorList, List datalist) {
+        if (ZWStringUtils.isEmpty(datalist)) {
+            CellError cellError = new CellError();
+            cellError.setErrorMsg("数据为空");
+            errorList.add(cellError);
+            return false;
+        }
+        return true;
+    }
 }
+
