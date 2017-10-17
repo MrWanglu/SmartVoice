@@ -968,15 +968,21 @@ public class OutsourcePoolController extends BaseController {
             }
 
             List<CellError> errorList = null;
-            if (type == 0) {
-                Class<?>[] dataClass = {AccFinanceDataExcel.class};
-                //解析Excel并保存到临时表中
-                errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), uploadFile.getType(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
-            } else {
-                Class<?>[] dataClass = {OutsourceFollowUpRecordModel.class};
-                //解析Excel并保存到临时表中
-                errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), uploadFile.getType(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
+            try{
+                if (type == 0) {
+                    Class<?>[] dataClass = {AccFinanceDataExcel.class};
+                    //解析Excel并保存到临时表中
+                    errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), uploadFile.getType(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
+                } else {
+                    Class<?>[] dataClass = {OutsourceFollowUpRecordModel.class};
+                    //解析Excel并保存到临时表中
+                    errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), uploadFile.getType(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
+                }
+            }catch (Exception e){
+                log.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("导入失败", "", e.getMessage())).body(null);
             }
+
             if (errorList.isEmpty()) {
                 return ResponseEntity.ok().body(null);
             } else {
@@ -1376,6 +1382,9 @@ public class OutsourcePoolController extends BaseController {
         try {
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             BooleanBuilder builder = new BooleanBuilder(predicate);
+            if(Objects.nonNull(user.getCompanyCode())){
+                builder.and(qOutsourcePool.companyCode.eq(user.getCompanyCode()));
+            }
             if (Objects.nonNull(batchNumber)) {
                 builder.and(qOutsourcePool.outBatch.eq(batchNumber));
             }
@@ -1427,7 +1436,9 @@ public class OutsourcePoolController extends BaseController {
             if (Objects.nonNull(caseNumber)) {
                 builder.and(QCaseFollowupRecord.caseFollowupRecord.caseNumber.eq(caseNumber));
             }
-
+            if(Objects.nonNull(user.getCompanyCode())){
+                builder.and(QCaseFollowupRecord.caseFollowupRecord.companyCode.eq(user.getCompanyCode()));
+            }
             builder.and(QCaseFollowupRecord.caseFollowupRecord.caseFollowupType.eq(CaseFollowupRecord.CaseFollowupType.OUTER.getValue()));
             Page<CaseFollowupRecord> page = caseFollowupRecordRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);

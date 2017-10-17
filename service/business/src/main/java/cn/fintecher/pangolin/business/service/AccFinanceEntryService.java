@@ -47,7 +47,6 @@ public class AccFinanceEntryService {
             }else{
                 throw new RuntimeException("数据不能为空");
             }
-
             //导入错误信息
             errorList = excelSheetObj.getCellErrorList();
             if (errorList.isEmpty()) {
