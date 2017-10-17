@@ -47,7 +47,7 @@ public class AccFinanceEntryService {
                 if (type == 0) {
                     processFinanceData(dataList, accFinanceEntry, errorList);
                 } else {
-                    errorList = processFinanceDataFollowup(dataList, outsourceFollowRecord, errorList);
+                    processFinanceDataFollowup(dataList, outsourceFollowRecord, errorList);
                 }
             }
         } catch (Exception e) {
@@ -122,7 +122,7 @@ public class AccFinanceEntryService {
      * Created by huyanmin 2017/9/26
      * 将Excel中的数据存入数据库中
      */
-    public List<CellError> processFinanceDataFollowup(List datalist, CaseFollowupRecord outsourceFollowRecord, List<CellError> errorList) {
+    public void processFinanceDataFollowup(List datalist, CaseFollowupRecord outsourceFollowRecord, List<CellError> errorList) {
 
         List<CaseFollowupRecord> outList = new ArrayList<>();
         if (Objects.nonNull(datalist.get(0))) {
@@ -206,13 +206,8 @@ public class AccFinanceEntryService {
             caseFollowupRecordRepository.save(outList);
 
         } else {
-            CellError cellError = new CellError();
-            cellError.setErrorMsg("数据不能为空");
-            errorList.add(cellError);
-            return errorList;
-
+            throw new RuntimeException("数据不能为空");
         }
-        return errorList;
 
     }
 }
