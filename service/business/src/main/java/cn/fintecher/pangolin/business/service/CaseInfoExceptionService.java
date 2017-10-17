@@ -619,9 +619,9 @@ public class CaseInfoExceptionService {
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime());
         personalContactList.add(personalContact);
         // 联系人1信息
-        if (Objects.nonNull(caseInfoException.getContactName1())
-                || Objects.nonNull(caseInfoException.getContactPhone1())
-                || Objects.nonNull(caseInfoException.getContactHomePhone1())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName1())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone1())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone1())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation1()));
@@ -639,9 +639,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人2信息
-        if (Objects.nonNull(caseInfoException.getContactName2())
-                || Objects.nonNull(caseInfoException.getContactPhone2())
-                || Objects.nonNull(caseInfoException.getContactHomePhone2())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName2())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone2())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone2())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation2()));
@@ -659,9 +659,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人3信息
-        if (Objects.nonNull(caseInfoException.getContactName3())
-                || Objects.nonNull(caseInfoException.getContactPhone3())
-                || Objects.nonNull(caseInfoException.getContactHomePhone3())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName3())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone3())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone3())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation3()));
@@ -679,9 +679,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人4信息
-        if (Objects.nonNull(caseInfoException.getContactName4())
-                || Objects.nonNull(caseInfoException.getContactPhone4())
-                || Objects.nonNull(caseInfoException.getContactHomePhone4())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName4())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone4())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone4())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation4()));
@@ -699,9 +699,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人5信息
-        if (Objects.nonNull(caseInfoException.getContactName5())
-                || Objects.nonNull(caseInfoException.getContactPhone5())
-                || Objects.nonNull(caseInfoException.getContactHomePhone5())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName5())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone5())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone5())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation5()));
@@ -719,9 +719,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人6信息
-        if (Objects.nonNull(caseInfoException.getContactName6())
-                || Objects.nonNull(caseInfoException.getContactPhone6())
-                || Objects.nonNull(caseInfoException.getContactHomePhone6())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName6())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone6())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone6())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation6()));
@@ -739,9 +739,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人7信息
-        if (Objects.nonNull(caseInfoException.getContactName7())
-                || Objects.nonNull(caseInfoException.getContactPhone7())
-                || Objects.nonNull(caseInfoException.getContactHomePhone7())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName7())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone7())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone7())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation7()));
@@ -759,9 +759,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人8信息
-        if (Objects.nonNull(caseInfoException.getContactName8())
-                || Objects.nonNull(caseInfoException.getContactPhone8())
-                || Objects.nonNull(caseInfoException.getContactHomePhone8())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName8())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone8())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone8())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation8()));
@@ -779,9 +779,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人9信息
-        if (Objects.nonNull(caseInfoException.getContactName9())
-                || Objects.nonNull(caseInfoException.getContactPhone9())
-                || Objects.nonNull(caseInfoException.getContactHomePhone9())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName9())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone9())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone9())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation9()));
@@ -799,9 +799,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人10信息
-        if (Objects.nonNull(caseInfoException.getContactName10())
-                || Objects.nonNull(caseInfoException.getContactPhone10())
-                || Objects.nonNull(caseInfoException.getContactHomePhone10())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName10())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone10())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone10())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation10()));
@@ -819,9 +819,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人11信息
-        if (Objects.nonNull(caseInfoException.getContactName11())
-                || Objects.nonNull(caseInfoException.getContactPhone11())
-                || Objects.nonNull(caseInfoException.getContactHomePhone11())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName11())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone11())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone11())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation11()));
@@ -839,9 +839,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人12信息
-        if (Objects.nonNull(caseInfoException.getContactName12())
-                || Objects.nonNull(caseInfoException.getContactPhone12())
-                || Objects.nonNull(caseInfoException.getContactHomePhone12())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName12())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone12())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone12())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation12()));
@@ -859,9 +859,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人13信息
-        if (Objects.nonNull(caseInfoException.getContactName13())
-                || Objects.nonNull(caseInfoException.getContactPhone13())
-                || Objects.nonNull(caseInfoException.getContactHomePhone13())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName13())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone13())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone13())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation13()));
@@ -879,9 +879,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人14信息
-        if (Objects.nonNull(caseInfoException.getContactName14())
-                || Objects.nonNull(caseInfoException.getContactPhone14())
-                || Objects.nonNull(caseInfoException.getContactHomePhone14())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName14())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone14())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone14())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation14()));
@@ -899,9 +899,9 @@ public class CaseInfoExceptionService {
             personalContactList.add(obj);
         }
         //联系人15信息
-        if (Objects.nonNull(caseInfoException.getContactName15())
-                || Objects.nonNull(caseInfoException.getContactPhone15())
-                || Objects.nonNull(caseInfoException.getContactHomePhone15())) {
+        if (StringUtils.isNotBlank(caseInfoException.getContactName15())
+                || StringUtils.isNotBlank(caseInfoException.getContactPhone15())
+                || StringUtils.isNotBlank(caseInfoException.getContactHomePhone15())) {
             PersonalContact obj = new PersonalContact();
             obj.setPersonalId(personal.getId());
             obj.setRelation(getRelationType(caseInfoException.getContactRelation15()));
@@ -1200,8 +1200,8 @@ public class CaseInfoExceptionService {
      * @param personal
      */
     private void addBankInfo(CaseInfoException caseInfoException, User user, Personal personal) {
-        if (Objects.nonNull(caseInfoException.getDepositBank()) ||
-                Objects.nonNull(caseInfoException.getCardNumber())) {
+        if (StringUtils.isNotBlank(caseInfoException.getDepositBank()) ||
+                StringUtils.isNotBlank(caseInfoException.getCardNumber())) {
             PersonalBank personalBank = new PersonalBank();
             personalBank.setDepositBank(caseInfoException.getDepositBank());
             personalBank.setCardNumber(caseInfoException.getCardNumber());
@@ -1283,7 +1283,7 @@ public class CaseInfoExceptionService {
      */
     private Integer getRelationType(String relationName) {
         //关系判断
-        if (Objects.nonNull(relationName)) {
+        if (StringUtils.isNotBlank(relationName)) {
             for (Personal.RelationEnum relation : Personal.RelationEnum.values()) {
                 if (relation.getRemark().equals(relationName)) {
                     return relation.getValue();
