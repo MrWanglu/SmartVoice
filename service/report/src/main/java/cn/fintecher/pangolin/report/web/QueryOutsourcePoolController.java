@@ -52,8 +52,8 @@ public class QueryOutsourcePoolController extends BaseController {
             List<QueryOutsourcePool> content = null;
             if(Objects.nonNull(tokenUser.getCompanyCode())) {
                 queryOutsourcePoolParams.setCompanyCode(tokenUser.getCompanyCode());
-                content = queryOutsourcePoolMapper.getAllOutSourcePoolModel(queryOutsourcePoolParams);
             }
+            content = queryOutsourcePoolMapper.getAllOutSourcePoolModel(queryOutsourcePoolParams);
             PageInfo pageInfo = new PageInfo(content);
             OutSourcePoolModel outSourcePoolModel = new OutSourcePoolModel();
             outSourcePoolModel.setContent(content);
