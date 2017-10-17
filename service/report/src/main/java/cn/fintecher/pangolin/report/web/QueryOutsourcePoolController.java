@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.report.web;
 
+import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.mapper.QueryOutsourcePoolMapper;
 import cn.fintecher.pangolin.report.model.OutSourcePoolModel;
 import cn.fintecher.pangolin.report.model.QueryOutsourcePool;
@@ -13,11 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author : huyanmin
@@ -37,10 +40,20 @@ public class QueryOutsourcePoolController extends BaseController {
 
     @GetMapping("/queryAllOutsourcePool")
     @ApiOperation(value = "委外催收中查询", notes = "委外催收中查询")
-    public ResponseEntity<OutSourcePoolModel> queryAllOutsourcePool(QueryOutsourcePoolParams queryOutsourcePoolParams) {
+    public ResponseEntity<OutSourcePoolModel> queryAllOutsourcePool(QueryOutsourcePoolParams queryOutsourcePoolParams,
+                                                                    @RequestHeader(value = "X-UserToken") String token) {
+
         try {
+            User tokenUser = getUserByToken(token);
+            if (Objects.isNull(tokenUser)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取不到登录人信息", "", "获取不到登录人信息")).body(null);
+            }
             PageHelper.startPage(queryOutsourcePoolParams.getPage() + 1, queryOutsourcePoolParams.getSize());
-            List<QueryOutsourcePool> content = queryOutsourcePoolMapper.getAllOutSourcePoolModel(queryOutsourcePoolParams);
+            List<QueryOutsourcePool> content = null;
+            if(Objects.nonNull(tokenUser.getCompanyCode())) {
+                queryOutsourcePoolParams.setCompanyCode(tokenUser.getCompanyCode());
+                content = queryOutsourcePoolMapper.getAllOutSourcePoolModel(queryOutsourcePoolParams);
+            }
             PageInfo pageInfo = new PageInfo(content);
             OutSourcePoolModel outSourcePoolModel = new OutSourcePoolModel();
             outSourcePoolModel.setContent(content);
