@@ -1,13 +1,19 @@
 package cn.fintecher.pangolin.file.service.impl;
 
 import cn.fintecher.pangolin.entity.file.UploadFile;
+import cn.fintecher.pangolin.entity.message.ProgressMessage;
+import cn.fintecher.pangolin.entity.message.UnReduceFileMessage;
+import cn.fintecher.pangolin.entity.util.ShortUUID;
 import cn.fintecher.pangolin.file.repository.UploadFileRepository;
 import cn.fintecher.pangolin.file.service.UploadFileCridFsService;
+import cn.fintecher.pangolin.util.UnReduceFile;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import com.mongodb.gridfs.GridFSDBFile;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.query.Query;
@@ -16,8 +22,9 @@ import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.io.*;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @Author: PeiShouWen
@@ -39,6 +46,9 @@ public class UploadFileCridFsServiceImpl implements UploadFileCridFsService {
 
     @Autowired
     GridFsTemplate gridFsTemplate;
+
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     /**
      *
@@ -88,6 +98,71 @@ public class UploadFileCridFsServiceImpl implements UploadFileCridFsService {
         return uploadFileRepository.save(uploadFile);
     }
 
+    @Override
+    public void uploadCaseFileReduce(InputStream inputStream, String userId, String userName, String batchNum, String companyCode) throws Exception {
+        String targetTempFilePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(userName).
+                concat(File.separator).concat(ShortUUID.generateShortUuid()).concat(File.separator);
+
+        List<String> directoryList;
+        try {
+            directoryList = UnReduceFile.unZip(inputStream, targetTempFilePath, "GBK");
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+            return;
+        }
+        if (Objects.nonNull(directoryList)) {
+            int current = 0;
+            int total = 0;
+            for (String directoryName : directoryList) {
+                File file = FileUtils.getFile(targetTempFilePath, directoryName);
+                File[] array = file.listFiles();
+                total = total + array.length;
+            }
+            logger.info("文件总数:{}", total);
+            ProgressMessage progressMessage = new ProgressMessage();
+            progressMessage.setUserId(userId);
+            progressMessage.setCurrent(0);
+            progressMessage.setTotal(total);
+            progressMessage.setText("开始解压缩文件");
+            //上传文件进度
+            rabbitTemplate.convertAndSend("mr.cui.file.unReduce.progress", progressMessage);
+            for (String directoryName : directoryList) {
+                File file = FileUtils.getFile(targetTempFilePath, directoryName);
+                File[] array = file.listFiles();
+                for (File f : array) {
+                    try {
+                        if (f.isDirectory()) {
+                            continue;
+                        }
+                        InputStream in = new FileInputStream(f);
+                        UploadFile uploadFile = uploadFile(in, f.length(), FilenameUtils.getBaseName(f.getName()),
+                                    FilenameUtils.getExtension(f.getName()));
+                        UnReduceFileMessage message = new UnReduceFileMessage();
+                        message.setCompanyCode(companyCode);
+                        message.setUserId(userId);
+                        message.setUploadFile(uploadFile);
+                        message.setBatchNum(batchNum);
+                        message.setPath(directoryName);
+                        current = current + 1;
+                        message.setCurrent(current);
+                        message.setTotal(total);
+                        logger.info("发送第 {} 个文件", current);
+                        rabbitTemplate.convertAndSend("mr.cui.file.unReduce.success", message);
+                        in.close();
+                    } catch (FileNotFoundException e) {
+                        logger.error(e.getMessage(), e);
+                    } catch (IOException e) {
+                        logger.error(e.getMessage(), e);
+                    }
+                }
+            }
+            try {
+                FileUtils.deleteDirectory(FileUtils.getFile(targetTempFilePath));
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+    }
 
     @Override
     public void removeFile(String id) {
@@ -105,10 +180,5 @@ public class UploadFileCridFsServiceImpl implements UploadFileCridFsService {
     public GridFSDBFile getFileContent(String id) {
         Query query = Query.query(GridFsCriteria.whereFilename().is(id));
         return gridFsTemplate.findOne(query);
-    }
-
-    @Override
-    public void uploadCaseFileReduce(InputStream inputStream, String userId, String userName, String batchNum) {
-
     }
 }

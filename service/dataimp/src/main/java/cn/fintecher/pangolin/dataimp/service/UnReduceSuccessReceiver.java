@@ -93,7 +93,7 @@ public class UnReduceSuccessReceiver {
                                 DataInfoExcelFile dataInfoExcelFile = new DataInfoExcelFile();
                                 dataInfoExcelFile.setBatchNumber(batchNum);
                                 dataInfoExcelFile.setFileId(uploadFile.getId());
-                                dataInfoExcelFile.setFileName(uploadFile.getRealName());
+                                dataInfoExcelFile.setFileName(uploadFile.getRealName().concat(uploadFile.getType()));
                                 dataInfoExcelFile.setOperator(user.getId());
                                 dataInfoExcelFile.setOperatorTime(ZWDateUtil.getNowDateTime());
                                 dataInfoExcelFile.setFileUrl(uploadFile.getUrl());

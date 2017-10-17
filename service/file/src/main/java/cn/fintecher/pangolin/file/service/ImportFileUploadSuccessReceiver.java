@@ -27,7 +27,7 @@ public class ImportFileUploadSuccessReceiver {
     private final Logger logger = LoggerFactory.getLogger(ImportFileUploadSuccessReceiver.class);
 
     @Autowired
-    private UploadFileService uploadFileService;
+    private UploadFileCridFsService uploadFileCridFsService;
 
     @RabbitHandler
     public void receive(ImportFileUploadSuccessMessage message) {
@@ -38,7 +38,7 @@ public class ImportFileUploadSuccessReceiver {
             ResponseEntity<byte[]> response = restTemplate.exchange(message.getUploadFile().getUrl(),
                     HttpMethod.GET, new HttpEntity<byte[]>(headers),
                     byte[].class);
-            uploadFileService.uploadCaseFileReduce(new ByteArrayInputStream(response.getBody()), message.getUserId(), message.getUserName(), message.getBatchNum(), message.getCompanyCode());
+            uploadFileCridFsService.uploadCaseFileReduce(new ByteArrayInputStream(response.getBody()), message.getUserId(), message.getUserName(), message.getBatchNum(), message.getCompanyCode());
 
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
