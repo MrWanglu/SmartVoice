@@ -94,6 +94,9 @@ public class OutsourceController extends BaseController {
                 case 157:
                     letter = "I";
                     break;
+                case 245:
+                    letter = "C";
+                    break;
                 default:
                     letter = "O";
                     break;

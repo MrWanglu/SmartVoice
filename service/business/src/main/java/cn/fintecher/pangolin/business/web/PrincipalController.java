@@ -68,9 +68,9 @@ public class PrincipalController extends BaseController {
     public ResponseEntity<Page<Principal>> getPrincipalPageList(@QuerydslPredicate(root = Principal.class) Predicate predicate,
                                                                 @ApiIgnore Pageable pageable,
                                                                 @RequestHeader(value = "X-UserToken") String token,
-                                                                @RequestParam(value = "companyCode",required = false) String companyCode) {
+                                                                @RequestParam(value = "companyCode", required = false) String companyCode) {
         logger.debug("REST request to getPrincipalPageList");
-        User user ;
+        User user;
         try {
             user = getUserByToken(token);
         } catch (final Exception e) {
@@ -103,7 +103,7 @@ public class PrincipalController extends BaseController {
     public ResponseEntity<List<Principal>> getPrincipalPageList(@RequestParam(required = false) String companyCode,
                                                                 @RequestHeader(value = "X-UserToken") String token) {
         logger.debug("REST request to get all Principal");
-        User user ;
+        User user;
         try {
             user = getUserByToken(token);
         } catch (final Exception e) {
@@ -204,6 +204,9 @@ public class PrincipalController extends BaseController {
                     break;
                 case 157:
                     letter = "I";
+                    break;
+                case 245:
+                    letter = "C";
                     break;
                 default:
                     letter = "O";
