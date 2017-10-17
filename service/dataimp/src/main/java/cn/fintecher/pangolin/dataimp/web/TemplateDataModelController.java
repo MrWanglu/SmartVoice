@@ -66,13 +66,13 @@ public class TemplateDataModelController {
     @Autowired
     private RestTemplate restTemplate;
 
-    private final Logger logger= LoggerFactory.getLogger(TemplateDataModelController.class);
+    private final Logger logger = LoggerFactory.getLogger(TemplateDataModelController.class);
     private static final String ENTITY_TEMPLATE = "template";
-    private static final String ENTITY_NAME="TemplateDataModel";
+    private static final String ENTITY_NAME = "TemplateDataModel";
 
     /**
-     *
      * excel模板查询
+     *
      * @param pageable
      * @param token
      * @return
@@ -89,23 +89,23 @@ public class TemplateDataModelController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity getExcelTemplateList(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                               @QuerydslPredicate(root = TemplateDataModel.class) Predicate predicate,@RequestHeader(value = "X-UserToken") String token,
+                                               @QuerydslPredicate(root = TemplateDataModel.class) Predicate predicate, @RequestHeader(value = "X-UserToken") String token,
                                                @ApiIgnore Pageable pageable) {
         try {
-            ResponseEntity<User> userResponseEntity=null;
+            ResponseEntity<User> userResponseEntity = null;
             try {
                 userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-            }catch (Exception e){
-                logger.error(e.getMessage(),e);
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user",ENTITY_NAME)).body(null);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("没有获取到用户信息", "user", ENTITY_NAME)).body(null);
             }
-            User user=userResponseEntity.getBody();
+            User user = userResponseEntity.getBody();
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            if(Objects.isNull(user.getCompanyCode())){//超级管理员默认查询所有
-                if(Objects.nonNull(companyCode)){
+            if (Objects.isNull(user.getCompanyCode())) {//超级管理员默认查询所有
+                if (Objects.nonNull(companyCode)) {
                     builder.and(QTemplateDataModel.templateDataModel.companyCode.eq(companyCode));
                 }
-            }else {
+            } else {
                 builder.and(QTemplateDataModel.templateDataModel.companyCode.eq(user.getCompanyCode()));
             }
             Page<TemplateDataModel> page = templateDataModelRepository.findAll(builder, pageable);
@@ -113,7 +113,7 @@ public class TemplateDataModelController {
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "获取数据失败")).body(null);
         }
     }
 
@@ -124,7 +124,7 @@ public class TemplateDataModelController {
             if (Objects.nonNull(id)) {
                 templateDataModelRepository.delete(id);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功",ENTITY_TEMPLATE)).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功", ENTITY_TEMPLATE)).body(null);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
@@ -133,6 +133,7 @@ public class TemplateDataModelController {
 
     /**
      * 上传excel文件并解析
+     *
      * @param id
      * @param rowNum
      * @param colNum
@@ -147,10 +148,9 @@ public class TemplateDataModelController {
             //查找上传文件
             UploadFile uploadFile = null;
             try {
-              //  uploadFileResponseEntity = uploadFileClient.getUploadFile(fileId);
-                ResponseEntity<UploadFile>  uploadFileResponseEntity =restTemplate.getForEntity(Constants.FILEID_SERVICE_URL+"uploadFile/".concat(id), UploadFile.class,id);
+                ResponseEntity<UploadFile> uploadFileResponseEntity = restTemplate.getForEntity(Constants.FILEID_SERVICE_URL + "uploadFile/".concat(id), UploadFile.class, id);
                 if (!uploadFileResponseEntity.hasBody()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("templateDataNodel", "failure","获取上传文件失败")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("templateDataNodel", "failure", "获取上传文件失败")).body(null);
                 } else {
                     uploadFile = uploadFileResponseEntity.getBody();
                 }
@@ -159,7 +159,7 @@ public class TemplateDataModelController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
             }
             try {
-                List<TemplateExcelInfo> cellList = templateDataModelService.importExcelData(uploadFile.getLocalUrl(),uploadFile.getType(), rowNum, colNum);
+                List<TemplateExcelInfo> cellList = templateDataModelService.importExcelData(uploadFile.getLocalUrl(), uploadFile.getType(), rowNum, colNum);
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "")).body(cellList);
             } catch (IndexOutOfBoundsException e) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("上传文件失败", "", e.getMessage())).body(null);
@@ -168,32 +168,32 @@ public class TemplateDataModelController {
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "解析Excel失败")).body(null);
         }
     }
+
     @PostMapping("/importExcelTemplateData")
     @ResponseBody
     @ApiOperation(value = "新增Excel模板配置保存操作", notes = "新增Excel模板配置保存操作")
     public ResponseEntity importExcelTemplateData(@RequestBody TemplateDataModel excelTemplateData, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
         try {
             excelTemplateData = (TemplateDataModel) EntityUtil.emptyValueToNull(excelTemplateData);
-            ResponseEntity<User> userResponseEntity=null;
+            ResponseEntity<User> userResponseEntity = null;
             try {
                 userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-            }catch (Exception e){
-                logger.error(e.getMessage(),e);
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user",ENTITY_NAME)).body(null);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
             }
-            User user=userResponseEntity.getBody();
+            User user = userResponseEntity.getBody();
             excelTemplateData.setOperatorTime(ZWDateUtil.getNowDateTime());
             excelTemplateData.setOperator(user.getRealName());
             excelTemplateData.setOperatorName(user.getRealName());
             excelTemplateData.setDataColNum(templateDataModelService.excelColStrToNum(excelTemplateData.getDataColNum()));//将字母转化为数字
-            excelTemplateData.setDataRowNum(String.valueOf(Integer.parseInt(excelTemplateData.getDataRowNum())-1));
-            if(Objects.isNull(user.getCompanyCode())){//如果是超级管理员，code码为空
+            excelTemplateData.setDataRowNum(String.valueOf(Integer.parseInt(excelTemplateData.getDataRowNum()) - 1));
+            if (Objects.isNull(user.getCompanyCode())) {//如果是超级管理员，code码为空
                 excelTemplateData.setCompanyCode(null);
-            }else{
+            } else {
                 excelTemplateData.setCompanyCode(user.getCompanyCode());
             }
             String templateId = excelTemplateData.getId();
@@ -204,16 +204,17 @@ public class TemplateDataModelController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("添加成功", "success")).body(null);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "解析Excel失败")).body(null);
         }
     }
+
     @GetMapping("/updatetExcelTemplateData")
     @ResponseBody
     @ApiOperation(value = "修改Excel模板配置", notes = "修改Excel模板配置")
-    public ResponseEntity<TemplateDataModel> updatetExcelTemplateData(@RequestParam String id){
-        TemplateDataModel templateDataModel=null;
+    public ResponseEntity<TemplateDataModel> updatetExcelTemplateData(@RequestParam String id) {
+        TemplateDataModel templateDataModel = null;
         try {
-           templateDataModel= templateDataModelRepository.findOne(id);
+            templateDataModel = templateDataModelRepository.findOne(id);
             templateDataModel.setDataColNum(templateDataModelService.excelColIndexToStr(Integer.parseInt(templateDataModel.getDataColNum())));
         } catch (Exception e) {
             e.printStackTrace();
@@ -221,17 +222,19 @@ public class TemplateDataModelController {
         }
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "success")).body(templateDataModel);
     }
+
     @GetMapping("/getExcelList")
     @ApiOperation(value = "获取Excel映射字段", notes = "获取Excel映射字段")
     public ResponseEntity getExcelList() {
         try {
             List<TemplateExcelInfo> cellList = templateDataModelService.getExcelList();
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询模板形式成功",ENTITY_TEMPLATE)).body(cellList);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询模板形式成功", ENTITY_TEMPLATE)).body(cellList);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "获取Excel映射字段失败")).body(null);
         }
     }
+
     @GetMapping("/checkTemplateName")
     @ApiOperation(value = "检查模板名称是否存在重复", notes = "检查模板名称是否存在重复")
     public ResponseEntity checkTemplateName(@RequestParam(required = true) @ApiParam("模板名称") String templateName) {
@@ -244,37 +247,39 @@ public class TemplateDataModelController {
             if (Objects.nonNull(list) && list.size() == 0) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "")).body(null);
             } else {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("templateDataNodel", "failure","模板名称不能重复")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("templateDataNodel", "failure", "模板名称不能重复")).body(null);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "检查模板名称异常")).body(null);
         }
     }
+
     @GetMapping("/getExcelTempleByPrincipalName")
     @ApiOperation(value = "获取Excel模板", notes = "获取Excel模板")
     public ResponseEntity getExcelTempleByTemplateName(@RequestParam String principalName, @RequestHeader(value = "X-UserToken") String token) {
-        ResponseEntity<User> userResponseEntity=null;
+        ResponseEntity<User> userResponseEntity = null;
         try {
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-        }catch (Exception e){
-            logger.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user",ENTITY_NAME)).body(null);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
         }
-        User user=userResponseEntity.getBody();
+        User user = userResponseEntity.getBody();
         String companyCode = user.getCompanyCode();
         if (ZWStringUtils.isEmpty(principalName)) {
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("没有委托方信息",ENTITY_TEMPLATE)).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("没有委托方信息", ENTITY_TEMPLATE)).body(null);
         }
         logger.debug("委托方编号为：{}", principalName);
         try {
-            List<TemplateDataModel> templateDataModels = templateDataModelRepository.findTemplateByPrincipalNameAndCompanyCode(principalName,companyCode);
+            List<TemplateDataModel> templateDataModels = templateDataModelRepository.findTemplateByPrincipalNameAndCompanyCode(principalName, companyCode);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "")).body(templateDataModels);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "没有获取到Excel模板数据")).body(null);
         }
     }
+
     @PostMapping("/createExcelTemplate")
     @ApiOperation(value = "导入模板配置:确认并下载", notes = "导入模板配置:确认并下载")
     public ResponseEntity createExcelTemplate(@RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token, @RequestBody @ApiParam("配置项") Map<String, String[]> map) {
@@ -282,17 +287,17 @@ public class TemplateDataModelController {
         File file = null;
         ByteArrayOutputStream out = null;
         FileOutputStream fileOutputStream = null;
-       try {
-           ResponseEntity<User> userResponseEntity=null;
-           try {
-               userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-           }catch (Exception e){
-               logger.error(e.getMessage(),e);
-               return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user",ENTITY_NAME)).body(null);
-           }
-           if(!userResponseEntity.hasBody()){
+        try {
+            ResponseEntity<User> userResponseEntity = null;
+            try {
+                userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
+            }
+            if (!userResponseEntity.hasBody()) {
 
-           }
+            }
             String[] titleList = {};
             List<String[]> list = templateDataModelService.processData(map);
             titleList = templateDataModelService.CopyTheArray(titleList, list);
@@ -301,14 +306,14 @@ public class TemplateDataModelController {
             out = new ByteArrayOutputStream();
             ExcelUtil.createExcel(workbook, sheet, new ArrayList(), titleList, null, 0, 0);
             workbook.write(out);
-           String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(System.currentTimeMillis() + "Excel模板.xls");
+            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(System.currentTimeMillis() + "Excel模板.xls");
             file = new File(filePath);
             fileOutputStream = new FileOutputStream(file);
             fileOutputStream.write(out.toByteArray());
             FileSystemResource resource = new FileSystemResource(file);
             MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
             param.add("file", resource);
-            ResponseEntity<String> url = restTemplate.postForEntity(Constants.FILEID_SERVICE_URL+"uploadFile/addUploadFileUrl", param, String.class);
+            ResponseEntity<String> url = restTemplate.postForEntity(Constants.FILEID_SERVICE_URL + "uploadFile/addUploadFileUrl", param, String.class);
             if (url == null) {
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_TEMPLATE, "")).body(null);
             } else {
@@ -316,7 +321,7 @@ public class TemplateDataModelController {
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
-           return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_TEMPLATE, "template", "导出Excel模板异常")).body(null);
         } finally {
             // 关闭流
             if (workbook != null) {
