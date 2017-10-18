@@ -385,9 +385,9 @@ public class DataInfoExcelController {
         }
     }
 
-    @GetMapping("/exportForceError")
+    @PostMapping("/exportForceError")
     @ApiOperation(value = "导出严重错误报告", notes = "导出严重错误报告")
-    public ResponseEntity<String> exportForceError(ImportResultModel model) {
+    public ResponseEntity<String> exportForceError(@RequestBody ImportResultModel model) {
         logger.debug("Rest request to exportForceError");
         try {
             if (Objects.isNull(model.getRowErrorList()) || model.getRowErrorList().isEmpty()) {
