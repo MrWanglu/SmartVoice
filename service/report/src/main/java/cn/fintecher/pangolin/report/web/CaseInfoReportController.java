@@ -126,9 +126,7 @@ public class CaseInfoReportController extends BaseController{
             user = getUserByToken(token);
             CollectingCaseParams collectingCaseParams = new CollectingCaseParams();
             collectingCaseParams.setDeptCode(user.getDepartment().getCode());
-            if(Objects.nonNull(companyCode)){
-                collectingCaseParams.setCompanyCode(companyCode);
-            }else{
+            if(Objects.nonNull(user.getCompanyCode())){
                 collectingCaseParams.setCompanyCode(user.getCompanyCode());
             }
             if(Objects.nonNull(batchNumber)){
