@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.dataimp.service;
 
 import cn.fintecher.pangolin.dataimp.entity.DataImportRecord;
+import cn.fintecher.pangolin.dataimp.entity.DataInfoExcel;
 import cn.fintecher.pangolin.dataimp.entity.RowError;
 import cn.fintecher.pangolin.dataimp.entity.TemplateExcelInfo;
 import cn.fintecher.pangolin.entity.file.UploadFile;
@@ -116,7 +117,8 @@ public class ParseExcelService {
     }
 
     public void parseSheet(Sheet sheet, int startRow, int startCol, Class<?> dataClass, DataImportRecord dataImportRecord,
-                           List<TemplateExcelInfo> templateExcelInfos) throws Exception {
+                           List<TemplateExcelInfo> templateExcelInfos, CopyOnWriteArrayList<DataInfoExcel> dataInfoExcelList,
+                           CopyOnWriteArrayList<RowError> forceErrorList, CopyOnWriteArrayList<RowError> promptErrorList) throws Exception {
         //获取每个sheet页的头部信息,用于和实体属性匹配(默认模板使用)
         Map<Integer, String> headerMap = new LinkedHashMap<>();
         //数据开始列
@@ -147,13 +149,12 @@ public class ParseExcelService {
                     continue;
                 }
                 parseExcelTask.parseRow(dataClass, dataRow, startCol, headerMap, rowError, dataImportRecord, rowIndex, templateExcelInfos,
-                        dataIndex);
+                        dataIndex, dataInfoExcelList, forceErrorList, promptErrorList);
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
             }
         }
         while (rowTotal != dataIndex.size()) {
-            Thread.currentThread().sleep(1);
         }
         logger.debug("-----------------------{},{}",rowTotal,dataIndex.size());
         watch.stop();

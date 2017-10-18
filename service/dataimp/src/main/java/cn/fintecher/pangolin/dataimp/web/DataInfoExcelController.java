@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.dataimp.web;
 
 import cn.fintecher.pangolin.dataimp.entity.*;
 import cn.fintecher.pangolin.dataimp.model.DataInfoExcelFileExist;
+import cn.fintecher.pangolin.dataimp.model.ImportResultModel;
 import cn.fintecher.pangolin.dataimp.model.UpLoadFileModel;
 import cn.fintecher.pangolin.dataimp.repository.DataInfoExcelFileRepository;
 import cn.fintecher.pangolin.dataimp.repository.DataInfoExcelRepository;
@@ -97,7 +98,7 @@ public class DataInfoExcelController {
 
     @PostMapping("/importExcelData")
     @ApiOperation(value = "案件导入", notes = "案件导入")
-    public ResponseEntity<String> importExcelData(@RequestBody DataImportRecord dataImportRecord,
+    public ResponseEntity<ImportResultModel> importExcelData(@RequestBody DataImportRecord dataImportRecord,
                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         ResponseEntity<User> userResponseEntity = null;
         try {
@@ -117,11 +118,11 @@ public class DataInfoExcelController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择委托方!")).body(null);
         }
         try {
-            String batchNumber = dataInfoExcelService.importExcelData(dataImportRecord, user);
-            if (StringUtils.isBlank(batchNumber)) {
+            ImportResultModel model = dataInfoExcelService.importExcelData(dataImportRecord, user);
+            if (Objects.isNull(model)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "导入失败")).body(null);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_NAME, "导入成功")).body(batchNumber);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert(ENTITY_NAME, "导入成功")).body(model);
         } catch (final Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
@@ -376,13 +377,28 @@ public class DataInfoExcelController {
                     user.setCompanyCode(companyCode);
                 }
             }
-            String url = dataInfoExcelService.exportError(batchNumber, user.getCompanyCode());
+            String url = dataInfoExcelService.exportError(batchNumber, user.getCompanyCode(), null);
             return ResponseEntity.ok().body(url);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"", e.getMessage())).body(null);
         }
+    }
 
+    @GetMapping("/exportForceError")
+    @ApiOperation(value = "导出严重错误报告", notes = "导出严重错误报告")
+    public ResponseEntity<String> exportForceError(ImportResultModel model) {
+        logger.debug("Rest request to exportForceError");
+        try {
+            if (Objects.isNull(model.getRowErrorList()) || model.getRowErrorList().isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "错误信息为空!")).body(null);
+            }
+            String url = dataInfoExcelService.exportError(null, null, model.getRowErrorList());
+            return ResponseEntity.ok().body(url);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"", e.getMessage())).body(null);
+        }
     }
 
 }

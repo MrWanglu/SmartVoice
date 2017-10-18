@@ -51,7 +51,8 @@ public class ParseExcelTask {
     @Async
     public void parseRow(Class<?> dataClass, Row dataRow, int startCol, Map<Integer, String> headerMap, RowError rowError,
                          DataImportRecord dataImportRecord, int rowIndex, List<TemplateExcelInfo> templateExcelInfos,
-                         CopyOnWriteArrayList<Integer> dataIndex) {
+                         CopyOnWriteArrayList<Integer> dataIndex, CopyOnWriteArrayList<DataInfoExcel> dataInfoExcelList,
+                         CopyOnWriteArrayList<RowError> forceErrorList, CopyOnWriteArrayList<RowError> promptErrorList) {
         logger.debug("线程{}正在解析第{}行数据...", Thread.currentThread(), rowIndex);
         if (dataIndex.contains(rowIndex)) {
             return;
@@ -86,7 +87,7 @@ public class ParseExcelTask {
             }
             if (!flag.isEmpty()) {
                 DataInfoExcel dataInfoExcel = (DataInfoExcel) obj;
-                saveDataInfoExcelAndError(dataInfoExcel, dataImportRecord, columnErrorList, rowError, rowIndex);
+                saveDataInfoExcelAndError(dataInfoExcel, dataImportRecord, columnErrorList, rowError, rowIndex, dataInfoExcelList, forceErrorList, promptErrorList);
             }
         } catch (Exception e) {
             logger.error("线程解析第行{}数据错误", rowIndex);
@@ -97,7 +98,9 @@ public class ParseExcelTask {
     }
 
     private void saveDataInfoExcelAndError(DataInfoExcel dataInfoExcel, DataImportRecord dataImportRecord,
-                                           List<ColumnError> columnErrorList, RowError rowError, int rowIndex) throws Exception {
+                                           List<ColumnError> columnErrorList, RowError rowError, int rowIndex,
+                                           CopyOnWriteArrayList<DataInfoExcel> dataInfoExcelList,
+                                           CopyOnWriteArrayList<RowError> forceErrorList, CopyOnWriteArrayList<RowError> promptErrorList) throws Exception {
         dataInfoExcel.setBatchNumber(dataImportRecord.getBatchNumber());
         dataInfoExcel.setDataSources(Constants.DataSource.IMPORT.getValue());
         dataInfoExcel.setPrinCode(dataImportRecord.getPrincipalId());
@@ -119,29 +122,44 @@ public class ParseExcelTask {
             rowError.setRowIndex(rowIndex + 1);
             rowError.setCaseNumber(caseNumber);
             rowError.setBatchNumber(dataImportRecord.getBatchNumber());
-            StringBuilder errorSb = new StringBuilder();
+            StringBuilder forceErrorSb = new StringBuilder();
+            StringBuilder promptErrorSb = new StringBuilder();
             int mark = DataInfoExcel.Color.NONE.getValue();
+            List<Boolean> flagList = new ArrayList<>();
             for (ColumnError columnError : columnErrorList) {
-                errorSb.append("列【".concat(excelColIndexToStr(columnError.getColumnIndex())).concat("】"));
-                errorSb.append(columnError.getTitleMsg().concat(","));
-                errorSb.append(columnError.getErrorMsg());
-                if (columnError.getErrorLevel() == ColumnError.ErrorLevel.FORCE.getValue()) {
-                    errorSb.append("(".concat(ColumnError.ErrorLevel.FORCE.getRemark()).concat(")").concat(";"));
+                // 严重错误
+                if (columnError.getErrorLevel().equals(ColumnError.ErrorLevel.FORCE.getValue())) {
+                    forceErrorSb.append("列【".concat(excelColIndexToStr(columnError.getColumnIndex())).concat("】"));
+                    forceErrorSb.append(columnError.getTitleMsg().concat(","));
+                    forceErrorSb.append(columnError.getErrorMsg());
+                    forceErrorSb.append("(".concat(ColumnError.ErrorLevel.FORCE.getRemark()).concat(")").concat(";"));
                     mark = DataInfoExcel.Color.RED.getValue();
-                } else {
-                    errorSb.append("(".concat(ColumnError.ErrorLevel.PROMPT.getRemark()).concat(")").concat(";"));
+                    flagList.add(false);
+                }
+                // 提醒错误
+                if (columnError.getErrorLevel().equals(ColumnError.ErrorLevel.PROMPT.getValue())) {
+                    flagList.add(true);
+                    promptErrorSb.append("列【".concat(excelColIndexToStr(columnError.getColumnIndex())).concat("】"));
+                    promptErrorSb.append(columnError.getTitleMsg().concat(","));
+                    promptErrorSb.append(columnError.getErrorMsg());
+                    promptErrorSb.append("(".concat(ColumnError.ErrorLevel.PROMPT.getRemark()).concat(")").concat(";"));
                     if (mark != DataInfoExcel.Color.RED.getValue()) {
                         mark = DataInfoExcel.Color.YELLOW.getValue();
                     }
                 }
             }
-            rowError.setErrorMsg(errorSb.toString());
             rowError.setCompanyCode(dataImportRecord.getCompanyCode());
             rowError.setCaseAmount(dataInfoExcel.getOverdueAmount());
             dataInfoExcel.setColor(mark);
-            rowErrorRepository.save(rowError);
+            if (flagList.contains(false)) {
+                rowError.setErrorMsg(forceErrorSb.toString());
+                forceErrorList.add(rowError);
+            } else {
+                rowError.setErrorMsg(promptErrorSb.toString());
+                promptErrorList.add(rowError);
+            }
         }
-        dataInfoExcelRepository.save(dataInfoExcel);
+        dataInfoExcelList.add(dataInfoExcel);
     }
 
     /**

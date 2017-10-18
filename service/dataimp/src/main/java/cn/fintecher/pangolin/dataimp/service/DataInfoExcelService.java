@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.dataimp.service;
 
 import cn.fintecher.pangolin.dataimp.entity.*;
 import cn.fintecher.pangolin.dataimp.model.DataInfoExcelFileExist;
+import cn.fintecher.pangolin.dataimp.model.ImportResultModel;
 import cn.fintecher.pangolin.dataimp.model.UpLoadFileModel;
 import cn.fintecher.pangolin.dataimp.repository.*;
 import cn.fintecher.pangolin.entity.CaseInfoFile;
@@ -36,6 +37,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StopWatch;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayOutputStream;
@@ -43,6 +45,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @Author: PeiShouWen
@@ -88,13 +91,28 @@ public class DataInfoExcelService {
     private final Logger logger = LoggerFactory.getLogger(DataInfoExcelService.class);
 
     /**
+     * 导入数据存放
+     */
+    private CopyOnWriteArrayList<DataInfoExcel> dataInfoExcelList = new CopyOnWriteArrayList();
+
+    /**
+     * 严重错误信息存放
+     */
+    private CopyOnWriteArrayList<RowError> forceErrorList = new CopyOnWriteArrayList();
+
+    /**
+     * 提醒错误信息存放
+     */
+    private CopyOnWriteArrayList<RowError> promptErrorList = new CopyOnWriteArrayList();
+
+    /**
      * Excel数据导入
      *
      * @param dataImportRecord
      * @param user
      * @throws Exception
      */
-    public String importExcelData(DataImportRecord dataImportRecord, User user) throws Exception {
+    public ImportResultModel importExcelData(DataImportRecord dataImportRecord, User user) throws Exception {
         //获取上传的文件
         ResponseEntity<UploadFile> fileResponseEntity = null;
         try {
@@ -152,9 +170,24 @@ public class DataInfoExcelService {
         dataImportRecord.setCompanySequence(company.getSequence());
         dataImportRecordRepository.save(dataImportRecord);
         //开始保存数据
-        parseExcelService.parseSheet(excelSheet, startRow,startCol, DataInfoExcel.class, dataImportRecord, templateExcelInfoList);
+        dataInfoExcelList.clear();
+        forceErrorList.clear();
+        promptErrorList.clear();
+        parseExcelService.parseSheet(excelSheet, startRow,startCol, DataInfoExcel.class, dataImportRecord, templateExcelInfoList, dataInfoExcelList, forceErrorList, promptErrorList);
+        StopWatch watch = new StopWatch();
+        watch.start();
+        if (forceErrorList.isEmpty()) {
+            dataInfoExcelRepository.save(dataInfoExcelList);
+            rowErrorRepository.save(promptErrorList);
+        }
+        watch.stop();
+        logger.debug("保存数据共耗时{}ms", watch.getTotalTimeMillis());
         logger.debug("数据处理保存完成");
-        return batchNumber;
+        ImportResultModel model = new ImportResultModel();
+        model.setBatchNumber(batchNumber);
+        Collections.sort(forceErrorList, Comparator.comparingInt(RowError::getRowIndex));
+        model.setRowErrorList(forceErrorList);
+        return model;
     }
 
     /**
@@ -340,15 +373,22 @@ public class DataInfoExcelService {
         }
     }
 
-    public String exportError(String batchNumber, String companyCode) {
-        QRowError qRowError = QRowError.rowError;
-        BooleanBuilder builder = new BooleanBuilder();
-        builder.and(qRowError.batchNumber.eq(batchNumber));
-        if (StringUtils.isNotBlank(companyCode)) {
-            builder.and(qRowError.companyCode.eq(companyCode));
+    public String exportError(String batchNumber, String companyCode, List<RowError> forceErrorList) {
+        List<RowError> dataList = null;
+        if (batchNumber != null) {
+            QRowError qRowError = QRowError.rowError;
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(qRowError.batchNumber.eq(batchNumber));
+            if (StringUtils.isNotBlank(companyCode)) {
+                builder.and(qRowError.companyCode.eq(companyCode));
+            }
+            Iterable<RowError> all = rowErrorRepository.findAll(builder);
+            dataList = IterableUtils.toList(all);
+        } else if (forceErrorList != null && !forceErrorList.isEmpty()) {
+            dataList = forceErrorList;
+        } else {
+            throw new RuntimeException("导出错误!");
         }
-        Iterable<RowError> all = rowErrorRepository.findAll(builder);
-        List<RowError> dataList = IterableUtils.toList(all);
         Collections.sort(dataList, Comparator.comparingInt(RowError::getRowIndex));
         String[] title = {"Excel行号","案件编号","客户姓名","手机号","身份证号","案件金额(元)","错误内容"};
         HashMap<String, String> headMap = ExcelExportUtil.createHeadMap(title, RowError.class);
@@ -389,5 +429,4 @@ public class DataInfoExcelService {
             }
         }
     }
-
 }
