@@ -178,8 +178,8 @@ public class ResourceController extends BaseController {
         List<Resource> resources = resourceRepository.findAll(request.getResoIds());
         for (Resource resource : resources) {
             resource.getRoles().add(role);
-            resourceService.save(resource);
         }
+        resourceService.save(resources);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(null);
     }
 
