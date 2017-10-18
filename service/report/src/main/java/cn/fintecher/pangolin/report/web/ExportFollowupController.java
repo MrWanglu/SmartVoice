@@ -210,10 +210,11 @@ public class ExportFollowupController extends BaseController {
                         all = queryFollowupMapper.findCollingFollowupRecord(exportFollowupParams);
                     }
                     ResponseEntity<String> url = null;
+                    List<FollowupExportModel> dataList = new ArrayList<>();
                     if (!all.isEmpty()) {
                         progressMessage.setCurrent(2);
                         rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
-                        List<FollowupExportModel> dataList = followRecordExportService.getFollowupData(all);
+                        dataList = followRecordExportService.getFollowupData(all);
                         int maxNum = followRecordExportService.getMaxNum(all);
                         String[] title = followRecordExportService.getTitle(exportFollowupParams.getExportItemList(), maxNum);
                         Map<String, String> headMap = ExcelExportUtil.createHeadMap(title, FollowupExportModel.class);

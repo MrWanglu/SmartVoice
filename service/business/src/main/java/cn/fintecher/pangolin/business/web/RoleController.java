@@ -205,17 +205,13 @@ public class RoleController extends BaseController {
      */
     @GetMapping("/getRoleRes")
     @ApiOperation(value = "角色查找资源", notes = "角色查找资源")
-    public ResponseEntity<List<Resource>> getRoleRes(@RequestParam(required = false) String id,
-                                                     @RequestParam(required = false) String companyCode) {
+    public ResponseEntity<List<Resource>> getRoleRes(@RequestParam(required = false) String id) {
         try {
             QResource qResource = QResource.resource;
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.nonNull(id)) {
                 builder.and(qResource.roles.any().id.eq(id));
             }
-//            if (Objects.nonNull(companyCode)) {
-//                builder.and(qResource.roles.any().companyCode.eq(companyCode));
-//            }
             Iterator<Resource> resources = resourceRepository.findAll(builder).iterator();
             List<Resource> resourceList = IteratorUtils.toList(resources);
             return ResponseEntity.ok().body(resourceList);

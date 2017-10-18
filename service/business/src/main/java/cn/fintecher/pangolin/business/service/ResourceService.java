@@ -31,6 +31,11 @@ public class ResourceService {
     }
 
     @CacheEvict(value = "resourceCache", key = "'petstore:resource:all'")
+    public void save(List<Resource> object) {
+        resourceRepository.save(object);
+    }
+
+    @CacheEvict(value = "resourceCache", key = "'petstore:resource:all'")
     public void save(Resource object) {
         resourceRepository.save(object);
     }
