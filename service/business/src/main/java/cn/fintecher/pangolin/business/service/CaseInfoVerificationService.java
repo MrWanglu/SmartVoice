@@ -67,6 +67,9 @@ public class CaseInfoVerificationService {
     @Inject
     private ReminderService reminderService;
 
+    @Inject
+    private CaseInfoVerificationPackagingRepository caseInfoVerificationPackagingRepository;
+
     /**
      * @Description 查询核销案件
      */
@@ -435,5 +438,34 @@ public class CaseInfoVerificationService {
             sendReminderMessage.setType(ReminderType.VERIFICATION);
             reminderService.sendReminder(sendReminderMessage);
         }
+    }
+    public void setCaseInfoVerificationPackaging(User user,CaseInfoVerficationModel caseInfoVerficationModel,String url) {
+        List<String> ids = caseInfoVerficationModel.getIds();
+        int sum = 0;
+        BigDecimal amount = new BigDecimal(sum);
+        for (String id : ids) {
+            CaseInfoVerification caseInfoVerification = caseInfoVerificationRepository.findOne(id);
+            CaseInfo caseInfo = caseInfoVerification.getCaseInfo();
+            BigDecimal overdueAmount = caseInfo.getOverdueAmount();
+            amount = amount.add(overdueAmount);
+        }
+        CaseInfoVerificationPackaging caseInfoVerificationPackaging = new CaseInfoVerificationPackaging();
+        caseInfoVerificationPackaging.setPackagingTime(ZWDateUtil.getNowDateTime()); // 打包时间
+        caseInfoVerificationPackaging.setPackagingState(caseInfoVerficationModel.getState()); // 打包说明
+        caseInfoVerificationPackaging.setCount(caseInfoVerficationModel.getIds().size()); // 案件数量
+        caseInfoVerificationPackaging.setDownloadCount(1); // 下载次数
+        caseInfoVerificationPackaging.setTotalAmount(amount); // 总金额
+        caseInfoVerificationPackaging.setDownloadAddress(url); // 下载地址
+        caseInfoVerificationPackaging.setOperator(user.getRealName()); // 操作人
+        caseInfoVerificationPackaging.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
+        if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
+            if (Objects.nonNull(caseInfoVerficationModel.getCompanyCode())) {
+                caseInfoVerificationPackaging.setCompanyCode(caseInfoVerficationModel.getCompanyCode());
+            }
+        }else { // 普通管理员
+            caseInfoVerificationPackaging.setCompanyCode(user.getCompanyCode());
+        }
+        caseInfoVerificationPackagingRepository.save(caseInfoVerificationPackaging);
+
     }
 }

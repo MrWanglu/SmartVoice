@@ -3,9 +3,12 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.model.CaseInfoVerModel;
 import cn.fintecher.pangolin.business.model.CaseInfoVerficationModel;
 import cn.fintecher.pangolin.business.model.CaseInfoVerificationParams;
+import cn.fintecher.pangolin.business.model.ListResult;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoVerificationService;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.message.ProgressMessage;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
@@ -15,6 +18,7 @@ import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +27,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 import javax.inject.Inject;
 import java.math.BigDecimal;
@@ -58,6 +63,12 @@ public class CaseInfoVerificationController extends BaseController {
 
     @Inject
     private SysParamRepository sysParamRepository;
+
+    @Inject
+    private RestTemplate restTemplate;
+
+    @Inject
+    private RabbitTemplate rabbitTemplate;
 
     @PostMapping("/saveCaseInfoVerification")
     @ApiOperation(value = "案件申请审批", notes = "案件申请审批")
@@ -213,46 +224,56 @@ public class CaseInfoVerificationController extends BaseController {
         try {
             user = getUserByToken(token);
             List<String> ids = caseInfoVerficationModel.getIds();
-            if (ids.isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择案件!")).body(null);
-            }
-            List<Object[]> caseInfoVerificationList = caseInfoVerificationService.getCastInfoList(caseInfoVerficationModel, user);
-            if (caseInfoVerificationList.isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "要导出的核销案件数据为空!")).body(null);
-            }
-            if (caseInfoVerificationList.size() > 10000) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "不支持导出数据超过10000条!")).body(null);
-            }
-            int sum = 0;
-            BigDecimal amount = new BigDecimal(sum);
-            for (String id : ids) {
-                CaseInfoVerification caseInfoVerification = caseInfoVerificationRepository.findOne(id);
-                CaseInfo caseInfo = caseInfoVerification.getCaseInfo();
-                BigDecimal overdueAmount = caseInfo.getOverdueAmount();
-                amount = amount.add(overdueAmount);
-            }
-            String url = caseInfoVerificationService.exportCaseInfoVerification(caseInfoVerificationList);
-            CaseInfoVerificationPackaging caseInfoVerificationPackaging = new CaseInfoVerificationPackaging();
-            caseInfoVerificationPackaging.setPackagingTime(ZWDateUtil.getNowDateTime()); // 打包时间
-            caseInfoVerificationPackaging.setPackagingState(caseInfoVerficationModel.getState()); // 打包说明
-            caseInfoVerificationPackaging.setCount(ids.size()); // 案件数量
-            caseInfoVerificationPackaging.setDownloadCount(1); // 下载次数
-            caseInfoVerificationPackaging.setTotalAmount(amount); // 总金额
-            caseInfoVerificationPackaging.setDownloadAddress(url); // 下载地址
-            caseInfoVerificationPackaging.setOperator(user.getRealName()); // 操作人
-            caseInfoVerificationPackaging.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
-            if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
-                if (Objects.nonNull(caseInfoVerficationModel.getCompanyCode())) {
-                    caseInfoVerificationPackaging.setCompanyCode(caseInfoVerficationModel.getCompanyCode());
+            ListResult<String> result = new ListResult();
+            //创建一个线程，执行导出任务
+            Thread t = new Thread(() -> {
+                ProgressMessage progressMessage = new ProgressMessage();
+                // 登录人ID
+                progressMessage.setUserId(user.getId());
+                //要解析的总数据
+                progressMessage.setTotal(5);
+                //当前解析的数据
+                progressMessage.setCurrent(0);
+                //正在处理数据
+                progressMessage.setText("正在处理数据");
+                rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                List<Object[]> caseInfoVerificationList = caseInfoVerificationService.getCastInfoList(caseInfoVerficationModel, user);
+                String url = caseInfoVerificationService.exportCaseInfoVerification(caseInfoVerificationList);
+                if (ids.isEmpty()) {
+                    List<String> urls = new ArrayList<>();
+                    urls.add("请选择案件!");
+                    result.setUser(user.getId());
+                    result.setStatus(ListResult.Status.FAILURE.getVal());// 状态：失败
+                    result.setResult(urls);
+                    restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", result, Void.class);
+                    progressMessage.setCurrent(1);
+                    rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
                 }
-            }else { // 普通管理员
-                caseInfoVerificationPackaging.setCompanyCode(user.getCompanyCode());
-            }
-            caseInfoVerificationPackagingRepository.save(caseInfoVerificationPackaging);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("导出成功", "caseInfoVerification")).body(url);
-        } catch (Exception e) {
+                if (caseInfoVerificationList.isEmpty()) {
+                    List<String> urls = new ArrayList<>();
+                    urls.add("要导出的数据为空！");
+                    result.setUser(user.getId());
+                    result.setStatus(ListResult.Status.FAILURE.getVal());// 状态：失败
+                    result.setResult(urls);
+                    restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", result, Void.class);
+                    progressMessage.setCurrent(2);
+                    rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                }
+                List<String> urls = new ArrayList<>();
+                urls.add(url);
+                result.setUser(user.getId());
+                result.setResult(urls);
+                result.setStatus(ListResult.Status.SUCCESS.getVal());
+                restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", result, Void.class);
+                progressMessage.setCurrent(3);
+                rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                caseInfoVerificationService.setCaseInfoVerificationPackaging(user,caseInfoVerficationModel,url);
+            });
+            t.start();
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("开始导出,完成后请前往消息列表查看下载。", "")).body(null);
+    } catch (Exception e) {
             e.printStackTrace();
-             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "导出失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "导出失败")).body(null);
         }
     }
 
@@ -291,23 +312,59 @@ public class CaseInfoVerificationController extends BaseController {
 
     @PostMapping("/batchDownload")
     @ApiOperation(value = "立刻下载",notes = "立刻下载")
-    public ResponseEntity<List<String>> batchDownload(@RequestBody CaseInfoVerficationModel caseInfoVerficationModel) {
+    public ResponseEntity<List<String>> batchDownload(@RequestHeader(value = "X-UserToken") String token,
+                                                      @RequestBody CaseInfoVerficationModel caseInfoVerficationModel) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
+        }
         try{
             List<String> ids = caseInfoVerficationModel.getIds();
-            if (ids.isEmpty()) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "请至少选择一个案件！")).body(null);
-            }
-            List<String> urlList = new ArrayList<>();
-            for (String id : ids) {
-                CaseInfoVerificationPackaging caseInfoVerificationPackaging = caseInfoVerificationPackagingRepository.findOne(id);
-                if (Objects.nonNull(caseInfoVerificationPackaging.getDownloadCount())) {
-                    caseInfoVerificationPackaging.setDownloadCount(caseInfoVerificationPackaging.getDownloadCount() + 1); // 下载次数
+            ListResult<String> result = new ListResult();
+            //创建一个线程，执行导出任务
+            Thread t = new Thread(() -> {
+                ProgressMessage progressMessage = new ProgressMessage();
+                // 登录人ID
+                progressMessage.setUserId(user.getId());
+                //要解析的总数据
+                progressMessage.setTotal(5);
+                //当前解析的数据
+                progressMessage.setCurrent(0);
+                //正在处理数据
+                progressMessage.setText("正在处理数据");
+                rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                List<String> urlList = new ArrayList<>();
+                if (ids.isEmpty()) {
+                    List<String> urls = new ArrayList<>();
+                    urls.add("请至少选择一个案件!");
+                    result.setUser(user.getId());
+                    result.setStatus(ListResult.Status.FAILURE.getVal());// 状态：失败
+                    result.setResult(urls);
+                    restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", result, Void.class);
+                    progressMessage.setCurrent(1);
+                    rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
                 }
-                caseInfoVerificationPackagingRepository.save(caseInfoVerificationPackaging);
-                String url = caseInfoVerificationPackaging.getDownloadAddress(); // 下载地址
-                urlList.add(url);
-            }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(urlList);
+                for (String id : ids) {
+                    CaseInfoVerificationPackaging caseInfoVerificationPackaging = caseInfoVerificationPackagingRepository.findOne(id);
+                    if (Objects.nonNull(caseInfoVerificationPackaging.getDownloadCount())) {
+                        caseInfoVerificationPackaging.setDownloadCount(caseInfoVerificationPackaging.getDownloadCount() + 1); // 下载次数
+                    }
+                    caseInfoVerificationPackagingRepository.save(caseInfoVerificationPackaging);
+                    String url = caseInfoVerificationPackaging.getDownloadAddress(); // 下载地址
+                    urlList.add(url);
+                }
+                result.setUser(user.getId());
+                result.setResult(urlList);
+                result.setStatus(ListResult.Status.SUCCESS.getVal());
+                restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", result, Void.class);
+                progressMessage.setCurrent(3);
+                rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+            });
+            t.start();
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("开始导出,完成后请前往消息列表查看下载。", "")).body(null);
         }catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "查看失败")).body(null);
@@ -370,8 +427,31 @@ public class CaseInfoVerificationController extends BaseController {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "请选择公司")).body(null);
                 }
             }
-            String url = caseInfoVerificationService.exportReport(caseInfoVerificationParams, user);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "caseInfoVerification")).body(url);
+            ListResult<String> result = new ListResult();
+            //创建一个线程，执行导出任务
+            Thread t = new Thread(() -> {
+                ProgressMessage progressMessage = new ProgressMessage();
+                // 登录人ID
+                progressMessage.setUserId(user.getId());
+                //要解析的总数据
+                progressMessage.setTotal(5);
+                //当前解析的数据
+                progressMessage.setCurrent(0);
+                //正在处理数据
+                progressMessage.setText("正在处理数据");
+                rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                String url = caseInfoVerificationService.exportReport(caseInfoVerificationParams, user);
+                List<String> urls = new ArrayList<>();
+                urls.add(url);
+                result.setUser(user.getId());
+                result.setResult(urls);
+                result.setStatus(ListResult.Status.SUCCESS.getVal());
+                restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", result, Void.class);
+                progressMessage.setCurrent(3);
+                rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+            });
+            t.start();
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("开始导出,完成后请前往消息列表查看下载。", "")).body(null);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "导出失败")).body(null);
