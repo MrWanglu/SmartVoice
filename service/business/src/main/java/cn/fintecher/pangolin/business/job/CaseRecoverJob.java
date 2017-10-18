@@ -66,6 +66,7 @@ public class CaseRecoverJob implements Job {
                     CaseInfoDistributed caseInfoDistributed = iterator.next();
                     caseInfoDistributed.setOperatorTime(ZWDateUtil.getNowDate());
                     caseInfoDistributed.setRecoverRemark(CaseInfo.RecoverRemark.RECOVERED.getValue());
+                    caseInfoDistributed.setRecoverMemo("案件到期自动回收");
                     caseInfoDistributedList.add(caseInfoDistributed);
                 }
                 caseInfoDistributedRepository.save(caseInfoDistributedList);
