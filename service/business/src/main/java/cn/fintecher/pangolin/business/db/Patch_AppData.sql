@@ -154,3 +154,10 @@ INSERT INTO `pangolin_business`.`sys_param` (`id`, `company_code`, `code`, `name
 --2017-10-17 白章宇 增加字段
 ALTER TABLE `user_device`
 ADD COLUMN `mac`  varchar(64) NULL COMMENT 'MAC地址' AFTER `field`;
+
+--2017-10-17 孙艳平 resource增加权限
+INSERT INTO `pangolin_business`.`resource` (`id`, `pid`, `sys_name`, `name`, `code`, `level`, `status`, `path`, `icon`, `type`, `file_type`, `remark`, `operator`, `operate_time`, `field`, `flag`) VALUES ('510', '484', '崔大人', '删除案件', '10030E', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '510');
+INSERT INTO `pangolin_business`.`resource` (`id`, `pid`, `sys_name`, `name`, `code`, `level`, `status`, `path`, `icon`, `type`, `file_type`, `remark`, `operator`, `operate_time`, `field`, `flag`) VALUES ('511', '497', '催大人', '删除案件', '100409', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '511');
+INSERT INTO `pangolin_business`.`resource` (`id`, `pid`, `sys_name`, `name`, `code`, `level`, `status`, `path`, `icon`, `type`, `file_type`, `remark`, `operator`, `operate_time`, `field`, `flag`) VALUES ('594', '526', '催大人', '删除案件', '0F0510', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '594');
+INSERT INTO `pangolin_business`.`resource` (`id`, `pid`, `sys_name`, `name`, `code`, `level`, `status`, `path`, `icon`, `type`, `file_type`, `remark`, `operator`, `operate_time`, `field`, `flag`) VALUES ('595', '525', '催大人', '删除案件', '0F0412', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '595');
+
