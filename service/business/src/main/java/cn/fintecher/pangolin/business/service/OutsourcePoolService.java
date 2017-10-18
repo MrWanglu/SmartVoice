@@ -253,12 +253,12 @@ public class OutsourcePoolService {
         outsourcePool.setOperator(user.getUserName());
         outsourcePool.setOutStatus(OutsourcePool.OutStatus.OUTSIDING.getCode());
         outsourcePool.setOutTime(ZWDateUtil.getNowDateTime());
-        BigDecimal b2 = outsourcePool.getCaseInfo().getHasPayAmount();//已还款金额
+        BigDecimal b2 = outsourcePool.getCaseInfo().getRealPayAmount();//实际还款金额
         if (Objects.isNull(b2)) {
-            outsourcePool.getCaseInfo().setHasPayAmount(BigDecimal.ZERO);
+            outsourcePool.getCaseInfo().setRealPayAmount(BigDecimal.ZERO);
         }
         BigDecimal b1 = outsourcePool.getCaseInfo().getOverdueAmount();//原案件金额
-        outsourcePool.setContractAmt(b1.subtract(b2));//委外案件金额=原案件金额-已还款金额
+        outsourcePool.setContractAmt(b1.subtract(b2));//委外案件金额=原案件金额-实际还款金额
         /*outsourcePool.setOverduePeriods(outsourcePool.getOverduePeriods());//逾期时段
         GregorianCalendar gc = new GregorianCalendar();
         gc.setTime(ZWDateUtil.getNowDateTime());
