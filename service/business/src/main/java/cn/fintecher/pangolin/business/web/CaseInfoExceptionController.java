@@ -234,6 +234,7 @@ public class CaseInfoExceptionController extends BaseController {
                     }
                 }
             }
+            caseInfoExceptionRepository.delete(caseInfoException);
             return ResponseEntity.ok().body(null);
         }catch (Exception e){
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "更新失败")).body(null);

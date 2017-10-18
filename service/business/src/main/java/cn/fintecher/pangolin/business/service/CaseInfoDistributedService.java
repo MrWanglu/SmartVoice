@@ -6,6 +6,7 @@ import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import org.apache.commons.collections4.IterableUtils;
 import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -241,8 +242,9 @@ public class CaseInfoDistributedService {
             if (Objects.equals(0, type)) {
                 while (iterator.hasNext()) {
                     CaseInfoDistributed next = iterator.next();
+                    next.setRecoverRemark(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue());
                     CaseInfo caseInfo = new CaseInfo();
-                    setCaseInfo(next, caseInfo, user);
+                    setCaseInfo(next, caseInfo, user, manualParams.getCloseDate());
                     caseInfo.setCasePoolType(CaseInfo.CasePoolType.INNER.getValue());
                     caseInfoList.add(caseInfo);
                     addCaseRepair(caseRepairList, caseInfo, user);//修复池增加案件
@@ -252,8 +254,9 @@ public class CaseInfoDistributedService {
             if (Objects.equals(1, type)) {
                 while (iterator.hasNext()) {
                     CaseInfoDistributed next = iterator.next();
+                    next.setRecoverRemark(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue());
                     CaseInfo caseInfo = new CaseInfo();
-                    setCaseInfo(next, caseInfo, user);
+                    setCaseInfo(next, caseInfo, user, manualParams.getCloseDate());
                     caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue());
                     caseInfoList.add(caseInfo);
                     OutsourcePool outsourcePool = new OutsourcePool();
@@ -281,6 +284,7 @@ public class CaseInfoDistributedService {
         }
     }
 
+
     private void addCaseInfoRemark(List<CaseInfoRemark> caseInfoRemarkList, CaseInfo caseInfo, User user) {
         CaseInfoRemark caseInfoRemark = new CaseInfoRemark();
         caseInfoRemark.setCaseId(caseInfo.getId());
@@ -292,7 +296,7 @@ public class CaseInfoDistributedService {
         caseInfoRemarkList.add(caseInfoRemark);
     }
 
-    private void setCaseInfo(CaseInfoDistributed caseInfoDistributed, CaseInfo caseInfo, User user) {
+    private void setCaseInfo(CaseInfoDistributed caseInfoDistributed, CaseInfo caseInfo, User user, Date closeDate) {
         BeanUtils.copyProperties(caseInfoDistributed, caseInfo);
         caseInfo.setId(null);
         caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型-案件分配
@@ -305,6 +309,9 @@ public class CaseInfoDistributedService {
         caseInfo.setFollowUpNum(0);//流转次数
         caseInfo.setOperator(user);
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+        if (Objects.isNull(closeDate)) {
+            caseInfo.setCloseDate(closeDate);
+        }
     }
 
     private void addCaseTurnRecord(List<CaseTurnRecord> caseTurnRecordList, CaseInfo caseInfo, User user) {
@@ -371,7 +378,7 @@ public class CaseInfoDistributedService {
             if (Objects.equals(aModel.getType(), 0)) { // 内催
                 for (CaseInfoDistributed caseInfoDistributed : all) {
                     CaseInfo caseInfo = new CaseInfo();
-                    setCaseInfo(caseInfoDistributed, caseInfo, user);
+                    setCaseInfo(caseInfoDistributed, caseInfo, user, null);
                     caseInfo.setCasePoolType(CaseInfo.CasePoolType.INNER.getValue());
                     caseInfoList.add(caseInfo);
                     addCaseRepair(caseRepairList, caseInfo, user);//修复池增加案件
@@ -381,7 +388,7 @@ public class CaseInfoDistributedService {
             if (Objects.equals(aModel.getType(), 1)) { // 委外
                 for (CaseInfoDistributed caseInfoDistributed : all) {
                     CaseInfo caseInfo = new CaseInfo();
-                    setCaseInfo(caseInfoDistributed, caseInfo, user);
+                    setCaseInfo(caseInfoDistributed, caseInfo, user, null);
                     caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue());
                     caseInfoList.add(caseInfo);
                     OutsourcePool outsourcePool = new OutsourcePool();
@@ -415,7 +422,8 @@ public class CaseInfoDistributedService {
     public CountStrategyAllocationModel countStrategyAllocation(CaseInfoIdList caseInfoIdList, User user) {
         List<CaseInfoDistributed> all = new ArrayList<>();
         if (Objects.isNull(caseInfoIdList.getIds()) || caseInfoIdList.getIds().isEmpty()) {
-            all = caseInfoDistributedRepository.findAll();
+            Iterable<CaseInfoDistributed> all1 = caseInfoDistributedRepository.findAll(QCaseInfoDistributed.caseInfoDistributed.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
+            all = IterableUtils.toList(all1);
         } else {
             all = caseInfoDistributedRepository.findAll(caseInfoIdList.getIds());
         }

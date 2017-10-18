@@ -119,6 +119,7 @@ public class CaseInfoDistributeController extends BaseController {
             } else {
                 builder.and(qd.companyCode.eq(user.getCompanyCode()));
             }
+            builder.and(qd.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
             Page<CaseInfoDistributed> page = caseInfoDistributedRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
@@ -501,4 +502,65 @@ public class CaseInfoDistributeController extends BaseController {
 
     }
 
+    @GetMapping("/findRecoverDistribute")
+    @ApiOperation(value = "查询待分配案件的回收案件", notes = "查询待分配案件的回收案件")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<CaseInfoDistributed>> findRecoverDistribute(@QuerydslPredicate(root = CaseInfoDistributed.class) Predicate predicate,
+                                                @ApiIgnore Pageable pageable,
+                                                @RequestHeader(value = "X-UserToken") String token,
+                                                @RequestParam(value = "companyCode", required = false) String companyCode) {
+        logger.debug("REST request to findRecoverDistribute");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest()
+                    .headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage()))
+                    .body(null);
+        }
+        try {
+            QCaseInfoDistributed qd = QCaseInfoDistributed.caseInfoDistributed;
+            BooleanBuilder builder = new BooleanBuilder(predicate);
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (StringUtils.isNotBlank(companyCode)) {
+                    builder.and(qd.companyCode.eq(companyCode));
+                }
+            } else {
+                builder.and(qd.companyCode.eq(user.getCompanyCode()));
+            }
+            builder.and(qd.recoverRemark.eq(CaseInfo.RecoverRemark.RECOVERED.getValue()));
+            Page<CaseInfoDistributed> page = caseInfoDistributedRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest()
+                    .headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "系统异常!"))
+                    .body(null);
+        }
+    }
+
+    @DeleteMapping("/deleteRecoverDistribute")
+    @ApiOperation(value = "删除待分配案件回收案件", notes = "删除待分配案件回收案件")
+    public ResponseEntity deleteRecoverDistribute(@RequestBody CaseInfoIdList ids) {
+        logger.debug("REST request to deleteRecoverDistribute");
+        try {
+            if (Objects.isNull(ids.getIds()) || ids.getIds().isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要删除的案件")).body(null);
+            }
+            List<CaseInfoDistributed> all = caseInfoDistributedRepository.findAll(ids.getIds());
+            caseInfoDistributedRepository.delete(all);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功", "")).body(null);
+        } catch (Exception e) {
+            logger.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "删除错误")).body(null);
+        }
+    }
 }

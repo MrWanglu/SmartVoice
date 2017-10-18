@@ -160,7 +160,6 @@ public class CaseInfoExceptionService {
         }
         caseInfo.setPersonalInfo(personal);
         caseInfoRepository.save(caseInfo);
-        caseInfoExceptionRepository.delete(caseInfoException);
         return caseInfo;
     }
 
@@ -189,7 +188,6 @@ public class CaseInfoExceptionService {
         }
         caseInfoDistributed.setPersonalInfo(personal);
         caseInfoDistributedRepository.save(caseInfoDistributed);
-        caseInfoExceptionRepository.delete(caseInfoException);
         return caseInfoDistributed;
     }
 
