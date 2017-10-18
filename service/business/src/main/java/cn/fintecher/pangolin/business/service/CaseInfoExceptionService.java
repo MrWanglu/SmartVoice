@@ -239,7 +239,6 @@ public class CaseInfoExceptionService {
      */
     private CaseInfoDistributed addCaseInfoDistributed(CaseInfoException caseInfoException, Product product, User user, Personal personal) {
         CaseInfoDistributed caseInfoDistributed = new CaseInfoDistributed();
-        caseInfoDistributed.setDepartment(user.getDepartment());
         caseInfoDistributed.setPersonalInfo(personal);
         caseInfoDistributed.setArea(areaHandler(caseInfoException));
         caseInfoDistributed.setBatchNumber(caseInfoException.getBatchNumber());
