@@ -474,7 +474,7 @@ public class FollowRecordExportService {
             }
 
             List<CaseFollowupRecord> caseFollowupRecords = excportResultModel.getCaseFollowupRecords();
-            if (!caseFollowupRecords.isEmpty()) {
+            if (Objects.nonNull(caseFollowupRecords) && !caseFollowupRecords.isEmpty()) {
                 for (CaseFollowupRecord record : caseFollowupRecords) {
                     FollowupExportModel result = new FollowupExportModel();
                     BeanUtils.copyProperties(followupExportModel, result);
