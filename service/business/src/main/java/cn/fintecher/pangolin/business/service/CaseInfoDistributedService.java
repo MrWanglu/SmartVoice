@@ -264,6 +264,7 @@ public class CaseInfoDistributedService {
                     outsourcePool.setCompanyCode(user.getCompanyCode());
                     outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
                     outsourcePool.setOverOutsourceTime(caseInfo.getCloseDate());
+                    outsourcePool.setOverduePeriods(caseInfo.getPayStatus());
                     outsourcePoolList.add(outsourcePool);
                 }
             }
@@ -309,7 +310,7 @@ public class CaseInfoDistributedService {
         caseInfo.setFollowUpNum(0);//流转次数
         caseInfo.setOperator(user);
         caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
-        if (Objects.isNull(closeDate)) {
+        if (Objects.nonNull(closeDate)) {
             caseInfo.setCloseDate(closeDate);
         }
     }
@@ -395,6 +396,7 @@ public class CaseInfoDistributedService {
                     outsourcePool.setCaseInfo(caseInfo);
                     outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
                     outsourcePool.setOverOutsourceTime(caseInfoDistributed.getCloseDate());
+                    outsourcePool.setOverduePeriods(caseInfo.getPayStatus());
                     outsourcePoolList.add(outsourcePool);
                     caseInfoDistributedList.add(caseInfoDistributed);
                 }

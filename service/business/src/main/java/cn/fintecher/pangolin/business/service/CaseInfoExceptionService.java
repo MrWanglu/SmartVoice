@@ -278,6 +278,8 @@ public class CaseInfoExceptionService {
         caseInfoDistributed.setOperatorTime(ZWDateUtil.getNowDateTime());
         caseInfoDistributed.setCompanyCode(caseInfoException.getCompanyCode());
         caseInfoDistributed.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件颜色标记
+        caseInfoDistributed.setRecoverRemark(caseInfoException.getRecoverRemark());
+        caseInfoDistributed.setRecoverWay(caseInfoException.getRecoverWay());
         return caseInfoDistributed;
     }
 

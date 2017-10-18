@@ -151,6 +151,7 @@ public class RecoverCaseService {
             outsourcePool.setOperateTime(new Date());
             outsourcePool.setOperator(user.getId());
             outsourcePool.setOverOutsourceTime(params.getCloseDate()); // 到期时间
+            outsourcePool.setOverduePeriods(caseInfo.getPayStatus());
             outsourcePoolList.add(outsourcePool);
         } else {
             throw new RuntimeException("选择的要分配的目标池未知");
