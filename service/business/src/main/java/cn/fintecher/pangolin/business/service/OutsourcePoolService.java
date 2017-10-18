@@ -184,7 +184,7 @@ public class OutsourcePoolService {
                 }
                 Object[] nums = (Object[])outsourcePoolRepository.getGzNum(personalName, idCard, companyCode);
                 if (Objects.nonNull(nums)) {
-                    Outsource outsource = outsourceRepository.findOne(Objects.nonNull(nums[0].toString())?null:nums[0].toString());
+                    Outsource outsource = outsourceRepository.findOne(Objects.isNull(nums[0].toString())?null:nums[0].toString());
                     if (Objects.nonNull(outsource)) {
                         //优先将案件委外给有共债案件的委外方
                         setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
@@ -259,8 +259,8 @@ public class OutsourcePoolService {
         }
         BigDecimal b1 = outsourcePool.getCaseInfo().getOverdueAmount();//原案件金额
         outsourcePool.setContractAmt(b1.subtract(b2));//委外案件金额=原案件金额-实际还款金额
-        /*outsourcePool.setOverduePeriods(outsourcePool.getOverduePeriods());//逾期时段
-        GregorianCalendar gc = new GregorianCalendar();
+        outsourcePool.setOverduePeriods(outsourcePool.getOverduePeriods());//逾期时段
+        /*GregorianCalendar gc = new GregorianCalendar();
         gc.setTime(ZWDateUtil.getNowDateTime());
         gc.add(2, 3);
         outsourcePool.setOverOutsourceTime(gc.getTime());*/

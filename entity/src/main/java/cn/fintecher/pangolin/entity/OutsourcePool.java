@@ -43,7 +43,7 @@ public class OutsourcePool extends BaseEntity {
     private BigDecimal outBackAmt = new BigDecimal(0);
 
     @ApiModelProperty("逾期时段")
-    private String overduePeriods = new String("M0");
+    private String overduePeriods;
 
     @ApiModelProperty("案件金额")
     private BigDecimal contractAmt = new BigDecimal(0);
