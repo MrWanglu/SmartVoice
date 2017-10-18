@@ -197,7 +197,7 @@ public class FollowRecordExportService {
     }
 
 
-    public List<FollowupExportModel> getFollowupData(List<ExcportResultModel> excportResultModels) {
+    public List<FollowupExportModel> getFollowupData(List<ExcportResultModel> excportResultModels) throws RuntimeException {
         List<FollowupExportModel> followupExportModels = new ArrayList<>();
         int i = 0;
         for (ExcportResultModel excportResultModel : excportResultModels) {
@@ -515,6 +515,8 @@ public class FollowRecordExportService {
                     }
                     followupExportModels.add(followupExportModel);
                 }
+            }else{
+                throw new RuntimeException("要导出的数据为空");
             }
         }
         return followupExportModels;
