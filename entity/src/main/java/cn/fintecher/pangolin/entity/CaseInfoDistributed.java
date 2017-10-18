@@ -88,6 +88,8 @@ public class CaseInfoDistributed extends BaseEntity {
     private Integer recoverWay;
     @ApiModelProperty("回收标志：0-未回收，1-已回收")
     private Integer recoverRemark;
+    @ApiModelProperty("回收说明")
+    private String recoverMemo;
 
 
 
