@@ -135,7 +135,7 @@ public class UploadFileCridFsServiceImpl implements UploadFileCridFsService {
                             continue;
                         }
                         InputStream in = new FileInputStream(f);
-                        UploadFile uploadFile = uploadFile(in, f.length(), FilenameUtils.getBaseName(f.getName()),
+                        UploadFile uploadFile = uploadFile(in, f.length(), FilenameUtils.getName(f.getName()),
                                     FilenameUtils.getExtension(f.getName()));
                         UnReduceFileMessage message = new UnReduceFileMessage();
                         message.setCompanyCode(companyCode);

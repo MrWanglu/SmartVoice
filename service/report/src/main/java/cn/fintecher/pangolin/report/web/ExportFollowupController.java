@@ -210,10 +210,23 @@ public class ExportFollowupController extends BaseController {
                         all = queryFollowupMapper.findCollingFollowupRecord(exportFollowupParams);
                     }
                     ResponseEntity<String> url = null;
+                    List<FollowupExportModel> dataList = new ArrayList<>();
                     if (!all.isEmpty()) {
                         progressMessage.setCurrent(2);
                         rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
-                        List<FollowupExportModel> dataList = followRecordExportService.getFollowupData(all);
+                        try {
+                            dataList = followRecordExportService.getFollowupData(all);
+                        }catch(RuntimeException e){
+                                ListResult listResult = new ListResult();
+                                List<String> urls = new ArrayList<>();
+                                urls.add("要导出的数据为空");
+                                listResult.setUser(userId);
+                                listResult.setResult(urls);
+                                listResult.setStatus(ListResult.Status.FAILURE.getVal()); // 0-成功
+                                restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", listResult, Void.class);
+                                progressMessage.setCurrent(5);
+                                rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                        }
                         int maxNum = followRecordExportService.getMaxNum(all);
                         String[] title = followRecordExportService.getTitle(exportFollowupParams.getExportItemList(), maxNum);
                         Map<String, String> headMap = ExcelExportUtil.createHeadMap(title, FollowupExportModel.class);

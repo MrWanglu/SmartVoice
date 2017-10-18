@@ -9,6 +9,7 @@ import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.*;
+import org.apache.commons.collections4.IterableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,6 +186,16 @@ public class CompanyController extends BaseController {
     @ApiOperation(value = "获取所有公司", notes = "获取所有公司")
     public ResponseEntity<List<Company>> getAllCompany() {
         List<Company> list = companyRepository.findAll();
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(list);
+    }
+
+    /**
+     * @Description : 获取所有启用公司
+     */
+    @GetMapping(value = "/getAllUsingCompany")
+    @ApiOperation(value = "获取所有启用公司", notes = "获取所有启用公司")
+    public ResponseEntity<List<Company>> getAllUsingCompany() {
+        List<Company> list = IterableUtils.toList(companyRepository.findAll(QCompany.company.status.eq(0)));
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(list);
     }
 
