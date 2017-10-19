@@ -24,7 +24,7 @@ public class OutsourcePool extends BaseEntity {
     private Outsource outsource;
 
     @ApiModelProperty("委外时间")
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date outTime;
 
     @ApiModelProperty("操作时间")
