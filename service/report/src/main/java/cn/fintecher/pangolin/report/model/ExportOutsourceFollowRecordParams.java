@@ -5,7 +5,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -46,11 +45,11 @@ public class ExportOutsourceFollowRecordParams {
     @ApiModelProperty(notes = "佣金比例")
     private BigDecimal commissionRateEnd;
     @ApiModelProperty(notes = "委案日期")
-    private Date outTime;
+    private String outTime;
     @ApiModelProperty(notes = "到期日期")
-    private Date overOutsourceTime;
+    private String overOutsourceTime;
     @ApiModelProperty(notes = "结案日期")
-    private Date endOutsourceTime;
+    private String endOutsourceTime;
     @ApiModelProperty(notes = "委托方")
     private List<String> outsNameList;
     @ApiModelProperty(notes = "公司Code")
