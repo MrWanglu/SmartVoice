@@ -126,7 +126,10 @@ public class OutsourcePoolService {
                         OutsourcePool outsourcePool = outsourcePoolRepository.findOne(QOutsourcePool.outsourcePool.caseInfo.id.eq(caseId));
                         CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
                         if (Objects.nonNull(outsourcePool) && Objects.nonNull(caseInfo)) {
-                            BigDecimal amount = caseInfo.getOverdueAmount().subtract(caseInfo.getHasPayAmount()); //案件需要委外的金额
+                            if(Objects.nonNull(caseInfo.getRealPayAmount())){
+                                caseInfo.setRealPayAmount(BigDecimal.ZERO);
+                            }
+                            BigDecimal amount = caseInfo.getOverdueAmount().subtract(caseInfo.getRealPayAmount()); //案件需要委外的金额
                             outDistributeInfo.setCaseDistributeMoneyCount(outDistributeInfo.getCaseDistributeMoneyCount().add(amount));
                         }
                         alreadyCaseNum = alreadyCaseNum + 1;
@@ -235,7 +238,6 @@ public class OutsourcePoolService {
                     //添加委外记录
                     saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
                 }
-
                 alreadyCaseNum = alreadyCaseNum + 1;
             }
         }
