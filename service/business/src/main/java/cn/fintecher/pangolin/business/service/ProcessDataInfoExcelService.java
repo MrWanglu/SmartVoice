@@ -96,7 +96,7 @@ public class ProcessDataInfoExcelService {
             for (Iterator<CaseInfoDistributed> it = caseInfoDistributedIterable.iterator(); it.hasNext(); ) {
                 caseInfoDistributedSets.add(it.next().getId());
             }
-            while (caseInfoDistributedSets.isEmpty()) {
+            if (caseInfoDistributedSets.isEmpty()) {
                 Iterable<CaseInfoDistributed> cd = caseInfoDistributedRepository.findAll(qCaseInfoDistributed.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
                         .and(qCaseInfoDistributed.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
                         .and(qCaseInfoDistributed.principalId.code.eq(dataInfoExcelModel.getPrinCode()))
