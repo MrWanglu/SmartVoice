@@ -31,17 +31,17 @@
                 #{item}
             </foreach>
         </if>
+        <if test="outsName != null and outsName !=''">
+            AND c.outs_name = #{outsName}
+        </if>
+        <if test="batchNumber != null and batchNumber !=''">
+            AND b.out_batch = #{batchNumber}
+        </if>
         <if test="personalName != null and personalName !=''">
             AND d.name LIKE CONCAT(#{personalName}, '%')
         </if>
         <if test="phone != null and phone !=''">
             AND d.mobile_no = #{phone}
-        </if>
-        <if test="provinceId != null and provinceId !=''">
-            AND f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId})
-        </if>
-        <if test="cityId != null and cityId !=''">
-            AND f.id = #{cityId}
         </if>
         <if test="overDayStart != null and overDayStart !=''">
             AND a.overdue_days &gt; #{overDayStart}
@@ -50,22 +50,19 @@
             AND a.overdue_days &lt; #{overDayEnd}
         </if>
         <if test="outCaseAmountStart != null and outCaseAmountStart !=''">
-            AND b.contract_amt &gt; #{outCaseAmountStart}
+            AND b.contract_amt > #{outCaseAmountStart}
         </if>
         <if test="outCaseAmountEnd != null and outCaseAmountEnd !=''">
             AND b.contract_amt &lt; #{outCaseAmountEnd}
         </if>
-        <if test="commissionRateStart != null and commissionRateStart !=''">
-            AND  b.commission_rate &gt; #{commissionRateStart}
-        </if>
-        <if test="commissionRateEnd != null and commissionRateEnd !=''">
-            AND  b.commission_rate &lt; #{commissionRateEnd}
-        </if>
         <if test="outTime != null and outTime !=''">
-            AND  b.out_ime = #{outTime}
+            AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') = DATE_FORMAT(#{outTime},'%Y-%m-%d')]]>
         </if>
         <if test="overOutsourceTime != null and overOutsourceTime !=''">
-            AND  b.over_outsource_time = #{overOutsourceTime}
+            AND <![CDATA[DATE_FORMAT(b.over_outsource_time,'%Y-%m-%d') = DATE_FORMAT(#{overOutsourceTime},'%Y-%m-%d')]]>
+        </if>
+        <if test="endOutsourceTime != null and endOutsourceTime !=''">
+            AND <![CDATA[DATE_FORMAT(b.end_outsource_time,'%Y-%m-%d') = DATE_FORMAT(#{endOutsourceTime},'%Y-%m-%d')]]>
         </if>
         <if test="outsNameList != null and outsNameList.size()>0">
             AND  c.outs_name in
@@ -99,6 +96,12 @@
         <if test="companyCode != null and companyCode !=''">
             AND a.company_code = #{companyCode}
         </if>
+        <if test="batchNumber != null and batchNumber !=''">
+            AND b.out_batch = #{batchNumber}
+        </if>
+        <if test="outsName != null and outsName !=''">
+            AND c.outs_name = #{outsName}
+        </if>
         <if test="batchNumberList != null and batchNumberList.size()>0">
             AND b.out_batch IN
             <foreach collection="batchNumberList" index="index" item="item" open="(" separator="," close=")">
@@ -117,12 +120,6 @@
         <if test="phone != null and phone !=''">
             AND d.mobile_no = #{phone}
         </if>
-        <if test="provinceId != null and provinceId !=''">
-            AND f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId})
-        </if>
-        <if test="cityId != null and cityId !=''">
-            AND f.id = #{cityId}
-        </if>
         <if test="overDayStart != null and overDayStart !=''">
             AND a.overdue_days &gt; #{overDayStart}
         </if>
@@ -135,20 +132,17 @@
         <if test="outCaseAmountEnd != null and outCaseAmountEnd !=''">
             AND b.contract_amt &lt; #{outCaseAmountEnd}
         </if>
-        <if test="commissionRateStart != null and commissionRateStart !=''">
-            AND  b.commission_rate &gt; #{commissionRateStart}
-        </if>
-        <if test="commissionRateEnd != null and commissionRateEnd !=''">
-            AND  b.commission_rate &lt; #{commissionRateEnd}
+        <if test="overduePeriods != null and overduePeriods !=''">
+            AND  a.pay_status = #{overduePeriods}
         </if>
         <if test="outTime != null and outTime !=''">
-            AND  b.out_ime = #{outTime}
+            AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') = DATE_FORMAT(#{outTime},'%Y-%m-%d')]]>
         </if>
         <if test="overOutsourceTime != null and overOutsourceTime !=''">
-            AND  b.over_outsource_time = #{overOutsourceTime}
+            AND <![CDATA[DATE_FORMAT(b.over_outsource_time,'%Y-%m-%d') = DATE_FORMAT(#{overOutsourceTime},'%Y-%m-%d')]]>
         </if>
         <if test="endOutsourceTime != null and endOutsourceTime !=''">
-            AND  b.end_outsource_time = #{endOutsourceTime}
+            AND <![CDATA[DATE_FORMAT(b.end_outsource_time,'%Y-%m-%d') = DATE_FORMAT(#{endOutsourceTime},'%Y-%m-%d')]]>
         </if>
         <if test="outsNameList != null and outsNameList.size()>0">
             AND  c.outs_name in

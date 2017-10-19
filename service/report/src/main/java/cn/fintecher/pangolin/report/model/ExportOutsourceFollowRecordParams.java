@@ -55,5 +55,9 @@ public class ExportOutsourceFollowRecordParams {
     private List<String> outsNameList;
     @ApiModelProperty(notes = "公司Code")
     private String companyCode;
+    @ApiModelProperty(notes = "委外方")
+    private String outsName;
+    @ApiModelProperty(notes = "还款状态")
+    private String overduePeriods;
 
 }
