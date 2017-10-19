@@ -1,9 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
-import cn.fintecher.pangolin.business.model.CaseInfoExceptionIdList;
-import cn.fintecher.pangolin.business.model.CaseUpdateParams;
-import cn.fintecher.pangolin.business.model.ItemsModel;
-import cn.fintecher.pangolin.business.model.RepeatCaseModel;
+import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.CaseInfoDistributedRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoExceptionRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
@@ -109,12 +106,40 @@ public class CaseInfoExceptionController extends BaseController {
     @GetMapping("/addCaseInfoException")
     @ApiOperation(value = "新增案件", notes = "新增案件")
     public ResponseEntity<CaseInfoDistributed> addCaseInfo(@RequestParam @ApiParam(value = "异常案件id") String caseInfoExceptionId,
-                                                           @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
+                                                           @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to add case to CaseInfoDistributed");
-        CaseInfoDistributed caseInfoDistributed = caseInfoExceptionService.addCaseInfoDistributed(caseInfoExceptionId, getUserByToken(token));
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert(CASE_INFO_ENTITY, caseInfoDistributed.getId())).body(caseInfoDistributed);
+        try {
+            CaseInfoDistributed caseInfoDistributed = caseInfoExceptionService.addCaseInfoDistributed(caseInfoExceptionId, getUserByToken(token));
+            return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert(CASE_INFO_ENTITY, caseInfoDistributed.getId())).body(caseInfoDistributed);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "新增失败!")).body(null);
+        }
     }
 
+    @PostMapping("/batchAddCaseInfo")
+    @ApiOperation(value = "异常案件批量新增", notes = "异常案件批量新增")
+    public ResponseEntity batchAddCaseInfo(@RequestBody CaseInfoIdList ids,
+                                           @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+        log.debug("REST request to batchAddCaseInfo");
+        if (Objects.isNull(ids.getIds()) || ids.getIds().isEmpty()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要新增的案件")).body(null);
+        }
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+        }
+        try {
+            ids.getIds().forEach(e -> caseInfoExceptionService.addCaseInfoDistributed(e, user));
+            return ResponseEntity.ok().body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "新增失败!")).body(null);
+        }
+    }
     /**
      * 更新案件
      *
@@ -126,17 +151,22 @@ public class CaseInfoExceptionController extends BaseController {
     @PostMapping("/updateCaseInfoException")
     @ApiOperation(value = "更新案件", notes = "更新案件")
     public ResponseEntity<CaseInfo> updateCaseInfoException(@RequestBody CaseUpdateParams caseUpdateParams,
-                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
+                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to update CaseInfo");
-        CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseUpdateParams.getCaseInfoExceptionId());
-        if (Objects.isNull(caseInfoException)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Exception Case", "异常案件已经被更新")).body(null);
+        try {
+            CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseUpdateParams.getCaseInfoExceptionId());
+            if (Objects.isNull(caseInfoException)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Exception Case", "异常案件已经被更新")).body(null);
+            }
+            List<CaseInfo> caseInfoList = caseInfoExceptionService.updateCaseInfoException(caseUpdateParams.getCaseInfoExceptionId(), caseUpdateParams.getCaseInfoIds(), getUserByToken(token));
+            if (caseInfoList.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseNotFound", "不存在相同案件，无法更新")).body(null);
+            }
+            return ResponseEntity.ok().body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "更新失败!")).body(null);
         }
-        List<CaseInfo> caseInfoList = caseInfoExceptionService.updateCaseInfoException(caseUpdateParams.getCaseInfoExceptionId(), caseUpdateParams.getCaseInfoIds(), getUserByToken(token));
-        if (caseInfoList.isEmpty()) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseNotFound", "不存在相同案件，无法更新")).body(null);
-        }
-        return ResponseEntity.ok().body(null);
     }
 
     /**
