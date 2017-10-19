@@ -29,7 +29,7 @@
         FROM (SELECT d.recover_remark,c.outs_name,a.out_time as come_outsource_time,a.out_batch,a.out_time,a.over_outsource_time,TIMESTAMPDIFF(DAY,curdate(),over_outsource_time) as left_days,a.contract_amt,a.out_status, a.company_code, c.outs_code
         FROM outsource  c
         INNER JOIN outsource_pool a on c.id=a.out_id
-        LEFT JOIN case_info d on a.case_id=d.id where a.out_status=168) as aa where aa.recover_remark = 0 GROUP BY aa.out_batch, aa.outs_name,aa.company_code,aa.outs_code) as bb
+        LEFT JOIN case_info d on a.case_id=d.id) as aa where aa.recover_remark = 0 GROUP BY aa.out_batch, aa.outs_name,aa.company_code,aa.outs_code) as bb
         LEFT JOIN (SELECT a.out_batch,c.outs_name,count(*) as end_outsource_count,sum(a.contract_amt) as end_outsource_amt
         FROM outsource c
         INNER JOIN outsource_pool a on c.id=a.out_id
