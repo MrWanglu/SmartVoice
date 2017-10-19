@@ -91,7 +91,7 @@ public class CaseInfoHistoryController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "删除失败")).body(null);
         }
     }
 
@@ -129,7 +129,7 @@ public class CaseInfoHistoryController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "删除失败")).body(null);
         }
     }
 
@@ -168,7 +168,7 @@ public class CaseInfoHistoryController extends BaseController {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "删除失败")).body(null);
         }
     }
 

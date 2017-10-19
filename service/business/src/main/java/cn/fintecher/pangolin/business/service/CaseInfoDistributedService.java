@@ -6,6 +6,7 @@ import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import cn.fintecher.pangolin.util.ZWStringUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
@@ -228,6 +229,11 @@ public class CaseInfoDistributedService {
         }
     }
 
+    /**
+     * 案件导入手工分案/待分配回收案件批量分配
+     * @param manualParams
+     * @param user
+     */
     public void manualAllocation(ManualParams manualParams, User user) {
         try {
             Iterable<CaseInfoDistributed> all = caseInfoDistributedRepository
@@ -261,7 +267,7 @@ public class CaseInfoDistributedService {
                     caseInfoList.add(caseInfo);
                     OutsourcePool outsourcePool = new OutsourcePool();
                     outsourcePool.setCaseInfo(caseInfo);
-                    outsourcePool.setCompanyCode(user.getCompanyCode());
+                    outsourcePool.setCompanyCode(caseInfo.getCompanyCode());
                     outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
                     outsourcePool.setOverOutsourceTime(caseInfo.getCloseDate());
                     outsourcePool.setOverduePeriods(caseInfo.getPayStatus());
@@ -336,6 +342,11 @@ public class CaseInfoDistributedService {
         caseRepairList.add(caseRepair);
     }
 
+    /**
+     * 案件导入手工分案统计
+     * @param manualParams
+     * @return
+     */
     public AllocationCountModel allocationCount(ManualParams manualParams) {
         if (Objects.isNull(manualParams.getCaseNumberList()) || manualParams.getCaseNumberList().isEmpty()) {
             throw new RuntimeException("请先选择要分配的案件");
@@ -366,52 +377,58 @@ public class CaseInfoDistributedService {
      * @return
      */
     public void strategyAllocation(CountStrategyAllocationModel model, User user) {
-        List<CountAllocationModel> modelList = model.getModelList();
+        try {
+            List<CountAllocationModel> modelList = model.getModelList();
 
-        // 策略分配
-        List<CaseInfoDistributed> caseInfoDistributedList = new ArrayList<>();
-        List<CaseInfo> caseInfoList = new ArrayList<>(); // 分配到CaseInfo的案件
-        List<CaseRepair> caseRepairList = new ArrayList<>(); // 分配到内催时添加修复池也新增
-        List<OutsourcePool> outsourcePoolList = new ArrayList<>(); // 分到委外时需要OutsourcePool新增
-        List<CaseInfoRemark> caseInfoRemarkList = new ArrayList<>(); // 分配时备注表新增
-        for (CountAllocationModel aModel : modelList) {
-            List<CaseInfoDistributed> all = caseInfoDistributedRepository.findAll(aModel.getIds());
-            if (Objects.equals(aModel.getType(), 0)) { // 内催
-                for (CaseInfoDistributed caseInfoDistributed : all) {
-                    CaseInfo caseInfo = new CaseInfo();
-                    setCaseInfo(caseInfoDistributed, caseInfo, user, null);
-                    caseInfo.setCasePoolType(CaseInfo.CasePoolType.INNER.getValue());
-                    caseInfoList.add(caseInfo);
-                    addCaseRepair(caseRepairList, caseInfo, user);//修复池增加案件
-                    caseInfoDistributedList.add(caseInfoDistributed);
+            // 策略分配
+            List<CaseInfoDistributed> caseInfoDistributedList = new ArrayList<>();
+            List<CaseInfo> caseInfoList = new ArrayList<>(); // 分配到CaseInfo的案件
+            List<CaseRepair> caseRepairList = new ArrayList<>(); // 分配到内催时添加修复池也新增
+            List<OutsourcePool> outsourcePoolList = new ArrayList<>(); // 分到委外时需要OutsourcePool新增
+            List<CaseInfoRemark> caseInfoRemarkList = new ArrayList<>(); // 分配时备注表新增
+            for (CountAllocationModel aModel : modelList) {
+                List<CaseInfoDistributed> all = caseInfoDistributedRepository.findAll(aModel.getIds());
+                if (Objects.equals(aModel.getType(), 0)) { // 内催
+                    for (CaseInfoDistributed caseInfoDistributed : all) {
+                        CaseInfo caseInfo = new CaseInfo();
+                        setCaseInfo(caseInfoDistributed, caseInfo, user, null);
+                        caseInfo.setCasePoolType(CaseInfo.CasePoolType.INNER.getValue());
+                        caseInfoList.add(caseInfo);
+                        addCaseRepair(caseRepairList, caseInfo, user);//修复池增加案件
+                        caseInfoDistributedList.add(caseInfoDistributed);
+                    }
+                }
+                if (Objects.equals(aModel.getType(), 1)) { // 委外
+                    for (CaseInfoDistributed caseInfoDistributed : all) {
+                        CaseInfo caseInfo = new CaseInfo();
+                        setCaseInfo(caseInfoDistributed, caseInfo, user, null);
+                        caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue());
+                        caseInfoList.add(caseInfo);
+                        OutsourcePool outsourcePool = new OutsourcePool();
+                        outsourcePool.setCaseInfo(caseInfo);
+                        outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
+                        outsourcePool.setOverOutsourceTime(caseInfoDistributed.getCloseDate());
+                        outsourcePool.setOverduePeriods(caseInfo.getPayStatus());
+                        outsourcePool.setCompanyCode(caseInfo.getCompanyCode());
+                        outsourcePoolList.add(outsourcePool);
+                        caseInfoDistributedList.add(caseInfoDistributed);
+                    }
                 }
             }
-            if (Objects.equals(aModel.getType(), 1)) { // 委外
-                for (CaseInfoDistributed caseInfoDistributed : all) {
-                    CaseInfo caseInfo = new CaseInfo();
-                    setCaseInfo(caseInfoDistributed, caseInfo, user, null);
-                    caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue());
-                    caseInfoList.add(caseInfo);
-                    OutsourcePool outsourcePool = new OutsourcePool();
-                    outsourcePool.setCaseInfo(caseInfo);
-                    outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
-                    outsourcePool.setOverOutsourceTime(caseInfoDistributed.getCloseDate());
-                    outsourcePool.setOverduePeriods(caseInfo.getPayStatus());
-                    outsourcePoolList.add(outsourcePool);
-                    caseInfoDistributedList.add(caseInfoDistributed);
+            List<CaseInfo> save = caseInfoRepository.save(caseInfoList);
+            caseRepairRepository.save(caseRepairList);
+            outsourcePoolRepository.save(outsourcePoolList);
+            if (!save.isEmpty()) {
+                for (CaseInfo caseInfo : save) {
+                    addCaseInfoRemark(caseInfoRemarkList, caseInfo, user);
                 }
+                caseInfoRemarkRepository.save(caseInfoRemarkList);
             }
+            caseInfoDistributedRepository.delete(caseInfoDistributedList);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw  new RuntimeException("分配失败");
         }
-        List<CaseInfo> save = caseInfoRepository.save(caseInfoList);
-        caseRepairRepository.save(caseRepairList);
-        outsourcePoolRepository.save(outsourcePoolList);
-        if (!save.isEmpty()) {
-            for (CaseInfo caseInfo : save) {
-                addCaseInfoRemark(caseInfoRemarkList, caseInfo, user);
-            }
-            caseInfoRemarkRepository.save(caseInfoRemarkList);
-        }
-        caseInfoDistributedRepository.delete(caseInfoDistributedList);
     }
 
     /**
@@ -463,8 +480,10 @@ public class CaseInfoDistributedService {
                 throw new RuntimeException(e.getMessage());
             }
             for (CaseInfoDistributed caseInfoDistributed : all) {
-                kieSession.insert(caseInfoDistributed);//插入
-                kieSession.fireAllRules();//执行规则
+                if (ZWStringUtils.isNotEmpty(caseInfoDistributed.getProduct()) && ZWStringUtils.isNotEmpty(caseInfoDistributed.getProduct().getProductSeries())) {
+                    kieSession.insert(caseInfoDistributed);//插入
+                    kieSession.fireAllRules();//执行规则
+                }
             }
             kieSession.dispose();
             if (checkedList.isEmpty()) {

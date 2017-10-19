@@ -199,10 +199,13 @@ public class CaseStrategyController {
                 Integer assignType = caseStrategy.getAssignType();
                 if (Objects.equals(assignType, CaseStrategy.AssignType.DEPART.getValue())) {//机构
                     cs.setAssignType(CaseStrategy.AssignType.DEPART.getValue());
+                    if (Objects.isNull(caseStrategy.getDepartments()) || caseStrategy.getDepartments().isEmpty() || (caseStrategy.getDepartments().size() == 1 && caseStrategy.getDepartments().get(0) == null)) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要指定的机构")).body(null);
+                    }
                     cs.setDepartments(caseStrategy.getDepartments());
                 } else if (Objects.equals(assignType, CaseStrategy.AssignType.COLLECTOR.getValue())) {//催收员
                     cs.setAssignType(CaseStrategy.AssignType.COLLECTOR.getValue());
-                    if (caseStrategy.getUsers().isEmpty()) {
+                    if (Objects.isNull(caseStrategy.getUsers()) || caseStrategy.getUsers().isEmpty() || (caseStrategy.getUsers().size() == 1 && caseStrategy.getUsers().get(0) == null)) {
                         return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要指定的催收员")).body(null);
                     }
                     cs.setUsers(caseStrategy.getUsers());
@@ -213,8 +216,8 @@ public class CaseStrategyController {
                 cs.setStrategyType(CaseStrategy.StrategyType.OUTS.getValue());
                 if (Objects.equals(caseStrategy.getAssignType(), CaseStrategy.AssignType.OUTER.getValue())) {
                     cs.setAssignType(CaseStrategy.AssignType.OUTER.getValue());
-                    if (caseStrategy.getOutsource().isEmpty()) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "")).body(null);
+                    if (Objects.isNull(caseStrategy.getOutsource()) || caseStrategy.getOutsource().isEmpty() || (caseStrategy.getOutsource().size() == 1 && caseStrategy.getOutsource().get(0) == null)) {
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要指定的委外方")).body(null);
                     }
                     cs.setOutsource(caseStrategy.getOutsource());
                 } else {

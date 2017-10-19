@@ -13,6 +13,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2451,6 +2452,7 @@ public class CaseInfoService {
         List<CaseInfoInnerDistributeModel> infoInnerDistributeUserModels = new ArrayList<>();
         List<CaseInfoInnerDistributeModel> infoInnerDistributeDepartModels = new ArrayList<>();
         for (CaseStrategy caseStrategy : caseStrategies) {
+
             List<CaseInfo> checkedList = new ArrayList<>(); // 策略匹配到的案件
             KieSession kieSession = null;
             try {
@@ -2459,7 +2461,29 @@ public class CaseInfoService {
                 log.error(e.getMessage(), e);
                 throw new RuntimeException(e.getMessage());
             }
-            for (CaseInfo caseInfo : caseInfos) {
+            List<CaseInfo> caseInfoList = caseInfos;
+            Iterator<CaseInfo> iterator = caseInfoList.iterator();
+            if (StringUtils.isNotBlank(caseStrategy.getStrategyText())) {
+                if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_AREA_ID)){
+                    while (iterator.hasNext()) {
+                        CaseInfo next = iterator.next();
+                        if (Objects.isNull(next.getArea())) {
+                            iterator.remove();
+                        }
+                    }
+                }
+                if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_PRODUCT_SERIES)) {
+                    while (iterator.hasNext()) {
+                        CaseInfo next = iterator.next();
+                        if (Objects.isNull(next.getProduct())) {
+                            iterator.remove();
+                        } else if (Objects.isNull(next.getProduct().getProductSeries())){
+                            iterator.remove();
+                        }
+                    }
+                }
+            }
+            for (CaseInfo caseInfo : caseInfoList) {
                 kieSession.insert(caseInfo);//插入
                 kieSession.fireAllRules();//执行规则
             }
@@ -2486,6 +2510,7 @@ public class CaseInfoService {
             } else {
                 infoInnerDistributeUserModels.addAll(caseInfoInnerDistributeModelTemp);
             }
+            caseInfos.removeAll(checkedList);
         }
         //生成策略分配结果
         if (!infoInnerDistributeDepartModels.isEmpty()) {

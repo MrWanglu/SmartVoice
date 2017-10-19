@@ -301,7 +301,7 @@ public class CaseInfoDistributeController extends BaseController {
             return ResponseEntity.ok().body(model);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "统计策略分配情况错误")).body(null);
         }
     }
 
@@ -328,7 +328,23 @@ public class CaseInfoDistributeController extends BaseController {
             if (Objects.isNull(previewParams.getType())) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择策略类型")).body(null);
             }
-            CaseStrategy caseStrategy = caseInfoDistributedService.previewResult(previewParams.getJsonString());
+            CaseStrategy caseStrategy = null;
+            try {
+                caseStrategy = caseInfoDistributedService.previewResult(previewParams.getJsonString());
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+            }
+            boolean areaIdFlag = false;
+            boolean ppsFlag = false;
+            if (StringUtils.isNotBlank(caseStrategy.getStrategyText())) {
+                if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_AREA_ID)){
+                    areaIdFlag = true;
+                }
+                if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_PRODUCT_SERIES)) {
+                    ppsFlag = true;
+                }
+            }
             List<StrategyPreviewModel> modelList = new ArrayList<>();
             if (Objects.equals(previewParams.getType(), CaseStrategy.StrategyType.IMPORT.getValue())) {// 案件导入策略分配
                 List<CaseInfoDistributed> checkList = new ArrayList<>();
@@ -359,11 +375,23 @@ public class CaseInfoDistributeController extends BaseController {
                 if (Objects.nonNull(previewParams.getEndAmount())) {
                     builder.and(qCaseInfoDistributed.overdueAmount.lt(previewParams.getEndAmount()));
                 }
+                if (areaIdFlag == true) {
+                    builder.and(qCaseInfoDistributed.area.isNotNull());
+                }
+                if (ppsFlag == true) {
+                    builder.and(qCaseInfoDistributed.product.productSeries.isNotNull());
+                }
                 Iterable<CaseInfoDistributed> iterable = caseInfoDistributedRepository.findAll(builder);
                 Iterator<CaseInfoDistributed> iterator = iterable.iterator();
-                KieSession kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_DISTRIBUTE_RULE);
+                KieSession kieSession = null;
+                try {
+                    kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_DISTRIBUTE_RULE);
+                } catch (Exception e) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+                }
                 while (iterator.hasNext()) {
-                    kieSession.insert(iterator.next());//插入
+                    CaseInfoDistributed next = iterator.next();
+                    kieSession.insert(next);//插入
                     kieSession.fireAllRules();//执行规则
                 }
                 kieSession.dispose();
@@ -411,9 +439,20 @@ public class CaseInfoDistributeController extends BaseController {
                 if (Objects.nonNull(previewParams.getEndAmount())) {
                     builder.and(qCaseInfo.overdueAmount.lt(previewParams.getEndAmount()));
                 }
+                if (areaIdFlag == true) {
+                    builder.and(qCaseInfo.area.isNotNull());
+                }
+                if (ppsFlag == true) {
+                    builder.and(qCaseInfo.product.productSeries.isNotNull());
+                }
                 Iterable<CaseInfo> all = caseInfoRepository.findAll(builder);
                 Iterator<CaseInfo> iterator = all.iterator();
-                KieSession kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_RULE);
+                KieSession kieSession = null;
+                try {
+                    kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_RULE);
+                } catch (Exception e) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+                }
                 while (iterator.hasNext()) {
                     CaseInfo next = iterator.next();
                     kieSession.insert(next);
@@ -463,14 +502,37 @@ public class CaseInfoDistributeController extends BaseController {
                 if (Objects.nonNull(previewParams.getEndAmount())) {
                     builder.and(qOutsourcePool.caseInfo.overdueAmount.lt(previewParams.getEndAmount()));
                 }
-                Iterable<OutsourcePool> all = outsourcePoolRepository.findAll(builder);// 未回收
+                if (areaIdFlag == true) {
+                    builder.and(qOutsourcePool.caseInfo.area.isNotNull());
+                }
+                Iterable<OutsourcePool> all = outsourcePoolRepository.findAll(builder);
                 Iterator<OutsourcePool> iterator = all.iterator();
+                if (ppsFlag == true) {
+                    while (iterator.hasNext()) {
+                        OutsourcePool next = iterator.next();
+                        QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+                        CaseInfo one = caseInfoRepository.findOne(qCaseInfo.id.eq(next.getCaseInfo().getId()));
+                        if (Objects.nonNull(one.getProduct())) {
+                            if (Objects.isNull(one.getProduct().getProductSeries())) {
+                                iterator.remove();
+                            }
+                        } else {
+                            iterator.remove();
+                        }
+                    }
+                }
                 List<CaseInfo> caseInfoList = new ArrayList<>();
-                while (iterator.hasNext()) {
-                    OutsourcePool outsourcePool = iterator.next();
+                Iterator<OutsourcePool> iterator1 = all.iterator();
+                while (iterator1.hasNext()) {
+                    OutsourcePool outsourcePool = iterator1.next();
                     caseInfoList.add(outsourcePool.getCaseInfo());
                 }
-                KieSession kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_RULE);
+                KieSession kieSession = null;
+                try {
+                    kieSession = runCaseStrategyService.runCaseRule(checkList, caseStrategy, Constants.CASE_INFO_RULE);
+                } catch (Exception e) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+                }
                 if (!caseInfoList.isEmpty()) {
                     for (CaseInfo caseInfo : caseInfoList) {
                         kieSession.insert(caseInfo);
@@ -497,7 +559,7 @@ public class CaseInfoDistributeController extends BaseController {
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "预览结果失败")).body(null);
         }
 
     }
@@ -513,9 +575,9 @@ public class CaseInfoDistributeController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<CaseInfoDistributed>> findRecoverDistribute(@QuerydslPredicate(root = CaseInfoDistributed.class) Predicate predicate,
-                                                @ApiIgnore Pageable pageable,
-                                                @RequestHeader(value = "X-UserToken") String token,
-                                                @RequestParam(value = "companyCode", required = false) String companyCode) {
+                                                                           @ApiIgnore Pageable pageable,
+                                                                           @RequestHeader(value = "X-UserToken") String token,
+                                                                           @RequestParam(value = "companyCode", required = false) String companyCode) {
         logger.debug("REST request to findRecoverDistribute");
         User user = null;
         try {

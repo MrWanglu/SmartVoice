@@ -387,5 +387,14 @@ public final class Constants {
     public final static String CASE_INFO_RULE = "caseInfo.ftl";
     public final static String OUTSOURCE = "outsource.ftl";
 
+    /**
+     * 策略所属城市属性
+     */
+    public final static String STRATEGY_AREA_ID = "area.id";
+
+    /**
+     * 策略产品系列属性
+     */
+    public final static String STRATEGY_PRODUCT_SERIES = "product.productSeries.seriesName";
 
 }
