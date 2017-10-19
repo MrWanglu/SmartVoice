@@ -163,7 +163,9 @@ public class PersonalInfoExportService {
                 map.put("custName",caseInfo.getPersonalInfo().getName()); //客户姓名
                 map.put("idCard",caseInfo.getPersonalInfo().getIdCard()); //身份证号
                 map.put("phone",caseInfo.getPersonalInfo().getMobileNo()); //联系电话
-                map.put("city",caseInfo.getArea().getAreaName()); //归属城市
+                if(Objects.nonNull(caseInfo.getArea())) {
+                    map.put("city", caseInfo.getArea().getAreaName()); //归属城市
+                }
                 map.put("idCardAddress", caseInfo.getPersonalInfo().getIdCardAddress()); //身份证户籍地址
                 map.put("homeAddress", caseInfo.getPersonalInfo().getLocalHomeAddress()); //家庭地址
                 map.put("homePhone", caseInfo.getPersonalInfo().getLocalPhoneNo()); //家庭电话
