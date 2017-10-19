@@ -64,21 +64,15 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
             }
         });
         //委案日期
-        bindings.bind(root.outTime).all((DateTimePath<Date> path, Collection<? extends Date> value) -> {
+        bindings.bind(root.outTime).all((path, value) -> {
             Iterator<? extends Date> it = value.iterator();
-            Date operatorMinTime = it.next();
+            Date firstDelegationDate = it.next();
             if (it.hasNext()) {
-                String date = ZWDateUtil.fomratterDate(it.next(), "yyyy-MM-dd");
-                date = date + " 23:59:59";
-                Date operatorMaxTime = null;
-                try {
-                    operatorMaxTime = ZWDateUtil.getFormatDateTime(date);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                return path.between(operatorMinTime, operatorMaxTime);
+                Date secondDelegationDate = it.next();
+                return path.between(firstDelegationDate, secondDelegationDate);
             } else {
-                return path.goe(operatorMinTime);
+                //大于等于
+                return path.goe(firstDelegationDate);
             }
         });
         //到期日期
