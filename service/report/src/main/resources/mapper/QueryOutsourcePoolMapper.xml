@@ -39,7 +39,7 @@
             AND bb.company_code = #{companyCode}
         </if>
         <if test="batchNumber != null">
-            AND cc.out_batch LIKE CONCAT(#{batchNumber}, '%')
+            AND bb.out_batch = #{batchNumber}
         </if>
         <if test="outsName != null">
             AND bb.outs_name = #{outsName}
