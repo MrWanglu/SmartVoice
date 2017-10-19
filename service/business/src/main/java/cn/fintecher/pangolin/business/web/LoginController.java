@@ -162,9 +162,11 @@ public class LoginController extends BaseController {
                                     try {
                                         mac = getLocalMac(InetAddress.getLocalHost());
                                     } catch (UnknownHostException e) {
-                                        e.printStackTrace();
+                                        logger.error(e.getMessage(), e);
+                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to getMac", "获取MAC地址失败！")).body(null);
                                     } catch (SocketException e) {
-                                        e.printStackTrace();
+                                        logger.error(e.getMessage(), e);
+                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to getMac", "获取MAC地址失败！")).body(null);
                                     }
                                     // 判断用户请求的设备状态(PC端：0，移动端：1)
                                     loginRequest.setUsdeCode(ip);
@@ -176,9 +178,11 @@ public class LoginController extends BaseController {
                                             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "This login and the last login address are not consistent", "本次登录和上次登录地址不一致！")).body(null);
                                         }
                                     } catch (SocketException e) {
-                                        e.printStackTrace();
+                                        logger.error(e.getMessage(), e);
+                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to getMac", "获取MAC地址失败！")).body(null);
                                     } catch (UnknownHostException e) {
-                                        e.printStackTrace();
+                                        logger.error(e.getMessage(), e);
+                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to getMac", "获取MAC地址失败！")).body(null);
                                     }
                                 }
                             } else {
