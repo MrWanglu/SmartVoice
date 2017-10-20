@@ -17,10 +17,14 @@ public class  QueryOutsourcePoolParams {
     private String batchNumber;
     /*受托方名称*/
     private String outsName;
-    /*委案日期*/
-    private String outTime;
-    /*委外结案日期*/
-    private String overOutsourceTime;
+    /*委案日期开始*/
+    private String outTimeStart;
+    /*委案日期结束*/
+    private String outTimeEnd;
+    /*委外结案日期开始*/
+    private String overOutsourceTimeStart;
+    /*委外结案日期结束*/
+    private String overOutsourceTimeEnd;
     /*页码数*/
     private Integer page;
     /*每一页显示的数量*/

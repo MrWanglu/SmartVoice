@@ -35,20 +35,26 @@
         INNER JOIN outsource_pool a on c.id=a.out_id
         WHERE a.out_status=170 GROUP BY a.out_batch,c.outs_name) as cc on bb.out_batch=cc.out_batch and bb.outs_name=cc.outs_name
         WHERE 1=1
-        <if test="companyCode != null">
+        <if test="companyCode != null and companyCode != ''">
             AND bb.company_code = #{companyCode}
         </if>
-        <if test="batchNumber != null">
+        <if test="batchNumber != null and batchNumber != ''">
             AND bb.out_batch = #{batchNumber}
         </if>
-        <if test="outsName != null">
+        <if test="outsName != null and outsName != ''">
             AND bb.outs_name = #{outsName}
         </if>
-        <if test="outTime != null">
-            AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') = DATE_FORMAT(#{outTime},'%Y-%m-%d')]]>
+        <if test="outTimeStart != null and outTimeStart != ''">
+            AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') >= DATE_FORMAT(#{outTimeStart},'%Y-%m-%d')]]>
         </if>
-        <if test="overOutsourceTime != null">
-            AND <![CDATA[DATE_FORMAT(over_outsource_time,'%Y-%m-%d') = DATE_FORMAT(#{overOutsourceTime},'%Y-%m-%d')]]>
+        <if test="outTimeEnd != null and outTimeEnd !=''">
+            AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') <= DATE_FORMAT(#{outTimeEnd},'%Y-%m-%d')]]>
+        </if>
+        <if test="overOutsourceTimeStart != null and overOutsourceTimeStart != ''">
+            AND <![CDATA[DATE_FORMAT(over_outsource_time,'%Y-%m-%d') >= DATE_FORMAT(#{overOutsourceTimeStart},'%Y-%m-%d')]]>
+        </if>
+        <if test="overOutsourceTimeEnd != null and overOutsourceTimeEnd != ''">
+            AND <![CDATA[DATE_FORMAT(over_outsource_time,'%Y-%m-%d') <= DATE_FORMAT(#{overOutsourceTimeEnd},'%Y-%m-%d')]]>
         </if>
         ORDER BY out_batch desc
     </select>

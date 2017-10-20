@@ -101,6 +101,18 @@ public interface CaseInfoReturnRepository extends QueryDslPredicateExecutor<Case
                 return path.goe(firstCloseDate);
             }
         });
+        //到期日期
+        bindings.bind(root.overOutsourceTime).all((path, value) -> {
+            Iterator<? extends Date> it = value.iterator();
+            Date firstCloseDate = it.next();
+            if (it.hasNext()) {
+                Date secondCloseDate = it.next();
+                return path.between(firstCloseDate, secondCloseDate);
+            } else {
+                //大于等于
+                return path.goe(firstCloseDate);
+            }
+        });
         bindings.bind(root.operatorTime).all((DateTimePath<Date> path, Collection<? extends Date> value) -> { //跟进时间
             Iterator<? extends Date> it = value.iterator();
             Date operatorMinTime = it.next();

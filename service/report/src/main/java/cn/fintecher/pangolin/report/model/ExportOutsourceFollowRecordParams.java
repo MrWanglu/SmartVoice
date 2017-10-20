@@ -58,5 +58,13 @@ public class ExportOutsourceFollowRecordParams {
     private String outsName;
     @ApiModelProperty(notes = "还款状态")
     private String overduePeriods;
+    @ApiModelProperty(notes = "委案日期开始")
+    private String outTimeStart;
+    @ApiModelProperty(notes = "委案日期结束")
+    private String outTimeEnd;
+    @ApiModelProperty(notes = "到期日期开始")
+    private String overOutsourceTimeStart;
+    @ApiModelProperty(notes = "到期日期结束")
+    private String overOutsourceTimeEnd;
 
 }

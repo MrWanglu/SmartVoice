@@ -878,7 +878,7 @@ public class OutsourcePoolController extends BaseController {
     @ResponseBody
     @ApiOperation(value = "下载模板", notes = "下载模板")
     public ResponseEntity<String> loadTemplate(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
-                                               @RequestParam(required = true) @ApiParam(value = "下载模板的类型") Integer type,
+                                               @RequestParam @ApiParam(value = "下载模板的类型", required = true) Integer type,
                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         try {
             User user = getUserByToken(token);
@@ -921,7 +921,7 @@ public class OutsourcePoolController extends BaseController {
                                                            @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                            @RequestParam(required = false) @ApiParam(value = "文件ID") String fileId,
                                                            @RequestParam(required = false) @ApiParam(value = "备注") String fienRemark,
-                                                           @RequestParam(required = true) @ApiParam(value = "导入类型") Integer type) {
+                                                           @RequestParam @ApiParam(value = "导入类型", required = true) Integer type) {
         try {
             int[] startRow = {0};
             int[] startCol = {0};
@@ -1365,8 +1365,8 @@ public class OutsourcePoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam(required = true) @ApiParam(value = "批次号") String batchNumber,
-                                                                          @RequestParam(required = true) @ApiParam(value = "委外方名称") String outsName,
+    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam @ApiParam(value = "批次号", required = true) String batchNumber,
+                                                                          @RequestParam @ApiParam(value = "委外方名称", required = true) String outsName,
                                                                           @RequestParam(required = false) @ApiParam(value = "公司Code码") String companyCode,
                                                                           @QuerydslPredicate(root = OutsourcePool.class) Predicate predicate,
                                                                           @ApiIgnore Pageable pageable,

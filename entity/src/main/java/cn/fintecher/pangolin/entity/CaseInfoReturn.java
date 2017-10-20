@@ -44,8 +44,8 @@ public class CaseInfoReturn extends BaseEntity {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date outTime;
 
-    @ApiModelProperty("委外结案日期")
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @ApiModelProperty("委外到期日期")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date overOutsourceTime;
 
     @ApiModelProperty("委外批次号")

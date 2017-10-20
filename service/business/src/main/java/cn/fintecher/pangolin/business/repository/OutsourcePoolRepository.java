@@ -82,44 +82,32 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
             }
         });
         //到期日期
-        bindings.bind(root.overOutsourceTime).all((DateTimePath<Date> path, Collection<? extends Date> value) -> {
+        bindings.bind(root.overOutsourceTime).all((path, value) -> {
             Iterator<? extends Date> it = value.iterator();
-            Date operatorMinTime = it.next();
+            Date firstDelegationDate = it.next();
             if (it.hasNext()) {
-                String date = ZWDateUtil.fomratterDate(it.next(), "yyyy-MM-dd");
-                date = date + " 23:59:59";
-                Date operatorMaxTime = null;
-                try {
-                    operatorMaxTime = ZWDateUtil.getFormatDateTime(date);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                return path.between(operatorMinTime, operatorMaxTime);
+                Date secondDelegationDate = it.next();
+                return path.between(firstDelegationDate, secondDelegationDate);
             } else {
-                return path.goe(operatorMinTime);
+                //大于等于
+                return path.goe(firstDelegationDate);
             }
         });
 
         //结案日期
-        bindings.bind(root.endOutsourceTime).all((DateTimePath<Date> path, Collection<? extends Date> value) -> {
+        bindings.bind(root.endOutsourceTime).all((path, value) -> {
             Iterator<? extends Date> it = value.iterator();
-            Date operatorMinTime = it.next();
+            Date firstDelegationDate = it.next();
             if (it.hasNext()) {
-                String date = ZWDateUtil.fomratterDate(it.next(), "yyyy-MM-dd");
-                date = date + " 23:59:59";
-                Date operatorMaxTime = null;
-                try {
-                    operatorMaxTime = ZWDateUtil.getFormatDateTime(date);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                return path.between(operatorMinTime, operatorMaxTime);
+                Date secondDelegationDate = it.next();
+                return path.between(firstDelegationDate, secondDelegationDate);
             } else {
-                return path.goe(operatorMinTime);
+                //大于等于
+                return path.goe(firstDelegationDate);
             }
         });
         //案件金额
-        bindings.bind(root.contractAmt).all((path, value) -> {
+        bindings.bind(root.caseInfo.overdueAmount).all((path, value) -> {
             Iterator<? extends BigDecimal> it = value.iterator();
             BigDecimal firstOverdueAmount = it.next();
             if (it.hasNext()) {

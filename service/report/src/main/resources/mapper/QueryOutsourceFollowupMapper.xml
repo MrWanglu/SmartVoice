@@ -55,20 +55,23 @@
         <if test="outCaseAmountEnd != null and outCaseAmountEnd !=''">
             AND b.contract_amt &lt; #{outCaseAmountEnd}
         </if>
-        <if test="outTime != null and outTime !=''">
-            AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') = DATE_FORMAT(#{outTime},'%Y-%m-%d')]]>
-        </if>
-        <if test="overOutsourceTime != null and overOutsourceTime !=''">
-            AND <![CDATA[DATE_FORMAT(b.over_outsource_time,'%Y-%m-%d') = DATE_FORMAT(#{overOutsourceTime},'%Y-%m-%d')]]>
-        </if>
-        <if test="endOutsourceTime != null and endOutsourceTime !=''">
-            AND <![CDATA[DATE_FORMAT(b.end_outsource_time,'%Y-%m-%d') = DATE_FORMAT(#{endOutsourceTime},'%Y-%m-%d')]]>
-        </if>
         <if test="outsNameList != null and outsNameList.size()>0">
             AND  c.outs_name in
             <foreach collection="outsNameList" index="index" item="outsName" open="(" separator="," close=")">
                 #{outsName}
             </foreach>
+        </if>
+        <if test="outTimeStart != null and outTimeStart != ''">
+            AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') >= DATE_FORMAT(#{outTimeStart},'%Y-%m-%d')]]>
+        </if>
+        <if test="outTimeEnd != null and outTimeEnd !=''">
+            AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') <= DATE_FORMAT(#{outTimeEnd},'%Y-%m-%d')]]>
+        </if>
+        <if test="overOutsourceTimeStart != null and overOutsourceTimeStart != ''">
+            AND <![CDATA[DATE_FORMAT(over_outsource_time,'%Y-%m-%d') >= DATE_FORMAT(#{overOutsourceTimeStart},'%Y-%m-%d')]]>
+        </if>
+        <if test="overOutsourceTimeEnd != null and overOutsourceTimeEnd != ''">
+            AND <![CDATA[DATE_FORMAT(over_outsource_time,'%Y-%m-%d') <= DATE_FORMAT(#{overOutsourceTimeEnd},'%Y-%m-%d')]]>
         </if>
     </select>
 
@@ -149,6 +152,18 @@
             <foreach collection="outsNameList" index="index" item="outsName" open="(" separator="," close=")">
                 #{outsName}
             </foreach>
+        </if>
+        <if test="outTimeStart != null and outTimeStart != ''">
+            AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') >= DATE_FORMAT(#{outTimeStart},'%Y-%m-%d')]]>
+        </if>
+        <if test="outTimeEnd != null and outTimeEnd !=''">
+            AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') <= DATE_FORMAT(#{outTimeEnd},'%Y-%m-%d')]]>
+        </if>
+        <if test="overOutsourceTimeStart != null and overOutsourceTimeStart != ''">
+            AND <![CDATA[DATE_FORMAT(over_outsource_time,'%Y-%m-%d') >= DATE_FORMAT(#{overOutsourceTimeStart},'%Y-%m-%d')]]>
+        </if>
+        <if test="overOutsourceTimeEnd != null and overOutsourceTimeEnd != ''">
+            AND <![CDATA[DATE_FORMAT(over_outsource_time,'%Y-%m-%d') <= DATE_FORMAT(#{overOutsourceTimeEnd},'%Y-%m-%d')]]>
         </if>
     </select>
 
