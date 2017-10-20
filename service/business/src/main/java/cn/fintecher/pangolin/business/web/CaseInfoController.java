@@ -769,7 +769,7 @@ public class CaseInfoController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    scoreRuleModel.setProId(caseInfo.getArea().getId());//省份id
+                    scoreRuleModel.setProId(Objects.isNull(caseInfo.getArea())?null:caseInfo.getArea().getId());//省份id
                     Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);
@@ -836,7 +836,7 @@ public class CaseInfoController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    scoreRuleModel.setProId(caseInfo.getArea().getId());//省份id
+                    scoreRuleModel.setProId(Objects.isNull(caseInfo.getArea())?null:caseInfo.getArea().getId());//省份id
                     Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);
@@ -908,7 +908,7 @@ public class CaseInfoController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    scoreRuleModel.setProId(caseInfo.getArea().getId());//省份id
+                    scoreRuleModel.setProId(Objects.isNull(caseInfo.getArea())?null:caseInfo.getArea().getId());//省份id
                     Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);
