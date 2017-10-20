@@ -29,6 +29,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -93,30 +96,27 @@ public class LoginController extends BaseController {
     /**
      * 根据ip获取MAC地址
      */
-    private String getLocalMac(InetAddress ia) throws SocketException {
-        // TODO Auto-generated method stub
-        //获取网卡，获取地址
-        byte[] mac = NetworkInterface.getByInetAddress(ia).getHardwareAddress();
-        if (Objects.isNull(mac) || mac.length == 0) {
-            return "";
-        }
-        System.out.println("mac数组长度：" + mac.length);
-        StringBuffer sb = new StringBuffer("");
-        for (int i = 0; i < mac.length; i++) {
-            if (i != 0) {
-                sb.append("-");
+    public String getMACAddress(String ip) {
+        String str = "";
+        String macAddress = "";
+        try {
+            Process p = Runtime.getRuntime().exec("nbtstat -A " + ip);
+            InputStreamReader ir = new InputStreamReader(p.getInputStream());
+            LineNumberReader input = new LineNumberReader(ir);
+            for (int i = 1; i < 100; i++) {
+                str = input.readLine();
+                if (str != null) {
+                    if (str.indexOf("MAC Address") > 1) {
+                        macAddress = str.substring(str.indexOf("MAC Address") + 14, str.length());
+                        break;
+                    }
+                }
             }
-            //字节转换为整数
-            int temp = mac[i] & 0xff;
-            String str = Integer.toHexString(temp);
-            System.out.println("每8位:" + str);
-            if (str.length() == 1) {
-                sb.append("0" + str);
-            } else {
-                sb.append(str);
-            }
+        } catch (IOException e) {
+            e.printStackTrace(System.out);
         }
-        return sb.toString().toUpperCase();
+        System.out.println(macAddress);
+        return macAddress;
     }
 
     /**
@@ -161,32 +161,15 @@ public class LoginController extends BaseController {
                             if (Objects.equals(loginRequest.getUsdeType(), Status.Enable.getValue())) {
                                 String ip = GetClientIp.getIp(request);
                                 if (ZWStringUtils.isEmpty(userDevice.getCode())) {
-                                    String mac = "";
-                                    try {
-                                        mac = getLocalMac(InetAddress.getLocalHost());
-                                    } catch (UnknownHostException e) {
-                                        logger.error(e.getMessage(), e);
-                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to getMac", "获取MAC地址失败！")).body(null);
-                                    } catch (SocketException e) {
-                                        logger.error(e.getMessage(), e);
-                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to getMac", "获取MAC地址失败！")).body(null);
-                                    }
+                                    String mac = getMACAddress(ip);
                                     // 判断用户请求的设备状态(PC端：0，移动端：1)
                                     loginRequest.setUsdeCode(ip);
                                     userDevice.setCode(ip);
-                                    userDevice.setMac(ZWStringUtils.isEmpty(mac) ? null : mac);
+                                    userDevice.setMac(mac);
                                 } else {
-                                    try {
-                                        if (!Objects.equals(ZWStringUtils.isEmpty(getLocalMac(InetAddress.getLocalHost())) ? null : getLocalMac(InetAddress.getLocalHost()), userDevice.getMac())) {
+                                        if (!Objects.equals(getMACAddress(ip), userDevice.getMac())) {
                                             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "This login and the last login address are not consistent", "本次登录和上次登录地址不一致！")).body(null);
                                         }
-                                    } catch (SocketException e) {
-                                        logger.error(e.getMessage(), e);
-                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to getMac", "获取MAC地址失败！")).body(null);
-                                    } catch (UnknownHostException e) {
-                                        logger.error(e.getMessage(), e);
-                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Failed to getMac", "获取MAC地址失败！")).body(null);
-                                    }
                                 }
                             } else {
                                 if (ZWStringUtils.isEmpty(userDevice.getCode())) {
