@@ -165,6 +165,12 @@
         <if test="overOutsourceTimeEnd != null and overOutsourceTimeEnd != ''">
             AND <![CDATA[DATE_FORMAT(over_outsource_time,'%Y-%m-%d') <= DATE_FORMAT(#{overOutsourceTimeEnd},'%Y-%m-%d')]]>
         </if>
+        <if test="endOutsourceTimeStart != null and endOutsourceTimeStart != ''">
+            AND <![CDATA[DATE_FORMAT(end_outsource_time,'%Y-%m-%d') >= DATE_FORMAT(#{endOutsourceTimeStart},'%Y-%m-%d')]]>
+        </if>
+        <if test="endOutsourceTimeEnd != null and endOutsourceTimeEnd != ''">
+            AND <![CDATA[DATE_FORMAT(end_outsource_time,'%Y-%m-%d') <= DATE_FORMAT(#{endOutsourceTimeEnd},'%Y-%m-%d')]]>
+        </if>
     </select>
 
     <resultMap id="outSourceResultMap" type="cn.fintecher.pangolin.report.model.ExcportOutsourceResultModel">
