@@ -221,7 +221,7 @@ public class OutsourcePoolController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(outsourcePool.getCaseInfo().getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(outsourcePool.getCaseInfo().getOverdueDays());
-                    scoreRuleModel.setProId(outsourcePool.getCaseInfo().getArea().getId());//省份id
+                    scoreRuleModel.setProId(Objects.isNull(outsourcePool.getCaseInfo().getArea())?null:outsourcePool.getCaseInfo().getArea().getId());//省份id
                     Personal personal = personalRepository.findOne(outsourcePool.getCaseInfo().getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);
@@ -291,7 +291,7 @@ public class OutsourcePoolController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(outsourcePool.getCaseInfo().getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(outsourcePool.getCaseInfo().getOverdueDays());
-                    scoreRuleModel.setProId(outsourcePool.getCaseInfo().getArea().getId());//省份id
+                    scoreRuleModel.setProId(Objects.isNull(outsourcePool.getCaseInfo().getArea())?null:outsourcePool.getCaseInfo().getArea().getId());//省份id
                     Personal personal = personalRepository.findOne(outsourcePool.getCaseInfo().getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);

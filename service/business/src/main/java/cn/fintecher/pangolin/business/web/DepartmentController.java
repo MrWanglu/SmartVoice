@@ -170,7 +170,7 @@ public class DepartmentController extends BaseController {
         }
         if (!Objects.equals(department.getType(), dept.getType())) {
             //首先的移除部门下面的用户
-            int usersNum1 = (int) userRepository.count(qUser.department.code.like(dept.getCode().concat("%")));
+            int usersNum1 = (int) userRepository.count(qUser.department.code.like(dept.getCode().concat("%")).and(qUser.status.eq(Status.Enable.getValue())));
             if (usersNum1 > 0) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum1 + "个用户，请先移出用户")).body(null);
             }
@@ -224,7 +224,7 @@ public class DepartmentController extends BaseController {
                     }
                 }
                 //首先的移除部门下面的用户
-                int usersNum = (int) userRepository.count(qUser.department.code.like(dept.getCode().concat("%")));
+                int usersNum = (int) userRepository.count(qUser.department.code.like(dept.getCode().concat("%")).and(qUser.status.eq(Status.Enable.getValue())));
                 if (usersNum > 0) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "Under the department has a user cannot stop", "该部门下有" + usersNum + "个用户，不能停用，请先移出用户")).body(null);
                 }
