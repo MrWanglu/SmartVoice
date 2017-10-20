@@ -216,7 +216,7 @@ public class ExportFollowupController extends BaseController {
                         rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
                         dataList = followRecordExportService.getFollowupData(all);
                         int maxNum = followRecordExportService.getMaxNum(all);
-                        String[] title = followRecordExportService.getTitle(exportFollowupParams.getExportItemList(), maxNum);
+                        String[] title = exportFollowupParams.getExportItemList().toArray(new String[exportFollowupParams.getExportItemList().size()]);
                         Map<String, String> headMap = ExcelExportUtil.createHeadMap(title, FollowupExportModel.class);
                         progressMessage.setCurrent(3);
                         rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);

@@ -35,6 +35,36 @@ public class FollowRecordExportService {
                 result.add(item);
             }
         }
+        for (int i = 1; i <= 4; i++) {
+            if (result.contains("联系人姓名")) {
+                result.add("联系人" + i + "姓名");
+            }
+            if (result.contains("联系人手机号码")) {
+                result.add("联系人" + i + "手机号码");
+            }
+            if (result.contains("住宅电话")) {
+                result.add("联系人" + i + "住宅电话");
+            }
+            if (result.contains("现居地址")) {
+                result.add("联系人" + i + "现居地址");
+            }
+            if (result.contains("与客户关系")) {
+                result.add("联系人" + i + "与客户关系");
+            }
+            if (result.contains("工作单位")) {
+                result.add("联系人" + i + "工作单位");
+            }
+            if (result.contains("单位电话")) {
+                result.add("联系人" + i + "单位电话");
+            }
+        }
+        result.remove("联系人姓名");
+        result.remove("联系人手机号码");
+        result.remove("住宅电话");
+        result.remove("现居地址");
+        result.remove("与客户关系");
+        result.remove("工作单位");
+        result.remove("单位电话");
         return result;
     }
 
