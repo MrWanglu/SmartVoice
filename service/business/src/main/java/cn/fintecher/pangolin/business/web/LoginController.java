@@ -97,24 +97,27 @@ public class LoginController extends BaseController {
         // TODO Auto-generated method stub
         //获取网卡，获取地址
         byte[] mac = NetworkInterface.getByInetAddress(ia).getHardwareAddress();
-        System.out.println("mac数组长度："+mac.length);
+        if (Objects.isNull(mac) || mac.length == 0) {
+            return "";
+        }
+        System.out.println("mac数组长度：" + mac.length);
         StringBuffer sb = new StringBuffer("");
-        for(int i=0; i<mac.length; i++) {
-            if(i!=0) {
+        for (int i = 0; i < mac.length; i++) {
+            if (i != 0) {
                 sb.append("-");
             }
             //字节转换为整数
-            int temp = mac[i]&0xff;
+            int temp = mac[i] & 0xff;
             String str = Integer.toHexString(temp);
-            System.out.println("每8位:"+str);
-            if(str.length()==1) {
-                sb.append("0"+str);
-            }else {
+            System.out.println("每8位:" + str);
+            if (str.length() == 1) {
+                sb.append("0" + str);
+            } else {
                 sb.append(str);
             }
         }
         return sb.toString().toUpperCase();
-}
+    }
 
     /**
      * @Description : 用户登录返回部门和角色
@@ -142,7 +145,7 @@ public class LoginController extends BaseController {
             Set<UserDevice> userDevices = user.getUserDevices();
             for (UserDevice userDevice : userDevices) {
                 if (Objects.equals(loginRequest.getUsdeType(), userDevice.getType())) {
-                    if (Objects.equals(userDevice.getStatus(), Status.Enable.getValue())){
+                    if (Objects.equals(userDevice.getStatus(), Status.Enable.getValue())) {
                         if (Objects.equals(userDevice.getValidate(), Status.Disable.getValue())) {
                             break;
                         }
@@ -171,10 +174,10 @@ public class LoginController extends BaseController {
                                     // 判断用户请求的设备状态(PC端：0，移动端：1)
                                     loginRequest.setUsdeCode(ip);
                                     userDevice.setCode(ip);
-                                    userDevice.setMac(mac);
+                                    userDevice.setMac(ZWStringUtils.isEmpty(mac) ? null : mac);
                                 } else {
                                     try {
-                                        if (!Objects.equals(getLocalMac(InetAddress.getLocalHost()), userDevice.getMac())) {
+                                        if (!Objects.equals(ZWStringUtils.isEmpty(getLocalMac(InetAddress.getLocalHost())) ? null : getLocalMac(InetAddress.getLocalHost()), userDevice.getMac())) {
                                             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "This login and the last login address are not consistent", "本次登录和上次登录地址不一致！")).body(null);
                                         }
                                     } catch (SocketException e) {
@@ -332,7 +335,7 @@ public class LoginController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
         }
         userService.resetDeviceStatus(request);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("禁用设备操作成功","operator successfully")).body(user);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("禁用设备操作成功", "operator successfully")).body(user);
     }
 
     /**
@@ -353,7 +356,7 @@ public class LoginController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
         }
         userService.resetDeviceValidate(request);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("启用设备锁操作成功","operator successfully")).body(user);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("启用设备锁操作成功", "operator successfully")).body(user);
     }
 
 
@@ -375,6 +378,6 @@ public class LoginController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User not login", "请登录后再修改")).body(null);
         }
         userService.resetDeviceCode(request);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("重置设备操作成功","operator successfully")).body(user);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("重置设备操作成功", "operator successfully")).body(user);
     }
 }
