@@ -13,6 +13,7 @@ import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.*;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.IteratorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -212,8 +213,7 @@ public class RoleController extends BaseController {
             if (Objects.nonNull(id)) {
                 builder.and(qResource.roles.any().id.eq(id));
             }
-            Iterator<Resource> resources = resourceRepository.findAll(builder).iterator();
-            List<Resource> resourceList = IteratorUtils.toList(resources);
+            List<Resource> resourceList = IterableUtils.toList(resourceRepository.findAll(builder));
             return ResponseEntity.ok().body(resourceList);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
