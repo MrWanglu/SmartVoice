@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
@@ -100,14 +101,16 @@ public class LoginController extends BaseController {
         String str = "";
         String macAddress = "";
         try {
-            Process p = Runtime.getRuntime().exec("nbtstat -A " + ip);
+            Process p = Runtime.getRuntime().exec("nbtstat -a " +ip);
             InputStreamReader ir = new InputStreamReader(p.getInputStream());
             LineNumberReader input = new LineNumberReader(ir);
             for (int i = 1; i < 100; i++) {
                 str = input.readLine();
                 if (str != null) {
-                    if (str.indexOf("MAC Address") > 1) {
-                        macAddress = str.substring(str.indexOf("MAC Address") + 14, str.length());
+                    //if (str.indexOf("MAC Address") > 1) {
+                    if (str.indexOf("MAC") > 1) {
+                        macAddress = str.substring(
+                                str.indexOf("=") + 2, str.length());
                         break;
                     }
                 }
@@ -167,9 +170,9 @@ public class LoginController extends BaseController {
                                     userDevice.setCode(ip);
                                     userDevice.setMac(mac);
                                 } else {
-                                        if (!Objects.equals(getMACAddress(ip), userDevice.getMac())) {
-                                            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "This login and the last login address are not consistent", "本次登录和上次登录地址不一致！")).body(null);
-                                        }
+                                    if (!Objects.equals(getMACAddress(ip), userDevice.getMac())) {
+                                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "This login and the last login address are not consistent", "本次登录和上次登录地址不一致！")).body(null);
+                                    }
                                 }
                             } else {
                                 if (ZWStringUtils.isEmpty(userDevice.getCode())) {
