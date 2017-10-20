@@ -96,7 +96,8 @@ public class ProcessDataInfoExcelService {
             for (Iterator<CaseInfoDistributed> it = caseInfoDistributedIterable.iterator(); it.hasNext(); ) {
                 caseInfoDistributedSets.add(it.next().getId());
             }
-            if (caseInfoDistributedSets.isEmpty()) {
+            Set<String> caseInfoSets = checkCaseInfoExist(dataInfoExcelModel);
+            while (caseInfoDistributedSets.isEmpty() && caseInfoSets.isEmpty()) {
                 Iterable<CaseInfoDistributed> cd = caseInfoDistributedRepository.findAll(qCaseInfoDistributed.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
                         .and(qCaseInfoDistributed.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
                         .and(qCaseInfoDistributed.principalId.code.eq(dataInfoExcelModel.getPrinCode()))
@@ -106,7 +107,6 @@ public class ProcessDataInfoExcelService {
                     caseInfoDistributedSets.add(it1.next().getId());
                 }
             }
-            Set<String> caseInfoSets = checkCaseInfoExist(dataInfoExcelModel);
             caseInfoExceptionRepository.save(addCaseInfoException(dataInfoExcelModel, user, caseInfoDistributedSets, caseInfoSets));
         } else {
             dataInfoExcelModelMap.put(key, dataInfoExcelModel);
