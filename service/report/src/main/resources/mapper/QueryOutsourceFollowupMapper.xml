@@ -138,15 +138,6 @@
         <if test="overduePeriods != null and overduePeriods !=''">
             AND  a.pay_status = #{overduePeriods}
         </if>
-        <if test="outTime != null and outTime !=''">
-            AND <![CDATA[DATE_FORMAT(out_time,'%Y-%m-%d') = DATE_FORMAT(#{outTime},'%Y-%m-%d')]]>
-        </if>
-        <if test="overOutsourceTime != null and overOutsourceTime !=''">
-            AND <![CDATA[DATE_FORMAT(b.over_outsource_time,'%Y-%m-%d') = DATE_FORMAT(#{overOutsourceTime},'%Y-%m-%d')]]>
-        </if>
-        <if test="endOutsourceTime != null and endOutsourceTime !=''">
-            AND <![CDATA[DATE_FORMAT(b.end_outsource_time,'%Y-%m-%d') = DATE_FORMAT(#{endOutsourceTime},'%Y-%m-%d')]]>
-        </if>
         <if test="outsNameList != null and outsNameList.size()>0">
             AND  c.outs_name in
             <foreach collection="outsNameList" index="index" item="outsName" open="(" separator="," close=")">
