@@ -28,6 +28,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.*;
 
 import static cn.fintecher.pangolin.entity.QCaseInfo.caseInfo;
@@ -489,7 +490,7 @@ public class CaseInfoService {
     /**
      * @Description 添加跟进记录
      */
-    public CaseFollowupRecord saveFollowupRecord(CaseFollowupParams caseFollowupParams, User tokenUser) {
+    public CaseFollowupRecord saveFollowupRecord(CaseFollowupParams caseFollowupParams, User tokenUser) throws ParseException {
         CaseInfo caseInfo = caseInfoRepository.findOne(caseFollowupParams.getCaseId()); //获取案件信息
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
@@ -505,6 +506,7 @@ public class CaseInfoService {
         caseFollowupRecord.setOperatorName(tokenUser.getRealName()); //操作人姓名
         caseFollowupRecord.setOperatorDeptName(tokenUser.getDepartment().getName()); // 操作人部门
         caseFollowupRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        caseFollowupRecord.setFollnextDate(ZWDateUtil.getUtilDate(caseFollowupParams.getFollnextDate(), "YYYY-mm-dd HH:mm:ss")); //下次跟进时间
         caseFollowupRecordRepository.saveAndFlush(caseFollowupRecord);
 
         //同步更新案件
@@ -536,7 +538,7 @@ public class CaseInfoService {
             SendReminderMessage sendReminderMessage = new SendReminderMessage();
             sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 的跟进提醒");
             sendReminderMessage.setUserId(userRepository.findByUserName(caseFollowupRecord.getOperator()).getId());
-            sendReminderMessage.setRemindTime(caseFollowupParams.getFollnextDate());
+            sendReminderMessage.setRemindTime(ZWDateUtil.getUtilDate(caseFollowupParams.getFollnextDate(), "YYYY-mm-dd HH:mm:ss"));
             sendReminderMessage.setContent(caseFollowupParams.getFollnextContent());
             sendReminderMessage.setType(ReminderType.FLLOWUP);
             reminderService.sendReminderCalendarMessage(sendReminderMessage);
@@ -2464,7 +2466,7 @@ public class CaseInfoService {
             List<CaseInfo> caseInfoList = caseInfos;
             Iterator<CaseInfo> iterator = caseInfoList.iterator();
             if (StringUtils.isNotBlank(caseStrategy.getStrategyText())) {
-                if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_AREA_ID)){
+                if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_AREA_ID)) {
                     while (iterator.hasNext()) {
                         CaseInfo next = iterator.next();
                         if (Objects.isNull(next.getArea())) {
@@ -2477,7 +2479,7 @@ public class CaseInfoService {
                         CaseInfo next = iterator.next();
                         if (Objects.isNull(next.getProduct())) {
                             iterator.remove();
-                        } else if (Objects.isNull(next.getProduct().getProductSeries())){
+                        } else if (Objects.isNull(next.getProduct().getProductSeries())) {
                             iterator.remove();
                         }
                     }
