@@ -655,6 +655,7 @@ public class ReportService {
         //添加累计,排名
         for (CollectorPerformanceModel collectorPerformanceModel1 : collectorPerformanceModels) {
             List<PerformanceRankingReport> performanceRankingReports1 = collectorPerformanceModel1.getPerformanceRankingReports();
+            performanceRankingReports1.sort((o1, o2) -> o2.getMonthBackMoney().compareTo(o1.getMonthBackMoney()));
             doCalculate(performanceRankingReports1);
         }
         return collectorPerformanceModels;
