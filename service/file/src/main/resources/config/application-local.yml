@@ -44,7 +44,7 @@ fdfs:
     - 127.0.0.1:22122
 
 gridfs:
-  path: 117.36.75.166:40003/file-service
+  path: 117.36.75.166:60003/file-service
   localPath: 127.0.0.7:9000/file-service
 
 server:
