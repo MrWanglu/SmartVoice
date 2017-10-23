@@ -161,3 +161,6 @@ INSERT INTO `pangolin_business`.`resource` (`id`, `pid`, `sys_name`, `name`, `co
 INSERT INTO `pangolin_business`.`resource` (`id`, `pid`, `sys_name`, `name`, `code`, `level`, `status`, `path`, `icon`, `type`, `file_type`, `remark`, `operator`, `operate_time`, `field`, `flag`) VALUES ('594', '526', '催大人', '删除案件', '0F0510', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '594');
 INSERT INTO `pangolin_business`.`resource` (`id`, `pid`, `sys_name`, `name`, `code`, `level`, `status`, `path`, `icon`, `type`, `file_type`, `remark`, `operator`, `operate_time`, `field`, `flag`) VALUES ('595', '525', '催大人', '删除案件', '0F0412', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '595');
 
+--2017-10-19 祁吉贵 增加催收机构
+INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('245', '0036', 'C', '催收机构', '4');
+
