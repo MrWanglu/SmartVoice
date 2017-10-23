@@ -34,7 +34,7 @@ public class SysParamResource {
      */
     @GetMapping
     @ApiOperation(value = "通过TypeCode查找系统参数", notes = "通通过TypeCode查找系统参数")
-    public ResponseEntity<SysParam> getSysParamByCodeAndType(@RequestParam String userId,
+    public ResponseEntity<SysParam> getSysParamByCodeAndType(@RequestParam(required = false) String userId,
                                                              @RequestParam String companyCode,
                                                              @RequestParam String code,
                                                              @RequestParam String type) {

@@ -43,5 +43,7 @@ public class CaseFollowupParams {
     private String taskId;
     private String recoderId;
     private String taskcallerId;
-    private Integer callType;
+    private Integer callType;//erpv3 163,中通天鸿164,云羿 165,BeauPhone语音卡 229
+    private String fileName;//录音文件名称
+    private String filePath;//录音文件目录
 }
