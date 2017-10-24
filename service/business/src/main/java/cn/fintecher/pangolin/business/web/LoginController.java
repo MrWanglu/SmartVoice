@@ -232,7 +232,7 @@ public class LoginController extends BaseController {
                 response.setRegDay("success");
             } else {
                 QCompany qCompany = QCompany.company;
-                Company company = companyRepository.findOne(user.getCompanyCode());
+                Company company = companyRepository.findOne(qCompany.code.eq(user.getCompanyCode()));
                 if (company.getRegisterDay() > 0 && company.getRegisterDay() != 99999) {
                     response.setRegDay(company.getRegisterDay().toString());
                 } else if (Objects.isNull(company.getRegisterDay()) || company.getRegisterDay() <= 0 && company.getRegisterDay() != 99999) {
