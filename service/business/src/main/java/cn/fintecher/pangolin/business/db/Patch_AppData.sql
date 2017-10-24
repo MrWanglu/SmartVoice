@@ -164,3 +164,5 @@ INSERT INTO `pangolin_business`.`resource` (`id`, `pid`, `sys_name`, `name`, `co
 --2017-10-19 祁吉贵 增加催收机构
 INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('245', '0036', 'C', '催收机构', '4');
 
+--2017-10-24 白章宇 增加系统参数
+INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f0009', '0001', 'Sysparam.revokedistribute', '案件分案撤销时长', 0, '9001', '30', 0, 'administrator', '2017-10-17 18:41:15', '案件分案撤销时长(分钟)', '1');
