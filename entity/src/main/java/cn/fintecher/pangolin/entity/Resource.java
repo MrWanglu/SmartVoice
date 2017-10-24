@@ -45,10 +45,8 @@ public class Resource extends BaseEntity {
     @ApiModelProperty("数据库排序标识")
     private Integer flag;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "pid")
     @ApiModelProperty("父id")
-    private Resource parent;
+    private String pid;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "role_resource", joinColumns = @JoinColumn(name = "reso_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
