@@ -12,4 +12,5 @@ public class UserLoginResponse {
     User user;
     String token;
     boolean reset; //true是需要修改密码
+    String regDay;
 }

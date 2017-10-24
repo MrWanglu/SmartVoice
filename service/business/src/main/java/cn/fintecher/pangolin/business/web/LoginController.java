@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.web;
 import cn.fintecher.pangolin.business.model.UpdatePassword;
 import cn.fintecher.pangolin.business.model.UserDeviceReset;
 import cn.fintecher.pangolin.business.model.UserLoginResponse;
+import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.repository.UserDeviceRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
@@ -29,14 +30,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
@@ -64,6 +60,9 @@ public class LoginController extends BaseController {
 
     @Autowired
     private UserDeviceRepository userDeviceRepository;
+
+    @Autowired
+    private CompanyRepository companyRepository;
 
     /**
      * 无MD5加密用户登录 开发使用
@@ -101,7 +100,7 @@ public class LoginController extends BaseController {
         String str = "";
         String macAddress = "";
         try {
-            Process p = Runtime.getRuntime().exec("nbtstat -a " +ip);
+            Process p = Runtime.getRuntime().exec("nbtstat -a " + ip);
             InputStreamReader ir = new InputStreamReader(p.getInputStream());
             LineNumberReader input = new LineNumberReader(ir);
             for (int i = 1; i < 100; i++) {
@@ -227,6 +226,19 @@ public class LoginController extends BaseController {
                     }
                 } else {
                     response.setReset(false);
+                }
+            }
+            if (Objects.equals("administrator", user.getUserName())) {
+                response.setRegDay("success");
+            } else {
+                QCompany qCompany = QCompany.company;
+                Company company = companyRepository.findOne(user.getCompanyCode());
+                if (company.getRegisterDay() > 0 && company.getRegisterDay() != 99999) {
+                    response.setRegDay(company.getRegisterDay().toString());
+                } else if (Objects.isNull(company.getRegisterDay()) || company.getRegisterDay() <= 0 && company.getRegisterDay() != 99999) {
+                    response.setRegDay("fail");
+                } else {
+                    response.setRegDay("success");
                 }
             }
             SessionStore.getInstance().addUser(session.getId(), session);
