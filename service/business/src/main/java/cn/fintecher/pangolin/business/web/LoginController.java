@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.RegisterSoftware;
 import cn.fintecher.pangolin.business.model.UpdatePassword;
 import cn.fintecher.pangolin.business.model.UserDeviceReset;
 import cn.fintecher.pangolin.business.model.UserLoginResponse;
@@ -248,6 +249,28 @@ public class LoginController extends BaseController {
         } else {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "wrong password", "密码错误")).body(null);
         }
+    }
+
+    /**
+     * @Description : 软件注册
+     */
+    @RequestMapping(value = "/registerSoftware", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ApiOperation(value = "软件注册", notes = "软件注册")
+    public ResponseEntity<String> registerSoftware(@Validated @RequestBody @ApiParam("修改的用户密码") RegisterSoftware request,
+                                                   @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        QCompany qCompany = QCompany.company;
+        User userlogin = userRepository.findOne(request.getId());
+        Company company = companyRepository.findOne(qCompany.code.eq(userlogin.getCompanyCode()));
+        company.setRegisterDay(request.getRegDay());
+        Company companyReturn = companyRepository.save(company);
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(companyReturn.getRegisterDay().toString());
     }
 
     /**
