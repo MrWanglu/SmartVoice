@@ -235,8 +235,7 @@ public class LoginController extends BaseController {
                 Company company = companyRepository.findOne(qCompany.code.eq(user.getCompanyCode()));
                 if (Objects.isNull(company.getRegisterDay())) {
                     response.setRegDay("noReg");
-                }
-                if (company.getRegisterDay() > 0 && company.getRegisterDay() != 99999) {
+                } else if (company.getRegisterDay() > 0 && company.getRegisterDay() != 99999) {
                     response.setRegDay(company.getRegisterDay().toString());
                 } else if (company.getRegisterDay() <= 0 && company.getRegisterDay() != 99999) {
                     response.setRegDay("fail");
