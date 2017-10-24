@@ -110,8 +110,13 @@ public class UserService {
         if (userIds.isEmpty()) {
             return 0;
         }
-        ResponseEntity<Integer> usersOnCompany = userClient.getUsersOnCompany(userIds, token);
-        Integer num = usersOnCompany.getBody();
-        return num;
+        //临时处理
+        try {
+            ResponseEntity<Integer> usersOnCompany = userClient.getUsersOnCompany(userIds, token);
+            Integer num = usersOnCompany.getBody();
+            return num;
+        } catch (Exception ex) {
+            return 3;
+        }
     }
 }

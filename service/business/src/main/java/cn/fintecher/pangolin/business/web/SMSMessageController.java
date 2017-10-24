@@ -169,6 +169,37 @@ public class SMSMessageController extends BaseController {
             if(!sendFails.isEmpty()){
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "")).body(sendFails);
             }
+        }else if (Objects.equals(type, "3")) {
+            StringBuilder error = new StringBuilder();
+            PaaSMessage message = new PaaSMessage();
+            template.setMessageContent(template.getMessageContent().replace("userName", personal.getName())
+                    .replace("business", caseInfo.getPrincipalId().getName()).replace("money", caseInfo.getOverdueAmount().setScale(2).toString()));
+            template.setMessageContent(template.getMessageContent().replace("{{", "").replace("}}", ""));
+            message.setTemplate(template.getTemplateCode());
+            message.setCompanyCode(user.getCompanyCode());
+            message.setContent(template.getMessageContent());
+            message.setUserId(user.getId());
+            for (PersonalParams personalParams1 : personalParams) {
+                message.setPhoneNumber(personalParams1.getPersonalPhone());
+                if(ZWStringUtils.isEmpty(message.getPhoneNumber())){
+                    sendFails.add(personalParams1);
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
+                    templateRepository.saveAndFlush(temp);
+                    continue;
+                }
+                String entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendLookMessage", message, String.class);
+                if (ZWStringUtils.isNotEmpty(entity)) {
+                    sendFails.add(personalParams1);
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.MANUAL.getValue());
+                    templateRepository.saveAndFlush(temp);
+                } else {
+                    SendMessageRecord result = messageService.saveMessage(caseInfo, personal, template, personalParams1.getContId(), user, smsMessageParams.getSendType(),SendMessageRecord.Flag.AUTOMATIC.getValue());
+                    templateRepository.saveAndFlush(temp);
+                }
+            }
+            if(!sendFails.isEmpty()){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "")).body(sendFails);
+            }
         }
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("发送成功", "")).body(null);
     }
