@@ -142,15 +142,6 @@ public class DepartmentController extends BaseController {
         if (department.getId() == null) {
             return createDepartment(department, token);
         }
-        //同步修改公司管理模块中的公司名称
-        try {
-            Company company = companyRepository.findOne(QCompany.company.code.eq(department.getCompanyCode()));
-            company.setChinaName(department.getName());
-            companyRepository.save(company);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "failure", "同步公司名称失败")).body(null);
-        }
         User user;
         try {
             user = getUserByToken(token);
@@ -410,7 +401,7 @@ public class DepartmentController extends BaseController {
         }
         if (Objects.equals(Constants.ADMIN_USER_NAME, user.getUserName())) {
             List<Department> departmentList = new ArrayList<>();
-            if (Objects.isNull(companyCode)||Objects.equals(companyCode,"null")) {
+            if (Objects.isNull(companyCode) || Objects.equals(companyCode, "null")) {
                 departmentList = departmentRepository.findAll();
             } else {
                 QDepartment qDepartment = QDepartment.department;
