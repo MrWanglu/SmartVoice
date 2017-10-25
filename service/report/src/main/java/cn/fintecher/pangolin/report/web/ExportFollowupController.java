@@ -177,8 +177,8 @@ public class ExportFollowupController extends BaseController {
         List<String> items = new ArrayList<>();
         items.addAll(itemsModel.getPersonalItems());
         items.addAll(itemsModel.getJobItems());
-        items.addAll(followRecordExportService.parseConnect(itemsModel.getConnectItems()));
         items.addAll(itemsModel.getCaseItems());
+        items.addAll(followRecordExportService.parseConnect(itemsModel.getConnectItems()));
         items.addAll(itemsModel.getBankItems());
         items.addAll(followRecordExportService.parseFollow(itemsModel.getFollowItems()));
         exportFollowupParams.setExportItemList(items);
