@@ -58,7 +58,9 @@ public final class Constants {
     //Excel数据导入格式
     public static final String EXCEL_TYPE_XLS = "xls";
     public static final String EXCEL_TYPE_XLSX = "xlsx";
-
+     //软件注册
+    public static final String REGISTER_SOFTWARE_CODE = "SysParam.registersoftware";
+    public static final String REGISTER_SOFTWARE_TYPE = "9001";
 
     //通过文件ID获取文件对象的地址
     public static final String FILEID_SERVICE_URL = "http://file-service/api/";
