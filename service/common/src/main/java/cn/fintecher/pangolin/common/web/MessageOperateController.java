@@ -57,4 +57,12 @@ public class MessageOperateController {
         String result = smsMessageService.sendMessagePaaS(message);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
+
+    @RequestMapping(value = "/sendLookMessage",method = RequestMethod.POST)
+    @ApiOperation(value = "发送数据宝短息", notes = "发送数据宝短息")
+    public ResponseEntity<String> sendLookMessage(@RequestBody PaaSMessage message){
+        message.setSendTime(ZWDateUtil.getNowDateTime());
+        String result = smsMessageService.sendMessageLook(message);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
 }

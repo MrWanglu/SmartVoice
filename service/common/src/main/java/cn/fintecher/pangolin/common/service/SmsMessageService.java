@@ -3,11 +3,17 @@ package cn.fintecher.pangolin.common.service;
 
 import cn.fintecher.pangolin.common.model.SMSMessage;
 import cn.fintecher.pangolin.common.respository.SMSMessageRepository;
-import cn.fintecher.pangolin.entity.SysParam;
 import cn.fintecher.pangolin.entity.message.PaaSMessage;
 import cn.fintecher.pangolin.entity.util.*;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+
 
 /**
  * Created by Administrator on 2017/3/24.
@@ -49,6 +56,16 @@ public class SmsMessageService {
     private String pswd;
     @Value("${pangolin.smsVariable.smsVariableUrl}")
     private String smsVariableUrl;
+    //数据宝
+    @Value("${pangolin.winnerLook.userCode}")
+    private String userCode;
+    @Value("${pangolin.winnerLook.userPass}")
+    private String userPass;
+    @Value("${pangolin.winnerLook.lookUrl}")
+    private String lookUrl;
+    @Value("${pangolin.winnerLook.channel}")
+    private String lookChannel;
+
 
     @Autowired
     SMSMessageRepository smsMessageRepository;
@@ -153,6 +170,42 @@ public class SmsMessageService {
             log.info("云通讯发送短信信息body {} header {}", object, headers);
             entity = new RestTemplate().exchange(smsVariableUrl, HttpMethod.POST, httpEntity, String.class);
             log.info("云通讯发送短信信息回执 {}", entity.getBody());
+            JSONObject jsonObject = JSONObject.parseObject(entity.getBody().toString());
+            if (Objects.equals(jsonObject.get("code"), "0")) {
+                return null;
+            }
+            return message.getPhoneNumber();
+        } catch (Exception e) {
+            return message.getPhoneNumber();
+        }
+    }
+
+    public String sendMessageLook(PaaSMessage message) {
+        try {
+            List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+            nvps.add(new BasicNameValuePair("userCode", userCode));
+            nvps.add(new BasicNameValuePair("userPass", userPass));
+            nvps.add(new BasicNameValuePair("DesNo", message.getPhoneNumber()));
+            nvps.add(new BasicNameValuePair("Msg", message.getContent()));
+            nvps.add(new BasicNameValuePair("smsType", lookChannel));
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httpPost = new HttpPost(lookUrl);
+            httpPost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
+           HttpResponse response = httpclient.execute(httpPost);
+
+            ResponseEntity entity = null;
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            JSONObject object = new JSONObject();
+            object.put("userCode", userCode);
+            object.put("userPass", userPass);
+            object.put("DesNo", message.getPhoneNumber());
+            object.put("Msg", message.getContent());
+            object.put("smsType", lookChannel);
+            HttpEntity<Object> httpEntity = new HttpEntity<>(object, headers);
+            log.info("数据宝发送短信信息body {} header {}", object, headers);
+            entity = new RestTemplate().exchange(lookUrl, HttpMethod.POST, httpEntity, String.class);
+            log.info("数据宝发送短信信息回执 {}", entity.getBody());
             JSONObject jsonObject = JSONObject.parseObject(entity.getBody().toString());
             if (Objects.equals(jsonObject.get("code"), "0")) {
                 return null;
