@@ -88,7 +88,7 @@ public class ExportOutsourceFollowupController extends BaseController {
         items.addAll(followRecordExportService.parseConnect(itemsModel.getConnectItems()));
         items.addAll(itemsModel.getCaseItems());
         items.addAll(itemsModel.getBankItems());
-        items.addAll(followRecordExportService.parseFollow(itemsModel.getFollowItems()));
+        items.addAll(itemsModel.getFollowItems());
         exportOutsourceFollowRecordParams.setExportItemList(items);
         final String userId = user.getId();
         try {
