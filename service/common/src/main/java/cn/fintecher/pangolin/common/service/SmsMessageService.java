@@ -187,30 +187,31 @@ public class SmsMessageService {
             nvps.add(new BasicNameValuePair("userPass", userPass));
             nvps.add(new BasicNameValuePair("DesNo", message.getPhoneNumber()));
             nvps.add(new BasicNameValuePair("Msg", message.getContent()));
-            nvps.add(new BasicNameValuePair("smsType", lookChannel));
+            nvps.add(new BasicNameValuePair("channel", lookChannel));
             HttpClient httpclient = new DefaultHttpClient();
             HttpPost httpPost = new HttpPost(lookUrl);
             httpPost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
-           HttpResponse response = httpclient.execute(httpPost);
+            HttpResponse response = httpclient.execute(httpPost);
 
-            ResponseEntity entity = null;
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject object = new JSONObject();
-            object.put("userCode", userCode);
-            object.put("userPass", userPass);
-            object.put("DesNo", message.getPhoneNumber());
-            object.put("Msg", message.getContent());
-            object.put("smsType", lookChannel);
-            HttpEntity<Object> httpEntity = new HttpEntity<>(object, headers);
-            log.info("数据宝发送短信信息body {} header {}", object, headers);
-            entity = new RestTemplate().exchange(lookUrl, HttpMethod.POST, httpEntity, String.class);
-            log.info("数据宝发送短信信息回执 {}", entity.getBody());
-            JSONObject jsonObject = JSONObject.parseObject(entity.getBody().toString());
-            if (Objects.equals(jsonObject.get("code"), "0")) {
-                return null;
-            }
-            return message.getPhoneNumber();
+//            ResponseEntity entity = null;
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.setContentType(MediaType.APPLICATION_JSON);
+//            JSONObject object = new JSONObject();
+//            object.put("userCode", userCode);
+//            object.put("userPass", userPass);
+//            object.put("DesNo", message.getPhoneNumber());
+//            object.put("Msg", message.getContent());
+//            object.put("smsType", lookChannel);
+//            HttpEntity<Object> httpEntity = new HttpEntity<>(object, headers);
+//            log.info("数据宝发送短信信息body {} header {}", object, headers);
+//            entity = new RestTemplate().exchange(lookUrl, HttpMethod.POST, httpEntity, String.class);
+//            log.info("数据宝发送短信信息回执 {}", entity.getBody());
+//            JSONObject jsonObject = JSONObject.parseObject(entity.getBody().toString());
+//            if (Objects.equals(jsonObject.get("code"), "0")) {
+//                return null;
+//            }
+            log.debug(response.toString());
+            return null;
         } catch (Exception e) {
             return message.getPhoneNumber();
         }

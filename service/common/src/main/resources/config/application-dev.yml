@@ -92,7 +92,7 @@ pangolin:
     smsVariableUrl: http://smssh1.253.com/msg/send/json
   winnerLook:
     userCode: ZWXXYX
-    userPass: kil456MJK
+    userPass: Qjg888888
     lookUrl: http://112.124.24.5/api/MsgSend.asmx/SendMsg
     channel: 52
 server:
