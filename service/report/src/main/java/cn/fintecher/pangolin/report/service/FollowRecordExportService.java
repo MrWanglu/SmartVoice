@@ -549,8 +549,6 @@ public class FollowRecordExportService {
                     }
                     followupExportModels.add(result);
                 }
-            } else {
-                followupExportModels.add(followupExportModel);
             }
         }
         return followupExportModels;
