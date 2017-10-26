@@ -236,10 +236,6 @@ public class LoginController extends BaseController {
                 Company company = companyRepository.findOne(qCompany.code.eq(user.getCompanyCode()));
                 if (Objects.isNull(company.getRegisterDay())) {
                     response.setRegDay("noReg");
-                } else if (company.getRegisterDay() > 0 && company.getRegisterDay() != 99999) {
-                    response.setRegDay(company.getRegisterDay().toString());
-                } else if (company.getRegisterDay() <= 0 && company.getRegisterDay() != 99999) {
-                    response.setRegDay("fail");
                 } else {
                     response.setRegDay("success");
                 }
@@ -274,7 +270,7 @@ public class LoginController extends BaseController {
      */
     @RequestMapping(value = "/registerSoftware", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ApiOperation(value = "软件注册", notes = "软件注册")
-    public ResponseEntity<String> registerSoftware(@Validated @RequestBody @ApiParam("修改的用户密码") RegisterSoftware request,
+    public ResponseEntity<String> registerSoftware(@Validated @RequestBody @ApiParam("软件注册") RegisterSoftware request,
                                                    @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
@@ -291,7 +287,7 @@ public class LoginController extends BaseController {
             User userlogin = userRepository.findOne(request.getId());
             Company company = companyRepository.findOne(qCompany.code.eq(userlogin.getCompanyCode()));
             company.setRegisterDay(99999);
-            Company companyReturn = companyRepository.save(company);
+            companyRepository.save(company);
         } else {
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("注册失败", ENTITY_NAME)).body("注册失败");
         }
