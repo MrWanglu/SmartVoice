@@ -285,8 +285,7 @@ public class LoginController extends BaseController {
         String code =  MD5.MD5Encode(request.getCode()+"zwjk");
         if (Objects.equals(orgCode, code)) {
             QCompany qCompany = QCompany.company;
-            User userlogin = userRepository.findOne(request.getId());
-            Company company = companyRepository.findOne(qCompany.code.eq(userlogin.getCompanyCode()));
+            Company company = companyRepository.findOne(qCompany.code.eq(user.getCompanyCode()));
             company.setRegisterDay(99999);
             companyRepository.save(company);
         } else {
