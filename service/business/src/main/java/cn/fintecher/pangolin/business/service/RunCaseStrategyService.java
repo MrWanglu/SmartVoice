@@ -89,12 +89,10 @@ public class RunCaseStrategyService {
                     stringBuilder.append(jsonObj.get("value"));
                     stringBuilder.append("\"");
                 } else {
+                    stringBuilder.append(jsonObj.get("relation"));
                     stringBuilder.append("(");
                     analysisRule(jsonObj.getJSONArray("children").toString(), stringBuilder);
                     stringBuilder.append(")");
-                    if (jsonObj.has("relation")) {
-                        stringBuilder.append(jsonObj.get("relation"));
-                    }
                 }
             }
             return stringBuilder.toString();
