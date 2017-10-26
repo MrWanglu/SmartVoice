@@ -282,7 +282,8 @@ public class LoginController extends BaseController {
         QSysParam qSysParam = QSysParam.sysParam;
         SysParam sysParams = sysParamRepository.findOne(qSysParam.code.eq(Constants.REGISTER_SOFTWARE_CODE).and(qSysParam.type.eq(Constants.REGISTER_SOFTWARE_TYPE)).and(qSysParam.companyCode.eq(user.getCompanyCode())));
         String orgCode = MD5.MD5Encode(sysParams.getValue() + "zwjk");
-        if (Objects.equals(orgCode, request.getCode())) {
+        String code =  MD5.MD5Encode(request.getCode()+"zwjk");
+        if (Objects.equals(orgCode, code)) {
             QCompany qCompany = QCompany.company;
             User userlogin = userRepository.findOne(request.getId());
             Company company = companyRepository.findOne(qCompany.code.eq(userlogin.getCompanyCode()));
