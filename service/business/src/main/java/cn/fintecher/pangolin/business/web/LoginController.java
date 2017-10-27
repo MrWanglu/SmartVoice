@@ -86,6 +86,7 @@ public class LoginController extends BaseController {
                     response.setRegDay("success");
                 }
             }
+            response.setUser(user);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "该用户不存在")).body(null);
             }
