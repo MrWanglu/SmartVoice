@@ -582,6 +582,9 @@ public class OutsourcePoolController extends BaseController {
                 if (days >= 3) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "委外已超过3天，不能撤回")).body(null);
                 }
+                if (Objects.nonNull(outsourcePool.getOutoperationStatus())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "案件已操作,不能撤回")).body(null);
+                }
                 outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
                 outsourcePool.setContractAmt(null);
                 outsourcePool.setOverduePeriods(null);
