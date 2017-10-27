@@ -399,4 +399,10 @@ public final class Constants {
      */
     public final static String STRATEGY_PRODUCT_SERIES = "product.productSeries.seriesName";
 
+    /**
+     * 案件分案撤销参数
+     */
+    public final static String SYS_REVOKE_DISTRIBUTE = "Sysparam.revokedistribute";
+    public final static String SYS_REVOKE_DISTRIBUTE_TYPE = "9001";
+
 }
