@@ -70,14 +70,26 @@ public class LoginController extends BaseController {
      */
     @GetMapping("/getUserByToken")
     @ApiOperation(value = "通过token获取用户信息", notes = "通过token获取用户信息")
-    public ResponseEntity<User> getUserToken(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<UserLoginResponse> getUserToken(@RequestHeader(value = "X-UserToken") String token) {
         User user;
+        UserLoginResponse response = new UserLoginResponse();
         try {
             user = super.getUserByToken(token);
+            if (Objects.equals("administrator", user.getUserName())) {
+                response.setRegDay("success");
+            } else {
+                QCompany qCompany = QCompany.company;
+                Company company = companyRepository.findOne(qCompany.code.eq(user.getCompanyCode()));
+                if (Objects.isNull(company.getRegisterDay())) {
+                    response.setRegDay("noReg");
+                } else {
+                    response.setRegDay("success");
+                }
+            }
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "该用户不存在")).body(null);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(response);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "该用户不存在")).body(null);
