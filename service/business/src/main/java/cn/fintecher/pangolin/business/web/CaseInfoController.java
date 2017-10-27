@@ -1024,6 +1024,9 @@ public class CaseInfoController extends BaseController {
         log.debug("REST request to get flowup file");
         try {
             List<UploadFile> caseFlowupFiles = caseInfoService.getFollowupFile(followId);
+            if (caseFlowupFiles.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createAlert("文件为空", "")).body(caseFlowupFiles);
+            }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("下载成功", "")).body(caseFlowupFiles);
         } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("下载失败", "uploadFile", "下载失败")).body(null);
