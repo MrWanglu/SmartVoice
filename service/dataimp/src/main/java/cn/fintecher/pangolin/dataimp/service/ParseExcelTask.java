@@ -134,8 +134,8 @@ public class ParseExcelTask {
         dataInfoExcel.setPaymentStatus("M".concat(String.valueOf(dataInfoExcel.getOverDuePeriods() == null ? "M0" : dataInfoExcel.getOverDuePeriods())));
         dataInfoExcel.setDelegationDate(dataImportRecord.getDelegationDate());
         dataInfoExcel.setCloseDate(dataImportRecord.getCloseDate());
-        String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, dataImportRecord.getCompanyCode(), Constants.CASE_SEQ_LENGTH).concat(dataImportRecord.getCompanySequence());
-        dataInfoExcel.setCaseNumber(caseNumber);
+        String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, dataImportRecord.getCompanyCode(), Constants.CASE_SEQ_LENGTH);
+        dataInfoExcel.setCaseNumber(dataImportRecord.getCompanySequence().concat(caseNumber));
         dataInfoExcel.setRecoverWay(dataImportRecord.getRecoverWay());
         if (!columnErrorList.isEmpty()) {
             rowError.setName(dataInfoExcel.getPersonalName());

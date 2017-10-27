@@ -154,40 +154,51 @@ public class DataInfoExcelService {
                 throw new Exception("导入模板配置信息缺失");
             }
         }
-        ResponseEntity<Company> entity = restTemplate.getForEntity(Constants.COMPANY_URL.concat(user.getCompanyCode()), Company.class);
-        if (!entity.hasBody()) {
-            throw new Exception("获取公司序列号失败!");
+        ResponseEntity<Company> entity = null;
+        try {
+            entity = restTemplate.getForEntity(Constants.COMPANY_URL.concat(user.getCompanyCode()), Company.class);
+            if (!entity.hasBody()) {
+                throw new Exception("获取公司序列号失败!");
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw new Exception("获取公司序列号失败");
         }
-        Company company = entity.getBody();
-        //批次号
-        String batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ, user.getCompanyCode(), Constants.ORDER_SEQ_LENGTH);
-        batchNumber = batchNumber.concat(company.getSequence());
-        dataImportRecord.setBatchNumber(batchNumber);
-        dataImportRecord.setOperator(user.getId());
-        dataImportRecord.setOperatorName(user.getRealName());
-        dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
-        dataImportRecord.setCompanyCode(user.getCompanyCode());
-        dataImportRecord.setCompanySequence(company.getSequence());
-        dataImportRecordRepository.save(dataImportRecord);
-        //开始保存数据
-        dataInfoExcelList.clear();
-        forceErrorList.clear();
-        promptErrorList.clear();
-        parseExcelService.parseSheet(excelSheet, startRow,startCol, DataInfoExcel.class, dataImportRecord, templateExcelInfoList, dataInfoExcelList, forceErrorList, promptErrorList);
-        StopWatch watch = new StopWatch();
-        watch.start();
-        if (forceErrorList.isEmpty()) {
-            dataInfoExcelRepository.save(dataInfoExcelList);
-            rowErrorRepository.save(promptErrorList);
+        try {
+            Company company = entity.getBody();
+            //批次号
+            String batchNumber = mongoSequenceService.getNextSeq(Constants.ORDER_SEQ, user.getCompanyCode(), Constants.ORDER_SEQ_LENGTH);
+            batchNumber = company.getSequence().concat(batchNumber);
+            dataImportRecord.setBatchNumber(batchNumber);
+            dataImportRecord.setOperator(user.getId());
+            dataImportRecord.setOperatorName(user.getRealName());
+            dataImportRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
+            dataImportRecord.setCompanyCode(user.getCompanyCode());
+            dataImportRecord.setCompanySequence(company.getSequence());
+            dataImportRecordRepository.save(dataImportRecord);
+            //开始保存数据
+            dataInfoExcelList.clear();
+            forceErrorList.clear();
+            promptErrorList.clear();
+            parseExcelService.parseSheet(excelSheet, startRow,startCol, DataInfoExcel.class, dataImportRecord, templateExcelInfoList, dataInfoExcelList, forceErrorList, promptErrorList);
+            StopWatch watch = new StopWatch();
+            watch.start();
+            if (forceErrorList.isEmpty()) {
+                dataInfoExcelRepository.save(dataInfoExcelList);
+                rowErrorRepository.save(promptErrorList);
+            }
+            watch.stop();
+            logger.debug("保存数据共耗时{}ms", watch.getTotalTimeMillis());
+            logger.debug("数据处理保存完成");
+            ImportResultModel model = new ImportResultModel();
+            model.setBatchNumber(batchNumber);
+            Collections.sort(forceErrorList, Comparator.comparingInt(RowError::getRowIndex));
+            model.setRowErrorList(forceErrorList);
+            return model;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw new RuntimeException("导入失败!");
         }
-        watch.stop();
-        logger.debug("保存数据共耗时{}ms", watch.getTotalTimeMillis());
-        logger.debug("数据处理保存完成");
-        ImportResultModel model = new ImportResultModel();
-        model.setBatchNumber(batchNumber);
-        Collections.sort(forceErrorList, Comparator.comparingInt(RowError::getRowIndex));
-        model.setRowErrorList(forceErrorList);
-        return model;
     }
 
     /**
