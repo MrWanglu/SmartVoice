@@ -219,15 +219,18 @@ public class CaseRecoverJob implements Job {
                     JobDataMap jobDataMap = new JobDataMap();
                     jobDataMap.put("companyCode", company.getCode());
                     jobDataMap.put("sysParamCode", Constants.SYSPARAM_RECOVER_STATUS);
-                    CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.RECOVER_TRIGGER_GROUP,
-                            Constants.RECOVER_TRIGGER_NAME.concat("_").concat(company.getCode()),
-                            "caseRecoverJobBean".concat("_").concat(company.getCode()),
-                            Constants.RECOVER_TRIGGER_DESC.concat("_").concat(company.getCode()), jobDetail, cron, jobDataMap);
-                    cronTriggerFactoryBean.afterPropertiesSet();
-                    schedulerFactory.getScheduler().deleteJob(jobDetail.getKey());
-                    //加入调度器
-                    schedulerFactory.getScheduler().scheduleJob(jobDetail, cronTriggerFactoryBean.getObject());
-                    cronTriggerFactoryBeanList.add(cronTriggerFactoryBean);
+                    if(!schedulerFactory.getScheduler().checkExists(jobDetail.getKey())) {
+                        if (schedulerFactory.getScheduler().getTriggersOfJob(jobDetail.getKey()).isEmpty()) {
+                            CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.RECOVER_TRIGGER_GROUP,
+                                    Constants.RECOVER_TRIGGER_NAME.concat("_").concat(company.getCode()),
+                                    "caseRecoverJobBean".concat("_").concat(company.getCode()),
+                                    Constants.RECOVER_TRIGGER_DESC.concat("_").concat(company.getCode()), jobDetail, cron, jobDataMap);
+                            cronTriggerFactoryBean.afterPropertiesSet();
+                            //加入调度器
+                            schedulerFactory.getScheduler().scheduleJob(jobDetail, cronTriggerFactoryBean.getObject());
+                            cronTriggerFactoryBeanList.add(cronTriggerFactoryBean);
+                        }
+                    }
                 }
             }
         } catch (Exception e) {

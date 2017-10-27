@@ -173,15 +173,18 @@ public class RecordDownLoadJob implements Job {
                     JobDataMap jobDataMap = new JobDataMap();
                     jobDataMap.put("companyCode", company.getCode());
                     jobDataMap.put("sysParamCode", Constants.SYSPARAM_RECORD_STATUS);
-                    CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.RECORD_TRIGGER_GROUP,
-                            Constants.RECORD_TRIGGER_NAME.concat("_").concat(company.getCode()),
-                            "RecordDownLoadJobBean".concat("_").concat(company.getCode()),
-                            Constants.RECORD_TRIGGER_DESC.concat("_").concat(company.getCode()), jobDetail, cron, jobDataMap);
-                    cronTriggerFactoryBean.afterPropertiesSet();
-                    schedFactory.getScheduler().deleteJob(jobDetail.getKey());
-                    //加入调度器
-                    schedFactory.getScheduler().scheduleJob(jobDetail, cronTriggerFactoryBean.getObject());
-                    cronTriggerFactoryBeanList.add(cronTriggerFactoryBean);
+                    if(!schedFactory.getScheduler().checkExists(jobDetail.getKey())) {
+                        if (schedFactory.getScheduler().getTriggersOfJob(jobDetail.getKey()).isEmpty()) {
+                            CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.RECORD_TRIGGER_GROUP,
+                                    Constants.RECORD_TRIGGER_NAME.concat("_").concat(company.getCode()),
+                                    "RecordDownLoadJobBean".concat("_").concat(company.getCode()),
+                                    Constants.RECORD_TRIGGER_DESC.concat("_").concat(company.getCode()), jobDetail, cron, jobDataMap);
+                            cronTriggerFactoryBean.afterPropertiesSet();
+                            //加入调度器
+                            schedFactory.getScheduler().scheduleJob(jobDetail, cronTriggerFactoryBean.getObject());
+                            cronTriggerFactoryBeanList.add(cronTriggerFactoryBean);
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
