@@ -19,9 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -316,7 +314,6 @@ public class CaseInfoDistributeController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity previewResult(@RequestBody PreviewParams previewParams,
-                                        @ApiIgnore Pageable pageable,
                                         @RequestHeader(value = "X-UserToken") String token) {
 
         try {
@@ -328,6 +325,7 @@ public class CaseInfoDistributeController extends BaseController {
             if (Objects.isNull(previewParams.getType())) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择策略类型")).body(null);
             }
+            Pageable pageable = new PageRequest(previewParams.getPage(), previewParams.getSize(), new Sort(Sort.Direction.DESC, "id"));
             CaseStrategy caseStrategy = null;
             try {
                 caseStrategy = caseInfoDistributedService.previewResult(previewParams.getJsonString());
@@ -555,7 +553,8 @@ public class CaseInfoDistributeController extends BaseController {
             } else {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择策略类型再预览")).body(null);
             }
-            Page<StrategyPreviewModel> page = new PageImpl<>(modelList.stream().skip(pageable.getPageNumber() * pageable.getPageSize()).limit(pageable.getPageSize()).collect(Collectors.toList()), pageable, modelList.size());
+            List<StrategyPreviewModel> collect = modelList.stream().skip(pageable.getPageNumber() * pageable.getPageSize()).limit(pageable.getPageSize()).collect(Collectors.toList());
+            Page<StrategyPreviewModel> page = new PageImpl<>(collect, pageable, modelList.size());
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
