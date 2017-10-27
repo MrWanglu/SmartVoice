@@ -98,6 +98,9 @@ public class CaseInfoDistributedService {
     @Inject
     RunCaseStrategyService runCaseStrategyService;
 
+    @Inject
+    CaseDistributedTemporaryRepository caseDistributedTemporaryRepository;
+
     /**
      * 案件分配
      *
@@ -239,10 +242,8 @@ public class CaseInfoDistributedService {
             Iterable<CaseInfoDistributed> all = caseInfoDistributedRepository
                     .findAll(QCaseInfoDistributed.caseInfoDistributed.caseNumber.in(manualParams.getCaseNumberList()));
             Iterator<CaseInfoDistributed> iterator = all.iterator();
-            List<CaseInfo> caseInfoList = new ArrayList<>();
-            List<CaseRepair> caseRepairList = new ArrayList<>();
-            List<OutsourcePool> outsourcePoolList = new ArrayList<>();
-            List<CaseInfoRemark> caseInfoRemarkList = new ArrayList<>();
+            List<CaseDistributedTemporary> caseDistributedTemporaryList = new ArrayList<>();
+
             Integer type = manualParams.getType();
             //内催
             if (Objects.equals(0, type)) {
@@ -252,8 +253,25 @@ public class CaseInfoDistributedService {
                     CaseInfo caseInfo = new CaseInfo();
                     setCaseInfo(next, caseInfo, user, manualParams.getCloseDate());
                     caseInfo.setCasePoolType(CaseInfo.CasePoolType.INNER.getValue());
-                    caseInfoList.add(caseInfo);
-                    addCaseRepair(caseRepairList, caseInfo, user);//修复池增加案件
+                    CaseRepair caseRepair = addCaseRepair(caseInfo, user);//修复池增加案件
+                    CaseInfo caseInfo1 = caseInfoRepository.save(caseInfo);
+                    caseRepairRepository.save(caseRepair);
+                    addCaseInfoRemark(caseInfo1, user);
+                    //新增一条分配临时记录
+                    CaseDistributedTemporary caseDistributedTemporary = new CaseDistributedTemporary();
+                    caseDistributedTemporary.setCaseId(caseInfo1.getId()); //案件ID
+                    caseDistributedTemporary.setCaseNumber(caseInfo.getCaseNumber()); //案件编号
+                    caseDistributedTemporary.setBatchNumber(caseInfo.getBatchNumber()); //批次号
+                    caseDistributedTemporary.setPersonalName(caseInfo.getPersonalInfo().getName()); //客户姓名
+                    caseDistributedTemporary.setCaseRepairId(caseRepair.getId());
+                    caseDistributedTemporary.setOverdueAmt(caseInfo.getOverdueAmount()); //案件金额
+                    caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
+                    caseDistributedTemporary.setType(CaseDistributedTemporary.Type.BIG_IN.getValue()); //分案类型
+                    caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
+                    caseDistributedTemporary.setOperatorUserName(user.getUserName()); //操作人用户名
+                    caseDistributedTemporary.setOperatorRealName(user.getRealName()); //操作人姓名
+                    caseDistributedTemporary.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                    caseDistributedTemporaryList.add(caseDistributedTemporary);
                 }
             }
             //委外
@@ -264,26 +282,33 @@ public class CaseInfoDistributedService {
                     CaseInfo caseInfo = new CaseInfo();
                     setCaseInfo(next, caseInfo, user, manualParams.getCloseDate());
                     caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue());
-                    caseInfoList.add(caseInfo);
+                    CaseInfo caseInfo1 = caseInfoRepository.save(caseInfo);
+                    addCaseInfoRemark(caseInfo1, user);
                     OutsourcePool outsourcePool = new OutsourcePool();
-                    outsourcePool.setCaseInfo(caseInfo);
+                    outsourcePool.setCaseInfo(caseInfo1);
                     outsourcePool.setCompanyCode(caseInfo.getCompanyCode());
                     outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
                     outsourcePool.setOverOutsourceTime(caseInfo.getCloseDate());
                     outsourcePool.setOverduePeriods(caseInfo.getPayStatus());
-                    outsourcePoolList.add(outsourcePool);
+                    OutsourcePool outsourcePool1 = outsourcePoolRepository.save(outsourcePool);
+
+                    //新增一条分配临时记录
+                    CaseDistributedTemporary caseDistributedTemporary = new CaseDistributedTemporary();
+                    caseDistributedTemporary.setCaseId(outsourcePool1.getId()); //案件ID
+                    caseDistributedTemporary.setCaseNumber(caseInfo.getCaseNumber()); //案件编号
+                    caseDistributedTemporary.setBatchNumber(caseInfo.getBatchNumber()); //批次号
+                    caseDistributedTemporary.setPersonalName(caseInfo.getPersonalInfo().getName()); //客户姓名
+                    caseDistributedTemporary.setOverdueAmt(caseInfo.getOverdueAmount()); //案件金额
+                    caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
+                    caseDistributedTemporary.setType(CaseDistributedTemporary.Type.BIG_OUT.getValue()); //分案类型
+                    caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
+                    caseDistributedTemporary.setOperatorUserName(user.getUserName()); //操作人用户名
+                    caseDistributedTemporary.setOperatorRealName(user.getRealName()); //操作人姓名
+                    caseDistributedTemporary.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                    caseDistributedTemporaryList.add(caseDistributedTemporary);
                 }
             }
-            List<CaseInfo> save = caseInfoRepository.save(caseInfoList);
-            caseRepairRepository.save(caseRepairList);
-            outsourcePoolRepository.save(outsourcePoolList);
-            caseInfoRemarkRepository.save(caseInfoRemarkList);
-            if (!save.isEmpty()) {
-                for (CaseInfo caseInfo : save) {
-                    addCaseInfoRemark(caseInfoRemarkList, caseInfo, user);
-                }
-                caseInfoRemarkRepository.save(caseInfoRemarkList);
-            }
+            caseDistributedTemporaryRepository.save(caseDistributedTemporaryList);
             caseInfoDistributedRepository.delete(all);
         } catch (BeansException e) {
             logger.error(e.getMessage(), e);
@@ -292,7 +317,7 @@ public class CaseInfoDistributedService {
     }
 
 
-    private void addCaseInfoRemark(List<CaseInfoRemark> caseInfoRemarkList, CaseInfo caseInfo, User user) {
+    private void addCaseInfoRemark(CaseInfo caseInfo, User user) {
         CaseInfoRemark caseInfoRemark = new CaseInfoRemark();
         caseInfoRemark.setCaseId(caseInfo.getId());
         caseInfoRemark.setRemark(caseInfo.getMemo());
@@ -300,7 +325,7 @@ public class CaseInfoDistributedService {
         caseInfoRemark.setOperatorRealName(user.getRealName());
         caseInfoRemark.setOperatorUserName(user.getUserName());
         caseInfoRemark.setOperatorTime(new Date());
-        caseInfoRemarkList.add(caseInfoRemark);
+        caseInfoRemarkRepository.save(caseInfoRemark);
     }
 
     private void setCaseInfo(CaseInfoDistributed caseInfoDistributed, CaseInfo caseInfo, User user, Date closeDate) {
@@ -332,14 +357,14 @@ public class CaseInfoDistributedService {
         caseTurnRecordList.add(caseTurnRecord);
     }
 
-    private void addCaseRepair(List<CaseRepair> caseRepairList, CaseInfo caseInfo, User user) {
+    private CaseRepair addCaseRepair(CaseInfo caseInfo, User user) {
         CaseRepair caseRepair = new CaseRepair();
         caseRepair.setCaseId(caseInfo);
         caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRING.getValue());
         caseRepair.setOperatorTime(ZWDateUtil.getNowDateTime());
         caseRepair.setOperator(user);
         caseRepair.setCompanyCode(user.getCompanyCode());
-        caseRepairList.add(caseRepair);
+        return caseRepair;
     }
 
     /**
@@ -382,10 +407,7 @@ public class CaseInfoDistributedService {
 
             // 策略分配
             List<CaseInfoDistributed> caseInfoDistributedList = new ArrayList<>();
-            List<CaseInfo> caseInfoList = new ArrayList<>(); // 分配到CaseInfo的案件
-            List<CaseRepair> caseRepairList = new ArrayList<>(); // 分配到内催时添加修复池也新增
-            List<OutsourcePool> outsourcePoolList = new ArrayList<>(); // 分到委外时需要OutsourcePool新增
-            List<CaseInfoRemark> caseInfoRemarkList = new ArrayList<>(); // 分配时备注表新增
+            List<CaseDistributedTemporary> caseDistributedTemporaryList = new ArrayList<>();
             for (CountAllocationModel aModel : modelList) {
                 List<CaseInfoDistributed> all = caseInfoDistributedRepository.findAll(aModel.getIds());
                 if (Objects.equals(aModel.getType(), 0)) { // 内催
@@ -393,9 +415,26 @@ public class CaseInfoDistributedService {
                         CaseInfo caseInfo = new CaseInfo();
                         setCaseInfo(caseInfoDistributed, caseInfo, user, null);
                         caseInfo.setCasePoolType(CaseInfo.CasePoolType.INNER.getValue());
-                        caseInfoList.add(caseInfo);
-                        addCaseRepair(caseRepairList, caseInfo, user);//修复池增加案件
-                        caseInfoDistributedList.add(caseInfoDistributed);
+                        CaseRepair caseRepair = addCaseRepair(caseInfo, user);//修复池增加案件
+                        CaseInfo caseInfo1 = caseInfoRepository.save(caseInfo);
+                        caseRepairRepository.save(caseRepair);
+                        addCaseInfoRemark(caseInfo1, user);
+                        //新增一条分配临时记录
+                        CaseDistributedTemporary caseDistributedTemporary = new CaseDistributedTemporary();
+                        caseDistributedTemporary.setCaseId(caseInfo1.getId()); //案件ID
+                        caseDistributedTemporary.setCaseNumber(caseInfo.getCaseNumber()); //案件编号
+                        caseDistributedTemporary.setBatchNumber(caseInfo.getBatchNumber()); //批次号
+                        caseDistributedTemporary.setPersonalName(caseInfo.getPersonalInfo().getName()); //客户姓名
+                        caseDistributedTemporary.setOverdueAmt(caseInfo.getOverdueAmount()); //案件金额
+                        caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
+                        caseDistributedTemporary.setType(CaseDistributedTemporary.Type.BIG_IN.getValue()); //分案类型
+                        //caseDistributedTemporary.setCaseTurnRecord(caseTurnRecord.getId()); //流转记录ID
+                        //caseDistributedTemporary.setCaseRepairId(caseRepair.getId()); //案件修复ID
+                        caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
+                        caseDistributedTemporary.setOperatorUserName(user.getUserName()); //操作人用户名
+                        caseDistributedTemporary.setOperatorRealName(user.getRealName()); //操作人姓名
+                        caseDistributedTemporary.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                        caseDistributedTemporaryList.add(caseDistributedTemporary);
                     }
                 }
                 if (Objects.equals(aModel.getType(), 1)) { // 委外
@@ -403,27 +442,36 @@ public class CaseInfoDistributedService {
                         CaseInfo caseInfo = new CaseInfo();
                         setCaseInfo(caseInfoDistributed, caseInfo, user, null);
                         caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue());
-                        caseInfoList.add(caseInfo);
+                        CaseInfo caseInfo1 = caseInfoRepository.save(caseInfo);
+                        addCaseInfoRemark(caseInfo1, user);
                         OutsourcePool outsourcePool = new OutsourcePool();
-                        outsourcePool.setCaseInfo(caseInfo);
-                        outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
-                        outsourcePool.setOverOutsourceTime(caseInfoDistributed.getCloseDate());
-                        outsourcePool.setOverduePeriods(caseInfo.getPayStatus());
+                        outsourcePool.setCaseInfo(caseInfo1);
                         outsourcePool.setCompanyCode(caseInfo.getCompanyCode());
-                        outsourcePoolList.add(outsourcePool);
-                        caseInfoDistributedList.add(caseInfoDistributed);
+                        outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
+                        outsourcePool.setOverOutsourceTime(caseInfo.getCloseDate());
+                        outsourcePool.setOverduePeriods(caseInfo.getPayStatus());
+                        OutsourcePool outsourcePool1 = outsourcePoolRepository.save(outsourcePool);
+
+                        //新增一条分配临时记录
+                        CaseDistributedTemporary caseDistributedTemporary = new CaseDistributedTemporary();
+                        caseDistributedTemporary.setCaseId(outsourcePool1.getId()); //委外案件ID
+                        caseDistributedTemporary.setCaseNumber(caseInfo.getCaseNumber()); //案件编号
+                        caseDistributedTemporary.setBatchNumber(caseInfo.getBatchNumber()); //批次号
+                        caseDistributedTemporary.setPersonalName(caseInfo.getPersonalInfo().getName()); //客户姓名
+                        caseDistributedTemporary.setOverdueAmt(caseInfo.getOverdueAmount()); //案件金额
+                        caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
+                        caseDistributedTemporary.setType(CaseDistributedTemporary.Type.BIG_OUT.getValue()); //分案类型
+                        //caseDistributedTemporary.setCaseTurnRecord(caseTurnRecord.getId()); //流转记录ID
+                        //caseDistributedTemporary.setCaseRepairId(caseRepair.getId()); //案件修复ID
+                        caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
+                        caseDistributedTemporary.setOperatorUserName(user.getUserName()); //操作人用户名
+                        caseDistributedTemporary.setOperatorRealName(user.getRealName()); //操作人姓名
+                        caseDistributedTemporary.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                        caseDistributedTemporaryList.add(caseDistributedTemporary);
                     }
                 }
             }
-            List<CaseInfo> save = caseInfoRepository.save(caseInfoList);
-            caseRepairRepository.save(caseRepairList);
-            outsourcePoolRepository.save(outsourcePoolList);
-            if (!save.isEmpty()) {
-                for (CaseInfo caseInfo : save) {
-                    addCaseInfoRemark(caseInfoRemarkList, caseInfo, user);
-                }
-                caseInfoRemarkRepository.save(caseInfoRemarkList);
-            }
+            caseDistributedTemporaryRepository.save(caseDistributedTemporaryList);
             caseInfoDistributedRepository.delete(caseInfoDistributedList);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
