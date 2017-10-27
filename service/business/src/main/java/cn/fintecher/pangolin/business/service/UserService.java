@@ -45,7 +45,7 @@ public class UserService {
         if (Objects.isNull(state)) {
             userList = userRepository.findAll(qUser.department.code.like(department.getCode().concat("%")).and(qUser.companyCode.eq(department.getCompanyCode()))).iterator();
         } else {
-            userList = userRepository.findAll(qUser.department.code.like(department.getCode().concat("%")).and(qUser.department.status.eq(state)).and(qUser.companyCode.eq(department.getCompanyCode()))).iterator();
+            userList = userRepository.findAll(qUser.department.code.like(department.getCode().concat("%")).and(qUser.department.status.eq(state)).and(qUser.status.eq(state)).and(qUser.companyCode.eq(department.getCompanyCode()))).iterator();
         }
         List<User> userReturn = new ArrayList<User>();
         //转成list
