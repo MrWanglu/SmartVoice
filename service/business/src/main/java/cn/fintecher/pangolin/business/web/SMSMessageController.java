@@ -82,7 +82,11 @@ public class SMSMessageController extends BaseController {
         exp.and(QSysParam.sysParam.code.eq(Constants.SMS_PUSH_CODE));
         exp.and(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()));
         exp.and(QSysParam.sysParam.status.eq(SysParam.StatusEnum.Start.getValue()));
-        String type = sysParamRepository.findOne(exp).getValue();
+        SysParam sysParam = sysParamRepository.findOne(exp);
+        if(Objects.isNull(sysParam)){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先配置系统参数")).body(null);
+        }
+        String type = sysParam.getValue();
         //联系人列表
         List<PersonalParams> personalParams = smsMessageParams.getPersonalParamsList();
         List<PersonalParams> sendFails = new ArrayList<>();
@@ -173,7 +177,11 @@ public class SMSMessageController extends BaseController {
         exp.and(QSysParam.sysParam.code.eq(Constants.SMS_PUSH_CODE));
         exp.and(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()));
         exp.and(QSysParam.sysParam.status.eq(SysParam.StatusEnum.Start.getValue()));
-        String type = sysParamRepository.findOne(exp).getValue();
+        SysParam sysParam = sysParamRepository.findOne(exp);
+        if(Objects.isNull(sysParam)){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先配置系统参数")).body(null);
+        }
+        String type = sysParam.getValue();
         Template temp = new Template();
         BeanUtils.copyProperties(template, temp);
         Map<String, String> params = new HashMap<>();
