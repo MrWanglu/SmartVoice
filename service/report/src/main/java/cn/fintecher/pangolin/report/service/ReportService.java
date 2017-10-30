@@ -1360,6 +1360,9 @@ public class ReportService {
     public String exportPerformanceReport(PerformanceParams performanceParams, User tokenUser) throws IOException {
         //获取导出数据模型
         List<PerformanceModel> performanceModels = getPerformanceReport(performanceParams, tokenUser);
+        if (Objects.isNull(performanceModels)) {
+            performanceModels = new ArrayList<>();
+        }
 
         //下载催收员回款报表模版
         //拼接请求地址
@@ -2101,9 +2104,15 @@ public class ReportService {
     public String exportPerformanceRankingReport(PerformanceRankingParams performanceRankingParams, User tokenUser) throws IOException {
         //获得报表展示模型
         List<CollectorPerformanceModel> collectorPerformanceModels = getPerformanceRankingReport(performanceRankingParams, tokenUser);
+        if (Objects.isNull(collectorPerformanceModels)) {
+            collectorPerformanceModels = new ArrayList<>();
+        }
 
         //获得汇总报表展示模型
         List<GroupLeaderModel> groupLeaderModels = getGroupLeaderReport(performanceRankingParams, tokenUser);
+        if (Objects.isNull(groupLeaderModels)) {
+            groupLeaderModels = new ArrayList<>();
+        }
 
         //下载催收员回款报表模版
         //拼接请求地址
@@ -2205,9 +2214,15 @@ public class ReportService {
     public String exportSummaryReport(PerformanceRankingParams performanceRankingParams, User tokenUser) throws IOException {
         //获得报表展示模型
         List<PerformanceSummaryModel> performanceSummaryModels = getSummaryReport(performanceRankingParams, tokenUser);
+        if (Objects.isNull(performanceSummaryModels)) {
+            performanceSummaryModels = new ArrayList<>();
+        }
 
         //获得汇总报表展示模型
         List<GroupLeaderModel> groupLeaderModels = getGroupLeaderReport(performanceRankingParams, tokenUser);
+        if (Objects.isNull(groupLeaderModels)) {
+            groupLeaderModels = new ArrayList<>();
+        }
 
         //下载催收员回款报表模版
         //拼接请求地址
@@ -2321,6 +2336,9 @@ public class ReportService {
     public String exportSmsReport(GeneralParams generalParams, User tokenUser) throws ParseException, IOException {
         //获得报表展示模型
         List<SmsModel> smsModels = getSmsReport(generalParams, tokenUser);
+        if (Objects.isNull(smsModels)) {
+            smsModels = new ArrayList<>();
+        }
 
         //下载短信发送统计报表模版
         //拼接请求地址
