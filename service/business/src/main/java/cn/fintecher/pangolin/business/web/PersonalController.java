@@ -131,7 +131,9 @@ public class PersonalController extends BaseController {
                 Department one = departmentRepository.findOne(orgCode);
                 BooleanBuilder builder = new BooleanBuilder();
                 builder.and(qCaseInfo.department.code.startsWith(one.getCode()));
-                builder.and(qCaseInfo.currentCollector.realName.eq(collectorName));
+                if (Objects.nonNull(collectorName) && !Objects.equals(collectorName, "")) {
+                    builder.and(qCaseInfo.currentCollector.realName.eq(collectorName));
+                }
                 if (Objects.nonNull(user.getCompanyCode())) {
                     builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
                 }
@@ -355,7 +357,7 @@ public class PersonalController extends BaseController {
     public ResponseEntity<Page<CaseInfo>> getPersonalCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                               @ApiIgnore Pageable pageable,
                                                               @RequestHeader(value = "X-UserToken") String token,
-                                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode){
+                                                              @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
         try {
             User tokenUser = getUserByToken(token);
             BooleanBuilder builder = new BooleanBuilder(predicate);
@@ -392,7 +394,7 @@ public class PersonalController extends BaseController {
             BooleanBuilder booleanBuilder = new BooleanBuilder();
             booleanBuilder.and(qCaseTurnRecord.caseNumber.eq(caseNumber));
             booleanBuilder.and(qCaseTurnRecord.operatorUserName.ne("administrator"));
-            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(booleanBuilder,sortOrder);
+            Iterable<CaseTurnRecord> caseTurnRecords = caseTurnRecordRepository.findAll(booleanBuilder, sortOrder);
             List<CaseTurnRecord> caseTurnRecordList = IterableUtils.toList(caseTurnRecords);
             //过滤掉接收部门为为空的数据
             caseTurnRecordList.forEach(e -> {

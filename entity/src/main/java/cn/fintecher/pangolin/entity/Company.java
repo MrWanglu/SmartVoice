@@ -46,5 +46,6 @@ public class Company extends BaseEntity {
     private String field;
     @ApiModelProperty("公司序列码")
     private String sequence;
-
+    @ApiModelProperty("注册天数")
+    private Integer registerDay;
 }

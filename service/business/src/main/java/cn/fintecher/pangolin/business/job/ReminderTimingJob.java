@@ -71,15 +71,18 @@ public class ReminderTimingJob implements Job {
                         JobDataMap jobDataMap = new JobDataMap();
                         jobDataMap.put("companyCode", company.getCode());
                         jobDataMap.put("sysParamCode", Constants.SYSPARAM_REMINDER_STATUS);
-                        CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.REMINDER_TRIGGER_GROUP,
-                                Constants.REMINDER_TRIGGER_NAME.concat("_").concat(company.getCode()),
-                                "reminderTimingJobBean".concat("_").concat(company.getCode()),
-                                Constants.REMINDER_TRIGGER_DESC.concat("_").concat(company.getCode()),
-                                jobDetail, cronString, jobDataMap);
-                        cronTriggerFactoryBean.afterPropertiesSet();
-                        schedFactory.getScheduler().deleteJob(jobDetail.getKey());
-                        schedFactory.getScheduler().scheduleJob(jobDetail, cronTriggerFactoryBean.getObject());
-                        cronTriggerFactoryBeanList.add(cronTriggerFactoryBean);
+                        if(!schedFactory.getScheduler().checkExists(jobDetail.getKey())) {
+                            if(schedFactory.getScheduler().getTriggersOfJob(jobDetail.getKey()).isEmpty()) {
+                                CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.REMINDER_TRIGGER_GROUP,
+                                        Constants.REMINDER_TRIGGER_NAME.concat("_").concat(company.getCode()),
+                                        "reminderTimingJobBean".concat("_").concat(company.getCode()),
+                                        Constants.REMINDER_TRIGGER_DESC.concat("_").concat(company.getCode()),
+                                        jobDetail, cronString, jobDataMap);
+                                cronTriggerFactoryBean.afterPropertiesSet();
+                                schedFactory.getScheduler().scheduleJob(jobDetail, cronTriggerFactoryBean.getObject());
+                                cronTriggerFactoryBeanList.add(cronTriggerFactoryBean);
+                            }
+                        }
                     }
                 }
             }

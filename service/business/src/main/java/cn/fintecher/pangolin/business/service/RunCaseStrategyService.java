@@ -53,12 +53,16 @@ public class RunCaseStrategyService {
             map.put("strategyText", caseStrategy.getStrategyText());
             String rule = FreeMarkerTemplateUtils.processTemplateIntoString(template, caseStrategy);
             logger.debug("案件策略公式为：【" + rule + "】");
+            //通过工厂获取KieServices,KieServices是一个线程安全的单身人士，担任由Kie提供的其他服务的枢纽
             KieServices kieServices = KieServices.Factory.get();
+            // 创建一个新的KieFileSystem，用于以编程方式定义构成KieModule的资源
             KieFileSystem kfs = kieServices.newKieFileSystem();
+            //在指定的路径中将给定的资源添加到此KieFileSystem
             kfs.write("src/main/resources/simple.drl",
                     kieServices.getResources().newReaderResource(new StringReader(rule)));
+            //KieBuilder是KieModule中包含的资源的构建器
             KieBuilder kieBuilder = kieServices.newKieBuilder(kfs).buildAll();
-
+            //返回建筑过程的结果
             Results results = kieBuilder.getResults();
             if (results.hasMessages(org.kie.api.builder.Message.Level.ERROR)) {
                 System.out.println(results.getMessages());
@@ -67,6 +71,7 @@ public class RunCaseStrategyService {
             KieContainer kieContainer =
                     kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
             KieSession kieSession = kieContainer.newKieSession();
+            //在插入事实或启动流程之前设置全局变量
             kieSession.setGlobal("checkedList", checkedList);
             return kieSession;
         } catch (Exception e) {
@@ -89,12 +94,10 @@ public class RunCaseStrategyService {
                     stringBuilder.append(jsonObj.get("value"));
                     stringBuilder.append("\"");
                 } else {
+                    stringBuilder.append(jsonObj.get("relation"));
                     stringBuilder.append("(");
                     analysisRule(jsonObj.getJSONArray("children").toString(), stringBuilder);
                     stringBuilder.append(")");
-                    if (jsonObj.has("relation")) {
-                        stringBuilder.append(jsonObj.get("relation"));
-                    }
                 }
             }
             return stringBuilder.toString();

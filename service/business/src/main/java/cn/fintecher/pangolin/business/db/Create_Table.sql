@@ -92,3 +92,37 @@ CREATE TABLE `export_items` (
   `statu` int(4) DEFAULT NULL COMMENT '状态',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
+--2017-10-24
+--新增案件分配结果临时表
+--白章宇
+CREATE TABLE `case_distributed_temporary` (
+  `id` varchar(64) NOT NULL DEFAULT '' COMMENT '主键ID',
+  `case_id` varchar(64) DEFAULT NULL COMMENT '案件ID',
+  `case_number` varchar(64) DEFAULT NULL COMMENT '案件编号',
+  `batch_number` varchar(64) DEFAULT NULL COMMENT '批次号',
+  `personal_name` varchar(200) DEFAULT NULL COMMENT '客户姓名',
+  `overdue_amt` decimal(18,4) DEFAULT NULL COMMENT '案件金额',
+  `case_turn_record` int(64) DEFAULT NULL COMMENT '流转记录ID',
+  `case_repair_id` varchar(64) DEFAULT NULL COMMENT '案件修复ID',
+  `last_collector` varchar(64) DEFAULT NULL COMMENT '上一个催收员ID',
+  `last_collector_name` varchar(200) DEFAULT NULL COMMENT '上一个催收员姓名',
+  `current_collector` varchar(64) DEFAULT NULL COMMENT '当前催收员ID',
+  `current_collector_name` varchar(200) DEFAULT NULL COMMENT '当前催收员姓名',
+  `last_department` varchar(64) DEFAULT NULL COMMENT '案件上一个所在部门ID',
+  `last_department_name` varchar(200) DEFAULT NULL COMMENT '案件上一个所在部门名称',
+  `last_collection_status` int(4) DEFAULT NULL COMMENT '案件原催收状态',
+  `last_collection_type` int(4) DEFAULT NULL COMMENT '原案件催收类型',
+  `last_assist_flag` int(4) DEFAULT NULL COMMENT '案件协催标识',
+  `current_department` varchar(64) DEFAULT NULL COMMENT '案件当前所在部门ID',
+  `current_department_name` varchar(200) DEFAULT NULL COMMENT '案件当前所在部门名称',
+  `principal_name` varchar(200) DEFAULT NULL COMMENT '委托方名称',
+  `type` int(4) DEFAULT NULL COMMENT '分案类型',
+  `operator_user_name` varchar(64) DEFAULT NULL COMMENT '操作人用户名',
+  `operator_real_name` varchar(200) DEFAULT NULL COMMENT '操作人姓名',
+  `operator_time` datetime DEFAULT NULL COMMENT '操作时间',
+  `company_code` varchar(64) DEFAULT NULL COMMENT '公司code码',
+  `last_collector_has_days` int(4) DEFAULT NULL COMMENT '上一催收员持案天数',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='案件分配结果临时表';
+

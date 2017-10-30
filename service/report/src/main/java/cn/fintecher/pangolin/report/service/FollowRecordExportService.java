@@ -232,282 +232,281 @@ public class FollowRecordExportService {
         List<FollowupExportModel> followupExportModels = new ArrayList<>();
         int i = 0;
         for (ExcportResultModel excportResultModel : excportResultModels) {
-            log.info("第" + ++i + "条信息正在导出。。。。。");
-            FollowupExportModel followupExportModel = new FollowupExportModel();
-            followupExportModel.setContractNumber(excportResultModel.getContractNumber());//合同编号
-            followupExportModel.setLoanDate(excportResultModel.getLoanDate());//贷款日期
-            followupExportModel.setContractAmount(excportResultModel.getContractAmount());//合同金额
-            AreaCode city = excportResultModel.getAreaCode();
-            if (Objects.nonNull(city)) {
-                followupExportModel.setCityName(city.getAreaName());
-                AreaCode province = city.getParent();
-                if (Objects.nonNull(province)) {
-                    followupExportModel.setProvinceName(province.getAreaName());
-                }
-            }
-            followupExportModel.setLeftCapital(excportResultModel.getLeftCapital());//剩余本金
-            followupExportModel.setLeftInterest(excportResultModel.getLeftInterest());//剩余利息
-            followupExportModel.setOverdueAmount(excportResultModel.getOverdueAmount());//逾期金额
-            followupExportModel.setOverdueCapital(excportResultModel.getOverdueCapital());//逾期本金
-            followupExportModel.setOverdueInterest(excportResultModel.getOverdueInterest());//逾期利息
-            followupExportModel.setOverdueFine(excportResultModel.getOverdueFine());//逾期罚息
-            followupExportModel.setPeriods(excportResultModel.getPeriods());//还款期数
-            followupExportModel.setPerPayAmount(excportResultModel.getPerPayAmount());//每期还款金额
-            followupExportModel.setOtherAmt(excportResultModel.getOtherAmt());//其他费用
-            followupExportModel.setOverDueDate(excportResultModel.getOverDueDate());//逾期日期
-            followupExportModel.setOverduePeriods(excportResultModel.getOverduePeriods());//逾期期数
-            followupExportModel.setOverdueDays(excportResultModel.getOverdueDays());//逾期天数
-            followupExportModel.setHasPayAmount(excportResultModel.getHasPayAmount());//已还款金额
-            followupExportModel.setHasPayPeriods(excportResultModel.getHasPayPeriods());//已还款期数
-            followupExportModel.setLatelyPayDate(excportResultModel.getLatelyPayDate());//最近还款日期
-            followupExportModel.setLatelyPayAmount(excportResultModel.getLatelyPayAmount());//最近还款金额
-            followupExportModel.setCommissionRate(excportResultModel.getCommissionRate());//佣金比例
-            followupExportModel.setSeries(excportResultModel.getProduct().getProductSeries().getSeriesName());//产品系列
-            Personal personalInfo = excportResultModel.getPersonalInfo();
-            followupExportModel.setDepositBank(Objects.isNull(personalInfo) ? "" : (personalInfo.getPersonalBankInfos().isEmpty() ? "" : personalInfo.getPersonalBankInfos().iterator().next().getDepositBank()));//客户银行
-            followupExportModel.setCardNumber(Objects.isNull(personalInfo) ? "" : (personalInfo.getPersonalBankInfos().isEmpty() ? "" : personalInfo.getPersonalBankInfos().iterator().next().getCardNumber()));//客户卡号
-            followupExportModel.setPersonalName(Objects.isNull(personalInfo) ? "" : personalInfo.getName());//客户姓名
-            followupExportModel.setIdCard(Objects.isNull(personalInfo) ? "" : personalInfo.getIdCard());//客户身份证号
-            followupExportModel.setMobileNo(personalInfo.getMobileNo());//客户手机号
-            followupExportModel.setIdCardAddress(personalInfo.getIdCardAddress());//客户身份证地址
-            followupExportModel.setLocalHomeAddress(personalInfo.getLocalHomeAddress());//客户监听地址
-            followupExportModel.setLocalPhoneNo(personalInfo.getLocalPhoneNo());//固定电话
-            followupExportModel.setCompanyName(Objects.isNull(personalInfo) ? "" : (personalInfo.getPersonalJobs().isEmpty() ? "" : personalInfo.getPersonalJobs().iterator().next().getCompanyName()));//工作单位名称
-            followupExportModel.setCompanyPhone(Objects.isNull(personalInfo) ? "" : (personalInfo.getPersonalJobs().isEmpty() ? "" : personalInfo.getPersonalJobs().iterator().next().getPhone()));//工作单位电话
-            followupExportModel.setCompanyAddress(Objects.isNull(personalInfo) ? "" : (personalInfo.getPersonalJobs().isEmpty() ? "" : personalInfo.getPersonalJobs().iterator().next().getAddress()));//工作单位地址
-            CaseFollowupRecord.Target[] relationValues = CaseFollowupRecord.Target.values(); //联系人关系
-            Iterator<PersonalContact> iterator = personalInfo.getPersonalContacts().iterator();
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat1Name(personalContact.getName());
-                followupExportModel.setConcat1Phone(personalContact.getPhone());
-                followupExportModel.setConcat1Mobile(personalContact.getMobile());
-                followupExportModel.setConcat1Address(personalContact.getAddress());
-                followupExportModel.setConcat1Employer(personalContact.getEmployer());
-                followupExportModel.setConcat1WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat1Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat2Name(personalContact.getName());
-                followupExportModel.setConcat2Phone(personalContact.getPhone());
-                followupExportModel.setConcat2Mobile(personalContact.getMobile());
-                followupExportModel.setConcat2Address(personalContact.getAddress());
-                followupExportModel.setConcat2Employer(personalContact.getEmployer());
-                followupExportModel.setConcat2WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat2Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat3Name(personalContact.getName());
-                followupExportModel.setConcat3Phone(personalContact.getPhone());
-                followupExportModel.setConcat3Mobile(personalContact.getMobile());
-                followupExportModel.setConcat3Address(personalContact.getAddress());
-                followupExportModel.setConcat3Employer(personalContact.getEmployer());
-                followupExportModel.setConcat3WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat3Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat4Name(personalContact.getName());
-                followupExportModel.setConcat4Phone(personalContact.getPhone());
-                followupExportModel.setConcat4Mobile(personalContact.getMobile());
-                followupExportModel.setConcat4Address(personalContact.getAddress());
-                followupExportModel.setConcat4Employer(personalContact.getEmployer());
-                followupExportModel.setConcat4WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat4Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat5Name(personalContact.getName());
-                followupExportModel.setConcat5Phone(personalContact.getPhone());
-                followupExportModel.setConcat5Mobile(personalContact.getMobile());
-                followupExportModel.setConcat5Address(personalContact.getAddress());
-                followupExportModel.setConcat5Employer(personalContact.getEmployer());
-                followupExportModel.setConcat5WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat5Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat6Name(personalContact.getName());
-                followupExportModel.setConcat6Phone(personalContact.getPhone());
-                followupExportModel.setConcat6Mobile(personalContact.getMobile());
-                followupExportModel.setConcat6Address(personalContact.getAddress());
-                followupExportModel.setConcat6Employer(personalContact.getEmployer());
-                followupExportModel.setConcat6WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat6Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat7Name(personalContact.getName());
-                followupExportModel.setConcat7Phone(personalContact.getPhone());
-                followupExportModel.setConcat7Mobile(personalContact.getMobile());
-                followupExportModel.setConcat7Address(personalContact.getAddress());
-                followupExportModel.setConcat7Employer(personalContact.getEmployer());
-                followupExportModel.setConcat7WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat7Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat8Name(personalContact.getName());
-                followupExportModel.setConcat8Phone(personalContact.getPhone());
-                followupExportModel.setConcat8Mobile(personalContact.getMobile());
-                followupExportModel.setConcat8Address(personalContact.getAddress());
-                followupExportModel.setConcat8Employer(personalContact.getEmployer());
-                followupExportModel.setConcat8WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat8Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat9Name(personalContact.getName());
-                followupExportModel.setConcat9Phone(personalContact.getPhone());
-                followupExportModel.setConcat9Mobile(personalContact.getMobile());
-                followupExportModel.setConcat9Address(personalContact.getAddress());
-                followupExportModel.setConcat9Employer(personalContact.getEmployer());
-                followupExportModel.setConcat9WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat9Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat10Name(personalContact.getName());
-                followupExportModel.setConcat10Phone(personalContact.getPhone());
-                followupExportModel.setConcat10Mobile(personalContact.getMobile());
-                followupExportModel.setConcat10Address(personalContact.getAddress());
-                followupExportModel.setConcat10Employer(personalContact.getEmployer());
-                followupExportModel.setConcat10WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat10Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat11Name(personalContact.getName());
-                followupExportModel.setConcat11Phone(personalContact.getPhone());
-                followupExportModel.setConcat11Mobile(personalContact.getMobile());
-                followupExportModel.setConcat11Address(personalContact.getAddress());
-                followupExportModel.setConcat11Employer(personalContact.getEmployer());
-                followupExportModel.setConcat11WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat11Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat12Name(personalContact.getName());
-                followupExportModel.setConcat12Phone(personalContact.getPhone());
-                followupExportModel.setConcat12Mobile(personalContact.getMobile());
-                followupExportModel.setConcat12Address(personalContact.getAddress());
-                followupExportModel.setConcat12Employer(personalContact.getEmployer());
-                followupExportModel.setConcat12WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat12Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat13Name(personalContact.getName());
-                followupExportModel.setConcat13Phone(personalContact.getPhone());
-                followupExportModel.setConcat13Mobile(personalContact.getMobile());
-                followupExportModel.setConcat13Address(personalContact.getAddress());
-                followupExportModel.setConcat13Employer(personalContact.getEmployer());
-                followupExportModel.setConcat13WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat13Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat14Name(personalContact.getName());
-                followupExportModel.setConcat14Phone(personalContact.getPhone());
-                followupExportModel.setConcat14Mobile(personalContact.getMobile());
-                followupExportModel.setConcat14Address(personalContact.getAddress());
-                followupExportModel.setConcat14Employer(personalContact.getEmployer());
-                followupExportModel.setConcat14WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat14Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-            if (iterator.hasNext()) {
-                PersonalContact personalContact = iterator.next();
-                followupExportModel.setConcat15Name(personalContact.getName());
-                followupExportModel.setConcat15Phone(personalContact.getPhone());
-                followupExportModel.setConcat15Mobile(personalContact.getMobile());
-                followupExportModel.setConcat15Address(personalContact.getAddress());
-                followupExportModel.setConcat15Employer(personalContact.getEmployer());
-                followupExportModel.setConcat15WorkPhone(personalContact.getWorkPhone());
-                for (int j = 0; j < relationValues.length; j++) {
-                    if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
-                        followupExportModel.setConcat15Relation(relationValues[j].getRemark());
-                        break;
-                    }
-                }
-            }
-
             List<CaseFollowupRecord> caseFollowupRecords = excportResultModel.getCaseFollowupRecords();
             if (Objects.nonNull(caseFollowupRecords) && !caseFollowupRecords.isEmpty()) {
                 for (CaseFollowupRecord record : caseFollowupRecords) {
-                    FollowupExportModel result = new FollowupExportModel();
-                    BeanUtils.copyProperties(followupExportModel, result);
+                    log.info("第" + ++i + "条信息正在导出。。。。。");
+                    FollowupExportModel followupExportModel = new FollowupExportModel();
+                    followupExportModel.setContractNumber(excportResultModel.getContractNumber());//合同编号
+                    followupExportModel.setLoanDate(excportResultModel.getLoanDate());//贷款日期
+                    followupExportModel.setContractAmount(excportResultModel.getContractAmount());//合同金额
+                    AreaCode city = excportResultModel.getAreaCode();
+                    if (Objects.nonNull(city)) {
+                        followupExportModel.setCityName(city.getAreaName());
+                        AreaCode province = city.getParent();
+                        if (Objects.nonNull(province)) {
+                            followupExportModel.setProvinceName(province.getAreaName());
+                        }
+                    }
+                    followupExportModel.setLeftCapital(excportResultModel.getLeftCapital());//剩余本金
+                    followupExportModel.setLeftInterest(excportResultModel.getLeftInterest());//剩余利息
+                    followupExportModel.setOverdueAmount(excportResultModel.getOverdueAmount());//逾期金额
+                    followupExportModel.setOverdueCapital(excportResultModel.getOverdueCapital());//逾期本金
+                    followupExportModel.setOverdueInterest(excportResultModel.getOverdueInterest());//逾期利息
+                    followupExportModel.setOverdueFine(excportResultModel.getOverdueFine());//逾期罚息
+                    followupExportModel.setPeriods(excportResultModel.getPeriods());//还款期数
+                    followupExportModel.setPerPayAmount(excportResultModel.getPerPayAmount());//每期还款金额
+                    followupExportModel.setOtherAmt(excportResultModel.getOtherAmt());//其他费用
+                    followupExportModel.setOverDueDate(excportResultModel.getOverDueDate());//逾期日期
+                    followupExportModel.setOverduePeriods(excportResultModel.getOverduePeriods());//逾期期数
+                    followupExportModel.setOverdueDays(excportResultModel.getOverdueDays());//逾期天数
+                    followupExportModel.setHasPayAmount(excportResultModel.getHasPayAmount());//已还款金额
+                    followupExportModel.setHasPayPeriods(excportResultModel.getHasPayPeriods());//已还款期数
+                    followupExportModel.setLatelyPayDate(excportResultModel.getLatelyPayDate());//最近还款日期
+                    followupExportModel.setLatelyPayAmount(excportResultModel.getLatelyPayAmount());//最近还款金额
+                    followupExportModel.setCommissionRate(excportResultModel.getCommissionRate());//佣金比例
+                    followupExportModel.setSeries(excportResultModel.getProduct().getProductSeries().getSeriesName());//产品系列
+                    Personal personalInfo = excportResultModel.getPersonalInfo();
+                    followupExportModel.setDepositBank(Objects.isNull(personalInfo) ? "" : (personalInfo.getPersonalBankInfos().isEmpty() ? "" : personalInfo.getPersonalBankInfos().iterator().next().getDepositBank()));//客户银行
+                    followupExportModel.setCardNumber(Objects.isNull(personalInfo) ? "" : (personalInfo.getPersonalBankInfos().isEmpty() ? "" : personalInfo.getPersonalBankInfos().iterator().next().getCardNumber()));//客户卡号
+                    followupExportModel.setPersonalName(Objects.isNull(personalInfo) ? "" : personalInfo.getName());//客户姓名
+                    followupExportModel.setIdCard(Objects.isNull(personalInfo) ? "" : personalInfo.getIdCard());//客户身份证号
+                    followupExportModel.setMobileNo(personalInfo.getMobileNo());//客户手机号
+                    followupExportModel.setIdCardAddress(personalInfo.getIdCardAddress());//客户身份证地址
+                    followupExportModel.setLocalHomeAddress(personalInfo.getLocalHomeAddress());//客户监听地址
+                    followupExportModel.setLocalPhoneNo(personalInfo.getLocalPhoneNo());//固定电话
+                    followupExportModel.setCompanyName(Objects.isNull(personalInfo) ? "" : (personalInfo.getPersonalJobs().isEmpty() ? "" : personalInfo.getPersonalJobs().iterator().next().getCompanyName()));//工作单位名称
+                    followupExportModel.setCompanyPhone(Objects.isNull(personalInfo) ? "" : (personalInfo.getPersonalJobs().isEmpty() ? "" : personalInfo.getPersonalJobs().iterator().next().getPhone()));//工作单位电话
+                    followupExportModel.setCompanyAddress(Objects.isNull(personalInfo) ? "" : (personalInfo.getPersonalJobs().isEmpty() ? "" : personalInfo.getPersonalJobs().iterator().next().getAddress()));//工作单位地址
+                    CaseFollowupRecord.Target[] relationValues = CaseFollowupRecord.Target.values(); //联系人关系
+                    Iterator<PersonalContact> iterator = personalInfo.getPersonalContacts().iterator();
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat1Name(personalContact.getName());
+                        followupExportModel.setConcat1Phone(personalContact.getPhone());
+                        followupExportModel.setConcat1Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat1Address(personalContact.getAddress());
+                        followupExportModel.setConcat1Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat1WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat1Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat2Name(personalContact.getName());
+                        followupExportModel.setConcat2Phone(personalContact.getPhone());
+                        followupExportModel.setConcat2Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat2Address(personalContact.getAddress());
+                        followupExportModel.setConcat2Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat2WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat2Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat3Name(personalContact.getName());
+                        followupExportModel.setConcat3Phone(personalContact.getPhone());
+                        followupExportModel.setConcat3Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat3Address(personalContact.getAddress());
+                        followupExportModel.setConcat3Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat3WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat3Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat4Name(personalContact.getName());
+                        followupExportModel.setConcat4Phone(personalContact.getPhone());
+                        followupExportModel.setConcat4Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat4Address(personalContact.getAddress());
+                        followupExportModel.setConcat4Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat4WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat4Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat5Name(personalContact.getName());
+                        followupExportModel.setConcat5Phone(personalContact.getPhone());
+                        followupExportModel.setConcat5Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat5Address(personalContact.getAddress());
+                        followupExportModel.setConcat5Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat5WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat5Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat6Name(personalContact.getName());
+                        followupExportModel.setConcat6Phone(personalContact.getPhone());
+                        followupExportModel.setConcat6Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat6Address(personalContact.getAddress());
+                        followupExportModel.setConcat6Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat6WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat6Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat7Name(personalContact.getName());
+                        followupExportModel.setConcat7Phone(personalContact.getPhone());
+                        followupExportModel.setConcat7Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat7Address(personalContact.getAddress());
+                        followupExportModel.setConcat7Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat7WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat7Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat8Name(personalContact.getName());
+                        followupExportModel.setConcat8Phone(personalContact.getPhone());
+                        followupExportModel.setConcat8Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat8Address(personalContact.getAddress());
+                        followupExportModel.setConcat8Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat8WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat8Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat9Name(personalContact.getName());
+                        followupExportModel.setConcat9Phone(personalContact.getPhone());
+                        followupExportModel.setConcat9Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat9Address(personalContact.getAddress());
+                        followupExportModel.setConcat9Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat9WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat9Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat10Name(personalContact.getName());
+                        followupExportModel.setConcat10Phone(personalContact.getPhone());
+                        followupExportModel.setConcat10Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat10Address(personalContact.getAddress());
+                        followupExportModel.setConcat10Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat10WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat10Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat11Name(personalContact.getName());
+                        followupExportModel.setConcat11Phone(personalContact.getPhone());
+                        followupExportModel.setConcat11Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat11Address(personalContact.getAddress());
+                        followupExportModel.setConcat11Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat11WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat11Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat12Name(personalContact.getName());
+                        followupExportModel.setConcat12Phone(personalContact.getPhone());
+                        followupExportModel.setConcat12Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat12Address(personalContact.getAddress());
+                        followupExportModel.setConcat12Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat12WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat12Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat13Name(personalContact.getName());
+                        followupExportModel.setConcat13Phone(personalContact.getPhone());
+                        followupExportModel.setConcat13Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat13Address(personalContact.getAddress());
+                        followupExportModel.setConcat13Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat13WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat13Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat14Name(personalContact.getName());
+                        followupExportModel.setConcat14Phone(personalContact.getPhone());
+                        followupExportModel.setConcat14Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat14Address(personalContact.getAddress());
+                        followupExportModel.setConcat14Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat14WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat14Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+                    if (iterator.hasNext()) {
+                        PersonalContact personalContact = iterator.next();
+                        followupExportModel.setConcat15Name(personalContact.getName());
+                        followupExportModel.setConcat15Phone(personalContact.getPhone());
+                        followupExportModel.setConcat15Mobile(personalContact.getMobile());
+                        followupExportModel.setConcat15Address(personalContact.getAddress());
+                        followupExportModel.setConcat15Employer(personalContact.getEmployer());
+                        followupExportModel.setConcat15WorkPhone(personalContact.getWorkPhone());
+                        for (int j = 0; j < relationValues.length; j++) {
+                            if (Objects.equals(personalContact.getRelation(), relationValues[j].getValue())) {
+                                followupExportModel.setConcat15Relation(relationValues[j].getRemark());
+                                break;
+                            }
+                        }
+                    }
+
+
                     followupExportModel.setFollTime(ZWDateUtil.fomratterDate(record.getOperatorTime(), null));//跟进时间
                     followupExportModel.setFollTargetName(record.getTargetName());//跟进对象姓名
                     followupExportModel.setFollContent(record.getContent());//跟进内容
@@ -547,10 +546,8 @@ public class FollowRecordExportService {
                             break;
                         }
                     }
-                    followupExportModels.add(result);
+                    followupExportModels.add(followupExportModel);
                 }
-            } else {
-                followupExportModels.add(followupExportModel);
             }
         }
         return followupExportModels;

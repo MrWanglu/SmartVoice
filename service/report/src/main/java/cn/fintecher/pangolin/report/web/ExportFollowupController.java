@@ -177,8 +177,8 @@ public class ExportFollowupController extends BaseController {
         List<String> items = new ArrayList<>();
         items.addAll(itemsModel.getPersonalItems());
         items.addAll(itemsModel.getJobItems());
-        items.addAll(followRecordExportService.parseConnect(itemsModel.getConnectItems()));
         items.addAll(itemsModel.getCaseItems());
+        items.addAll(followRecordExportService.parseConnect(itemsModel.getConnectItems()));
         items.addAll(itemsModel.getBankItems());
         items.addAll(followRecordExportService.parseFollow(itemsModel.getFollowItems()));
         exportFollowupParams.setExportItemList(items);
@@ -215,23 +215,35 @@ public class ExportFollowupController extends BaseController {
                         progressMessage.setCurrent(2);
                         rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
                         dataList = followRecordExportService.getFollowupData(all);
-                        int maxNum = followRecordExportService.getMaxNum(all);
-                        String[] title = exportFollowupParams.getExportItemList().toArray(new String[exportFollowupParams.getExportItemList().size()]);
-                        Map<String, String> headMap = ExcelExportUtil.createHeadMap(title, FollowupExportModel.class);
-                        progressMessage.setCurrent(3);
-                        rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
-                        workbook = new SXSSFWorkbook(5000);
-                        ExcelExportUtil.createExcelData(workbook, headMap, dataList, 1048575);
-                        out = new ByteArrayOutputStream();
-                        workbook.write(out);
-                        String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xlsx");
-                        file = new File(filePath);
-                        fileOutputStream = new FileOutputStream(file);
-                        fileOutputStream.write(out.toByteArray());
-                        FileSystemResource resource = new FileSystemResource(file);
-                        MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
-                        param.add("file", resource);
-                        url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
+                        if (dataList.isEmpty()) {
+                            ListResult listResult = new ListResult();
+                            List<String> urls = new ArrayList<>();
+                            urls.add("要导出的数据为空");
+                            listResult.setUser(userId);
+                            listResult.setResult(urls);
+                            listResult.setStatus(ListResult.Status.FAILURE.getVal()); // 0-成功
+                            restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", listResult, Void.class);
+                            progressMessage.setCurrent(5);
+                            rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                        } else {
+                            int maxNum = followRecordExportService.getMaxNum(all);
+                            String[] title = exportFollowupParams.getExportItemList().toArray(new String[exportFollowupParams.getExportItemList().size()]);
+                            Map<String, String> headMap = ExcelExportUtil.createHeadMap(title, FollowupExportModel.class);
+                            progressMessage.setCurrent(3);
+                            rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                            workbook = new SXSSFWorkbook(5000);
+                            ExcelExportUtil.createExcelData(workbook, headMap, dataList, 1048575);
+                            out = new ByteArrayOutputStream();
+                            workbook.write(out);
+                            String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(DateTime.now().toString("yyyyMMddhhmmss") + "跟进记录.xlsx");
+                            file = new File(filePath);
+                            fileOutputStream = new FileOutputStream(file);
+                            fileOutputStream.write(out.toByteArray());
+                            FileSystemResource resource = new FileSystemResource(file);
+                            MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+                            param.add("file", resource);
+                            url = restTemplate.postForEntity("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
+                        }
                     }
                     if (url == null && !all.isEmpty()) {
                         ListResult listResult = new ListResult();

@@ -582,6 +582,9 @@ public class OutsourcePoolController extends BaseController {
                 if (days >= 3) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "委外已超过3天，不能撤回")).body(null);
                 }
+                if (Objects.nonNull(outsourcePool.getOutoperationStatus())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "案件已操作,不能撤回")).body(null);
+                }
                 outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
                 outsourcePool.setContractAmt(null);
                 outsourcePool.setOverduePeriods(null);
@@ -644,6 +647,7 @@ public class OutsourcePoolController extends BaseController {
             }
             for (String outId : outCaseIds) {
                 OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
+                outsourcePool.setOutsource(null);
                 outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());//状态改为待委外
                 outsourcePool.setOperator(user.getUserName());//委外退案人
                 outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());//委外退案时间

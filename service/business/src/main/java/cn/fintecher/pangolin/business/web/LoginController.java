@@ -1,8 +1,10 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.model.RegisterSoftware;
 import cn.fintecher.pangolin.business.model.UpdatePassword;
 import cn.fintecher.pangolin.business.model.UserDeviceReset;
 import cn.fintecher.pangolin.business.model.UserLoginResponse;
+import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.repository.UserDeviceRepository;
 import cn.fintecher.pangolin.business.repository.UserRepository;
@@ -29,14 +31,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
@@ -65,19 +62,35 @@ public class LoginController extends BaseController {
     @Autowired
     private UserDeviceRepository userDeviceRepository;
 
+    @Autowired
+    private CompanyRepository companyRepository;
+
     /**
      * 无MD5加密用户登录 开发使用
      */
     @GetMapping("/getUserByToken")
     @ApiOperation(value = "通过token获取用户信息", notes = "通过token获取用户信息")
-    public ResponseEntity<User> getUserToken(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<UserLoginResponse> getUserToken(@RequestHeader(value = "X-UserToken") String token) {
         User user;
+        UserLoginResponse response = new UserLoginResponse();
         try {
             user = super.getUserByToken(token);
+            if (Objects.equals("administrator", user.getUserName())) {
+                response.setRegDay("success");
+            } else {
+                QCompany qCompany = QCompany.company;
+                Company company = companyRepository.findOne(qCompany.code.eq(user.getCompanyCode()));
+                if (Objects.isNull(company.getRegisterDay())) {
+                    response.setRegDay("noReg");
+                } else {
+                    response.setRegDay("success");
+                }
+            }
+            response.setUser(user);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "该用户不存在")).body(null);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(response);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "该用户不存在")).body(null);
@@ -101,7 +114,7 @@ public class LoginController extends BaseController {
         String str = "";
         String macAddress = "";
         try {
-            Process p = Runtime.getRuntime().exec("nbtstat -a " +ip);
+            Process p = Runtime.getRuntime().exec("nbtstat -a " + ip);
             InputStreamReader ir = new InputStreamReader(p.getInputStream());
             LineNumberReader input = new LineNumberReader(ir);
             for (int i = 1; i < 100; i++) {
@@ -229,11 +242,69 @@ public class LoginController extends BaseController {
                     response.setReset(false);
                 }
             }
+            if (Objects.equals("administrator", user.getUserName())) {
+                response.setRegDay("success");
+            } else {
+                QCompany qCompany = QCompany.company;
+                Company company = companyRepository.findOne(qCompany.code.eq(user.getCompanyCode()));
+                if (Objects.isNull(company.getRegisterDay())) {
+                    response.setRegDay("noReg");
+                } else {
+                    response.setRegDay("success");
+                }
+            }
             SessionStore.getInstance().addUser(session.getId(), session);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(response);
         } else {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "wrong password", "密码错误")).body(null);
         }
+    }
+
+    /**
+     * @Description : 软件注册返回码
+     */
+    @RequestMapping(value = "/returnCode", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ApiOperation(value = "软件注册返回码", notes = "软件注册返回码")
+    public ResponseEntity<String> returnCode(@RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        QSysParam qSysParam = QSysParam.sysParam;
+        SysParam sysParams = sysParamRepository.findOne(qSysParam.code.eq(Constants.REGISTER_SOFTWARE_CODE).and(qSysParam.type.eq(Constants.REGISTER_SOFTWARE_TYPE)).and(qSysParam.companyCode.eq(user.getCompanyCode())));
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("注册成功", ENTITY_NAME)).body(sysParams.getValue());
+    }
+
+    /**
+     * @Description : 软件注册
+     */
+    @RequestMapping(value = "/registerSoftware", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ApiOperation(value = "软件注册", notes = "软件注册")
+    public ResponseEntity<String> registerSoftware(@Validated @RequestBody @ApiParam("软件注册") RegisterSoftware request,
+                                                   @RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        QSysParam qSysParam = QSysParam.sysParam;
+        SysParam sysParams = sysParamRepository.findOne(qSysParam.code.eq(Constants.REGISTER_SOFTWARE_CODE).and(qSysParam.type.eq(Constants.REGISTER_SOFTWARE_TYPE)).and(qSysParam.companyCode.eq(user.getCompanyCode())));
+        String orgCode = MD5.MD5Encode(sysParams.getValue() + "zwjk");
+        String code =  MD5.MD5Encode(request.getCode()+"zwjk");
+        if (Objects.equals(orgCode, code)) {
+            QCompany qCompany = QCompany.company;
+            Company company = companyRepository.findOne(qCompany.code.eq(user.getCompanyCode()));
+            company.setRegisterDay(99999);
+            companyRepository.save(company);
+        } else {
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("注册失败", ENTITY_NAME)).body("注册失败");
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("注册成功", ENTITY_NAME)).body("注册成功");
     }
 
     /**
