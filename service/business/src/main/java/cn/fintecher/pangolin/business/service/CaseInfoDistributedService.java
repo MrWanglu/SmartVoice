@@ -256,7 +256,7 @@ public class CaseInfoDistributedService {
                     CaseRepair caseRepair = addCaseRepair(caseInfo, user);//修复池增加案件
                     CaseInfo caseInfo1 = caseInfoRepository.save(caseInfo);
                     caseRepairRepository.save(caseRepair);
-                    addCaseInfoRemark(caseInfo1, user);
+                    CaseInfoRemark caseInfoRemark = addCaseInfoRemark(caseInfo1, user);
                     //新增一条分配临时记录
                     CaseDistributedTemporary caseDistributedTemporary = new CaseDistributedTemporary();
                     caseDistributedTemporary.setCaseId(caseInfo1.getId()); //案件ID
@@ -267,6 +267,7 @@ public class CaseInfoDistributedService {
                     caseDistributedTemporary.setOverdueAmt(caseInfo.getOverdueAmount()); //案件金额
                     caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
                     caseDistributedTemporary.setType(CaseDistributedTemporary.Type.BIG_IN.getValue()); //分案类型
+                    caseDistributedTemporary.setCaseRemark(caseInfoRemark.getId());//案件备注
                     caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
                     caseDistributedTemporary.setOperatorUserName(user.getUserName()); //操作人用户名
                     caseDistributedTemporary.setOperatorRealName(user.getRealName()); //操作人姓名
@@ -283,7 +284,7 @@ public class CaseInfoDistributedService {
                     setCaseInfo(next, caseInfo, user, manualParams.getCloseDate());
                     caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue());
                     CaseInfo caseInfo1 = caseInfoRepository.save(caseInfo);
-                    addCaseInfoRemark(caseInfo1, user);
+                    CaseInfoRemark caseInfoRemark = addCaseInfoRemark(caseInfo1, user);
                     OutsourcePool outsourcePool = new OutsourcePool();
                     outsourcePool.setCaseInfo(caseInfo1);
                     outsourcePool.setCompanyCode(caseInfo.getCompanyCode());
@@ -301,6 +302,7 @@ public class CaseInfoDistributedService {
                     caseDistributedTemporary.setOverdueAmt(caseInfo.getOverdueAmount()); //案件金额
                     caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
                     caseDistributedTemporary.setType(CaseDistributedTemporary.Type.BIG_OUT.getValue()); //分案类型
+                    caseDistributedTemporary.setCaseRemark(caseInfoRemark.getId());//案件备注
                     caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
                     caseDistributedTemporary.setOperatorUserName(user.getUserName()); //操作人用户名
                     caseDistributedTemporary.setOperatorRealName(user.getRealName()); //操作人姓名
@@ -317,7 +319,7 @@ public class CaseInfoDistributedService {
     }
 
 
-    private void addCaseInfoRemark(CaseInfo caseInfo, User user) {
+    private CaseInfoRemark addCaseInfoRemark(CaseInfo caseInfo, User user) {
         CaseInfoRemark caseInfoRemark = new CaseInfoRemark();
         caseInfoRemark.setCaseId(caseInfo.getId());
         caseInfoRemark.setRemark(caseInfo.getMemo());
@@ -325,7 +327,7 @@ public class CaseInfoDistributedService {
         caseInfoRemark.setOperatorRealName(user.getRealName());
         caseInfoRemark.setOperatorUserName(user.getUserName());
         caseInfoRemark.setOperatorTime(new Date());
-        caseInfoRemarkRepository.save(caseInfoRemark);
+        return caseInfoRemarkRepository.save(caseInfoRemark);
     }
 
     private void setCaseInfo(CaseInfoDistributed caseInfoDistributed, CaseInfo caseInfo, User user, Date closeDate) {
@@ -418,7 +420,7 @@ public class CaseInfoDistributedService {
                         CaseRepair caseRepair = addCaseRepair(caseInfo, user);//修复池增加案件
                         CaseInfo caseInfo1 = caseInfoRepository.save(caseInfo);
                         caseRepairRepository.save(caseRepair);
-                        addCaseInfoRemark(caseInfo1, user);
+                        CaseInfoRemark caseInfoRemark = addCaseInfoRemark(caseInfo1, user);
                         //新增一条分配临时记录
                         CaseDistributedTemporary caseDistributedTemporary = new CaseDistributedTemporary();
                         caseDistributedTemporary.setCaseId(caseInfo1.getId()); //案件ID
@@ -430,6 +432,7 @@ public class CaseInfoDistributedService {
                         caseDistributedTemporary.setType(CaseDistributedTemporary.Type.BIG_IN.getValue()); //分案类型
                         //caseDistributedTemporary.setCaseTurnRecord(caseTurnRecord.getId()); //流转记录ID
                         //caseDistributedTemporary.setCaseRepairId(caseRepair.getId()); //案件修复ID
+                        caseDistributedTemporary.setCaseRemark(caseInfoRemark.getId());//案件备注
                         caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
                         caseDistributedTemporary.setOperatorUserName(user.getUserName()); //操作人用户名
                         caseDistributedTemporary.setOperatorRealName(user.getRealName()); //操作人姓名
@@ -443,7 +446,7 @@ public class CaseInfoDistributedService {
                         setCaseInfo(caseInfoDistributed, caseInfo, user, null);
                         caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue());
                         CaseInfo caseInfo1 = caseInfoRepository.save(caseInfo);
-                        addCaseInfoRemark(caseInfo1, user);
+                        CaseInfoRemark caseInfoRemark = addCaseInfoRemark(caseInfo1, user);
                         OutsourcePool outsourcePool = new OutsourcePool();
                         outsourcePool.setCaseInfo(caseInfo1);
                         outsourcePool.setCompanyCode(caseInfo.getCompanyCode());
@@ -463,6 +466,7 @@ public class CaseInfoDistributedService {
                         caseDistributedTemporary.setType(CaseDistributedTemporary.Type.BIG_OUT.getValue()); //分案类型
                         //caseDistributedTemporary.setCaseTurnRecord(caseTurnRecord.getId()); //流转记录ID
                         //caseDistributedTemporary.setCaseRepairId(caseRepair.getId()); //案件修复ID
+                        caseDistributedTemporary.setCaseRemark(caseInfoRemark.getId());//案件备注
                         caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
                         caseDistributedTemporary.setOperatorUserName(user.getUserName()); //操作人用户名
                         caseDistributedTemporary.setOperatorRealName(user.getRealName()); //操作人姓名
