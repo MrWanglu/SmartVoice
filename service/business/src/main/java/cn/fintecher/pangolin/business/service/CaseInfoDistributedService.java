@@ -489,7 +489,8 @@ public class CaseInfoDistributedService {
     public CountStrategyAllocationModel countStrategyAllocation(CaseInfoIdList caseInfoIdList, User user) {
         List<CaseInfoDistributed> all = new ArrayList<>();
         if (Objects.isNull(caseInfoIdList.getIds()) || caseInfoIdList.getIds().isEmpty()) {
-            Iterable<CaseInfoDistributed> all1 = caseInfoDistributedRepository.findAll(QCaseInfoDistributed.caseInfoDistributed.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
+            Iterable<CaseInfoDistributed> all1 = caseInfoDistributedRepository.findAll(QCaseInfoDistributed.caseInfoDistributed.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())
+                    .and(QCaseInfoDistributed.caseInfoDistributed.companyCode.eq(user.getCompanyCode())));
             all = IterableUtils.toList(all1);
         } else {
             all = caseInfoDistributedRepository.findAll(caseInfoIdList.getIds());
