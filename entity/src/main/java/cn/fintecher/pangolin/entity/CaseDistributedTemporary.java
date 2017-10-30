@@ -40,6 +40,9 @@ public class CaseDistributedTemporary extends BaseEntity {
     @ApiModelProperty(notes = "案件修复ID")
     private String caseRepairId;
 
+    @ApiModelProperty(notes = "案件备注ID")
+    private String caseRemark;
+
     @ApiModelProperty(notes = "上一个催收员ID")
     private String lastCollector;
 
