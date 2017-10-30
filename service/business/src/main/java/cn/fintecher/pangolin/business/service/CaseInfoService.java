@@ -125,6 +125,7 @@ public class CaseInfoService {
     @Inject
     OutsourcePoolRepository outsourcePoolRepository;
 
+
     /**
      * @Description 重新分配
      */
@@ -2903,6 +2904,12 @@ public class CaseInfoService {
                     caseRepairRepository.delete(caseRepair);
                 }
 
+                //删除案件备注
+                CaseInfoRemark caseInfoRemark = caseInfoRemarkRepository.findOne(caseDistributedTemporary.getCaseRemark());
+                if (!Objects.isNull(caseRepair)) {
+                    caseInfoRemark.setCaseId(null);
+                    caseInfoRemarkRepository.delete(caseInfoRemark);
+                }
                 //删除案件信息
                 caseInfoRepository.delete(caseDistributedTemporary.getCaseId());
             } else if (Objects.equals(caseDistributedTemporary.getType(), CaseDistributedTemporary.Type.BIG_OUT.getValue())) {//大分配-委外
