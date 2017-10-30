@@ -179,3 +179,8 @@ INSERT INTO `pangolin_business_test`.`resource` VALUES ('446', '439', '催大人
 INSERT INTO `pangolin_business_test`.`resource` VALUES ('447', '439', '催大人', '数据来源', '040608', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '447');
 INSERT INTO `pangolin_business_test`.`resource` VALUES ('448', '439', '催大人', '案件金额', '040609', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '448');
 INSERT INTO `pangolin_business_test`.`resource` VALUES ('449', '439', '催大人', '撤销分案', '040610', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '449');
+
+--2017-10-30 白章宇 增加字段
+ALTER TABLE `case_distributed_temporary`
+ADD COLUMN `case_remark`  varchar(64) NULL COMMENT '案件备注ID';
+
