@@ -108,8 +108,8 @@ public class ScoreStrategyController {
             }
             //查找需要保存所对应的策略类型对象集合
             List<ScoreRule> scoreRules = mongoTemplate.find(query, ScoreRule.class);
-            //删除需要保存所对应的策略类型对象集合
-            scoreRuleRepository.delete(scoreRules);//保存之前删除已有数据
+            ///保存之前删除所对应的策略类型对象集合
+            scoreRuleRepository.delete(scoreRules);
             List<ScoreRule> sorceRules = new ArrayList<>();//属性集合
             String str = jsonStr.getJsonStr();//取json字符串
             JSONArray jsonArray = JSONArray.parseArray(str);//解析
