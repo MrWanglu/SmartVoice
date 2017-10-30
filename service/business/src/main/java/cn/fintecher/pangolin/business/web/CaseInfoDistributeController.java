@@ -259,7 +259,7 @@ public class CaseInfoDistributeController extends BaseController {
             caseInfoDistributedService.manualAllocation(manualParams, user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("分配成功", "")).body(null);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "分配失败")).body(null);
         }
     }
 
@@ -271,7 +271,7 @@ public class CaseInfoDistributeController extends BaseController {
             return ResponseEntity.ok().body(model);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "手动分案统计失败")).body(null);
         }
     }
 
