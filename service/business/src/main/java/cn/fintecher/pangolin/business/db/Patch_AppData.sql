@@ -166,3 +166,16 @@ INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('245
 
 --2017-10-24 白章宇 增加系统参数
 INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f00016', '0001', 'Sysparam.revokedistribute', '案件分案撤销时长', 0, '9001', '30', 0, 'administrator', '2017-10-17 18:41:15', '案件分案撤销时长(分钟)', '1');
+
+--2017-10-30 祁吉贵 增加撤销案件权限码
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('439', '390', '催大人', '撤销分案', '0406FF', NULL, NULL, NULL, NULL, NULL, '18', NULL, NULL, NULL, NULL, '439');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('440', '439', '催大人', '客户姓名', '040601', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '440');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('441', '439', '催大人', '案件编号', '040602', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '441');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('442', '439', '催大人', '批次号', '040603', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '442');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('443', '439', '催大人', '委托方', '040604', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '443');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('444', '439', '催大人', '原催收员', '040605', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '444');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('445', '439', '催大人', '当前催收员', '040606', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '445');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('446', '439', '催大人', '分案时间', '040607', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '446');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('447', '439', '催大人', '数据来源', '040608', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '447');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('448', '439', '催大人', '案件金额', '040609', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '448');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('449', '439', '催大人', '撤销分案', '040610', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '449');
