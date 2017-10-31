@@ -835,7 +835,6 @@ public class CaseInfoController extends BaseController {
             scoreNumbersModel.setTotal(accCaseInfoList.size());
             if (accCaseInfoList.size() > 0) {
                 for (CaseInfo caseInfo : accCaseInfoList) {
-                    BigDecimal old = caseInfo.getScore();
                     ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
                     int age = caseInfo.getPersonalInfo().getAge();
                     scoreRuleModel.setAge(age);
@@ -850,19 +849,13 @@ public class CaseInfoController extends BaseController {
                     }
                     kieSession.insert(scoreRuleModel);//插入
                     kieSession.fireAllRules();//执行规则
-                    BigDecimal now = new BigDecimal(scoreRuleModel.getCupoScore());
-                    if(old.compareTo(now) != 0){
-                        caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
-                        caseInfoList1.add(caseInfo);
-                    }
+                    caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                    caseInfoList1.add(caseInfo);
                 }
                 kieSession.dispose();
                 caseInfoRepository.save(caseInfoList1);
                 watch1.stop();
                 log.info("耗时：" + watch1.getTotalTimeMillis());
-                if(caseInfoList1.size() == 0){
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "没有符合策略的案件")).body(null);
-                }
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
             }
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
@@ -914,7 +907,6 @@ public class CaseInfoController extends BaseController {
             scoreNumbersModel.setTotal(accCaseInfoList.size());
             if (accCaseInfoList.size() > 0) {
                 for (CaseInfo caseInfo : accCaseInfoList) {
-                    BigDecimal old = caseInfo.getScore();
                     ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
                     int age = caseInfo.getPersonalInfo().getAge();
                     scoreRuleModel.setAge(age);
@@ -929,11 +921,8 @@ public class CaseInfoController extends BaseController {
                     }
                     kieSession.insert(scoreRuleModel);//插入
                     kieSession.fireAllRules();//执行规则
-                    BigDecimal now = new BigDecimal(scoreRuleModel.getCupoScore());
-                    if(old.compareTo(now) != 0){
-                        caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
-                        caseInfoList1.add(caseInfo);
-                    }
+                    caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                    caseInfoList1.add(caseInfo);
                 }
                 kieSession.dispose();
                 caseInfoRepository.save(caseInfoList1);
@@ -965,48 +954,48 @@ public class CaseInfoController extends BaseController {
         } catch (Exception e) {
             throw new IllegalStateException("获取策略失败");
         }
-        if (Objects.equals(rules.size(),0)){
+        if (Objects.equals(rules.size(), 0)) {
             throw new RuntimeException("请先设置评分策略");
         }
-            try {
-                Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
-                Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
-                StringBuilder sb = new StringBuilder();
-                if (Objects.nonNull(rules)) {
-                    for (ScoreRule rule : rules) {
-                        for (int i = 0; i < rule.getFormulas().size(); i++) {
-                            ScoreFormula scoreFormula = rule.getFormulas().get(i);
-                            Map<String, String> map = new HashMap<>();
-                            map.put("id", rule.getId());
-                            map.put("index", String.valueOf(i));
-                            map.put("strategy", scoreFormula.getStrategy());
-                            map.put("score", String.valueOf(scoreFormula.getScore()));
-                            map.put("weight", String.valueOf(rule.getWeight()));
-                            sb.append(FreeMarkerTemplateUtils.processTemplateIntoString(scoreFormulaTemplate, map));
-                        }
+        try {
+            Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
+            Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
+            StringBuilder sb = new StringBuilder();
+            if (Objects.nonNull(rules)) {
+                for (ScoreRule rule : rules) {
+                    for (int i = 0; i < rule.getFormulas().size(); i++) {
+                        ScoreFormula scoreFormula = rule.getFormulas().get(i);
+                        Map<String, String> map = new HashMap<>();
+                        map.put("id", rule.getId());
+                        map.put("index", String.valueOf(i));
+                        map.put("strategy", scoreFormula.getStrategy());
+                        map.put("score", String.valueOf(scoreFormula.getScore()));
+                        map.put("weight", String.valueOf(rule.getWeight()));
+                        sb.append(FreeMarkerTemplateUtils.processTemplateIntoString(scoreFormulaTemplate, map));
                     }
                 }
-                KieServices kieServices = KieServices.Factory.get();
-                KieFileSystem kfs = kieServices.newKieFileSystem();
-                Map<String, String> map = new HashMap<>();
-                map.put("allRules", sb.toString());
-                String text = FreeMarkerTemplateUtils.processTemplateIntoString(scoreRuleTemplate, map);
-                kfs.write("src/main/resources/simple.drl",
-                        kieServices.getResources().newReaderResource(new StringReader(text)));
-                KieBuilder kieBuilder = kieServices.newKieBuilder(kfs).buildAll();
-                Results results = kieBuilder.getResults();
-                if (results.hasMessages(org.kie.api.builder.Message.Level.ERROR)) {
-                    log.error(results.getMessages().toString());
-                    throw new IllegalStateException("策略生成错误");
-                }
-                KieContainer kieContainer =
-                        kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
-                KieSession kieSession = kieContainer.newKieSession();
-                return kieSession;
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-                throw new RuntimeException("策略生成失败");
             }
+            KieServices kieServices = KieServices.Factory.get();
+            KieFileSystem kfs = kieServices.newKieFileSystem();
+            Map<String, String> map = new HashMap<>();
+            map.put("allRules", sb.toString());
+            String text = FreeMarkerTemplateUtils.processTemplateIntoString(scoreRuleTemplate, map);
+            kfs.write("src/main/resources/simple.drl",
+                    kieServices.getResources().newReaderResource(new StringReader(text)));
+            KieBuilder kieBuilder = kieServices.newKieBuilder(kfs).buildAll();
+            Results results = kieBuilder.getResults();
+            if (results.hasMessages(org.kie.api.builder.Message.Level.ERROR)) {
+                log.error(results.getMessages().toString());
+                throw new IllegalStateException("策略生成错误");
+            }
+            KieContainer kieContainer =
+                    kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
+            KieSession kieSession = kieContainer.newKieSession();
+            return kieSession;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException("策略生成失败");
+        }
     }
 
     @GetMapping("/findUpload")
