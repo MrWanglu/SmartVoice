@@ -79,6 +79,9 @@ public class CaseDistributedTemporary extends BaseEntity {
     @ApiModelProperty(notes = "案件当前所在部门名称")
     private String currentDepartmentName;
 
+    @ApiModelProperty(notes = "案件当前所在部门code码")
+    private String currentDepartmentCode;
+
     @ApiModelProperty(notes = "委托方名称")
     private String principalName;
 
