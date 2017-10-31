@@ -26,8 +26,8 @@ public interface CaseDistributedTemporaryRepository extends QueryDslPredicateExe
     @Override
     default void customize(final QuerydslBindings bindings, final QCaseDistributedTemporary root) {
         bindings.bind(String.class).first((StringPath path, String value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
-        bindings.bind(root.caseNumber).first((path, value) -> path.eq("%".concat(StringUtils.trim(value)).concat("%"))); //案件编号
-        bindings.bind(root.batchNumber).first((path, value) -> path.eq("%".concat(StringUtils.trim(value)).concat("%"))); //批次号
+        bindings.bind(root.caseNumber).first((path, value) -> path.eq((StringUtils.trim(value)))); //案件编号
+        bindings.bind(root.batchNumber).first((path, value) -> path.eq((StringUtils.trim(value)))); //批次号
         bindings.bind(root.type).first(SimpleExpression::eq); //分案类型
         bindings.bind(root.operatorTime).all((DateTimePath<Date> path, Collection<? extends Date> value) -> { //操作时间
             Iterator<? extends Date> it = value.iterator();
