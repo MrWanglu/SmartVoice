@@ -1402,8 +1402,8 @@ public class OutsourcePoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam @ApiParam(value = "批次号", required = true) String batchNumber,
-                                                                          @RequestParam @ApiParam(value = "委外方名称", required = true) String outsName,
+    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam(required = false) @ApiParam(value = "批次号") String batchNumber,
+                                                                          @RequestParam(required = false) @ApiParam(value = "委外方名称") String outsName,
                                                                           @RequestParam(required = false) @ApiParam(value = "公司Code码") String companyCode,
                                                                           @QuerydslPredicate(root = OutsourcePool.class) Predicate predicate,
                                                                           @ApiIgnore Pageable pageable,

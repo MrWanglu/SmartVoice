@@ -15,7 +15,12 @@ import java.util.List;
 
 public interface QueryOutsourcePoolMapper extends MyMapper<BackMoneyReport> {
     /**
-     * @Description 查询委外催收中
+     * @Description 委外催收中按批次号查询
      */
-    List<QueryOutsourcePool> getAllOutSourcePoolModel(QueryOutsourcePoolParams queryOutsourcePoolParams);
+    List<QueryOutsourcePool> getAllOutSourcePoolByBatchNumber(QueryOutsourcePoolParams queryOutsourcePoolParams);
+
+    /**
+     * @Description 委外催收中按委外方查询
+     */
+    List<QueryOutsourcePool> getAllOutSourceByOutsName(QueryOutsourcePoolParams queryOutsourcePoolParams);
 }
