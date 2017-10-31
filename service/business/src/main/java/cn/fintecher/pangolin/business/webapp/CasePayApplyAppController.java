@@ -12,7 +12,9 @@ import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import com.querydsl.core.BooleanBuilder;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -22,9 +24,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
+
 import javax.inject.Inject;
-import java.math.BigDecimal;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -174,6 +175,9 @@ public class CasePayApplyAppController extends BaseController {
         log.debug("REST request to get payment proof");
         try {
             List<UploadFile> uploadFiles = caseInfoService.getRepaymentVoucher(casePayId);
+            if (uploadFiles.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createAlert("文件为空", "")).body(null);
+            }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("下载成功", "UploadFile")).body(uploadFiles);
         } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("下载失败", "uploadFile", e.getMessage())).body(null);

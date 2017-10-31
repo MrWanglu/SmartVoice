@@ -849,13 +849,18 @@ public class CaseInfoController extends BaseController {
                     }
                     kieSession.insert(scoreRuleModel);//插入
                     kieSession.fireAllRules();//执行规则
-                    caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
-                    caseInfoList1.add(caseInfo);
+                    if(scoreRuleModel.getCupoScore() != 0) {
+                        caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                        caseInfoList1.add(caseInfo);
+                    }
                 }
                 kieSession.dispose();
                 caseInfoRepository.save(caseInfoList1);
                 watch1.stop();
                 log.info("耗时：" + watch1.getTotalTimeMillis());
+                if(caseInfoList1.size() == 0){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "没有符合策略的案件")).body(null);
+                }
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
             }
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
@@ -921,13 +926,18 @@ public class CaseInfoController extends BaseController {
                     }
                     kieSession.insert(scoreRuleModel);//插入
                     kieSession.fireAllRules();//执行规则
-                    caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
-                    caseInfoList1.add(caseInfo);
+                    if(scoreRuleModel.getCupoScore() != 0) {
+                        caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                        caseInfoList1.add(caseInfo);
+                    }
                 }
                 kieSession.dispose();
                 caseInfoRepository.save(caseInfoList1);
                 watch1.stop();
                 log.info("耗时：" + watch1.getTotalTimeMillis());
+                if(caseInfoList1.size() == 0){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "没有符合策略的案件")).body(null);
+                }
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
             }
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);

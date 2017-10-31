@@ -227,6 +227,7 @@ public class OutsourcePoolController extends BaseController {
                     .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())));
             List<OutsourcePool> outsourcePoolList = new ArrayList<>();
             outsourcePools.forEach(single -> outsourcePoolList.add(single));
+            List<OutsourcePool> outsourcePoolScoreList = new ArrayList<>();
             ScoreNumbersModel scoreNumbersModel = new ScoreNumbersModel();
             scoreNumbersModel.setTotal(outsourcePoolList.size());
             if (outsourcePoolList.size() > 0) {
@@ -245,15 +246,23 @@ public class OutsourcePoolController extends BaseController {
                     }
                     kieSession.insert(scoreRuleModel);//插入
                     kieSession.fireAllRules();//执行规则
-                    outsourcePool.getCaseInfo().setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                    if(scoreRuleModel.getCupoScore()==0){
+                        outsourcePoolScoreList.add(outsourcePool);
+                    }else {
+                        outsourcePool.getCaseInfo().setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                    }
                 }
-                kieSession.dispose();
-                outsourcePoolRepository.save(outsourcePoolList);
-                watch1.stop();
-                log.info("耗时：" + watch1.getTotalTimeMillis());
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
+                if(outsourcePoolScoreList.size()==outsourcePoolList.size()){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "没有符合评分的案件")).body(null);
+                }else {
+                    kieSession.dispose();
+                    outsourcePoolRepository.save(outsourcePoolList);
+                    watch1.stop();
+                    log.info("耗时：" + watch1.getTotalTimeMillis());
+                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
+                }
             }
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "案件为空")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "评分失败")).body(null);
         } catch (IllegalStateException e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "exportCaseInfoFollowRecord", "评分失败")).body(null);
@@ -307,6 +316,7 @@ public class OutsourcePoolController extends BaseController {
                     .and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())));
             List<OutsourcePool> outsourcePoolList = new ArrayList<>();
             outsourcePools.forEach(single -> outsourcePoolList.add(single));
+            List<OutsourcePool> outsourcePoolScoreList = new ArrayList<>();
             ScoreNumbersModel scoreNumbersModel = new ScoreNumbersModel();
             scoreNumbersModel.setTotal(outsourcePoolList.size());
             if (outsourcePoolList.size() > 0) {
@@ -326,15 +336,23 @@ public class OutsourcePoolController extends BaseController {
 
                     kieSession.insert(scoreRuleModel);//插入
                     kieSession.fireAllRules();//执行规则
-                    outsourcePool.getCaseInfo().setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                    if(scoreRuleModel.getCupoScore()==0){
+                        outsourcePoolScoreList.add(outsourcePool);
+                    }else {
+                        outsourcePool.getCaseInfo().setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                    }
                 }
-                kieSession.dispose();
-                outsourcePoolRepository.save(outsourcePoolList);
-                watch1.stop();
-                log.info("耗时：" + watch1.getTotalTimeMillis());
-                return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
+                if(outsourcePoolScoreList.size()==outsourcePoolList.size()){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "没有符合评分的案件")).body(null);
+                }else {
+                    kieSession.dispose();
+                    outsourcePoolRepository.save(outsourcePoolList);
+                    watch1.stop();
+                    log.info("耗时：" + watch1.getTotalTimeMillis());
+                    return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
+                }
             }
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "案件为空")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "评分失败")).body(null);
         } catch (IllegalStateException e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "exportCaseInfoFollowRecord", "评分失败")).body(null);
