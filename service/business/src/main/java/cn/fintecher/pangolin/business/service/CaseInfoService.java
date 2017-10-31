@@ -1057,28 +1057,29 @@ public class CaseInfoService {
      */
     public List<UploadFile> getRepaymentVoucher(String casePayId) {
         //下载外访资料
-        List<UploadFile> uploadFiles;
+        List<UploadFile> uploadFiles = new ArrayList<>();
         QCasePayFile qCasePayFile = QCasePayFile.casePayFile;
         Iterable<CasePayFile> caseFlowupFiles = casePayFileRepository.findAll(qCasePayFile.payId.eq(casePayId));
         Iterator<CasePayFile> it = caseFlowupFiles.iterator();
-
-        StringBuilder sb = new StringBuilder();
-        while (it.hasNext()) {
-            CasePayFile casePayFile = it.next();
-            String id = casePayFile.getFileid();
-            sb.append(id).append(",");
-        }
-        String ids = sb.toString();
-        ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>() {
-        };
-        ResponseEntity<List<UploadFile>> entity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(ids),
-                HttpMethod.GET, null, responseType);
-        if (!entity.hasBody()) {
-            throw new RuntimeException("下载失败");
+        if (it.hasNext()) {
+            StringBuilder sb = new StringBuilder();
+            while (it.hasNext()) {
+                CasePayFile casePayFile = it.next();
+                String id = casePayFile.getFileid();
+                sb.append(id).append(",");
+            }
+            String ids = sb.toString();
+            ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>() {
+            };
+            ResponseEntity<List<UploadFile>> entity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(ids),
+                    HttpMethod.GET, null, responseType);
+            if (!entity.hasBody()) {
+                throw new RuntimeException("下载失败");
+            }
+            return entity.getBody();//文件对象;
         } else {
-            uploadFiles = entity.getBody();//文件对象
+            return uploadFiles;
         }
-        return uploadFiles;
     }
 
     public List<UploadFile> getFollowupFile(String followId) {

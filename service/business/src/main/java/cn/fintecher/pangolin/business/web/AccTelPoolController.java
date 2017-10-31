@@ -774,6 +774,9 @@ public class AccTelPoolController extends BaseController {
         log.debug("REST request to get payment proof");
         try {
             List<UploadFile> uploadFiles = caseInfoService.getRepaymentVoucher(casePayId);
+            if (uploadFiles.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createAlert("文件为空", ENTITY_UPLOAD_FILE)).body(null);
+            }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("下载成功", ENTITY_UPLOAD_FILE)).body(uploadFiles);
         } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("下载失败", "uploadFile", e.getMessage())).body(null);

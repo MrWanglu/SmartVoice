@@ -280,6 +280,9 @@ public class AccVisitPoolController extends BaseController {
     public ResponseEntity<List<UploadFile>> getRepaymentVoucher(@ApiParam(value = "还款ID", required = true) @RequestParam String payId) {
         try {
             List<UploadFile> uploadFiles = caseInfoService.getRepaymentVoucher(payId);
+            if (uploadFiles.isEmpty()) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createAlert("文件为空", "")).body(null);
+            }
             return new ResponseEntity<>(uploadFiles, HttpStatus.OK);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
