@@ -190,3 +190,7 @@ DROP COLUMN `register_day`,
 ADD COLUMN `register_day`  int(6) NULL DEFAULT NULL COMMENT '注册天数 null没有注册  99999表示无线注册' AFTER `sequence`;
 --2017-10-30 胡艳敏 软件注册，增加新的参数
 INSERT INTO `sys_param` (`id`, `company_code`, `code`, `name`, `status`, `type`, `value`, `sign`, `operator`, `operate_time`, `remark`, `field`) VALUES ('ff8080815dfe341a797e0043da6f0015', '0001', 'SysParam.registersoftware', '软件注册码', '0', '9001', '21218cca77804d2ba1922c33e0151105', '0', 'administrator', '2017-10-25 17:49:35', NULL, NULL);
+
+--2017-10-30 白章宇 增加字段
+ALTER TABLE `case_distributed_temporary`
+ADD COLUMN `current_department_code`  varchar(64) NULL COMMENT '案件当前所在部门code码';
