@@ -216,7 +216,7 @@ public class OutsourcePoolController extends BaseController {
             try {
                 try {
                     //生成动态规则
-                    kieSession = createSorceRule(companyCode,CaseStrategy.StrategyType.OUTS.getValue(),rules);
+                    kieSession = createSorceRule(user.getCompanyCode(),CaseStrategy.StrategyType.OUTS.getValue(),rules);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -293,6 +293,7 @@ public class OutsourcePoolController extends BaseController {
             KieSession kieSession = null;
             try {
                 try {
+                    //生成动态规则
                     kieSession = createSorceRule(user.getCompanyCode(),CaseStrategy.StrategyType.OUTS.getValue(),rules);
                 } catch (Exception e) {
                     e.printStackTrace();
