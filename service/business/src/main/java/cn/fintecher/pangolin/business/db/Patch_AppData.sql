@@ -194,3 +194,12 @@ INSERT INTO `sys_param` (`id`, `company_code`, `code`, `name`, `status`, `type`,
 --2017-10-30 白章宇 增加字段
 ALTER TABLE `case_distributed_temporary`
 ADD COLUMN `current_department_code`  varchar(64) NULL COMMENT '案件当前所在部门code码';
+
+--2017-10-31 祁吉贵 增加受托方的机构类型
+
+INSERT INTO `data_dict_type` (`id`, `code`, `name`) VALUES ('52', '0052', '受托方机构类型');
+
+INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('246', '0052', 'P', '贷款公司', '1');
+INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('247', '0052', 'I', '保险公司', '2');
+INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('248', '0052', 'O', '其他', '4');
+INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('249', '0052', 'C', '催收机构', '3');
