@@ -766,6 +766,7 @@ public class CaseInfoService {
                     caseDistributedTemporary.setCurrentCollectorName(batchInfoModel.getCollectionUser().getRealName()); //当前催收员姓名
                     caseDistributedTemporary.setCurrentDepartment(batchInfoModel.getCollectionUser().getDepartment().getId()); //案件当前所在部门ID
                     caseDistributedTemporary.setCurrentDepartmentName(batchInfoModel.getCollectionUser().getDepartment().getName()); //案件当前所在部门名称
+                    caseDistributedTemporary.setCurrentDepartmentCode(batchInfoModel.getCollectionUser().getDepartment().getCode()); //案件当前所在部门code码
                     caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
                     caseDistributedTemporary.setType(CaseDistributedTemporary.Type.OTHER.getValue()); //分案类型
                     caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
@@ -835,6 +836,7 @@ public class CaseInfoService {
                     caseDistributedTemporary.setCurrentCollectorName(batchInfoModel.getCollectionUser().getRealName()); //当前催收员姓名
                     caseDistributedTemporary.setCurrentDepartment(batchInfoModel.getCollectionUser().getDepartment().getId()); //案件当前所在部门ID
                     caseDistributedTemporary.setCurrentDepartmentName(batchInfoModel.getCollectionUser().getDepartment().getName()); //案件当前所在部门名称
+                    caseDistributedTemporary.setCurrentDepartmentCode(batchInfoModel.getCollectionUser().getDepartment().getCode()); //案件当前所在部门code
                     caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
                     caseDistributedTemporary.setType(CaseDistributedTemporary.Type.OTHER.getValue()); //分案类型
                     caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
@@ -1967,9 +1969,11 @@ public class CaseInfoService {
                     caseDistributedTemporary.setCurrentCollectorName(caseInfo.getCurrentCollector().getRealName()); //当前催收员姓名
                     caseDistributedTemporary.setCurrentDepartment(caseInfo.getCurrentCollector().getDepartment().getId()); //案件当前所在部门ID
                     caseDistributedTemporary.setCurrentDepartmentName(caseInfo.getCurrentCollector().getDepartment().getName()); //案件当前所在部门名称
+                    caseDistributedTemporary.setCurrentDepartmentCode(caseInfo.getCurrentCollector().getDepartment().getCode()); //案件当前所在部门code
                 } else {
                     caseDistributedTemporary.setCurrentDepartment(caseInfo.getDepartment().getId()); //案件当前所在部门ID
                     caseDistributedTemporary.setCurrentDepartmentName(caseInfo.getDepartment().getName()); //案件当前所在部门名称
+                    caseDistributedTemporary.setCurrentDepartmentCode(caseInfo.getCurrentCollector().getDepartment().getCode()); //案件当前所在部门code
                 }
                 caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
                 caseDistributedTemporary.setType(CaseDistributedTemporary.Type.FIRST.getValue()); //分案类型
@@ -2075,11 +2079,13 @@ public class CaseInfoService {
                         caseDistributedTemporary.setCurrentCollectorName(targetUser.getRealName()); //当前催收员姓名
                         caseDistributedTemporary.setCurrentDepartment(targetUser.getDepartment().getId()); //案件当前所在部门ID
                         caseDistributedTemporary.setCurrentDepartmentName(targetUser.getDepartment().getName()); //案件当前所在部门名称
+                        caseDistributedTemporary.setCurrentDepartmentCode(targetUser.getDepartment().getCode()); //案件当前所在部门code
                     }
                 } else { //分配给机构
                     if (department != null) {
                         caseDistributedTemporary.setCurrentDepartment(department.getId()); //案件当前所在部门ID
                         caseDistributedTemporary.setCurrentDepartmentName(department.getName()); //案件当前所在部门名称
+                        caseDistributedTemporary.setCurrentDepartmentCode(targetUser.getDepartment().getCode()); //案件当前所在部门code
                     }
                 }
                 caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型-案件分配
