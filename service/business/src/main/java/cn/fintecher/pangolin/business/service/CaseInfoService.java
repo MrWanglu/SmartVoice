@@ -282,12 +282,6 @@ public class CaseInfoService {
                 throw new RuntimeException("减免金额不能小于0");
             }
         }
-        if (payApplyParams.getPayAmt().compareTo(caseInfo.getOverdueAmount()) > 0) {
-            throw new RuntimeException("还款金额不能大于逾期还款应还总金额");
-        }
-        if (payApplyParams.getDerateFee().compareTo(caseInfo.getOverdueAmount()) > 0) {
-            throw new RuntimeException("减免金额不能大于逾期还款应还总金额");
-        }
         //更新案件状态
         if (Objects.equals(payApplyParams.getPayaType(), CasePayApply.PayType.DERATEOVERDUE.getValue())
                 || Objects.equals(payApplyParams.getPayaType(), CasePayApply.PayType.ALLOVERDUE.getValue())

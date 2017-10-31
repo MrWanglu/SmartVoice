@@ -1,9 +1,8 @@
-package cn.fintecher.pangolin.business.web.rest;
+package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.model.CaseInfoVerficationModel;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoJudicialService;
-import cn.fintecher.pangolin.business.web.BaseController;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
