@@ -1698,13 +1698,16 @@ public class CaseInfoService {
         //选择的案件ID列表
         List<String> caseInfoList = accCaseInfoDisModel.getCaseIdList();
         List<CaseInfo> caseInfoYes = new ArrayList<>(); //可分配案件
-        for (String caseId : caseInfoList) {
-            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
-            if (Objects.isNull(caseInfo)) {
-                throw new RuntimeException("有案件未找到!");
+        if(Objects.equals(accCaseInfoDisModel.getDisType(),0) || Objects.equals(accCaseInfoDisModel.getIsNumAvg(),1)){
+            for (String caseId : caseInfoList) {
+                CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+                if (Objects.isNull(caseInfo)) {
+                    throw new RuntimeException("有案件未找到!");
+                }
+                caseInfoYes.add(caseInfo);
             }
-            caseInfoYes.add(caseInfo);
         }
+
         //案件列表
         List<CaseInfo> caseInfoObjList = new ArrayList<>();
         //每个机构或人分配的数量
@@ -1774,8 +1777,7 @@ public class CaseInfoService {
                 Integer disNum = disNumList.get(i);
                 for (int j = 0; j < disNum; j++) {
                     //检查输入的案件数量是否和选择的案件数量一致
-                    String caseId = caseInfoYes.get(alreadyCaseNum).getId();
-                    CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+                    CaseInfo caseInfo = caseInfoYes.get(alreadyCaseNum);
                     caseInfoInnerDistributeModel.setCaseDistributeMoneyCount(caseInfoInnerDistributeModel.getCaseDistributeMoneyCount().add(caseInfo.getOverdueAmount()));
                     alreadyCaseNum = alreadyCaseNum + 1;
                 }
