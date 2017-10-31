@@ -158,7 +158,7 @@ public class CaseInfoService {
             } else if (Objects.equals(user.getType(), User.Type.VISIT.getValue())) { //分配给16-外访
                 if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                     if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                        CaseAssistApply caseAssistApply = getCaseAssistApply(reDistributionParams.getCaseId(), tokenUser, "流转强制拒绝");
+                        CaseAssistApply caseAssistApply = getCaseAssistApply(reDistributionParams.getCaseId(), tokenUser, "流转强制拒绝", CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
                         caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                     } else { //有协催案件
                         CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(reDistributionParams.getCaseId()).
@@ -430,7 +430,7 @@ public class CaseInfoService {
         if (Objects.equals(endCaseParams.getIsAssist(), false)) { //不是协催案件
             if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                 if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                    CaseAssistApply caseAssistApply = getCaseAssistApply(endCaseParams.getCaseId(), tokenUser, endCaseParams.getEndRemark());
+                    CaseAssistApply caseAssistApply = getCaseAssistApply(endCaseParams.getCaseId(), tokenUser, endCaseParams.getEndRemark(), CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
                     caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                 } else { //有协催案件
                     CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(endCaseParams.getCaseId()).
@@ -851,7 +851,7 @@ public class CaseInfoService {
 
                     if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                         if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseIds.get(i), tokenUser, "案件流转强制拒绝");
+                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseIds.get(i), tokenUser, "案件流转强制拒绝", CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
                             caseAssistApplies.add(caseAssistApply);
                         } else { //有协催案件
                             CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseIds.get(i)).
@@ -1004,7 +1004,7 @@ public class CaseInfoService {
     /**
      * @Description 获得协催申请并set值
      */
-    public CaseAssistApply getCaseAssistApply(String caseId, User tokenUser, String memo) {
+    public CaseAssistApply getCaseAssistApply(String caseId, User tokenUser, String memo, Integer value) {
         List<Integer> list = new ArrayList<>(); //协催审批状态列表
         list.add(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue()); // 32-电催待审批
         list.add(CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue()); // 34-外访待审批
@@ -1016,14 +1016,14 @@ public class CaseInfoService {
         }
         if (Objects.equals(caseAssistApply.getCollectionType(), CaseInfo.CollectionType.TEL.getValue())) { // 15-电催
             caseAssistApply.setApproveStatus(CaseAssistApply.ApproveStatus.TEL_COMPLETE.getValue()); //审批状态 33-电催完成
-            caseAssistApply.setApprovePhoneResult(CaseAssistApply.ApproveResult.FORCED_REJECT.getValue()); //电催审批结果 40-强制拒绝
+            caseAssistApply.setApprovePhoneResult(value); //电催审批结果 40-强制拒绝
             caseAssistApply.setApprovePhoneUser(tokenUser.getUserName()); //电催审批人用户名
             caseAssistApply.setApprovePhoneName(tokenUser.getRealName()); //电催审批人姓名
             caseAssistApply.setApprovePhoneDatetime(ZWDateUtil.getNowDateTime()); //电催审批时间
             caseAssistApply.setApprovePhoneMemo(memo); //电催审批意见  需要写成常量
         } else if (Objects.equals(caseAssistApply.getCollectionType(), CaseInfo.CollectionType.VISIT.getValue())) { // 16-外访
             caseAssistApply.setApproveStatus(CaseAssistApply.ApproveStatus.VISIT_COMPLETE.getValue()); //审批状态 35-外访完成
-            caseAssistApply.setApproveOutResult(CaseAssistApply.ApproveResult.FORCED_REJECT.getValue()); //外访审批结果 40-强制拒绝
+            caseAssistApply.setApproveOutResult(value); //外访审批结果 40-强制拒绝
             caseAssistApply.setApproveOutUser(tokenUser.getUserName()); //外访审批人用户名
             caseAssistApply.setApproveOutName(tokenUser.getRealName()); //外访审批人姓名
             caseAssistApply.setApproveOutDatetime(ZWDateUtil.getNowDateTime()); //外访审批时间
@@ -1316,7 +1316,7 @@ public class CaseInfoService {
                 caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.PHONE_PASS.getValue()); //198-电催流转通过
                 if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标志
                     if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                        CaseAssistApply caseAssistApply = getCaseAssistApply(caseInfo.getId(), tokenUser, "流转强制拒绝");
+                        CaseAssistApply caseAssistApply = getCaseAssistApply(caseInfo.getId(), tokenUser, "流转强制拒绝", CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
                         caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                     } else { //有协催案件
                         QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
@@ -1600,7 +1600,7 @@ public class CaseInfoService {
 
                     if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //协催标识
                         if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseInfo.getId(), user, "修复分配拒绝");
+                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseInfo.getId(), user, "修复分配拒绝", CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
                             caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                         } else {
                             //结束协催案件
@@ -2784,7 +2784,7 @@ public class CaseInfoService {
      * @Description 撤销分案
      */
     @Transactional
-    public List<CaseRevokeDistributeModel> revokeCaseDistribute(CaseDistributedTemporaryParams caseDistributedTemporaryParams,User operator) throws GeneralException {
+    public List<CaseRevokeDistributeModel> revokeCaseDistribute(CaseDistributedTemporaryParams caseDistributedTemporaryParams, User operator) throws GeneralException {
         List<String> ids = caseDistributedTemporaryParams.getIds();
         List<CaseRevokeDistributeModel> caseRevokeDistributeModels = new ArrayList<>();
         QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;

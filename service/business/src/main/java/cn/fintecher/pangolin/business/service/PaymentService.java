@@ -213,7 +213,7 @@ public class PaymentService {
                         CaseAssistApply caseAssistApply = caseAssistApplyRepository.findOne(qCaseAssistApply.caseId.eq(caseInfo.getId())
                                 .and(qCaseAssistApply.approveStatus.in(list)));
                         if (!Objects.isNull(caseAssistApply)) {
-                            caseAssistApply = caseInfoService.getCaseAssistApply(caseInfo.getId(), tokenUser, "案件还款强制拒绝");
+                            caseAssistApply = caseInfoService.getCaseAssistApply(caseInfo.getId(), tokenUser, "案件还款强制拒绝", CaseAssistApply.ApproveResult.PAY_REJECT.getValue());
                             caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                         } else { //有协催案件
                             CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseInfo.getId()).
@@ -237,7 +237,8 @@ public class PaymentService {
                             caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                             caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                             caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
-                        }                    }
+                        }
+                    }
                     //同步更新原案件协催状态
                     caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //29-协催完成
                     caseInfo.setAssistFlag(0);

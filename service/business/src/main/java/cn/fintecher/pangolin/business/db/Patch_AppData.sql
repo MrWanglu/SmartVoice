@@ -203,3 +203,8 @@ INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('246
 INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('247', '0052', 'I', '保险公司', '2');
 INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('248', '0052', 'O', '其他', '4');
 INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('249', '0052', 'C', '催收机构', '3');
+
+--2017-10-31
+--新增数据字典项
+--夏群
+INSERT INTO `data_dict` VALUES ('246', '0008', null, '还款强制拒绝', '6');
