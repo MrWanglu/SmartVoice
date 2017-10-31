@@ -112,14 +112,17 @@ public class ExportItemsController extends BaseController {
             User user = getUserByToken(token);
             Integer categoryOutsource = ExportItem.Category.OUTSOURCE.getValue();
             Integer categoryFollowup = ExportItem.Category.OUTSOURCEFOLLOWUP.getValue();
+            Integer categoryClosedFollowup = ExportItem.Category.OUTSOURCECLOSEDFOLLOWUP.getValue();
             ItemsModel result = null;
-
             if (categoryOutsource.equals(category)) {
                 //委外案件导出项
                 result = exportItemService.getExportItems(user, categoryOutsource);
-            } else {
-                //委外跟踪记录导出项
+            } else if(categoryFollowup.equals(category)) {
+                //委外催收中跟踪记录导出项
                 result = exportItemService.getExportItems(user, categoryFollowup);
+            }else {
+                //委外已结案跟踪记录导出项
+                result = exportItemService.getExportItems(user, categoryClosedFollowup);
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(result);
         } catch (Exception e) {

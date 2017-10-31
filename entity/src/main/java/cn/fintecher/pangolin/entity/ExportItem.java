@@ -63,7 +63,9 @@ public class ExportItem extends BaseEntity{
 
         CASEUPDATE(3, "案件更新"),
 
-        OUTSOURCEFOLLOWUP(4, "委外案件");
+        OUTSOURCEFOLLOWUP(4, "委外案件"),
+
+        OUTSOURCECLOSEDFOLLOWUP(5, "委外已结案跟踪记录");
 
 
         private Integer value;

@@ -167,12 +167,23 @@ public class ExportFollowupController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", e.getMessage())).body(null);
         }
+        final String userId = user.getId();
         exportFollowupParams.setCompanyCode(user.getCompanyCode());
         ResponseEntity<ItemsModel> entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getExportItems?token="+token, ItemsModel.class);
         ItemsModel itemsModel = entity.getBody();
         if(itemsModel.getPersonalItems().isEmpty() && itemsModel.getJobItems().isEmpty() && itemsModel.getConnectItems().isEmpty()
                 && itemsModel.getCaseItems().isEmpty() && itemsModel.getBankItems().isEmpty() && itemsModel.getFollowItems().isEmpty()){
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先设置导出项")).body(null);
+            ProgressMessage progressMessage1 = new ProgressMessage();
+            List<String> urls = new ArrayList<>();
+            ListResult listResult = new ListResult();
+            listResult.setUser(userId);
+            urls.add("请先设置导出项");
+            listResult.setResult(urls);
+            listResult.setStatus(ListResult.Status.FAILURE.getVal()); // 1-失败
+            restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", listResult, Void.class);
+            progressMessage1.setCurrent(5);
+            rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage1);
+            return ResponseEntity.ok().body(null);
         }
         List<String> items = new ArrayList<>();
         items.addAll(itemsModel.getPersonalItems());
@@ -183,7 +194,6 @@ public class ExportFollowupController extends BaseController {
         items.addAll(followRecordExportService.parseFollow(itemsModel.getFollowItems()));
         exportFollowupParams.setExportItemList(items);
 
-        final String userId = user.getId();
         try {
             //创建一个线程，执行导出任务
             Thread t = new Thread(() -> {

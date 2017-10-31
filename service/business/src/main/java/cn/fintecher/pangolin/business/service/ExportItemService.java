@@ -109,7 +109,7 @@ public class ExportItemService {
         createConnectItems(user,category);
         if(category==1 || category == 3){
             createCaseItems(user,category);
-        } else if(category==2 || category == 4){
+        } else if(category==2 || category == 4 || category == 5){
             createOutsourceCaseItems(user,category);
         }
         createBankItems(user,category);
