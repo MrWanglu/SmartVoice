@@ -773,7 +773,7 @@ public class CaseInfoController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    scoreRuleModel.setProId(Objects.isNull(caseInfo.getArea())?null:caseInfo.getArea().getId());//省份id
+                    scoreRuleModel.setProId(Objects.isNull(caseInfo.getArea()) ? null : caseInfo.getArea().getId());//省份id
                     Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);
@@ -835,12 +835,13 @@ public class CaseInfoController extends BaseController {
             scoreNumbersModel.setTotal(accCaseInfoList.size());
             if (accCaseInfoList.size() > 0) {
                 for (CaseInfo caseInfo : accCaseInfoList) {
+                    BigDecimal old = caseInfo.getScore();
                     ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
                     int age = caseInfo.getPersonalInfo().getAge();
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    scoreRuleModel.setProId(Objects.isNull(caseInfo.getArea())?null:caseInfo.getArea().getId());//省份id
+                    scoreRuleModel.setProId(Objects.isNull(caseInfo.getArea()) ? null : caseInfo.getArea().getId());//省份id
                     Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);
@@ -849,19 +850,25 @@ public class CaseInfoController extends BaseController {
                     }
                     kieSession.insert(scoreRuleModel);//插入
                     kieSession.fireAllRules();//执行规则
-                    caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
-                    caseInfoList1.add(caseInfo);
+                    BigDecimal now = new BigDecimal(scoreRuleModel.getCupoScore());
+                    if(old.compareTo(now) != 0){
+                        caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                        caseInfoList1.add(caseInfo);
+                    }
                 }
                 kieSession.dispose();
                 caseInfoRepository.save(caseInfoList1);
                 watch1.stop();
                 log.info("耗时：" + watch1.getTotalTimeMillis());
+                if(caseInfoList1.size() == 0){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "没有符合策略的案件")).body(null);
+                }
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
             }
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord",e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", e.getMessage())).body(null);
         }
     }
 
@@ -907,12 +914,13 @@ public class CaseInfoController extends BaseController {
             scoreNumbersModel.setTotal(accCaseInfoList.size());
             if (accCaseInfoList.size() > 0) {
                 for (CaseInfo caseInfo : accCaseInfoList) {
+                    BigDecimal old = caseInfo.getScore();
                     ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
                     int age = caseInfo.getPersonalInfo().getAge();
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    scoreRuleModel.setProId(Objects.isNull(caseInfo.getArea())?null:caseInfo.getArea().getId());//省份id
+                    scoreRuleModel.setProId(Objects.isNull(caseInfo.getArea()) ? null : caseInfo.getArea().getId());//省份id
                     Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);
@@ -921,8 +929,11 @@ public class CaseInfoController extends BaseController {
                     }
                     kieSession.insert(scoreRuleModel);//插入
                     kieSession.fireAllRules();//执行规则
-                    caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
-                    caseInfoList1.add(caseInfo);
+                    BigDecimal now = new BigDecimal(scoreRuleModel.getCupoScore());
+                    if(old.compareTo(now) != 0){
+                        caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
+                        caseInfoList1.add(caseInfo);
+                    }
                 }
                 kieSession.dispose();
                 caseInfoRepository.save(caseInfoList1);
@@ -948,54 +959,54 @@ public class CaseInfoController extends BaseController {
         List<ScoreRule> rules = null;
         try {
             ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode).concat("&strategyType=").concat(strategyType.toString()), ScoreRules.class);
-            if (responseEntity.hasBody()) {
-                ScoreRules scoreRules = responseEntity.getBody();
-                rules = scoreRules.getScoreRules();
-            } else {
-                throw new IllegalStateException("请先设置评分策略");
-            }
-        }catch(Exception e) {
+            ScoreRules scoreRules = responseEntity.getBody();
+            rules = scoreRules.getScoreRules();
+
+        } catch (Exception e) {
             throw new IllegalStateException("获取策略失败");
         }
-        try {
-            Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
-            Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
-            StringBuilder sb = new StringBuilder();
-            if (Objects.nonNull(rules)) {
-                for (ScoreRule rule : rules) {
-                    for (int i = 0; i < rule.getFormulas().size(); i++) {
-                        ScoreFormula scoreFormula = rule.getFormulas().get(i);
-                        Map<String, String> map = new HashMap<>();
-                        map.put("id", rule.getId());
-                        map.put("index", String.valueOf(i));
-                        map.put("strategy", scoreFormula.getStrategy());
-                        map.put("score", String.valueOf(scoreFormula.getScore()));
-                        map.put("weight", String.valueOf(rule.getWeight()));
-                        sb.append(FreeMarkerTemplateUtils.processTemplateIntoString(scoreFormulaTemplate, map));
+        if (Objects.equals(rules.size(),0)){
+            throw new RuntimeException("请先设置评分策略");
+        }
+            try {
+                Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
+                Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
+                StringBuilder sb = new StringBuilder();
+                if (Objects.nonNull(rules)) {
+                    for (ScoreRule rule : rules) {
+                        for (int i = 0; i < rule.getFormulas().size(); i++) {
+                            ScoreFormula scoreFormula = rule.getFormulas().get(i);
+                            Map<String, String> map = new HashMap<>();
+                            map.put("id", rule.getId());
+                            map.put("index", String.valueOf(i));
+                            map.put("strategy", scoreFormula.getStrategy());
+                            map.put("score", String.valueOf(scoreFormula.getScore()));
+                            map.put("weight", String.valueOf(rule.getWeight()));
+                            sb.append(FreeMarkerTemplateUtils.processTemplateIntoString(scoreFormulaTemplate, map));
+                        }
                     }
                 }
+                KieServices kieServices = KieServices.Factory.get();
+                KieFileSystem kfs = kieServices.newKieFileSystem();
+                Map<String, String> map = new HashMap<>();
+                map.put("allRules", sb.toString());
+                String text = FreeMarkerTemplateUtils.processTemplateIntoString(scoreRuleTemplate, map);
+                kfs.write("src/main/resources/simple.drl",
+                        kieServices.getResources().newReaderResource(new StringReader(text)));
+                KieBuilder kieBuilder = kieServices.newKieBuilder(kfs).buildAll();
+                Results results = kieBuilder.getResults();
+                if (results.hasMessages(org.kie.api.builder.Message.Level.ERROR)) {
+                    log.error(results.getMessages().toString());
+                    throw new IllegalStateException("策略生成错误");
+                }
+                KieContainer kieContainer =
+                        kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
+                KieSession kieSession = kieContainer.newKieSession();
+                return kieSession;
+            } catch (Exception e) {
+                log.error(e.getMessage(), e);
+                throw new RuntimeException("策略生成失败");
             }
-            KieServices kieServices = KieServices.Factory.get();
-            KieFileSystem kfs = kieServices.newKieFileSystem();
-            Map<String, String> map = new HashMap<>();
-            map.put("allRules", sb.toString());
-            String text = FreeMarkerTemplateUtils.processTemplateIntoString(scoreRuleTemplate, map);
-            kfs.write("src/main/resources/simple.drl",
-                    kieServices.getResources().newReaderResource(new StringReader(text)));
-            KieBuilder kieBuilder = kieServices.newKieBuilder(kfs).buildAll();
-            Results results = kieBuilder.getResults();
-            if (results.hasMessages(org.kie.api.builder.Message.Level.ERROR)) {
-                log.error(results.getMessages().toString());
-                throw new IllegalStateException("策略生成错误");
-            }
-            KieContainer kieContainer =
-                    kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
-            KieSession kieSession = kieContainer.newKieSession();
-            return kieSession;
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw new RuntimeException("策略生成失败");
-        }
     }
 
     @GetMapping("/findUpload")
@@ -1384,6 +1395,9 @@ public class CaseInfoController extends BaseController {
             }
             watch.stop();
             log.debug("分配完成，耗时{}", watch.getTotalTimeMillis());
+            if (Objects.isNull(caseInfoInnerStrategyResultModel.getInnerDistributeDepartModelList()) && Objects.isNull(caseInfoInnerStrategyResultModel.getInnerDistributeUserModelList())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有符合策略的案件")).body(null);
+            }
             return ResponseEntity.ok().body(caseInfoInnerStrategyResultModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -1467,11 +1481,11 @@ public class CaseInfoController extends BaseController {
      */
     @PostMapping("/revokeCaseDistribute")
     @ApiOperation(value = "撤销分案", notes = "撤销分案")
-    public ResponseEntity<List<CaseRevokeDistributeModel>> revokeCaseDistribute(@RequestBody CaseDistributedTemporaryParams caseDistributedTemporaryParams,@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<List<CaseRevokeDistributeModel>> revokeCaseDistribute(@RequestBody CaseDistributedTemporaryParams caseDistributedTemporaryParams, @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to revoke case distribute");
         try {
             User user = getUserByToken(token);
-            List<CaseRevokeDistributeModel> caseRevokeDistributeModels = caseInfoService.revokeCaseDistribute(caseDistributedTemporaryParams,user);
+            List<CaseRevokeDistributeModel> caseRevokeDistributeModels = caseInfoService.revokeCaseDistribute(caseDistributedTemporaryParams, user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("撤销成功", ENTITY_CASE_DISTRIBUTED_TEMPORARY)).body(caseRevokeDistributeModels);
         } catch (GeneralException ge) {
             log.error(ge.getMessage(), ge);
