@@ -1479,8 +1479,9 @@ public class CaseInfoController extends BaseController {
             } else {
                 builder.and(QCaseDistributedTemporary.caseDistributedTemporary.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
-            //部门code码不为null并且为登录用户部门下的案件  或者 部门code码为null的案件
-            builder.and(QCaseDistributedTemporary.caseDistributedTemporary.currentDepartmentCode.isNotNull().and(QCaseDistributedTemporary.caseDistributedTemporary.currentDepartmentCode.startsWith(tokenUser.getDepartment().getCode()))).or(QCaseDistributedTemporary.caseDistributedTemporary.currentDepartmentCode.isNull());
+            builder.and(QCaseDistributedTemporary.caseDistributedTemporary.operatorUserName.eq(tokenUser.getUserName()));//操作人
+//            //部门code码不为null并且为登录用户部门下的案件  或者 部门code码为null的案件
+//            builder.and(QCaseDistributedTemporary.caseDistributedTemporary.currentDepartmentCode.isNotNull().and(QCaseDistributedTemporary.caseDistributedTemporary.currentDepartmentCode.startsWith(tokenUser.getDepartment().getCode()))).or(QCaseDistributedTemporary.caseDistributedTemporary.currentDepartmentCode.isNull());
             Page<CaseDistributedTemporary> page = caseDistributedTemporaryRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseInfoController/getCaseDistributedTemporary");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
