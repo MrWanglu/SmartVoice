@@ -1,6 +1,7 @@
 package cn.fintecher.pangolin.common.service;
 
-import cn.fintecher.pangolin.entity.message.SendEmailMessage;
+
+import cn.fintecher.pangolin.entity.message.EmailMessage;
 
 /**
  * @Author: sunyanping
@@ -8,6 +9,6 @@ import cn.fintecher.pangolin.entity.message.SendEmailMessage;
  * @Date 2017/2/28
  */
 public interface EmailService {
-    void sendMail(SendEmailMessage sendEmailMessage);
+    void sendMail(EmailMessage emailMessage);
 
 }

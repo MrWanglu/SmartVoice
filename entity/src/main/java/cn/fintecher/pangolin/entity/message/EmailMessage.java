@@ -1,9 +1,8 @@
-package cn.fintecher.pangolin.common.model;
+package cn.fintecher.pangolin.entity.message;
 
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
@@ -12,10 +11,8 @@ import java.util.Map;
  * @Description:
  * @Date 2017/3/30
  */
-@Document
 @Data
-public class EmailMessage {
-    @Id
+public class EmailMessage implements Serializable{
     private String id;
     private String sendTo;
     private String title;

@@ -1,13 +1,11 @@
 package cn.fintecher.pangolin.common.service.impl;
 
-import cn.fintecher.pangolin.common.model.EmailMessage;
-import cn.fintecher.pangolin.common.respository.EmailMessageRepository;
+
 import cn.fintecher.pangolin.common.service.EmailService;
-import cn.fintecher.pangolin.entity.message.SendEmailMessage;
+import cn.fintecher.pangolin.entity.message.EmailMessage;
 import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -36,16 +34,11 @@ public class EmailServiceImpl implements EmailService {
     @Autowired
     private Configuration configuration;
 
-    @Autowired
-    private EmailMessageRepository repository;
 
 
     @Override
-    public void sendMail(SendEmailMessage emailMessage) {
+    public void sendMail(EmailMessage emailMessage) {
         sendStringTemplateMail(emailMessage.getSendTo(), emailMessage.getTitle(), emailMessage.getModel(), emailMessage.getTemplateContent());
-        EmailMessage message = new EmailMessage();
-        BeanUtils.copyProperties(emailMessage, message);
-        repository.save(message);
     }
 
     private void sendSimpleMail(String sendTo, String title, String content) {
