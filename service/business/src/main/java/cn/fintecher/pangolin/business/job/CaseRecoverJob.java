@@ -58,30 +58,6 @@ public class CaseRecoverJob implements Job {
             }
             if (sysParam != null && sysParam.getStatus() == 0) {
                 try {
-                    logger.debug("待分配案件自动回收任务调度开始...");
-                    // 待分配自动回收
-                    QCaseInfoDistributed qCaseInfoDistributed = QCaseInfoDistributed.caseInfoDistributed;
-                    Iterable<CaseInfoDistributed> all = caseInfoDistributedRepository.findAll(qCaseInfoDistributed.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())
-                            .and(qCaseInfoDistributed.recoverWay.eq(CaseInfo.RecoverWay.AUTO.getValue()))
-                            .and(qCaseInfoDistributed.closeDate.before(new Date()))
-                            .and(qCaseInfoDistributed.companyCode.eq(company.getCode())));
-                    Iterator<CaseInfoDistributed> iterator = all.iterator();
-                    List<CaseInfoDistributed> caseInfoDistributedList = new ArrayList<>();
-                    while (iterator.hasNext()) {
-                        CaseInfoDistributed caseInfoDistributed = iterator.next();
-                        caseInfoDistributed.setOperatorTime(ZWDateUtil.getNowDate());
-                        caseInfoDistributed.setRecoverRemark(CaseInfo.RecoverRemark.RECOVERED.getValue());
-                        caseInfoDistributed.setRecoverMemo("案件到期自动回收");
-                        caseInfoDistributedList.add(caseInfoDistributed);
-                    }
-                    caseInfoDistributedRepository.save(caseInfoDistributedList);
-                    logger.debug("待分配案件自动回收任务调度结束...");
-                } catch (Exception e) {
-                    logger.error("待分配案件自动回收任务调度错误");
-                    logger.error(e.getMessage(), e);
-                }
-
-                try {
                     logger.debug("内催案件自动回收任务调度开始...");
                     // 内催自动回收
                     QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
