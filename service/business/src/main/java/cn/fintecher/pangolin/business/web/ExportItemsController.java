@@ -63,10 +63,10 @@ public class ExportItemsController extends BaseController {
             Integer categoryCaseInfoClosed = ExportItem.Category.INNERCLOSEDFOLLOWUP.getValue();
             if(categoryCaseInfo.equals(category)){
                 //查询内催导出项
-                exportItemService.getExportItems(user,categoryCaseInfo);
+                result = exportItemService.getExportItems(user,categoryCaseInfo);
             }else {
                 //查询内催已结案导出项
-                exportItemService.getExportItems(user,categoryCaseInfoClosed);
+                result = exportItemService.getExportItems(user,categoryCaseInfoClosed);
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(result);
         } catch (Exception e) {
