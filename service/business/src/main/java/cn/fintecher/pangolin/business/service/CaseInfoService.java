@@ -2067,7 +2067,7 @@ public class CaseInfoService {
                 } else {
                     caseDistributedTemporary.setCurrentDepartment(caseInfo.getDepartment().getId()); //案件当前所在部门ID
                     caseDistributedTemporary.setCurrentDepartmentName(caseInfo.getDepartment().getName()); //案件当前所在部门名称
-                    caseDistributedTemporary.setCurrentDepartmentCode(caseInfo.getCurrentCollector().getDepartment().getCode()); //案件当前所在部门code
+                    caseDistributedTemporary.setCurrentDepartmentCode(caseInfo.getDepartment().getCode()); //案件当前所在部门code
                 }
                 caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
                 caseDistributedTemporary.setType(CaseDistributedTemporary.Type.FIRST.getValue()); //分案类型
