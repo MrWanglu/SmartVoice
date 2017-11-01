@@ -773,7 +773,11 @@ public class CaseInfoController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    scoreRuleModel.setProId(Objects.isNull(caseInfo.getArea()) ? null : caseInfo.getArea().getId());//省份id
+                    if(Objects.nonNull(caseInfo.getArea())){
+                        if(Objects.nonNull(caseInfo.getArea().getParent())){
+                            scoreRuleModel.setProId(caseInfo.getArea().getParent().getId());//省份id
+                        }
+                    }
                     Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);
@@ -840,7 +844,11 @@ public class CaseInfoController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    scoreRuleModel.setProId(Objects.isNull(caseInfo.getArea()) ? null : caseInfo.getArea().getId());//省份id
+                    if(Objects.nonNull(caseInfo.getArea())){
+                        if(Objects.nonNull(caseInfo.getArea().getParent())){
+                            scoreRuleModel.setProId(caseInfo.getArea().getParent().getId());//省份id
+                        }
+                    }
                     Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);
@@ -917,7 +925,11 @@ public class CaseInfoController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    scoreRuleModel.setProId(Objects.isNull(caseInfo.getArea()) ? null : caseInfo.getArea().getId());//省份id
+                    if(Objects.nonNull(caseInfo.getArea())){
+                        if(Objects.nonNull(caseInfo.getArea().getParent())){
+                            scoreRuleModel.setProId(caseInfo.getArea().getParent().getId());//省份id
+                        }
+                    }
                     Personal personal = personalRepository.findOne(caseInfo.getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);
@@ -926,6 +938,7 @@ public class CaseInfoController extends BaseController {
                     }
                     kieSession.insert(scoreRuleModel);//插入
                     kieSession.fireAllRules();//执行规则
+
                     if(scoreRuleModel.getCupoScore() != 0) {
                         caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
                         caseInfoList1.add(caseInfo);
