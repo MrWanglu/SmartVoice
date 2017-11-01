@@ -140,7 +140,7 @@ public class CaseIntelligentCollectionController extends BaseController {
                 Iterable<PersonalContact> personalContacts = personalContactRepository.findAll(qPersonalContact.personalId.eq(caseInfo.getPersonalInfo().getId()).and(qPersonalContact.relation.eq(69)));
                 if (personalContacts.iterator().hasNext() && Objects.nonNull(personalContacts.iterator().next().getMail())) {
                     EmailSendRequest emailSendRequest = new EmailSendRequest();
-                    emailSendRequest.setCustId(personalContacts.iterator().next().getPersonalId()); // 客户ID
+                    emailSendRequest.setCustId(personalContacts.iterator().next().getId()); // 客户ID
                     emailSendRequest.setCustName(personalContacts.iterator().next().getName()); // 客户姓名
                     emailSendRequest.setEmail(personalContacts.iterator().next().getMail()); // 客户邮箱
                     emailSendRequest.setCupoId(caseInfo.getId());// 案件id
