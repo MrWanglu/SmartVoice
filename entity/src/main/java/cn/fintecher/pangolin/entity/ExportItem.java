@@ -65,7 +65,9 @@ public class ExportItem extends BaseEntity{
 
         OUTSOURCEFOLLOWUP(4, "委外案件"),
 
-        OUTSOURCECLOSEDFOLLOWUP(5, "委外已结案跟踪记录");
+        OUTSOURCECLOSEDFOLLOWUP(5, "委外已结案跟踪记录"),
+
+        INNERCLOSEDFOLLOWUP(6, "内催已结案跟踪记录");
 
 
         private Integer value;

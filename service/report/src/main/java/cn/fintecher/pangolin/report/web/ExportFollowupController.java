@@ -169,7 +169,13 @@ public class ExportFollowupController extends BaseController {
         }
         final String userId = user.getId();
         exportFollowupParams.setCompanyCode(user.getCompanyCode());
-        ResponseEntity<ItemsModel> entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getExportItems?token="+token, ItemsModel.class);
+        ResponseEntity<ItemsModel> entity = null;
+        if (exportFollowupParams.getType()==0){
+            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getExportItems?token="+token, ItemsModel.class);
+        }else {
+            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getExportItemsClosed?token="+token, ItemsModel.class);
+        }
+
         ItemsModel itemsModel = entity.getBody();
         if(itemsModel.getPersonalItems().isEmpty() && itemsModel.getJobItems().isEmpty() && itemsModel.getConnectItems().isEmpty()
                 && itemsModel.getCaseItems().isEmpty() && itemsModel.getBankItems().isEmpty() && itemsModel.getFollowItems().isEmpty()){

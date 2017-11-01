@@ -107,7 +107,7 @@ public class ExportItemService {
         createPersonalItems(user,category);
         createJobItems(user,category);
         createConnectItems(user,category);
-        if(category==1 || category == 3){
+        if(category==1 || category == 3 || category == 6){
             createCaseItems(user,category);
         } else if(category==2 || category == 4 || category == 5){
             createOutsourceCaseItems(user,category);

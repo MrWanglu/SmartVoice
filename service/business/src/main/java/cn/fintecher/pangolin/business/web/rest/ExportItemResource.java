@@ -41,6 +41,21 @@ public class ExportItemResource {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
         }
     }
+    @GetMapping("/getExportItemsClosed")
+    @ApiOperation(value = "查询内催已结案导出项", notes = "查询内催已结案导出项")
+    public ResponseEntity<ItemsModel> getExportItemsClosed(@ApiParam(value = "Token", required = true)
+                                                     @RequestParam String token) {
+        try {
+            HttpSession session = SessionStore.getInstance().getSession(token);
+            User user = (User) session.getAttribute(Constants.SESSION_USER);
+            ItemsModel result = exportItemService.getExportItems(user, ExportItem.Category.INNERCLOSEDFOLLOWUP.getValue());
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
+        }
+    }
+
 
     @GetMapping("/getOutsourceFollowUpExportItems")
     @ApiOperation(value = "查询委外跟进记录导出项", notes = "查询委外跟进记录导出项")
