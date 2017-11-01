@@ -53,6 +53,9 @@ public class PangolinReminderApplication extends SpringBootServletInitializer {
     @Bean
     public Queue exportFollowupRecordQueue() {return new Queue(Constants.FOLLOWUP_EXPORT_QE);}
 
+    @Bean
+    public Queue exportOutsourceFollowupRecordQueue() {return new Queue(Constants.FOLLOWUP_OUTSOURCE_EXPORT_QE);}
+
     public static void main(String[] args) throws UnknownHostException {
         SpringApplication app = new SpringApplication(PangolinReminderApplication.class);
         ApplicationContext applicationContext =app.run(args);
