@@ -150,6 +150,9 @@ public class LoginController extends BaseController {
         if (Objects.equals(Status.Disable.getValue(), user.getStatus())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user has been disabled. Please contact your administrato", "该用户已被停用，请联系管理员")).body(null);
         }
+        if(Objects.equals(loginRequest.getUsdeType(),1) && Objects.equals(user.getType(),User.Type.TEL.getValue())){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "电催用户不能登录")).body(null);
+        }
         //登录用户设备锁
         if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             //用户登录返回
