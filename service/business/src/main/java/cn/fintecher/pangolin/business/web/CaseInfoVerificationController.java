@@ -29,8 +29,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import javax.inject.Inject;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -211,7 +211,6 @@ public class CaseInfoVerificationController extends BaseController {
         } else { // 普通管理员
             builder.and(QCaseInfoVerification.caseInfoVerification.companyCode.eq(user.getCompanyCode()));
         }
-        builder.and(QCaseInfoVerification.caseInfoVerification.caseInfo.endType.eq(CaseInfo.EndType.CLOSE_CASE.getValue())); // 结案方式：核销结案
         Page<CaseInfoVerification> page = caseInfoVerificationRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoVerification")).body(page);
     }
