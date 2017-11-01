@@ -1688,17 +1688,41 @@ public class CaseInfoService {
         return caseInfoRepository.count(builder);
     }
 
-    public List<CaseInfoInnerDistributeModel> distributePreview(AccCaseInfoDisModel accCaseInfoDisModel) {
+    public PreviewModel distributePreview(AccCaseInfoDisModel accCaseInfoDisModel, User user) {
         //选择的案件ID列表
         List<String> caseInfoList = accCaseInfoDisModel.getCaseIdList();
+        //包含共债案件的ID列表
+        List<String> debtList = new ArrayList<>();
+        PreviewModel previewModel = new PreviewModel();
         List<CaseInfo> caseInfoYes = new ArrayList<>(); //可分配案件
-        if(Objects.equals(accCaseInfoDisModel.getDisType(),0) || Objects.equals(accCaseInfoDisModel.getIsNumAvg(),1)){
+        if (Objects.equals(accCaseInfoDisModel.getDisType(), 0) || !Objects.equals(accCaseInfoDisModel.getIsNumAvg(), 0)) {
             for (String caseId : caseInfoList) {
                 CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
                 if (Objects.isNull(caseInfo)) {
                     throw new RuntimeException("有案件未找到!");
                 }
                 caseInfoYes.add(caseInfo);
+            }
+        }
+        Integer isDebt = accCaseInfoDisModel.getIsDebt();
+        if (Objects.equals(isDebt, 1)) {
+            for (int i = 0; i < caseInfoYes.size(); i++) {
+                CaseInfo caseInfo = caseInfoYes.get(i);
+                String personalName = caseInfo.getPersonalInfo().getName();
+                String idCard = caseInfo.getPersonalInfo().getIdCard();
+                Object[] objDept = (Object[]) caseInfoRepository.findCaseByDept(personalName, idCard, user.getCompanyCode());//按机构分
+                if (Objects.nonNull(objDept)) {
+                    debtList.add(caseInfo.getId());
+                    caseInfoYes.remove(caseInfo);
+                    i--;
+                    continue;
+                }
+                Object[] objCollector = (Object[]) caseInfoRepository.findCaseByCollector(personalName, idCard, user.getCompanyCode());//按催员分
+                if (Objects.nonNull(objCollector)) {
+                    debtList.add(caseInfo.getId());
+                    caseInfoYes.remove(caseInfo);
+                    i--;
+                }
             }
         }
 
@@ -1732,6 +1756,13 @@ public class CaseInfoService {
             }
             disNumList = caseNumList;
         }
+
+        if (Objects.equals(rule, 2)) {
+            BeanUtils.copyProperties(preview(accCaseInfoDisModel, caseInfoYes),previewModel);
+            debtList.addAll(previewModel.getCaseIds());
+            previewModel.setCaseIds(debtList);
+            return previewModel;
+        }
         if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
             //所要分配 机构id
             deptOrUserList = accCaseInfoDisModel.getDepIdList();
@@ -1748,6 +1779,7 @@ public class CaseInfoService {
                 caseInfoInnerDistributeModel.setCaseDistributeCount(disNumList.get(i));
             }
             if (Objects.equals(accCaseInfoDisModel.getDisType(), 0)) {
+                previewModel.getNumList().add(caseInfoList.size());
                 caseInfoInnerDistributeModel.setCaseDistributeCount(caseInfoYes.size());
             }
             Department department = null;
@@ -1780,9 +1812,69 @@ public class CaseInfoService {
             caseInfoInnerDistributeModel.setCaseMoneyTotalCount(caseInfoInnerDistributeModel.getCaseMoneyCurrentCount().add(caseInfoInnerDistributeModel.getCaseDistributeMoneyCount()));
             list.add(caseInfoInnerDistributeModel);
         }
-        return list;
+        previewModel.setUserOrDepartIds(deptOrUserList);
+        previewModel.setCaseIds(accCaseInfoDisModel.getCaseIdList());
+        previewModel.setNumList(disNumList);
+        previewModel.setList(list);
+        return previewModel;
     }
-
+    //金额平均分配预览
+    private PreviewModel preview(AccCaseInfoDisModel accCaseInfoDisModel, List<CaseInfo> caseInfoYes) {
+        PreviewModel previewModel = new PreviewModel();
+        List<DisModel> disModels = new ArrayList<>();
+        Collections.sort(caseInfoYes, (o1, o2) -> {
+            return o2.getOverdueAmount().compareTo(o1.getOverdueAmount());
+        });
+        if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
+            for (String id : accCaseInfoDisModel.getDepIdList()) {
+                DisModel model = new DisModel();
+                model.setId(id);
+                disModels.add(model);
+            }
+        }
+        if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.USER_WAY.getValue())) {
+            for (String id : accCaseInfoDisModel.getUserIdList()) {
+                DisModel model = new DisModel();
+                model.setId(id);
+                disModels.add(model);
+            }
+        }
+        for (CaseInfo caseInfo : caseInfoYes) {
+            Collections.sort(disModels, (o1, o2) -> {
+                return o1.getAmt().compareTo(o2.getAmt());
+            });
+            disModels.get(0).setAmt(disModels.get(0).getAmt().add(caseInfo.getOverdueAmount()));
+            disModels.get(0).getCaseIds().add(caseInfo.getId());
+            disModels.get(0).getCaseInfos().add(caseInfo);
+        }
+        List<CaseInfoInnerDistributeModel> list = new ArrayList<>();
+        for (DisModel model : disModels) {
+            CaseInfoInnerDistributeModel caseInfoInnerDistributeModel = new CaseInfoInnerDistributeModel();
+            caseInfoInnerDistributeModel.setDistributeType(accCaseInfoDisModel.getDisType());
+            caseInfoInnerDistributeModel.setCaseDistributeCount(model.getCaseIds().size());
+            caseInfoInnerDistributeModel.setCaseDistributeMoneyCount(model.getAmt());
+            previewModel.getCaseIds().addAll(model.getCaseIds());
+            previewModel.getUserOrDepartIds().add(model.getId());
+            previewModel.getNumList().add(model.getCaseIds().size());
+            if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
+                Department department = departmentRepository.findOne(model.getId());
+                caseInfoInnerDistributeModel.setDepartmentName(department.getName());
+                caseInfoInnerDistributeModel.setCaseCurrentCount(caseInfoRepository.getDeptCaseCount(department.getId()));
+                caseInfoInnerDistributeModel.setCaseMoneyCurrentCount(caseInfoRepository.getDeptCaseAmt(department.getId()));
+            } else if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.USER_WAY.getValue())) {
+                User targetUser = userRepository.findOne(model.getId());
+                caseInfoInnerDistributeModel.setUserName(targetUser.getUserName());
+                caseInfoInnerDistributeModel.setUserRealName(targetUser.getRealName());
+                caseInfoInnerDistributeModel.setCaseCurrentCount(caseInfoRepository.getCaseCount(targetUser.getId()));
+                caseInfoInnerDistributeModel.setCaseMoneyCurrentCount(caseInfoRepository.getUserCaseAmt(targetUser.getId()));
+            }
+            caseInfoInnerDistributeModel.setCaseTotalCount(caseInfoInnerDistributeModel.getCaseCurrentCount() + caseInfoInnerDistributeModel.getCaseDistributeCount());
+            caseInfoInnerDistributeModel.setCaseMoneyTotalCount(caseInfoInnerDistributeModel.getCaseMoneyCurrentCount().add(caseInfoInnerDistributeModel.getCaseDistributeMoneyCount()));
+            list.add(caseInfoInnerDistributeModel);
+        }
+        previewModel.setList(list);
+        return previewModel;
+    }
 
     /**
      * 内催待分配案件分配
@@ -2663,7 +2755,7 @@ public class CaseInfoService {
             accCaseInfoDisModel.setDisType(caseStrategy.getAssignType());
             accCaseInfoDisModel.setUserIdList(caseStrategy.getUsers());
             distributeCeaseInfo(accCaseInfoDisModel, user);
-            List<CaseInfoInnerDistributeModel> caseInfoInnerDistributeModelTemp = distributePreview(accCaseInfoDisModel);
+            List<CaseInfoInnerDistributeModel> caseInfoInnerDistributeModelTemp = distributePreview(accCaseInfoDisModel, user).getList();
             caseInfos.removeAll(checkedList);
             if (accCaseInfoDisModel.getDisType() == 0) { //分配到机构
                 infoInnerDistributeDepartModels.addAll(caseInfoInnerDistributeModelTemp);
