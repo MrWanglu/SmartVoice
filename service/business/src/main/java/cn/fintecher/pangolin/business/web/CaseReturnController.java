@@ -97,6 +97,8 @@ public class CaseReturnController extends BaseController {
                 caseInfo.setEndType(CaseInfo.EndType.CLOSE_CASE.getValue());
                 // 催收状态：已结案
                 caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue());
+                // 核销池
+                caseInfo.setCasePoolType(CaseInfo.CasePoolType.DESTORY.getValue());
                 CaseInfoVerification verification = new CaseInfoVerification();
                 verification.setCaseInfo(caseInfo);
                 verification.setOperator(user.getRealName());
@@ -135,6 +137,8 @@ public class CaseReturnController extends BaseController {
                 caseInfo.setEndType(CaseInfo.EndType.JUDGMENT_CLOSED.getValue());
                 // 催收状态：已结案
                 caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue());
+                // 司法池
+                caseInfo.setCasePoolType(CaseInfo.CasePoolType.JUDICIAL.getValue());
                 CaseInfoJudicial judicial = new CaseInfoJudicial();
                 judicial.setCaseInfo(caseInfo);
                 judicial.setOperatorRealName(user.getRealName());
