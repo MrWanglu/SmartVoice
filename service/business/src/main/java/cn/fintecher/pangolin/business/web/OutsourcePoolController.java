@@ -105,12 +105,12 @@ public class OutsourcePoolController extends BaseController {
     private static final String ENTITY_CASEINFO = "CaseInfo";
 
     @PostMapping(value = "/outsourceDistributePreview")
-    @ApiOperation(value = "委外待分配预览", notes = "委外待分配预览")
+    @ApiOperation(value = "委外待分配按数量平均分配预览", notes = "委外待分配按数量平均分配预览")
     public ResponseEntity<List<OutDistributeInfo>> outsourceDistributePreview(@RequestBody OutsourceInfo outsourceInfo,
                                                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to outsourceDistributePreview");
         try {
-            List<OutDistributeInfo> list = outsourcePoolService.distributePreview(outsourceInfo);
+            List<OutDistributeInfo> list = outsourcePoolService.distributePreviewByNum(outsourceInfo);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(list);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
