@@ -1,7 +1,7 @@
 package cn.fintecher.pangolin.common.web.rest;
 
 import cn.fintecher.pangolin.common.service.EmailService;
-import cn.fintecher.pangolin.entity.message.SendEmailMessage;
+import cn.fintecher.pangolin.entity.message.EmailMessage;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class EmailResource {
 
     @PostMapping("/sendMail")
     @ApiOperation(value = "发送邮件同步", notes = "发送邮件同步")
-    public void sendMail(@RequestBody SendEmailMessage message) {
+    public void sendMail(@RequestBody EmailMessage message) {
         emailService.sendMail(message);
     }
 }

@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.service;
 
+import cn.fintecher.pangolin.business.exception.GeneralException;
 import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
@@ -118,6 +119,19 @@ public class CaseInfoService {
     @Inject
     RunCaseStrategyService runCaseStrategyService;
 
+    @Inject
+    CaseDistributedTemporaryRepository caseDistributedTemporaryRepository;
+
+    @Inject
+    OutsourcePoolRepository outsourcePoolRepository;
+
+    @Inject
+    CaseInfoVerificationRepository caseInfoVerificationRepository;
+
+    @Inject
+    CaseInfoJudicialRepository caseInfoJudicialRepository;
+
+
     /**
      * @Description 重新分配
      */
@@ -150,7 +164,7 @@ public class CaseInfoService {
             } else if (Objects.equals(user.getType(), User.Type.VISIT.getValue())) { //分配给16-外访
                 if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                     if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                        CaseAssistApply caseAssistApply = getCaseAssistApply(reDistributionParams.getCaseId(), tokenUser, "流转强制拒绝");
+                        CaseAssistApply caseAssistApply = getCaseAssistApply(reDistributionParams.getCaseId(), tokenUser, "流转强制拒绝", CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
                         caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                     } else { //有协催案件
                         CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(reDistributionParams.getCaseId()).
@@ -274,7 +288,6 @@ public class CaseInfoService {
                 throw new RuntimeException("减免金额不能小于0");
             }
         }
-
         //更新案件状态
         if (Objects.equals(payApplyParams.getPayaType(), CasePayApply.PayType.DERATEOVERDUE.getValue())
                 || Objects.equals(payApplyParams.getPayaType(), CasePayApply.PayType.ALLOVERDUE.getValue())
@@ -417,7 +430,7 @@ public class CaseInfoService {
         if (Objects.equals(endCaseParams.getIsAssist(), false)) { //不是协催案件
             if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                 if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                    CaseAssistApply caseAssistApply = getCaseAssistApply(endCaseParams.getCaseId(), tokenUser, endCaseParams.getEndRemark());
+                    CaseAssistApply caseAssistApply = getCaseAssistApply(endCaseParams.getCaseId(), tokenUser, endCaseParams.getEndRemark(), CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
                     caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                 } else { //有协催案件
                     CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(endCaseParams.getCaseId()).
@@ -438,7 +451,30 @@ public class CaseInfoService {
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseInfo.setEndRemark(endCaseParams.getEndRemark()); //结案说明
             caseInfo.setEndType(endCaseParams.getEndType()); //结案方式
-            caseInfoRepository.saveAndFlush(caseInfo);
+            if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
+                caseInfo.setCasePoolType(CaseInfo.CasePoolType.DESTORY.getValue());
+                CaseInfoVerification verification = new CaseInfoVerification();
+                verification.setCaseInfo(caseInfo);
+                verification.setOperator(tokenUser.getRealName());
+                verification.setOperatorTime(ZWDateUtil.getNowDateTime());
+                verification.setCompanyCode(caseInfo.getCompanyCode());
+                // 核销说明
+                verification.setState(endCaseParams.getEndRemark());
+                caseInfoVerificationRepository.save(verification);
+            }else if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
+                caseInfo.setEndType(CaseInfo.EndType.JUDGMENT_CLOSED.getValue());
+                caseInfo.setCasePoolType(CaseInfo.CasePoolType.JUDICIAL.getValue());
+                CaseInfoJudicial judicial = new CaseInfoJudicial();
+                judicial.setCaseInfo(caseInfo);
+                judicial.setOperatorRealName(tokenUser.getRealName());
+                judicial.setCompanyCode(caseInfo.getCompanyCode());
+                judicial.setOperatorTime(ZWDateUtil.getNowDateTime());
+                judicial.setOperatorUserName(tokenUser.getUserName());
+                caseInfoJudicialRepository.save(judicial);
+            } else {
+                caseInfoRepository.saveAndFlush(caseInfo);
+            }
+
         } else { //是协催案件
             CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(endCaseParams.getCaseId()).
                     and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
@@ -473,6 +509,8 @@ public class CaseInfoService {
                 caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                 caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                 caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
+
+
             } else { //全程协催，原案件催收状态为已结案
                 //同步更新原案件状态
                 caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); //催收状态 24-已结案
@@ -483,6 +521,28 @@ public class CaseInfoService {
                 caseInfo.setEndRemark(endCaseParams.getEndRemark()); //结案说明
                 caseInfo.setEndType(endCaseParams.getEndType()); //结案方式
                 caseInfoRepository.saveAndFlush(caseInfo);
+            }
+            if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
+                caseInfo.setCasePoolType(CaseInfo.CasePoolType.DESTORY.getValue());
+                CaseInfoVerification verification = new CaseInfoVerification();
+                verification.setCaseInfo(caseInfo);
+                verification.setOperator(tokenUser.getRealName());
+                verification.setOperatorTime(ZWDateUtil.getNowDateTime());
+                verification.setCompanyCode(caseInfo.getCompanyCode());
+                // 核销说明
+                verification.setState(endCaseParams.getEndRemark());
+                caseInfoVerificationRepository.save(verification);
+            }
+            if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
+                caseInfo.setEndType(CaseInfo.EndType.JUDGMENT_CLOSED.getValue());
+                caseInfo.setCasePoolType(CaseInfo.CasePoolType.JUDICIAL.getValue());
+                CaseInfoJudicial judicial = new CaseInfoJudicial();
+                judicial.setCaseInfo(caseInfo);
+                judicial.setOperatorRealName(tokenUser.getRealName());
+                judicial.setCompanyCode(caseInfo.getCompanyCode());
+                judicial.setOperatorTime(ZWDateUtil.getNowDateTime());
+                judicial.setOperatorUserName(tokenUser.getUserName());
+                caseInfoJudicialRepository.save(judicial);
             }
         }
     }
@@ -739,6 +799,33 @@ public class CaseInfoService {
             if (!Objects.equals(batchInfoModel.getCollectionUser().getType(), User.Type.VISIT.getValue())) { //分配给外访以外
                 for (int i = 0; i < caseCount; i++) {
                     CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(i)); //获得案件信息
+
+                    //新增一条分配临时记录
+                    CaseDistributedTemporary caseDistributedTemporary = new CaseDistributedTemporary();
+                    caseDistributedTemporary.setCaseId(caseInfo.getId()); //案件ID
+                    caseDistributedTemporary.setCaseNumber(caseInfo.getCaseNumber()); //案件编号
+                    caseDistributedTemporary.setBatchNumber(caseInfo.getBatchNumber()); //批次号
+                    caseDistributedTemporary.setPersonalName(caseInfo.getPersonalInfo().getName()); //客户姓名
+                    caseDistributedTemporary.setOverdueAmt(caseInfo.getOverdueAmount()); //案件金额
+                    caseDistributedTemporary.setLastCollector(caseInfo.getCurrentCollector().getId()); //上一个催收员ID
+                    caseDistributedTemporary.setLastCollectorName(caseInfo.getCurrentCollector().getRealName()); //上一个催收员姓名
+                    caseDistributedTemporary.setLastDepartment(caseInfo.getDepartment().getId()); //案件上一个所在部门ID
+                    caseDistributedTemporary.setLastCollectorHasDays(caseInfo.getHoldDays());
+                    caseDistributedTemporary.setLastDepartmentName(caseInfo.getDepartment().getName()); //案件上一个所在部门名称
+                    caseDistributedTemporary.setLastCollectionStatus(caseInfo.getCollectionStatus()); //案件原催收状态
+                    caseDistributedTemporary.setLastCollectionType(caseInfo.getCollectionType()); //案件原催收类型
+                    caseDistributedTemporary.setCurrentCollector(batchInfoModel.getCollectionUser().getId()); //当前催收员ID
+                    caseDistributedTemporary.setCurrentCollectorName(batchInfoModel.getCollectionUser().getRealName()); //当前催收员姓名
+                    caseDistributedTemporary.setCurrentDepartment(batchInfoModel.getCollectionUser().getDepartment().getId()); //案件当前所在部门ID
+                    caseDistributedTemporary.setCurrentDepartmentName(batchInfoModel.getCollectionUser().getDepartment().getName()); //案件当前所在部门名称
+                    caseDistributedTemporary.setCurrentDepartmentCode(batchInfoModel.getCollectionUser().getDepartment().getCode()); //案件当前所在部门code码
+                    caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
+                    caseDistributedTemporary.setType(CaseDistributedTemporary.Type.OTHER.getValue()); //分案类型
+                    caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
+                    caseDistributedTemporary.setOperatorUserName(tokenUser.getUserName()); //操作人用户名
+                    caseDistributedTemporary.setOperatorRealName(tokenUser.getRealName()); //操作人姓名
+                    caseDistributedTemporary.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+
                     if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                         if (Objects.equals(caseInfo.getCollectionType(), CaseInfo.CollectionType.VISIT.getValue())) { //是协催案件
                             throw new RuntimeException("协催案件不能分配给外访以外的人员");
@@ -771,13 +858,47 @@ public class CaseInfoService {
                     caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                     caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                     caseTurnRecords.add(caseTurnRecord);
+
+                    caseDistributedTemporary.setLastAssistFlag(caseInfo.getAssistFlag()); //协催标识
+                    caseDistributedTemporary.setCaseTurnRecord(caseTurnRecord.getId()); //流转记录ID
+                    if (!Objects.equals(caseDistributedTemporary.getLastCollector(), caseDistributedTemporary.getCurrentCollector())
+                            || !Objects.equals(caseDistributedTemporary.getLastDepartment(), caseDistributedTemporary.getCurrentDepartment())) {
+                        caseDistributedTemporaryRepository.save(caseDistributedTemporary);
+                    }
                 }
             } else { //分配给外访
                 for (int i = 0; i < caseCount; i++) {
                     CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(i)); //获得案件信息
+
+                    //新增一条分配临时记录
+                    CaseDistributedTemporary caseDistributedTemporary = new CaseDistributedTemporary();
+                    caseDistributedTemporary.setCaseId(caseInfo.getId()); //案件ID
+                    caseDistributedTemporary.setCaseNumber(caseInfo.getCaseNumber()); //案件编号
+                    caseDistributedTemporary.setBatchNumber(caseInfo.getBatchNumber()); //批次号
+                    caseDistributedTemporary.setPersonalName(caseInfo.getPersonalInfo().getName()); //客户姓名
+                    caseDistributedTemporary.setOverdueAmt(caseInfo.getOverdueAmount()); //案件金额
+                    caseDistributedTemporary.setLastCollector(caseInfo.getCurrentCollector().getId()); //上一个催收员ID
+                    caseDistributedTemporary.setLastCollectorName(caseInfo.getCurrentCollector().getRealName()); //上一个催收员姓名
+                    caseDistributedTemporary.setLastCollectorHasDays(caseInfo.getHoldDays());
+                    caseDistributedTemporary.setLastDepartment(caseInfo.getDepartment().getId()); //案件上一个所在部门ID
+                    caseDistributedTemporary.setLastDepartmentName(caseInfo.getDepartment().getName()); //案件上一个所在部门名称
+                    caseDistributedTemporary.setLastCollectionStatus(caseInfo.getCollectionStatus()); //案件原催收状态
+                    caseDistributedTemporary.setLastCollectionType(caseInfo.getCollectionType()); //案件原催收类型
+                    caseDistributedTemporary.setCurrentCollector(batchInfoModel.getCollectionUser().getId()); //当前催收员ID
+                    caseDistributedTemporary.setCurrentCollectorName(batchInfoModel.getCollectionUser().getRealName()); //当前催收员姓名
+                    caseDistributedTemporary.setCurrentDepartment(batchInfoModel.getCollectionUser().getDepartment().getId()); //案件当前所在部门ID
+                    caseDistributedTemporary.setCurrentDepartmentName(batchInfoModel.getCollectionUser().getDepartment().getName()); //案件当前所在部门名称
+                    caseDistributedTemporary.setCurrentDepartmentCode(batchInfoModel.getCollectionUser().getDepartment().getCode()); //案件当前所在部门code
+                    caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
+                    caseDistributedTemporary.setType(CaseDistributedTemporary.Type.OTHER.getValue()); //分案类型
+                    caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
+                    caseDistributedTemporary.setOperatorUserName(tokenUser.getUserName()); //操作人用户名
+                    caseDistributedTemporary.setOperatorRealName(tokenUser.getRealName()); //操作人姓名
+                    caseDistributedTemporary.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+
                     if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                         if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseIds.get(i), tokenUser, "案件流转强制拒绝");
+                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseIds.get(i), tokenUser, "案件流转强制拒绝", CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
                             caseAssistApplies.add(caseAssistApply);
                         } else { //有协催案件
                             CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseIds.get(i)).
@@ -832,6 +953,13 @@ public class CaseInfoService {
                     caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                     caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                     caseTurnRecords.add(caseTurnRecord);
+
+                    caseDistributedTemporary.setLastAssistFlag(caseInfo.getAssistFlag()); //协催标识
+                    caseDistributedTemporary.setCaseTurnRecord(caseTurnRecord.getId()); //流转记录ID
+                    if (!Objects.equals(caseDistributedTemporary.getLastCollector(), caseDistributedTemporary.getCurrentCollector())
+                            || !Objects.equals(caseDistributedTemporary.getLastDepartment(), caseDistributedTemporary.getCurrentDepartment())) {
+                        caseDistributedTemporaryRepository.save(caseDistributedTemporary);
+                    }
                 }
             }
             caseInfoRepository.save(caseInfos);
@@ -923,7 +1051,7 @@ public class CaseInfoService {
     /**
      * @Description 获得协催申请并set值
      */
-    public CaseAssistApply getCaseAssistApply(String caseId, User tokenUser, String memo) {
+    public CaseAssistApply getCaseAssistApply(String caseId, User tokenUser, String memo, Integer value) {
         List<Integer> list = new ArrayList<>(); //协催审批状态列表
         list.add(CaseAssistApply.ApproveStatus.TEL_APPROVAL.getValue()); // 32-电催待审批
         list.add(CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue()); // 34-外访待审批
@@ -935,14 +1063,14 @@ public class CaseInfoService {
         }
         if (Objects.equals(caseAssistApply.getCollectionType(), CaseInfo.CollectionType.TEL.getValue())) { // 15-电催
             caseAssistApply.setApproveStatus(CaseAssistApply.ApproveStatus.TEL_COMPLETE.getValue()); //审批状态 33-电催完成
-            caseAssistApply.setApprovePhoneResult(CaseAssistApply.ApproveResult.FORCED_REJECT.getValue()); //电催审批结果 40-强制拒绝
+            caseAssistApply.setApprovePhoneResult(value); //电催审批结果 40-强制拒绝
             caseAssistApply.setApprovePhoneUser(tokenUser.getUserName()); //电催审批人用户名
             caseAssistApply.setApprovePhoneName(tokenUser.getRealName()); //电催审批人姓名
             caseAssistApply.setApprovePhoneDatetime(ZWDateUtil.getNowDateTime()); //电催审批时间
             caseAssistApply.setApprovePhoneMemo(memo); //电催审批意见  需要写成常量
         } else if (Objects.equals(caseAssistApply.getCollectionType(), CaseInfo.CollectionType.VISIT.getValue())) { // 16-外访
             caseAssistApply.setApproveStatus(CaseAssistApply.ApproveStatus.VISIT_COMPLETE.getValue()); //审批状态 35-外访完成
-            caseAssistApply.setApproveOutResult(CaseAssistApply.ApproveResult.FORCED_REJECT.getValue()); //外访审批结果 40-强制拒绝
+            caseAssistApply.setApproveOutResult(value); //外访审批结果 40-强制拒绝
             caseAssistApply.setApproveOutUser(tokenUser.getUserName()); //外访审批人用户名
             caseAssistApply.setApproveOutName(tokenUser.getRealName()); //外访审批人姓名
             caseAssistApply.setApproveOutDatetime(ZWDateUtil.getNowDateTime()); //外访审批时间
@@ -976,53 +1104,58 @@ public class CaseInfoService {
      */
     public List<UploadFile> getRepaymentVoucher(String casePayId) {
         //下载外访资料
-        List<UploadFile> uploadFiles;
+        List<UploadFile> uploadFiles = new ArrayList<>();
         QCasePayFile qCasePayFile = QCasePayFile.casePayFile;
         Iterable<CasePayFile> caseFlowupFiles = casePayFileRepository.findAll(qCasePayFile.payId.eq(casePayId));
         Iterator<CasePayFile> it = caseFlowupFiles.iterator();
-
-        StringBuilder sb = new StringBuilder();
-        while (it.hasNext()) {
-            CasePayFile casePayFile = it.next();
-            String id = casePayFile.getFileid();
-            sb.append(id).append(",");
-        }
-        String ids = sb.toString();
-        ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>() {
-        };
-        ResponseEntity<List<UploadFile>> entity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(ids),
-                HttpMethod.GET, null, responseType);
-        if (!entity.hasBody()) {
-            throw new RuntimeException("下载失败");
+        if (it.hasNext()) {
+            StringBuilder sb = new StringBuilder();
+            while (it.hasNext()) {
+                CasePayFile casePayFile = it.next();
+                String id = casePayFile.getFileid();
+                sb.append(id).append(",");
+            }
+            String ids = sb.toString();
+            ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>() {
+            };
+            ResponseEntity<List<UploadFile>> entity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(ids),
+                    HttpMethod.GET, null, responseType);
+            if (!entity.hasBody()) {
+                throw new RuntimeException("下载失败");
+            }
+            return entity.getBody();//文件对象;
         } else {
-            uploadFiles = entity.getBody();//文件对象
+            return uploadFiles;
         }
-        return uploadFiles;
     }
 
     public List<UploadFile> getFollowupFile(String followId) {
         //下载跟进记录凭证
-        List<UploadFile> uploadFiles;//文件对象集合
+        List<UploadFile> uploadFiles = new ArrayList<>();//文件对象集合
         QCaseFlowupFile qCaseFlowupFile = QCaseFlowupFile.caseFlowupFile;
         Iterable<CaseFlowupFile> caseFlowupFiles = caseFlowupFileRepository.findAll(qCaseFlowupFile.followupId.id.eq(followId));
         Iterator<CaseFlowupFile> it = caseFlowupFiles.iterator();
-        StringBuilder sb = new StringBuilder();
-        while (it.hasNext()) {
-            CaseFlowupFile file = it.next();
-            String id = file.getFileid();
-            sb.append(id).append(",");
-        }
-        String ids = sb.toString();
-        ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>() {
-        };
-        ResponseEntity<List<UploadFile>> entity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(ids),
-                HttpMethod.GET, null, responseType);
-        if (!entity.hasBody()) {
-            throw new RuntimeException("下载失败");
+        if (it.hasNext()) {
+            StringBuilder sb = new StringBuilder();
+            while (it.hasNext()) {
+                CaseFlowupFile file = it.next();
+                String id = file.getFileid();
+                sb.append(id).append(",");
+            }
+            String ids = sb.toString();
+            ParameterizedTypeReference<List<UploadFile>> responseType = new ParameterizedTypeReference<List<UploadFile>>() {
+            };
+            ResponseEntity<List<UploadFile>> entity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(ids),
+                    HttpMethod.GET, null, responseType);
+            if (!entity.hasBody()) {
+                throw new RuntimeException("下载失败");
+            } else {
+                uploadFiles = entity.getBody();//文件对象
+            }
+            return uploadFiles;
         } else {
-            uploadFiles = entity.getBody();//文件对象
+            return uploadFiles;
         }
-        return uploadFiles;
     }
 
     /**
@@ -1230,7 +1363,7 @@ public class CaseInfoService {
                 caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.PHONE_PASS.getValue()); //198-电催流转通过
                 if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标志
                     if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                        CaseAssistApply caseAssistApply = getCaseAssistApply(caseInfo.getId(), tokenUser, "流转强制拒绝");
+                        CaseAssistApply caseAssistApply = getCaseAssistApply(caseInfo.getId(), tokenUser, "流转强制拒绝", CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
                         caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                     } else { //有协催案件
                         QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
@@ -1514,7 +1647,7 @@ public class CaseInfoService {
 
                     if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //协催标识
                         if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseInfo.getId(), user, "修复分配拒绝");
+                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseInfo.getId(), user, "修复分配拒绝", CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
                             caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                         } else {
                             //结束协催案件
@@ -1608,17 +1741,44 @@ public class CaseInfoService {
         return caseInfoRepository.count(builder);
     }
 
-    public List<CaseInfoInnerDistributeModel> distributePreview(AccCaseInfoDisModel accCaseInfoDisModel) {
+    public PreviewModel distributePreview(AccCaseInfoDisModel accCaseInfoDisModel, User user) {
         //选择的案件ID列表
         List<String> caseInfoList = accCaseInfoDisModel.getCaseIdList();
+        //包含共债案件的ID列表
+        List<String> debtList = new ArrayList<>();
+        PreviewModel previewModel = new PreviewModel();
         List<CaseInfo> caseInfoYes = new ArrayList<>(); //可分配案件
-        for (String caseId : caseInfoList) {
-            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
-            if (Objects.isNull(caseInfo)) {
-                throw new RuntimeException("有案件未找到!");
+        if (Objects.equals(accCaseInfoDisModel.getDisType(), 0) || !Objects.equals(accCaseInfoDisModel.getIsNumAvg(), 0)) {
+            for (String caseId : caseInfoList) {
+                CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+                if (Objects.isNull(caseInfo)) {
+                    throw new RuntimeException("有案件未找到!");
+                }
+                caseInfoYes.add(caseInfo);
             }
-            caseInfoYes.add(caseInfo);
         }
+        Integer isDebt = accCaseInfoDisModel.getIsDebt();
+        if (Objects.equals(isDebt, 1)) {
+            for (int i = 0; i < caseInfoYes.size(); i++) {
+                CaseInfo caseInfo = caseInfoYes.get(i);
+                String personalName = caseInfo.getPersonalInfo().getName();
+                String idCard = caseInfo.getPersonalInfo().getIdCard();
+                Object[] objDept = (Object[]) caseInfoRepository.findCaseByDept(personalName, idCard, user.getCompanyCode());//按机构分
+                if (Objects.nonNull(objDept)) {
+                    debtList.add(caseInfo.getId());
+                    caseInfoYes.remove(caseInfo);
+                    i--;
+                    continue;
+                }
+                Object[] objCollector = (Object[]) caseInfoRepository.findCaseByCollector(personalName, idCard, user.getCompanyCode());//按催员分
+                if (Objects.nonNull(objCollector)) {
+                    debtList.add(caseInfo.getId());
+                    caseInfoYes.remove(caseInfo);
+                    i--;
+                }
+            }
+        }
+
         //案件列表
         List<CaseInfo> caseInfoObjList = new ArrayList<>();
         //每个机构或人分配的数量
@@ -1649,6 +1809,13 @@ public class CaseInfoService {
             }
             disNumList = caseNumList;
         }
+
+        if (Objects.equals(rule, 2)) {
+            BeanUtils.copyProperties(preview(accCaseInfoDisModel, caseInfoYes),previewModel);
+            debtList.addAll(previewModel.getCaseIds());
+            previewModel.setCaseIds(debtList);
+            return previewModel;
+        }
         if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
             //所要分配 机构id
             deptOrUserList = accCaseInfoDisModel.getDepIdList();
@@ -1665,6 +1832,7 @@ public class CaseInfoService {
                 caseInfoInnerDistributeModel.setCaseDistributeCount(disNumList.get(i));
             }
             if (Objects.equals(accCaseInfoDisModel.getDisType(), 0)) {
+                previewModel.getNumList().add(caseInfoList.size());
                 caseInfoInnerDistributeModel.setCaseDistributeCount(caseInfoYes.size());
             }
             Department department = null;
@@ -1688,8 +1856,7 @@ public class CaseInfoService {
                 Integer disNum = disNumList.get(i);
                 for (int j = 0; j < disNum; j++) {
                     //检查输入的案件数量是否和选择的案件数量一致
-                    String caseId = caseInfoYes.get(alreadyCaseNum).getId();
-                    CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+                    CaseInfo caseInfo = caseInfoYes.get(alreadyCaseNum);
                     caseInfoInnerDistributeModel.setCaseDistributeMoneyCount(caseInfoInnerDistributeModel.getCaseDistributeMoneyCount().add(caseInfo.getOverdueAmount()));
                     alreadyCaseNum = alreadyCaseNum + 1;
                 }
@@ -1698,9 +1865,69 @@ public class CaseInfoService {
             caseInfoInnerDistributeModel.setCaseMoneyTotalCount(caseInfoInnerDistributeModel.getCaseMoneyCurrentCount().add(caseInfoInnerDistributeModel.getCaseDistributeMoneyCount()));
             list.add(caseInfoInnerDistributeModel);
         }
-        return list;
+        previewModel.setUserOrDepartIds(deptOrUserList);
+        previewModel.setCaseIds(accCaseInfoDisModel.getCaseIdList());
+        previewModel.setNumList(disNumList);
+        previewModel.setList(list);
+        return previewModel;
     }
-
+    //金额平均分配预览
+    private PreviewModel preview(AccCaseInfoDisModel accCaseInfoDisModel, List<CaseInfo> caseInfoYes) {
+        PreviewModel previewModel = new PreviewModel();
+        List<DisModel> disModels = new ArrayList<>();
+        Collections.sort(caseInfoYes, (o1, o2) -> {
+            return o2.getOverdueAmount().compareTo(o1.getOverdueAmount());
+        });
+        if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
+            for (String id : accCaseInfoDisModel.getDepIdList()) {
+                DisModel model = new DisModel();
+                model.setId(id);
+                disModels.add(model);
+            }
+        }
+        if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.USER_WAY.getValue())) {
+            for (String id : accCaseInfoDisModel.getUserIdList()) {
+                DisModel model = new DisModel();
+                model.setId(id);
+                disModels.add(model);
+            }
+        }
+        for (CaseInfo caseInfo : caseInfoYes) {
+            Collections.sort(disModels, (o1, o2) -> {
+                return o1.getAmt().compareTo(o2.getAmt());
+            });
+            disModels.get(0).setAmt(disModels.get(0).getAmt().add(caseInfo.getOverdueAmount()));
+            disModels.get(0).getCaseIds().add(caseInfo.getId());
+            disModels.get(0).getCaseInfos().add(caseInfo);
+        }
+        List<CaseInfoInnerDistributeModel> list = new ArrayList<>();
+        for (DisModel model : disModels) {
+            CaseInfoInnerDistributeModel caseInfoInnerDistributeModel = new CaseInfoInnerDistributeModel();
+            caseInfoInnerDistributeModel.setDistributeType(accCaseInfoDisModel.getDisType());
+            caseInfoInnerDistributeModel.setCaseDistributeCount(model.getCaseIds().size());
+            caseInfoInnerDistributeModel.setCaseDistributeMoneyCount(model.getAmt());
+            previewModel.getCaseIds().addAll(model.getCaseIds());
+            previewModel.getUserOrDepartIds().add(model.getId());
+            previewModel.getNumList().add(model.getCaseIds().size());
+            if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.DEPART_WAY.getValue())) {
+                Department department = departmentRepository.findOne(model.getId());
+                caseInfoInnerDistributeModel.setDepartmentName(department.getName());
+                caseInfoInnerDistributeModel.setCaseCurrentCount(caseInfoRepository.getDeptCaseCount(department.getId()));
+                caseInfoInnerDistributeModel.setCaseMoneyCurrentCount(caseInfoRepository.getDeptCaseAmt(department.getId()));
+            } else if (accCaseInfoDisModel.getDisType().equals(AccCaseInfoDisModel.DisType.USER_WAY.getValue())) {
+                User targetUser = userRepository.findOne(model.getId());
+                caseInfoInnerDistributeModel.setUserName(targetUser.getUserName());
+                caseInfoInnerDistributeModel.setUserRealName(targetUser.getRealName());
+                caseInfoInnerDistributeModel.setCaseCurrentCount(caseInfoRepository.getCaseCount(targetUser.getId()));
+                caseInfoInnerDistributeModel.setCaseMoneyCurrentCount(caseInfoRepository.getUserCaseAmt(targetUser.getId()));
+            }
+            caseInfoInnerDistributeModel.setCaseTotalCount(caseInfoInnerDistributeModel.getCaseCurrentCount() + caseInfoInnerDistributeModel.getCaseDistributeCount());
+            caseInfoInnerDistributeModel.setCaseMoneyTotalCount(caseInfoInnerDistributeModel.getCaseMoneyCurrentCount().add(caseInfoInnerDistributeModel.getCaseDistributeMoneyCount()));
+            list.add(caseInfoInnerDistributeModel);
+        }
+        previewModel.setList(list);
+        return previewModel;
+    }
 
     /**
      * 内催待分配案件分配
@@ -1872,12 +2099,43 @@ public class CaseInfoService {
                 //案件列表
                 caseInfoObjList.add(caseInfo);
                 alreadyCaseNum = alreadyCaseNum + 1;
+                //保存案件信息
+                caseInfoRepository.save(caseInfo);
+                //保存流转记录
+                caseTurnRecordRepository.save(caseTurnRecord);
+
+                //新增一条分配临时记录
+                CaseDistributedTemporary caseDistributedTemporary = new CaseDistributedTemporary();
+                caseDistributedTemporary.setCaseId(caseInfo.getId()); //案件ID
+                caseDistributedTemporary.setCaseNumber(caseInfo.getCaseNumber()); //案件编号
+                caseDistributedTemporary.setBatchNumber(caseInfo.getBatchNumber()); //批次号
+                caseDistributedTemporary.setPersonalName(caseInfo.getPersonalInfo().getName()); //客户姓名
+                caseDistributedTemporary.setOverdueAmt(caseInfo.getOverdueAmount()); //案件金额
+                if (Objects.nonNull(caseInfo.getCurrentCollector())) {
+                    caseDistributedTemporary.setCurrentCollector(caseInfo.getCurrentCollector().getId()); //当前催收员ID
+                    caseDistributedTemporary.setCurrentCollectorName(caseInfo.getCurrentCollector().getRealName()); //当前催收员姓名
+                    caseDistributedTemporary.setCurrentDepartment(caseInfo.getCurrentCollector().getDepartment().getId()); //案件当前所在部门ID
+                    caseDistributedTemporary.setCurrentDepartmentName(caseInfo.getCurrentCollector().getDepartment().getName()); //案件当前所在部门名称
+                    caseDistributedTemporary.setCurrentDepartmentCode(caseInfo.getCurrentCollector().getDepartment().getCode()); //案件当前所在部门code
+                } else {
+                    caseDistributedTemporary.setCurrentDepartment(caseInfo.getDepartment().getId()); //案件当前所在部门ID
+                    caseDistributedTemporary.setCurrentDepartmentName(caseInfo.getDepartment().getName()); //案件当前所在部门名称
+                    caseDistributedTemporary.setCurrentDepartmentCode(caseInfo.getDepartment().getCode()); //案件当前所在部门code
+                }
+                caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
+                caseDistributedTemporary.setType(CaseDistributedTemporary.Type.FIRST.getValue()); //分案类型
+                caseDistributedTemporary.setCaseTurnRecord(caseTurnRecord.getId()); //流转记录ID
+                //caseDistributedTemporary.setCaseRepairId(caseRepair.getId()); //案件修复ID
+                caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
+                caseDistributedTemporary.setOperatorUserName(user.getUserName()); //操作人用户名
+                caseDistributedTemporary.setOperatorRealName(user.getRealName()); //操作人姓名
+                caseDistributedTemporary.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                if (!Objects.equals(caseDistributedTemporary.getLastCollector(), caseDistributedTemporary.getCurrentCollector())
+                        || !Objects.equals(caseDistributedTemporary.getLastDepartment(), caseDistributedTemporary.getCurrentDepartment())) {
+                    caseDistributedTemporaryRepository.save(caseDistributedTemporary);
+                }
             }
         }
-        //保存案件信息
-        caseInfoRepository.save(caseInfoObjList);
-        //保存流转记录
-        caseTurnRecordRepository.save(caseTurnRecordList);
     }
 
     /**
@@ -1946,6 +2204,37 @@ public class CaseInfoService {
                 }
                 String caseId = caseInfoYes.get(alreadyCaseNum).getId();
                 CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+
+                //新增一条分配临时记录
+                CaseDistributedTemporary caseDistributedTemporary = new CaseDistributedTemporary();
+                caseDistributedTemporary.setCaseId(caseInfo.getId()); //案件ID
+                caseDistributedTemporary.setCaseNumber(caseInfo.getCaseNumber()); //案件编号
+                caseDistributedTemporary.setBatchNumber(caseInfo.getBatchNumber()); //批次号
+                caseDistributedTemporary.setPersonalName(caseInfo.getPersonalInfo().getName()); //客户姓名
+                caseDistributedTemporary.setOverdueAmt(caseInfo.getOverdueAmount()); //案件金额
+                if (Objects.nonNull(caseInfo.getCurrentCollector())) {
+                    caseDistributedTemporary.setLastCollector(caseInfo.getCurrentCollector().getId()); //上一个催收员ID
+                    caseDistributedTemporary.setLastCollectorName(caseInfo.getCurrentCollector().getRealName()); //上一个催收员姓名
+                    caseDistributedTemporary.setLastDepartment(caseInfo.getDepartment().getId()); //案件上一个所在部门ID
+                    caseDistributedTemporary.setLastDepartmentName(caseInfo.getDepartment().getName()); //案件上一个所在部门名称
+                }
+                caseDistributedTemporary.setLastCollectionStatus(caseInfo.getCollectionStatus()); //案件原催收状态
+                caseDistributedTemporary.setLastCollectionType(caseInfo.getCollectionType()); //案件原催收类型
+                if (Objects.equals(accCaseInfoDisModel.getDisType(), AccCaseInfoDisModel.DisType.USER_WAY.getValue())) { //分配给催收员
+                    if (targetUser != null) {
+                        caseDistributedTemporary.setCurrentCollector(targetUser.getId()); //当前催收员ID
+                        caseDistributedTemporary.setCurrentCollectorName(targetUser.getRealName()); //当前催收员姓名
+                        caseDistributedTemporary.setCurrentDepartment(targetUser.getDepartment().getId()); //案件当前所在部门ID
+                        caseDistributedTemporary.setCurrentDepartmentName(targetUser.getDepartment().getName()); //案件当前所在部门名称
+                        caseDistributedTemporary.setCurrentDepartmentCode(targetUser.getDepartment().getCode()); //案件当前所在部门code
+                    }
+                } else { //分配给机构
+                    if (department != null) {
+                        caseDistributedTemporary.setCurrentDepartment(department.getId()); //案件当前所在部门ID
+                        caseDistributedTemporary.setCurrentDepartmentName(department.getName()); //案件当前所在部门名称
+                        caseDistributedTemporary.setCurrentDepartmentCode(targetUser.getDepartment().getCode()); //案件当前所在部门code
+                    }
+                }
                 caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型-案件分配
                 //按照部门分
                 if (Objects.nonNull(department)) {
@@ -2024,12 +2313,26 @@ public class CaseInfoService {
                 //案件列表
                 caseInfoObjList.add(caseInfo);
                 alreadyCaseNum = alreadyCaseNum + 1;
+
+                //保存案件信息
+                caseInfoRepository.save(caseInfo);
+                //保存流转记录
+                caseTurnRecordRepository.save(caseTurnRecord);
+
+                caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
+                caseDistributedTemporary.setType(CaseDistributedTemporary.Type.OTHER.getValue()); //分案类型
+                caseDistributedTemporary.setCompanyCode(caseInfo.getCompanyCode()); //公司code码
+                caseDistributedTemporary.setOperatorUserName(user.getUserName()); //操作人用户名
+                caseDistributedTemporary.setOperatorRealName(user.getRealName()); //操作人姓名
+                caseDistributedTemporary.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                caseDistributedTemporary.setCaseTurnRecord(caseTurnRecord.getId()); //流转记录ID
+                caseDistributedTemporary.setLastAssistFlag(caseInfo.getAssistFlag()); //协催标识
+                if ((!Objects.equals(caseDistributedTemporary.getLastCollector(), caseDistributedTemporary.getCurrentCollector())
+                        || !Objects.equals(caseDistributedTemporary.getLastDepartment(), caseDistributedTemporary.getCurrentDepartment()))) {
+                    caseDistributedTemporaryRepository.save(caseDistributedTemporary);
+                }
             }
         }
-        //保存案件信息
-        caseInfoRepository.save(caseInfoObjList);
-        //保存流转记录
-        caseTurnRecordRepository.save(caseTurnRecordList);
         //保存协催案件
         caseAssistRepository.save(caseAssistList);
     }
@@ -2505,7 +2808,7 @@ public class CaseInfoService {
             accCaseInfoDisModel.setDisType(caseStrategy.getAssignType());
             accCaseInfoDisModel.setUserIdList(caseStrategy.getUsers());
             distributeCeaseInfo(accCaseInfoDisModel, user);
-            List<CaseInfoInnerDistributeModel> caseInfoInnerDistributeModelTemp = distributePreview(accCaseInfoDisModel);
+            List<CaseInfoInnerDistributeModel> caseInfoInnerDistributeModelTemp = distributePreview(accCaseInfoDisModel, user).getList();
             caseInfos.removeAll(checkedList);
             if (accCaseInfoDisModel.getDisType() == 0) { //分配到机构
                 infoInnerDistributeDepartModels.addAll(caseInfoInnerDistributeModelTemp);
@@ -2614,5 +2917,199 @@ public class CaseInfoService {
             commonCaseCountModel.setFlag(false);
             return commonCaseCountModel;
         }
+    }
+
+    /**
+     * @Description 撤销分案
+     */
+    @Transactional
+    public List<CaseRevokeDistributeModel> revokeCaseDistribute(CaseDistributedTemporaryParams caseDistributedTemporaryParams, User operator) throws GeneralException {
+        List<String> ids = caseDistributedTemporaryParams.getIds();
+        List<CaseRevokeDistributeModel> caseRevokeDistributeModels = new ArrayList<>();
+        QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
+        QSysParam qSysParam = QSysParam.sysParam;
+        for (String id : ids) {
+            //获取案件分配信息
+            CaseDistributedTemporary caseDistributedTemporary = caseDistributedTemporaryRepository.findOne(id);
+            if (Objects.isNull(caseDistributedTemporary)) {
+                throw new GeneralException("所选案件的分配信息未找到");
+            }
+            //获取案件分案撤销时长系统参数
+            SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(caseDistributedTemporary.getCompanyCode()).
+                    and(qSysParam.code.eq(Constants.SYS_REVOKE_DISTRIBUTE)).
+                    and(qSysParam.type.eq(Constants.SYS_REVOKE_DISTRIBUTE_TYPE)));
+            Integer duration = Integer.parseInt(sysParam.getValue());
+
+            if (Objects.equals(caseDistributedTemporary.getType(), CaseDistributedTemporary.Type.OTHER.getValue())) { //内催其他分案
+                CaseInfo caseInfo = caseInfoRepository.findOne(caseDistributedTemporary.getCaseId());//获取案件信息
+                if (Objects.isNull(caseInfo)) {
+                    throw new GeneralException("所选案件的案件信息未找到");
+                }
+                User user = userRepository.findOne(caseDistributedTemporary.getLastCollector()); //获取上一个催收员信息
+                Department department = departmentRepository.findOne(caseDistributedTemporary.getLastDepartment()); //获取案件上一个所在部门信息
+                if (Objects.isNull(user)) {
+                    throw new GeneralException("所选案件的上一个催收员信息未找到");
+                }
+                if (Objects.isNull(department)) {
+                    throw new GeneralException("所选案件的原所在部门信息未找到");
+                }
+                if (ZWDateUtil.getNowDateTime().getTime() - caseDistributedTemporary.getOperatorTime().getTime() > duration * 60000) { //如果分案时间大于系统设置参数
+                    CaseRevokeDistributeModel caseRevokeDistributeModel = setValue(caseInfo, "案件已分配超过" + duration + "分钟");
+                    caseRevokeDistributeModels.add(caseRevokeDistributeModel);
+                    continue;
+                }
+                if (!Objects.equals(caseInfo.getCollectionStatus(), caseDistributedTemporary.getLastCollectionStatus())) { //如果分配案件的催收状态和原催收状态不一样则跳过
+                    CaseRevokeDistributeModel caseRevokeDistributeModel = setValue(caseInfo, "案件催收状态已改变");
+                    caseRevokeDistributeModels.add(caseRevokeDistributeModel);
+                    continue;
+                }
+                CaseFollowupRecord caseFollowupRecord = caseFollowupRecordRepository.findOne(qCaseFollowupRecord.caseId.eq(caseInfo.getId())
+                        .and(qCaseFollowupRecord.operator.eq(caseDistributedTemporary.getCurrentCollector()))
+                        .and(qCaseFollowupRecord.operatorTime.goe(caseDistributedTemporary.getOperatorTime()))); //如果分配案件有做过跟进记录则跳过
+                if (!Objects.isNull(caseFollowupRecord)) {
+                    CaseRevokeDistributeModel caseRevokeDistributeModel = setValue(caseInfo, "案件已做过催记");
+                    caseRevokeDistributeModels.add(caseRevokeDistributeModel);
+                    continue;
+                }
+                if (!Objects.equals(caseInfo.getCurrentCollector().getId(), caseDistributedTemporary.getCurrentCollector())) { //如果分配的案件再次分配过则跳过
+                    CaseRevokeDistributeModel caseRevokeDistributeModel = setValue(caseInfo, "案件已再次分配");
+                    caseRevokeDistributeModels.add(caseRevokeDistributeModel);
+                    continue;
+                }
+                if (Objects.equals(caseDistributedTemporary.getLastAssistFlag(), CaseInfo.AssistFlag.NO_ASSIST.getValue())
+                        && Objects.equals(caseInfo.getAssistFlag(), CaseInfo.AssistFlag.YES_ASSIST.getValue())) { //如果有做协催操作则跳过
+                    CaseRevokeDistributeModel caseRevokeDistributeModel = setValue(caseInfo, "案件已申请了协催");
+                    caseRevokeDistributeModels.add(caseRevokeDistributeModel);
+                    continue;
+                }
+                caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上一个催收员
+                caseInfo.setCurrentCollector(user); //当前催收员
+                caseInfo.setDepartment(department); //部门
+                caseInfo.setCollectionType(caseDistributedTemporary.getLastCollectionType()); //催收类型
+                caseInfo.setCollectionStatus(caseDistributedTemporary.getLastCollectionStatus()); //催收状态
+                caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() - 1); //流转次数减一
+                caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识
+                caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件标色
+                caseInfo.setHoldDays(caseDistributedTemporary.getLastCollectorHasDays());//持案天数
+                caseInfo.setOperator(operator);//操作人
+                caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());//操作时间
+                caseInfoRepository.save(caseInfo);
+                //删除案件流转记录
+                caseTurnRecordRepository.deleteCaseTurnRecord(caseDistributedTemporary.getCaseTurnRecord());
+            } else if (Objects.equals(caseDistributedTemporary.getType(), CaseDistributedTemporary.Type.FIRST.getValue())) { //内催首次分案
+                CaseInfo caseInfo = caseInfoRepository.findOne(caseDistributedTemporary.getCaseId());//获取案件信息
+                if (Objects.isNull(caseInfo)) {
+                    throw new GeneralException("所选案件的案件信息未找到");
+                }
+                if (!Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.WAITCOLLECTION.getValue())) { //如果案件状态不为待催收则跳过
+                    CaseRevokeDistributeModel caseRevokeDistributeModel = setValue(caseInfo, "案件催收状态已改变");
+                    caseRevokeDistributeModels.add(caseRevokeDistributeModel);
+                    continue;
+                }
+                if (ZWDateUtil.getNowDateTime().getTime() - caseDistributedTemporary.getOperatorTime().getTime() > duration * 60000) { //如果分案时间大于系统设置参数
+                    CaseRevokeDistributeModel caseRevokeDistributeModel = setValue(caseInfo, "案件已分配超过" + duration + "分钟");
+                    caseRevokeDistributeModels.add(caseRevokeDistributeModel);
+                    continue;
+                }
+                if (!Objects.equals(caseInfo.getCurrentCollector().getId(), caseDistributedTemporary.getCurrentCollector())) { //如果分配的案件再次分配过则跳过
+                    CaseRevokeDistributeModel caseRevokeDistributeModel = setValue(caseInfo, "案件已再次分配");
+                    caseRevokeDistributeModels.add(caseRevokeDistributeModel);
+                    continue;
+                }
+                if (Objects.equals(caseInfo.getAssistFlag(), CaseInfo.AssistFlag.YES_ASSIST.getValue())) { //如果有做协催操作则跳过
+                    CaseRevokeDistributeModel caseRevokeDistributeModel = setValue(caseInfo, "案件已申请了协催");
+                    caseRevokeDistributeModels.add(caseRevokeDistributeModel);
+                    continue;
+                }
+                //还原caseInfo
+                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue());
+                caseInfo.setDepartment(null); //部门
+                caseInfo.setLatelyCollector(null); //上个催收员
+                caseInfo.setCurrentCollector(null); //当前催收员
+                caseInfo.setCollectionType(null);
+                caseInfo.setHoldDays(0);//持有天数清0
+                caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());
+                caseInfo.setLeaveDate(null);
+                caseInfo.setHasLeaveDays(null);
+                caseInfo.setOperator(operator);//操作人
+                caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());//操作时间
+                caseInfoRepository.save(caseInfo);
+            } else if (Objects.equals(caseDistributedTemporary.getType(), CaseDistributedTemporary.Type.BIG_IN.getValue())) {//大分配-内催
+                CaseInfo caseInfo = caseInfoRepository.findOne(caseDistributedTemporary.getCaseId());//获取案件信息
+                if (Objects.isNull(caseInfo)) {
+                    throw new GeneralException("所选案件的案件信息未找到");
+                }
+                if (Objects.nonNull(caseInfo.getCurrentCollector()) || Objects.nonNull(caseInfo.getDepartment())) {
+                    throw new GeneralException("所选案件已被分配至机构或催收员，不能撤回");
+                }
+                //还原CaseInfoDistributed
+                CaseInfoDistributed caseInfoDistributed = new CaseInfoDistributed();
+                BeanUtils.copyProperties(caseInfo, caseInfoDistributed);
+                caseInfoDistributed.setId(null);
+                caseInfoDistributed.setOperator(operator);
+                caseInfoDistributed.setOperatorTime(ZWDateUtil.getNowDateTime());
+                caseInfoDistributedRepository.save(caseInfoDistributed);
+
+                //删除修复案件
+                CaseRepair caseRepair = caseRepairRepository.findOne(caseDistributedTemporary.getCaseRepairId());
+                if (!Objects.isNull(caseRepair)) {
+                    caseRepair.setCaseId(null);
+                    caseRepairRepository.delete(caseRepair);
+                }
+
+                //删除案件备注
+                CaseInfoRemark caseInfoRemark = caseInfoRemarkRepository.findOne(caseDistributedTemporary.getCaseRemark());
+                if (!Objects.isNull(caseRepair)) {
+                    caseInfoRemark.setCaseId(null);
+                    caseInfoRemarkRepository.delete(caseInfoRemark);
+                }
+                //删除案件信息
+                caseInfoRepository.delete(caseDistributedTemporary.getCaseId());
+            } else if (Objects.equals(caseDistributedTemporary.getType(), CaseDistributedTemporary.Type.BIG_OUT.getValue())) {//大分配-委外
+                OutsourcePool outsourcePool = outsourcePoolRepository.findOne(caseDistributedTemporary.getCaseId());//获取案件信息
+                if (Objects.isNull(outsourcePool)) {
+                    throw new GeneralException("所选案件的案件信息未找到");
+                }
+                if (Objects.nonNull(outsourcePool.getOutsource())) {
+                    throw new GeneralException("所选案件已被分配至委外机构，不能撤回");
+                }
+                CaseInfo caseInfo = outsourcePool.getCaseInfo();
+                if (Objects.isNull(caseInfo)) {
+                    throw new GeneralException("所选案件的案件信息未找到");
+                }
+                //还原CaseInfoDistributed
+                CaseInfoDistributed caseInfoDistributed = new CaseInfoDistributed();
+                BeanUtils.copyProperties(caseInfo, caseInfoDistributed);
+                caseInfoDistributed.setId(null);
+                caseInfoDistributed.setOperator(operator);
+                caseInfoDistributed.setOperatorTime(ZWDateUtil.getNowDateTime());
+                caseInfoDistributedRepository.save(caseInfoDistributed);
+
+                //删除案件信息
+                caseInfoRepository.delete(caseInfo.getId());
+                outsourcePoolRepository.delete(caseDistributedTemporary.getCaseId());
+            }
+            //删除案件分配临时信息
+            caseDistributedTemporaryRepository.delete(caseDistributedTemporary);
+        }
+        return caseRevokeDistributeModels;
+    }
+
+    /**
+     * @Description 给案件分配信息临时
+     */
+    private CaseRevokeDistributeModel setValue(CaseInfo caseInfo, String reason) {
+        CaseRevokeDistributeModel caseRevokeDistributeModel = new CaseRevokeDistributeModel();
+        caseRevokeDistributeModel.setCaseId(caseInfo.getId()); //案件ID
+        caseRevokeDistributeModel.setCaseNumber(caseInfo.getCaseNumber()); //案件编号
+        caseRevokeDistributeModel.setBatchNumber(caseInfo.getBatchNumber()); //批次号
+        caseRevokeDistributeModel.setPersonalName(caseInfo.getPersonalInfo().getName()); //客户姓名
+        caseRevokeDistributeModel.setOverdueAmt(caseInfo.getOverdueAmount()); //案件金额
+        caseRevokeDistributeModel.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
+        if (Objects.nonNull(caseInfo.getCurrentCollector())) {
+            caseRevokeDistributeModel.setCurrentCollectorName(caseInfo.getCurrentCollector().getRealName()); //当前催收员姓名
+        }
+        caseRevokeDistributeModel.setReason(reason); //原因
+        return caseRevokeDistributeModel;
     }
 }

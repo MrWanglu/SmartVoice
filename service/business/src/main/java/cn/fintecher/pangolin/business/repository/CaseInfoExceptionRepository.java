@@ -6,12 +6,17 @@ import cn.fintecher.pangolin.entity.QCaseInfoException;
 import com.querydsl.core.types.dsl.StringPath;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QueryDslPredicateExecutor;
 import org.springframework.data.querydsl.binding.QuerydslBinderCustomizer;
 import org.springframework.data.querydsl.binding.QuerydslBindings;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by ChenChang on 2017/7/11.
@@ -57,4 +62,8 @@ public interface CaseInfoExceptionRepository extends QueryDslPredicateExecutor<C
         bindings.bind(root.personalName).first((path, value) -> path.contains(StringUtils.trim(value)));
     }
 
+    @Transactional
+    @Modifying
+    @Query(value = "delete from case_info_exception where id in (:ids)", nativeQuery = true)
+    void deleteBatch(@Param("ids") List<String> ids);
 }

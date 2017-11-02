@@ -79,19 +79,19 @@ public class SystemBackupScheduled {
         }
     }
 
-    @Scheduled(cron = "0 */23 */23 * * ?")
-    void reduceSoftwareDay() throws IOException {
-        log.info("开始注册天数跑批" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
-        try {
-            QCompany qCompany = QCompany.company;
-            Iterator<Company> company = companyRepository.findAll(qCompany.registerDay.isNotNull().and(qCompany.registerDay.ne(0).and(qCompany.registerDay.ne(99999)))).iterator();
-            List<Company> companyList = IteratorUtils.toList(company);
-            for (Company company1 : companyList) {
-                company1.setRegisterDay(company1.getRegisterDay() - 1);
-                companyRepository.save(company1);
-            }
-        } catch (Exception e1) {
-            e1.printStackTrace();
-        }
-    }
+//    @Scheduled(cron = "0 */23 */23 * * ?")
+//    void reduceSoftwareDay() throws IOException {
+//        log.info("开始注册天数跑批" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
+//        try {
+//            QCompany qCompany = QCompany.company;
+//            Iterator<Company> company = companyRepository.findAll(qCompany.registerDay.isNotNull().and(qCompany.registerDay.ne(0).and(qCompany.registerDay.ne(99999)))).iterator();
+//            List<Company> companyList = IteratorUtils.toList(company);
+//            for (Company company1 : companyList) {
+//                company1.setRegisterDay(company1.getRegisterDay() - 1);
+//                companyRepository.save(company1);
+//            }
+//        } catch (Exception e1) {
+//            e1.printStackTrace();
+//        }
+//    }
 }

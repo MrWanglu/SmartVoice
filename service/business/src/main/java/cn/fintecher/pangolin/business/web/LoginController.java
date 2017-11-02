@@ -70,14 +70,27 @@ public class LoginController extends BaseController {
      */
     @GetMapping("/getUserByToken")
     @ApiOperation(value = "通过token获取用户信息", notes = "通过token获取用户信息")
-    public ResponseEntity<User> getUserToken(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<UserLoginResponse> getUserToken(@RequestHeader(value = "X-UserToken") String token) {
         User user;
+        UserLoginResponse response = new UserLoginResponse();
         try {
             user = super.getUserByToken(token);
+            if (Objects.equals("administrator", user.getUserName())) {
+                response.setRegDay("success");
+            } else {
+                QCompany qCompany = QCompany.company;
+                Company company = companyRepository.findOne(qCompany.code.eq(user.getCompanyCode()));
+                if (Objects.isNull(company.getRegisterDay())) {
+                    response.setRegDay("noReg");
+                } else {
+                    response.setRegDay("success");
+                }
+            }
+            response.setUser(user);
             if (Objects.isNull(user)) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "该用户不存在")).body(null);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(response);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "该用户不存在")).body(null);
@@ -136,6 +149,9 @@ public class LoginController extends BaseController {
         //登录用户状态
         if (Objects.equals(Status.Disable.getValue(), user.getStatus())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user has been disabled. Please contact your administrato", "该用户已被停用，请联系管理员")).body(null);
+        }
+        if(Objects.equals(loginRequest.getUsdeType(),1) && Objects.equals(user.getType(),User.Type.TEL.getValue())){
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "The user does not exist", "电催用户不能登录")).body(null);
         }
         //登录用户设备锁
         if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
@@ -236,10 +252,6 @@ public class LoginController extends BaseController {
                 Company company = companyRepository.findOne(qCompany.code.eq(user.getCompanyCode()));
                 if (Objects.isNull(company.getRegisterDay())) {
                     response.setRegDay("noReg");
-                } else if (company.getRegisterDay() > 0 && company.getRegisterDay() != 99999) {
-                    response.setRegDay(company.getRegisterDay().toString());
-                } else if (company.getRegisterDay() <= 0 && company.getRegisterDay() != 99999) {
-                    response.setRegDay("fail");
                 } else {
                     response.setRegDay("success");
                 }
@@ -252,11 +264,29 @@ public class LoginController extends BaseController {
     }
 
     /**
+     * @Description : 软件注册返回码
+     */
+    @RequestMapping(value = "/returnCode", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
+    @ApiOperation(value = "软件注册返回码", notes = "软件注册返回码")
+    public ResponseEntity<String> returnCode(@RequestHeader(value = "X-UserToken") String token) {
+        User user;
+        try {
+            user = getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
+        }
+        QSysParam qSysParam = QSysParam.sysParam;
+        SysParam sysParams = sysParamRepository.findOne(qSysParam.code.eq(Constants.REGISTER_SOFTWARE_CODE).and(qSysParam.type.eq(Constants.REGISTER_SOFTWARE_TYPE)).and(qSysParam.companyCode.eq(user.getCompanyCode())));
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("注册成功", ENTITY_NAME)).body(sysParams.getValue());
+    }
+
+    /**
      * @Description : 软件注册
      */
     @RequestMapping(value = "/registerSoftware", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
     @ApiOperation(value = "软件注册", notes = "软件注册")
-    public ResponseEntity<String> registerSoftware(@Validated @RequestBody @ApiParam("修改的用户密码") RegisterSoftware request,
+    public ResponseEntity<String> registerSoftware(@Validated @RequestBody @ApiParam("软件注册") RegisterSoftware request,
                                                    @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
@@ -265,12 +295,19 @@ public class LoginController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
-        QCompany qCompany = QCompany.company;
-        User userlogin = userRepository.findOne(request.getId());
-        Company company = companyRepository.findOne(qCompany.code.eq(userlogin.getCompanyCode()));
-        company.setRegisterDay(request.getRegDay());
-        Company companyReturn = companyRepository.save(company);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("登录成功", ENTITY_NAME)).body(companyReturn.getRegisterDay().toString());
+        QSysParam qSysParam = QSysParam.sysParam;
+        SysParam sysParams = sysParamRepository.findOne(qSysParam.code.eq(Constants.REGISTER_SOFTWARE_CODE).and(qSysParam.type.eq(Constants.REGISTER_SOFTWARE_TYPE)).and(qSysParam.companyCode.eq(user.getCompanyCode())));
+        String orgCode = MD5.MD5Encode(sysParams.getValue() + "zwjk");
+        String code =  MD5.MD5Encode(request.getCode()+"zwjk");
+        if (Objects.equals(orgCode, code)) {
+            QCompany qCompany = QCompany.company;
+            Company company = companyRepository.findOne(qCompany.code.eq(user.getCompanyCode()));
+            company.setRegisterDay(99999);
+            companyRepository.save(company);
+        } else {
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("注册失败", ENTITY_NAME)).body("注册失败");
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("注册成功", ENTITY_NAME)).body("注册成功");
     }
 
     /**

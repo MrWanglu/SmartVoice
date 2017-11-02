@@ -105,12 +105,12 @@ public class OutsourcePoolController extends BaseController {
     private static final String ENTITY_CASEINFO = "CaseInfo";
 
     @PostMapping(value = "/outsourceDistributePreview")
-    @ApiOperation(value = "委外待分配预览", notes = "委外待分配预览")
+    @ApiOperation(value = "委外待分配按数量平均分配预览", notes = "委外待分配按数量平均分配预览")
     public ResponseEntity<List<OutDistributeInfo>> outsourceDistributePreview(@RequestBody OutsourceInfo outsourceInfo,
                                                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to outsourceDistributePreview");
         try {
-            List<OutDistributeInfo> list = outsourcePoolService.distributePreview(outsourceInfo);
+            List<OutDistributeInfo> list = outsourcePoolService.distributePreviewByNum(outsourceInfo);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(list);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -197,12 +197,26 @@ public class OutsourcePoolController extends BaseController {
             } else {
                 companyCode = user.getCompanyCode();
             }
+            //获取案件评分策略
+            List<ScoreRule> rules = null;
+            try {
+                ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(companyCode).concat("&strategyType=").concat(CaseStrategy.StrategyType.OUTS.getValue().toString()), ScoreRules.class);
+                if ( Objects.isNull(responseEntity) || !responseEntity.hasBody() || responseEntity.getBody().getScoreRules().size()==0) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "请先设置评分策略")).body(null);
+                } else {
+                    ScoreRules scoreRules = responseEntity.getBody();
+                    rules = scoreRules.getScoreRules();
+                }
+            }catch(Exception e) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "获取策略失败")).body(null);
+            }
             StopWatch watch1 = new StopWatch();
             watch1.start();
             KieSession kieSession = null;
             try {
                 try {
-                    kieSession = createSorceRule(companyCode, CaseStrategy.StrategyType.OUTS.getValue());
+                    //生成动态规则
+                    kieSession = createSorceRule(user.getCompanyCode(),CaseStrategy.StrategyType.OUTS.getValue(),rules);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -211,7 +225,9 @@ public class OutsourcePoolController extends BaseController {
             }
             Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(QOutsourcePool.outsourcePool.outStatus.eq(OutsourcePool.OutStatus.TO_OUTSIDE.getCode())
                     .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())));
-            List<OutsourcePool> outsourcePoolList = (List<OutsourcePool>) outsourcePools;
+            List<OutsourcePool> outsourcePoolList = new ArrayList<>();
+            outsourcePools.forEach(single -> outsourcePoolList.add(single));
+            List<OutsourcePool> outsourcePoolScoreList = new ArrayList<>();
             ScoreNumbersModel scoreNumbersModel = new ScoreNumbersModel();
             scoreNumbersModel.setTotal(outsourcePoolList.size());
             if (outsourcePoolList.size() > 0) {
@@ -221,31 +237,37 @@ public class OutsourcePoolController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(outsourcePool.getCaseInfo().getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(outsourcePool.getCaseInfo().getOverdueDays());
-                    scoreRuleModel.setProId(Objects.isNull(outsourcePool.getCaseInfo().getArea())?null:outsourcePool.getCaseInfo().getArea().getId());//省份id
+                    if(Objects.nonNull(outsourcePool.getCaseInfo().getArea())){
+                        if(Objects.nonNull(outsourcePool.getCaseInfo().getArea().getParent())){
+                            scoreRuleModel.setProId(outsourcePool.getCaseInfo().getArea().getId());//省份id
+                        }
+                    }
                     Personal personal = personalRepository.findOne(outsourcePool.getCaseInfo().getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);
                     } else {
                         scoreRuleModel.setIsWork(0);
                     }
-                    if (Objects.isNull(kieSession)) {
-                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "无评分策略")).body(null);
-                    } else {
-                        kieSession.insert(scoreRuleModel);//插入
-                        kieSession.fireAllRules();//执行规则
+                    kieSession.insert(scoreRuleModel);//插入
+                    kieSession.fireAllRules();//执行规则
+                    if(scoreRuleModel.getCupoScore()!=0){
+                        outsourcePoolScoreList.add(outsourcePool);
+                        outsourcePool.getCaseInfo().setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
                     }
-                    outsourcePool.getCaseInfo().setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
                 }
                 kieSession.dispose();
                 outsourcePoolRepository.save(outsourcePoolList);
                 watch1.stop();
                 log.info("耗时：" + watch1.getTotalTimeMillis());
+                if(outsourcePoolScoreList.size()==0){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "没有符合评分的案件")).body(null);
+                }
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
             }
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "案件为空")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "案件评分为空")).body(null);
         } catch (IllegalStateException e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "exportCaseInfoFollowRecord", "评分失败")).body(null);
         }
     }
 
@@ -261,16 +283,29 @@ public class OutsourcePoolController extends BaseController {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            String companyCode = null;
             if (Objects.isNull(user.getCompanyCode())) {
-                companyCode = user.getCompanyCode();
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME1, "OutSourcePool", "")).body(null);
             }
+            List<ScoreRule> rules = null;
+            try {
+                ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(user.getCompanyCode()).concat("&strategyType=").concat(CaseStrategy.StrategyType.OUTS.getValue().toString()), ScoreRules.class);
+                if ( Objects.isNull(responseEntity) || !responseEntity.hasBody() || responseEntity.getBody().getScoreRules().size()==0) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "请先设置评分策略")).body(null);
+                } else {
+                    ScoreRules scoreRules = responseEntity.getBody();
+                    rules = scoreRules.getScoreRules();
+                }
+            }catch(Exception e) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "获取策略失败")).body(null);
+            }
+
             StopWatch watch1 = new StopWatch();
             watch1.start();
             KieSession kieSession = null;
             try {
                 try {
-                    kieSession = createSorceRule(companyCode, CaseStrategy.StrategyType.OUTS.getValue());
+                    //生成动态规则
+                    kieSession = createSorceRule(user.getCompanyCode(),CaseStrategy.StrategyType.OUTS.getValue(),rules);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -281,7 +316,9 @@ public class OutsourcePoolController extends BaseController {
             Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(QOutsourcePool.outsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode())
                     .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())).and(QOutsourcePool.outsourcePool.outBatch.eq(batchNumber)).and(QOutsourcePool.outsourcePool.outsource.eq(outsource))
                     .and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())));
-            List<OutsourcePool> outsourcePoolList = (List<OutsourcePool>) outsourcePools;
+            List<OutsourcePool> outsourcePoolList = new ArrayList<>();
+            outsourcePools.forEach(single -> outsourcePoolList.add(single));
+            List<OutsourcePool> outsourcePoolScoreList = new ArrayList<>();
             ScoreNumbersModel scoreNumbersModel = new ScoreNumbersModel();
             scoreNumbersModel.setTotal(outsourcePoolList.size());
             if (outsourcePoolList.size() > 0) {
@@ -291,7 +328,11 @@ public class OutsourcePoolController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(outsourcePool.getCaseInfo().getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(outsourcePool.getCaseInfo().getOverdueDays());
-                    scoreRuleModel.setProId(Objects.isNull(outsourcePool.getCaseInfo().getArea())?null:outsourcePool.getCaseInfo().getArea().getId());//省份id
+                    if(Objects.nonNull(outsourcePool.getCaseInfo().getArea())){
+                        if(Objects.nonNull(outsourcePool.getCaseInfo().getArea().getParent())){
+                            scoreRuleModel.setProId(outsourcePool.getCaseInfo().getArea().getId());//省份id
+                        }
+                    }
                     Personal personal = personalRepository.findOne(outsourcePool.getCaseInfo().getPersonalInfo().getId());
                     if (Objects.nonNull(personal) && Objects.nonNull(personal.getPersonalJobs())) {
                         scoreRuleModel.setIsWork(1);
@@ -299,27 +340,28 @@ public class OutsourcePoolController extends BaseController {
                         scoreRuleModel.setIsWork(0);
                     }
 
-                    if (Objects.isNull(kieSession)) {
-                        return ResponseEntity.ok().headers(HeaderUtil.createAlert("无评分策略！", "failed")).body(null);
-                    } else {
-                        kieSession.insert(scoreRuleModel);//插入
-                        kieSession.fireAllRules();//执行规则
+                    kieSession.insert(scoreRuleModel);//插入
+                    kieSession.fireAllRules();//执行规则
+                    if(scoreRuleModel.getCupoScore()!=0){
+                        outsourcePoolScoreList.add(outsourcePool);
+                        outsourcePool.getCaseInfo().setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
                     }
-                    outsourcePool.getCaseInfo().setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
                 }
                 kieSession.dispose();
                 outsourcePoolRepository.save(outsourcePoolList);
                 watch1.stop();
                 log.info("耗时：" + watch1.getTotalTimeMillis());
+                if(outsourcePoolScoreList.size()==0){
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "没有符合评分的案件")).body(null);
+                }
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
             }
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "案件为空")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "failure", "案件评分为空")).body(null);
         } catch (IllegalStateException e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", "上传文件服务器失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "exportCaseInfoFollowRecord", "评分失败")).body(null);
         }
     }
-
 
     /**
      * 动态生成规则
@@ -328,16 +370,11 @@ public class OutsourcePoolController extends BaseController {
      * @throws IOException
      * @throws
      */
-    private KieSession createSorceRule(String comanyCode, Integer strategyType) {
+    private KieSession createSorceRule(String comanyCode, Integer strategyType, List<ScoreRule> rules) {
+
         try {
             freemarker.template.Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
             freemarker.template.Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
-            ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode).concat("&strategyType=").concat(strategyType.toString()), ScoreRules.class);
-            List<ScoreRule> rules = null;
-            if (responseEntity.hasBody()) {
-                ScoreRules scoreRules = responseEntity.getBody();
-                rules = scoreRules.getScoreRules();
-            }
             StringBuilder sb = new StringBuilder();
             if (Objects.nonNull(rules)) {
                 for (ScoreRule rule : rules) {
@@ -582,6 +619,9 @@ public class OutsourcePoolController extends BaseController {
                 if (days >= 3) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "委外已超过3天，不能撤回")).body(null);
                 }
+                if (Objects.nonNull(outsourcePool.getOutoperationStatus())) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePool", "", "案件已操作,不能撤回")).body(null);
+                }
                 outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
                 outsourcePool.setContractAmt(null);
                 outsourcePool.setOverduePeriods(null);
@@ -644,6 +684,7 @@ public class OutsourcePoolController extends BaseController {
             }
             for (String outId : outCaseIds) {
                 OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
+                outsourcePool.setOutsource(null);
                 outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());//状态改为待委外
                 outsourcePool.setOperator(user.getUserName());//委外退案人
                 outsourcePool.setOperateTime(ZWDateUtil.getNowDateTime());//委外退案时间
@@ -1365,8 +1406,8 @@ public class OutsourcePoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam @ApiParam(value = "批次号", required = true) String batchNumber,
-                                                                          @RequestParam @ApiParam(value = "委外方名称", required = true) String outsName,
+    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam(required = false) @ApiParam(value = "批次号") String batchNumber,
+                                                                          @RequestParam(required = false) @ApiParam(value = "委外方名称") String outsName,
                                                                           @RequestParam(required = false) @ApiParam(value = "公司Code码") String companyCode,
                                                                           @QuerydslPredicate(root = OutsourcePool.class) Predicate predicate,
                                                                           @ApiIgnore Pageable pageable,
@@ -1514,7 +1555,7 @@ public class OutsourcePoolController extends BaseController {
                     .concat("companyCode=").concat(user.getCompanyCode())
                     .concat("&strategyType=").concat(CaseStrategy.StrategyType.OUTS.getValue().toString()), HttpMethod.GET, null, responseType);
             if (Objects.isNull(caseStrategies) || !caseStrategies.hasBody() || caseStrategies.getBody().size() == 0) {
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有分配策略信息")).body(null);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "", "没有分配策略信息")).body(null);
             }
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             if (Objects.isNull(outsourceInfo) || Objects.isNull(outsourceInfo.getOutCaseIds()) || outsourceInfo.getOutCaseIds().isEmpty()) {
@@ -1525,27 +1566,32 @@ public class OutsourcePoolController extends BaseController {
                 booleanBuilder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.TO_OUTSIDE.getCode()));
                 Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(booleanBuilder);
                 if (!outsourcePools.iterator().hasNext()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "", "没有待分配的案件信息")).body(null);
                 }
                 List<String> caseIds = new ArrayList<>();
                 outsourcePools.forEach(e -> caseIds.add(e.getCaseInfo().getId()));
                 Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(caseIds);
                 if (!caseInfos.iterator().hasNext()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "", "没有待分配的案件信息")).body(null);
                 }
                 list = outsourcePoolService.outerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
             } else {
                 //分配勾选的案件
                 Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(outsourceInfo.getOutCaseIds());
                 if (!caseInfos.iterator().hasNext()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "没有待分配的案件信息")).body(null);
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "", "没有待分配的案件信息")).body(null);
                 }
                 list = outsourcePoolService.outerStrategyDistribute(caseStrategies.getBody(), IterableUtils.toList(caseInfos), user);
             }
-            return ResponseEntity.ok().body(list);
+            //判断是否有符合策略的案件
+            if(Objects.isNull(list) || list.size()==0){
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "", "没有符合策略的案件")).body(null);
+            }else{
+                return ResponseEntity.ok().body(list);
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "", "分配失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "", "分配失败")).body(null);
         }
     }
 

@@ -10,5 +10,5 @@ import lombok.Data;
 @Data
 public class RegisterSoftware {
     private String id; //客户信息ID
-    private Integer regDay; //关系
+    private String code; //关系
 }

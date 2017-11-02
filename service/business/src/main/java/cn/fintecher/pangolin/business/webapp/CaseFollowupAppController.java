@@ -119,6 +119,9 @@ public class CaseFollowupAppController extends BaseController {
                 caseFollowupParams.setType(CaseFollowupRecord.Type.ASSIST.getValue());
             }
             caseFollowupParams.setCaseNumber(caseInfo.getCaseNumber());
+            if(Objects.nonNull(caseFollowupParams.getFollnextDate())){
+                caseFollowupParams.setFollnextDate(ZWDateUtil.fomratterDate( ZWDateUtil.getUtilDate(caseFollowupParams.getFollnextDate().replace("Z"," UTC"),"yyyy-MM-dd'T'HH:mm:ss.SSS Z"),null));
+            }
             CaseFollowupRecord result = caseInfoService.saveFollowupRecord(caseFollowupParams, user);
             if (Objects.nonNull(caseFollowupParams.getFileIds())) {
                 List<String> fileIds = caseFollowupParams.getFileIds();

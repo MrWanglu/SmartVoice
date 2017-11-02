@@ -78,6 +78,7 @@ public class CaseInfoAppController extends BaseController {
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
         builder.and(QCaseAssist.caseAssist.companyCode.eq(user.getCompanyCode()));
+        builder.and(QCaseAssist.caseAssist.caseId.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
         if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) {
             builder.and(QCaseAssist.caseAssist.assistCollector.department.code.startsWith(user.getDepartment().getCode()));
         } else {
@@ -134,6 +135,7 @@ public class CaseInfoAppController extends BaseController {
         status.add(CaseInfo.CollectionStatus.OVER_PAYING.getValue());
         status.add(CaseInfo.CollectionStatus.REPAID.getValue());
         BooleanBuilder builder = new BooleanBuilder(predicate);
+        builder.and(QCaseInfo.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
         builder.and(QCaseInfo.caseInfo.collectionType.eq(CaseInfo.CollectionType.VISIT.getValue()));
         builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
         if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) {
@@ -312,6 +314,7 @@ public class CaseInfoAppController extends BaseController {
             if (Objects.nonNull(address)) {
                 builder.and(QCaseInfo.caseInfo.personalInfo.localHomeAddress.contains(address));
             }
+            builder.and(QCaseInfo.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseInfoAppController/getPersonalCase");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);

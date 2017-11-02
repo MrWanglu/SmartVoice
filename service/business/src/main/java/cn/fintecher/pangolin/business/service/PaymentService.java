@@ -156,27 +156,47 @@ public class PaymentService {
                 //更新原案件信息
                 if (Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.PARTOVERDUE.getValue())) { //41-部分逾期还款
 
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.PART_REPAID.getValue()); //催收状态 172-部分已还款
                     caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount())); //逾期实际还款金额
+                    //判断已还金额是否大于案件金额，如果大于则自动结案
+                    if (Objects.equals(caseInfo.getRealPayAmount().compareTo(caseInfo.getOverdueAmount()), 0)
+                            || Objects.equals(caseInfo.getRealPayAmount().compareTo(caseInfo.getOverdueAmount()), 1)) { //如果大约或者等于
+                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); //催收状态 24-已结案
+                        caseInfo.setEndType(CaseInfo.EndType.REPAID.getValue()); //结案类型 110-已还款
+                        caseInfo.setEndRemark("已还款"); //结案说明
+                    } else { //小于
+                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.PART_REPAID.getValue()); //催收状态 172-部分已还款
+                    }
 
                 } else if (Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.ALLOVERDUE.getValue()) //42-全额逾期还款
                         || Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.DERATEOVERDUE.getValue())) { //减免逾期还款
 
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.REPAID.getValue()); //催收状态 171-已还款
                     caseInfo.setDerateAmt(casePayApply.getApplyDerateAmt().add(caseInfo.getDerateAmt())); //逾期还款减免金额
                     caseInfo.setRealPayAmount(casePayApply.getApplyPayAmt().add(caseInfo.getRealPayAmount())); //逾期实际还款金额
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); //催收状态 24-已结案
+                    caseInfo.setEndType(CaseInfo.EndType.REPAID.getValue()); //结案类型 110-已还款
+                    caseInfo.setEndRemark("已还款"); //结案说明
 
                 } else if (Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.PARTADVANCE.getValue())) { //44-部分提前结清
 
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.PART_REPAID.getValue()); //催收状态 172-部分已还款
                     caseInfo.setEarlyRealSettleAmt(casePayApply.getApplyPayAmt().add(caseInfo.getEarlyRealSettleAmt())); //提前结清实际还款金额
+                    //判断已还金额是否大于提前结清金额，如果大于则自动结案
+                    if (Objects.equals(caseInfo.getEarlyRealSettleAmt().compareTo(caseInfo.getEarlySettleAmt()), 0)
+                            || Objects.equals(caseInfo.getEarlyRealSettleAmt().compareTo(caseInfo.getEarlySettleAmt()), 1)) { //如果大约或者等于
+                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); //催收状态 24-已结案
+                        caseInfo.setEndType(CaseInfo.EndType.REPAID.getValue()); //结案类型 110-已还款
+                        caseInfo.setEndRemark("已还款"); //结案说明
+                    } else { //小于
+                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.PART_REPAID.getValue()); //催收状态 172-部分已还款
+                    }
 
                 } else if (Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.ALLADVANCE.getValue()) //45-全额提前结清
                         || Objects.equals(casePayApply.getPayType(), CasePayApply.PayType.DERATEADVANCE.getValue())) { //46-减免提前结清
 
-                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.REPAID.getValue()); //催收状态 171-已还款
                     caseInfo.setEarlyDerateAmt(casePayApply.getApplyDerateAmt().add(caseInfo.getEarlyDerateAmt())); //提前结清减免金额
                     caseInfo.setEarlyRealSettleAmt(casePayApply.getApplyPayAmt().add(caseInfo.getEarlyRealSettleAmt())); //提前结清实际还款金额
+                    caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); //催收状态 24-已结案
+                    caseInfo.setEndType(CaseInfo.EndType.REPAID.getValue()); //结案类型 110-已还款
+                    caseInfo.setEndRemark("已还款"); //结案说明
 
                 } else {
                     throw new RuntimeException("该还款类型未找到");
@@ -193,7 +213,7 @@ public class PaymentService {
                         CaseAssistApply caseAssistApply = caseAssistApplyRepository.findOne(qCaseAssistApply.caseId.eq(caseInfo.getId())
                                 .and(qCaseAssistApply.approveStatus.in(list)));
                         if (!Objects.isNull(caseAssistApply)) {
-                            caseAssistApply = caseInfoService.getCaseAssistApply(caseInfo.getId(), tokenUser, "案件还款强制拒绝");
+                            caseAssistApply = caseInfoService.getCaseAssistApply(caseInfo.getId(), tokenUser, "案件还款强制拒绝", CaseAssistApply.ApproveResult.PAY_REJECT.getValue());
                             caseAssistApplyRepository.saveAndFlush(caseAssistApply);
                         } else { //有协催案件
                             CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseInfo.getId()).

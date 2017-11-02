@@ -80,8 +80,10 @@ public class RemindTimingBatchService {
             } catch (Exception e) {
                 logger.error("案件提醒批量处理结束 {},状态修改失败 {}", companyCode, sysParamCode, e);
             }
-            watch.stop();
-            logger.info("案件提醒批量处理结束 {} , 耗时 {} 毫秒", companyCode, watch.getTotalTimeMillis());
+            if(watch.isRunning()) {
+                watch.stop();
+                logger.info("案件提醒批量处理结束 {} , 耗时 {} 毫秒", companyCode, watch.getTotalTimeMillis());
+            }
         }
     }
 

@@ -218,8 +218,7 @@ public class CaseInfoExceptionController extends BaseController {
             if (Objects.isNull(caseInfoExceptionIdList.getIds()) || caseInfoExceptionIdList.getIds().isEmpty()) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请选择要删除的案件!")).body(null);
             }
-            List<CaseInfoException> all = caseInfoExceptionRepository.findAll(caseInfoExceptionIdList.getIds());
-            caseInfoExceptionRepository.deleteInBatch(all);
+            caseInfoExceptionRepository.deleteBatch(caseInfoExceptionIdList.getIds());
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("删除成功!", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage());

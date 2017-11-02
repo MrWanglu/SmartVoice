@@ -9,6 +9,7 @@ import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import io.swagger.models.auth.In;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +36,15 @@ public class ExportItemsController extends BaseController {
                                           @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
-            exportItemService.saveExportItems(items, user,ExportItem.Category.INRUSH.getValue());
+            Integer categoryCaseInfo = ExportItem.Category.INRUSH.getValue();
+            Integer categoryCaseInfoClosed = ExportItem.Category.INNERCLOSEDFOLLOWUP.getValue();
+            if(categoryCaseInfo.equals(items.getCategory())){
+                //设置内催导出项
+                exportItemService.saveExportItems(items, user,categoryCaseInfo);
+            }else {
+                //设置内催已结案导出项
+                exportItemService.saveExportItems(items, user,categoryCaseInfoClosed);
+            }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("设置成功", "")).body(null);
         } catch (Exception e) {
             e.printStackTrace();
@@ -45,10 +54,20 @@ public class ExportItemsController extends BaseController {
 
     @GetMapping("/getExportItems")
     @ApiOperation(value = "查询导出项", notes = "查询导出项")
-    public ResponseEntity<ItemsModel> getExportItems(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<ItemsModel> getExportItems(@RequestParam @ApiParam(value = "导出项类型") Integer category,
+                                                     @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
-            ItemsModel result = exportItemService.getExportItems(user,ExportItem.Category.INRUSH.getValue());
+            ItemsModel result = null;
+            Integer categoryCaseInfo = ExportItem.Category.INRUSH.getValue();
+            Integer categoryCaseInfoClosed = ExportItem.Category.INNERCLOSEDFOLLOWUP.getValue();
+            if(categoryCaseInfo.equals(category)){
+                //查询内催导出项
+                result = exportItemService.getExportItems(user,categoryCaseInfo);
+            }else {
+                //查询内催已结案导出项
+                result = exportItemService.getExportItems(user,categoryCaseInfoClosed);
+            }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(result);
         } catch (Exception e) {
             e.printStackTrace();
@@ -75,7 +94,6 @@ public class ExportItemsController extends BaseController {
     public ResponseEntity<ItemsModel> getUpdateItems(@RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
-
             ItemsModel result = exportItemService.getExportItems(user,ExportItem.Category.CASEUPDATE.getValue());
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(result);
         } catch (Exception e) {
@@ -92,10 +110,16 @@ public class ExportItemsController extends BaseController {
             User user = getUserByToken(token);
             Integer categoryOutsource = ExportItem.Category.OUTSOURCE.getValue();
             Integer categoryFollowup = ExportItem.Category.OUTSOURCEFOLLOWUP.getValue();
+            Integer categoryClosedFollowup = ExportItem.Category.OUTSOURCECLOSEDFOLLOWUP.getValue();
             if (categoryOutsource.equals(items.getCategory())) {
+                //设置委外案件导出项
                 exportItemService.saveExportItems(items, user, categoryOutsource);
-            } else {
+            } else if(categoryFollowup.equals(items.getCategory())) {
+                //设置委外催收中跟踪记录导出项
                 exportItemService.saveExportItems(items, user, categoryFollowup);
+            } else {
+                //设置委外已结案跟踪记录导出项
+                exportItemService.saveExportItems(items, user, categoryClosedFollowup);
             }
 
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("设置成功", "")).body(null);
@@ -112,14 +136,17 @@ public class ExportItemsController extends BaseController {
             User user = getUserByToken(token);
             Integer categoryOutsource = ExportItem.Category.OUTSOURCE.getValue();
             Integer categoryFollowup = ExportItem.Category.OUTSOURCEFOLLOWUP.getValue();
+            Integer categoryClosedFollowup = ExportItem.Category.OUTSOURCECLOSEDFOLLOWUP.getValue();
             ItemsModel result = null;
-
             if (categoryOutsource.equals(category)) {
                 //委外案件导出项
                 result = exportItemService.getExportItems(user, categoryOutsource);
-            } else {
-                //委外跟踪记录导出项
+            } else if(categoryFollowup.equals(category)) {
+                //委外催收中跟踪记录导出项
                 result = exportItemService.getExportItems(user, categoryFollowup);
+            }else {
+                //委外已结案跟踪记录导出项
+                result = exportItemService.getExportItems(user, categoryClosedFollowup);
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(result);
         } catch (Exception e) {

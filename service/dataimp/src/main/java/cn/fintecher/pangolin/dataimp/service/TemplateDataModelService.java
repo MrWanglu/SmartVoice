@@ -26,11 +26,12 @@ import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Created by luqiang on 2017/7/25.
  */
-@Service(value="templateDataModelService")
+@Service(value = "templateDataModelService")
 public class TemplateDataModelService {
     private final Logger logger = LoggerFactory.getLogger(TemplateDataModelService.class);
     @Autowired
@@ -38,7 +39,7 @@ public class TemplateDataModelService {
     @Autowired
     private RestTemplate restTemplate;
 
-    public List<TemplateExcelInfo> importExcelData(String filePath,String fileType, String rowNum, String colNum) throws Exception {
+    public List<TemplateExcelInfo> importExcelData(String filePath, String fileType, String rowNum, String colNum) throws Exception {
         long startTime = System.currentTimeMillis();
         logger.info("线程 {} 开始解析Excel..............................................", Thread.currentThread() + "开始时间" + startTime);
         int rowIndex = 0;
@@ -151,6 +152,7 @@ public class TemplateDataModelService {
         }
         return list;
     }
+
     public String excelColStrToNum(String column) {
         int num = 0;
         int result = 0;
@@ -163,6 +165,7 @@ public class TemplateDataModelService {
         }
         return String.valueOf(result);
     }
+
     private Map<String, String> getFieldTypeName() throws Exception {
         Map<String, String> mapTypeName = new ConcurrentHashMap();
         DataInfoExcel bean = new DataInfoExcel();
@@ -218,6 +221,7 @@ public class TemplateDataModelService {
                 return "";
         }
     }
+
     public String getCellValue(Cell cell) {//获取单元格内容
 
         if (Cell.CELL_TYPE_STRING == cell.getCellType()) {
@@ -238,6 +242,7 @@ public class TemplateDataModelService {
         }
         return "";
     }
+
     public String excelColIndexToStr(int columnIndex) {
         if (columnIndex <= 0) {
             return null;
@@ -253,6 +258,7 @@ public class TemplateDataModelService {
         } while (columnIndex > 0);
         return columnStr;
     }
+
     public List<TemplateExcelInfo> getExcelList() throws Exception {
         List<TemplateExcelInfo> list = new ArrayList<>();
         DataInfoExcel bean = new DataInfoExcel();
@@ -267,10 +273,10 @@ public class TemplateDataModelService {
                 TemplateExcelInfo templateModel = new TemplateExcelInfo();
                 //实体中注解的属性名称
                 templateModel.setCellName(name.cellName());
-                if(f.getName().equals("personalName") ||f.getName().equals("idCard")
-                        || f.getName().equals("productName") || f.getName().equals("province") || f.getName().equals("city") ){
+                if (f.getName().equals("personalName") || f.getName().equals("idCard")
+                        || f.getName().equals("productName") || f.getName().equals("overdueAmount")) {
                     templateModel.setFlag(0);//0：必输
-                }else{
+                } else {
                     templateModel.setFlag(1);//1:不是必输
                 }
                 templateModel.setCellCode(f.getName());
@@ -278,11 +284,11 @@ public class TemplateDataModelService {
                 templateModel.setCellTypeName(getTypeName(f.getType().toString()));
                 list.add(templateModel);
             }
-
         }
-        return list;
+        return list.stream().sorted(Comparator.comparing(TemplateExcelInfo::getFlag)).collect(Collectors.toList());
     }
-    public List<String[]> processData( Map<String, String[]> map) {
+
+    public List<String[]> processData(Map<String, String[]> map) {
         List<String[]> list = new ArrayList<>();
         list.add(map.get("custInfo"));
         list.add(map.get("custOriginAddressInfo"));
@@ -294,48 +300,49 @@ public class TemplateDataModelService {
         //Integer custAssetNum = Integer.valueOf(map.get("custAssetNum")[0]);
         //客户联系人
         Integer custRelationNum;
-        if(map.get("custRelationNum").length>0){
-            custRelationNum=Integer.valueOf(map.get("custRelationNum")[0]);
-        }else {
+        if (map.get("custRelationNum").length > 0) {
+            custRelationNum = Integer.valueOf(map.get("custRelationNum")[0]);
+        } else {
             custRelationNum = 0;
         }
         String[] custRelationInfo = map.get("custRelationInfo");
-        if(custRelationNum>0){
-            for(int i=1;i<=custRelationNum;i++){
+        if (custRelationNum > 0) {
+            for (int i = 1; i <= custRelationNum; i++) {
                 String[] custRelationTemp = new String[custRelationInfo.length];
-                System.arraycopy(custRelationInfo,0,custRelationTemp,0,custRelationInfo.length);
-                for(int a=0;a<custRelationInfo.length;a++){
-                    custRelationTemp[a]="联系人"+i+custRelationTemp[a];
+                System.arraycopy(custRelationInfo, 0, custRelationTemp, 0, custRelationInfo.length);
+                for (int a = 0; a < custRelationInfo.length; a++) {
+                    custRelationTemp[a] = "联系人" + i + custRelationTemp[a];
                 }
                 list.add(custRelationTemp);
             }
         }
         //客户房产
-        Integer custAssetNum ;
-        if(map.get("custAssetNum").length>0){
-            custAssetNum=Integer.valueOf(map.get("custAssetNum")[0]);
-        }else {
+        Integer custAssetNum;
+        if (map.get("custAssetNum").length > 0) {
+            custAssetNum = Integer.valueOf(map.get("custAssetNum")[0]);
+        } else {
             custAssetNum = 0;
         }
         String[] custAssetInfo = map.get("custAssetInfo");
-        if(custAssetNum>0){
-            for(int i=1;i<=custAssetNum;i++){
+        if (custAssetNum > 0) {
+            for (int i = 1; i <= custAssetNum; i++) {
                 String[] custAssetTemp = new String[custAssetInfo.length];
-                System.arraycopy(custAssetInfo,0,custAssetTemp,0,custAssetInfo.length);
-                for(int a=0;a<custAssetInfo.length;a++){
-                    custAssetTemp[a]="房产"+i+custAssetTemp[a];
+                System.arraycopy(custAssetInfo, 0, custAssetTemp, 0, custAssetInfo.length);
+                for (int a = 0; a < custAssetInfo.length; a++) {
+                    custAssetTemp[a] = "房产" + i + custAssetTemp[a];
                 }
                 list.add(custAssetTemp);
             }
         }
         return list;
     }
+
     public String[] CopyTheArray(String[] originalArray, List<String[]> list) {
-        if(!list.isEmpty()){
-            for(String[] array : list){
-                if(Objects.nonNull(array)){
-                    originalArray= Arrays.copyOf(originalArray,originalArray.length+array.length);
-                    System.arraycopy(array,0,originalArray,originalArray.length-array.length,array.length);
+        if (!list.isEmpty()) {
+            for (String[] array : list) {
+                if (Objects.nonNull(array)) {
+                    originalArray = Arrays.copyOf(originalArray, originalArray.length + array.length);
+                    System.arraycopy(array, 0, originalArray, originalArray.length - array.length, array.length);
                 }
             }
         }

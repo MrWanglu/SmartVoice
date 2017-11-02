@@ -122,5 +122,7 @@ CREATE TABLE `case_distributed_temporary` (
   `operator_real_name` varchar(200) DEFAULT NULL COMMENT '操作人姓名',
   `operator_time` datetime DEFAULT NULL COMMENT '操作时间',
   `company_code` varchar(64) DEFAULT NULL COMMENT '公司code码',
+  `last_collector_has_days` int(4) DEFAULT NULL COMMENT '上一催收员持案天数',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='案件分配结果临时表';
+

@@ -68,6 +68,7 @@ public class SysParamController extends BaseController {
                                                            @RequestParam(required = false) String type,
                                                            @RequestParam(required = false) String value,
                                                            @RequestParam(required = false) Integer sign,
+                                                           @RequestParam(required = false) String companyCode,
                                                            @ApiIgnore Pageable pageable,
                                                            @RequestHeader(value = "X-UserToken") String token) {
         User user;
@@ -98,8 +99,9 @@ public class SysParamController extends BaseController {
             builder.and(qSysParam.sign.eq(sign));
         }
         if (ZWStringUtils.isNotEmpty(user.getCompanyCode())) {
-            builder.and(qSysParam.companyCode.eq(user.getCompanyCode()
-            ));
+            builder.and(qSysParam.companyCode.eq(user.getCompanyCode()));
+        } else if (ZWStringUtils.isNotEmpty(companyCode)) {
+            builder.and(qSysParam.companyCode.eq(companyCode));
         }
         Page<SysParam> page = sysParamRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(page);

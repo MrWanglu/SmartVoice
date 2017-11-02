@@ -30,4 +30,8 @@ public class PreviewParams {
     private BigDecimal endAmount;
     @ApiModelProperty("公司Code")
     private String companyCode;
+    @ApiModelProperty(notes = "页码", required = true)
+    private Integer page;
+    @ApiModelProperty(notes = "每页大小", required = true)
+    private Integer size;
 }

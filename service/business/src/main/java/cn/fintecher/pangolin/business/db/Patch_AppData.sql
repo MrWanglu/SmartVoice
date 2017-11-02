@@ -80,7 +80,7 @@ INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, 
 
 
 --2017-09-25 huyanmin 新增导入跟进记录参数
-INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f0011', '0001', 'sys.outcase.followup', '委外案件跟进记录导入模版', 0, '9005', 'http://192.168.3.10/group1/M00/00/4D/wKgDClngp1qAKmQbAAArWaEzWOc85.xlsx', 0, 'administrator', '2017-9-25 19:10:20', '委外案件跟进记录导入模版', NULL);
+INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f0066', '0001', 'sys.outcase.followup', '委外案件跟进记录导入模版', 0, '9005', 'http://192.168.3.10:9000/file-service/api/fileUploadController/view/59f29e6a0efad605e9d4d7ed.xlsx', 0, 'administrator', '2017-9-25 19:10:20', '委外案件跟进记录导入模版', NULL);
 --2017-09-25 huyanmin 在委外池中新增3个字段
 ALTER TABLE `outsource_pool` ADD COLUMN `company_code` varchar(64) DEFAULT NULL COMMENT '公司特定标识';
 ALTER TABLE `outsource_pool` ADD COLUMN `over_outsource_time` date DEFAULT NULL COMMENT '委外到期时间';
@@ -165,4 +165,52 @@ INSERT INTO `pangolin_business`.`resource` (`id`, `pid`, `sys_name`, `name`, `co
 INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('245', '0036', 'C', '催收机构', '4');
 
 --2017-10-24 白章宇 增加系统参数
-INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f0009', '0001', 'Sysparam.revokedistribute', '案件分案撤销时长', 0, '9001', '30', 0, 'administrator', '2017-10-17 18:41:15', '案件分案撤销时长(分钟)', '1');
+INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f00016', '0001', 'Sysparam.revokedistribute', '案件分案撤销时长', 0, '9001', '30', 0, 'administrator', '2017-10-17 18:41:15', '案件分案撤销时长(分钟)', '1');
+
+--2017-10-30 祁吉贵 增加撤销案件权限码
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('439', '390', '催大人', '撤销分案', '0406FF', NULL, NULL, NULL, NULL, NULL, '18', NULL, NULL, NULL, NULL, '439');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('440', '439', '催大人', '客户姓名', '040601', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '440');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('441', '439', '催大人', '案件编号', '040602', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '441');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('442', '439', '催大人', '批次号', '040603', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '442');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('443', '439', '催大人', '委托方', '040604', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '443');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('444', '439', '催大人', '原催收员', '040605', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '444');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('445', '439', '催大人', '当前催收员', '040606', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '445');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('446', '439', '催大人', '分案时间', '040607', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '446');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('447', '439', '催大人', '数据来源', '040608', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '447');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('448', '439', '催大人', '案件金额', '040609', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '448');
+INSERT INTO `pangolin_business_test`.`resource` VALUES ('449', '439', '催大人', '撤销分案', '040610', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '449');
+
+--2017-10-30 白章宇 增加字段
+ALTER TABLE `case_distributed_temporary`
+ADD COLUMN `case_remark`  varchar(64) NULL COMMENT '案件备注ID';
+
+--2017-10-30 胡艳敏 公司表中增加新字段
+ALTER TABLE `company`
+DROP COLUMN `register_day`,
+ADD COLUMN `register_day`  int(6) NULL DEFAULT NULL COMMENT '注册天数 null没有注册  99999表示无线注册' AFTER `sequence`;
+--2017-10-30 胡艳敏 软件注册，增加新的参数
+INSERT INTO `sys_param` (`id`, `company_code`, `code`, `name`, `status`, `type`, `value`, `sign`, `operator`, `operate_time`, `remark`, `field`) VALUES ('ff8080815dfe341a797e0043da6f0015', '0001', 'SysParam.registersoftware', '软件注册码', '0', '9001', '21218cca77804d2ba1922c33e0151105', '0', 'administrator', '2017-10-25 17:49:35', NULL, NULL);
+
+--2017-10-30 白章宇 增加字段
+ALTER TABLE `case_distributed_temporary`
+ADD COLUMN `current_department_code`  varchar(64) NULL COMMENT '案件当前所在部门code码';
+
+--2017-10-31 祁吉贵 增加受托方的机构类型
+
+INSERT INTO `data_dict_type` (`id`, `code`, `name`) VALUES ('52', '0052', '受托方机构类型');
+
+INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('246', '0052', 'P', '贷款公司', '1');
+INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('247', '0052', 'I', '保险公司', '2');
+INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('248', '0052', 'O', '其他', '4');
+INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('249', '0052', 'C', '催收机构', '3');
+
+--2017-10-31
+--新增数据字典项
+--夏群
+INSERT INTO `data_dict` VALUES ('246', '0008', null, '还款强制拒绝', '6');
+
+--2017-10-31
+--新增已结案设置导出项权限码
+--胡艳敏
+INSERT INTO `pangolin_business`.`resource` VALUES ('596', '525', '催大人', '设置导出项', '0F0413', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '596');
+INSERT INTO `pangolin_business`.`resource` VALUES ('913', '858', '催大人', '操作时间', '090703', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '913');

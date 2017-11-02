@@ -7,8 +7,6 @@ import cn.fintecher.pangolin.business.model.SysNotice;
 import cn.fintecher.pangolin.business.repository.BatchManageRepository;
 import cn.fintecher.pangolin.business.repository.CompanyRepository;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
-import cn.fintecher.pangolin.business.repository.UserRepository;
-import cn.fintecher.pangolin.business.service.JobTaskService;
 import cn.fintecher.pangolin.business.service.OverNightBatchService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.Constants;
@@ -19,8 +17,7 @@ import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.quartz.JobDataMap;
-import org.quartz.JobExecutionException;
+import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -55,10 +53,7 @@ public class BatchManageController extends BaseController {
     private BatchManageRepository batchManageRepository;
 
     @Autowired
-    private JobTaskService jobTaskService;
-
-    @Autowired
-    private UserRepository userRepository;
+    private SchedulerFactoryBean schedFactory;
 
     @Autowired
     private CompanyRepository companyRepository;
@@ -216,6 +211,14 @@ public class BatchManageController extends BaseController {
             if (Objects.nonNull(object[8].toString())) {
                 batchManageList.setTimeZone(object[8].toString());
             }
+            try {
+                Trigger.TriggerState triggerState = schedFactory.getScheduler().getTriggerState(TriggerKey.triggerKey(object[4].toString(), object[5].toString()));
+                if (Objects.nonNull(triggerState)) {
+                    batchManageList.setTriggerState(triggerState.toString());
+                }
+            } catch (SchedulerException e) {
+                logger.error("获取触发器状态失败");
+            }
             batchManageLists.add(batchManageList);
         }
         BatchManageContent batchManageContent = new BatchManageContent();
@@ -239,5 +242,39 @@ public class BatchManageController extends BaseController {
             logger.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "error", "获取失败")).body(null);
         }
+    }
+
+    @GetMapping("/pauseTriggerForJob")
+    @ApiOperation(value = "暂停触发器", notes = "暂停触发器")
+    public ResponseEntity pauseTriggerForJob(@RequestParam String triggerName,@RequestParam String triggerGroup) {
+        Scheduler scheduler = schedFactory.getScheduler();
+        TriggerKey triggerKey = TriggerKey.triggerKey(triggerName,triggerGroup);
+        try {
+            if (scheduler.checkExists(triggerKey)) {
+                scheduler.pauseTrigger(triggerKey);
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "error", "触发器不存在")).body(null);
+            }
+        } catch (SchedulerException e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "error", "暂停失败")).body(null);
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("暂停成功", "")).body(null);
+    }
+
+    @GetMapping("/resumeTriggerForJob")
+    @ApiOperation(value = "启用触发器", notes = "启用触发器")
+    public ResponseEntity resumeTriggerForJob(@RequestParam String triggerName,@RequestParam String triggerGroup) {
+        Scheduler scheduler = schedFactory.getScheduler();
+        TriggerKey triggerKey = TriggerKey.triggerKey(triggerName,triggerGroup);
+        try {
+            if (scheduler.checkExists(triggerKey)) {
+                scheduler.resumeTrigger(triggerKey);
+            } else {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "error", "触发器不存在")).body(null);
+            }
+        } catch (SchedulerException e) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "error", "启用失败")).body(null);
+        }
+        return ResponseEntity.ok().headers(HeaderUtil.createAlert("启用成功", "")).body(null);
     }
 }

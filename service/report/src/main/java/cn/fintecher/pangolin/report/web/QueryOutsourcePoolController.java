@@ -52,7 +52,12 @@ public class QueryOutsourcePoolController extends BaseController {
             if(Objects.nonNull(tokenUser.getCompanyCode())) {
                 queryOutsourcePoolParams.setCompanyCode(tokenUser.getCompanyCode());
             }
-            List<QueryOutsourcePool> content = queryOutsourcePoolMapper.getAllOutSourcePoolModel(queryOutsourcePoolParams);
+            List<QueryOutsourcePool> content = null;
+            if (queryOutsourcePoolParams.getType()==1){
+                content = queryOutsourcePoolMapper.getAllOutSourcePoolByBatchNumber(queryOutsourcePoolParams);
+            }else {
+                content = queryOutsourcePoolMapper.getAllOutSourceByOutsName(queryOutsourcePoolParams);
+            }
             PageInfo pageInfo = new PageInfo(content);
             OutSourcePoolModel outSourcePoolModel = new OutSourcePoolModel();
             outSourcePoolModel.setContent(content);
@@ -61,7 +66,7 @@ public class QueryOutsourcePoolController extends BaseController {
             return ResponseEntity.ok().body(outSourcePoolModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("QueryOutsourcePoolController", "queryAllOutsourcePool", "委外催收中查询失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("QueryOutsourcePoolController", "queryAllOutsourcePool", "案件查询失败")).body(null);
         }
 
     }

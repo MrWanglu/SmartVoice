@@ -273,7 +273,7 @@ public class CaseInfo extends BaseEntity {
         //委外结案
         OUTSIDE_CLOSED(114, "委外结案"),
         //核销结案
-        CLOSE_CASE(218, "核销结案");
+        CLOSE_CASE(217, "核销结案");
 
         private Integer value;
 

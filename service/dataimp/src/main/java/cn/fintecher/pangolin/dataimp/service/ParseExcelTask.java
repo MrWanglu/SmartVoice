@@ -81,7 +81,29 @@ public class ParseExcelTask {
                 for (TemplateExcelInfo templateExcelInfo : templateExcelInfos) {
                     if (StringUtils.isNotBlank(templateExcelInfo.getRelateName())) {
                         Cell cell = dataRow.getCell(templateExcelInfo.getCellNum());
-                        matchFields(dataClass, columnErrorList, obj,rowIndex + 1, templateExcelInfo.getCellNum(), templateExcelInfo.getCellName(), cell, flag);
+                        //获取类中所有的字段
+                        Field[] fields = dataClass.getDeclaredFields();
+                        for (Field field : fields) {
+                            //实体中的属性名称
+                            String proName = field.getName();
+                            //匹配到实体中相应的字段
+                            if (proName.equals(templateExcelInfo.getRelateName())) {
+                                ColumnError columnError = new ColumnError();
+                                columnError.setColumnIndex(templateExcelInfo.getCellNum() + 1);
+                                columnError.setTitleMsg(templateExcelInfo.getCellName());
+                                //打开实体中私有变量的权限
+                                field.setAccessible(true);
+                                // 获取数据或者错误信息
+                                Map<Object, ColumnError> map = validityDataGetFieldValue(field, cell, columnError, flag);
+                                Map.Entry<Object, ColumnError> next = map.entrySet().iterator().next();
+                                field.set(obj, next.getKey());
+                                if (StringUtils.isNotBlank(next.getValue().getErrorMsg())) {
+                                    ColumnError value = next.getValue();
+                                    columnErrorList.add(value);
+                                }
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -112,8 +134,8 @@ public class ParseExcelTask {
         dataInfoExcel.setPaymentStatus("M".concat(String.valueOf(dataInfoExcel.getOverDuePeriods() == null ? "M0" : dataInfoExcel.getOverDuePeriods())));
         dataInfoExcel.setDelegationDate(dataImportRecord.getDelegationDate());
         dataInfoExcel.setCloseDate(dataImportRecord.getCloseDate());
-        String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, dataImportRecord.getCompanyCode(), Constants.CASE_SEQ_LENGTH).concat(dataImportRecord.getCompanySequence());
-        dataInfoExcel.setCaseNumber(caseNumber);
+        String caseNumber = mongoSequenceService.getNextSeq(Constants.CASE_SEQ, dataImportRecord.getCompanyCode(), Constants.CASE_SEQ_LENGTH);
+        dataInfoExcel.setCaseNumber(dataImportRecord.getCompanySequence().concat(caseNumber));
         dataInfoExcel.setRecoverWay(dataImportRecord.getRecoverWay());
         if (!columnErrorList.isEmpty()) {
             rowError.setName(dataInfoExcel.getPersonalName());

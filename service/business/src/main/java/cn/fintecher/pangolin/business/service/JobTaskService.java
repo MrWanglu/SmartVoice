@@ -1,19 +1,14 @@
 package cn.fintecher.pangolin.business.service;
 
-import cn.fintecher.pangolin.business.config.ConfigureQuartz;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.entity.QSysParam;
 import cn.fintecher.pangolin.entity.SysParam;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
+import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.stereotype.Service;
 
@@ -43,19 +38,17 @@ public class JobTaskService {
     public void updateJobTask(String cron,String companyCode,String sysParamCode, String triggerName,String triggerGroup,String triggerDesc,
                               String jobName,String jobGroup,String jobDesc,Class objClass,String beanName) throws Exception {
         Scheduler scheduler = schedFactory.getScheduler();
-        JobDetail jobDetail=scheduler.getJobDetail(JobKey.jobKey(jobName,jobGroup));
-        if(Objects.nonNull(jobDetail)){
-            scheduler.deleteJob(jobDetail.getKey());
-        }else{
-            jobDetail = ConfigureQuartz.createJobDetail(objClass, jobGroup,jobName, jobDesc);
-        }
         JobDataMap jobDataMap=new JobDataMap();
         jobDataMap.put("companyCode",companyCode);
         jobDataMap.put("sysParamCode",sysParamCode);
-        CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(triggerGroup,triggerName, beanName, triggerDesc, jobDetail, cron,jobDataMap);
-        cronTriggerFactoryBean.afterPropertiesSet();
+        TriggerBuilder triggerBuilder = TriggerBuilder.newTrigger();
+        Trigger trigger = triggerBuilder.usingJobData(jobDataMap).withDescription(triggerDesc).withIdentity(triggerName,triggerGroup).withSchedule(CronScheduleBuilder.cronSchedule(cron)).build();
+        Trigger.TriggerState triggerState= scheduler.getTriggerState(trigger.getKey());
         //加入调度器
-        schedFactory.getScheduler().scheduleJob(jobDetail, cronTriggerFactoryBean.getObject());
+        schedFactory.getScheduler().rescheduleJob(trigger.getKey(),trigger);
+        if(triggerState.equals(Trigger.TriggerState.PAUSED)){
+            scheduler.pauseTrigger(trigger.getKey());
+        }
     }
 
     /**

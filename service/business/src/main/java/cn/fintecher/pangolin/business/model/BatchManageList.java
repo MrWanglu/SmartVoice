@@ -18,4 +18,5 @@ public class BatchManageList {
     private String nextExecutionTime;
     private String expression;
     private String timeZone;
+    private String triggerState;
 }

@@ -10,7 +10,6 @@ import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,6 @@ public class CaseJudicialCollectionController extends BaseController {
      * @Description : 分页,多条件查询司法催收案件信息
      */
     @GetMapping("/queryCaseInfo")
-    @ApiOperation(value = "司法催收案件查詢", notes = "司法催收案件查詢")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "int", paramType = "query",
                     value = "页数 (0..N)"),
@@ -52,7 +50,6 @@ public class CaseJudicialCollectionController extends BaseController {
     })
     public ResponseEntity<Page<CaseInfo>> queryCaseInfo(@QuerydslPredicate(root = CaseInfo.class) Predicate predicate,
                                                         @ApiIgnore Pageable pageable,
-                                                        @RequestParam(required = false) String companyCode,
                                                         @RequestHeader(value = "X-UserToken") String token) {
 
         User user;
@@ -63,15 +60,11 @@ public class CaseJudicialCollectionController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
-        builder.and(QCaseInfo.caseInfo.endType.eq(CaseInfo.EndType.JUDGMENT_CLOSED.getValue()));
         if (Objects.nonNull(user.getCompanyCode())) {
             builder.and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode()));
-        }else{
-            if (Objects.nonNull(companyCode)){
-                builder.and(QCaseInfo.caseInfo.companyCode.eq(companyCode));
-            }
         }
         Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功","operation successfully")).body(page);
+        
+        return ResponseEntity.ok().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "operate successfully", "操作成功")).body(page);
     }
 }

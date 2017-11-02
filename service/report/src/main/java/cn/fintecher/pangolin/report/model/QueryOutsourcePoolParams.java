@@ -29,5 +29,7 @@ public class  QueryOutsourcePoolParams {
     private Integer page;
     /*每一页显示的数量*/
     private Integer size;
+    /*选择委外方或批次号显示的类型*/
+    private Integer type;
 
 }

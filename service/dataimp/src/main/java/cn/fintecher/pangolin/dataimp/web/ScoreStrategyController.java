@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -52,6 +53,7 @@ public class ScoreStrategyController {
     @GetMapping("/query")
     @ApiOperation(value = "查询所有规则属性", notes = "查询所有规则属性")
     public ResponseEntity query(@RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
+                                @RequestParam @ApiParam(value = "策略类型") Integer strategyType,
                                 @RequestHeader(value = "X-UserToken") String token, @ApiIgnore Pageable pageable) {
         try {
             ResponseEntity<User> userResponseEntity = null;
@@ -70,6 +72,11 @@ public class ScoreStrategyController {
             } else {
                 query.addCriteria(Criteria.where("companyCode").is(user.getCompanyCode()));
             }
+            //根据不同的策略类型去查询
+            if(Objects.nonNull(strategyType)){
+                query.addCriteria(Criteria.where("strategyType").is(strategyType));
+            }
+
             int total = (int) mongoTemplate.count(query, ScoreRule.class);
             query.with(pageable);
             List<ScoreRule> list = mongoTemplate.find(query, ScoreRule.class);
@@ -96,7 +103,14 @@ public class ScoreStrategyController {
             }
             User user = userResult.getBody();
             jsonStr = (JsonObj) EntityUtil.emptyValueToNull(jsonStr);
-            scoreRuleRepository.deleteAll();//保存之前删除已有数据
+            Query query = new Query();
+            if(Objects.nonNull(jsonStr.getStrategyType())){
+                query.addCriteria(Criteria.where("strategyType").is(jsonStr.getStrategyType()));
+            }
+            //查找需要保存所对应的策略类型对象集合
+            List<ScoreRule> scoreRules = mongoTemplate.find(query, ScoreRule.class);
+            ///保存之前删除所对应的策略类型对象集合
+            scoreRuleRepository.delete(scoreRules);
             List<ScoreRule> sorceRules = new ArrayList<>();//属性集合
             String str = jsonStr.getJsonStr();//取json字符串
             JSONArray jsonArray = JSONArray.parseArray(str);//解析
@@ -121,6 +135,12 @@ public class ScoreStrategyController {
                     StringBuilder sb = new StringBuilder("");
                     scoreFormula.setStrategy(analysisRule(scoreFormula.getStrategyJson(), sb, scoreRule.getName()));
                     scoreFormula.setScore(obj.getBigDecimal("score"));
+                    if(Objects.isNull(scoreFormula.getScore())){
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStregy", "no message", "请设置分值")).body(null);
+                    }
+                    if(scoreFormula.getScore().equals(BigDecimal.ZERO)){
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStregy", "no message", "分值不能为0")).body(null);
+                    }
                     formulaList.add(scoreFormula);
                 }
                 scoreRule.setFormulas(formulaList);

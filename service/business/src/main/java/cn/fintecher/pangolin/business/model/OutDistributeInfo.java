@@ -1,8 +1,10 @@
 package cn.fintecher.pangolin.business.model;
 
+import cn.fintecher.pangolin.entity.OutsourcePool;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Created by huyanmin on 2017/9/20.
@@ -23,4 +25,5 @@ public class OutDistributeInfo {
     private BigDecimal caseDistributeMoneyCount = new BigDecimal(0); //确认分配案件总金额
     private Integer caseTotalCount = new Integer(0); //分后后案件总数
     private BigDecimal caseMoneyTotalCount = new BigDecimal(0); //分配后案件金额总数
+    private List<OutsourcePool> outsourcePoolList; //委外方分配的案件集合
 }

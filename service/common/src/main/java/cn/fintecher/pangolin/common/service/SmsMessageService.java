@@ -22,7 +22,12 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -187,12 +192,22 @@ public class SmsMessageService {
             nvps.add(new BasicNameValuePair("userPass", userPass));
             nvps.add(new BasicNameValuePair("DesNo", message.getPhoneNumber()));
             nvps.add(new BasicNameValuePair("Msg", message.getContent()));
-            nvps.add(new BasicNameValuePair("channel", lookChannel));
+            nvps.add(new BasicNameValuePair("Channel", lookChannel));
             HttpClient httpclient = new DefaultHttpClient();
             HttpPost httpPost = new HttpPost(lookUrl);
             httpPost.setEntity(new UrlEncodedFormEntity(nvps, "UTF-8"));
             HttpResponse response = httpclient.execute(httpPost);
-
+            if(Objects.nonNull(response.getEntity())){
+                InputStream instreams = response.getEntity().getContent();
+                String result = convertStreamToString(instreams);
+                Pattern pattern = Pattern.compile("\\d{19}");
+                Matcher matcher = pattern.matcher(result);
+                if(matcher.find()){
+                    log.debug("Message:" + message.toString());
+                    log.debug(matcher.group());
+                    return null;
+                }
+            }
 //            ResponseEntity entity = null;
 //            HttpHeaders headers = new HttpHeaders();
 //            headers.setContentType(MediaType.APPLICATION_JSON);
@@ -210,12 +225,32 @@ public class SmsMessageService {
 //            if (Objects.equals(jsonObject.get("code"), "0")) {
 //                return null;
 //            }
-            log.debug(response.toString());
-            return null;
+            return message.getPhoneNumber();
         } catch (Exception e) {
             return message.getPhoneNumber();
         }
     }
+
+    public static String convertStreamToString(InputStream is) {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        String line = null;
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                is.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return sb.toString();
+    }
+
 }
 
 

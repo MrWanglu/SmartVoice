@@ -71,16 +71,29 @@ public class ExportOutsourceFollowupController extends BaseController {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", e.getMessage())).body(null);
         }
+        final String userId = user.getId();
         ResponseEntity<ItemsModel> entity = null;
         if(exportOutsourceFollowRecordParams.getType()==0){
             entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceExportItems?token="+token, ItemsModel.class);
-        }else{
+        }else if(exportOutsourceFollowRecordParams.getType()==1){
             entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceFollowUpExportItems?token="+token, ItemsModel.class);
+        }else {
+            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceClosedFollowUpExportItems?token="+token, ItemsModel.class);
         }
         ItemsModel itemsModel = entity.getBody();
         if(itemsModel.getPersonalItems().isEmpty() && itemsModel.getJobItems().isEmpty() && itemsModel.getConnectItems().isEmpty()
                 && itemsModel.getCaseItems().isEmpty() && itemsModel.getBankItems().isEmpty() && itemsModel.getFollowItems().isEmpty()){
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先设置导出项")).body(null);
+            ProgressMessage progressMessage1 = new ProgressMessage();
+            List<String> urls = new ArrayList<>();
+            ListResult listResult = new ListResult();
+            listResult.setUser(userId);
+            urls.add("请先设置导出项");
+            listResult.setResult(urls);
+            listResult.setStatus(ListResult.Status.FAILURE.getVal()); // 1-失败
+            restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", listResult, Void.class);
+            progressMessage1.setCurrent(5);
+            rabbitTemplate.convertAndSend(Constants.FOLLOWUP_OUTSOURCE_EXPORT_QE, progressMessage1);
+            return ResponseEntity.ok().body(null);
         }
         List<String> items = new ArrayList<>();
         items.addAll(itemsModel.getPersonalItems());
@@ -88,9 +101,8 @@ public class ExportOutsourceFollowupController extends BaseController {
         items.addAll(followRecordExportService.parseConnect(itemsModel.getConnectItems()));
         items.addAll(itemsModel.getCaseItems());
         items.addAll(itemsModel.getBankItems());
-        items.addAll(followRecordExportService.parseFollow(itemsModel.getFollowItems()));
+        items.addAll(itemsModel.getFollowItems());
         exportOutsourceFollowRecordParams.setExportItemList(items);
-        final String userId = user.getId();
         try {
             //创建一个线程，执行导出任务
             Thread t = new Thread(() -> {
@@ -99,6 +111,8 @@ public class ExportOutsourceFollowupController extends BaseController {
                 ByteArrayOutputStream out = null;
                 FileOutputStream fileOutputStream = null;
                 ProgressMessage progressMessage = null;
+                List<String> urls = new ArrayList<>();
+                ListResult listResult = new ListResult();
                 try {
                     progressMessage = new ProgressMessage();
                     // 登录人ID
@@ -109,7 +123,7 @@ public class ExportOutsourceFollowupController extends BaseController {
                     progressMessage.setCurrent(0);
                     //正在处理数据
                     progressMessage.setText("正在处理数据");
-                    rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                    rabbitTemplate.convertAndSend(Constants.FOLLOWUP_OUTSOURCE_EXPORT_QE, progressMessage);
                     List<ExcportOutsourceResultModel> all = null;
                     if(exportOutsourceFollowRecordParams.getType()==0){
                         all = queryOutsourceFollowupMapper.findOutsourceRecord(exportOutsourceFollowRecordParams);
@@ -119,7 +133,7 @@ public class ExportOutsourceFollowupController extends BaseController {
                     ResponseEntity<String> url = null;
                     if (!all.isEmpty()) {
                         progressMessage.setCurrent(2);
-                        rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                        rabbitTemplate.convertAndSend(Constants.FOLLOWUP_OUTSOURCE_EXPORT_QE, progressMessage);
                         int maxNum = outsourceFollowRecordExportService.getMaxNum(all);
                         List<FollowupExportModel> dataList = null;
                         if (exportOutsourceFollowRecordParams.getType()==0){
@@ -130,7 +144,7 @@ public class ExportOutsourceFollowupController extends BaseController {
                         String[] title = followRecordExportService.getTitle(exportOutsourceFollowRecordParams.getExportItemList(), maxNum);
                         Map<String, String> headMap = ExcelExportUtil.createHeadMap(title, FollowupExportModel.class);
                         progressMessage.setCurrent(3);
-                        rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                        rabbitTemplate.convertAndSend(Constants.FOLLOWUP_OUTSOURCE_EXPORT_QE, progressMessage);
                         workbook = new SXSSFWorkbook(5000);
                         ExcelExportUtil.createExcelData(workbook, headMap, dataList, 1048575);
                         out = new ByteArrayOutputStream();
@@ -145,28 +159,22 @@ public class ExportOutsourceFollowupController extends BaseController {
                         url = restTemplate.postForEntity(Constants.UPLOAD_FILE_URL, param, String.class);
                     }
                     if (url == null && !all.isEmpty()) {
-                        List<String> urls = new ArrayList<>();
-                        ListResult listResult = new ListResult();
                         listResult.setUser(userId);
                         urls.add("导出失败！");
                         listResult.setStatus(ListResult.Status.FAILURE.getVal()); // 1-失败
                         restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", listResult, Void.class);
                         progressMessage.setCurrent(5);
-                        rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                        rabbitTemplate.convertAndSend(Constants.FOLLOWUP_OUTSOURCE_EXPORT_QE, progressMessage);
                     } else {
                         if (all.isEmpty()) {
-                            List<String> urls = new ArrayList<>();
-                            ListResult listResult = new ListResult();
                             urls.add("要导出的数据为空");
                             listResult.setUser(userId);
                             listResult.setResult(urls);
                             listResult.setStatus(ListResult.Status.FAILURE.getVal()); // 0-成功
                             restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", listResult, Void.class);
                             progressMessage.setCurrent(5);
-                            rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                            rabbitTemplate.convertAndSend(Constants.FOLLOWUP_OUTSOURCE_EXPORT_QE, progressMessage);
                         } else {
-                            List<String> urls = new ArrayList<>();
-                            ListResult listResult = new ListResult();
                             urls.add(url.getBody());
                             log.info(url.getBody());
                             listResult.setUser(userId);
@@ -174,18 +182,16 @@ public class ExportOutsourceFollowupController extends BaseController {
                             listResult.setStatus(ListResult.Status.SUCCESS.getVal()); // 0-成功
                             restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", listResult, Void.class);
                             progressMessage.setCurrent(5);
-                            rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                            rabbitTemplate.convertAndSend(Constants.FOLLOWUP_OUTSOURCE_EXPORT_QE, progressMessage);
                         }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    List<String> urls = new ArrayList<>();
-                    ListResult listResult = new ListResult();
                     urls.add("导出失败！");
                     listResult.setStatus(ListResult.Status.FAILURE.getVal()); // 1-失败
                     restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", listResult, Void.class);
                     progressMessage.setCurrent(5);
-                    rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
+                    rabbitTemplate.convertAndSend(Constants.FOLLOWUP_OUTSOURCE_EXPORT_QE, progressMessage);
                 } finally {
                     // 关闭流
                     if (workbook != null) {
