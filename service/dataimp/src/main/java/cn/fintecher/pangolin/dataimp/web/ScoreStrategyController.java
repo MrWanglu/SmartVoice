@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -134,6 +135,12 @@ public class ScoreStrategyController {
                     StringBuilder sb = new StringBuilder("");
                     scoreFormula.setStrategy(analysisRule(scoreFormula.getStrategyJson(), sb, scoreRule.getName()));
                     scoreFormula.setScore(obj.getBigDecimal("score"));
+                    if(Objects.isNull(scoreFormula.getScore())){
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStregy", "no message", "请设置分值")).body(null);
+                    }
+                    if(scoreFormula.getScore().equals(BigDecimal.ZERO)){
+                        return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("scoreStregy", "no message", "分值不能为0")).body(null);
+                    }
                     formulaList.add(scoreFormula);
                 }
                 scoreRule.setFormulas(formulaList);
