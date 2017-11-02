@@ -292,7 +292,7 @@
         LEFT JOIN principal c on a.principal_id = c.id
         LEFT JOIN `user` d on a.current_collector = d.id
         LEFT JOIN department e on a.depart_id = e.id where e.`code` LIKE concat(#{code},'%')
-        and a.case_pool_type = 225 and a.collectionStatus in(#{collectionStatusList})
+        and a.case_pool_type = 225 and a.collectionStatus in(${collectionStatusList})
         <if test="personalName != null">
             AND b.`name` LIKE concat('%',#{personalName},'%')
         </if>
@@ -347,9 +347,9 @@
         <if test="collectionStatus != null">
             AND a.collectionStatus = #{collectionStatus}
         </if>
-        ORDER BY a.caseMark asc,a.followupBack is null, a.followupBack asc,b.`name` asc
+        ORDER BY a.caseMark desc,if(isnull(a.followupBack),1,0),a.followupBack asc,b.`name` asc
         <if test="sort != null">
-            ORDER BY #{sort}
+            ,${sort}
         </if>
     </select>
 </mapper>
