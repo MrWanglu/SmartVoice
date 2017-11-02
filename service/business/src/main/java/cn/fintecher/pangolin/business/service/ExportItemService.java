@@ -116,7 +116,7 @@ public class ExportItemService {
         if(category == 3){
             return ;
         }
-        if(category==1 || category == 2 || category == 3){
+        if(category==1 || category == 2 || category == 3 || category == 5 || category == 6){
             createFollowItems(user,category);
         }
 
