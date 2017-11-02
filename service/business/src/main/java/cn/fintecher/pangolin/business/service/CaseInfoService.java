@@ -125,6 +125,12 @@ public class CaseInfoService {
     @Inject
     OutsourcePoolRepository outsourcePoolRepository;
 
+    @Inject
+    CaseInfoVerificationRepository caseInfoVerificationRepository;
+
+    @Inject
+    CaseInfoJudicialRepository caseInfoJudicialRepository;
+
 
     /**
      * @Description 重新分配
@@ -445,7 +451,30 @@ public class CaseInfoService {
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
             caseInfo.setEndRemark(endCaseParams.getEndRemark()); //结案说明
             caseInfo.setEndType(endCaseParams.getEndType()); //结案方式
-            caseInfoRepository.saveAndFlush(caseInfo);
+            if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
+                caseInfo.setCasePoolType(CaseInfo.CasePoolType.DESTORY.getValue());
+                CaseInfoVerification verification = new CaseInfoVerification();
+                verification.setCaseInfo(caseInfo);
+                verification.setOperator(tokenUser.getRealName());
+                verification.setOperatorTime(ZWDateUtil.getNowDateTime());
+                verification.setCompanyCode(caseInfo.getCompanyCode());
+                // 核销说明
+                verification.setState(endCaseParams.getEndRemark());
+                caseInfoVerificationRepository.save(verification);
+            }else if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
+                caseInfo.setEndType(CaseInfo.EndType.JUDGMENT_CLOSED.getValue());
+                caseInfo.setCasePoolType(CaseInfo.CasePoolType.JUDICIAL.getValue());
+                CaseInfoJudicial judicial = new CaseInfoJudicial();
+                judicial.setCaseInfo(caseInfo);
+                judicial.setOperatorRealName(tokenUser.getRealName());
+                judicial.setCompanyCode(caseInfo.getCompanyCode());
+                judicial.setOperatorTime(ZWDateUtil.getNowDateTime());
+                judicial.setOperatorUserName(tokenUser.getUserName());
+                caseInfoJudicialRepository.save(judicial);
+            } else {
+                caseInfoRepository.saveAndFlush(caseInfo);
+            }
+
         } else { //是协催案件
             CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(endCaseParams.getCaseId()).
                     and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
@@ -480,6 +509,8 @@ public class CaseInfoService {
                 caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                 caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                 caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
+
+
             } else { //全程协催，原案件催收状态为已结案
                 //同步更新原案件状态
                 caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); //催收状态 24-已结案
@@ -490,6 +521,28 @@ public class CaseInfoService {
                 caseInfo.setEndRemark(endCaseParams.getEndRemark()); //结案说明
                 caseInfo.setEndType(endCaseParams.getEndType()); //结案方式
                 caseInfoRepository.saveAndFlush(caseInfo);
+            }
+            if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
+                caseInfo.setCasePoolType(CaseInfo.CasePoolType.DESTORY.getValue());
+                CaseInfoVerification verification = new CaseInfoVerification();
+                verification.setCaseInfo(caseInfo);
+                verification.setOperator(tokenUser.getRealName());
+                verification.setOperatorTime(ZWDateUtil.getNowDateTime());
+                verification.setCompanyCode(caseInfo.getCompanyCode());
+                // 核销说明
+                verification.setState(endCaseParams.getEndRemark());
+                caseInfoVerificationRepository.save(verification);
+            }
+            if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
+                caseInfo.setEndType(CaseInfo.EndType.JUDGMENT_CLOSED.getValue());
+                caseInfo.setCasePoolType(CaseInfo.CasePoolType.JUDICIAL.getValue());
+                CaseInfoJudicial judicial = new CaseInfoJudicial();
+                judicial.setCaseInfo(caseInfo);
+                judicial.setOperatorRealName(tokenUser.getRealName());
+                judicial.setCompanyCode(caseInfo.getCompanyCode());
+                judicial.setOperatorTime(ZWDateUtil.getNowDateTime());
+                judicial.setOperatorUserName(tokenUser.getUserName());
+                caseInfoJudicialRepository.save(judicial);
             }
         }
     }
@@ -2067,7 +2120,7 @@ public class CaseInfoService {
                 } else {
                     caseDistributedTemporary.setCurrentDepartment(caseInfo.getDepartment().getId()); //案件当前所在部门ID
                     caseDistributedTemporary.setCurrentDepartmentName(caseInfo.getDepartment().getName()); //案件当前所在部门名称
-                    caseDistributedTemporary.setCurrentDepartmentCode(caseInfo.getCurrentCollector().getDepartment().getCode()); //案件当前所在部门code
+                    caseDistributedTemporary.setCurrentDepartmentCode(caseInfo.getDepartment().getCode()); //案件当前所在部门code
                 }
                 caseDistributedTemporary.setPrincipalName(caseInfo.getPrincipalId().getName()); //委托方名称
                 caseDistributedTemporary.setType(CaseDistributedTemporary.Type.FIRST.getValue()); //分案类型
