@@ -107,6 +107,7 @@ public class ScoreStrategyController {
             if(Objects.nonNull(jsonStr.getStrategyType())){
                 query.addCriteria(Criteria.where("strategyType").is(jsonStr.getStrategyType()));
             }
+            query.addCriteria(Criteria.where("companyCode").is(user.getCompanyCode()));
             //查找需要保存所对应的策略类型对象集合
             List<ScoreRule> scoreRules = mongoTemplate.find(query, ScoreRule.class);
             ///保存之前删除所对应的策略类型对象集合
