@@ -95,5 +95,11 @@ pangolin:
       userPass: Qjg888888
       lookUrl: http://112.124.24.5/api/MsgSend.asmx/SendMsg
       channel: 52
+  aliyun:
+      product: Dysmsapi
+      domain: dysmsapi.aliyuncs.com
+      accessKeyId: LTAIAgxYdlgmOCtw
+      accessKeySecret: HKcYeDkCWUxZKHXhdTueJ892qPXFKb
+      signName: 高贝贝
 server:
     port: 9002

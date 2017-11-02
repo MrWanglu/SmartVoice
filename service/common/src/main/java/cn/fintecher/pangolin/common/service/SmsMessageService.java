@@ -2,10 +2,17 @@ package cn.fintecher.pangolin.common.service;
 
 
 import cn.fintecher.pangolin.common.model.SMSMessage;
+import cn.fintecher.pangolin.common.model.SendSmsRequest;
+import cn.fintecher.pangolin.common.model.SendSmsResponse;
 import cn.fintecher.pangolin.common.respository.SMSMessageRepository;
 import cn.fintecher.pangolin.entity.message.PaaSMessage;
 import cn.fintecher.pangolin.entity.util.*;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.IAcsClient;
+import com.aliyuncs.http.MethodType;
+import com.aliyuncs.profile.DefaultProfile;
+import com.aliyuncs.profile.IClientProfile;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -70,6 +77,19 @@ public class SmsMessageService {
     private String lookUrl;
     @Value("${pangolin.winnerLook.channel}")
     private String lookChannel;
+    //阿里云
+    @Value("${pangolin.aliyun.product}")
+    private String product;
+    @Value("${pangolin.aliyun.domain}")
+    private String domain;
+    @Value("${pangolin.aliyun.accessKeyId}")
+    private String accessKeyId;
+    @Value("${pangolin.aliyun.accessKeySecret}")
+    private String accessKeySecret;
+    @Value("${pangolin.aliyun.signName}")
+    private String signName;
+
+
 
 
     @Autowired
@@ -225,6 +245,27 @@ public class SmsMessageService {
 //            if (Objects.equals(jsonObject.get("code"), "0")) {
 //                return null;
 //            }
+            return message.getPhoneNumber();
+        } catch (Exception e) {
+            return message.getPhoneNumber();
+        }
+    }
+
+    public String sendAliyunMessage(PaaSMessage message) {
+        try {
+            IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou",accessKeyId,accessKeySecret);
+            DefaultProfile.addEndpoint("cn-hangzhou", "cn-hangzhou", product, domain);
+            IAcsClient acsClient = new DefaultAcsClient(profile);
+            SendSmsRequest request = new SendSmsRequest();
+            request.setMethod(MethodType.POST);
+            request.setPhoneNumbers(message.getPhoneNumber());
+            request.setSignName(signName);
+            request.setTemplateCode(message.getTemplate());
+            request.setTemplateParam(message.getParams().toString());
+            SendSmsResponse sendSmsResponse = acsClient.getAcsResponse(request);
+            if(sendSmsResponse.getCode() != null && sendSmsResponse.getCode().equals("OK")) {
+                return null;
+            }
             return message.getPhoneNumber();
         } catch (Exception e) {
             return message.getPhoneNumber();
