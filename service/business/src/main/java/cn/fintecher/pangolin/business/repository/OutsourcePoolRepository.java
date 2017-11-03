@@ -30,6 +30,8 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
         * */
         //客户姓名模糊查询
         bindings.bind(root.caseInfo.personalInfo.name).first((path, value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
+        //委外方模糊查询
+        bindings.bind(root.outsource.outsName).first((path, value) -> path.like("%".concat(StringUtils.trim(value)).concat("%")));
         //客户手机号
         bindings.bind(root.caseInfo.personalInfo.mobileNo).first((path, value) -> path.eq(StringUtils.trim(value)).or(root.caseInfo.personalInfo.personalContacts.any().phone.eq(StringUtils.trim(value))));
         //客户身份证号
