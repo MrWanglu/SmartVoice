@@ -1503,6 +1503,7 @@ public class OutsourcePoolController extends BaseController {
                 String outTimeStart = outsBatchlist.getOutTimeStart().substring(0,10)+" 00:00:00";
                 builder.and(QOutsourcePool.outsourcePool.outTime.goe(dateFm.parse(outTimeStart)));
             }
+
             if (Objects.nonNull(outsBatchlist.getOutTimeEnd()) && !("").equals(outsBatchlist.getOutTimeEnd())) {
                 String outTimeEnd =outsBatchlist.getOutTimeEnd().substring(0,10)+" 00:00:00";
                 builder.and(QOutsourcePool.outsourcePool.outTime.loe(dateFm.parse(outTimeEnd)));
