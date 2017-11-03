@@ -346,6 +346,7 @@ public class CaseInfoVerificationService {
         apply.setApplicationReason(applyReason); // 申请理由
         apply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue()); // 申请状态：审批待通过
         apply.setCaseId(caseInfo.getId()); // 案件Id
+        apply.setSource(caseInfo.getCasePoolType()); // 案件池原类型
         if (Objects.nonNull(caseInfo.getArea())) {
             apply.setCity(caseInfo.getArea().getId()); // 城市
             if (Objects.nonNull(caseInfo.getArea().getParent())) {
@@ -381,16 +382,18 @@ public class CaseInfoVerificationService {
             caseInfoVerificationApply.setCompanyCode(user.getCompanyCode());
             caseInfoVerification.setCompanyCode(user.getCompanyCode());
         }
+        CaseInfo caseInfo = caseInfoRepository.findOne(caseInfoVerificationApply.getCaseId());
         if (Objects.equals(caseInfoVerficationModel.getApprovalResult(), 0)) { // 核销审批拒绝
             caseInfoVerificationApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.disapprove.getValue()); // 审批结果：拒绝
             caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_disapprove.getValue()); // 审批状态：审批拒绝
+            caseInfo.setCasePoolType(caseInfoVerificationApply.getSource()); // 案件池类型
+            caseInfoRepository.save(caseInfo);
             caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
-        } else { // 核销审批通过
+        }else { // 核销审批通过
             caseInfoVerificationApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.approve.getValue()); // 审批结果：通过
             caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_approve.getValue()); // 审批状态：审批通过
             caseInfoVerificationApply.setOperator(user.getUserName()); // 审批人
             caseInfoVerificationApply.setOperatorTime(ZWDateUtil.getNowDateTime()); // 审批时间
-            CaseInfo caseInfo = caseInfoRepository.findOne(caseInfoVerificationApply.getCaseId());
             List<CaseAssist> caseAssistList = new ArrayList<>();
             //处理协催案件
             if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //协催标识
@@ -423,6 +426,7 @@ public class CaseInfoVerificationService {
             }
             caseInfo.setEndType(CaseInfo.EndType.CLOSE_CASE.getValue()); // 结案类型：核销结案
             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); // 催收状态：已结案
+            caseInfo.setCasePoolType(CaseInfo.CasePoolType.DESTORY.getValue()); // 案件池类型：核销
             caseInfoRepository.save(caseInfo);
             caseInfoVerification.setCaseInfo(caseInfo);
             caseInfoVerificationRepository.save(caseInfoVerification);
@@ -466,6 +470,5 @@ public class CaseInfoVerificationService {
             caseInfoVerificationPackaging.setCompanyCode(user.getCompanyCode());
         }
         caseInfoVerificationPackagingRepository.save(caseInfoVerificationPackaging);
-
     }
 }
