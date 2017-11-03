@@ -111,12 +111,12 @@ public class CaseFollowupAppController extends BaseController {
                 one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
                 caseAssistRepository.save(one);
             }
-            if (Objects.equals(caseInfo.getAssistFlag(), CaseInfo.AssistFlag.NO_ASSIST.getValue())) {
-                caseFollowupParams.setSource(CaseFollowupRecord.Source.VISIT.getValue());
-                caseFollowupParams.setType(CaseFollowupRecord.Type.VISIT.getValue());
-            } else {
+            if(Objects.equals(caseInfo.getAssistFlag(), CaseInfo.AssistFlag.YES_ASSIST.getValue())){
                 caseFollowupParams.setSource(CaseFollowupRecord.Source.ASSIST.getValue());
                 caseFollowupParams.setType(CaseFollowupRecord.Type.ASSIST.getValue());
+            }else{
+                caseFollowupParams.setSource(CaseFollowupRecord.Source.VISIT.getValue());
+                caseFollowupParams.setType(CaseFollowupRecord.Type.VISIT.getValue());
             }
             caseFollowupParams.setCaseNumber(caseInfo.getCaseNumber());
             if(Objects.nonNull(caseFollowupParams.getFollnextDate())){

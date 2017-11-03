@@ -1091,7 +1091,7 @@ public class CaseInfoService {
         personalContact.setPhoneStatus(repairInfoModel.getPhoneStatus()); //电话状态
         personalContact.setSocialType(repairInfoModel.getSocialType()); //社交帐号类型
         personalContact.setSocialValue(repairInfoModel.getSocialValue()); //社交帐号内容
-        personalContact.setMail(repairInfoModel.getEmail()); //邮箱地址
+        personalContact.setMail(repairInfoModel.getMail()); //邮箱地址
         personalContact.setSource(Constants.DataSource.REPAIR.getValue()); //数据来源 147-修复
         personalContact.setOperator(tokenUser.getUserName()); //操作人
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间

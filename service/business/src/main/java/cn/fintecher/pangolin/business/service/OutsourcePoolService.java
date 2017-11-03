@@ -1,8 +1,6 @@
 package cn.fintecher.pangolin.business.service;
 
-import cn.fintecher.pangolin.business.model.OutDistributeInfo;
-import cn.fintecher.pangolin.business.model.OutsourceDisModle;
-import cn.fintecher.pangolin.business.model.OutsourceInfo;
+import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
 import cn.fintecher.pangolin.business.repository.OutsourceRecordRepository;
@@ -17,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -59,8 +58,11 @@ public class OutsourcePoolService {
     /**
      * @Description 委外待分配按数量平均分配预览
      */
-    public List<OutDistributeInfo> distributePreviewByNum(OutsourceInfo outsourceInfo) {
+    public PreviewModel distributePreviewByNum(OutsourceInfo outsourceInfo, User user) {
 
+        PreviewModel previewModel = new PreviewModel();
+        //包含共债案件的ID列表
+        List<String> debtList = new ArrayList<>();
         //选择的案件ID列表
         List<String> caseInfoList = outsourceInfo.getOutCaseIds();
         List<CaseInfo> caseInfoYes = new ArrayList<>(); //可分配案件
@@ -72,6 +74,23 @@ public class OutsourcePoolService {
             }
             caseInfoYes.add(caseInfo);
         }
+        //查询公债案件
+        Integer isDebt = outsourceInfo.getIsDebt();
+        if (Objects.equals(isDebt, 1)) {
+            for (int i = 0; i < caseInfoYes.size(); i++) {
+                CaseInfo caseInfo = caseInfoYes.get(i);
+                String personalName = caseInfo.getPersonalInfo().getName();
+                String idCard = caseInfo.getPersonalInfo().getIdCard();
+                Object[] nums = (Object[])outsourcePoolRepository.getGzNum(personalName, idCard, user.getCompanyCode());;//按机构分
+                if (Objects.nonNull(nums)) {
+                    debtList.add(caseInfo.getId());
+                    caseInfoYes.remove(caseInfo);
+                    i--;
+                    continue;
+                }
+            }
+        }
+
         //案件列表
         List<CaseInfo> caseInfoObjList = new ArrayList<>();
         //每个委外方分配的数量
@@ -82,9 +101,15 @@ public class OutsourcePoolService {
         //接收委外方列表信息
         List<String> outsourceList = outsourceInfo.getOutId();
 
-        //按数量分配
+        //按数量分配或按金额平均分配
         Integer rule = outsourceInfo.getIsNumAvg();
 
+        if (Objects.equals(rule, 2)) {
+            BeanUtils.copyProperties(distributePreviewByAmt(outsourceInfo, caseInfoYes),previewModel);
+            debtList.addAll(previewModel.getCaseIds());
+            previewModel.setCaseIds(debtList);
+            return previewModel;
+        }
         //平均分配案件数，如果无法平均，则依次分配
         if (Objects.equals(rule, 1)) {
             int caseNum = caseInfoYes.size();
@@ -101,9 +126,6 @@ public class OutsourcePoolService {
             disNumList = caseNumList;
         }
         for (int i = 0; i < (outsourceList != null ? outsourceList.size() : 0); i++) {
-            if (alreadyCaseNum == caseInfoYes.size()) {
-                return list;
-            }
             String outsourceId = outsourceList.get(i);
             OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
             if (Objects.equals(rule, 1)) {
@@ -141,74 +163,67 @@ public class OutsourcePoolService {
             outDistributeInfo.setCaseMoneyTotalCount(outDistributeInfo.getCollectionAmt().add(outDistributeInfo.getCaseDistributeMoneyCount()));
             list.add(outDistributeInfo);
         }
-            return list;
+        previewModel.setOutsourceIds(outsourceList);
+        previewModel.setCaseIds(outsourceInfo.getOutCaseIds());
+        previewModel.setNumList(disNumList);
+        previewModel.setOutList(list);
+        return previewModel;
     }
 
     /**
      * @Description 委外待分配按金额平均分配预览
      */
-    public List<OutDistributeInfo> distributePreviewByAmt(OutsourceInfo outsourceInfo) {
+    public PreviewModel distributePreviewByAmt(OutsourceInfo outsourceInfo, List<CaseInfo> caseInfoYes) {
 
-        //选择的案件ID列表
-        List<String> caseInfoList = outsourceInfo.getOutCaseIds();
-        List<CaseInfo> caseInfoYes = new ArrayList<>(); //可分配案件
-        for (String caseId : caseInfoList) {
-            OutsourcePool outsourcePool = outsourcePoolRepository.findOne(QOutsourcePool.outsourcePool.caseInfo.id.eq(caseId));
-            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
-            if (Objects.isNull(outsourcePool) || Objects.isNull(caseInfo)) {
-                throw new RuntimeException("有案件未找到!");
-            }
-            caseInfoYes.add(caseInfo);
-        }
-        //存储委外方
-        List<String> outsourceIds = outsourceInfo.getOutId();
-        List<OutsourceDisModle> outsourceDisModleList = new ArrayList();
-        for(String id : outsourceIds){
-            OutsourceDisModle outsourceDisModle = new OutsourceDisModle();
-            outsourceDisModle.setOutsId(id);
-            outsourceDisModleList.add(outsourceDisModle);
-        }
+        PreviewModel previewModel = new PreviewModel();
         //对案件进行排序
-       /* Collections.sort(caseInfoYes, (o1, o2) -> {
-            return o1.getOverdueAmount().compareTo(o2.getOverdueAmount());
-        });*/
         Collections.sort(caseInfoYes, new Comparator<CaseInfo>() {
             @Override
             public int compare(CaseInfo o1, CaseInfo o2) {
                 return o2.getOverdueAmount().compareTo(o1.getOverdueAmount());
             }
         });
+        //存储委外方
+        List<String> outsourceIds = outsourceInfo.getOutId();
+        List<DisModel> outsourceDisModleList = new ArrayList();
+        for(String id : outsourceIds){
+            DisModel outsourceDisModle = new DisModel();
+            outsourceDisModle.setId(id);
+            outsourceDisModleList.add(outsourceDisModle);
+        }
+
         //将最大的放到案件
         for (CaseInfo caseInfo: caseInfoYes) {
-          /*  Collections.sort(outsourceDisModleList, (o1, o2) -> {
-                return o1.getOutsAmt().compareTo(o2.getOutsAmt());
-            });*/
-            Collections.sort(outsourceDisModleList, new Comparator<OutsourceDisModle>() {
+            Collections.sort(outsourceDisModleList, new Comparator<DisModel>() {
                 @Override
-                public int compare(OutsourceDisModle o1, OutsourceDisModle o2) {
-                    return o1.getOutsAmt().compareTo(o2.getOutsAmt());
+                public int compare(DisModel o1, DisModel o2) {
+                    return o1.getAmt().compareTo(o2.getAmt());
                 }
             });
-            outsourceDisModleList.get(0).setOutsAmt(outsourceDisModleList.get(0).getOutsAmt().add(caseInfo.getOverdueAmount()));
+            outsourceDisModleList.get(0).setAmt(outsourceDisModleList.get(0).getAmt().add(caseInfo.getOverdueAmount()));
+            outsourceDisModleList.get(0).getCaseIds().add(caseInfo.getId());
             outsourceDisModleList.get(0).getCaseInfos().add(caseInfo);
         }
         List<OutDistributeInfo> list = new ArrayList<>();
-        for (OutsourceDisModle model : outsourceDisModleList) {
-            String outsourceId = model.getOutsId();
+        for (DisModel model : outsourceDisModleList) {
+            String outsourceId = model.getId();
             OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
             Outsource outsource = outsourceRepository.findOne(outsourceId);
             outDistributeInfo.setOutCode(outsource.getOutsCode());
             outDistributeInfo.setOutName(outsource.getOutsName());
+            previewModel.getCaseIds().addAll(model.getCaseIds());
+            previewModel.getOutsourceIds().add(model.getId());
+            previewModel.getNumList().add(model.getCaseIds().size());
             outDistributeInfo.setCollectionCount(outsourcePoolRepository.getOutsourceCaseCount(outsourceId));
             outDistributeInfo.setCollectionAmt(outsourcePoolRepository.getOutsourceAmtCount(outsourceId));
             outDistributeInfo.setCaseDistributeCount(model.getCaseInfos().size());
-            outDistributeInfo.setCaseDistributeMoneyCount(model.getOutsAmt());
+            outDistributeInfo.setCaseDistributeMoneyCount(model.getAmt());
             outDistributeInfo.setCaseTotalCount(outDistributeInfo.getCollectionCount()+outDistributeInfo.getCaseDistributeCount());
             outDistributeInfo.setCaseMoneyTotalCount(outDistributeInfo.getCollectionAmt().add(outDistributeInfo.getCaseDistributeMoneyCount()));
             list.add(outDistributeInfo);
         }
-        return list;
-
+        previewModel.setOutList(list);
+        return previewModel;
     }
 
 
@@ -412,7 +427,7 @@ public class OutsourcePoolService {
             outsourceInfo.setDistributionCount(caseNumList);
             outsourceInfo.setIsDebt(0);
             outsourceInfo.setIsNumAvg(1);
-            list.addAll(distributePreviewByNum(outsourceInfo));
+            list.addAll(distributePreview(outsourceInfo));
             distributeCeaseInfo(outsourceInfo, user);
             caseInfos.removeAll(checkedList);
         }
@@ -422,6 +437,94 @@ public class OutsourcePoolService {
             setModelValue(list, result);
         }
         return result;
+    }
+
+    /**
+     * @Description 委外待分配按数量平均分配预览
+     */
+    public List<OutDistributeInfo> distributePreview(OutsourceInfo outsourceInfo) {
+
+        //选择的案件ID列表
+        List<String> caseInfoList = outsourceInfo.getOutCaseIds();
+        List<CaseInfo> caseInfoYes = new ArrayList<>(); //可分配案件
+        for (String caseId : caseInfoList) {
+            OutsourcePool outsourcePool = outsourcePoolRepository.findOne(QOutsourcePool.outsourcePool.caseInfo.id.eq(caseId));
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+            if (Objects.isNull(outsourcePool) || Objects.isNull(caseInfo)) {
+                throw new RuntimeException("有案件未找到!");
+            }
+            caseInfoYes.add(caseInfo);
+        }
+        //案件列表
+        List<CaseInfo> caseInfoObjList = new ArrayList<>();
+        //每个委外方分配的数量
+        List<Integer> disNumList = outsourceInfo.getDistributionCount();
+        List<OutDistributeInfo> list = new ArrayList<>();
+        //已经分配的案件数量
+        int alreadyCaseNum = 0;
+        //接收委外方列表信息
+        List<String> outsourceList = outsourceInfo.getOutId();
+
+        //按数量分配
+        Integer rule = outsourceInfo.getIsNumAvg();
+
+        //平均分配案件数，如果无法平均，则依次分配
+        if (Objects.equals(rule, 1)) {
+            int caseNum = caseInfoYes.size();
+            int outsourceNum = outsourceList.size();
+            List<Integer> caseNumList = new ArrayList<>(outsourceNum);
+            for (int i = 0; i < outsourceNum; i++) {
+                caseNumList.add(caseNum / outsourceNum);
+            }
+            if (caseNum % outsourceNum != 0) {
+                for (int i = 0; i < caseNum % outsourceNum; i++) {
+                    caseNumList.set(i, caseNumList.get(i) + 1);
+                }
+            }
+            disNumList = caseNumList;
+        }
+        for (int i = 0; i < (outsourceList != null ? outsourceList.size() : 0); i++) {
+            if (alreadyCaseNum == caseInfoYes.size()) {
+                return list;
+            }
+            String outsourceId = outsourceList.get(i);
+            OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
+            if (Objects.equals(rule, 1)) {
+                outDistributeInfo.setCaseDistributeCount(disNumList.get(i));
+            }
+            Outsource outsource = outsourceRepository.findOne(outsourceId);
+            outDistributeInfo.setOutCode(outsource.getOutsCode());
+            outDistributeInfo.setOutName(outsource.getOutsName());
+            outDistributeInfo.setCollectionCount(outsourcePoolRepository.getOutsourceCaseCount(outsourceId));
+            outDistributeInfo.setCollectionAmt(outsourcePoolRepository.getOutsourceAmtCount(outsourceId));
+            if (Objects.equals(rule, 0)) {
+                alreadyCaseNum = alreadyCaseNum + 1;
+            } else {
+                if (Objects.nonNull(disNumList)) {
+                    //需要分配的案件数据
+                    Integer disNumber = disNumList.get(i);
+                    for (int j = 0; j < disNumber; j++) {
+                        //检查输入的案件数量是否和选择的案件数量一致
+                        String caseId = caseInfoYes.get(alreadyCaseNum).getId();
+                        OutsourcePool outsourcePool = outsourcePoolRepository.findOne(QOutsourcePool.outsourcePool.caseInfo.id.eq(caseId));
+                        CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+                        if (Objects.nonNull(outsourcePool) && Objects.nonNull(caseInfo)) {
+                            if(Objects.nonNull(caseInfo.getRealPayAmount())){
+                                caseInfo.setRealPayAmount(BigDecimal.ZERO);
+                            }
+                            BigDecimal amount = caseInfo.getOverdueAmount().subtract(caseInfo.getRealPayAmount()); //案件需要委外的金额
+                            outDistributeInfo.setCaseDistributeMoneyCount(outDistributeInfo.getCaseDistributeMoneyCount().add(amount));
+                        }
+                        alreadyCaseNum = alreadyCaseNum + 1;
+                    }
+                }
+
+            }
+            outDistributeInfo.setCaseTotalCount(outDistributeInfo.getCollectionCount() + outDistributeInfo.getCaseDistributeCount());
+            outDistributeInfo.setCaseMoneyTotalCount(outDistributeInfo.getCollectionAmt().add(outDistributeInfo.getCaseDistributeMoneyCount()));
+            list.add(outDistributeInfo);
+        }
+        return list;
     }
 
     private void setModelValue(List<OutDistributeInfo> infoInnerDistributeDepartModels, List<OutDistributeInfo> newDistributeModel) {

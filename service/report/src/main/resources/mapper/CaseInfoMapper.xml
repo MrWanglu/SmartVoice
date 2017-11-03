@@ -48,12 +48,12 @@
         <result column="followup_back" property="followupBack"/>
         <association property="personalInfo" column="personal_id" select="selectPersonal">
         </association>
-        <association property="product" column="product_id" select = "selectProduct">
+        <association property="product" column="product_id" select="selectProduct">
         </association>
 
-        <association property="principalId" column="principal_id" select = "selectPrincipal">
+        <association property="principalId" column="principal_id" select="selectPrincipal">
         </association>
-        <association property="area" column="area_id" select = "selectArea">
+        <association property="area" column="area_id" select="selectArea">
         </association>
     </resultMap>
 
@@ -72,7 +72,7 @@
         </collection>
     </resultMap>
 
-    <resultMap id = "personalJobMap" type="cn.fintecher.pangolin.entity.PersonalJob">
+    <resultMap id="personalJobMap" type="cn.fintecher.pangolin.entity.PersonalJob">
         <id column="id" property="id"/>
         <result column="company_name" property="companyName"/>
         <result column="department" property="department"/>
@@ -113,7 +113,8 @@
 
     <select id="queryWaitCollectCase" parameterType="cn.fintecher.pangolin.report.model.CaseInfoParams"
             resultMap="caseInfoBean">
-        select b.id,b.batch_number,b.case_number,b.contract_amount,b.overdue_fine,b.collection_type,b.overdue_amount,b.left_capital,b.left_interest,b.overdue_capital,
+        select
+        b.id,b.batch_number,b.case_number,b.contract_amount,b.overdue_fine,b.collection_type,b.overdue_amount,b.left_capital,b.left_interest,b.overdue_capital,
         b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
         b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
         b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,b.overdue_periods,b.overdue_days,
@@ -156,7 +157,8 @@
 
     <select id="queryWaitOwnCollectCase" parameterType="cn.fintecher.pangolin.report.model.CaseInfoParams"
             resultMap="caseInfoBean">
-        select b.id,b.batch_number,b.case_number,b.contract_amount,b.overdue_fine,b.collection_type,b.overdue_amount,b.left_capital,b.left_interest,b.overdue_capital,
+        select
+        b.id,b.batch_number,b.case_number,b.contract_amount,b.overdue_fine,b.collection_type,b.overdue_amount,b.left_capital,b.left_interest,b.overdue_capital,
         b.overdue_interest,b.has_pay_amount,b.assist_flag,b.assist_status,b.assist_way,b.hold_days,b.left_days,b.leave_case_flag,b.overdue_delay_fine,b.periods,
         b.has_leave_days,b.case_follow_in_time,b.pay_status,b.collection_status,b.overdue_manage_fee,b.derate_amt,b.real_pay_amount,b.per_pay_amount,b.per_due_date,
         b.early_settle_amt,b.early_real_settle_amt,b.early_derate_amt,b.other_amt,b.followup_back,b.product_id,b.overdue_periods,b.overdue_days,
@@ -169,7 +171,7 @@
         case_info AS a, personal AS p
         WHERE
         a.company_code = #{companyCode}
-        and	a.collection_status = 20
+        and a.collection_status = 20
         and a.current_collector = #{collector}
         and a.case_type in(173,181)
         and a.personal_id = p.id
@@ -204,60 +206,197 @@
     from personal p where p.id = #{personal_id}
   </select>
 
-    <update id="updateLngLat"  parameterType="cn.fintecher.pangolin.entity.Personal">
+    <update id="updateLngLat" parameterType="cn.fintecher.pangolin.entity.Personal">
       update personal
       set longitude = #{longitude},latitude = #{latitude}
       where id = #{id}
   </update>
 
-    <select id = "queryCollectingCase" parameterType="cn.fintecher.pangolin.report.model.CollectingCaseParams" resultType="cn.fintecher.pangolin.report.model.CollectingCaseInfo">
-        select a.batch_number as batchNumber,a.name,a.caseFollowInTime,a.delegationDate,a.closeDate,a.leftDays,a.caseNum,a.caseAmt,a.endCaseAmt,ifnull(b.endCaseNum,0) as endCaseNum,truncate(ifnull(( b.endCaseNum/caseNum),0),4) as numRate,truncate((endCaseAmt/caseAmt),4) as amtRate
+    <select id="queryCollectingCase" parameterType="cn.fintecher.pangolin.report.model.CollectingCaseParams"
+            resultType="cn.fintecher.pangolin.report.model.CollectingCaseInfo">
+        select a.batch_number as
+        batchNumber,a.name,a.caseFollowInTime,a.delegationDate,a.closeDate,a.leftDays,a.caseNum,a.caseAmt,a.endCaseAmt,ifnull(b.endCaseNum,0)
+        as endCaseNum,truncate(ifnull(( b.endCaseNum/caseNum),0),4) as numRate,truncate((endCaseAmt/caseAmt),4) as
+        amtRate
         from
         (
-            select aa.batch_number,aa.caseFollowInTime,aa.delegationDate,aa.closeDate,aa.leftDays,aa.caseNum,aa.caseAmt,aa.endCaseAmt,ab.name
-            from
-				(
-				    select batch_number,principal_id,MIN(case_follow_in_time) as caseFollowInTime ,MIN(delegation_date) as delegationDate,Max(close_date) as closeDate,Min(left_days) as leftDays,count(*) as caseNum,sum(overdue_amount) as caseAmt,sum(real_pay_amount+early_real_settle_amt) as endCaseAmt
-                    from case_info cc
-                    left join department on cc.depart_id = department.id
-                    where 1 = 1
-                    and department.code like CONCAT(#{deptCode}, '%')
-                    and (collection_status in (20,21,22,23,171,172) or (collection_status =25 and depart_id is not null))
-                    and case_pool_type = 225
-                    and recover_remark = 0
-                    <if test = "batchNumber != null">
-                        and batch_number = #{batchNumber}
-                    </if>
-                    <if test = "delegationDate != null">
-                        <![CDATA[and delegation_date >= #{delegationDate} ]]>
-                    </if>
-                    <if test = "closeDate != null">
-                        <![CDATA[and close_date <= #{closeDate} ]]>
-                    </if>
-                    <if test = "companyCode != null">
-                        and cc.company_code = #{companyCode}
-                    </if>
-				    GROUP BY batch_number,principal_id
-				)as aa
-				inner join
-				(
-				    select id,name from principal
-                    where 1 = 1
-                    <if test = "principalId != null">
-                        and id = #{principalId}
-                    </if>
-				) as ab
-                on aa.principal_id = ab.id
+        select
+        aa.batch_number,aa.caseFollowInTime,aa.delegationDate,aa.closeDate,aa.leftDays,aa.caseNum,aa.caseAmt,aa.endCaseAmt,ab.name
+        from
+        (
+        select batch_number,principal_id,MIN(case_follow_in_time) as caseFollowInTime ,MIN(delegation_date) as
+        delegationDate,Max(close_date) as closeDate,Min(left_days) as leftDays,count(*) as caseNum,sum(overdue_amount)
+        as caseAmt,sum(real_pay_amount+early_real_settle_amt) as endCaseAmt
+        from case_info cc
+        left join department on cc.depart_id = department.id
+        where 1 = 1
+        and department.code like CONCAT(#{deptCode}, '%')
+        and (collection_status in (20,21,22,23,171,172) or (collection_status =25 and depart_id is not null))
+        and case_pool_type = 225
+        and recover_remark = 0
+        <if test="batchNumber != null">
+            and batch_number = #{batchNumber}
+        </if>
+        <if test="delegationDate != null">
+            <![CDATA[and delegation_date >= #{delegationDate} ]]>
+        </if>
+        <if test="closeDate != null">
+            <![CDATA[and close_date <= #{closeDate} ]]>
+        </if>
+        <if test="companyCode != null">
+            and cc.company_code = #{companyCode}
+        </if>
+        GROUP BY batch_number,principal_id
+        )as aa
+        inner join
+        (
+        select id,name from principal
+        where 1 = 1
+        <if test="principalId != null">
+            and id = #{principalId}
+        </if>
+        ) as ab
+        on aa.principal_id = ab.id
         )
-		as a
+        as a
         left join
-            (
-	            select batch_number,count(id) as endCaseNum
-	            from case_info
-	            where collection_status = 171
-                and case_pool_type = 225
-	            GROUP BY batch_number
-            ) as b
-            on a.batch_number = b.batch_number
+        (
+        select batch_number,count(id) as endCaseNum
+        from case_info
+        where collection_status = 171
+        and case_pool_type = 225
+        GROUP BY batch_number
+        ) as b
+        on a.batch_number = b.batch_number
+    </select>
+
+    <!-- 多条件查询案件信息 -->
+    <select id="getCaseInfoByCondition" parameterType="cn.fintecher.pangolin.report.model.CaseInfoConditionParams"
+            resultType="cn.fintecher.pangolin.report.model.CaseInfoModel">
+        SELECT
+        a.caseId,a.caseNumber,a.batchNumber,a.collectionType,a.overdueAmount,a.payStatus,a.overdueDays,a.collectionStatus,a.followupTime,
+        a.caseFollowInTime,a.followupBack,a.assistWay,a.holdDays,a.leftDays,a.leaveCaseFlag,b.`name` as
+        personalName,b.mobile_no as mobileNo,b.id_card as idCard,c.`name` as principalName,c.id as principalId,
+        d.real_name as collectorName,e.`code` as deptCode,a.caseMark,a.case_pool_type,b.id as
+        personalId,a.promiseAmt,a.promiseTime,f.area_name as cityName,f.id as areaId,g.id as parentAreaId from
+        (SELECT id as caseId,case_number as caseNumber,batch_number as batchNumber,overdue_amount as
+        overdueAmount,pay_status as payStatus,overdue_days as overdueDays,collection_status as
+        collectionStatus,followup_time
+        as followupTime,case_follow_in_time as caseFollowInTime,followup_back as followupBack,assist_way as
+        assistWay,hold_days
+        as holdDays,left_days as leftDays,leave_case_flag as
+        leaveCaseFlag,personal_id,principal_id,current_collector,depart_id,collection_type as collectionType,case_mark
+        as caseMark,case_pool_type,promise_amt as promiseAmt,promise_time as promiseTime,area_id from
+        case_info where current_collector is not null) a
+        LEFT JOIN personal b on a.personal_id = b.id
+        LEFT JOIN principal c on a.principal_id = c.id
+        LEFT JOIN `user` d on a.current_collector = d.id
+        LEFT JOIN department e on a.depart_id = e.id
+        LEFT JOIN area_code f on a.area_id = f.id
+        LEFT JOIN area_code g on f.parent_id = g.id
+        where e.`code` LIKE concat(#{code},'%')
+        and a.case_pool_type = 225 and a.collectionStatus in(${collectionStatusList})
+        <if test="personalName != null">
+            AND b.`name` LIKE concat('%',#{personalName},'%')
+        </if>
+        <if test="mobileNo != null">
+            AND b.mobile_no = #{mobileNo}
+        </if>
+        <if test="deptCode != null">
+            AND e.`code` LIKE concat(#{deptCode},'%')
+        </if>
+        <if test="collectorName != null">
+            AND d.real_name LIKE concat('%',#{collectorName},'%')
+        </if>
+        <if test="overdueMaxAmt != null">
+            AND <![CDATA[a.overdueAmount <= #{overdueMaxAmt}]]>
+        </if>
+        <if test="overdueMinAmt != null">
+            AND <![CDATA[a.overdueAmount >= #{overdueMinAmt}]]>
+        </if>
+        <if test="payStatus != null and payStatus == 'M6'">
+            AND a.payStatus not in ('M0','M1','M2','M3','M4','M5')
+        </if>
+        <if test="payStatus != null and payStatus != 'M6'">
+            AND a.payStatus = #{payStatus}
+        </if>
+        <if test="overMaxDay != null">
+            AND <![CDATA[a.overdueDays <= #{overMaxDay}]]>
+        </if>
+        <if test="overMinDay != null">
+            AND <![CDATA[a.overdueDays >= #{overMinDay}]]>
+        </if>
+        <if test="batchNumber != null">
+            AND a.batchNumber = #{batchNumber}
+        </if>
+        <if test="principalId != null">
+            AND c.id = #{principalId}
+        </if>
+        <if test="idCard != null">
+            AND b.id_card = #{idCard}
+        </if>
+        <if test="feedBack != null">
+            AND a.followupBack = #{feedBack}
+        </if>
+        <if test="assistWay != null">
+            AND a.assistWay = #{assistWay}
+        </if>
+        <if test="caseMark != null">
+            AND a.caseMark = #{caseMark}
+        </if>
+        <if test="collectionType != null">
+            AND a.collectionType = #{collectionType}
+        </if>
+        <if test="collectionStatus != null">
+            AND a.collectionStatus = #{collectionStatus}
+        </if>
+        <if test="parentAreaId != null">
+            AND g.id = #{parentAreaId}
+        </if>
+        <if test="areaId != null">
+            AND f.id = #{areaId} OR f.parent_id = #{areaId}
+        </if>
+        ORDER BY a.caseMark desc,if(isnull(a.followupBack),1,0),a.followupBack asc,b.`name` asc
+        <if test="sort != null">
+            ,${sort}
+        </if>
+    </select>
+
+    <!-- 多条件查询协催案件信息 -->
+    <select id="getCaseAssistByCondition" parameterType="cn.fintecher.pangolin.report.model.CaseInfoConditionParams"
+            resultType="cn.fintecher.pangolin.report.model.CaseAssistModel">
+        SELECT a.caseId,a.assistId,a.leaveCaseFlag,a.markId,a.caseFlowinTime,a.assistWay,a.assistStatus,b.case_number as
+        caseNumber,
+        b.overdue_amount as overdueAmount,c.real_name as latelyCollectorName,d.real_name as
+        currentCollectorName,e.real_name as assistCollectorName,
+        f.real_name as operatorName,g.`name` as personalName,g.mobile_no as mobileNo,g.id as personalId from
+        (SELECT case_id as caseId,id as assistId,lately_collector as latelyCollectorId,current_collector as
+        currentCollectorId,assist_collector as assistCollectorId,leave_case_flag as leaveCaseFlag,mark_id as
+        markId,case_flowin_time as caseFlowinTime,operator,assist_way as assistWay,assist_status as assistStatus,operator_time as operatorTime from
+        case_assist) a
+        LEFT JOIN case_info b on a.caseId = b.id
+        LEFT JOIN `user` c on a.latelyCollectorId = c.id
+        LEFT JOIN `user` d on a.currentCollectorId = d.id
+        LEFT JOIN `user` e on a.assistCollectorId = e.id
+        LEFT JOIN `user` f on a.operator = f.id
+        LEFT JOIN personal g on b.personal_id = g.id
+        LEFT JOIN department h on b.depart_id = h.id
+        where a.assistStatus in(${assistStatusList}) and h.`code` LIKE concat(#{deptCode},'%')
+        <if test="personalName != null">
+            AND g.`name` LIKE concat('%',#{personalName},'%')
+        </if>
+        <if test="mobileNo != null">
+            AND g.mobile_no = #{mobileNo}
+        </if>
+        <if test="overdueMaxAmount != null">
+            AND <![CDATA[b.overdue_amount <= #{overdueMaxAmount}]]>
+        </if>
+        <if test="overdueMinAmount != null">
+            AND <![CDATA[b.overdue_amount >= #{overdueMinAmount}]]>
+        </if>
+        ORDER BY a.operatorTime desc
+        <if test="sort != null">
+            ,${sort}
+        </if>
     </select>
 </mapper>

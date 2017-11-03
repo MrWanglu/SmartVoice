@@ -65,4 +65,12 @@ public class MessageOperateController {
         String result = smsMessageService.sendMessageLook(message);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
+
+    @RequestMapping(value = "/sendAliyunMessage",method = RequestMethod.POST)
+    @ApiOperation(value = "发送阿里云短息", notes = "发送阿里云短息")
+    public ResponseEntity<String> sendAliyunMessage(@RequestBody PaaSMessage message){
+        message.setSendTime(ZWDateUtil.getNowDateTime());
+        String result = smsMessageService.sendAliyunMessage(message);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
 }
