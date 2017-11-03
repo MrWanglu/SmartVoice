@@ -85,7 +85,10 @@ public class AccFinanceEntryService {
             Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(qOutsourcePool.caseInfo.caseNumber.eq(accFinanceDataExcel.getCaseNum()));
             if (Objects.nonNull(outsourcePools) && outsourcePools.iterator().hasNext()) {
                 afe.setFienBatchnum(outsourcePools.iterator().next().getOutBatch());
-                afe.setFienFgname(outsourcePools.iterator().next().getOutsource().getOutsName());
+                if(Objects.nonNull(outsourcePools.iterator().next().getOutsource())){
+                    afe.setFienFgname(outsourcePools.iterator().next().getOutsource().getOutsName());
+                }
+
             }
             //验证必要数据的合法性
             if (!validityFinance(errorList, afe)) {

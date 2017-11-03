@@ -52,12 +52,15 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
 import javax.persistence.Convert;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by  baizhangyu.
@@ -1204,7 +1207,7 @@ public class OutsourcePoolController extends BaseController {
     @RequestMapping(value = "/exportOutsideFinanceData", method = RequestMethod.GET)
     @ResponseBody
     @ApiOperation(value = "导出委外财务对账数据", notes = "导出委外财务对账数据")
-    public ResponseEntity<String> exportOutsideFinanceData(@RequestParam(value = "oupoOutbatch", required = false) @ApiParam("批次号") String oupoOutbatch,
+    public ResponseEntity<String> exportOutsideFinanceData(@RequestParam(value = "outbatch", required = false) @ApiParam("批次号") String outbatch,
                                                            @RequestParam(value = "outsName", required = false) @ApiParam("委外方") String outsName,
                                                            @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                            @RequestHeader(value = "X-UserToken") String token) {
@@ -1230,8 +1233,9 @@ public class OutsourcePoolController extends BaseController {
                 } else {
                     builder.and(qAccFinanceEntry.companyCode.eq(user.getCompanyCode())); //限制公司code码
                 }
-                if (Objects.nonNull(oupoOutbatch)) {
-                    builder.and(qAccFinanceEntry.fienBatchnum.gt(oupoOutbatch));
+                if (Objects.nonNull(outbatch)) {
+                    builder.and(qAccFinanceEntry.fienBatchnum.eq(outbatch));
+
                 }
                 if (Objects.nonNull(outsName)) {
                     builder.and(qAccFinanceEntry.fienFgname.like("%" + outsName + "%"));
@@ -1518,7 +1522,6 @@ public class OutsourcePoolController extends BaseController {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "getAllClosedOutSourceCase", "系统异常!")).body(null);
         }
-
     }
 
     /**
