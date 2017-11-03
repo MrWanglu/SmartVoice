@@ -16,4 +16,5 @@ public class DisModel {
     private BigDecimal amt = new BigDecimal(0);
     private List<String> caseIds = new ArrayList<>();
     private List<CaseInfo> caseInfos = new ArrayList<>();
+    private int num ;
 }
