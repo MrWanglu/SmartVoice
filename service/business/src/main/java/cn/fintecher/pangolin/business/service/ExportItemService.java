@@ -390,14 +390,6 @@ public class ExportItemService {
         BeanUtils.copyProperties(temp, perPayDays);
         perPayDays.setName("每期还款日");
         caseItems.add(perPayDays);
-        ExportItem overDueTotalAmt = new ExportItem();
-        BeanUtils.copyProperties(temp, overDueTotalAmt);
-        overDueTotalAmt.setName("逾期总金额(元)");
-        caseItems.add(overDueTotalAmt);
-        ExportItem overDueDate = new ExportItem();
-        BeanUtils.copyProperties(temp, overDueDate);
-        overDueDate.setName("逾期日期");
-        caseItems.add(overDueDate);
         ExportItem overduePeriods = new ExportItem();
         BeanUtils.copyProperties(temp, overduePeriods);
         overduePeriods.setName("逾期期数");
@@ -475,10 +467,6 @@ public class ExportItemService {
         BeanUtils.copyProperties(temp, overdueDaysOutsource);
         overdueDaysOutsource.setName("剩余委托时间(天)");
         caseItems.add(overdueDaysOutsource);
-        ExportItem caseStatus = new ExportItem();
-        BeanUtils.copyProperties(temp, caseStatus);
-        caseStatus.setName("案件状态");
-        caseItems.add(caseStatus);
         ExportItem rateOutsource = new ExportItem();
         BeanUtils.copyProperties(temp, rateOutsource);
         rateOutsource.setName("委外佣金比例(%)");
