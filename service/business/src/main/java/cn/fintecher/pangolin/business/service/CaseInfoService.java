@@ -1986,6 +1986,7 @@ public class CaseInfoService {
                 disModels.get(i).setNum(caseNumList.get(i));
             }
         }
+        Collections.shuffle(numAvgList);
         for(DisModel model : disModels){
             List<CaseInfo> temp = numAvgList.subList(0,model.getNum());
             numAvgList = numAvgList.subList(model.getNum(),numAvgList.size());
