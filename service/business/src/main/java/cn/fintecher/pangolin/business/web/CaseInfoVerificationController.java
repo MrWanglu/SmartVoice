@@ -130,6 +130,7 @@ public class CaseInfoVerificationController extends BaseController {
                     caseInfoRepository.save(caseInfo);
                     CaseInfoVerification caseInfoVerification = new CaseInfoVerification();
                     caseInfoVerification.setCaseInfo(caseInfo);// 核销的案件信息
+                    caseInfoVerification.setState(caseInfoVerficationModel.getState()); // 核销说明
                     caseInfoVerification.setCompanyCode(caseInfo.getCompanyCode());// 公司code码
                     caseInfoVerification.setOperator(user.getRealName());// 操作人
                     caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime());// 操作时间

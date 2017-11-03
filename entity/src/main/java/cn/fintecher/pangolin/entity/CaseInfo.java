@@ -52,10 +52,10 @@ public class CaseInfo extends BaseEntity {
     private String orderId;
     private Integer collectionStatus;
     @ApiModelProperty("委案日期")
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date delegationDate;
     @ApiModelProperty("结案日期")
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date closeDate;
     private BigDecimal commissionRate;
     private Integer handNumber;
