@@ -25,7 +25,7 @@ public class CaseInfoModel {
     private String principalName; //委托方名称
     private String collectorName; //催收员姓名
     private Integer collectionStatus; //催收状态
-    private Date follTime; //跟进时间
+    private Date followupTime; //跟进时间
     private Date caseFollowInTime; //案件流入日期
     private Integer followupBack; //催收反馈
     private Integer assistWay; //协催方式
@@ -38,4 +38,7 @@ public class CaseInfoModel {
     private String personalId; //客户信息ID
     private BigDecimal promiseAmt; //承诺还款金额
     private Date promiseTime; //承诺还款日期
+    private Integer areaId; //归属城市ID
+    private String cityName; //归属城市
+    private Integer parentAreaId; //省ID
 }

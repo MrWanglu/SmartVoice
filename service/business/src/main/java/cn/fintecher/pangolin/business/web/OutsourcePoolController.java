@@ -37,6 +37,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -50,9 +51,11 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
+import javax.persistence.Convert;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -1397,7 +1400,6 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "", e.getMessage())).body(null);
         }
     }
-
     /**
      * @Description 按批次号查看委外案件详情
      * <p>
@@ -1413,8 +1415,8 @@ public class OutsourcePoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam(required = false) @ApiParam(value = "批次号") List<String> batchNumber,
-                                                                          @RequestParam(required = false) @ApiParam(value = "委外方名称") List<String> outsName,
+    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam(required = false) @ApiParam(value = "批次号") String batchNumber,
+                                                                          @RequestParam(required = false) @ApiParam(value = "委外方名称") String outsName,
                                                                           @RequestParam(required = false) @ApiParam(value = "公司Code码") String companyCode,
                                                                           @QuerydslPredicate(root = OutsourcePool.class) Predicate predicate,
                                                                           @ApiIgnore Pageable pageable,
@@ -1434,11 +1436,76 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qOutsourcePool.companyCode.eq(user.getCompanyCode()));
             }
             if (Objects.nonNull(batchNumber)) {
-                builder.and(qOutsourcePool.outBatch.in(batchNumber));
+                builder.and(qOutsourcePool.outBatch.eq(batchNumber));
             }
             if (Objects.nonNull(outsName)) {
-                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.in(outsName));
-                builder.and(qOutsourcePool.outsource.id.in(outsource.getId()));
+                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
+                builder.and(qOutsourcePool.outsource.id.eq(outsource.getId()));
+            }
+            builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
+            builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
+            Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "getAllClosedOutSourceCase", "系统异常!")).body(null);
+        }
+
+    }
+
+    /**
+     * @Description 按批次号和委外名称查看委外案件详情
+     * <p>
+     * Created by huyanmin at 2017/09/26
+     */
+    @RequestMapping(value = "/getOutSourceCaseByOutName", method = RequestMethod.POST)
+    @ApiOperation(value = "按批次号查看委外案件详情", notes = "按批次号查看委外案件详情")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByOutName(@RequestBody OurBatchList outsBatchlist,
+                                                                         @ApiIgnore Pageable pageable,
+                                                                         @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("Rest request get outsource case by batch number");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "user do not log in", e.getMessage())).body(null);
+        }
+        try {
+            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.nonNull(user.getCompanyCode())) {
+                builder.and(qOutsourcePool.companyCode.eq(user.getCompanyCode()));
+            }
+            if (Objects.nonNull(outsBatchlist.getOurBatchList()) && outsBatchlist.getOurBatchList().size()!=0) {
+                builder.and(qOutsourcePool.outBatch.in(outsBatchlist.getOurBatchList()));
+            }
+            if (Objects.nonNull(outsBatchlist.getOutsNameList()) && outsBatchlist.getOutsNameList().size()!=0) {
+                List<Outsource> outsourceList = new ArrayList<>();
+                Iterable<Outsource> outsources=outsourceRepository.findAll(QOutsource.outsource.outsName.in(outsBatchlist.getOutsNameList()));
+                outsources.forEach(single ->{outsourceList.add(single);});
+                builder.and(qOutsourcePool.outsource.in(outsourceList));
+            }
+            if (StringUtils.isNotBlank(outsBatchlist.getOutsName())) {
+                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsBatchlist.getOutsName()));
+                builder.and(qOutsourcePool.outsource.eq(outsource));
+            }
+            SimpleDateFormat dateFm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            if (Objects.nonNull(outsBatchlist.getOutTimeStart()) && !("").equals(outsBatchlist.getOutTimeStart())) {
+                String outTimeStart = outsBatchlist.getOutTimeStart().substring(0,10)+" 00:00:00";
+                builder.and(QOutsourcePool.outsourcePool.outTime.goe(dateFm.parse(outTimeStart)));
+            }
+            if (Objects.nonNull(outsBatchlist.getOutTimeEnd()) && !("").equals(outsBatchlist.getOutTimeEnd())) {
+                String outTimeEnd =outsBatchlist.getOutTimeEnd().substring(0,10)+" 00:00:00";
+                builder.and(QOutsourcePool.outsourcePool.outTime.loe(dateFm.parse(outTimeEnd)));
             }
             builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
             builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));

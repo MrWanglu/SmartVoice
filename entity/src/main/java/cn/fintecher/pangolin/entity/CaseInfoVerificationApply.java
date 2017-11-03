@@ -119,6 +119,9 @@ public class CaseInfoVerificationApply extends BaseEntity {
     @ApiModelProperty(notes = "佣金比例")
     private BigDecimal commissionRate;
 
+    @ApiModelProperty("内催 225 委外 226 司法 227 核销 228")
+    private Integer source;
+
     /**
      * 审批状态的枚举类
      */
@@ -180,5 +183,4 @@ public class CaseInfoVerificationApply extends BaseEntity {
         }
 
     }
-
 }

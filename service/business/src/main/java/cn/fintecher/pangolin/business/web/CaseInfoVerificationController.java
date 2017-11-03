@@ -29,7 +29,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,10 +69,26 @@ public class CaseInfoVerificationController extends BaseController {
     @Inject
     private RabbitTemplate rabbitTemplate;
 
+    @GetMapping("/getSysparm")
+    @ApiOperation(value = "查询是否需要申请", notes = "查询是否需要申请")
+    public ResponseEntity getSysparm(@RequestHeader(value = "X-UserToken") String token){
+        User user;
+        try {
+            user = getUserByToken(token);
+        }catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "操作失败!")).body(null);
+        }
+        SysParam sysParam = sysParamRepository.findOne(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()).and(QSysParam.sysParam.code.eq("SysParam.isVerApply")));
+        String value = sysParam.getValue(); // 1--申请,0--不申请
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("核销结案成功", "CaseInfoVerificationModel")).body(value);
+    }
+
     @PostMapping("/saveCaseInfoVerification")
     @ApiOperation(value = "案件申请审批", notes = "案件申请审批")
     public ResponseEntity saveCaseInfoVerification(@RequestBody CaseInfoVerficationModel caseInfoVerficationModel,
-                                                   @RequestHeader(value = "X-UserToken") String token) {
+                                                   @RequestHeader(value = "X-UserToken") String token,
+                                                   @QuerydslPredicate(root = CaseInfoVerificationApply.class) Predicate predicate) {
         try {
             User user = getUserByToken(token);
             List<CaseInfo> caseInfoList = caseInfoRepository.findAll(caseInfoVerficationModel.getIds());
@@ -85,26 +100,33 @@ public class CaseInfoVerificationController extends BaseController {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "已委外案件不能核销!")).body(null);
                 }
             }
-            SysParam sysParam = sysParamRepository.findOne(QSysParam.sysParam.code.eq("SysParam.isVerApply"));
+            SysParam sysParam = sysParamRepository.findOne(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()).and(QSysParam.sysParam.code.eq("SysParam.isVerApply")));
             if (Integer.parseInt(sysParam.getValue()) == 1) { // 申请审批
                 CaseInfoVerificationApply apply = new CaseInfoVerificationApply();
+                List<CaseInfoVerificationApply> caseApplyList = new ArrayList();
+                List<String> ids = caseInfoVerficationModel.getIds();
+                BooleanBuilder booleanBuilder = new BooleanBuilder(predicate);
+                booleanBuilder.and(QCaseInfoVerificationApply.caseInfoVerificationApply.companyCode.eq(user.getCompanyCode()));
+                for (String id : ids) {
+                    booleanBuilder.and(QCaseInfoVerificationApply.caseInfoVerificationApply.caseId.eq(id));
+                }
+                booleanBuilder.and(QCaseInfoVerificationApply.caseInfoVerificationApply.approvalStatus.eq(222));
+                Iterable<CaseInfoVerificationApply> Iterables = caseInfoVerificationApplyRepository.findAll(booleanBuilder);
+                Iterables.forEach(single ->{caseApplyList.add(single);});
+                if (caseApplyList.size() != 0) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "不能提交重复申请！")).body(null);
+                }
                 for (CaseInfo caseInfo : caseInfoList) {
-                    List<CaseInfoVerificationApply> list = caseInfoVerificationApplyRepository.findAll();
-                    for (int i=0;i<list.size();i++) {
-                        if (caseInfoVerficationModel.getIds().contains(list.get(i).getCaseId())) {
-                            if (Objects.equals(list.get(i).getApprovalStatus(),CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue())) {
-                                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "不能提交重复审批申请!")).body(null);
-                            }
-                        }
-                    }
                     caseInfoVerificationService.setVerificationApply(apply,caseInfo,user,caseInfoVerficationModel.getApplicationReason());
                     caseInfoVerificationApplyRepository.save(apply);
+                    caseInfo.setCasePoolType(CaseInfo.CasePoolType.DESTORY.getValue()); //案件池类型：核销
+                    caseInfoRepository.save(caseInfo);
                 }
-                return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("核销申请审批成功", "CaseInfoVerificationModel")).body(null);
             }else {
                 for (CaseInfo caseInfo : caseInfoList) {
                     caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); // 催收类型：已结案
                     caseInfo.setEndType(CaseInfo.EndType.CLOSE_CASE.getValue()); // 结案方式：核销结案
+                    caseInfo.setCasePoolType(CaseInfo.CasePoolType.DESTORY.getValue()); // 案件池类型：核销
                     caseInfoRepository.save(caseInfo);
                     CaseInfoVerification caseInfoVerification = new CaseInfoVerification();
                     caseInfoVerification.setCaseInfo(caseInfo);// 核销的案件信息
@@ -113,8 +135,8 @@ public class CaseInfoVerificationController extends BaseController {
                     caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime());// 操作时间
                     caseInfoVerificationRepository.save(caseInfoVerification);
                 }
-                return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("核销结案成功", "CaseInfoVerificationModel")).body(null);
             }
+            return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("核销结案成功", "CaseInfoVerificationModel")).body(null);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "操作失败!")).body(null);

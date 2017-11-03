@@ -2,10 +2,7 @@ package cn.fintecher.pangolin.report.mapper;
 
 import cn.fintecher.pangolin.entity.Personal;
 import cn.fintecher.pangolin.report.entity.CaseInfo;
-import cn.fintecher.pangolin.report.model.CaseInfoModel;
-import cn.fintecher.pangolin.report.model.CaseInfoParams;
-import cn.fintecher.pangolin.report.model.CollectingCaseInfo;
-import cn.fintecher.pangolin.report.model.CollectingCaseParams;
+import cn.fintecher.pangolin.report.model.*;
 import cn.fintecher.pangolin.report.util.MyMapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -51,6 +48,17 @@ public interface CaseInfoMapper extends MyMapper<CaseInfo> {
             @Param("sort") String sort,
             @Param("code") String code,
             @Param("collectionStatusList") String collectionStatusList,
-            @Param("collectionStatus") Integer collectionStatus);
+            @Param("collectionStatus") Integer collectionStatus,
+            @Param("parentAreaId") Integer parentAreaId,
+            @Param("areaId") Integer areaId);
 
+    /**
+     * @Description 多条件查询协催案件信息
+     */
+    List<CaseAssistModel> getCaseAssistByCondition(@Param("personalName") String personalName,
+                                                   @Param("mobileNo") String mobileNo,
+                                                   @Param("overdueMaxAmount") BigDecimal overdueMaxAmount,
+                                                   @Param("overdueMinAmount") BigDecimal overdueMinAmount,
+                                                   @Param("assistStatusList") String assistStatusList,
+                                                   @Param("deptCode") String deptCode);
 }
