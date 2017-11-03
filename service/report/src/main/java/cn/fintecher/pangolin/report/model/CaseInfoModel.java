@@ -38,4 +38,7 @@ public class CaseInfoModel {
     private String personalId; //客户信息ID
     private BigDecimal promiseAmt; //承诺还款金额
     private Date promiseTime; //承诺还款日期
+    private Integer areaId; //归属城市ID
+    private String cityName; //归属城市
+    private Integer parentAreaId; //省ID
 }

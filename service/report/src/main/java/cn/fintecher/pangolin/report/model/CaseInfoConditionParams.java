@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 @Data
 public class CaseInfoConditionParams {
     private String collectionStatusList; //催收状态集合
+    private String assistStatusList; //协催状态集合
     private Integer collectionStatus; //催收状态
     private String personalName; //客户姓名
     private String mobileNo; //客户手机号
@@ -30,6 +31,8 @@ public class CaseInfoConditionParams {
     private Integer assistWay; //协催方式
     private Integer caseMark; //案件标记
     private Integer collectionType; //催收类型
+    private Integer areaId; //所属城市ID
+    private Integer parentAreaId; //省ID
     private Integer page; //页数
     private Integer size; //每页条数
     private String sort; //排序
