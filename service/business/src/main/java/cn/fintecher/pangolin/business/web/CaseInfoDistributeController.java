@@ -643,7 +643,7 @@ public class CaseInfoDistributeController extends BaseController {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
             }
             Iterator<CaseInfoDistributed> iterator;
-            if (Objects.isNull(params.getIds()) && !params.getIds().isEmpty()) {
+            if (Objects.nonNull(params.getIds()) && !params.getIds().isEmpty()) {
                 List<CaseInfoDistributed> all = caseInfoDistributedRepository.findAll(params.getIds());
                 iterator = all.iterator();
             } else {
