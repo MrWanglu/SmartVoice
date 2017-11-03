@@ -1236,6 +1236,7 @@ public class OutsourcePoolController extends BaseController {
                 if (Objects.nonNull(outsName)) {
                     builder.and(qAccFinanceEntry.fienFgname.like("%" + outsName + "%"));
                 }
+                builder.and(qAccFinanceEntry.fienStatus.eq(1));
                 accOutsourcePoolList = (List<AccFinanceEntry>) accFinanceEntryRepository.findAll(builder);
             } catch (Exception e) {
                 e.getStackTrace();
@@ -1443,6 +1444,7 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qOutsourcePool.outsource.id.eq(outsource.getId()));
             }
             builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
+            builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));
             builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
             Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
@@ -1508,6 +1510,7 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(QOutsourcePool.outsourcePool.outTime.loe(dateFm.parse(outTimeEnd)));
             }
             builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
+            builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));
             builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
             Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);

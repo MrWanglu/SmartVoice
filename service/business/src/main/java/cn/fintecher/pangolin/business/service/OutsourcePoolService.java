@@ -101,15 +101,8 @@ public class OutsourcePoolService {
         //接收委外方列表信息
         List<String> outsourceList = outsourceInfo.getOutId();
 
-        //按数量分配或按金额平均分配
+        //按金额平均分配
         Integer rule = outsourceInfo.getIsNumAvg();
-
-        if (Objects.equals(rule, 2)) {
-            BeanUtils.copyProperties(distributePreviewByAmt(outsourceInfo, caseInfoYes),previewModel);
-            debtList.addAll(previewModel.getCaseIds());
-            previewModel.setCaseIds(debtList);
-            return previewModel;
-        }
         //平均分配案件数，如果无法平均，则依次分配
         if (Objects.equals(rule, 1)) {
             int caseNum = caseInfoYes.size();
@@ -125,6 +118,23 @@ public class OutsourcePoolService {
             }
             disNumList = caseNumList;
         }
+
+        //按数量平均分配
+        if (Objects.equals(rule, 2)) {
+            BeanUtils.copyProperties(distributePreviewByAmt(outsourceInfo, caseInfoYes),previewModel);
+            debtList.addAll(previewModel.getCaseIds());
+            previewModel.setCaseIds(debtList);
+            return previewModel;
+        }
+
+        //按综合分配
+        if (Objects.equals(rule, 3)) {
+            BeanUtils.copyProperties(previewIntegrate(outsourceInfo, caseInfoYes), previewModel);
+            debtList.addAll(previewModel.getCaseIds());
+            previewModel.setCaseIds(debtList);
+            return previewModel;
+        }
+
         for (int i = 0; i < (outsourceList != null ? outsourceList.size() : 0); i++) {
             String outsourceId = outsourceList.get(i);
             OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
@@ -226,6 +236,88 @@ public class OutsourcePoolService {
         return previewModel;
     }
 
+    /**
+     * @Description 委外待分配综合分配预览
+     */
+    private PreviewModel previewIntegrate(OutsourceInfo outsourceInfo, List<CaseInfo> caseInfoYes) {
+
+        PreviewModel previewModel = new PreviewModel();
+        List<DisModel> disModels = new ArrayList<>();
+        //对案件进行排序
+        Collections.sort(caseInfoYes, (o1, o2) -> {
+            return o2.getOverdueAmount().compareTo(o1.getOverdueAmount());
+        });
+        int start = (int)Math.round(caseInfoYes.size()*0.25);
+        int end = (int)Math.round(caseInfoYes.size()*0.75);
+        List<CaseInfo> numAvgList = new ArrayList<>();
+        //取出100条案件中的25到75个案件，存放到numAvgList
+        for(int i = start; i< end; i++){
+            numAvgList.add(caseInfoYes.get(start));
+            caseInfoYes.remove(start);
+        }
+//        List<CaseInfo> amtAvgList = caseInfoYes;
+        //先数量平均分配
+        int caseNum = numAvgList.size();
+        int outsourceNum = outsourceInfo.getOutId().size();
+        //存储按数量平均分配的案件ID
+        for (String id : outsourceInfo.getOutId()) {
+            DisModel model = new DisModel();
+            model.setId(id);
+            disModels.add(model);
+        }
+
+        List<Integer> caseNumList = new ArrayList<>(outsourceNum);
+        for (int i = 0; i < outsourceNum; i++) {
+            caseNumList.add(caseNum / outsourceNum);
+            disModels.get(i).setNum(caseNum / outsourceNum);
+        }
+        //讲案件与委外方无法平均分配的案件再依次分给委外方
+        if (caseNum % outsourceNum != 0) {
+            for (int i = 0; i < caseNum % outsourceNum; i++) {
+                caseNumList.set(i, caseNumList.get(i) + 1);
+                disModels.get(i).setNum(caseNumList.get(i));
+            }
+        }
+        //将平均分配的案件ID和金额放入disModels中
+        for(DisModel model : disModels){
+            List<CaseInfo> temp = numAvgList.subList(0,model.getNum());
+            numAvgList = numAvgList.subList(model.getNum(),numAvgList.size());
+            for(CaseInfo caseInfo:temp){
+                model.setAmt(model.getAmt().add(caseInfo.getOverdueAmount()));
+                model.getCaseIds().add(caseInfo.getId());
+                model.getCaseInfos().add(caseInfo);
+            }
+        }
+        //剩余50条按金额平均分配
+        for (CaseInfo caseInfo : caseInfoYes) {
+            Collections.sort(disModels, (o1, o2) -> {
+                return o1.getAmt().compareTo(o2.getAmt());
+            });
+            disModels.get(0).setAmt(disModels.get(0).getAmt().add(caseInfo.getOverdueAmount()));
+            disModels.get(0).getCaseIds().add(caseInfo.getId());
+            disModels.get(0).getCaseInfos().add(caseInfo);
+        }
+        List<OutDistributeInfo> list = new ArrayList<>();
+        for (DisModel model : disModels) {
+            String outsourceId = model.getId();
+            OutDistributeInfo outDistributeInfo = new OutDistributeInfo();
+            Outsource outsource = outsourceRepository.findOne(outsourceId);
+            outDistributeInfo.setOutCode(outsource.getOutsCode());
+            outDistributeInfo.setOutName(outsource.getOutsName());
+            previewModel.getCaseIds().addAll(model.getCaseIds());
+            previewModel.getOutsourceIds().add(model.getId());
+            previewModel.getNumList().add(model.getCaseIds().size());
+            outDistributeInfo.setCollectionCount(outsourcePoolRepository.getOutsourceCaseCount(outsourceId));
+            outDistributeInfo.setCollectionAmt(outsourcePoolRepository.getOutsourceAmtCount(outsourceId));
+            outDistributeInfo.setCaseDistributeCount(model.getCaseInfos().size());
+            outDistributeInfo.setCaseDistributeMoneyCount(model.getAmt());
+            outDistributeInfo.setCaseTotalCount(outDistributeInfo.getCollectionCount()+outDistributeInfo.getCaseDistributeCount());
+            outDistributeInfo.setCaseMoneyTotalCount(outDistributeInfo.getCollectionAmt().add(outDistributeInfo.getCaseDistributeMoneyCount()));
+            list.add(outDistributeInfo);
+        }
+        previewModel.setOutList(list);
+        return previewModel;
+    }
 
     /**
      * 委外待分配案件分配
