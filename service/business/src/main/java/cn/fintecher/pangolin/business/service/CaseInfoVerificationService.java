@@ -74,9 +74,9 @@ public class CaseInfoVerificationService {
      * @Description 查询核销案件
      */
     public List<Object[]> getCastInfoList(CaseInfoVerficationModel caseInfoVerificationModel, User tokenUser) {
-        StringBuilder queryCon = new StringBuilder("SELECT b.case_number,b.batch_number,d.`name` AS pname,f.area_name,c.`name` AS cname,c.mobile_no,b.pay_status,b.overdue_days,b.overdue_amount,b.hand_number,b.commission_rate,b.delegation_date,b.close_date,g.name AS gname, " +
-                "e.real_name,b.collection_status,b.assist_flag,b.followup_back,b.assist_way " +
-                "FROM (SELECT id,case_id FROM case_info_verification WHERE 1=1 ");
+        StringBuilder queryCon = new StringBuilder("SELECT b.case_number,b.batch_number,d.`name` AS pname," +
+                "c.name,c.mobile_no,b.overdue_periods,b.overdue_days,b.overdue_amount,b.commission_rate,b.delegation_date,b.close_date,b.collection_status,a.operator_time,a.state " +
+                "FROM (SELECT id,case_id,operator_time,state FROM case_info_verification WHERE 1=1 ");
         List<String> ids = caseInfoVerificationModel.getIds();
         if (Objects.nonNull(caseInfoVerificationModel.getIds())) {
             queryCon.append(" AND id in (");
@@ -156,22 +156,17 @@ public class CaseInfoVerificationService {
         headMap.put("caseNumber", "案件编号");
         headMap.put("batchNumber", "批次号");
         headMap.put("principalName", "委托方");
-        headMap.put("city", "申请城市");
         headMap.put("personalName", "客户姓名");
         headMap.put("personalMobileNo", "手机号");
-        headMap.put("payStatus","还款状态");
+        headMap.put("overduePeriods", "逾期期数");
         headMap.put("overdueDays", "逾期天数");
         headMap.put("overdueAmount", "案件金额");
-        headMap.put("handNumber", "案件手数");
         headMap.put("commissionRate","佣金比例");
         headMap.put("delegationDate","委案日期");
         headMap.put("closeDate","结案日期");
-        headMap.put("departName","机构名称");
-        headMap.put("currentCollector", "催收员");
         headMap.put("collectionStatus", "催收状态");
-        headMap.put("assistFlag", "是否协催");
-        headMap.put("followupBack", "催收反馈");
-        headMap.put("assistWay", "协催方式");
+        headMap.put("operatorTime", "案件核销日期");
+        headMap.put("state", "核销说明");
         List<Map<String, Object>> dataList = new ArrayList<>();
         try {
             caseInfoVerificationList.get(0);
@@ -183,29 +178,18 @@ public class CaseInfoVerificationService {
                 if (Objects.nonNull(caseInfoVerification[2])) {
                     map.put("principalName", caseInfoVerification[2]); // 委托方
                 }
-                if (Objects.nonNull(caseInfoVerification[3])) {
-                    map.put("city", caseInfoVerification[3]); // 城市
-                }
-                map.put("personalName", caseInfoVerification[4]); // 客户姓名
-                map.put("personalMobileNo", caseInfoVerification[5]); // 手机号
-                map.put("payStatus", caseInfoVerification[6]); // 还款状态
-                map.put("overdueDays", caseInfoVerification[7]); // 逾期天数
-                map.put("overdueAmount", caseInfoVerification[8]); // 逾期总金额
-                map.put("handNumber", caseInfoVerification[9]); // 案件手数
-                map.put("commissionRate", caseInfoVerification[10]); // 佣金比例
-                map.put("delegationDate", caseInfoVerification[11]); // 委案日期
-                map.put("closeDate", caseInfoVerification[12]); // 结案日期
-                if (Objects.nonNull(caseInfoVerification[13])) {
-                    map.put("departName", caseInfoVerification[13]); // 机构名称
-                }
-                if (Objects.nonNull(caseInfoVerification[14])) {
-                    map.put("currentCollector", caseInfoVerification[14]); // 催收员
-                }
-                DataDict dataDict = dataDictRepository.findOne(QDataDict.dataDict.id.eq(Integer.parseInt(caseInfoVerification[15].toString())));
+                map.put("personalName", caseInfoVerification[3]); // 客户姓名
+                map.put("personalMobileNo", caseInfoVerification[4]); // 手机号
+                map.put("overduePeriods", caseInfoVerification[5]); // 逾期期数
+                map.put("overdueDays", caseInfoVerification[6]); // 逾期天数
+                map.put("overdueAmount", caseInfoVerification[7]); // 逾期总金额
+                map.put("commissionRate", caseInfoVerification[8]); // 佣金比例
+                map.put("delegationDate", caseInfoVerification[9]); // 委案日期
+                map.put("closeDate", caseInfoVerification[10]); // 结案日期
+                DataDict dataDict = dataDictRepository.findOne(QDataDict.dataDict.id.eq(Integer.parseInt(caseInfoVerification[11].toString())));
                 map.put("collectionStatus", dataDict.getName()); // 催收状态
-                map.put("assistFlag", caseInfoVerification[16]); // 是否协催
-                map.put("followupBack", caseInfoVerification[17]); // 催收反馈
-                map.put("assistWay", caseInfoVerification[18]); // 协催方式
+                map.put("operatorTime", caseInfoVerification[12]); // 案件核销日期
+                map.put("state", caseInfoVerification[13]); // 核销说明
                 dataList.add(map);
             }
             workbook = new HSSFWorkbook();
