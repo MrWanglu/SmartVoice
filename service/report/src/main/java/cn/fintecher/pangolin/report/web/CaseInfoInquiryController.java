@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.report.web;
 
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.mapper.CaseInfoMapper;
+import cn.fintecher.pangolin.report.model.CaseAssistModel;
 import cn.fintecher.pangolin.report.model.CaseInfoConditionParams;
 import cn.fintecher.pangolin.report.model.CaseInfoModel;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -39,14 +40,16 @@ public class CaseInfoInquiryController extends BaseController {
 
     private final static String ENTITY_CASE_INFO = "CaseInfo";
 
+    private final static String ENTITY_CASE_ASSIST = "CaseAssist";
+
     @Inject
     CaseInfoMapper caseInfoMapper;
 
     /**
-     * @Description 多条件查询案件
+     * @Description 多条件查询电催，外访案件
      */
     @GetMapping("/getCaseInfoByCondition")
-    @ApiOperation(value = "多条件查询案件", notes = "多条件查询案件")
+    @ApiOperation(value = "多条件查询电催，外访案件", notes = "多条件查询电催，外访案件")
     public ResponseEntity<Page<CaseInfoModel>> getCaseInfoByCondition(CaseInfoConditionParams caseInfoConditionParams,
                                                                       @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get case info by condition");
@@ -72,14 +75,43 @@ public class CaseInfoInquiryController extends BaseController {
                     caseInfoConditionParams.getSort(),
                     tokenUser.getDepartment().getCode(),
                     caseInfoConditionParams.getCollectionStatusList(),
-                    caseInfoConditionParams.getCollectionStatus());
-            PageInfo<CaseInfoModel> page = new PageInfo<>(caseInfoModels);
+                    caseInfoConditionParams.getCollectionStatus(),
+                    caseInfoConditionParams.getParentAreaId(),
+                    caseInfoConditionParams.getAreaId());
+            PageInfo<CaseInfoModel> pageInfo = new PageInfo<>(caseInfoModels);
             Pageable pageable = new PageRequest(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
-            Page<CaseInfoModel> result = new PageImpl<>(caseInfoModels, pageable, page.getTotal());
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASE_INFO)).body(result);
+            Page<CaseInfoModel> page = new PageImpl<>(caseInfoModels, pageable, pageInfo.getTotal());
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASE_INFO)).body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_INFO, "caseInfo", "查询失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 多条件查询协催案件
+     */
+    @GetMapping("/getCaseAssistByCondition")
+    @ApiOperation(value = "多条件查询协催案件", notes = "多条件查询协催案件")
+    public ResponseEntity<Page<CaseAssistModel>> getCaseAssistByCondition(CaseInfoConditionParams caseInfoConditionParams,
+                                                                          @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get case assist by condition");
+        try {
+            User tokenUser = getUserByToken(token);
+            PageHelper.startPage(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
+            List<CaseAssistModel> caseAssistModels = caseInfoMapper.getCaseAssistByCondition(StringUtils.trim(caseInfoConditionParams.getPersonalName()),
+                    StringUtils.trim(caseInfoConditionParams.getMobileNo()),
+                    caseInfoConditionParams.getOverdueMaxAmt(),
+                    caseInfoConditionParams.getOverdueMinAmt(),
+                    caseInfoConditionParams.getAssistStatusList(),
+                    tokenUser.getDepartment().getCode());
+            PageInfo<CaseAssistModel> pageInfo = new PageInfo<>(caseAssistModels);
+            Pageable pageable = new PageRequest(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
+            Page<CaseAssistModel> page = new PageImpl<>(caseAssistModels, pageable, pageInfo.getTotal());
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASE_ASSIST)).body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_ASSIST, "caseAssist", "查询失败")).body(null);
         }
     }
 }
