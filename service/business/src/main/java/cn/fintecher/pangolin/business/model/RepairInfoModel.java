@@ -20,5 +20,5 @@ public class RepairInfoModel {
     private String address; //地址
     private Integer addressStatus; //地址状态
     private Integer type; //地址类型
-    private String email; //邮箱地址
+    private String mail; //邮箱地址
 }

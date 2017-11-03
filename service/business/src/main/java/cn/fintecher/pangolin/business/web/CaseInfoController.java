@@ -6,6 +6,7 @@ import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.CaseInfoVerificationService;
 import cn.fintecher.pangolin.business.service.FollowRecordExportService;
+import cn.fintecher.pangolin.business.service.RunCaseStrategyService;
 import cn.fintecher.pangolin.business.utils.ExcelExportHelper;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
@@ -17,7 +18,6 @@ import cn.fintecher.pangolin.web.ResponseUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import freemarker.template.Configuration;
-import freemarker.template.Template;
 import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.FileUtils;
@@ -25,11 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.joda.time.DateTime;
-import org.kie.api.KieServices;
-import org.kie.api.builder.KieBuilder;
-import org.kie.api.builder.KieFileSystem;
-import org.kie.api.builder.Results;
-import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +39,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StopWatch;
@@ -53,7 +47,10 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -102,6 +99,8 @@ public class CaseInfoController extends BaseController {
     private CaseInfoRemarkRepository caseInfoRemarkRepository;
     @Inject
     CaseDistributedTemporaryRepository caseDistributedTemporaryRepository;
+    @Inject
+    RunCaseStrategyService runCaseStrategyService;
 
     public CaseInfoController(CaseInfoRepository caseInfoRepository) {
         this.caseInfoRepository = caseInfoRepository;
@@ -756,7 +755,7 @@ public class CaseInfoController extends BaseController {
             watch1.start();
             KieSession kieSession = null;
             try {
-                kieSession = createSorceRule(companyCode, strategyType);
+                kieSession = runCaseStrategyService.createSorceRule(companyCode, strategyType);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
@@ -820,7 +819,7 @@ public class CaseInfoController extends BaseController {
             watch1.start();
             KieSession kieSession = null;
             try {
-                kieSession = createSorceRule(companyCode, CaseStrategy.StrategyType.INNER.getValue());
+                kieSession = runCaseStrategyService.createSorceRule(companyCode, CaseStrategy.StrategyType.INNER.getValue());
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
@@ -896,7 +895,7 @@ public class CaseInfoController extends BaseController {
             watch1.start();
             KieSession kieSession = null;
             try {
-                kieSession = createSorceRule(companyCode, CaseStrategy.StrategyType.INNER.getValue());
+                kieSession = runCaseStrategyService.createSorceRule(companyCode, CaseStrategy.StrategyType.INNER.getValue());
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
@@ -964,67 +963,6 @@ public class CaseInfoController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseInfoController", "exportCaseInfoFollowRecord", e.getMessage())).body(null);
-        }
-    }
-
-    /**
-     * 动态生成规则
-     *
-     * @return
-     * @throws IOException
-     * @throws
-     */
-    private KieSession createSorceRule(String comanyCode, Integer strategyType) {
-        List<ScoreRule> rules = null;
-        try {
-            ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode).concat("&strategyType=").concat(strategyType.toString()), ScoreRules.class);
-            ScoreRules scoreRules = responseEntity.getBody();
-            rules = scoreRules.getScoreRules();
-
-        } catch (Exception e) {
-            throw new IllegalStateException("获取策略失败");
-        }
-        if (Objects.equals(rules.size(), 0)) {
-            throw new RuntimeException("请先设置评分策略");
-        }
-        try {
-            Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
-            Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
-            StringBuilder sb = new StringBuilder();
-            if (Objects.nonNull(rules)) {
-                for (ScoreRule rule : rules) {
-                    for (int i = 0; i < rule.getFormulas().size(); i++) {
-                        ScoreFormula scoreFormula = rule.getFormulas().get(i);
-                        Map<String, String> map = new HashMap<>();
-                        map.put("id", rule.getId());
-                        map.put("index", String.valueOf(i));
-                        map.put("strategy", scoreFormula.getStrategy());
-                        map.put("score", String.valueOf(scoreFormula.getScore()));
-                        map.put("weight", String.valueOf(rule.getWeight()));
-                        sb.append(FreeMarkerTemplateUtils.processTemplateIntoString(scoreFormulaTemplate, map));
-                    }
-                }
-            }
-            KieServices kieServices = KieServices.Factory.get();
-            KieFileSystem kfs = kieServices.newKieFileSystem();
-            Map<String, String> map = new HashMap<>();
-            map.put("allRules", sb.toString());
-            String text = FreeMarkerTemplateUtils.processTemplateIntoString(scoreRuleTemplate, map);
-            kfs.write("src/main/resources/simple.drl",
-                    kieServices.getResources().newReaderResource(new StringReader(text)));
-            KieBuilder kieBuilder = kieServices.newKieBuilder(kfs).buildAll();
-            Results results = kieBuilder.getResults();
-            if (results.hasMessages(org.kie.api.builder.Message.Level.ERROR)) {
-                log.error(results.getMessages().toString());
-                throw new IllegalStateException("策略生成错误");
-            }
-            KieContainer kieContainer =
-                    kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
-            KieSession kieSession = kieContainer.newKieSession();
-            return kieSession;
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw new RuntimeException("策略生成失败");
         }
     }
 

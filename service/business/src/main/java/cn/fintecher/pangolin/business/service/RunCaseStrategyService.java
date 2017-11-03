@@ -1,7 +1,10 @@
 package cn.fintecher.pangolin.business.service;
 
-import cn.fintecher.pangolin.entity.CaseInfo;
+import cn.fintecher.pangolin.business.model.ScoreFormula;
+import cn.fintecher.pangolin.business.model.ScoreRule;
+import cn.fintecher.pangolin.business.model.ScoreRules;
 import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
+import cn.fintecher.pangolin.entity.util.Constants;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateException;
 import org.json.JSONArray;
@@ -14,6 +17,7 @@ import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.client.RestTemplate;
@@ -24,6 +28,7 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by sunyanping on 2017/9/30.
@@ -106,31 +111,58 @@ public class RunCaseStrategyService {
         }
     }
 
-    /**
-     * 策略分配中的平均分配计算
-     *
-     * @param caseInfos  案件数
-     * @param dataList   用户数
-     * @param disNumList 分配结果数
-     */
-    public void setDistributeNum(List<?> caseInfos, List<String> dataList, List<Integer> disNumList) {
-        int i = caseInfos.size();
-        int j = dataList.size();
-        if (i % j == 0) {
-            int g = i / j;
-            for (int m = 1; m <= j; m++) {
-                disNumList.add(g);
-            }
-        } else {
-            int a = i / j;
-            int b = i % j;
-            for (int m = 0; m < j; m++) {
-                if (m > b - 1) {
-                    disNumList.add(a);
-                } else {
-                    disNumList.add(a + 1);
+
+    public KieSession createSorceRule(String comanyCode, Integer strategyType) {
+        List<ScoreRule> rules = null;
+        try {
+            ResponseEntity<ScoreRules> responseEntity = restTemplate.getForEntity(Constants.SCOREL_SERVICE_URL.concat("getScoreRules").concat("?comanyCode=").concat(comanyCode).concat("&strategyType=").concat(strategyType.toString()), ScoreRules.class);
+            ScoreRules scoreRules = responseEntity.getBody();
+            rules = scoreRules.getScoreRules();
+
+        } catch (Exception e) {
+            throw new IllegalStateException("获取策略失败");
+        }
+        if (Objects.equals(rules.size(), 0)) {
+            throw new RuntimeException("请先设置评分策略");
+        }
+        try {
+            freemarker.template.Template scoreFormulaTemplate = freemarkerConfiguration.getTemplate("scoreFormula.ftl", "UTF-8");
+            freemarker.template.Template scoreRuleTemplate = freemarkerConfiguration.getTemplate("scoreRule.ftl", "UTF-8");
+            StringBuilder sb = new StringBuilder();
+            if (Objects.nonNull(rules)) {
+                for (ScoreRule rule : rules) {
+                    for (int i = 0; i < rule.getFormulas().size(); i++) {
+                        ScoreFormula scoreFormula = rule.getFormulas().get(i);
+                        Map<String, String> map = new HashMap<>();
+                        map.put("id", rule.getId());
+                        map.put("index", String.valueOf(i));
+                        map.put("strategy", scoreFormula.getStrategy());
+                        map.put("score", String.valueOf(scoreFormula.getScore()));
+                        map.put("weight", String.valueOf(rule.getWeight()));
+                        sb.append(FreeMarkerTemplateUtils.processTemplateIntoString(scoreFormulaTemplate, map));
+                    }
                 }
             }
+            KieServices kieServices = KieServices.Factory.get();
+            KieFileSystem kfs = kieServices.newKieFileSystem();
+            Map<String, String> map = new HashMap<>();
+            map.put("allRules", sb.toString());
+            String text = FreeMarkerTemplateUtils.processTemplateIntoString(scoreRuleTemplate, map);
+            kfs.write("src/main/resources/simple.drl",
+                    kieServices.getResources().newReaderResource(new StringReader(text)));
+            KieBuilder kieBuilder = kieServices.newKieBuilder(kfs).buildAll();
+            Results results = kieBuilder.getResults();
+            if (results.hasMessages(org.kie.api.builder.Message.Level.ERROR)) {
+                logger.error(results.getMessages().toString());
+                throw new IllegalStateException("策略生成错误");
+            }
+            KieContainer kieContainer =
+                    kieServices.newKieContainer(kieBuilder.getKieModule().getReleaseId());
+            KieSession kieSession = kieContainer.newKieSession();
+            return kieSession;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw new RuntimeException("策略生成失败");
         }
     }
 }

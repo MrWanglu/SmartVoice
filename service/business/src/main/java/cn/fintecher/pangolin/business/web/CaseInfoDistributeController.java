@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoDistributedService;
 import cn.fintecher.pangolin.business.service.CaseInfoService;
 import cn.fintecher.pangolin.business.service.RunCaseStrategyService;
+import cn.fintecher.pangolin.business.utils.ZWMathUtil;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import cn.fintecher.pangolin.entity.util.Constants;
@@ -336,7 +337,7 @@ public class CaseInfoDistributeController extends BaseController {
             boolean areaIdFlag = false;
             boolean ppsFlag = false;
             if (StringUtils.isNotBlank(caseStrategy.getStrategyText())) {
-                if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_AREA_ID)){
+                if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_AREA_ID)) {
                     areaIdFlag = true;
                 }
                 if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_PRODUCT_SERIES)) {
@@ -624,4 +625,73 @@ public class CaseInfoDistributeController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "删除错误")).body(null);
         }
     }
+
+    @PostMapping("/importCaseScore")
+    @ApiOperation(value = "案件导入待分配案件评分", notes = "案件导入待分配案件评分")
+    public ResponseEntity importCaseScore(@RequestBody CaseInfoIdList params,
+                                          @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            if (Objects.isNull(user.getCompanyCode())) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "超级管理员不允许此项操作")).body(null);
+            }
+            KieSession kieSession = null;
+            try {
+                kieSession = runCaseStrategyService.createSorceRule(user.getCompanyCode(), CaseStrategy.StrategyType.IMPORT.getValue());
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+            }
+            Iterator<CaseInfoDistributed> iterator;
+            if (Objects.isNull(params.getIds()) && !params.getIds().isEmpty()) {
+                List<CaseInfoDistributed> all = caseInfoDistributedRepository.findAll(params.getIds());
+                iterator = all.iterator();
+            } else {
+                QCaseInfoDistributed qCaseInfoDistributed = QCaseInfoDistributed.caseInfoDistributed;
+                BooleanBuilder builder = new BooleanBuilder();
+                // 未回收
+                builder.and(qCaseInfoDistributed.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
+                builder.and(qCaseInfoDistributed.companyCode.eq(user.getCompanyCode()));
+                Iterable<CaseInfoDistributed> all = caseInfoDistributedRepository.findAll(builder);
+                iterator = all.iterator();
+            }
+
+            List<CaseInfoDistributed> caseInfoDistributedList = new ArrayList<>();
+            while (iterator.hasNext()) {
+                CaseInfoDistributed next = iterator.next();
+                ScoreRuleModel scoreRuleModel = new ScoreRuleModel();
+                if (Objects.nonNull(next.getPersonalInfo())) {
+                    scoreRuleModel.setAge(Objects.isNull(next.getPersonalInfo().getAge()) ? 0 : next.getPersonalInfo().getAge());
+                    if (Objects.nonNull(next.getPersonalInfo().getPersonalJobs()) && !next.getPersonalInfo().getPersonalJobs().isEmpty()) {
+                        scoreRuleModel.setIsWork(1);
+                    } else {
+                        scoreRuleModel.setIsWork(0);
+                    }
+                }
+                scoreRuleModel.setOverDueAmount(next.getOverdueAmount().doubleValue());
+                scoreRuleModel.setOverDueDays(next.getOverdueDays());
+                if (Objects.nonNull(next.getArea())) {
+                    if (Objects.nonNull(next.getArea().getParent())) {
+                        scoreRuleModel.setProId(next.getArea().getParent().getId());
+                    }
+                } else {
+                    scoreRuleModel.setProId(null);
+                }
+                kieSession.insert(scoreRuleModel);
+                kieSession.fireAllRules();
+                if (scoreRuleModel.getCupoScore() != 0) {
+                    next.setScore(ZWMathUtil.DoubleToBigDecimal(scoreRuleModel.getCupoScore(), null,null));
+                    caseInfoDistributedList.add(next);
+                }
+            }
+            kieSession.dispose();
+            caseInfoDistributedRepository.save(caseInfoDistributedList);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分成功", "")).body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "评分失败")).body(null);
+        }
+    }
+
+
 }

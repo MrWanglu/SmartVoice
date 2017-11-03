@@ -80,7 +80,7 @@ INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, 
 
 
 --2017-09-25 huyanmin 新增导入跟进记录参数
-INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f0066', '0001', 'sys.outcase.followup', '委外案件跟进记录导入模版', 0, '9005', 'http://192.168.3.10:9000/file-service/api/fileUploadController/view/59f29e6a0efad605e9d4d7ed.xlsx', 0, 'administrator', '2017-9-25 19:10:20', '委外案件跟进记录导入模版', NULL);
+INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f0066', '0001', 'sys.outcase.followup', '委外案件跟进记录导入模版', 0, '9005', 'http://192.168.3.10:9000/file-service/api/fileUploadController/view/59fad7cc0f25c0362c83cd63.xlsx', 0, 'administrator', '2017-9-25 19:10:20', '委外案件跟进记录导入模版', NULL);
 --2017-09-25 huyanmin 在委外池中新增3个字段
 ALTER TABLE `outsource_pool` ADD COLUMN `company_code` varchar(64) DEFAULT NULL COMMENT '公司特定标识';
 ALTER TABLE `outsource_pool` ADD COLUMN `over_outsource_time` date DEFAULT NULL COMMENT '委外到期时间';

@@ -106,11 +106,18 @@ public class OutsourcePoolController extends BaseController {
 
     @PostMapping(value = "/outsourceDistributePreview")
     @ApiOperation(value = "委外待分配按数量平均分配预览", notes = "委外待分配按数量平均分配预览")
-    public ResponseEntity<List<OutDistributeInfo>> outsourceDistributePreview(@RequestBody OutsourceInfo outsourceInfo,
+    public ResponseEntity<PreviewModel> outsourceDistributePreview(@RequestBody OutsourceInfo outsourceInfo,
                                                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to outsourceDistributePreview");
+        User user = null;
         try {
-            List<OutDistributeInfo> list = outsourcePoolService.distributePreviewByNum(outsourceInfo);
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "distributeCeaseInfoAgain", e.getMessage())).body(null);
+        }
+        try {
+            PreviewModel list = outsourcePoolService.distributePreviewByNum(outsourceInfo,user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(list);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -1406,8 +1413,8 @@ public class OutsourcePoolController extends BaseController {
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam(required = false) @ApiParam(value = "批次号") String batchNumber,
-                                                                          @RequestParam(required = false) @ApiParam(value = "委外方名称") String outsName,
+    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByBatchnum(@RequestParam(required = false) @ApiParam(value = "批次号") List<String> batchNumber,
+                                                                          @RequestParam(required = false) @ApiParam(value = "委外方名称") List<String> outsName,
                                                                           @RequestParam(required = false) @ApiParam(value = "公司Code码") String companyCode,
                                                                           @QuerydslPredicate(root = OutsourcePool.class) Predicate predicate,
                                                                           @ApiIgnore Pageable pageable,
@@ -1427,11 +1434,11 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qOutsourcePool.companyCode.eq(user.getCompanyCode()));
             }
             if (Objects.nonNull(batchNumber)) {
-                builder.and(qOutsourcePool.outBatch.eq(batchNumber));
+                builder.and(qOutsourcePool.outBatch.in(batchNumber));
             }
             if (Objects.nonNull(outsName)) {
-                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
-                builder.and(qOutsourcePool.outsource.id.eq(outsource.getId()));
+                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.in(outsName));
+                builder.and(qOutsourcePool.outsource.id.in(outsource.getId()));
             }
             builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
             builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
