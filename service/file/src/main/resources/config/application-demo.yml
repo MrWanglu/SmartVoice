@@ -43,7 +43,7 @@ fdfs:
     - 10.1.10.64:22122
 
 gridfs:
-  path: 10.1.10.64:9000/file-service
+  path: csj.zzlgroup.com/zuul-gateway/file-service
   localPath: 127.0.0.7:9000/file-service
 
 server:
