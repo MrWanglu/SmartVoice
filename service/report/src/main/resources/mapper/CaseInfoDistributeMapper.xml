@@ -5,10 +5,8 @@
     <!--多条件查询待分配案件-->
     <select id="findCaseInfoDistribute" parameterType="cn.fintecher.pangolin.report.model.CaseInfoDistributeQueryParams"
             resultMap="caseInfoDistributeResultMap">
-        SELECT a.id,a.case_number,a.batch_number,a.hand_number,a.personal_id,a.product_id,a.principal_id,a.area_id,
-        a.contract_number,a.loan_date,a.contract_amount,a.left_capital,a.left_interest,a.overdue_amount,a.overdue_capital,
-        a.overdue_interest,a.overdue_fine,a.periods,a.per_pay_amount,a.other_amt,a.over_due_date,a.overdue_periods,
-        a.overdue_days,a.has_pay_amount,a.has_pay_periods,a.lately_pay_date,a.lately_pay_amount,a.commission_rate
+        SELECT a.id,a.case_number,a.batch_number,a.hand_number,a.personal_id,a.principal_id,a.area_id,
+        a.overdue_amount,a.periods,a.overdue_periods,a.overdue_days,a.commission_rate,a.delegation_date,a.close_date,a.score
         FROM case_info_distributed a
         LEFT JOIN personal c ON a.personal_id = c.id
         LEFT JOIN product d ON a.product_id = d.id
