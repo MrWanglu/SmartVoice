@@ -227,3 +227,6 @@ ADD COLUMN `source`  int(4) NULL DEFAULT NULL COMMENT '案件池来源' AFTER `c
 ALTER TABLE `case_info_verification`
 DROP COLUMN `packing_status`,
 ADD COLUMN `packing_status`  int(4) NULL DEFAULT NULL COMMENT '打包状态' AFTER `state`;
+
+ALTER TABLE `case_info_verification`
+ADD COLUMN `packing_status`  int(4) NULL COMMENT '打包状态' AFTER `state`;

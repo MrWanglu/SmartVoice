@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import java.io.ByteArrayOutputStream;
@@ -80,10 +81,10 @@ public class CaseInfoVerificationService {
         List<String> ids = caseInfoVerificationModel.getIds();
         if (Objects.nonNull(caseInfoVerificationModel.getIds())) {
             queryCon.append(" AND id in (");
-            for(int i = 0; i < ids.size(); i++) {
+            for (int i = 0; i < ids.size(); i++) {
                 if (i < ids.size() - 1) {
                     queryCon.append("'").append(ids.get(i)).append("',");
-                }else {
+                } else {
                     queryCon.append("'").append(ids.get(i)).append("'");
                 }
             }
@@ -93,7 +94,7 @@ public class CaseInfoVerificationService {
             if (Objects.nonNull(caseInfoVerificationModel.getCompanyCode())) {
                 queryCon.append(" AND company_code = ").append("'").append(caseInfoVerificationModel.getCompanyCode()).append("'");
             }
-        }else {
+        } else {
             queryCon.append(" AND company_code = ").append("'").append(tokenUser.getCompanyCode()).append("'");
         }
         queryCon.append(") AS a LEFT JOIN case_info b ON a.case_id = b.id LEFT JOIN personal c ON b.personal_id = c.id LEFT JOIN principal d ON b.principal_id = d.id LEFT JOIN `user` e ON b.current_collector = e.id LEFT JOIN area_code f ON b.area_id = f.id " +
@@ -140,7 +141,7 @@ public class CaseInfoVerificationService {
         }
         return caseInfoVerModels;
     }
-    
+
     /**
      * 核销案件的导出操作
      *
@@ -161,9 +162,9 @@ public class CaseInfoVerificationService {
         headMap.put("overduePeriods", "逾期期数");
         headMap.put("overdueDays", "逾期天数");
         headMap.put("overdueAmount", "案件金额");
-        headMap.put("commissionRate","佣金比例");
-        headMap.put("delegationDate","委案日期");
-        headMap.put("closeDate","结案日期");
+        headMap.put("commissionRate", "佣金比例");
+        headMap.put("delegationDate", "委案日期");
+        headMap.put("closeDate", "结案日期");
         headMap.put("collectionStatus", "催收状态");
         headMap.put("operatorTime", "案件核销日期");
         headMap.put("state", "核销说明");
@@ -318,9 +319,10 @@ public class CaseInfoVerificationService {
 
     /**
      * set核销申请属性值
-     * @param apply 核销申请
-     * @param caseInfo 案件
-     * @param user 申请人
+     *
+     * @param apply       核销申请
+     * @param caseInfo    案件
+     * @param user        申请人
      * @param applyReason
      */
     public void setVerificationApply(CaseInfoVerificationApply apply, CaseInfo caseInfo, User user, String applyReason) {
@@ -351,9 +353,9 @@ public class CaseInfoVerificationService {
      * set核销申请通过属性值
      *
      * @param caseInfoVerficationModel 核销申请
-     * @param user 审批人
+     * @param user                     审批人
      */
-    public void caseInfoVerificationApply(CaseInfoVerficationModel caseInfoVerficationModel,User user) {
+    public void caseInfoVerificationApply(CaseInfoVerficationModel caseInfoVerficationModel, User user) {
         CaseInfoVerificationApply caseInfoVerificationApply = caseInfoVerificationApplyRepository.findOne(caseInfoVerficationModel.getId());
         CaseInfoVerification caseInfoVerification = new CaseInfoVerification();
         // 超级管理员
@@ -362,7 +364,7 @@ public class CaseInfoVerificationService {
                 caseInfoVerificationApply.setCompanyCode(caseInfoVerficationModel.getCompanyCode());
                 caseInfoVerification.setCompanyCode(caseInfoVerficationModel.getCompanyCode());
             }
-        }else {
+        } else {
             caseInfoVerificationApply.setCompanyCode(user.getCompanyCode());
             caseInfoVerification.setCompanyCode(user.getCompanyCode());
         }
@@ -373,7 +375,7 @@ public class CaseInfoVerificationService {
             caseInfo.setCasePoolType(caseInfoVerificationApply.getSource()); // 案件池类型
             caseInfoRepository.save(caseInfo);
             caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
-        }else { // 核销审批通过
+        } else { // 核销审批通过
             caseInfoVerificationApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.approve.getValue()); // 审批结果：通过
             caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_approve.getValue()); // 审批状态：审批通过
             caseInfoVerificationApply.setOperator(user.getUserName()); // 审批人
@@ -425,10 +427,15 @@ public class CaseInfoVerificationService {
             sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 的核销申请审批" + (Objects.equals(caseInfoVerficationModel.getApprovalResult(), 0) ? "拒绝" : "通过"));
             sendReminderMessage.setContent(caseInfoVerficationModel.getApprovalOpinion());
             sendReminderMessage.setType(ReminderType.VERIFICATION);
-            reminderService.sendReminder(sendReminderMessage);
+            try {
+                reminderService.sendReminder(sendReminderMessage);
+            } catch (Exception ex) {
+                logger.error(ex.getMessage());
+            }
         }
     }
-    public void setCaseInfoVerificationPackaging(User user,CaseInfoVerficationModel caseInfoVerficationModel,String url) {
+
+    public void setCaseInfoVerificationPackaging(User user, CaseInfoVerficationModel caseInfoVerficationModel, String url) {
         List<String> ids = caseInfoVerficationModel.getIds();
         int sum = 0;
         BigDecimal amount = new BigDecimal(sum);
@@ -453,7 +460,7 @@ public class CaseInfoVerificationService {
             if (Objects.nonNull(caseInfoVerficationModel.getCompanyCode())) {
                 caseInfoVerificationPackaging.setCompanyCode(caseInfoVerficationModel.getCompanyCode());
             }
-        }else { // 普通管理员
+        } else { // 普通管理员
             caseInfoVerificationPackaging.setCompanyCode(user.getCompanyCode());
         }
         caseInfoVerificationPackagingRepository.save(caseInfoVerificationPackaging);
