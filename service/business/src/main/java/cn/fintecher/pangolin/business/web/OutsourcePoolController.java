@@ -1483,10 +1483,39 @@ public class OutsourcePoolController extends BaseController {
         }
         try {
             Pageable pageable = new PageRequest(outsBatchlist.getPage(), outsBatchlist.getSize(), new Sort(Sort.Direction.DESC, "id"));
-            List<OutsourcePool> outsourcePoolList = outsourcePoolService.getOutsourcePool(outsBatchlist, user);
-            Page<OutsourcePool> outDistributeInfos1 = new PageImpl<>(
-                    outsourcePoolList.stream().skip(pageable.getPageNumber() * pageable.getPageSize()).limit(pageable.getPageSize()).collect(Collectors.toList()), pageable, outsourcePoolList.size());
-            return ResponseEntity.ok().body(outDistributeInfos1);
+            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.nonNull(user.getCompanyCode())) {
+                builder.and(qOutsourcePool.companyCode.eq(user.getCompanyCode()));
+            }
+            if (Objects.nonNull(outsBatchlist.getOurBatchList()) && outsBatchlist.getOurBatchList().size()!=0) {
+                builder.and(qOutsourcePool.outBatch.in(outsBatchlist.getOurBatchList()));
+            }
+            if (Objects.nonNull(outsBatchlist.getOutsNameList()) && outsBatchlist.getOutsNameList().size()!=0) {
+                List<Outsource> outsourceList = new ArrayList<>();
+                Iterable<Outsource> outsources=outsourceRepository.findAll(QOutsource.outsource.outsName.in(outsBatchlist.getOutsNameList()));
+                outsources.forEach(single ->{outsourceList.add(single);});
+                builder.and(qOutsourcePool.outsource.in(outsourceList));
+            }
+            if (StringUtils.isNotBlank(outsBatchlist.getOutsName())) {
+                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsBatchlist.getOutsName()));
+                builder.and(qOutsourcePool.outsource.eq(outsource));
+            }
+            if (Objects.nonNull(outsBatchlist.getOutTimeStart()) && !("").equals(outsBatchlist.getOutTimeStart())) {
+                String outTimeStart = outsBatchlist.getOutTimeStart().substring(0,10) + " 00:00:00";
+                Date minTime = ZWDateUtil.getUtilDate(outTimeStart, "yyyy-MM-dd HH:mm:ss");
+                builder.and(QOutsourcePool.outsourcePool.outTime.goe(minTime));
+            }
+            if (Objects.nonNull(outsBatchlist.getOutTimeEnd()) && !("").equals(outsBatchlist.getOutTimeEnd())) {
+                String outTimeEnd =outsBatchlist.getOutTimeEnd().substring(0,10) + " 23:59:59";
+                Date minTime = ZWDateUtil.getUtilDate(outTimeEnd, "yyyy-MM-dd HH:mm:ss");
+                builder.and(QOutsourcePool.outsourcePool.outTime.loe(minTime));
+            }
+            builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
+            builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));
+            builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
+            Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "getAllClosedOutSourceCase", "系统异常!")).body(null);

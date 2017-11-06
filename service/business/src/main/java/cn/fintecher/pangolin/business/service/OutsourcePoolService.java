@@ -661,7 +661,7 @@ public class OutsourcePoolService {
             }
         }
     }
-
+/*
     public List<OutsourcePool> getOutsourcePool(OurBatchList outsBatchlist, User user) throws ParseException {
 
         List<OutsourcePool> outsourcePoolList = new ArrayList<>();
@@ -707,5 +707,5 @@ public class OutsourcePoolService {
             outsourcePoolList.add(outsourcePool);
         }
         return outsourcePoolList;
-    }
+    }*/
 }
