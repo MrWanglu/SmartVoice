@@ -16,4 +16,6 @@ public class OurBatchList {
     private String outTimeStart;
     private String outTimeEnd;
     private String companyCode; //公司code码
+    private Integer page;
+    private Integer size;
 }

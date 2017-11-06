@@ -32,10 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -113,7 +110,7 @@ public class OutsourcePoolController extends BaseController {
     @PostMapping(value = "/outsourceDistributePreview")
     @ApiOperation(value = "委外待分配按数量平均分配预览", notes = "委外待分配按数量平均分配预览")
     public ResponseEntity<PreviewModel> outsourceDistributePreview(@RequestBody OutsourceInfo outsourceInfo,
-                                                                              @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to outsourceDistributePreview");
         User user = null;
         try {
@@ -1475,7 +1472,6 @@ public class OutsourcePoolController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByOutName(@RequestBody OurBatchList outsBatchlist,
-                                                                         @ApiIgnore Pageable pageable,
                                                                          @RequestHeader(value = "X-UserToken") String token) {
         log.debug("Rest request get outsource case by batch number");
         User user = null;
@@ -1486,39 +1482,11 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "user do not log in", e.getMessage())).body(null);
         }
         try {
-            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
-            BooleanBuilder builder = new BooleanBuilder();
-            if (Objects.nonNull(user.getCompanyCode())) {
-                builder.and(qOutsourcePool.companyCode.eq(user.getCompanyCode()));
-            }
-            if (Objects.nonNull(outsBatchlist.getOurBatchList()) && outsBatchlist.getOurBatchList().size()!=0) {
-                builder.and(qOutsourcePool.outBatch.in(outsBatchlist.getOurBatchList()));
-            }
-            if (Objects.nonNull(outsBatchlist.getOutsNameList()) && outsBatchlist.getOutsNameList().size()!=0) {
-                List<Outsource> outsourceList = new ArrayList<>();
-                Iterable<Outsource> outsources=outsourceRepository.findAll(QOutsource.outsource.outsName.in(outsBatchlist.getOutsNameList()));
-                outsources.forEach(single ->{outsourceList.add(single);});
-                builder.and(qOutsourcePool.outsource.in(outsourceList));
-            }
-            if (StringUtils.isNotBlank(outsBatchlist.getOutsName())) {
-                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsBatchlist.getOutsName()));
-                builder.and(qOutsourcePool.outsource.eq(outsource));
-            }
-            if (Objects.nonNull(outsBatchlist.getOutTimeStart()) && !("").equals(outsBatchlist.getOutTimeStart())) {
-                String outTimeStart = outsBatchlist.getOutTimeStart().substring(0,10);
-                java.sql.Date sdt=java.sql.Date.valueOf(outTimeStart);
-                builder.and(QOutsourcePool.outsourcePool.outTime.goe(sdt));
-            }
-            if (Objects.nonNull(outsBatchlist.getOutTimeEnd()) && !("").equals(outsBatchlist.getOutTimeEnd())) {
-                String outTimeEnd =outsBatchlist.getOutTimeEnd().substring(0,10);
-                 java.sql.Date sdt=java.sql.Date.valueOf(outTimeEnd);
-                builder.and(QOutsourcePool.outsourcePool.outTime.loe(sdt));
-            }
-            builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
-            builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));
-            builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
-            Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
-            return ResponseEntity.ok().body(page);
+            Pageable pageable = new PageRequest(outsBatchlist.getPage(), outsBatchlist.getSize(), new Sort(Sort.Direction.DESC, "id"));
+            List<OutsourcePool> outsourcePoolList = outsourcePoolService.getOutsourcePool(outsBatchlist, user);
+            Page<OutsourcePool> outDistributeInfos1 = new PageImpl<>(
+                    outsourcePoolList.stream().skip(pageable.getPageNumber() * pageable.getPageSize()).limit(pageable.getPageSize()).collect(Collectors.toList()), pageable, outsourcePoolList.size());
+            return ResponseEntity.ok().body(outDistributeInfos1);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "getAllClosedOutSourceCase", "系统异常!")).body(null);
