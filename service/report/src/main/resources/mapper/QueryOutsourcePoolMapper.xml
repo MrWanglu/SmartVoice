@@ -68,11 +68,10 @@
         FROM outsource  c
         INNER JOIN outsource_pool a on c.id=a.out_id
         LEFT JOIN case_info d on a.case_id=d.id) as aa where aa.recover_remark = 0 and aa.case_pool_type=226 GROUP BY aa.outs_name,aa.company_code,aa.outs_code) as bb
-        LEFT JOIN (SELECT c.outs_name,count(*) as end_outsource_count,sum(a.out_back_amt) as end_outsource_amt, a.company_code
+        LEFT JOIN (SELECT c.outs_name,count(*) as end_outsource_count,sum(a.contract_amt) as end_outsource_amt, a.company_code
         FROM outsource c
         INNER JOIN outsource_pool a on c.id=a.out_id
         WHERE a.out_status=170 GROUP BY c.outs_name, a.company_code) as cc on bb.outs_name=cc.outs_name and cc.company_code=bb.company_code
-        WHERE 1=1
         <if test="companyCode != null and companyCode != ''">
             AND bb.company_code = #{companyCode}
         </if>

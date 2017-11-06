@@ -1504,14 +1504,15 @@ public class OutsourcePoolController extends BaseController {
                 Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsBatchlist.getOutsName()));
                 builder.and(qOutsourcePool.outsource.eq(outsource));
             }
-            SimpleDateFormat dateFm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             if (Objects.nonNull(outsBatchlist.getOutTimeStart()) && !("").equals(outsBatchlist.getOutTimeStart())) {
-                String outTimeStart = outsBatchlist.getOutTimeStart().substring(0,10)+" 00:00:00";
-                builder.and(QOutsourcePool.outsourcePool.outTime.goe(dateFm.parse(outTimeStart)));
+                String outTimeStart = outsBatchlist.getOutTimeStart().substring(0,10);
+                java.sql.Date sdt=java.sql.Date.valueOf(outTimeStart);
+                builder.and(QOutsourcePool.outsourcePool.outTime.goe(sdt));
             }
             if (Objects.nonNull(outsBatchlist.getOutTimeEnd()) && !("").equals(outsBatchlist.getOutTimeEnd())) {
-                String outTimeEnd =outsBatchlist.getOutTimeEnd().substring(0,10)+" 00:00:00";
-                builder.and(QOutsourcePool.outsourcePool.outTime.loe(dateFm.parse(outTimeEnd)));
+                String outTimeEnd =outsBatchlist.getOutTimeEnd().substring(0,10);
+                 java.sql.Date sdt=java.sql.Date.valueOf(outTimeEnd);
+                builder.and(QOutsourcePool.outsourcePool.outTime.loe(sdt));
             }
             builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
             builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));
