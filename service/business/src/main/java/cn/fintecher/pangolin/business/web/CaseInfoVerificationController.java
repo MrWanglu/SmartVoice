@@ -136,6 +136,7 @@ public class CaseInfoVerificationController extends BaseController {
                     caseInfoVerification.setCompanyCode(caseInfo.getCompanyCode());// 公司code码
                     caseInfoVerification.setOperator(user.getRealName());// 操作人
                     caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime());// 操作时间
+                    caseInfoVerification.setPackingStatus(CaseInfoVerification.PackingStatus.NO_PACKED.getValue());// 打包状态
                     caseInfoVerificationRepository.save(caseInfoVerification);
                 }
             }
@@ -236,6 +237,7 @@ public class CaseInfoVerificationController extends BaseController {
         } else { // 普通管理员
             builder.and(QCaseInfoVerification.caseInfoVerification.companyCode.eq(user.getCompanyCode()));
         }
+        builder.and(QCaseInfoVerification.caseInfoVerification.packingStatus.eq(CaseInfoVerification.PackingStatus.NO_PACKED.getValue()));
         Page<CaseInfoVerification> page = caseInfoVerificationRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoVerification")).body(page);
     }

@@ -417,6 +417,7 @@ public class CaseInfoVerificationService {
             caseInfoVerification.setOperator(user.getRealName()); // 操作人
             caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
             caseInfoVerification.setState(caseInfoVerficationModel.getState()); // 核销说明
+            caseInfoVerification.setPackingStatus(CaseInfoVerification.PackingStatus.NO_PACKED.getValue());// 打包状态
             caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
             //消息提醒
             SendReminderMessage sendReminderMessage = new SendReminderMessage();
@@ -433,6 +434,8 @@ public class CaseInfoVerificationService {
         BigDecimal amount = new BigDecimal(sum);
         for (String id : ids) {
             CaseInfoVerification caseInfoVerification = caseInfoVerificationRepository.findOne(id);
+            caseInfoVerification.setPackingStatus(CaseInfoVerification.PackingStatus.PACKED.getValue()); // 打包状态：已打包
+            caseInfoVerificationRepository.save(caseInfoVerification);
             CaseInfo caseInfo = caseInfoVerification.getCaseInfo();
             BigDecimal overdueAmount = caseInfo.getOverdueAmount();
             amount = amount.add(overdueAmount);

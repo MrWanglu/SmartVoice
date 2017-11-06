@@ -3,7 +3,6 @@ package cn.fintecher.pangolin.entity;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
-
 import javax.persistence.*;
 import java.util.Date;
 
@@ -33,4 +32,33 @@ public class CaseInfoVerification extends BaseEntity {
 
     @ApiModelProperty("核销说明")
     private String state;
+
+    @ApiModelProperty("打包状态")
+    private Integer packingStatus;
+
+    /**
+     * @Description 打包状态类
+     */
+    public enum PackingStatus {
+        //未挂起
+        PACKED(250, "已打包"),
+        //挂起
+        NO_PACKED(251, "未打包");
+        private Integer value;
+
+        private String remark;
+
+        PackingStatus(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+    }
 }
