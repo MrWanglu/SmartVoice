@@ -32,10 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -113,7 +110,7 @@ public class OutsourcePoolController extends BaseController {
     @PostMapping(value = "/outsourceDistributePreview")
     @ApiOperation(value = "委外待分配按数量平均分配预览", notes = "委外待分配按数量平均分配预览")
     public ResponseEntity<PreviewModel> outsourceDistributePreview(@RequestBody OutsourceInfo outsourceInfo,
-                                                                              @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to outsourceDistributePreview");
         User user = null;
         try {
@@ -1475,7 +1472,6 @@ public class OutsourcePoolController extends BaseController {
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
     public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByOutName(@RequestBody OurBatchList outsBatchlist,
-                                                                         @ApiIgnore Pageable pageable,
                                                                          @RequestHeader(value = "X-UserToken") String token) {
         log.debug("Rest request get outsource case by batch number");
         User user = null;
@@ -1486,6 +1482,7 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "user do not log in", e.getMessage())).body(null);
         }
         try {
+            Pageable pageable = new PageRequest(outsBatchlist.getPage(), outsBatchlist.getSize(), new Sort(Sort.Direction.DESC, "id"));
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             BooleanBuilder builder = new BooleanBuilder();
             if (Objects.nonNull(user.getCompanyCode())) {
@@ -1505,14 +1502,14 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qOutsourcePool.outsource.eq(outsource));
             }
             if (Objects.nonNull(outsBatchlist.getOutTimeStart()) && !("").equals(outsBatchlist.getOutTimeStart())) {
-                String outTimeStart = outsBatchlist.getOutTimeStart().substring(0,10);
-                java.sql.Date sdt=java.sql.Date.valueOf(outTimeStart);
-                builder.and(QOutsourcePool.outsourcePool.outTime.goe(sdt));
+                String outTimeStart = outsBatchlist.getOutTimeStart().substring(0,10) + " 00:00:00";
+                Date minTime = ZWDateUtil.getUtilDate(outTimeStart, "yyyy-MM-dd HH:mm:ss");
+                builder.and(QOutsourcePool.outsourcePool.outTime.goe(minTime));
             }
             if (Objects.nonNull(outsBatchlist.getOutTimeEnd()) && !("").equals(outsBatchlist.getOutTimeEnd())) {
-                String outTimeEnd =outsBatchlist.getOutTimeEnd().substring(0,10);
-                 java.sql.Date sdt=java.sql.Date.valueOf(outTimeEnd);
-                builder.and(QOutsourcePool.outsourcePool.outTime.loe(sdt));
+                String outTimeEnd =outsBatchlist.getOutTimeEnd().substring(0,10) + " 23:59:59";
+                Date minTime = ZWDateUtil.getUtilDate(outTimeEnd, "yyyy-MM-dd HH:mm:ss");
+                builder.and(QOutsourcePool.outsourcePool.outTime.loe(minTime));
             }
             builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
             builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));

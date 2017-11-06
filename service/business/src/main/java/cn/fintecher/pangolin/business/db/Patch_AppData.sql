@@ -214,3 +214,9 @@ INSERT INTO `data_dict` VALUES ('246', '0008', null, '还款强制拒绝', '6');
 --胡艳敏
 INSERT INTO `pangolin_business`.`resource` VALUES ('596', '525', '催大人', '设置导出项', '0F0413', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '596');
 INSERT INTO `pangolin_business`.`resource` VALUES ('913', '858', '催大人', '操作时间', '090703', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '913');
+
+--2017-11-06
+--核销审批表案件来源字段
+--袁艳婷
+ALTER TABLE `case_info_verification_apply`
+ADD COLUMN `source`  int(4) NULL DEFAULT NULL COMMENT '案件池来源' AFTER `commission_rate`;

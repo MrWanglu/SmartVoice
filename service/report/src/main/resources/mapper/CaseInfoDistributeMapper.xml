@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.fintecher.pangolin.report.mapper.CaseInfoDistributeMapper">
+
+    <!--多条件查询待分配案件-->
+    <select id="findCaseInfoDistribute" parameterType="cn.fintecher.pangolin.report.model.CaseInfoDistributeQueryParams"
+            resultMap="caseInfoDistributeResultMap">
+        SELECT a.id,a.case_number,a.batch_number,a.hand_number,a.personal_id,a.product_id,a.principal_id,a.area_id,
+        a.contract_number,a.loan_date,a.contract_amount,a.left_capital,a.left_interest,a.overdue_amount,a.overdue_capital,
+        a.overdue_interest,a.overdue_fine,a.periods,a.per_pay_amount,a.other_amt,a.over_due_date,a.overdue_periods,
+        a.overdue_days,a.has_pay_amount,a.has_pay_periods,a.lately_pay_date,a.lately_pay_amount,a.commission_rate
+        FROM case_info_distributed a
+        LEFT JOIN personal c ON a.personal_id = c.id
+        LEFT JOIN product d ON a.product_id = d.id
+        LEFT JOIN principal e ON a.principal_id = e.id
+        LEFT JOIN area_code f ON a.area_id = f.id
+        WHERE 1=1
+        AND a.recover_remark = 0
+        <if test="companyCode != null and companyCode !=''">
+            AND a.company_code = #{companyCode}
+        </if>
+        <if test="personalName != null and personalName !=''">
+            AND c.name LIKE concat(#{personalName},'%')
+        </if>
+        <if test="mobileNo != null and mobileNo !=''">
+            AND c.mobile_no = #{mobileNo}
+        </if>
+        <if test="provinceId != null and provinceId !=''">
+            AND f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId})
+        </if>
+        <if test="cityId != null and cityId !=''">
+            AND f.id = #{cityId}
+        </if>
+        <if test="overdueDaysStart != null and overdueDaysStart !=''">
+            AND <![CDATA[a.overdue_days >= #{overDayEnd}]]>
+        </if>
+        <if test="overdueDaysEnd !=null and overdueDaysEnd !=''">
+            AND <![CDATA[a.overdue_days <= #{overDayEnd}]]>
+        </if>
+        <if test="overDueAmountStart != null and overDueAmountStart !=''">
+            AND <![CDATA[a.overdue_amount >= #{overDueAmountStart}]]>
+        </if>
+        <if test="overDueAmountEnd != null and overDueAmountEnd !=''">
+            AND <![CDATA[a.overdue_amount <= #{overDueAmountEnd}]]>
+        </if>
+        <if test="handNumberStart != null and handNumberStart !=''">
+            AND <![CDATA[a.hand_number >= #{handNumberStart}]]>
+        </if>
+        <if test="handNumberEnd != null and handNumberEnd !=''">
+            AND <![CDATA[a.hand_number <= #{handNumberEnd}]]>
+        </if>
+        <if test="commissionRateStart != null and commissionRateStart !=''">
+            AND <![CDATA[a.commission_rate >= #{commissionRateStart}]]>
+        </if>
+        <if test="commissionRateEnd != null and commissionRateEnd !=''">
+            AND <![CDATA[a.commission_rate <= #{commissionRateEnd}]]>
+        </if>
+        <if test="principalId != null and principalId !=''">
+            AND e.id = #{principalId}
+        </if>
+    </select>
+
+    <resultMap id="caseInfoDistributeResultMap" type="cn.fintecher.pangolin.entity.CaseInfoDistributed">
+        <id column="id" property="id"/>
+        <result column="case_number" property="caseNumber"/>
+        <result column="batch_number" property="batchNumber"/>
+        <result column="hand_number" property="handNumber"/>
+        <result column="overdue_amount" property="overdueAmount"/>
+        <result column="delegation_date" property="delegationDate"/>
+        <result column="overdue_days" property="overdueDays"/>
+        <result column="score" property="score"></result>
+        <result column="commission_rate" property="commissionRate"/>
+        <result column="close_date" property="closeDate"></result>
+        <association property="personalInfo" column="personal_id" select="selectPersonal"></association>
+        <association property="area" column="area_id" select="selectCityArea"></association>
+        <association property="principalId" column="principal_id" select="selectPrincipal"></association>
+    </resultMap>
+
+    <select id="selectPersonal" parameterType="string" resultMap="personalResultMap">
+        SELECT id,name,mobile_no FROM personal WHERE id = #{personal_id}
+    </select>
+
+    <resultMap id="personalResultMap" type="cn.fintecher.pangolin.entity.Personal">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+    </resultMap>
+
+    <select id="selectCityArea" resultMap="city">
+        SELECT id,parent_id,area_name FROM area_code WHERE id = #{area_id}
+    </select>
+
+    <resultMap id="city" type="cn.fintecher.pangolin.entity.AreaCode">
+        <id column="id" property="id"/>
+        <result column="area_name" property="areaName"/>
+        <association property="parent" column="parent_id" select="selectProvinceArea"></association>
+    </resultMap>
+
+    <select id="selectProvinceArea" resultMap="province">
+        select id,area_name from area_code where id = #{parent_id}
+    </select>
+
+    <resultMap id="province" type="cn.fintecher.pangolin.entity.AreaCode">
+        <id column="id" property="id"/>
+        <result column="area_name" property="areaName"/>
+    </resultMap>
+
+    <select id="selectPrincipal" resultMap="principalResultMap">
+        select id,name from principal where id = #{principal_id}
+    </select>
+
+    <resultMap id="principalResultMap" type="cn.fintecher.pangolin.entity.Principal">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+    </resultMap>
+
+</mapper>

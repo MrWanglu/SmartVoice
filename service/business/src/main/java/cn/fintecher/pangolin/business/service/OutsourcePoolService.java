@@ -26,6 +26,8 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -659,11 +661,11 @@ public class OutsourcePoolService {
             }
         }
     }
-
-    public List<OutsourcePool> getOutsourcePool(OurBatchList outsBatchlist, User user){
+/*
+    public List<OutsourcePool> getOutsourcePool(OurBatchList outsBatchlist, User user) throws ParseException {
 
         List<OutsourcePool> outsourcePoolList = new ArrayList<>();
-        StringBuilder query = new StringBuilder("SELECT a.id, a.case_id,a.out_id,a.out_time,a.over_outsource_time from outsource_pool a LEFT JOIN case_info b on a.case_id = b.id where a.out_status=168 and b.case_pool_type=226 and b.recover_remark=0 and a.company_code='");
+        StringBuilder query = new StringBuilder("SELECT a.id, a.case_id,a.out_id,a.out_time,a.over_outsource_time,a.overdue_periods,a.out_status from outsource_pool a LEFT JOIN case_info b on a.case_id = b.id where a.out_status=168 and b.case_pool_type=226 and b.recover_remark=0 and a.company_code='");
         if (Objects.nonNull(user.getCompanyCode())) {
             query.append(user.getCompanyCode()).append("' ");
         }
@@ -683,15 +685,14 @@ public class OutsourcePoolService {
 
         if (Objects.nonNull(outsBatchlist.getOutTimeStart()) && !("").equals(outsBatchlist.getOutTimeStart())) {
             String outTimeStart = outsBatchlist.getOutTimeStart().substring(0,10)+" 00:00:00";
-            query.append(" and a.out_time >=").append(StringUtils.trim(outTimeStart));
+            query.append(" and a.out_time >=").append("'").append(StringUtils.trim(outTimeStart)).append("'");
         }
         if (Objects.nonNull(outsBatchlist.getOutTimeEnd()) && !("").equals(outsBatchlist.getOutTimeEnd())) {
             String outTimeEnd =outsBatchlist.getOutTimeEnd().substring(0,10)+" 23:59:59";
-            query.append(" and a.out_time <=").append(StringUtils.trim(outTimeEnd));
+            query.append(" and a.out_time <=").append("'").append(StringUtils.trim(outTimeEnd)).append("'");
         }
         List<Object[]> resultList = entityManager.createNativeQuery(query.toString()).getResultList();
-        SimpleDateFormat dateFm = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
+        SimpleDateFormat dateFm = new SimpleDateFormat("yyyy-MM-dd");
         for(Object[] obj : resultList){
             OutsourcePool outsourcePool = new OutsourcePool();
             outsourcePool.setId(Objects.isNull(obj[0]) ? null : obj[0].toString());
@@ -699,16 +700,12 @@ public class OutsourcePoolService {
             outsourcePool.setCaseInfo(caseInfo);
             Outsource outsource = outsourceRepository.findOne(Objects.isNull(obj[2]) ? null : obj[2].toString());
             outsourcePool.setOutsource(outsource);
-            outsourcePool.setOverduePeriods(Objects.isNull(obj[10]) ? null : obj[10].toString());
-            //outsourcePool.setOutTime(Objects.isNull(obj[4]) ? null : dateFm.parse(obj[4].toString()));
+            outsourcePool.setOutTime(Objects.isNull(obj[3]) ? null : dateFm.parse(obj[3].toString()));
+            outsourcePool.setOverOutsourceTime(Objects.isNull(obj[4]) ? null : dateFm.parse(obj[4].toString()));
+            outsourcePool.setOverduePeriods(Objects.isNull(obj[5]) ? null : obj[5].toString());
             outsourcePool.setOutStatus(Objects.isNull(obj[6]) ? null : Integer.parseInt(obj[6].toString()));
-           // outsourcePool.setOverOutsourceTime();
             outsourcePoolList.add(outsourcePool);
         }
-             /* List<OutsourcePool> outsourcePoolList = outsourcePoolService.getOutsourcePool(outsBatchlist, user);
-               Page<OutsourcePool> outDistributeInfos1 = new PageImpl<>(
-                    outsourcePoolList.stream().skip(pageable.getPageNumber() * pageable.getPageSize()).limit(pageable.getPageSize()).collect(Collectors.toList()), pageable, outsourcePoolList.size());
-                return ResponseEntity.ok().body(outDistributeInfos1);*/
         return outsourcePoolList;
-    }
+    }*/
 }
