@@ -76,6 +76,8 @@ public class SystemLogController extends BaseController {
         }
         try {
             if (Objects.nonNull(operatorTimeStart)) {
+                operatorTimeStart += " 00:00:00";
+
                 builder.and(qSystemLog.operateTime.gt(ZWDateUtil.getUtilDate(operatorTimeStart, null)));
             }
         } catch (ParseException p) {
@@ -85,6 +87,7 @@ public class SystemLogController extends BaseController {
         }
         try {
             if (Objects.nonNull(operatorTimeEnd)) {
+                operatorTimeEnd += " 23:59:59";
                 builder.and(qSystemLog.operateTime.lt(ZWDateUtil.getUtilDate(operatorTimeEnd, null)));
             }
         } catch (ParseException p) {
