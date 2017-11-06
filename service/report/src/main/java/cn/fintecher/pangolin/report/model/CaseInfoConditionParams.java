@@ -30,7 +30,7 @@ public class CaseInfoConditionParams {
     private Integer followupBack; //催收反馈
     private Integer assistWay; //协催方式
     private Integer caseMark; //案件标记
-    private Integer collectionType; //催收类型
+    private String collectionType; //催收类型
     private Integer areaId; //所属城市ID
     private Integer parentAreaId; //省ID
     private Integer page; //页数

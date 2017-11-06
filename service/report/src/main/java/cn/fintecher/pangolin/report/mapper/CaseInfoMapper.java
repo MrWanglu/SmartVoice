@@ -44,7 +44,7 @@ public interface CaseInfoMapper extends MyMapper<CaseInfo> {
             @Param("feedBack") Integer feedBack,
             @Param("assistWay") Integer assistWay,
             @Param("caseMark") Integer caseMark,
-            @Param("collectionType") Integer collectionType,
+            @Param("collectionType") String collectionType,
             @Param("sort") String sort,
             @Param("code") String code,
             @Param("collectionStatusList") String collectionStatusList,
@@ -60,5 +60,6 @@ public interface CaseInfoMapper extends MyMapper<CaseInfo> {
                                                    @Param("overdueMaxAmount") BigDecimal overdueMaxAmount,
                                                    @Param("overdueMinAmount") BigDecimal overdueMinAmount,
                                                    @Param("assistStatusList") String assistStatusList,
-                                                   @Param("deptCode") String deptCode);
+                                                   @Param("deptCode") String deptCode,
+                                                   @Param("sort") String sort);
 }

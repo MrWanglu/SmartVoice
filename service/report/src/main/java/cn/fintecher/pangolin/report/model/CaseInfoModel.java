@@ -41,4 +41,6 @@ public class CaseInfoModel {
     private Integer areaId; //归属城市ID
     private String cityName; //归属城市
     private Integer parentAreaId; //省ID
+    private BigDecimal realPayAmount; //已还金额
+    private Date operatorTime; //操作时间
 }

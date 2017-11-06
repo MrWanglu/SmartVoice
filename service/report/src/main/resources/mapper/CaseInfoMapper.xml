@@ -278,7 +278,8 @@
         a.caseFollowInTime,a.followupBack,a.assistWay,a.holdDays,a.leftDays,a.leaveCaseFlag,b.`name` as
         personalName,b.mobile_no as mobileNo,b.id_card as idCard,c.`name` as principalName,c.id as principalId,
         d.real_name as collectorName,e.`code` as deptCode,a.caseMark,a.case_pool_type,b.id as
-        personalId,a.promiseAmt,a.promiseTime,f.area_name as cityName,f.id as areaId,g.id as parentAreaId from
+        personalId,a.promiseAmt,a.promiseTime,f.area_name as cityName,f.id as areaId,g.id as
+        parentAreaId,a.operatorTime,a.realPayAmount from
         (SELECT id as caseId,case_number as caseNumber,batch_number as batchNumber,overdue_amount as
         overdueAmount,pay_status as payStatus,overdue_days as overdueDays,collection_status as
         collectionStatus,followup_time
@@ -286,7 +287,8 @@
         assistWay,hold_days
         as holdDays,left_days as leftDays,leave_case_flag as
         leaveCaseFlag,personal_id,principal_id,current_collector,depart_id,collection_type as collectionType,case_mark
-        as caseMark,case_pool_type,promise_amt as promiseAmt,promise_time as promiseTime,area_id from
+        as caseMark,case_pool_type,promise_amt as promiseAmt,promise_time as promiseTime,area_id,operator_time as
+        operatorTime,real_pay_amount as realPayAmount from
         case_info where current_collector is not null) a
         LEFT JOIN personal b on a.personal_id = b.id
         LEFT JOIN principal c on a.principal_id = c.id
@@ -295,7 +297,8 @@
         LEFT JOIN area_code f on a.area_id = f.id
         LEFT JOIN area_code g on f.parent_id = g.id
         where e.`code` LIKE concat(#{code},'%')
-        and a.case_pool_type = 225 and a.collectionStatus in(${collectionStatusList})
+        and a.case_pool_type = 225 and a.collectionStatus in(${collectionStatusList}) and a.collectionType
+        in(${collectionType})
         <if test="personalName != null">
             AND b.`name` LIKE concat('%',#{personalName},'%')
         </if>
@@ -356,10 +359,11 @@
         <if test="areaId != null">
             AND f.id = #{areaId} OR f.parent_id = #{areaId}
         </if>
-        ORDER BY a.caseMark desc,if(isnull(a.followupBack),1,0),a.followupBack asc,b.`name` asc
+        ORDER BY a.caseMark desc,if(isnull(a.followupBack),1,0),a.followupBack asc
         <if test="sort != null">
             ,${sort}
         </if>
+        ,b.`name` asc
     </select>
 
     <!-- 多条件查询协催案件信息 -->
@@ -372,7 +376,8 @@
         f.real_name as operatorName,g.`name` as personalName,g.mobile_no as mobileNo,g.id as personalId from
         (SELECT case_id as caseId,id as assistId,lately_collector as latelyCollectorId,current_collector as
         currentCollectorId,assist_collector as assistCollectorId,leave_case_flag as leaveCaseFlag,mark_id as
-        markId,case_flowin_time as caseFlowinTime,operator,assist_way as assistWay,assist_status as assistStatus,operator_time as operatorTime from
+        markId,case_flowin_time as caseFlowinTime,operator,assist_way as assistWay,assist_status as
+        assistStatus,operator_time as operatorTime from
         case_assist) a
         LEFT JOIN case_info b on a.caseId = b.id
         LEFT JOIN `user` c on a.latelyCollectorId = c.id
