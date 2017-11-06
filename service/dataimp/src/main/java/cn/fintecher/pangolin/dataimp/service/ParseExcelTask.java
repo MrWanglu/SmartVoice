@@ -324,7 +324,7 @@ public class ParseExcelTask {
                     columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
                     map.put(cellValue, columnError);
                     break;
-                } else if (cellValue != "" && !MobileUtil.checkMobile(cellValue) && !MobileUtil.checkPhone(cellValue)) {
+                } else if (!StringUtils.equalsIgnoreCase(cellValue, "") && !MobileUtil.checkMobile(cellValue) && !MobileUtil.checkPhone(cellValue)) {
                     columnError.setErrorMsg("电话号码不合规");
                     columnError.setErrorLevel(ColumnError.ErrorLevel.PROMPT.getValue());
                     map.put(cellValue, columnError);
