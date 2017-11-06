@@ -20,10 +20,10 @@
             AND a.company_code = #{companyCode}
         </if>
         <if test="personalName != null and personalName !=''">
-            AND c.name = #{personalName}
+            AND c.name LIKE concat(#{personalName},'%')
         </if>
         <if test="mobileNo != null and mobileNo !=''">
-            AND c.mobile_no = #{phone}
+            AND c.mobile_no = #{mobileNo}
         </if>
         <if test="provinceId != null and provinceId !=''">
             AND f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId})
