@@ -284,7 +284,7 @@ public class CaseInfoDistributedService {
             caseDistributedTemporary(save, save1, save2, caseInfoRemarkList,user,caseDistributedTemporaryList);
             caseDistributedTemporaryRepository.save(caseDistributedTemporaryList);
             caseInfoDistributedRepository.delete(all);
-        } catch (BeansException e) {
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new RuntimeException("分配失败!");
         }
