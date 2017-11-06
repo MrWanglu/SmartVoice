@@ -69,19 +69,21 @@ public class CaseInfoVerificationController extends BaseController {
     @Inject
     private RabbitTemplate rabbitTemplate;
 
+    private static final String VerApply = "SysParam.isVerApply";
+
     @GetMapping("/getSysparm")
     @ApiOperation(value = "查询是否需要申请", notes = "查询是否需要申请")
-    public ResponseEntity getSysparm(@RequestHeader(value = "X-UserToken") String token){
+    public ResponseEntity<String> getSysparm(@RequestHeader(value = "X-UserToken") String token){
         User user;
         try {
             user = getUserByToken(token);
+            SysParam sysParam = sysParamRepository.findOne(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()).and(QSysParam.sysParam.code.eq(VerApply)));
+            String value = sysParam.getValue(); // 1--申请,0--不申请
+            return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("查询成功", "caseInfoVerification")).body(value);
         }catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "操作失败!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseInfoVerification", "caseInfoVerification", "查询失败!")).body(null);
         }
-        SysParam sysParam = sysParamRepository.findOne(QSysParam.sysParam.companyCode.eq(user.getCompanyCode()).and(QSysParam.sysParam.code.eq("SysParam.isVerApply")));
-        String value = sysParam.getValue(); // 1--申请,0--不申请
-        return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("核销结案成功", "CaseInfoVerificationModel")).body(value);
     }
 
     @PostMapping("/saveCaseInfoVerification")
