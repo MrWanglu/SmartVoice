@@ -62,19 +62,19 @@ public class CaseInfoInquiryController extends BaseController {
                 sort = caseInfoConditionParams.getSort();
                 newSort = sort.replace(",", " ");
             }
-            if (sort.contains("followupBack") ||
-                    sort.contains("caseNumber") ||
-                    sort.contains("overdueAmount") ||
-                    sort.contains("overdueDays") ||
-                    sort.contains("batchNumber") ||
-                    sort.contains("followupTime") ||
-                    sort.contains("followupBack")) {
-                newSort = "a.".concat(newSort);
-            }
-            if (sort.contains("idCard")) {
-                String str = newSort.replace("idCard", "id_card");
-                newSort = "b.".concat(str);
-            }
+//            if (sort.contains("followupBack") ||
+//                    sort.contains("caseNumber") ||
+//                    sort.contains("overdueAmount") ||
+//                    sort.contains("overdueDays") ||
+//                    sort.contains("batchNumber") ||
+//                    sort.contains("followupTime") ||
+//                    sort.contains("followupBack")) {
+//                newSort = "a.".concat(newSort);
+//            }
+//            if (sort.contains("idCard")) {
+//                String str = newSort.replace("idCard", "id_card");
+//                newSort = "b.".concat(str);
+//            }
             PageHelper.startPage(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
             List<CaseInfoModel> caseInfoModels = caseInfoMapper.getCaseInfoByCondition(StringUtils.trim(caseInfoConditionParams.getPersonalName()),
                     StringUtils.trim(caseInfoConditionParams.getMobileNo()),

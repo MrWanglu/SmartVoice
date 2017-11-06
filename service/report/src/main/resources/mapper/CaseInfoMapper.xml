@@ -274,8 +274,8 @@
     <select id="getCaseInfoByCondition" parameterType="cn.fintecher.pangolin.report.model.CaseInfoConditionParams"
             resultType="cn.fintecher.pangolin.report.model.CaseInfoModel">
         SELECT
-        a.caseId,a.caseNumber,a.batchNumber,a.collectionType,a.overdueAmount,a.payStatus,a.overdueDays,a.collectionStatus,a.followupTime,
-        a.caseFollowInTime,a.followupBack,a.assistWay,a.holdDays,a.leftDays,a.leaveCaseFlag,b.`name` as
+        a.caseId,a.caseNumber as caseNumber,a.batchNumber as batchNumber,a.collectionType,a.overdueAmount as overdueAmount,a.payStatus,a.overdueDays as overdueDays,a.collectionStatus,a.followupTime as followupTime,
+        a.caseFollowInTime,a.followupBack as followupBack,a.assistWay,a.holdDays,a.leftDays,a.leaveCaseFlag,b.`name` as
         personalName,b.mobile_no as mobileNo,b.id_card as idCard,c.`name` as principalName,c.id as principalId,
         d.real_name as collectorName,e.`code` as deptCode,a.caseMark,a.case_pool_type,b.id as
         personalId,a.promiseAmt,a.promiseTime,f.area_name as cityName,f.id as areaId,g.id as
@@ -359,11 +359,14 @@
         <if test="areaId != null">
             AND f.id = #{areaId} OR f.parent_id = #{areaId}
         </if>
-        ORDER BY a.caseMark desc,if(isnull(a.followupBack),1,0),a.followupBack asc
+        ORDER BY a.caseMark desc,
         <if test="sort != null">
-            ,${sort}
+            ${sort},
         </if>
-        ,b.`name` asc
+        <if test="sort != 'a.followupBack desc' and sort != 'a.followupBack asc'">
+        if(isnull(a.followupBack),1,0),a.followupBack asc,
+        </if>
+        b.`name` asc
     </select>
 
     <!-- 多条件查询协催案件信息 -->
@@ -399,9 +402,12 @@
         <if test="overdueMinAmount != null">
             AND <![CDATA[b.overdue_amount >= #{overdueMinAmount}]]>
         </if>
-        ORDER BY a.operatorTime desc
-        <if test="sort != null">
-            ,${sort}
+        ORDER BY
+        <if test="sort != null and sort != ''">
+            ${sort},
+        </if>
+        <if test="sort != 'a.operatorTime desc' and sort != 'a.operatorTime asc'">
+            a.operatorTime desc
         </if>
     </select>
 </mapper>
