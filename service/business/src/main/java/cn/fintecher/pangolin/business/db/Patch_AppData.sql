@@ -220,3 +220,10 @@ INSERT INTO `pangolin_business`.`resource` VALUES ('913', '858', '催大人', '�
 --袁艳婷
 ALTER TABLE `case_info_verification_apply`
 ADD COLUMN `source`  int(4) NULL DEFAULT NULL COMMENT '案件池来源' AFTER `commission_rate`;
+
+--2017-11-06
+--核销表添加打包状态字段
+--袁艳婷
+ALTER TABLE `case_info_verification`
+DROP COLUMN `packing_status`,
+ADD COLUMN `packing_status`  int(4) NULL DEFAULT NULL COMMENT '打包状态' AFTER `state`;
