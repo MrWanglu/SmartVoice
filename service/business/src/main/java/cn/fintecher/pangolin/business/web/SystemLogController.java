@@ -77,7 +77,6 @@ public class SystemLogController extends BaseController {
         try {
             if (Objects.nonNull(operatorTimeStart)) {
                 operatorTimeStart += " 00:00:00";
-
                 builder.and(qSystemLog.operateTime.gt(ZWDateUtil.getUtilDate(operatorTimeStart, null)));
             }
         } catch (ParseException p) {
