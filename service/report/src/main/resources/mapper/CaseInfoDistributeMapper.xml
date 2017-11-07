@@ -18,19 +18,19 @@
             AND a.company_code = #{companyCode}
         </if>
         <if test="personalName != null and personalName !=''">
-            AND c.name LIKE concat(#{personalName},'%')
+            AND c.name LIKE concat('%', #{personalName},'%')
         </if>
         <if test="mobileNo != null and mobileNo !=''">
             AND c.mobile_no = #{mobileNo}
         </if>
         <if test="provinceId != null and provinceId !=''">
-            AND f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId})
+            AND (f.id = #{provinceId} OR f.id IN (SELECT g.id FROM area_code g WHERE g.parent_id = #{provinceId}))
         </if>
         <if test="cityId != null and cityId !=''">
             AND f.id = #{cityId}
         </if>
         <if test="overdueDaysStart != null and overdueDaysStart !=''">
-            AND <![CDATA[a.overdue_days >= #{overDayEnd}]]>
+            AND <![CDATA[a.overdue_days >= #{overdueDaysStart}]]>
         </if>
         <if test="overdueDaysEnd !=null and overdueDaysEnd !=''">
             AND <![CDATA[a.overdue_days <= #{overDayEnd}]]>
@@ -81,6 +81,7 @@
     <resultMap id="personalResultMap" type="cn.fintecher.pangolin.entity.Personal">
         <id column="id" property="id"></id>
         <result column="name" property="name"></result>
+        <result column="mobile_no" property="mobileNo"></result>
     </resultMap>
 
     <select id="selectCityArea" resultMap="city">
