@@ -1444,7 +1444,6 @@ public class OutsourcePoolController extends BaseController {
                 Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
                 builder.and(qOutsourcePool.outsource.id.eq(outsource.getId()));
             }
-            builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
             builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));
             builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
             Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
