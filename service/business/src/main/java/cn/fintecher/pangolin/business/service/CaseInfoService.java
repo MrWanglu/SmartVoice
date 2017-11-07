@@ -426,6 +426,13 @@ public class CaseInfoService {
         if (Objects.equals(caseInfo.getCollectionStatus(), CaseInfo.CollectionStatus.CASE_OVER.getValue())) {
             throw new RuntimeException("该案件已结案");
         }
+        caseInfo.setOperator(tokenUser); //操作人
+        caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件打标为无色
+        caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+        caseInfo.setEndRemark(endCaseParams.getEndRemark()); //结案说明
+        caseInfo.setEndType(endCaseParams.getEndType()); //结案方式
+        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); //催收状态 24-已结案
+
         QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
         if (Objects.equals(endCaseParams.getIsAssist(), false)) { //不是协催案件
             if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
@@ -444,13 +451,8 @@ public class CaseInfoService {
                     caseAssistRepository.saveAndFlush(caseAssist);
                 }
             }
-            caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); //催收状态 24-已结案
             caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
-            caseInfo.setOperator(tokenUser); //操作人
-            caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件打标为无色
-            caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-            caseInfo.setEndRemark(endCaseParams.getEndRemark()); //结案说明
-            caseInfo.setEndType(endCaseParams.getEndType()); //结案方式
+            caseInfoRepository.saveAndFlush(caseInfo);
             if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
                 caseInfo.setCasePoolType(CaseInfo.CasePoolType.DESTORY.getValue());
                 CaseInfoVerification verification = new CaseInfoVerification();
@@ -462,7 +464,7 @@ public class CaseInfoService {
                 verification.setState(endCaseParams.getEndRemark());
                 verification.setPackingStatus(CaseInfoVerification.PackingStatus.NO_PACKED.getValue());
                 caseInfoVerificationRepository.save(verification);
-            } else if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
+            } else if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.JUDGMENT_CLOSED.getValue())) {
                 caseInfo.setEndType(CaseInfo.EndType.JUDGMENT_CLOSED.getValue());
                 caseInfo.setCasePoolType(CaseInfo.CasePoolType.JUDICIAL.getValue());
                 CaseInfoJudicial judicial = new CaseInfoJudicial();
@@ -472,10 +474,7 @@ public class CaseInfoService {
                 judicial.setOperatorTime(ZWDateUtil.getNowDateTime());
                 judicial.setOperatorUserName(tokenUser.getUserName());
                 caseInfoJudicialRepository.save(judicial);
-            } else {
-                caseInfoRepository.saveAndFlush(caseInfo);
             }
-
         } else { //是协催案件
             CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(endCaseParams.getCaseId()).
                     and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
@@ -492,8 +491,6 @@ public class CaseInfoService {
                 caseInfo.setAssistCollector(null); //协催员置空
                 caseInfo.setAssistWay(null); //协催方式置空
                 caseInfo.setAssistFlag(0); //协催标识 0-否
-                caseInfo.setOperator(tokenUser); //操作人
-                caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                 caseInfoRepository.saveAndFlush(caseInfo);
 
                 //同时新增一条流转记录
@@ -510,17 +507,9 @@ public class CaseInfoService {
                 caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                 caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
                 caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
-
-
             } else { //全程协催，原案件催收状态为已结案
                 //同步更新原案件状态
-                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); //催收状态 24-已结案
                 caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
-                caseInfo.setOperator(tokenUser); //操作人
-                caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-                caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件打标为无色
-                caseInfo.setEndRemark(endCaseParams.getEndRemark()); //结案说明
-                caseInfo.setEndType(endCaseParams.getEndType()); //结案方式
                 caseInfoRepository.saveAndFlush(caseInfo);
             }
             if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
@@ -535,7 +524,7 @@ public class CaseInfoService {
                 verification.setPackingStatus(CaseInfoVerification.PackingStatus.NO_PACKED.getValue());
                 caseInfoVerificationRepository.save(verification);
             }
-            if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
+            if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.JUDGMENT_CLOSED.getValue())) {
                 caseInfo.setEndType(CaseInfo.EndType.JUDGMENT_CLOSED.getValue());
                 caseInfo.setCasePoolType(CaseInfo.CasePoolType.JUDICIAL.getValue());
                 CaseInfoJudicial judicial = new CaseInfoJudicial();
