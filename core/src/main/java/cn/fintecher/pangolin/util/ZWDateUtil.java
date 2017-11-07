@@ -178,14 +178,14 @@ public class ZWDateUtil {
      *
      * @param startDate
      * @param endDate
-     * @param type :ChronoUnit.DAYS ChronoUnit.MONTHS
+     * @param type      :ChronoUnit.DAYS ChronoUnit.MONTHS
      * @return
      */
-    public static Integer getBetween(Date startDate,Date endDate,ChronoUnit type){
+    public static Integer getBetween(Date startDate, Date endDate, ChronoUnit type) {
         LocalDateTime localDateTime1 = LocalDateTime.ofInstant(startDate.toInstant(), ZoneId.systemDefault());
-        LocalDateTime localDateTime2=LocalDateTime.ofInstant(endDate.toInstant(), ZoneId.systemDefault());
-        String difValue= String.valueOf(localDateTime1.until(localDateTime2, type));
-        return  Integer.parseInt(difValue);
+        LocalDateTime localDateTime2 = LocalDateTime.ofInstant(endDate.toInstant(), ZoneId.systemDefault());
+        String difValue = String.valueOf(localDateTime1.until(localDateTime2, type));
+        return Integer.parseInt(difValue);
     }
 
 

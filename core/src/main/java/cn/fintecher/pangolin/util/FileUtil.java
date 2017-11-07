@@ -22,23 +22,24 @@ public class FileUtil {
 
     /**
      * 通过GLOB筛选文件
+     *
      * @param basePath
      * @param ruleStr
      * @return
      */
-    public static  List<Path> simpleSearchFiles(String basePath, String ruleStr,List<Path> pathList){
-        if(Objects.isNull(pathList)){
-            pathList=new ArrayList<>();
+    public static List<Path> simpleSearchFiles(String basePath, String ruleStr, List<Path> pathList) {
+        if (Objects.isNull(pathList)) {
+            pathList = new ArrayList<>();
         }
         Path directoryPath = Paths.get(basePath);
-        if(Files.isDirectory(directoryPath)){
+        if (Files.isDirectory(directoryPath)) {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(directoryPath, ruleStr)) { // File*Exception*
                 for (Path path : stream) {
-                   if(Files.isDirectory(path)){
-                       simpleSearchFiles(path.toString(),ruleStr,pathList);
-                   }else{
-                       pathList.add(path);
-                   }
+                    if (Files.isDirectory(path)) {
+                        simpleSearchFiles(path.toString(), ruleStr, pathList);
+                    } else {
+                        pathList.add(path);
+                    }
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -49,21 +50,22 @@ public class FileUtil {
 
     /**
      * 通过Filter做文件过滤
+     *
      * @param basePath
      * @param regexp
      * @param pathList
      * @return
      */
-    public static  List<Path> filterSearchFiles(String basePath, String regexp,List<Path> pathList){
-        if(Objects.isNull(pathList)){
-            pathList=new ArrayList<>();
+    public static List<Path> filterSearchFiles(String basePath, String regexp, List<Path> pathList) {
+        if (Objects.isNull(pathList)) {
+            pathList = new ArrayList<>();
         }
         DirectoryStream.Filter<Path> filter = new DirectoryStream.Filter<Path>() {
             @Override
             public boolean accept(Path entry) throws IOException {
                 Pattern pattern = Pattern.compile(regexp);
                 //文件夹不过滤
-                if(Files.isDirectory(entry)){
+                if (Files.isDirectory(entry)) {
                     return true;
                 }
                 Matcher match = pattern.matcher(entry.getFileName().toString());
@@ -71,16 +73,16 @@ public class FileUtil {
             }
         };
         Path directoryPath = Paths.get(basePath);
-        if(Files.isDirectory(directoryPath)){
+        if (Files.isDirectory(directoryPath)) {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(directoryPath, filter)) {
                 for (Path path : stream) {
-                    if(Files.isDirectory(path)){
-                        filterSearchFiles(path.toString(),regexp,pathList);
-                    }else{
+                    if (Files.isDirectory(path)) {
+                        filterSearchFiles(path.toString(), regexp, pathList);
+                    } else {
                         pathList.add(path);
                     }
                 }
-        }catch (IOException e){
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -89,11 +91,12 @@ public class FileUtil {
 
     /**
      * 获取文件属性
+     *
      * @param pathStr
      */
-    public static void getFileAttributes(String pathStr)  {
-        try{
-            Path path=Paths.get(pathStr);
+    public static void getFileAttributes(String pathStr) {
+        try {
+            Path path = Paths.get(pathStr);
             //获取访问基本属性的BasicFileAttributeView
             BasicFileAttributeView basicView = Files.getFileAttributeView(path, BasicFileAttributeView.class);
             //获取访问基本属性的BasucFileAttributes
@@ -107,16 +110,15 @@ public class FileUtil {
             System.out.println(new Date(basicAttribs.lastModifiedTime().toMillis()));
             //文件大小
             System.out.println(basicAttribs.size());
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
 
-
     public static void main(String[] args) {
-        List<Path> pathList=  FileUtil.filterSearchFiles("E:\\文档\\项目文档\\催收系统\\mr.cui-cuidaren\\项目实施\\海口和清","^*.WAV$",null);
-        for (Path path:pathList){
+        List<Path> pathList = FileUtil.filterSearchFiles("E:\\文档\\项目文档\\催收系统\\mr.cui-cuidaren\\项目实施\\海口和清", "^*.WAV$", null);
+        for (Path path : pathList) {
             System.out.println(path);
         }
     }
