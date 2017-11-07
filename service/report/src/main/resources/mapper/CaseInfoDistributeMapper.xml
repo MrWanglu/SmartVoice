@@ -33,7 +33,7 @@
             AND <![CDATA[a.overdue_days >= #{overdueDaysStart}]]>
         </if>
         <if test="overdueDaysEnd !=null and overdueDaysEnd !=''">
-            AND <![CDATA[a.overdue_days <= #{overDayEnd}]]>
+            AND <![CDATA[a.overdue_days <= #{overdueDaysEnd}]]>
         </if>
         <if test="overDueAmountStart != null and overDueAmountStart !=''">
             AND <![CDATA[a.overdue_amount >= #{overDueAmountStart}]]>
