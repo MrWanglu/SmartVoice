@@ -460,6 +460,7 @@ public class CaseInfoService {
                 verification.setCompanyCode(caseInfo.getCompanyCode());
                 // 核销说明
                 verification.setState(endCaseParams.getEndRemark());
+                verification.setPackingStatus(CaseInfoVerification.PackingStatus.NO_PACKED.getValue());
                 caseInfoVerificationRepository.save(verification);
             } else if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {
                 caseInfo.setEndType(CaseInfo.EndType.JUDGMENT_CLOSED.getValue());
@@ -531,6 +532,7 @@ public class CaseInfoService {
                 verification.setCompanyCode(caseInfo.getCompanyCode());
                 // 核销说明
                 verification.setState(endCaseParams.getEndRemark());
+                verification.setPackingStatus(CaseInfoVerification.PackingStatus.NO_PACKED.getValue());
                 caseInfoVerificationRepository.save(verification);
             }
             if (Objects.equals(endCaseParams.getEndType(), CaseInfo.EndType.CLOSE_CASE.getValue())) {

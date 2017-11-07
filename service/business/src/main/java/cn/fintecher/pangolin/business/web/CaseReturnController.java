@@ -106,6 +106,7 @@ public class CaseReturnController extends BaseController {
                 verification.setCompanyCode(caseInfo.getCompanyCode());
                 // 核销说明
                 verification.setState(params.getMemo());
+                verification.setPackingStatus(CaseInfoVerification.PackingStatus.NO_PACKED.getValue());
                 verificationList.add(verification);
             }
             caseAssistRepository.save(caseAssistList);
