@@ -1,0 +1,49 @@
+spring:
+    profiles:
+        active: demo
+    devtools:
+        restart:
+            enabled: false
+        livereload:
+            enabled: false # we use gulp + BrowserSync for livereload
+    jackson:
+        serialization.indent_output: true
+    data:
+        mongodb:
+            uri: mongodb://10.1.10.64:27017
+            database: pangolin_dataimp_db
+    jmx:
+      enabled: false
+    rabbitmq:
+        username: admin
+        password: admin
+        host: 10.1.10.64
+        virtual-host: cuidaren
+        port: 5673
+
+eureka:
+  instance:
+    hostname: dataimp-service
+    prefer-ip-address: true
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+            defaultZone: http://10.1.10.64:8761/eureka/
+
+server:
+    port: 9003
+
+# 高德地域查询restapi
+cuibei:
+    placeInquire:
+        webUrl: http://restapi.amap.com/v3/place/text?&output=json&extensions=all
+        ak: 803c595254626ef5a6edeb02944174e4
+
+threadPool:
+   corePoolSize: 10
+   maxPoolSize: 200
+   keepAliveSeconds: 60
+   queueCapacity: 500
+   allowCoreThreadTimeout: false
+   threadNamePrefix: pangolin-

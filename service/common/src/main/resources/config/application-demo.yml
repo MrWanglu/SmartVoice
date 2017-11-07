@@ -1,7 +1,6 @@
 spring:
     profiles:
-        active: dev
-        include: swagger
+        active: demo
     devtools:
         restart:
             enabled: true
@@ -11,18 +10,18 @@ spring:
         serialization.indent_output: true
     data:
         mongodb:
-            uri: mongodb://192.168.3.10:27017
-            database: pangolin_common_db_test
+            uri: mongodb://10.1.10.64:27017
+            database: pangolin_common_db
     rabbitmq:
-        username: test
-        password: test
-        host: 192.168.3.15
-        virtual-host: test
-        port: 5672
+        username: admin
+        password: admin
+        host: 10.1.10.64
+        virtual-host: cuidaren
+        port: 5673
     mail:
         host:  smtp.yeah.net
         username: cuidaren@yeah.net
-        password: cuidaren123456
+        password: CuiDaRen!23456
         port : 25
         properties:
           mail:
@@ -41,10 +40,9 @@ eureka:
     registerWithEureka: true
     fetchRegistry: true
     serviceUrl:
-            defaultZone: http://localhost:8761/eureka/
+            defaultZone: http://10.1.10.64:8761/eureka/
 pangolin:
   call-server:
-    enterprise-code: 4216052302
     secret: e10adc3949ba59abbe56e057f20f883e
     host: m.icsoc.net/v2/wintelapi/webcall
     protocol: http
@@ -52,11 +50,11 @@ pangolin:
     two-way-interface: /cti
   sma:
     seed: abc
-    smaUrl:  http://116.236.220.210:18082/sma/
+    smaUrl:  http://172.19.28.14:8081/sma/
     sysTarget: mr.cui
   message:
-    url: http://sms.zzlgroup.com/sms/sendMsg.html
-    urlQueue: http://sms.zzlgroup.com/sms/querySmsRecordMinute.html
+    url: http://172.19.28.14:8081/sms/sendMsg.html
+    urlQueue: http://172.19.28.14:8081/sms/querySmsRecordMinute.html
     channel: 5
     sysNumber: cuibei_business
     seed: zzl_apt
@@ -84,13 +82,13 @@ pangolin:
     record: http://${pangolin.hantian-server.host}:${pangolin.hantian-server.port}/recordings
     token:
   jiguang:
-    appKey: a06c080ce726b538738b18c9
-    masterSecret: 0c1f4c5b6599df23fe1c3f42
+    appKey: 79ddc73963c2e534c2bbce00
+    masterSecret: 8a7f887494a570e3b4420b11
     msgUrl: https://api.sms.jpush.cn/v1/messages
   smsVariable:
-        account: N3207154
-        pswd: dAJLRXFC3l9097
-        smsVariableUrl: http://smssh1.253.com/msg/send/json
+      account: N3207154
+      pswd: dAJLRXFC3l9097
+      smsVariableUrl: http://smssh1.253.com/msg/send/json
   winnerLook:
       userCode: ZWXXYX
       userPass: Qjg888888

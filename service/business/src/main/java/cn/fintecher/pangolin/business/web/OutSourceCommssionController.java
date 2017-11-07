@@ -389,10 +389,14 @@ public class OutSourceCommssionController extends BaseController {
                     objectSon.setOverdue_time(object[1].toString());
                 }
                 if (Objects.nonNull(object[2].toString())) {
-                    objectSon.setMonrybili(object[2].toString());
+                   int index = object[2].toString().indexOf(".");
+                   String moneyBill =object[2].toString().substring(0, index)+object[2].toString().substring(index,index+3);
+                    objectSon.setMonrybili(moneyBill);
                 }
                 if (Objects.nonNull(object[3].toString())) {
-                    objectSon.setMoney(object[3].toString());
+                    int index = object[3].toString().indexOf(".");
+                    String money =object[3].toString().substring(0, index)+object[3].toString().substring(index,index+3);
+                    objectSon.setMoney(money);
                 }
                 if (Objects.nonNull(object[4].toString())) {
                     objectSon.setHushubili(object[4].toString());

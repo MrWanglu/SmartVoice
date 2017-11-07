@@ -12,7 +12,6 @@ import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -284,7 +283,7 @@ public class CaseInfoDistributedService {
             caseDistributedTemporary(save, save1, save2, caseInfoRemarkList,user,caseDistributedTemporaryList);
             caseDistributedTemporaryRepository.save(caseDistributedTemporaryList);
             caseInfoDistributedRepository.delete(all);
-        } catch (BeansException e) {
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new RuntimeException("分配失败!");
         }

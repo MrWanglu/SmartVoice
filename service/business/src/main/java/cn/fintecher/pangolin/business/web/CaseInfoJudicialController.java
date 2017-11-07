@@ -158,7 +158,7 @@ public class CaseInfoJudicialController extends BaseController{
         }
     }
 
-    @RequestMapping(value = "/getCaseInfoJudicial", method = RequestMethod.GET, produces = "application/json;charset=UTF-8")
+    @GetMapping(value = "/getCaseInfoJudicial")
     @ApiOperation(value = "司法审批通过案件查询", notes = "司法审批通过案件查询")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
@@ -168,7 +168,7 @@ public class CaseInfoJudicialController extends BaseController{
             @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
                     value = "依据什么排序: 属性名(,asc|desc). ")
     })
-    public ResponseEntity getCaseInfoJudicial(@QuerydslPredicate(root = CaseInfoJudicial.class) Predicate predicate,
+    public ResponseEntity<Page<CaseInfoJudicial>> getCaseInfoJudicial(@QuerydslPredicate(root = CaseInfoJudicial.class) Predicate predicate,
                                               @ApiIgnore Pageable pageable,
                                               @RequestHeader(value = "X-UserToken") String token,
                                               @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
@@ -180,14 +180,13 @@ public class CaseInfoJudicialController extends BaseController{
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
         BooleanBuilder builder = new BooleanBuilder(predicate);
-        if (Objects.isNull(user.getCompanyCode())) { // 超级管理员
+        if (Objects.isNull(user.getCompanyCode())) {
             if (StringUtils.isNotBlank(companyCode)) {
                 builder.and(QCaseInfoJudicial.caseInfoJudicial.companyCode.eq(companyCode));
             }
         } else { // 普通管理员
             builder.and(QCaseInfoJudicial.caseInfoJudicial.companyCode.eq(user.getCompanyCode()));
         }
-        builder.and(QCaseInfoJudicial.caseInfoJudicial.caseInfo.endType.eq(CaseInfo.EndType.JUDGMENT_CLOSED.getValue())); // 结案方式：司法结案
         Page<CaseInfoJudicial> page = caseInfoJudicialRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoJudicial")).body(page);
     }

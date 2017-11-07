@@ -80,7 +80,7 @@ INSERT INTO `pangolin_business`.`data_dict` (`id`, `type_code`, `code`, `name`, 
 
 
 --2017-09-25 huyanmin 新增导入跟进记录参数
-INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f0066', '0001', 'sys.outcase.followup', '委外案件跟进记录导入模版', 0, '9005', 'http://192.168.3.10:9000/file-service/api/fileUploadController/view/59f29e6a0efad605e9d4d7ed.xlsx', 0, 'administrator', '2017-9-25 19:10:20', '委外案件跟进记录导入模版', NULL);
+INSERT INTO `sys_param` VALUES ('ff8080815dfe341a797e0043da6f0066', '0001', 'sys.outcase.followup', '委外案件跟进记录导入模版', 0, '9005', 'http://192.168.3.10:9000/file-service/api/fileUploadController/view/59fad7cc0f25c0362c83cd63.xlsx', 0, 'administrator', '2017-9-25 19:10:20', '委外案件跟进记录导入模版', NULL);
 --2017-09-25 huyanmin 在委外池中新增3个字段
 ALTER TABLE `outsource_pool` ADD COLUMN `company_code` varchar(64) DEFAULT NULL COMMENT '公司特定标识';
 ALTER TABLE `outsource_pool` ADD COLUMN `over_outsource_time` date DEFAULT NULL COMMENT '委外到期时间';
@@ -214,3 +214,19 @@ INSERT INTO `data_dict` VALUES ('246', '0008', null, '还款强制拒绝', '6');
 --胡艳敏
 INSERT INTO `pangolin_business`.`resource` VALUES ('596', '525', '催大人', '设置导出项', '0F0413', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '596');
 INSERT INTO `pangolin_business`.`resource` VALUES ('913', '858', '催大人', '操作时间', '090703', NULL, NULL, NULL, NULL, NULL, '19', NULL, NULL, NULL, NULL, '913');
+
+--2017-11-06
+--核销审批表案件来源字段
+--袁艳婷
+ALTER TABLE `case_info_verification_apply`
+ADD COLUMN `source`  int(4) NULL DEFAULT NULL COMMENT '案件池来源' AFTER `commission_rate`;
+
+--2017-11-06
+--核销表添加打包状态字段
+--袁艳婷
+ALTER TABLE `case_info_verification`
+DROP COLUMN `packing_status`,
+ADD COLUMN `packing_status`  int(4) NULL DEFAULT NULL COMMENT '打包状态' AFTER `state`;
+
+ALTER TABLE `case_info_verification`
+ADD COLUMN `packing_status`  int(4) NULL COMMENT '打包状态' AFTER `state`;

@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import java.io.ByteArrayOutputStream;
@@ -74,16 +75,16 @@ public class CaseInfoVerificationService {
      * @Description 查询核销案件
      */
     public List<Object[]> getCastInfoList(CaseInfoVerficationModel caseInfoVerificationModel, User tokenUser) {
-        StringBuilder queryCon = new StringBuilder("SELECT b.case_number,b.batch_number,d.`name` AS pname,f.area_name,c.`name` AS cname,c.mobile_no,b.pay_status,b.overdue_days,b.overdue_amount,b.hand_number,b.commission_rate,b.delegation_date,b.close_date,g.name AS gname, " +
-                "e.real_name,b.collection_status,b.assist_flag,b.followup_back,b.assist_way " +
-                "FROM (SELECT id,case_id FROM case_info_verification WHERE 1=1 ");
+        StringBuilder queryCon = new StringBuilder("SELECT b.case_number,b.batch_number,d.`name` AS pname," +
+                "c.name,c.mobile_no,b.overdue_periods,b.overdue_days,b.overdue_amount,b.commission_rate,b.delegation_date,b.close_date,b.collection_status,a.operator_time,a.state " +
+                "FROM (SELECT id,case_id,operator_time,state FROM case_info_verification WHERE 1=1 ");
         List<String> ids = caseInfoVerificationModel.getIds();
         if (Objects.nonNull(caseInfoVerificationModel.getIds())) {
             queryCon.append(" AND id in (");
-            for(int i = 0; i < ids.size(); i++) {
+            for (int i = 0; i < ids.size(); i++) {
                 if (i < ids.size() - 1) {
                     queryCon.append("'").append(ids.get(i)).append("',");
-                }else {
+                } else {
                     queryCon.append("'").append(ids.get(i)).append("'");
                 }
             }
@@ -93,7 +94,7 @@ public class CaseInfoVerificationService {
             if (Objects.nonNull(caseInfoVerificationModel.getCompanyCode())) {
                 queryCon.append(" AND company_code = ").append("'").append(caseInfoVerificationModel.getCompanyCode()).append("'");
             }
-        }else {
+        } else {
             queryCon.append(" AND company_code = ").append("'").append(tokenUser.getCompanyCode()).append("'");
         }
         queryCon.append(") AS a LEFT JOIN case_info b ON a.case_id = b.id LEFT JOIN personal c ON b.personal_id = c.id LEFT JOIN principal d ON b.principal_id = d.id LEFT JOIN `user` e ON b.current_collector = e.id LEFT JOIN area_code f ON b.area_id = f.id " +
@@ -140,7 +141,7 @@ public class CaseInfoVerificationService {
         }
         return caseInfoVerModels;
     }
-    
+
     /**
      * 核销案件的导出操作
      *
@@ -156,22 +157,17 @@ public class CaseInfoVerificationService {
         headMap.put("caseNumber", "案件编号");
         headMap.put("batchNumber", "批次号");
         headMap.put("principalName", "委托方");
-        headMap.put("city", "申请城市");
         headMap.put("personalName", "客户姓名");
         headMap.put("personalMobileNo", "手机号");
-        headMap.put("payStatus","还款状态");
+        headMap.put("overduePeriods", "逾期期数");
         headMap.put("overdueDays", "逾期天数");
         headMap.put("overdueAmount", "案件金额");
-        headMap.put("handNumber", "案件手数");
-        headMap.put("commissionRate","佣金比例");
-        headMap.put("delegationDate","委案日期");
-        headMap.put("closeDate","结案日期");
-        headMap.put("departName","机构名称");
-        headMap.put("currentCollector", "催收员");
+        headMap.put("commissionRate", "佣金比例");
+        headMap.put("delegationDate", "委案日期");
+        headMap.put("closeDate", "结案日期");
         headMap.put("collectionStatus", "催收状态");
-        headMap.put("assistFlag", "是否协催");
-        headMap.put("followupBack", "催收反馈");
-        headMap.put("assistWay", "协催方式");
+        headMap.put("operatorTime", "案件核销日期");
+        headMap.put("state", "核销说明");
         List<Map<String, Object>> dataList = new ArrayList<>();
         try {
             caseInfoVerificationList.get(0);
@@ -183,29 +179,18 @@ public class CaseInfoVerificationService {
                 if (Objects.nonNull(caseInfoVerification[2])) {
                     map.put("principalName", caseInfoVerification[2]); // 委托方
                 }
-                if (Objects.nonNull(caseInfoVerification[3])) {
-                    map.put("city", caseInfoVerification[3]); // 城市
-                }
-                map.put("personalName", caseInfoVerification[4]); // 客户姓名
-                map.put("personalMobileNo", caseInfoVerification[5]); // 手机号
-                map.put("payStatus", caseInfoVerification[6]); // 还款状态
-                map.put("overdueDays", caseInfoVerification[7]); // 逾期天数
-                map.put("overdueAmount", caseInfoVerification[8]); // 逾期总金额
-                map.put("handNumber", caseInfoVerification[9]); // 案件手数
-                map.put("commissionRate", caseInfoVerification[10]); // 佣金比例
-                map.put("delegationDate", caseInfoVerification[11]); // 委案日期
-                map.put("closeDate", caseInfoVerification[12]); // 结案日期
-                if (Objects.nonNull(caseInfoVerification[13])) {
-                    map.put("departName", caseInfoVerification[13]); // 机构名称
-                }
-                if (Objects.nonNull(caseInfoVerification[14])) {
-                    map.put("currentCollector", caseInfoVerification[14]); // 催收员
-                }
-                DataDict dataDict = dataDictRepository.findOne(QDataDict.dataDict.id.eq(Integer.parseInt(caseInfoVerification[15].toString())));
+                map.put("personalName", caseInfoVerification[3]); // 客户姓名
+                map.put("personalMobileNo", caseInfoVerification[4]); // 手机号
+                map.put("overduePeriods", caseInfoVerification[5]); // 逾期期数
+                map.put("overdueDays", caseInfoVerification[6]); // 逾期天数
+                map.put("overdueAmount", caseInfoVerification[7]); // 逾期总金额
+                map.put("commissionRate", caseInfoVerification[8]); // 佣金比例
+                map.put("delegationDate", caseInfoVerification[9]); // 委案日期
+                map.put("closeDate", caseInfoVerification[10]); // 结案日期
+                DataDict dataDict = dataDictRepository.findOne(QDataDict.dataDict.id.eq(Integer.parseInt(caseInfoVerification[11].toString())));
                 map.put("collectionStatus", dataDict.getName()); // 催收状态
-                map.put("assistFlag", caseInfoVerification[16]); // 是否协催
-                map.put("followupBack", caseInfoVerification[17]); // 催收反馈
-                map.put("assistWay", caseInfoVerification[18]); // 协催方式
+                map.put("operatorTime", caseInfoVerification[12]); // 案件核销日期
+                map.put("state", caseInfoVerification[13]); // 核销说明
                 dataList.add(map);
             }
             workbook = new HSSFWorkbook();
@@ -334,9 +319,10 @@ public class CaseInfoVerificationService {
 
     /**
      * set核销申请属性值
-     * @param apply 核销申请
-     * @param caseInfo 案件
-     * @param user 申请人
+     *
+     * @param apply       核销申请
+     * @param caseInfo    案件
+     * @param user        申请人
      * @param applyReason
      */
     public void setVerificationApply(CaseInfoVerificationApply apply, CaseInfo caseInfo, User user, String applyReason) {
@@ -346,6 +332,7 @@ public class CaseInfoVerificationService {
         apply.setApplicationReason(applyReason); // 申请理由
         apply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue()); // 申请状态：审批待通过
         apply.setCaseId(caseInfo.getId()); // 案件Id
+        apply.setSource(caseInfo.getCasePoolType()); // 案件池原类型
         if (Objects.nonNull(caseInfo.getArea())) {
             apply.setCity(caseInfo.getArea().getId()); // 城市
             if (Objects.nonNull(caseInfo.getArea().getParent())) {
@@ -366,9 +353,9 @@ public class CaseInfoVerificationService {
      * set核销申请通过属性值
      *
      * @param caseInfoVerficationModel 核销申请
-     * @param user 审批人
+     * @param user                     审批人
      */
-    public void caseInfoVerificationApply(CaseInfoVerficationModel caseInfoVerficationModel,User user) {
+    public void caseInfoVerificationApply(CaseInfoVerficationModel caseInfoVerficationModel, User user) {
         CaseInfoVerificationApply caseInfoVerificationApply = caseInfoVerificationApplyRepository.findOne(caseInfoVerficationModel.getId());
         CaseInfoVerification caseInfoVerification = new CaseInfoVerification();
         // 超级管理员
@@ -377,20 +364,22 @@ public class CaseInfoVerificationService {
                 caseInfoVerificationApply.setCompanyCode(caseInfoVerficationModel.getCompanyCode());
                 caseInfoVerification.setCompanyCode(caseInfoVerficationModel.getCompanyCode());
             }
-        }else {
+        } else {
             caseInfoVerificationApply.setCompanyCode(user.getCompanyCode());
             caseInfoVerification.setCompanyCode(user.getCompanyCode());
         }
+        CaseInfo caseInfo = caseInfoRepository.findOne(caseInfoVerificationApply.getCaseId());
         if (Objects.equals(caseInfoVerficationModel.getApprovalResult(), 0)) { // 核销审批拒绝
             caseInfoVerificationApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.disapprove.getValue()); // 审批结果：拒绝
             caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_disapprove.getValue()); // 审批状态：审批拒绝
+            caseInfo.setCasePoolType(caseInfoVerificationApply.getSource()); // 案件池类型
+            caseInfoRepository.save(caseInfo);
             caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
         } else { // 核销审批通过
             caseInfoVerificationApply.setApprovalResult(CaseInfoVerificationApply.ApprovalResult.approve.getValue()); // 审批结果：通过
             caseInfoVerificationApply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_approve.getValue()); // 审批状态：审批通过
             caseInfoVerificationApply.setOperator(user.getUserName()); // 审批人
             caseInfoVerificationApply.setOperatorTime(ZWDateUtil.getNowDateTime()); // 审批时间
-            CaseInfo caseInfo = caseInfoRepository.findOne(caseInfoVerificationApply.getCaseId());
             List<CaseAssist> caseAssistList = new ArrayList<>();
             //处理协催案件
             if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //协催标识
@@ -423,12 +412,14 @@ public class CaseInfoVerificationService {
             }
             caseInfo.setEndType(CaseInfo.EndType.CLOSE_CASE.getValue()); // 结案类型：核销结案
             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.CASE_OVER.getValue()); // 催收状态：已结案
+            caseInfo.setCasePoolType(CaseInfo.CasePoolType.DESTORY.getValue()); // 案件池类型：核销
             caseInfoRepository.save(caseInfo);
             caseInfoVerification.setCaseInfo(caseInfo);
             caseInfoVerificationRepository.save(caseInfoVerification);
             caseInfoVerification.setOperator(user.getRealName()); // 操作人
             caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
             caseInfoVerification.setState(caseInfoVerficationModel.getState()); // 核销说明
+            caseInfoVerification.setPackingStatus(CaseInfoVerification.PackingStatus.NO_PACKED.getValue());// 打包状态
             caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
             //消息提醒
             SendReminderMessage sendReminderMessage = new SendReminderMessage();
@@ -436,15 +427,22 @@ public class CaseInfoVerificationService {
             sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 的核销申请审批" + (Objects.equals(caseInfoVerficationModel.getApprovalResult(), 0) ? "拒绝" : "通过"));
             sendReminderMessage.setContent(caseInfoVerficationModel.getApprovalOpinion());
             sendReminderMessage.setType(ReminderType.VERIFICATION);
-            reminderService.sendReminder(sendReminderMessage);
+            try {
+                reminderService.sendReminder(sendReminderMessage);
+            } catch (Exception ex) {
+                logger.error(ex.getMessage());
+            }
         }
     }
-    public void setCaseInfoVerificationPackaging(User user,CaseInfoVerficationModel caseInfoVerficationModel,String url) {
+
+    public void setCaseInfoVerificationPackaging(User user, CaseInfoVerficationModel caseInfoVerficationModel, String url) {
         List<String> ids = caseInfoVerficationModel.getIds();
         int sum = 0;
         BigDecimal amount = new BigDecimal(sum);
         for (String id : ids) {
             CaseInfoVerification caseInfoVerification = caseInfoVerificationRepository.findOne(id);
+            caseInfoVerification.setPackingStatus(CaseInfoVerification.PackingStatus.PACKED.getValue()); // 打包状态：已打包
+            caseInfoVerificationRepository.save(caseInfoVerification);
             CaseInfo caseInfo = caseInfoVerification.getCaseInfo();
             BigDecimal overdueAmount = caseInfo.getOverdueAmount();
             amount = amount.add(overdueAmount);
@@ -462,10 +460,9 @@ public class CaseInfoVerificationService {
             if (Objects.nonNull(caseInfoVerficationModel.getCompanyCode())) {
                 caseInfoVerificationPackaging.setCompanyCode(caseInfoVerficationModel.getCompanyCode());
             }
-        }else { // 普通管理员
+        } else { // 普通管理员
             caseInfoVerificationPackaging.setCompanyCode(user.getCompanyCode());
         }
         caseInfoVerificationPackagingRepository.save(caseInfoVerificationPackaging);
-
     }
 }

@@ -108,6 +108,7 @@ public class SMSMessageController extends BaseController {
         params.put("userName", personal.getName());
         params.put("business", caseInfo.getPrincipalId().getName());
         params.put("money", caseInfo.getOverdueAmount().toString());
+        message.setParams(params);
         //遍历所有联系人
         for (PersonalParams personalParams1 : personalParams) {
             String entity = null;
@@ -124,13 +125,11 @@ public class SMSMessageController extends BaseController {
                 case "0":
                     SMSMessage smsMessage = new SMSMessage();
                     BeanUtils.copyProperties(message, smsMessage);
-                    smsMessage.setParams(params);
                     entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendSmsMessage", smsMessage, String.class);
                     break;
                 case "1":
                     SMSMessage JGMessage = new SMSMessage();
                     BeanUtils.copyProperties(message, JGMessage);
-                    JGMessage.setParams(params);
                     entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendJGSmsMessage", JGMessage, String.class);
                     break;
                 case "2":
@@ -138,6 +137,9 @@ public class SMSMessageController extends BaseController {
                     break;
                 case "3":
                     entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendLookMessage", message, String.class);
+                    break;
+                case "4":
+                    entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendAliyunMessage", message, String.class);
                     break;
             }
             if (ZWStringUtils.isNotEmpty(entity)) {
@@ -236,6 +238,10 @@ public class SMSMessageController extends BaseController {
                         break;
                     case "3":
                         entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendLookMessage", message, String.class);
+                        break;
+                    case "4":
+                        message.setParams(params);
+                        entity = restTemplate.postForObject("http://common-service/api/SearchMessageController/sendAliyunMessage", message, String.class);
                         break;
                 }
                 if (ZWStringUtils.isNotEmpty(entity)) {

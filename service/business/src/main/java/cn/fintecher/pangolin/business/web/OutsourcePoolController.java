@@ -32,11 +32,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -50,11 +48,16 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
+import javax.persistence.Convert;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by  baizhangyu.
@@ -106,11 +109,18 @@ public class OutsourcePoolController extends BaseController {
 
     @PostMapping(value = "/outsourceDistributePreview")
     @ApiOperation(value = "委外待分配按数量平均分配预览", notes = "委外待分配按数量平均分配预览")
-    public ResponseEntity<List<OutDistributeInfo>> outsourceDistributePreview(@RequestBody OutsourceInfo outsourceInfo,
-                                                                              @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+    public ResponseEntity<PreviewModel> outsourceDistributePreview(@RequestBody OutsourceInfo outsourceInfo,
+                                                                   @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to outsourceDistributePreview");
+        User user = null;
         try {
-            List<OutDistributeInfo> list = outsourcePoolService.distributePreviewByNum(outsourceInfo);
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "distributeCeaseInfoAgain", e.getMessage())).body(null);
+        }
+        try {
+            PreviewModel list = outsourcePoolService.distributePreviewByNum(outsourceInfo,user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(list);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -1194,7 +1204,7 @@ public class OutsourcePoolController extends BaseController {
     @RequestMapping(value = "/exportOutsideFinanceData", method = RequestMethod.GET)
     @ResponseBody
     @ApiOperation(value = "导出委外财务对账数据", notes = "导出委外财务对账数据")
-    public ResponseEntity<String> exportOutsideFinanceData(@RequestParam(value = "oupoOutbatch", required = false) @ApiParam("批次号") String oupoOutbatch,
+    public ResponseEntity<String> exportOutsideFinanceData(@RequestParam(value = "outbatch", required = false) @ApiParam("批次号") String outbatch,
                                                            @RequestParam(value = "outsName", required = false) @ApiParam("委外方") String outsName,
                                                            @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode,
                                                            @RequestHeader(value = "X-UserToken") String token) {
@@ -1220,12 +1230,14 @@ public class OutsourcePoolController extends BaseController {
                 } else {
                     builder.and(qAccFinanceEntry.companyCode.eq(user.getCompanyCode())); //限制公司code码
                 }
-                if (Objects.nonNull(oupoOutbatch)) {
-                    builder.and(qAccFinanceEntry.fienBatchnum.gt(oupoOutbatch));
+                if (Objects.nonNull(outbatch)) {
+                    builder.and(qAccFinanceEntry.fienBatchnum.eq(outbatch));
+
                 }
                 if (Objects.nonNull(outsName)) {
                     builder.and(qAccFinanceEntry.fienFgname.like("%" + outsName + "%"));
                 }
+                builder.and(qAccFinanceEntry.fienStatus.eq(1));
                 accOutsourcePoolList = (List<AccFinanceEntry>) accFinanceEntryRepository.findAll(builder);
             } catch (Exception e) {
                 e.getStackTrace();
@@ -1390,7 +1402,6 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("查询失败", "", e.getMessage())).body(null);
         }
     }
-
     /**
      * @Description 按批次号查看委外案件详情
      * <p>
@@ -1433,7 +1444,7 @@ public class OutsourcePoolController extends BaseController {
                 Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
                 builder.and(qOutsourcePool.outsource.id.eq(outsource.getId()));
             }
-            builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
+            builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));
             builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
             Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
@@ -1442,6 +1453,72 @@ public class OutsourcePoolController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "getAllClosedOutSourceCase", "系统异常!")).body(null);
         }
 
+    }
+
+    /**
+     * @Description 按批次号和委外名称查看委外案件详情
+     * <p>
+     * Created by huyanmin at 2017/09/26
+     */
+    @RequestMapping(value = "/getOutSourceCaseByOutName", method = RequestMethod.POST)
+    @ApiOperation(value = "按批次号查看委外案件详情", notes = "按批次号查看委外案件详情")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
+                    value = "页数 (0..N)"),
+            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
+                    value = "每页大小."),
+            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
+                    value = "依据什么排序: 属性名(,asc|desc). ")
+    })
+    public ResponseEntity<Page<OutsourcePool>> getOutSourceCaseByOutName(@RequestBody OurBatchList outsBatchlist,
+                                                                         @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("Rest request get outsource case by batch number");
+        User user = null;
+        try {
+            user = getUserByToken(token);
+        } catch (final Exception e) {
+            log.debug(e.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "user do not log in", e.getMessage())).body(null);
+        }
+        try {
+            Pageable pageable = new PageRequest(outsBatchlist.getPage(), outsBatchlist.getSize(), new Sort(Sort.Direction.DESC, "id"));
+            QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+            BooleanBuilder builder = new BooleanBuilder();
+            if (Objects.nonNull(user.getCompanyCode())) {
+                builder.and(qOutsourcePool.companyCode.eq(user.getCompanyCode()));
+            }
+            if (Objects.nonNull(outsBatchlist.getOurBatchList()) && outsBatchlist.getOurBatchList().size()!=0) {
+                builder.and(qOutsourcePool.outBatch.in(outsBatchlist.getOurBatchList()));
+            }
+            if (Objects.nonNull(outsBatchlist.getOutsNameList()) && outsBatchlist.getOutsNameList().size()!=0) {
+                List<Outsource> outsourceList = new ArrayList<>();
+                Iterable<Outsource> outsources=outsourceRepository.findAll(QOutsource.outsource.outsName.in(outsBatchlist.getOutsNameList()));
+                outsources.forEach(single ->{outsourceList.add(single);});
+                builder.and(qOutsourcePool.outsource.in(outsourceList));
+            }
+            if (StringUtils.isNotBlank(outsBatchlist.getOutsName())) {
+                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsBatchlist.getOutsName()));
+                builder.and(qOutsourcePool.outsource.eq(outsource));
+            }
+            if (Objects.nonNull(outsBatchlist.getOutTimeStart()) && !("").equals(outsBatchlist.getOutTimeStart())) {
+                String outTimeStart = outsBatchlist.getOutTimeStart().substring(0,10) + " 00:00:00";
+                Date minTime = ZWDateUtil.getUtilDate(outTimeStart, "yyyy-MM-dd HH:mm:ss");
+                builder.and(QOutsourcePool.outsourcePool.outTime.goe(minTime));
+            }
+            if (Objects.nonNull(outsBatchlist.getOutTimeEnd()) && !("").equals(outsBatchlist.getOutTimeEnd())) {
+                String outTimeEnd =outsBatchlist.getOutTimeEnd().substring(0,10) + " 23:59:59";
+                Date minTime = ZWDateUtil.getUtilDate(outTimeEnd, "yyyy-MM-dd HH:mm:ss");
+                builder.and(QOutsourcePool.outsourcePool.outTime.loe(minTime));
+            }
+            builder.and(qOutsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode()));
+            builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));
+            builder.and(qOutsourcePool.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue()));
+            Page<OutsourcePool> page = outsourcePoolRepository.findAll(builder, pageable);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("OutsourcePoolController", "getAllClosedOutSourceCase", "系统异常!")).body(null);
+        }
     }
 
     /**

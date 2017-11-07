@@ -26,15 +26,21 @@
             resultMap="queryOutsourcePool">
         SELECT bb.outs_name,bb.come_outsource_time,bb.out_batch,DATE_FORMAT(bb.out_time,'%Y-%m-%d') as out_time,bb.over_outsource_time,bb.left_days,bb.total_outsource_count,bb.total_outsource_amt,IFNULL(cc.end_outsource_count,0) as end_outsource_count,IFNULL((cc.end_outsource_count/bb.total_outsource_count),0.00) as outsource_count_rate, IFNULL(cc.end_outsource_amt,0.00) as end_outsource_amt ,IFNULL((cc.end_outsource_amt/bb.total_outsource_amt), 0.00) as outsource_amt_rate, bb.company_code, bb.outs_code,(total_outsource_count - IFNULL(end_outsource_count,0)) as current_outsource_count, (total_outsource_amt - IFNULL(end_outsource_amt,0.00)) as current_outsource_amt
         FROM (SELECT aa.outs_code, aa.outs_name,MIN(aa.come_outsource_time) as come_outsource_time, aa.out_batch, MIN(aa.out_time) as out_time,Max(aa.over_outsource_time) as over_outsource_time, Max(aa.left_days) as left_days, sum(aa.contract_amt) as total_outsource_amt, count(*) as total_outsource_count,aa.company_code, aa.recover_remark
-        FROM (SELECT d.recover_remark,c.outs_name,a.out_time as come_outsource_time,a.out_batch,a.out_time,a.over_outsource_time,TIMESTAMPDIFF(DAY,curdate(),over_outsource_time) as left_days,a.contract_amt,a.out_status, a.company_code, c.outs_code
+        FROM (SELECT d.case_pool_type,d.recover_remark,c.outs_name,a.out_time as come_outsource_time,a.out_batch,a.out_time,a.over_outsource_time,TIMESTAMPDIFF(DAY,curdate(),over_outsource_time) as left_days,a.contract_amt,a.out_status, a.company_code, c.outs_code
         FROM outsource  c
         INNER JOIN outsource_pool a on c.id=a.out_id
-        LEFT JOIN case_info d on a.case_id=d.id) as aa where aa.recover_remark = 0 GROUP BY aa.out_batch, aa.outs_name,aa.company_code,aa.outs_code) as bb
-        LEFT JOIN (SELECT a.out_batch,c.outs_name,count(*) as end_outsource_count,sum(a.contract_amt) as end_outsource_amt, a.company_code
+        LEFT JOIN case_info d on a.case_id=d.id) as aa where aa.recover_remark = 0 and aa.case_pool_type=226 GROUP BY aa.out_batch, aa.outs_name,aa.company_code,aa.outs_code) as bb
+        LEFT JOIN (SELECT dd.out_batch,dd.outs_name, IFNULL(ff.end_outsource_count,0) as end_outsource_count , (dd.out_total_back_amt+IFNULL(ff.end_total_outsource_amt,0.00)) as end_outsource_amt, dd.company_code
+        from (SELECT f.out_batch,e.outs_name,sum(f.out_back_amt) as out_total_back_amt, f.company_code, g.case_pool_type
+        FROM outsource e
+        INNER JOIN outsource_pool f on e.id=f.out_id
+        LEFT JOIN case_info g on g.id = f.case_id
+        where g.case_pool_type=226 GROUP BY f.out_batch,e.outs_name, f.company_code,g.case_pool_type) as dd
+        LEFT JOIN (SELECT g.case_pool_type,a.out_batch,c.outs_name,count(*) as end_outsource_count,sum(case when a.out_back_amt=0.0000 then a.contract_amt ELSE 0.0000 end) as end_total_outsource_amt, a.company_code, a.out_back_amt
         FROM outsource c
         INNER JOIN outsource_pool a on c.id=a.out_id
-        WHERE a.out_status=170 GROUP BY a.out_batch,c.outs_name, a.company_code) as cc on bb.out_batch=cc.out_batch and bb.outs_name=cc.outs_name and cc.company_code=bb.company_code
-        WHERE 1=1
+        LEFT JOIN case_info g on g.id = a.case_id
+        WHERE a.out_status=170 and g.case_pool_type=226 GROUP BY a.out_batch,c.outs_name, a.company_code, a.out_back_amt,g.case_pool_type) as ff on ff.out_batch=dd.out_batch and ff.outs_name=dd.outs_name and ff.company_code=dd.company_code) as cc on bb.out_batch=cc.out_batch and bb.outs_name=cc.outs_name and cc.company_code=bb.company_code
         <if test="companyCode != null and companyCode != ''">
             AND bb.company_code = #{companyCode}
         </if>
@@ -63,16 +69,22 @@
     <select id="getAllOutSourceByOutsName" parameterType="cn.fintecher.pangolin.report.model.QueryOutsourcePoolParams"
             resultMap="queryOutsourcePool">
         SELECT bb.outs_name,bb.total_outsource_count,bb.total_outsource_amt,IFNULL(cc.end_outsource_count,0) as end_outsource_count,IFNULL((cc.end_outsource_count/bb.total_outsource_count),0.00) as outsource_count_rate, IFNULL(cc.end_outsource_amt,0.00) as end_outsource_amt ,IFNULL((cc.end_outsource_amt/bb.total_outsource_amt), 0.00) as outsource_amt_rate, bb.company_code, bb.outs_code,(total_outsource_count - IFNULL(end_outsource_count,0)) as current_outsource_count, (total_outsource_amt - IFNULL(end_outsource_amt,0.00)) as current_outsource_amt
-        FROM (SELECT aa.outs_code, aa.outs_name, sum(aa.contract_amt) as total_outsource_amt, count(*) as total_outsource_count,aa.company_code, aa.recover_remark
-        FROM (SELECT d.recover_remark,c.outs_name,a.contract_amt,a.out_status, a.company_code, c.outs_code
+        FROM (SELECT aa.outs_code, aa.outs_name, sum(aa.contract_amt) as total_outsource_amt, count(*) as total_outsource_count,aa.company_code, aa.recover_remark, aa.case_pool_type
+        FROM (SELECT d.case_pool_type,d.recover_remark,c.outs_name,a.contract_amt,a.out_status, a.company_code, c.outs_code
         FROM outsource  c
         INNER JOIN outsource_pool a on c.id=a.out_id
-        LEFT JOIN case_info d on a.case_id=d.id) as aa where aa.recover_remark = 0 GROUP BY aa.outs_name,aa.company_code,aa.outs_code) as bb
-        LEFT JOIN (SELECT c.outs_name,count(*) as end_outsource_count,sum(a.contract_amt) as end_outsource_amt, a.company_code
+        LEFT JOIN case_info d on a.case_id=d.id) as aa where aa.recover_remark = 0 and aa.case_pool_type=226 GROUP BY aa.outs_name,aa.company_code,aa.outs_code) as bb
+        LEFT JOIN (SELECT dd.outs_name, IFNULL(ff.end_outsource_count,0) as end_outsource_count, (dd.out_back_amt+IFNULL(ff.end_outsource_amt,0.00)) as end_outsource_amt, dd.company_code
+        from (SELECT e.outs_name,sum(f.out_back_amt) as out_back_amt, f.company_code,g.case_pool_type
+        FROM outsource e
+        INNER JOIN outsource_pool f on e.id=f.out_id
+        LEFT JOIN case_info g on g.id = f.case_id
+        WHERE g.case_pool_type=226 GROUP BY e.outs_name, f.company_code,g.case_pool_type) as dd
+        LEFT JOIN (SELECT c.outs_name, count(*) as end_outsource_count,sum( case when a.out_back_amt=0.0000 then a.contract_amt else 0.0000 END) as end_outsource_amt, a.company_code,g.case_pool_type
         FROM outsource c
         INNER JOIN outsource_pool a on c.id=a.out_id
-        WHERE a.out_status=170 GROUP BY c.outs_name, a.company_code) as cc on bb.outs_name=cc.outs_name and cc.company_code=bb.company_code
-        WHERE 1=1
+        LEFT JOIN case_info g on g.id = a.case_id
+        WHERE a.out_status=170 and g.case_pool_type=226 GROUP BY c.outs_name, a.company_code) as ff on ff.outs_name=dd.outs_name and ff.company_code=dd.company_code) as cc on bb.outs_name=cc.outs_name and cc.company_code=bb.company_code
         <if test="companyCode != null and companyCode != ''">
             AND bb.company_code = #{companyCode}
         </if>

@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.dataimp.service;
 
 import cn.fintecher.pangolin.dataimp.annotation.ExcelAnno;
 import cn.fintecher.pangolin.dataimp.entity.DataInfoExcel;
+import cn.fintecher.pangolin.dataimp.entity.TemplateDataModel;
 import cn.fintecher.pangolin.dataimp.entity.TemplateExcelInfo;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.Cell;
@@ -348,4 +349,37 @@ public class TemplateDataModelService {
         }
         return originalArray;
     }
+
+    /**
+     * 检查配置模板时必选项是否选择
+     * @param excelTemplateData
+     */
+    public void checkIsNeed(TemplateDataModel excelTemplateData) {
+        Set<String> needProd = null;
+        try {
+            List<TemplateExcelInfo> infoList = excelTemplateData.getTemplateExcelInfoList();
+            needProd = new HashSet<>();
+            for (TemplateExcelInfo temp : infoList) {
+                String relateName = temp.getRelateName();
+                needProd.add(relateName);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw new RuntimeException("检查必选项出现异常!");
+        }
+        if (!needProd.contains(TemplateExcelInfo.RelateName.PERSONAL_NAME.getValue())) {
+            throw new RuntimeException("客户姓名为必选项!");
+        }
+        if (!needProd.contains(TemplateExcelInfo.RelateName.ID_CARD.getValue())) {
+            throw new RuntimeException("身份证号为必选项!");
+        }
+        if (!needProd.contains(TemplateExcelInfo.RelateName.OVERDUE_AMOUNT.getValue())) {
+            throw new RuntimeException("逾期总金额为必选项!");
+        }
+        if (!needProd.contains(TemplateExcelInfo.RelateName.PRODUCT_NAME.getValue())) {
+            throw new RuntimeException("产品名称为必选项!");
+        }
+        return;
+    }
+
 }

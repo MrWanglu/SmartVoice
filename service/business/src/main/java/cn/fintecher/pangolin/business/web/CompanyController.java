@@ -1,9 +1,8 @@
 package cn.fintecher.pangolin.business.web;
 
 import cn.fintecher.pangolin.business.repository.CompanyRepository;
-import cn.fintecher.pangolin.entity.Company;
-import cn.fintecher.pangolin.entity.QCompany;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.business.repository.SysParamRepository;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -12,6 +11,7 @@ import io.swagger.annotations.*;
 import org.apache.commons.collections4.IterableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +20,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,8 +35,14 @@ import java.util.Objects;
 @Api(value = "注册公司的信息管理", description = "注册公司的信息管理")
 public class CompanyController extends BaseController {
     private final Logger logger = LoggerFactory.getLogger(CompanyController.class);
+
     @Autowired
     private CompanyRepository companyRepository;
+
+    @Autowired
+    SysParamRepository sysParamRepository;
+
+
     private static final String ENTITY_NAME = "Company";
 
     /**
@@ -63,11 +71,32 @@ public class CompanyController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User name cannot be repeated", "公司名，公司英文名，公司code不能与其他公司重复")).body(null);
         }
         //get随机序列值
-        String randomCode =req();
+        String randomCode = req();
         company.setSequence(randomCode);
         company.setOperator(user.getRealName());
         company.setOperateTime(ZWDateUtil.getNowDateTime());
         Company result = companyRepository.save(company);
+
+        //插入每个公司的参数
+        QSysParam qSysParam = QSysParam.sysParam;
+        List<SysParam> sysParams = new ArrayList<>();
+        try {
+            Iterable<SysParam> sysParamIterator = sysParamRepository.findAll(qSysParam.companyCode.isNull());
+            if (sysParamIterator.iterator().hasNext()) {
+                for (SysParam sysParam : sysParamIterator) {
+                    SysParam sysParam1 = new SysParam();
+                    BeanUtils.copyProperties(sysParam, sysParam1);
+                    sysParam1.setCompanyCode(result.getCode());
+                    sysParam1.setId(null);
+                    sysParams.add(sysParam1);
+                }
+                sysParamRepository.save(sysParams);
+            }
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+            logger.error("增加公司参数失败，请手工增加。");
+        }
+
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(result);
     }
 

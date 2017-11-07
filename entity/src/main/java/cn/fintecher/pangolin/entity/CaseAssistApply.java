@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.entity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -60,6 +61,7 @@ public class CaseAssistApply extends BaseEntity {
     @ApiModelProperty("申请原因")
     private String applyReason;
     @ApiModelProperty("申请时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date applyDate;
     @ApiModelProperty("申请失效日期")
     private Date applyInvalidTime;

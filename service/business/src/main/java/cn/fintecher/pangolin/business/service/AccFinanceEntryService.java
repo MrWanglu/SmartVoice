@@ -69,7 +69,9 @@ public class AccFinanceEntryService {
             AccFinanceDataExcel accFinanceDataExcel = (AccFinanceDataExcel) obj;
 
             afe.setFileId(accFinanceEntry.getFileId());
-            afe.setFienCasenum(accFinanceDataExcel.getCaseNum());
+            if(Objects.nonNull(accFinanceDataExcel.getCaseNum())){
+                afe.setFienCasenum(accFinanceDataExcel.getCaseNum());
+            }
             afe.setFienCustname(accFinanceDataExcel.getCustName());
             afe.setFienIdcard(accFinanceDataExcel.getIdCardNumber());
             afe.setFienCount(BigDecimal.valueOf(accFinanceDataExcel.getCaseAmount()));
@@ -81,11 +83,15 @@ public class AccFinanceEntryService {
             afe.setCompanyCode(accFinanceEntry.getCompanyCode());
 
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
+            if(Objects.nonNull(accFinanceDataExcel.getCaseNum())) {
+                Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(qOutsourcePool.caseInfo.caseNumber.eq(accFinanceDataExcel.getCaseNum()));
+                if (Objects.nonNull(outsourcePools) && outsourcePools.iterator().hasNext()) {
+                    afe.setFienBatchnum(outsourcePools.iterator().next().getOutBatch());
+                    if (Objects.nonNull(outsourcePools.iterator().next().getOutsource())) {
+                        afe.setFienFgname(outsourcePools.iterator().next().getOutsource().getOutsName());
+                    }
 
-            Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(qOutsourcePool.caseInfo.caseNumber.eq(accFinanceDataExcel.getCaseNum()));
-            if (Objects.nonNull(outsourcePools) && outsourcePools.iterator().hasNext()) {
-                afe.setFienBatchnum(outsourcePools.iterator().next().getOutBatch());
-                afe.setFienFgname(outsourcePools.iterator().next().getOutsource().getOutsName());
+                }
             }
             //验证必要数据的合法性
             if (!validityFinance(errorList, afe)) {
