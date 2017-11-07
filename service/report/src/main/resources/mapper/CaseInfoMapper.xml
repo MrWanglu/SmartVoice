@@ -402,12 +402,12 @@
         <if test="overdueMinAmount != null">
             AND <![CDATA[b.overdue_amount >= #{overdueMinAmount}]]>
         </if>
-        ORDER BY
+--         ORDER BY
         <!--<if test="sort != null and sort != ''">-->
             <!--${sort}-->
         <!--</if>-->
-        <if test="sort != 'a.operatorTime desc' and sort != 'a.operatorTime asc'">
-            a.operatorTime desc
-        </if>
+        <!--<if test="sort != 'a.operatorTime desc' and sort != 'a.operatorTime asc'">-->
+            <!--a.operatorTime desc-->
+        <!--</if>-->
     </select>
 </mapper>
