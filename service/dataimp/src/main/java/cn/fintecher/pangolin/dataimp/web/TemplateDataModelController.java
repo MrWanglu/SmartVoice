@@ -44,7 +44,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -175,7 +174,8 @@ public class TemplateDataModelController {
     @PostMapping("/importExcelTemplateData")
     @ResponseBody
     @ApiOperation(value = "新增Excel模板配置保存操作", notes = "新增Excel模板配置保存操作")
-    public ResponseEntity importExcelTemplateData(@RequestBody TemplateDataModel excelTemplateData, @RequestHeader(value = "X-UserToken") String token) throws URISyntaxException {
+    public ResponseEntity importExcelTemplateData(@RequestBody TemplateDataModel excelTemplateData,
+                                                  @RequestHeader(value = "X-UserToken") String token) {
         try {
             excelTemplateData = (TemplateDataModel) EntityUtil.emptyValueToNull(excelTemplateData);
             ResponseEntity<User> userResponseEntity = null;
@@ -185,6 +185,12 @@ public class TemplateDataModelController {
                 logger.error(e.getMessage(), e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
             }
+//            try {
+//                templateDataModelService.checkIsNeed(excelTemplateData);
+//            } catch (Exception e) {
+//                logger.error(e.getMessage(), e);
+//                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+//            }
             User user = userResponseEntity.getBody();
             excelTemplateData.setOperatorTime(ZWDateUtil.getNowDateTime());
             excelTemplateData.setOperator(user.getRealName());

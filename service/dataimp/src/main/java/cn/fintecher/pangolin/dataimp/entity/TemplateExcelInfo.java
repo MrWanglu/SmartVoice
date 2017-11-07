@@ -27,4 +27,25 @@ public class TemplateExcelInfo {
     @ApiModelProperty("是否必输")//0:是  1：否
     public Integer flag;
 
+    /**
+     * 映射字段名字枚举
+     */
+    public enum RelateName {
+        PERSONAL_NAME(1, "personalName"),
+        ID_CARD(2, "idCard"),
+        PRODUCT_NAME(3, "productName"),
+        OVERDUE_AMOUNT(4, "overdueAmount");
+
+        private Integer index;
+        private String value;
+
+        RelateName(Integer index, String value) {
+            this.index = index;
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
 }
