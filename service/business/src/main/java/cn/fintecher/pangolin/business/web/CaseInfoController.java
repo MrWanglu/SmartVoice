@@ -1117,7 +1117,11 @@ public class CaseInfoController extends BaseController {
         log.debug("REST request to get case info remark");
         try {
             BooleanBuilder builder = new BooleanBuilder(predicate);
-            builder.and(QCaseInfoRemark.caseInfoRemark.caseId.eq(caseId)); //案件ID
+            QCaseInfoRemark qCaseInfoRemark = QCaseInfoRemark.caseInfoRemark;
+            builder.and(qCaseInfoRemark.caseId.eq(caseId)); //案件ID
+            builder.and(qCaseInfoRemark.remark.isNotEmpty());
+            builder.and(qCaseInfoRemark.remark.isNotNull());
+            builder.and(qCaseInfoRemark.remark.trim().ne(""));
             Page<CaseInfoRemark> page = caseInfoRemarkRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseInfoController/getCaseInfoRemark");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
