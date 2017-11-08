@@ -43,25 +43,25 @@ public interface CollectPageMapper {
      * 本周需回款总案件个数
      *
      */
-    Integer getWeekTotalBackCash(String userId);
+    Integer getWeekTotalBackCash(String userName);
 
     /**
      * 本周已回款案件个数
      *
      */
-    Integer getWeekHadBackCash(String userId);
+    Integer getWeekHadBackCash(String userName);
 
     /**
      * 本月需回款总金额
      *
      */
-    Integer getMonthTotalBackCash(String userId);
+    Integer getMonthTotalBackCash(String userName);
 
     /**
      * 本月已回款总金额
      *
      */
-    Integer getMonthHadBackCash(String userId);
+    Integer getMonthHadBackCash(String userName);
 
     /**
      * 今日外呼
@@ -135,13 +135,13 @@ public interface CollectPageMapper {
      * 未催收案件数
      *
      */
-    Integer getCaseInfoToFollowCount(String userName);
+    Integer getCaseInfoToFollowCount(String userId);
 
     /**
      * 催收中案件数
      *
      */
-    Integer getCaseInfoFollowingCount(String userName);
+    Integer getCaseInfoFollowingCount(String userId);
 
     /**
      * 承诺还款案件数

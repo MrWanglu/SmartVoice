@@ -128,13 +128,13 @@ public class HomePageService {
         //本周已回款案件个数
         Integer caseWeekBackFinishedCount = collectPageMapper.getWeekHadBackCash(user.getId());
         //本月流入案件总数
-        Integer caseMonthTotalCount = collectPageMapper.getCaseInfoMonthAllCount(user.getId());
+        Integer caseMonthTotalCount = collectPageMapper.getCaseInfoMonthAllCount(user.getUserName());
         //本月已结案案件总数
-        Integer caseMonthFinishedCount = collectPageMapper.getCaseInfoMonthClosedCount(user.getId());
+        Integer caseMonthFinishedCount = collectPageMapper.getCaseInfoMonthClosedCount(user.getUserName());
         //本月需回款总案件个数
-        Integer caseMonthBackTotalCount = collectPageMapper.getMonthTotalBackCash(user.getId());
+        Integer caseMonthBackTotalCount = collectPageMapper.getMonthTotalBackCash(user.getUserName());
         //本月已回款案件个数
-        Integer caseMonthBackFinishedCount = collectPageMapper.getMonthHadBackCash(user.getId());
+        Integer caseMonthBackFinishedCount = collectPageMapper.getMonthHadBackCash(user.getUserName());
 
         collectPage.setCaseWeekTotalCount(Objects.nonNull(caseWeekTotalCount)?0:caseWeekTotalCount);
         collectPage.setCaseWeekFinishedCount(Objects.nonNull(caseWeekFinishedCount)?0:caseWeekFinishedCount);

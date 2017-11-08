@@ -123,7 +123,7 @@ public class HomePageController extends BaseController {
     }
 
     @GetMapping(value = "/getHomePageCollectedCaseBackRank")
-    @ApiOperation(value = "统计首页案件状况总览",notes = "统计首页案件状况总览")
+    @ApiOperation(value = "统计首页回款金额排名",notes = "统计首页回款金额排名")
     public ResponseEntity getHomePageCollectedCaseBackRank(@RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to get getHomePageCollectedPage : {}",token);
         User user = null;
@@ -143,7 +143,7 @@ public class HomePageController extends BaseController {
     }
 
     @GetMapping(value = "/getHomePageCollectedFollowedRank")
-    @ApiOperation(value = "统计首页案件状况总览",notes = "统计首页案件状况总览")
+    @ApiOperation(value = "统计首页跟催量排名",notes = "统计首页跟催量排名")
     public ResponseEntity getHomePageCollectedFollowedRank(@RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to get getHomePageCollectedPage : {}",token);
         User user = null;

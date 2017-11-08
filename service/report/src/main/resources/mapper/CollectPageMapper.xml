@@ -50,7 +50,7 @@
     <select id="getWeekTotalBackCash" parameterType="string" resultType="integer">
         SELECT count(*) FROM case_pay_apply
         WHERE YEARWEEK(DATE_FORMAT(apply_date, '%Y-%m-%d'),1) = YEARWEEK(curdate(),1)
-        AND apply_user_name = #{username}
+        AND apply_user_name = #{userName}
     </select>
 
     <!--本周已回款总金额-->
@@ -58,22 +58,22 @@
         SELECT count(*) FROM case_pay_apply
         WHERE (approve_result = 62 OR approve_status = 58)
         AND YEARWEEK(DATE_FORMAT(approve_pay_datetime, '%Y-%m-%d'),1) = YEARWEEK(curdate(),1)
-        AND apply_user_name = #{username}
+        AND apply_user_name = #{userName}
     </select>
 
     <!--本月需回款总金额-->
     <select id="getMonthTotalBackCash" parameterType="string" resultType="integer">
-        SELECT SUM(case_amt) FROM case_pay_apply
+        SELECT count(*) FROM case_pay_apply
         WHERE DATE_FORMAT(approve_pay_datetime, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m')
-        AND apply_user_name = #{username}
+        AND apply_user_name = #{userName}
     </select>
 
     <!--本月已回款总金额-->
     <select id="getMonthHadBackCash" parameterType="string" resultType="integer">
-        SELECT SUM(apply_pay_amt) FROM case_pay_apply
+        SELECT count(*) FROM case_pay_apply
         WHERE (approve_result = 62 OR approve_status = 58)
         AND DATE_FORMAT(approve_pay_datetime, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m')
-        AND apply_user_name = #{username}
+        AND apply_user_name = #{userName}
     </select>
 
     <!--今日外呼-->
@@ -123,8 +123,9 @@
     </select>
 
     <!--用户在线时长-->
-    <select id="getUserOnlineTime" parameterType="string" resultType="integer">
+    <select id="getUserOnlineTime" parameterType="string" resultType="double">
         SELECT SUM(duration) FROM user_login_log where user_id= #{userId}
+        AND DATE_FORMAT(login_time,'%Y-%m-%d') = CURDATE()
         GROUP BY user_id
     </select>
 
