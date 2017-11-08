@@ -22,7 +22,7 @@ public interface CollectPageMapper {
     Integer getCaseInfoWeekAllCount(String userId);
 
     /**
-     * 本周完成已结案案件总数
+     * 本周已结案案件总数
      *
      */
     Integer getCaseInfoWeekClosedCount(String userId);
@@ -40,28 +40,28 @@ public interface CollectPageMapper {
     Integer getCaseInfoMonthClosedCount(String userId);
 
     /**
-     * 本周需回款总金额
+     * 本周需回款总案件个数
      *
      */
-    BigDecimal getWeekTotalBackCash(String userId);
+    Integer getWeekTotalBackCash(String userId);
 
     /**
-     * 本周需回款总金额
+     * 本周已回款案件个数
      *
      */
-    BigDecimal getWeekHadBackCash(String userId);
+    Integer getWeekHadBackCash(String userId);
 
     /**
      * 本月需回款总金额
      *
      */
-    BigDecimal getMonthTotalBackCash(String userId);
+    Integer getMonthTotalBackCash(String userId);
 
     /**
      * 本月已回款总金额
      *
      */
-    BigDecimal getMonthHadBackCash(String userId);
+    Integer getMonthHadBackCash(String userId);
 
     /**
      * 今日外呼
@@ -104,6 +104,14 @@ public interface CollectPageMapper {
      * @return
      */
     Integer getFollowMonth(String userName);
+
+
+    /**
+     * 用户在线时长
+     * @param userId
+     * @return
+     */
+    Double getUserOnlineTime(String userId);
 
     /**
      * 今日流入案件数

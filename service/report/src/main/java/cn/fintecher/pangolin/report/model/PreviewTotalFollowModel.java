@@ -29,8 +29,8 @@ public class PreviewTotalFollowModel {
     @ApiModelProperty(notes = "本月催记数")
     private Integer currentMonthCount;
     @ApiModelProperty(notes = "在线时长")
-    private Integer onlineTime;
+    private Double onlineTime;
     @ApiModelProperty(notes = "离线时长")
-    private Integer offlineTime;
+    private Double offlineTime;
 
 }

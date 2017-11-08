@@ -33,11 +33,4 @@ public class CollectPage {
     private Integer caseMonthBackTotalCount;
     @ApiModelProperty(notes = "回款完成案件总数")
     private Integer caseMonthBackFinishedCount;
-
-    //第五部分 回款金额排名
-    private List<BackAmtModel> backAmtModelList;
-
-    //第六部分 跟催排名
-    private List<FollowCountModel> followCountModelList;
-
 }
