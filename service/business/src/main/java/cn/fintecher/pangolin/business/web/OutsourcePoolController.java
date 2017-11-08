@@ -1441,7 +1441,7 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qOutsourcePool.outBatch.eq(batchNumber));
             }
             if (Objects.nonNull(outsName)) {
-                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
+                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName).and(QOutsource.outsource.companyCode.eq(user.getCompanyCode())).and(QOutsource.outsource.flag.eq(0)));
                 builder.and(qOutsourcePool.outsource.id.eq(outsource.getId()));
             }
             builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));
