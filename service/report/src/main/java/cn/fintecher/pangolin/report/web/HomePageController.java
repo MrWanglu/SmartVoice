@@ -1,6 +1,10 @@
 package cn.fintecher.pangolin.report.web;
 
 import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.report.mapper.AdminPageMapper;
+import cn.fintecher.pangolin.report.model.CollectorRankingModel;
+import cn.fintecher.pangolin.report.model.CollectorRankingParams;
+import cn.fintecher.pangolin.report.model.HomePageResult;
 import cn.fintecher.pangolin.report.model.*;
 import cn.fintecher.pangolin.report.service.HomePageService;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -9,11 +13,16 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.inject.Inject;
+import java.util.List;
 
 /**
  * @Author : sunyanping
@@ -26,9 +35,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class HomePageController extends BaseController {
 
     private final Logger log = LoggerFactory.getLogger(HomePageController.class);
+    private final String ENTITY_NAME = "HomePageController";
 
     @Autowired
     private HomePageService homePageService;
+    @Inject
+    private AdminPageMapper adminPageMapper;
 
     @GetMapping(value = "/getHomePageInformation")
     @ApiOperation(value = "统计首页数据",notes = "统计首页数据")
@@ -102,7 +114,6 @@ public class HomePageController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
         }
         try {
-
             CaseStatusTotalPreview caseStatusTotalPreview = homePageService.getPreviewCaseStatus(user);
             return ResponseEntity.ok().body(caseStatusTotalPreview);
         }catch (Exception e){
@@ -123,7 +134,6 @@ public class HomePageController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
         }
         try {
-
             CaseInfoRank caseInfoRank = homePageService.getCollectedCaseBackRank(user);
             return ResponseEntity.ok().body(caseInfoRank);
         }catch (Exception e){
@@ -144,7 +154,6 @@ public class HomePageController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
         }
         try {
-
             CaseInfoRank caseInfoRank = homePageService.getCollectedFollowedRank(user);
             return ResponseEntity.ok().body(caseInfoRank);
         }catch (Exception e){
@@ -154,5 +163,21 @@ public class HomePageController extends BaseController {
     }
 
 
+    @GetMapping("/collectorRanking")
+    @ApiOperation(value = "管理员首页催收员排行榜", notes = "管理员首页催收员排行榜")
+    public ResponseEntity<Page<CollectorRankingModel>> collectorRanking(CollectorRankingParams params,
+                                           @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            String code = user.getDepartment().getCode();
+            params.setDeptCode(code);
+            List<CollectorRankingModel> collectorRankingModels = adminPageMapper.collectorRanking(params);
+            Page<CollectorRankingModel> page = new PageImpl(collectorRankingModels);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","催收员排行榜统计错误!")).body(null);
+        }
+    }
 
 }
