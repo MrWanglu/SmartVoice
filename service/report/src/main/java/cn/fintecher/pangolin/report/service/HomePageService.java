@@ -2,14 +2,17 @@ package cn.fintecher.pangolin.report.service;
 
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.mapper.AdminPageMapper;
+import cn.fintecher.pangolin.report.mapper.CaseInfoMapper;
 import cn.fintecher.pangolin.report.mapper.CollectPageMapper;
 import cn.fintecher.pangolin.report.mapper.CupoPageMapper;
 import cn.fintecher.pangolin.report.model.*;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -32,6 +35,8 @@ public class HomePageService {
     private CupoPageMapper cupoPageMapper;
     @Autowired
     private CollectPageMapper collectPageMapper;
+    @Inject
+    CaseInfoMapper caseInfoMapper;
 
     public HomePageResult getHomePageInformation(User user) {
         // 0-没有(不是管理员)，1-有（是管理员）
@@ -166,7 +171,7 @@ public class HomePageService {
         Integer currentMonthCount = collectPageMapper.getFollowMonth(user.getUserName());
         //在线时长
         double onlineTime = collectPageMapper.getUserOnlineTime(user.getId());
-        onlineTime = onlineTime/60;
+        onlineTime = onlineTime/60*60;
         BigDecimal bigDecimal = new BigDecimal(onlineTime);
         onlineTime = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
         //离线时长
@@ -246,7 +251,39 @@ public class HomePageService {
         caseInfoRank.setFollowCountModels(followCountModels);
         return caseInfoRank;
     }
+    public CaseInfoModel quickAccessCaseInfo(User user, CaseInfoConditionParams caseInfoConditionParams){
 
+        String sort = "";
+        String newSort = "";
+        if (Objects.nonNull(caseInfoConditionParams.getSort())) {
+            sort = caseInfoConditionParams.getSort();
+            newSort = sort.replace(",", " ");
+        }
+        List<CaseInfoModel> caseInfoModels = caseInfoMapper.getCaseInfoByCondition(StringUtils.trim(caseInfoConditionParams.getPersonalName()),
+                StringUtils.trim(caseInfoConditionParams.getMobileNo()),
+                caseInfoConditionParams.getDeptCode(),
+                StringUtils.trim(caseInfoConditionParams.getCollectorName()),
+                caseInfoConditionParams.getOverdueMaxAmt(),
+                caseInfoConditionParams.getOverdueMinAmt(),
+                caseInfoConditionParams.getPayStatus(),
+                caseInfoConditionParams.getOverMaxDay(),
+                caseInfoConditionParams.getOverMinDay(),
+                StringUtils.trim(caseInfoConditionParams.getBatchNumber()),
+                caseInfoConditionParams.getPrincipalId(),
+                StringUtils.trim(caseInfoConditionParams.getIdCard()),
+                caseInfoConditionParams.getFollowupBack(),
+                caseInfoConditionParams.getAssistWay(),
+                caseInfoConditionParams.getCaseMark(),
+                caseInfoConditionParams.getCollectionType(),
+                caseInfoConditionParams.getSort() == null ? null : newSort,
+                user.getDepartment().getCode(),
+                caseInfoConditionParams.getCollectionStatusList(),
+                caseInfoConditionParams.getCollectionStatus(),
+                caseInfoConditionParams.getParentAreaId(),
+                caseInfoConditionParams.getAreaId());
+        CaseInfoModel caseInfoModel = caseInfoModels.get(0);
+        return caseInfoModel;
+    }
 
     private HomePageResult getCollectPage(User user) {
         HomePageResult<CupoPage> homePageResult = new HomePageResult<>();

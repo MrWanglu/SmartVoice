@@ -98,7 +98,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(previewTotalFollowModel);
         }catch (Exception e){
             log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","系统异常!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","")).body(null);
         }
     }
 
@@ -118,7 +118,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(caseStatusTotalPreview);
         }catch (Exception e){
             log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","系统异常!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","")).body(null);
         }
     }
 
@@ -138,7 +138,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(caseInfoRank);
         }catch (Exception e){
             log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","系统异常!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","")).body(null);
         }
     }
 
@@ -158,7 +158,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(caseInfoRank);
         }catch (Exception e){
             log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","系统异常!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","")).body(null);
         }
     }
 
@@ -179,5 +179,27 @@ public class HomePageController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","催收员排行榜统计错误!")).body(null);
         }
     }
+
+    @GetMapping("/quickAccessCaseInfo")
+    @ApiOperation(value = "快速催收", notes = "快速催收")
+    public ResponseEntity<CaseInfoModel> quickAccessCaseInfo(@RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            CaseInfoConditionParams caseInfoConditionParams = new CaseInfoConditionParams();
+            if(user.getType()==1){
+                caseInfoConditionParams.setCollectionType("15");//电催
+            }
+            if(user.getType()==2){
+                caseInfoConditionParams.setCollectionType("16");//外访
+            }
+            caseInfoConditionParams.setCollectionStatusList("20");
+            CaseInfoModel caseInfoModel = homePageService.quickAccessCaseInfo(user, caseInfoConditionParams);
+            return ResponseEntity.ok().body(caseInfoModel);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","快速催收失败")).body(null);
+        }
+    }
+
 
 }
