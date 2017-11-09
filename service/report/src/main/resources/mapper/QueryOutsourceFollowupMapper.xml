@@ -90,9 +90,10 @@
         WHERE a.case_pool_type = 226
         AND g.case_followup_type = 226
         AND a.recover_remark=0
+        <!-- 全部催收中需要导出催收中和已结案的跟进记录
         <if test="type == 1">
             AND b.out_status =168
-        </if>
+        </if>-->
         <if test="type == 2">
             AND b.out_status =170
         </if>

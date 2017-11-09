@@ -186,10 +186,14 @@
     <!--回款金额排名-->
     <select id="getCaseInfoBackRank" resultMap="backAmtModel">
         SELECT a.apply_real_name, a.apply_pay_back_amt, IFNULL((a.apply_pay_back_amt/b.apply_pay_total_amt),0.00) as apply_pay_amt_rate, a.apply_pay_count
-        FROM (SELECT apply_real_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count FROM case_pay_apply
-        WHERE (approve_result = 62 OR approve_status = 58) GROUP BY apply_real_name) as a
-        INNER JOIN (SELECT apply_real_name, IFNULL(SUM(case_amt),0.00) as apply_pay_total_amt FROM case_pay_apply GROUP BY apply_real_name) as b
-        ON a.apply_real_name = b.apply_real_name GROUP BY a.apply_real_name
+        FROM (
+             SELECT apply_real_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
+                   FROM case_pay_apply
+                   WHERE (approve_result = 62 OR approve_status = 58) GROUP BY apply_real_name) as a
+             INNER JOIN (
+                   SELECT apply_real_name, IFNULL(SUM(case_amt),0.00) as apply_pay_total_amt FROM case_pay_apply
+                   GROUP BY apply_real_name) as b
+             ON a.apply_real_name = b.apply_real_name GROUP BY a.apply_real_name
     </select>
 
     <!--承诺还款案件数-->

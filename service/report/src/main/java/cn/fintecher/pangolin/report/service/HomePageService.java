@@ -167,8 +167,10 @@ public class HomePageService {
         //在线时长
         double onlineTime = collectPageMapper.getUserOnlineTime(user.getId());
         onlineTime = onlineTime/60;
+        BigDecimal bigDecimal = new BigDecimal(onlineTime);
+        onlineTime = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
         //离线时长
-        double offlineTime = 8 - onlineTime ;
+        double offlineTime = 24 - onlineTime ;
         previewTotalFollowModel.setCurrentDayCalled(Objects.nonNull(currentDayCalled)?0:currentDayCalled);
         previewTotalFollowModel.setCurrentWeekCalled(Objects.nonNull(currentWeekCalled)?0:currentWeekCalled);
         previewTotalFollowModel.setCurrentMonthCalled(Objects.nonNull(currentMonthCalled)?0:currentMonthCalled);
@@ -217,6 +219,10 @@ public class HomePageService {
                 if(user.getRealName().equals(backAmtModels.get(i).getCollectionName())){
                     caseInfoRank.setCollectRank(i);
                 }
+            }
+            if(Objects.nonNull(backAmtModels.get(i).getBackRate())){
+                BigDecimal bigDecimal = new BigDecimal(backAmtModels.get(i).getBackRate());
+                backAmtModels.get(i).setBackRate(bigDecimal.setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue());
             }
         }
         caseInfoRank.setBackAmtModels(backAmtModels);
