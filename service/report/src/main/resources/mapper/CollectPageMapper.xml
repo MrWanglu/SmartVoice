@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.fintecher.pangolin.report.mapper.CollectPageMapper">
+
+    <!-- 催收员本周流入案件总数（包含已结案的）-->
+    <select id="getCaseInfoWeekAllCount" parameterType="string" resultType="integer">
+        SELECT COUNT(*) FROM (
+        SELECT case_info.id FROM case_info
+        WHERE YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(NOW(),1) and current_collector = #{userId}
+        UNION ALL
+        SELECT case_assist.id FROM case_assist
+        WHERE YEARWEEK(DATE_FORMAT(case_flowin_time,'%Y-%m-%d'),1) = YEARWEEK(NOW(),1) and assist_collector = #{userId}
+        ) AS m
+    </select>
+
+    <!-- 催收员本周完成已结案案件总数-->
+    <select id="getCaseInfoWeekClosedCount" parameterType="string" resultType="integer">
+        SELECT COUNT(*) FROM (
+        SELECT case_info.id FROM case_info
+        WHERE collection_status = 24 and YEARWEEK(date_format(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1) and current_collector = #{userId}
+        UNION ALL
+        SELECT case_assist.id FROM case_assist
+        WHERE assist_status=29 and YEARWEEK(date_format(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1) and assist_collector = #{userId}
+        ) AS m
+    </select>
+
+    <!-- 催收员本月流入案件总数（包含已结案的）-->
+    <select id="getCaseInfoMonthAllCount" parameterType="string" resultType="integer">
+        SELECT COUNT(*) FROM (
+        SELECT case_info.id FROM case_info
+        WHERE DATE_FORMAT(operator_time,'%Y-%m') = DATE_FORMAT(NOW(),'%Y-%m') and current_collector = #{userId}
+        UNION ALL
+        SELECT case_assist.id FROM case_assist
+        WHERE DATE_FORMAT(case_flowin_time,'%Y-%m') = DATE_FORMAT(NOW(),'%Y-%m') and assist_collector = #{userId}
+        ) AS m
+    </select>
+
+    <!-- 催收员本月完成已结案案件总数-->
+    <select id="getCaseInfoMonthClosedCount" parameterType="string" resultType="integer">
+        SELECT COUNT(*) FROM (
+        SELECT case_info.id FROM case_info
+        WHERE  collection_status = 24 and DATE_FORMAT(operator_time,'%Y-%m') = DATE_FORMAT(NOW(),'%Y-%m') and current_collector = #{userId}
+        UNION ALL
+        SELECT case_assist.id FROM case_assist
+        WHERE assist_status=29 and DATE_FORMAT(operator_time,'%Y-%m') = DATE_FORMAT(NOW(),'%Y-%m') and assist_collector = #{userId}
+        ) AS m
+    </select>
+
+    <!--本周需回款总金额-->
+    <select id="getWeekTotalBackCash" parameterType="string" resultType="integer">
+        SELECT count(*) FROM case_pay_apply
+        WHERE YEARWEEK(DATE_FORMAT(apply_date, '%Y-%m-%d'),1) = YEARWEEK(curdate(),1)
+        AND apply_user_name = #{userName}
+    </select>
+
+    <!--本周已回款总金额-->
+    <select id="getWeekHadBackCash" parameterType="string" resultType="integer">
+        SELECT count(*) FROM case_pay_apply
+        WHERE (approve_result = 62 OR approve_status = 58)
+        AND YEARWEEK(DATE_FORMAT(approve_pay_datetime, '%Y-%m-%d'),1) = YEARWEEK(curdate(),1)
+        AND apply_user_name = #{userName}
+    </select>
+
+    <!--本月需回款总金额-->
+    <select id="getMonthTotalBackCash" parameterType="string" resultType="integer">
+        SELECT count(*) FROM case_pay_apply
+        WHERE DATE_FORMAT(approve_pay_datetime, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m')
+        AND apply_user_name = #{userName}
+    </select>
+
+    <!--本月已回款总金额-->
+    <select id="getMonthHadBackCash" parameterType="string" resultType="integer">
+        SELECT count(*) FROM case_pay_apply
+        WHERE (approve_result = 62 OR approve_status = 58)
+        AND DATE_FORMAT(approve_pay_datetime, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m')
+        AND apply_user_name = #{userName}
+    </select>
+
+    <!--今日外呼-->
+    <select id="getCalledDay" parameterType="string" resultType="integer">
+        SELECT count(*) FROM case_followup_record
+        WHERE collection_way = 0
+        AND date_format(operator_time,'%Y-%m-%d') = CURDATE()
+        AND operator = #{userName}
+    </select>
+
+    <!--本周外呼-->
+    <select id="getCalledWeek" parameterType="string" resultType="integer">
+        SELECT count(*) FROM case_followup_record
+        WHERE collection_way = 0
+        AND YEARWEEK(date_format(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        AND operator = #{userName}
+    </select>
+
+    <!--本月外呼-->
+    <select id="getCalledMonth" parameterType="string" resultType="integer">
+        SELECT count(*) FROM case_followup_record
+        WHERE collection_way = 0
+        AND date_format(operator_time,'%Y-%m') = date_format(CURDATE(),'%Y-%m')
+        AND operator = #{userName}
+    </select>
+
+
+    <!--今日催计数-->
+    <select id="getFollowDay" parameterType="string" resultType="integer">
+        SELECT count(*) FROM case_followup_record
+        WHERE collection_way=1 AND date_format(operator_time,'%Y-%m-%d') = CURDATE()
+        AND operator = #{userName}
+    </select>
+
+    <!--本周催计数-->
+    <select id="getFollowWeek" parameterType="string" resultType="integer">
+        SELECT count(*) FROM case_followup_record
+        WHERE collection_way=1 AND YEARWEEK(date_format(operator_time,'%Y-%m-%d'),1) = YEARWEEK(date_format(CURDATE(),'%Y-%m-%d'),1)
+        AND operator = #{userName}
+    </select>
+
+    <!--本月催计数-->
+    <select id="getFollowMonth" parameterType="string" resultType="integer">
+        SELECT count(*) FROM case_followup_record
+        WHERE collection_way=1 AND date_format(operator_time,'%Y-%m') = date_format(CURDATE(),'%Y-%m')
+        AND operator = #{userName}
+    </select>
+
+    <!--用户在线时长-->
+    <select id="getUserOnlineTime" parameterType="string" resultType="double">
+        SELECT SUM(duration) FROM user_login_log where user_id= #{userId}
+        AND DATE_FORMAT(login_time,'%Y-%m-%d') = CURDATE()
+        GROUP BY user_id
+    </select>
+
+    <!--今日流入案件数-->
+    <select id="getFlowInCaseToday" parameterType="string" resultType="integer">
+        SELECT COUNT(*) FROM case_turn_record
+        WHERE to_days(operator_time) = to_days(now())
+        AND receive_user_id = #{userId}
+    </select>
+
+    <!--今日结清案件数-->
+    <select id="getFinishCaseToday" parameterType="string" resultType="integer">
+        SELECT COUNT(*) FROM (
+        SELECT case_info.id FROM case_info
+        WHERE current_collector = #{userId}
+        AND collection_status = 24
+        AND to_days(operator_time) = to_days(now())
+        UNION ALL
+        SELECT case_assist.id AS num FROM case_assist
+        LEFT JOIN case_info
+        ON case_assist.case_id = case_info.id
+        WHERE case_assist.assist_collector = #{userId}
+        AND case_assist.assist_status = 29
+        AND case_info.collection_status = 24
+        AND to_days(case_assist.operator_time) = to_days(now())
+        ) AS m
+    </select>
+
+    <!--今日流出案件数-->
+    <select id="getFlowOutCaseToday" parameterType="string" resultType="integer">
+        SELECT COUNT(*) FROM case_turn_record
+        WHERE to_days(operator_time) = to_days(now())
+        AND current_collector = #{userId}
+    </select>
+
+    <!--未催收案件数-->
+    <select id="getCaseInfoToFollowCount" parameterType="string" resultType="integer">
+        SELECT COUNT(*) FROM case_info
+        WHERE collection_status NOT IN (24,25,166)
+        AND (current_collector = #{userId}
+        OR assist_collector = #{userId})
+    </select>
+
+    <!--催收中案件数-->
+    <select id="getCaseInfoFollowingCount" parameterType="string" resultType="integer">
+        SELECT COUNT(*) FROM case_info
+        WHERE collection_status NOT IN (24,25,166)
+        AND (current_collector = #{userId}
+        OR assist_collector = #{userId})
+    </select>
+
+    <!--承诺还款案件数-->
+    <select id="getCaseInfoPromisedCount" parameterType="string" resultType="integer">
+        SELECT COUNT(*) FROM case_followup_record WHERE promise_flag = 1
+        AND operator = #{userName}
+    </select>
+
+    <!--回款金额排名-->
+    <select id="getCaseInfoBackRank" resultMap="backAmtModel">
+        SELECT a.apply_real_name, a.apply_pay_back_amt, IFNULL((a.apply_pay_back_amt/b.apply_pay_total_amt),0.00) as apply_pay_amt_rate, a.apply_pay_count
+        FROM (
+             SELECT apply_real_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
+                   FROM case_pay_apply
+                   WHERE (approve_result = 62 OR approve_status = 58) GROUP BY apply_real_name) as a
+             INNER JOIN (
+                   SELECT apply_real_name, IFNULL(SUM(case_amt),0.00) as apply_pay_total_amt FROM case_pay_apply
+                   GROUP BY apply_real_name) as b
+             ON a.apply_real_name = b.apply_real_name GROUP BY a.apply_real_name
+    </select>
+
+    <!--承诺还款案件数-->
+    <select id="getCaseInfoFollowRank" resultMap="followCountModel">
+        SELECT g.real_name,IFNULL(a.call_count,0) as call_count, IFNULL(b.follow_count,0) as follow_count , f.followed_count
+        FROM (SELECT c.current_collector, (c.ss+IFNULL(d.aa,0)) as followed_count FROM(SELECT current_collector,count(*) as ss FROM case_info GROUP BY current_collector) as c
+        LEFT JOIN (SELECT assist_collector,count(*) as aa FROM case_assist GROUP BY assist_collector) as d
+        ON c.current_collector=d.assist_collector) as f
+        INNER JOIN (SELECT id, real_name FROM `user`) as g
+        ON f.current_collector=g.id
+        LEFT JOIN (SELECT IFNULL(count(*),0) as call_count, operator FROM case_followup_record WHERE collection_way = 0 GROUP BY operator) as a
+        on a.operator=f.current_collector
+        LEFT JOIN (SELECT IFNULL(count(*),0) as follow_count,operator FROM case_followup_record WHERE collection_way=1 GROUP BY operator) as b
+        ON a.operator = b.operator
+    </select>
+
+    <resultMap id="backAmtModel" type="cn.fintecher.pangolin.report.model.BackAmtModel">
+        <result column="apply_real_name" property="collectionName"/>
+        <result column="apply_pay_amt_rate" property="backRate"/>
+        <result column="apply_pay_back_amt" property="backMoney"/>
+        <result column="apply_pay_count" property="backCount"/>
+    </resultMap>
+
+    <resultMap id="followCountModel" type="cn.fintecher.pangolin.report.model.FollowCountModel">
+        <result column="real_name" property="collectionFollowName"/>
+        <result column="call_count" property="calledCount"/>
+        <result column="follow_count" property="followedCount"/>
+        <result column="followed_count" property="followedNumber"/>
+    </resultMap>
+</mapper>

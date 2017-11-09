@@ -1,11 +1,9 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
 import cn.fintecher.pangolin.business.repository.OutBackSourceRepository;
 import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
-import cn.fintecher.pangolin.entity.OutBackSource;
-import cn.fintecher.pangolin.entity.OutsourcePool;
-import cn.fintecher.pangolin.entity.QOutBackSource;
-import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.util.EntityUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -47,6 +45,8 @@ public class OutBackSourceController extends BaseController {
     private OutBackSourceRepository outbackSourceRepository;
     @Autowired
     private OutsourcePoolRepository outsourcePoolRepository;
+    @Autowired
+    private CaseInfoRepository caseInfoRepository;
 
     private static final String ENTITY_OUTBACK_FOLLOWUP_RECORD = "OutBackFollowupRecord";
 
@@ -77,15 +77,17 @@ public class OutBackSourceController extends BaseController {
                 outsourcePool = outsourcePoolRepository.findOne(outcaseId);
 
                 if (Objects.nonNull(outsourcePool)){
-
+                    CaseInfo caseInfo = caseInfoRepository.findOne(outsourcePool.getCaseInfo().getId());
                     Integer operationType = outBackSource.getOperationType();
                     BigDecimal amt = outBackSource.getBackAmt();
                     //累加回款金额和操作状态
                     if (OutBackSource.operationType.OUTBACKAMT.getCode().equals(operationType) && amt != null) {
                         outsourcePool.setOutBackAmt(outsourcePool.getOutBackAmt().add(amt));//累加回款金额
+                        caseInfo.setRealPayAmount(caseInfo.getRealPayAmount().add(amt));
                     }
                     outsourcePool.setOutoperationStatus(outBackSource.getOperationType());
                     outsourcePoolRepository.saveAndFlush(outsourcePool);//保存委外案件
+                    caseInfoRepository.saveAndFlush(caseInfo);
                 }
                 if(outsourcePool.getOutStatus().equals(OutsourcePool.OutStatus.OUTSIDING.getCode())){
                     //判断如果是超级管理员companyCode是为null的

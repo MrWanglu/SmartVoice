@@ -322,7 +322,7 @@ public class OutsourcePoolController extends BaseController {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
+            Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName).and(QOutsource.outsource.companyCode.eq(user.getCompanyCode()).and(QOutsource.outsource.flag.eq(0))));
             Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(QOutsourcePool.outsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode())
                     .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())).and(QOutsourcePool.outsourcePool.outBatch.eq(batchNumber)).and(QOutsourcePool.outsourcePool.outsource.eq(outsource))
                     .and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())));
@@ -1441,7 +1441,7 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qOutsourcePool.outBatch.eq(batchNumber));
             }
             if (Objects.nonNull(outsName)) {
-                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
+                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName).and(QOutsource.outsource.companyCode.eq(user.getCompanyCode())).and(QOutsource.outsource.flag.eq(0)));
                 builder.and(qOutsourcePool.outsource.id.eq(outsource.getId()));
             }
             builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));
@@ -1497,7 +1497,7 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qOutsourcePool.outsource.in(outsourceList));
             }
             if (StringUtils.isNotBlank(outsBatchlist.getOutsName())) {
-                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsBatchlist.getOutsName()));
+                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsBatchlist.getOutsName()).and(QOutsource.outsource.companyCode.eq(user.getCompanyCode()).and(QOutsource.outsource.flag.eq(0))));
                 builder.and(qOutsourcePool.outsource.eq(outsource));
             }
             if (Objects.nonNull(outsBatchlist.getOutTimeStart()) && !("").equals(outsBatchlist.getOutTimeStart())) {

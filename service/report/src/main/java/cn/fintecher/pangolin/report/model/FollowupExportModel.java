@@ -74,7 +74,7 @@ public class FollowupExportModel {
     @ExcelAnno(cellName = "还款状态")
     private String payStatus;
     @ExcelAnno(cellName = "催收状态")
-    private Integer collectionStatus;
+    private String collectionStatus;
     @ExcelAnno(cellName = "逾期管理费")
     private BigDecimal overdueManageFee;
     @ExcelAnno(cellName = "委外批次号")
