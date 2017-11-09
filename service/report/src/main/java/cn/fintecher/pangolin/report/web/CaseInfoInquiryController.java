@@ -62,19 +62,19 @@ public class CaseInfoInquiryController extends BaseController {
                 sort = caseInfoConditionParams.getSort();
                 newSort = sort.replace(",", " ");
             }
-//            if (sort.contains("followupBack") ||
-//                    sort.contains("caseNumber") ||
-//                    sort.contains("overdueAmount") ||
-//                    sort.contains("overdueDays") ||
-//                    sort.contains("batchNumber") ||
-//                    sort.contains("followupTime") ||
-//                    sort.contains("followupBack")) {
-//                newSort = "a.".concat(newSort);
-//            }
-//            if (sort.contains("idCard")) {
-//                String str = newSort.replace("idCard", "id_card");
-//                newSort = "b.".concat(str);
-//            }
+            if (sort.contains("followupBack") ||
+                    sort.contains("caseNumber") ||
+                    sort.contains("overdueAmount") ||
+                    sort.contains("overdueDays") ||
+                    sort.contains("batchNumber") ||
+                    sort.contains("followupTime") ||
+                    sort.contains("followupBack")) {
+                newSort = "a.".concat(newSort);
+            }
+            if (sort.contains("idCard")) {
+                String str = newSort.replace("idCard", "id_card");
+                newSort = "b.".concat(str);
+            }
             PageHelper.startPage(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
             List<CaseInfoModel> caseInfoModels = caseInfoMapper.getCaseInfoByCondition(StringUtils.trim(caseInfoConditionParams.getPersonalName()),
                     StringUtils.trim(caseInfoConditionParams.getMobileNo()),
@@ -97,7 +97,10 @@ public class CaseInfoInquiryController extends BaseController {
                     caseInfoConditionParams.getCollectionStatusList(),
                     caseInfoConditionParams.getCollectionStatus(),
                     caseInfoConditionParams.getParentAreaId(),
-                    caseInfoConditionParams.getAreaId());
+                    caseInfoConditionParams.getAreaId(),
+                    tokenUser.getType(),
+                    tokenUser.getManager(),
+                    tokenUser.getId());
             PageInfo<CaseInfoModel> pageInfo = new PageInfo<>(caseInfoModels);
             Pageable pageable = new PageRequest(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
             Page<CaseInfoModel> page = new PageImpl<>(caseInfoModels, pageable, pageInfo.getTotal());
@@ -144,7 +147,9 @@ public class CaseInfoInquiryController extends BaseController {
                     caseInfoConditionParams.getOverdueMaxAmt(),
                     caseInfoConditionParams.getOverdueMinAmt(),
                     caseInfoConditionParams.getAssistStatusList(),
-                    tokenUser.getDepartment().getCode(), newSort);
+                    tokenUser.getDepartment().getCode(), newSort,
+                    tokenUser.getManager(),
+                    tokenUser.getId());
             PageInfo<CaseAssistModel> pageInfo = new PageInfo<>(caseAssistModels);
             Pageable pageable = new PageRequest(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
             Page<CaseAssistModel> page = new PageImpl<>(caseAssistModels, pageable, pageInfo.getTotal());

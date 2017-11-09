@@ -39,7 +39,7 @@ public class VideoSwitchUtil {
     public static String switchToMp3(String sourcePath, String ffmpegPath) {
         File file = new File(sourcePath);
         if (!file.exists()) {
-            throw new RuntimeException(sourcePath.concat("文化不存在"));
+            throw new RuntimeException(sourcePath.concat("文件不存在"));
         }
         String newVideoPath = sourcePath.substring(0, sourcePath.lastIndexOf(".")).concat(".mp3");
         try {

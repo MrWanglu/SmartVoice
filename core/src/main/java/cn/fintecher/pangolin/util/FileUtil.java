@@ -1,7 +1,5 @@
 package cn.fintecher.pangolin.util;
 
-import javax.sound.sampled.AudioSystem;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributeView;
@@ -117,9 +115,33 @@ public class FileUtil {
 
 
     public static void main(String[] args) {
-        List<Path> pathList = FileUtil.filterSearchFiles("E:\\文档\\项目文档\\催收系统\\mr.cui-cuidaren\\项目实施\\海口和清", "^*.WAV$", null);
-        for (Path path : pathList) {
-            System.out.println(path);
-        }
+//        List<Path> pathList = FileUtil.filterSearchFiles("E:\\文档\\项目文档\\催收系统\\mr.cui-cuidaren\\项目实施\\海口和清", "^*.WAV$", null);
+//        for (Path path : pathList) {
+//            System.out.println(path);
+//        }
+
+//        String filepath = "D:\\data\\20181108\\pingping";
+//        File file = new File(filepath);
+//        if (!file.isDirectory()) {
+//            System.out.println("文件");
+//            System.out.println("path=" + file.getPath());
+//            System.out.println("absolutepath=" + file.getAbsolutePath());
+//            System.out.println("name=" + file.getName());
+//
+//        } else if (file.isDirectory()) {
+//            System.out.println("文件夹");
+//            String[] filelist = file.list();
+//            for (int i = 0; i < filelist.length; i++) {
+//                File readfile = new File(filepath + "\\" + filelist[i]);
+//                if (!readfile.isDirectory()) {
+//                    System.out.println("path=" + readfile.getPath());
+//                    System.out.println("absolutepath="
+//                            + readfile.getAbsolutePath());
+//                    System.out.println("name=" + readfile.getName());
+//
+//                } else if (readfile.isDirectory()) {
+//                }
+//            }
+//        }
     }
 }

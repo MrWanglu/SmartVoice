@@ -126,3 +126,17 @@ CREATE TABLE `case_distributed_temporary` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='案件分配结果临时表';
 
+
+--2017-10-24
+--用户录音文件
+--祁吉贵
+CREATE TABLE `user_video` (
+  `id` varchar(64) NOT NULL COMMENT '主键ID',
+  `user_name` varchar(64) DEFAULT NULL COMMENT '催收员（字母）',
+  `user_real_name` varchar(200) DEFAULT NULL COMMENT '催收员真名',
+  `video_name` varchar(200) DEFAULT NULL COMMENT '录音文件名',
+  `video_url` varchar(200) DEFAULT NULL COMMENT '文件路径',
+  `video_length` varchar(200) DEFAULT NULL COMMENT '录音长度',
+  `operator_time` datetime DEFAULT NULL COMMENT '操作时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

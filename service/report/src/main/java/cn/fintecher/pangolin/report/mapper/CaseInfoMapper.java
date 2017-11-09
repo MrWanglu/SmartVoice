@@ -50,7 +50,10 @@ public interface CaseInfoMapper extends MyMapper<CaseInfo> {
             @Param("collectionStatusList") String collectionStatusList,
             @Param("collectionStatus") Integer collectionStatus,
             @Param("parentAreaId") Integer parentAreaId,
-            @Param("areaId") Integer areaId);
+            @Param("areaId") Integer areaId,
+            @Param("type") Integer type,
+            @Param("isManager") Integer isManager,
+            @Param("userId") String userId);
 
     /**
      * @Description 多条件查询协催案件信息
@@ -61,5 +64,7 @@ public interface CaseInfoMapper extends MyMapper<CaseInfo> {
                                                    @Param("overdueMinAmount") BigDecimal overdueMinAmount,
                                                    @Param("assistStatusList") String assistStatusList,
                                                    @Param("deptCode") String deptCode,
-                                                   @Param("sort") String sort);
+                                                   @Param("sort") String sort,
+                                                   @Param("isManager") Integer isManager,
+                                                   @Param("userId") String userId);
 }

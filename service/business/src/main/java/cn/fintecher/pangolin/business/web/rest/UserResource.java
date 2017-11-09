@@ -3,6 +3,7 @@ package cn.fintecher.pangolin.business.web.rest;
 import cn.fintecher.pangolin.business.repository.UserRepository;
 import cn.fintecher.pangolin.business.service.UserService;
 import cn.fintecher.pangolin.business.session.SessionStore;
+import cn.fintecher.pangolin.entity.QUser;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -62,7 +63,7 @@ public class UserResource {
     @GetMapping("/getUsersOnCompany")
     @ApiOperation(value = "统计公司下用户数", notes = "统计公司下用户数")
     public ResponseEntity<Integer> getUsersOnCompany(@RequestParam @ApiParam("ids") List<String> ids,
-                                                     @RequestParam @ApiParam("token")String token) {
+                                                     @RequestParam @ApiParam("token") String token) {
         ResponseEntity<User> userBody = getUserByToken(token);
         if (Objects.isNull(userBody)) {
             return ResponseEntity.ok().body(0);
@@ -79,5 +80,16 @@ public class UserResource {
             }
         }
         return ResponseEntity.ok().body(num);
+    }
+
+    @GetMapping("/getAllUsers")
+    @ApiOperation(value = "统计公司部门下的所有用户", notes = "统计公司下用户数")
+    public ResponseEntity<Iterable<User>> getUsersOnCompany(@RequestParam @ApiParam("companyCode") String companyCode) {
+        try {
+            Iterable<User> userIterable = userRepository.findAll(QUser.user.companyCode.eq(companyCode));
+            return ResponseEntity.ok().body(userIterable);
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "获取所有用户失败")).body(null);
+        }
     }
 }
