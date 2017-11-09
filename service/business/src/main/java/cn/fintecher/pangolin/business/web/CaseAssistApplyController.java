@@ -179,7 +179,7 @@ public class CaseAssistApplyController extends BaseController {
                 caseInfo.setAssistWay(null); //协催方式
                 //提醒
                 title = "协催申请审批未通过!";
-                content = "客户姓名【" + apply.getPersonalName() + "】的案件申请的协催被外访拒绝!";
+                content = "客户姓名[" + apply.getPersonalName() + "]的案件申请的协催被外访拒绝!";
                 userId = userRepository.findByUserName(apply.getApplyUserName()).getId();
                 String telUserId = userRepository.findByUserName(apply.getApprovePhoneUser()).getId();
                 ccUserIds = ArrayUtils.add(ccUserIds, telUserId);
@@ -218,7 +218,7 @@ public class CaseAssistApplyController extends BaseController {
                     }
                 }
                 title = "协催申请审批已通过!";
-                content = "客户姓名【" + apply.getPersonalName() + "】的案件申请的协催已审批通过!";
+                content = "客户姓名[" + apply.getPersonalName() + "]的案件申请的协催已审批通过!";
                 String applyUserId = userRepository.findByUserName(apply.getApplyUserName()).getId();
                 String telUserId = userRepository.findByUserName(apply.getApprovePhoneUser()).getId();
                 userId = applyUserId;
@@ -299,14 +299,14 @@ public class CaseAssistApplyController extends BaseController {
                 caseInfo.setAssistWay(null); //协催方式
                 // 提醒申请人
                 title = "协催申请被拒绝!";
-                content = "协催案件[" + apply.getCaseNumber() + "]被电催主管[" + user.getRealName() + "]拒绝!";
+                content = "客户姓名[" + apply.getPersonalName() + "]的协催案件被电催主管[" + user.getRealName() + "]拒绝!";
                 userId = userRepository.findByUserName(apply.getApplyUserName()).getId();
             }
             // 审批通过
             if (approveResult == CaseAssistApply.ApproveResult.TEL_PASS.getValue()) {
                 apply.setApproveStatus(CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue()); //审批状态修改为外访待审批
                 title = "有协催申请需要审批!";
-                content = "电催组申请对案件[" + apply.getCaseNumber() + "]进行协催，请及时审批!";
+                content = "电催组申请对客户姓名为[" + apply.getPersonalName() + "]的案件进行协催，请及时审批!";
                 List<User> allUser = userService.getAllUser(user.getCompanyCode(), 2, 0, 1);//公司Code 外访 启用 管理者
                 if (!allUser.isEmpty()) {
                     for (User user1 : allUser) {
