@@ -2,11 +2,9 @@ package cn.fintecher.pangolin.dataimp.scheduled;
 
 import cn.fintecher.pangolin.dataimp.entity.UserVideo;
 import cn.fintecher.pangolin.dataimp.repository.UserVideoRepository;
-import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.util.VideoSwitchUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.util.ZWStringUtils;
-import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +15,6 @@ import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
