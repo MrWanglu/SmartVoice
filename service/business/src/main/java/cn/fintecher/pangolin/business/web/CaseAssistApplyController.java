@@ -86,7 +86,7 @@ public class CaseAssistApplyController extends BaseController {
             // 查出所有电催审批通过的
             BooleanBuilder exp = new BooleanBuilder(predicate);
             // 超级管理员 权限
-            if(Objects.nonNull(user.getCompanyCode())){
+            if (Objects.nonNull(user.getCompanyCode())) {
                 exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));
             }
             exp.and(qCaseAssistApply.approvePhoneResult.eq(CaseAssistApply.ApproveResult.TEL_PASS.getValue()));
@@ -120,7 +120,7 @@ public class CaseAssistApplyController extends BaseController {
                 if (StringUtils.isNotBlank(companyCode)) {
                     user.setCompanyCode(companyCode);
                 }
-            }else {
+            } else {
                 exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));
             }
             // 查出所有电催待审批的案件
@@ -179,7 +179,7 @@ public class CaseAssistApplyController extends BaseController {
                 caseInfo.setAssistWay(null); //协催方式
                 //提醒
                 title = "协催申请审批未通过!";
-                content = "案件["+apply.getCaseNumber()+"]申请的协催被外访拒绝!";
+                content = "客户姓名【" + apply.getPersonalName() + "】的案件申请的协催被外访拒绝!";
                 userId = userRepository.findByUserName(apply.getApplyUserName()).getId();
                 String telUserId = userRepository.findByUserName(apply.getApprovePhoneUser()).getId();
                 ccUserIds = ArrayUtils.add(ccUserIds, telUserId);
@@ -203,7 +203,7 @@ public class CaseAssistApplyController extends BaseController {
                 caseAssist.setOperator(user); // 操作员
                 //修该案件中的案件协催状态为协催待分配
                 caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue());
-                if(Objects.equals(caseAssist.getAssistWay(),CaseAssist.AssistWay.ONCE_ASSIST.getValue())){
+                if (Objects.equals(caseAssist.getAssistWay(), CaseAssist.AssistWay.ONCE_ASSIST.getValue())) {
                     Personal personal = caseInfo.getPersonalInfo();
                     if (Objects.isNull(personal.getLongitude())
                             || Objects.isNull(personal.getLatitude())) {
@@ -218,7 +218,7 @@ public class CaseAssistApplyController extends BaseController {
                     }
                 }
                 title = "协催申请审批已通过!";
-                content = "案件["+apply.getCaseNumber()+"]申请的协催已审批通过!";
+                content = "客户姓名【" + apply.getPersonalName() + "】的案件申请的协催已审批通过!";
                 String applyUserId = userRepository.findByUserName(apply.getApplyUserName()).getId();
                 String telUserId = userRepository.findByUserName(apply.getApprovePhoneUser()).getId();
                 userId = applyUserId;
@@ -238,7 +238,7 @@ public class CaseAssistApplyController extends BaseController {
             }
             // 提醒
             sendAssistApproveReminder(title, content, userId, ccUserIds);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功!","")).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功!", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("系统异常!", "assistApplyVisitApprove", e.getMessage())).body(null);
@@ -299,14 +299,14 @@ public class CaseAssistApplyController extends BaseController {
                 caseInfo.setAssistWay(null); //协催方式
                 // 提醒申请人
                 title = "协催申请被拒绝!";
-                content = "协催案件["+apply.getCaseNumber()+"]被电催主管["+user.getRealName()+"]拒绝!";
+                content = "协催案件[" + apply.getCaseNumber() + "]被电催主管[" + user.getRealName() + "]拒绝!";
                 userId = userRepository.findByUserName(apply.getApplyUserName()).getId();
             }
             // 审批通过
             if (approveResult == CaseAssistApply.ApproveResult.TEL_PASS.getValue()) {
                 apply.setApproveStatus(CaseAssistApply.ApproveStatus.VISIT_APPROVAL.getValue()); //审批状态修改为外访待审批
                 title = "有协催申请需要审批!";
-                content = "电催组申请对案件["+apply.getCaseNumber()+"]进行协催，请及时审批!";
+                content = "电催组申请对案件[" + apply.getCaseNumber() + "]进行协催，请及时审批!";
                 List<User> allUser = userService.getAllUser(user.getCompanyCode(), 2, 0, 1);//公司Code 外访 启用 管理者
                 if (!allUser.isEmpty()) {
                     for (User user1 : allUser) {
@@ -320,7 +320,7 @@ public class CaseAssistApplyController extends BaseController {
             caseInfoRepository.save(caseInfo);
             // 提醒
             sendAssistApproveReminder(title, content, userId, ccUserIds);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功!","")).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功!", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistApplyController", "assistApplyTelApprove", "系统异常!")).body(null);
