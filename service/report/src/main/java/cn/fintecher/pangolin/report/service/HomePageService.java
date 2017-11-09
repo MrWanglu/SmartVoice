@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -170,19 +171,19 @@ public class HomePageService {
         //本月催记数
         Integer currentMonthCount = collectPageMapper.getFollowMonth(user.getUserName());
         //在线时长
-        double onlineTime = collectPageMapper.getUserOnlineTime(user.getId());
-        onlineTime = onlineTime/60*60;
-        BigDecimal bigDecimal = new BigDecimal(onlineTime);
-        onlineTime = bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+        Double onlineTime = collectPageMapper.getUserOnlineTime(user.getId());
+        onlineTime = onlineTime/3600;
+        DecimalFormat df = new DecimalFormat("######0");
+        String onLine = df.format(onlineTime);
         //离线时长
-        double offlineTime = 24 - onlineTime ;
+        Integer offlineTime = 24 - Integer.parseInt(onLine) ;
         previewTotalFollowModel.setCurrentDayCalled(Objects.nonNull(currentDayCalled)?0:currentDayCalled);
         previewTotalFollowModel.setCurrentWeekCalled(Objects.nonNull(currentWeekCalled)?0:currentWeekCalled);
         previewTotalFollowModel.setCurrentMonthCalled(Objects.nonNull(currentMonthCalled)?0:currentMonthCalled);
         previewTotalFollowModel.setCurrentDayCount(Objects.nonNull(currentDayCount)?0:currentDayCount);
         previewTotalFollowModel.setCurrentWeekCount(Objects.nonNull(currentWeekCount)?0:currentWeekCount);
         previewTotalFollowModel.setCurrentMonthCount(Objects.nonNull(currentMonthCount)?0:currentMonthCount);
-        previewTotalFollowModel.setOnlineTime(onlineTime);
+        previewTotalFollowModel.setOnlineTime(Integer.parseInt(onLine));
         previewTotalFollowModel.setOfflineTime(offlineTime);
         return previewTotalFollowModel;
     }
