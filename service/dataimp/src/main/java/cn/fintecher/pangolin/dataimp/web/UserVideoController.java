@@ -14,6 +14,7 @@ import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
 import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.omg.CORBA.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+import sun.swing.FilePane;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -120,21 +122,27 @@ public class UserVideoController {
     @GetMapping("/autoUserVideo")
     @ApiOperation(value = "生成录音", notes = "生成录音")
     public void autoUserVideo() throws Exception {
+
+
+        final String spliterStr = System.getProperty("file.separator");
+
         logger.debug("开始生成催收员录音");
         try {
-            String filePath = "/home/data/";
-            String ffmpeg = "/usr/bin/ffmpeg";
+
+
+            String filePath = String.format("%shome%sdata%s", spliterStr);     //spliterStr + "home" + spliterStr + "data"; // "/home/data/";
+            String ffmpeg = spliterStr + "usr" + spliterStr + "bin" + spliterStr + "ffmpeg"; // "/usr/bin/ffmpeg";
             //获取所有的催收用户
             ResponseEntity<Iterable> userIterables = restTemplate.getForEntity("http://business-service/api/userResource/getAllUsers".concat("?companyCode=0001"), Iterable.class);
             if (Objects.isNull(userIterables) || !userIterables.hasBody()) {
                 return;
             }
 
-            String fileDir = filePath + ZWDateUtil.getFormatNowDate("yyyyMMdd");
+            String dateDir = filePath + ZWDateUtil.getFormatNowDate("yyyyMMdd");
             //获取所有的催收员的文件夹
             //File file = new File(filePath.concat(ZWDateUtil.getFormatNowDate("yyyyMMdd")));
-            logger.error(fileDir);
-            File file = new File(fileDir);
+            logger.error(dateDir);
+            File file = new File(dateDir);
             //TODO 测试路径
 
             for (Object object : userIterables.getBody()) {
@@ -146,15 +154,18 @@ public class UserVideoController {
                         //匹配催收员
                         if (user.get("userName").toString().equals(filelist[i].toString())) {
                             //根据匹配的催收员匹配下一层文件夹 取 WAV文件
-                            File fileNew = new File(filePath.concat(ZWDateUtil.getFormatNowDate("yyyyMMdd")).concat("\\").concat(filelist[i].toString()));
+                            //eg: /home/data/20171010/pingping
+                            String userDir = dateDir + spliterStr + filelist[i].toString();
+                            File fileNew = new File(userDir);
                             String[] fileNewList = fileNew.list();
                             if (Objects.nonNull(fileNewList) && fileNewList.length > 0) {
                                 for (int j = 0; j < fileNewList.length; j++) {
                                     if (fileNewList[j].toString().endsWith(".WAV") || fileNewList[j].toString().endsWith(".wav")) {
                                         //转化成mp3
-                                        String newPath = VideoSwitchUtil.switchToMp3(filePath.concat(ZWDateUtil.getFormatNowDate("yyyyMMdd")).concat("\\").concat(filelist[i].toString()).concat("\\".concat(fileNewList[j].toString())), ffmpeg);
+                                        String convertFilePath = userDir +spliterStr+ fileNewList[j].toString();
+                                        String newPath = VideoSwitchUtil.switchToMp3( convertFilePath  , ffmpeg);
                                         //获取时长
-                                        String videoLength = VideoSwitchUtil.getVideoTime(filePath.concat(ZWDateUtil.getFormatNowDate("yyyyMMdd")).concat("\\").concat(filelist[i].toString()).concat("\\".concat(fileNewList[j].toString())), ffmpeg);
+                                        String videoLength = VideoSwitchUtil.getVideoTime(convertFilePath, ffmpeg);
                                         //上传文件服务器
                                         MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
                                         FileSystemResource fileSystemResource = new FileSystemResource(newPath);
