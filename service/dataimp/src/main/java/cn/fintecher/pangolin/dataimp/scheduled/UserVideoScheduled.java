@@ -39,7 +39,7 @@ public class UserVideoScheduled {
     @Autowired
     UserVideoRepository userVideoRepository;
 
-    @Scheduled(cron = "0 0 23 * * ?")
+    @Scheduled(cron = "0 0 13 * * ?")
     void saveUserVideos() throws Exception {
         logger.debug("开始生成催收员录音");
         try {
