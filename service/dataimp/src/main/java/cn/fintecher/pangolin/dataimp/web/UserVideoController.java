@@ -129,8 +129,14 @@ public class UserVideoController {
             if (Objects.isNull(userIterables) || !userIterables.hasBody()) {
                 return;
             }
+
+            String fileDir = filePath + ZWDateUtil.getFormatNowDate("yyyyMMdd");
             //获取所有的催收员的文件夹
-            File file = new File(filePath.concat(ZWDateUtil.getFormatNowDate("yyyyMMdd")));
+            //File file = new File(filePath.concat(ZWDateUtil.getFormatNowDate("yyyyMMdd")));
+            logger.error(fileDir);
+            File file = new File(fileDir);
+            //TODO 测试路径
+
             for (Object object : userIterables.getBody()) {
                 Map user = (Map) object;
                 if (Objects.nonNull(file) && file.list().length > 0) {
@@ -177,7 +183,7 @@ public class UserVideoController {
                     }
                 } else {
                     logger.error("日期下面没有找到催收员对应的文件夹");
-                    logger.error(filePath.concat(ZWDateUtil.getFormatNowDate("yyyyMMdd")));
+
                 }
             }
             //创建新文件 下一天用
