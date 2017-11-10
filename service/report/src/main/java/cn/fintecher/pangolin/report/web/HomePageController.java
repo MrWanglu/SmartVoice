@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.report.web;
 
+import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.mapper.AdminPageMapper;
 import cn.fintecher.pangolin.report.model.CollectorRankingModel;
@@ -63,7 +64,7 @@ public class HomePageController extends BaseController {
     }
 
     @GetMapping(value = "/getHomePageCollectedPage")
-    @ApiOperation(value = "统计首页周月完成数据",notes = "统计首页周月完成数据")
+    @ApiOperation(value = "统计催收员首页周月完成数据",notes = "统计催收员首页周月完成数据")
     public ResponseEntity getHomePageCollectedPage(@RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to get getHomePageCollectedPage : {}",token);
         User user = null;
@@ -83,7 +84,7 @@ public class HomePageController extends BaseController {
     }
 
     @GetMapping(value = "/getHomePagePreviewTotalFollow")
-    @ApiOperation(value = "统计首页跟催量总览",notes = "统计首页跟催量总览")
+    @ApiOperation(value = "统计催收员首页跟催量总览",notes = "统计催收员首页跟催量总览")
     public ResponseEntity getHomePagePreviewTotalFollow(@RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to get getHomePageCollectedPage : {}",token);
         User user = null;
@@ -103,7 +104,7 @@ public class HomePageController extends BaseController {
     }
 
     @GetMapping(value = "/getHomePageCaseFollowedPreview")
-    @ApiOperation(value = "统计首页案件状况总览",notes = "统计首页案件状况总览")
+    @ApiOperation(value = "统计催收员首页案件状况总览",notes = "统计催收员首页案件状况总览")
     public ResponseEntity getHomePageCaseFollowedPreview(@RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to get getHomePageCollectedPage : {}",token);
         User user = null;
@@ -123,18 +124,20 @@ public class HomePageController extends BaseController {
     }
 
     @GetMapping(value = "/getHomePageCollectedCaseBackRank")
-    @ApiOperation(value = "统计首页回款金额排名",notes = "统计首页回款金额排名")
+    @ApiOperation(value = "统计催收员首页回款金额排名",notes = "统计催收员首页回款金额排名")
     public ResponseEntity getHomePageCollectedCaseBackRank(@RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to get getHomePageCollectedPage : {}",token);
         User user = null;
+        String depCode = null;
         try {
             user = getUserByToken(token);
+            depCode = user.getDepartment().getCode();
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
         }
         try {
-            CaseInfoRank caseInfoRank = homePageService.getCollectedCaseBackRank(user);
+            CaseInfoRank caseInfoRank = homePageService.getCollectedCaseBackRank(user, depCode);
             return ResponseEntity.ok().body(caseInfoRank);
         }catch (Exception e){
             log.error(e.getMessage(),e);
@@ -143,18 +146,20 @@ public class HomePageController extends BaseController {
     }
 
     @GetMapping(value = "/getHomePageCollectedFollowedRank")
-    @ApiOperation(value = "统计首页跟催量排名",notes = "统计首页跟催量排名")
+    @ApiOperation(value = "统计催收员首页跟催量排名",notes = "统计催收员首页跟催量排名")
     public ResponseEntity getHomePageCollectedFollowedRank(@RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to get getHomePageCollectedPage : {}",token);
         User user = null;
+        String depName = null;
         try {
             user = getUserByToken(token);
+            depName = user.getDepartment().getName();
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
         }
         try {
-            CaseInfoRank caseInfoRank = homePageService.getCollectedFollowedRank(user);
+            CaseInfoRank caseInfoRank = homePageService.getCollectedFollowedRank(user, depName);
             return ResponseEntity.ok().body(caseInfoRank);
         }catch (Exception e){
             log.error(e.getMessage(),e);
@@ -181,18 +186,21 @@ public class HomePageController extends BaseController {
     }
 
     @GetMapping("/quickAccessCaseInfo")
-    @ApiOperation(value = "快速催收", notes = "快速催收")
+    @ApiOperation(value = "催收员首页快速催收", notes = "催收员首页快速催收")
     public ResponseEntity<CaseInfoModel> quickAccessCaseInfo(@RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
             CaseInfoConditionParams caseInfoConditionParams = new CaseInfoConditionParams();
+            //1代表催收员是电催部门
             if(user.getType()==1){
-                caseInfoConditionParams.setCollectionType("15");//电催
+                caseInfoConditionParams.setCollectionType(CaseInfo.CollectionType.TEL.getValue().toString());//电催
+            } else if(user.getType()==2){ //2代表催收员是外访部门
+                caseInfoConditionParams.setCollectionType(CaseInfo.CollectionType.VISIT.getValue().toString());//外访
+            } else {
+                caseInfoConditionParams.setCollectionType(CaseInfo.CollectionType.COMPLEX.getValue().toString());//综合
             }
-            if(user.getType()==2){
-                caseInfoConditionParams.setCollectionType("16");//外访
-            }
-            caseInfoConditionParams.setCollectionStatusList("20");
+            //待催收状态
+            caseInfoConditionParams.setCollectionStatusList(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue().toString());
             CaseInfoModel caseInfoModel = homePageService.quickAccessCaseInfo(user, caseInfoConditionParams);
             return ResponseEntity.ok().body(caseInfoModel);
         } catch (Exception e) {

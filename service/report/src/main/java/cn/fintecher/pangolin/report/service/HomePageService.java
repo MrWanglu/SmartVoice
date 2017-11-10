@@ -121,7 +121,7 @@ public class HomePageService {
         homePageResult.setData(adminPage);
         return homePageResult;
     }
-    //第一部分 本周和本月完成进度
+    //催收员首页 - 第一，二部分 本周和本月完成进度
     public CollectPage getCollectedWeekOrMonthPage(User user) {
 
         CollectPage collectPage = new CollectPage();
@@ -154,7 +154,7 @@ public class HomePageService {
         return collectPage;
     }
 
-    // 第三部分 跟催量总览
+    //催收员首页 - 第三部分 跟催量总览
     public PreviewTotalFollowModel getPreviewTotal(User user){
         PreviewTotalFollowModel previewTotalFollowModel = new PreviewTotalFollowModel();
         // 第三部分 跟催量总览
@@ -191,7 +191,7 @@ public class HomePageService {
         return previewTotalFollowModel;
     }
 
-    // 第四部分 案件状况总览
+    // 催收员首页 - 第四部分 案件状况总览
     public CaseStatusTotalPreview getPreviewCaseStatus(User user){
 
         CaseStatusTotalPreview caseStatusTotalPreview = new CaseStatusTotalPreview();
@@ -216,11 +216,11 @@ public class HomePageService {
         return caseStatusTotalPreview;
     }
 
-    // 第五部分 催收员回款排名
-    public CaseInfoRank getCollectedCaseBackRank(User user){
+    //催收员首页 - 第五部分 催收员回款排名
+    public CaseInfoRank getCollectedCaseBackRank(User user, String depCode){
 
         CaseInfoRank caseInfoRank = new CaseInfoRank();
-        List<BackAmtModel> backAmtModels = collectPageMapper.getCaseInfoBackRank();
+        List<BackAmtModel> backAmtModels = collectPageMapper.getCaseInfoBackRank(depCode);
         for(int i=0; i<backAmtModels.size();i++){
             if(Objects.isNull(backAmtModels.get(i).getCollectionName())){
                 backAmtModels.remove(backAmtModels.get(i));
@@ -242,16 +242,20 @@ public class HomePageService {
         return caseInfoRank;
     }
 
-    // 第六部分 催收计数排名
-    public CaseInfoRank getCollectedFollowedRank(User user){
+    //催收员首页 - 第六部分 催收计数排名
+    public CaseInfoRank getCollectedFollowedRank(User user, String depName){
 
         CaseInfoRank caseInfoRank = new CaseInfoRank();
-        List<FollowCountModel> followCountModels = collectPageMapper.getCaseInfoFollowRank();
+        List<FollowCountModel> followCountModels = collectPageMapper.getCaseInfoFollowRank(depName);
         for(int i=0; i<followCountModels.size(); i++){
             if(Objects.isNull(followCountModels.get(i).getCollectionFollowName())){
                 followCountModels.remove(followCountModels.get(i));
             }else {
                 if(user.getRealName().equals(followCountModels.get(i).getCollectionFollowName())){
+                    if(i==0){
+                        i=+1;
+                    }
+                    //添加该催收员的排名
                     caseInfoRank.setCollectRank(i);
                 }
             }
@@ -259,6 +263,7 @@ public class HomePageService {
         caseInfoRank.setFollowCountModels(followCountModels);
         return caseInfoRank;
     }
+    //催收员首页 - 快速催收
     public CaseInfoModel quickAccessCaseInfo(User user, CaseInfoConditionParams caseInfoConditionParams){
 
         String sort = "";
@@ -267,6 +272,7 @@ public class HomePageService {
             sort = caseInfoConditionParams.getSort();
             newSort = sort.replace(",", " ");
         }
+        //查询待催收页面的所有待催收案件
         List<CaseInfoModel> caseInfoModels = caseInfoMapper.getCaseInfoByCondition(StringUtils.trim(caseInfoConditionParams.getPersonalName()),
                 StringUtils.trim(caseInfoConditionParams.getMobileNo()),
                 caseInfoConditionParams.getDeptCode(),
@@ -292,6 +298,7 @@ public class HomePageService {
                 user.getType(),
                 user.getManager(),
                 user.getId());
+        //获取待催收安建宁的第一条案件进行快速催收
         CaseInfoModel caseInfoModel = caseInfoModels.get(0);
         return caseInfoModel;
     }
