@@ -32,6 +32,8 @@ import sun.swing.FilePane;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -116,94 +118,6 @@ public class UserVideoController {
             userVideoRepository.save(userVideo);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-        }
-    }
-
-    @GetMapping("/autoUserVideo")
-    @ApiOperation(value = "生成录音", notes = "生成录音")
-    public void autoUserVideo() throws Exception {
-
-
-        final String spliterStr = System.getProperty("file.separator");
-
-        logger.debug("开始生成催收员录音");
-        try {
-
-
-            String filePath = String.format("%shome%sdata%s", spliterStr);     //spliterStr + "home" + spliterStr + "data"; // "/home/data/";
-            String ffmpeg = spliterStr + "usr" + spliterStr + "bin" + spliterStr + "ffmpeg"; // "/usr/bin/ffmpeg";
-            //获取所有的催收用户
-            ResponseEntity<Iterable> userIterables = restTemplate.getForEntity("http://business-service/api/userResource/getAllUsers".concat("?companyCode=0001"), Iterable.class);
-            if (Objects.isNull(userIterables) || !userIterables.hasBody()) {
-                return;
-            }
-
-            String dateDir = filePath + ZWDateUtil.getFormatNowDate("yyyyMMdd");
-            //获取所有的催收员的文件夹
-            //File file = new File(filePath.concat(ZWDateUtil.getFormatNowDate("yyyyMMdd")));
-            logger.error(dateDir);
-            File file = new File(dateDir);
-            //TODO 测试路径
-
-            for (Object object : userIterables.getBody()) {
-                Map user = (Map) object;
-                if (Objects.nonNull(file) && file.list().length > 0) {
-                    String[] filelist = file.list();
-                    //遍历催收员文件夹
-                    for (int i = 0; i < filelist.length; i++) {
-                        //匹配催收员
-                        if (user.get("userName").toString().equals(filelist[i].toString())) {
-                            //根据匹配的催收员匹配下一层文件夹 取 WAV文件
-                            //eg: /home/data/20171010/pingping
-                            String userDir = dateDir + spliterStr + filelist[i].toString();
-                            File fileNew = new File(userDir);
-                            String[] fileNewList = fileNew.list();
-                            if (Objects.nonNull(fileNewList) && fileNewList.length > 0) {
-                                for (int j = 0; j < fileNewList.length; j++) {
-                                    if (fileNewList[j].toString().endsWith(".WAV") || fileNewList[j].toString().endsWith(".wav")) {
-                                        //转化成mp3
-                                        String convertFilePath = userDir +spliterStr+ fileNewList[j].toString();
-                                        String newPath = VideoSwitchUtil.switchToMp3( convertFilePath  , ffmpeg);
-                                        //获取时长
-                                        String videoLength = VideoSwitchUtil.getVideoTime(convertFilePath, ffmpeg);
-                                        //上传文件服务器
-                                        MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
-                                        FileSystemResource fileSystemResource = new FileSystemResource(newPath);
-                                        param.add("file", fileSystemResource);
-                                        String url = restTemplate.postForObject("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
-                                        //新增记录
-                                        if (!ZWStringUtils.isEmpty(url)) {
-                                            UserVideo userVideo = new UserVideo();
-                                            userVideo.setCompanyCode("0001");
-                                            userVideo.setVideoName(fileNewList[j].toString());
-                                            userVideo.setDeptCode(((Map) user.get("department")).get("code").toString());
-                                            userVideo.setDeptName(((Map) user.get("department")).get("name").toString());
-                                            userVideo.setOperatorTime(ZWDateUtil.getNowDateTime());
-                                            userVideo.setUserName(user.get("userName").toString());
-                                            userVideo.setUserRealName(user.get("realName").toString());
-                                            userVideo.setVideoUrl(url);
-                                            userVideo.setVideoLength(videoLength);
-                                            userVideoRepository.save(userVideo);
-                                        }
-                                    }
-                                }
-                            } else {
-                                logger.error("该催收员下面没有找到对应的录音文件");
-                            }
-                        }
-                    }
-                } else {
-                    logger.error("日期下面没有找到催收员对应的文件夹");
-
-                }
-            }
-            //创建新文件 下一天用
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.DATE, 1);
-            Date date = calendar.getTime();
-            new File(filePath.concat(ZWDateUtil.fomratterDate(date, "yyyyMMdd"))).mkdirs();
-        } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
         }
     }
 
