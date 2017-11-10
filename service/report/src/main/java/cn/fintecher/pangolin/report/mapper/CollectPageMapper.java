@@ -153,11 +153,11 @@ public interface CollectPageMapper {
      * 回款金额排名
      *
      */
-    List<BackAmtModel> getCaseInfoBackRank();
+    List<BackAmtModel> getCaseInfoBackRank(String depCode);
 
     /**
      * 跟催量排名
      *
      */
-    List<FollowCountModel> getCaseInfoFollowRank();
+    List<FollowCountModel> getCaseInfoFollowRank(String depName);
 }

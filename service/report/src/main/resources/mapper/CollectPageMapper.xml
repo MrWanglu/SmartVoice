@@ -184,32 +184,36 @@
     </select>
 
     <!--回款金额排名-->
-    <select id="getCaseInfoBackRank" resultMap="backAmtModel">
-        SELECT d.real_name,c.apply_pay_back_amt, c.apply_pay_amt_rate, c.apply_pay_count FROM (
-           SELECT a.apply_user_name, a.apply_pay_back_amt, IFNULL((a.apply_pay_back_amt/b.apply_pay_total_amt),0.00) as apply_pay_amt_rate, a.apply_pay_count
-           FROM (SELECT apply_user_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
-           FROM case_pay_apply
-           WHERE (approve_result = 62 OR approve_status = 58) GROUP BY apply_user_name) as a
-           INNER JOIN (
-           SELECT apply_user_name, IFNULL(SUM(case_amt),0.00) as apply_pay_total_amt FROM case_pay_apply
-           GROUP BY apply_user_name) as b
-           ON a.apply_user_name = b.apply_user_name GROUP BY a.apply_user_name) as c
-        LEFT JOIN (SELECT user_name, real_name FROM `user`) as d
-        ON c.apply_user_name=d.user_name ORDER BY apply_pay_amt_rate DESC
+    <select id="getCaseInfoBackRank" parameterType="string" resultMap="backAmtModel">
+        SELECT d.real_name,c.apply_pay_back_amt, c.apply_pay_amt_rate, c.apply_pay_count
+        FROM (SELECT a.apply_user_name, a.apply_pay_back_amt, IFNULL((a.apply_pay_back_amt/b.apply_pay_total_amt),0.00) as apply_pay_amt_rate, a.apply_pay_count
+        FROM (SELECT apply_user_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
+        FROM case_pay_apply as app LEFT JOIN department ON app.depart_id=department.id
+        WHERE (app.approve_result = 62 OR app.approve_status = 58) and department.code LIKE CONCAT(#{depCode},'%')
+        GROUP BY apply_user_name) as a
+        INNER JOIN (
+        SELECT apply_user_name, IFNULL(SUM(case_amt),0.00) as apply_pay_total_amt FROM case_pay_apply
+        GROUP BY apply_user_name) as b
+        ON a.apply_user_name = b.apply_user_name GROUP BY a.apply_user_name) as c
+        LEFT JOIN (SELECT user_name, real_name,type FROM `user`) as d ON c.apply_user_name=d.user_name ORDER BY apply_pay_amt_rate DESC
     </select>
 
-    <!--承诺还款案件数-->
-    <select id="getCaseInfoFollowRank" resultMap="followCountModel">
-        SELECT g.real_name,IFNULL(a.call_count,0) as call_count, IFNULL(b.follow_count,0) as follow_count , f.followed_count
-        FROM (SELECT c.current_collector, (c.ss+IFNULL(d.aa,0)) as followed_count FROM(SELECT current_collector,count(*) as ss FROM case_info GROUP BY current_collector) as c
-        LEFT JOIN (SELECT assist_collector,count(*) as aa FROM case_assist GROUP BY assist_collector) as d
-        ON c.current_collector=d.assist_collector) as f
-        INNER JOIN (SELECT id, real_name FROM `user`) as g
-        ON f.current_collector=g.id
-        LEFT JOIN (SELECT IFNULL(count(*),0) as call_count, operator FROM case_followup_record WHERE collection_way = 0 GROUP BY operator) as a
-        on a.operator=f.current_collector
-        LEFT JOIN (SELECT IFNULL(count(*),0) as follow_count,operator FROM case_followup_record WHERE collection_way=1 GROUP BY operator) as b
-        ON a.operator = b.operator
+    <!--跟催量排名-->
+    <select id="getCaseInfoFollowRank" parameterType="string"  resultMap="followCountModel">
+        SELECT d.real_name, IFNULL(b.call_count,0) as call_count, c.follow_count, a.total_followed_count
+        FROM
+        (SELECT count(*) as total_followed_count, operator FROM case_followup_record WHERE operator_dept_name = #{depName}
+        GROUP BY operator) as a
+        LEFT JOIN
+        (SELECT count(*) as call_count, operator FROM case_followup_record WHERE collection_way = 0 AND operator_dept_name = #{depName}
+        GROUP BY operator) as b
+        ON a.operator=b.operator
+        LEFT JOIN
+        (SELECT IFNULL(count(*),0) as follow_count,operator FROM case_followup_record WHERE collection_way=1 AND operator_dept_name = #{depName}
+        GROUP BY operator) as c
+        ON a.operator=c.operator
+        LEFT JOIN
+        (SELECT user_name,real_name FROM `user`) as d ON a.operator=d.user_name
     </select>
 
     <resultMap id="backAmtModel" type="cn.fintecher.pangolin.report.model.BackAmtModel">

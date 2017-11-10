@@ -217,10 +217,10 @@ public class HomePageService {
     }
 
     //催收员首页 - 第五部分 催收员回款排名
-    public CaseInfoRank getCollectedCaseBackRank(User user){
+    public CaseInfoRank getCollectedCaseBackRank(User user, String depCode){
 
         CaseInfoRank caseInfoRank = new CaseInfoRank();
-        List<BackAmtModel> backAmtModels = collectPageMapper.getCaseInfoBackRank();
+        List<BackAmtModel> backAmtModels = collectPageMapper.getCaseInfoBackRank(depCode);
         for(int i=0; i<backAmtModels.size();i++){
             if(Objects.isNull(backAmtModels.get(i).getCollectionName())){
                 backAmtModels.remove(backAmtModels.get(i));
@@ -243,10 +243,10 @@ public class HomePageService {
     }
 
     //催收员首页 - 第六部分 催收计数排名
-    public CaseInfoRank getCollectedFollowedRank(User user){
+    public CaseInfoRank getCollectedFollowedRank(User user, String depName){
 
         CaseInfoRank caseInfoRank = new CaseInfoRank();
-        List<FollowCountModel> followCountModels = collectPageMapper.getCaseInfoFollowRank();
+        List<FollowCountModel> followCountModels = collectPageMapper.getCaseInfoFollowRank(depName);
         for(int i=0; i<followCountModels.size(); i++){
             if(Objects.isNull(followCountModels.get(i).getCollectionFollowName())){
                 followCountModels.remove(followCountModels.get(i));

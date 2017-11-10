@@ -128,14 +128,16 @@ public class HomePageController extends BaseController {
     public ResponseEntity getHomePageCollectedCaseBackRank(@RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to get getHomePageCollectedPage : {}",token);
         User user = null;
+        String depCode = null;
         try {
             user = getUserByToken(token);
+            depCode = user.getDepartment().getCode();
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
         }
         try {
-            CaseInfoRank caseInfoRank = homePageService.getCollectedCaseBackRank(user);
+            CaseInfoRank caseInfoRank = homePageService.getCollectedCaseBackRank(user, depCode);
             return ResponseEntity.ok().body(caseInfoRank);
         }catch (Exception e){
             log.error(e.getMessage(),e);
@@ -148,14 +150,16 @@ public class HomePageController extends BaseController {
     public ResponseEntity getHomePageCollectedFollowedRank(@RequestHeader(value = "X-UserToken") String token){
         log.debug("REST request to get getHomePageCollectedPage : {}",token);
         User user = null;
+        String depName = null;
         try {
             user = getUserByToken(token);
+            depName = user.getDepartment().getName();
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
         }
         try {
-            CaseInfoRank caseInfoRank = homePageService.getCollectedFollowedRank(user);
+            CaseInfoRank caseInfoRank = homePageService.getCollectedFollowedRank(user, depName);
             return ResponseEntity.ok().body(caseInfoRank);
         }catch (Exception e){
             log.error(e.getMessage(),e);
