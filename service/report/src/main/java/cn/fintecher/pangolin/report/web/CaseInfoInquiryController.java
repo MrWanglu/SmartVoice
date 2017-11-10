@@ -56,26 +56,7 @@ public class CaseInfoInquiryController extends BaseController {
         log.debug("REST request to get case info by condition");
         try {
             User tokenUser = getUserByToken(token);
-            String sort = "";
-            String newSort = "";
-            if (Objects.nonNull(caseInfoConditionParams.getSort())) {
-                sort = caseInfoConditionParams.getSort();
-                newSort = sort.replace(",", " ");
-            }
-            if (sort.contains("followupBack") ||
-                    sort.contains("caseNumber") ||
-                    sort.contains("overdueAmount") ||
-                    sort.contains("overdueDays") ||
-                    sort.contains("batchNumber") ||
-                    sort.contains("followupTime") ||
-                    sort.contains("followupBack")) {
-                newSort = "a.".concat(newSort);
-            }
-            if (sort.contains("idCard")) {
-                String str = newSort.replace("idCard", "id_card");
-                newSort = "b.".concat(str);
-            }
-            PageHelper.startPage(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
+            PageHelper.startPage(caseInfoConditionParams.getPage() + 1, caseInfoConditionParams.getSize());
             List<CaseInfoModel> caseInfoModels = caseInfoMapper.getCaseInfoByCondition(StringUtils.trim(caseInfoConditionParams.getPersonalName()),
                     StringUtils.trim(caseInfoConditionParams.getMobileNo()),
                     caseInfoConditionParams.getDeptCode(),
@@ -92,7 +73,7 @@ public class CaseInfoInquiryController extends BaseController {
                     caseInfoConditionParams.getAssistWay(),
                     caseInfoConditionParams.getCaseMark(),
                     caseInfoConditionParams.getCollectionType(),
-                    caseInfoConditionParams.getSort() == null ? null : newSort,
+                    caseInfoConditionParams.getSort() == null ? null : caseInfoConditionParams.getSort(),
                     tokenUser.getDepartment().getCode(),
                     caseInfoConditionParams.getCollectionStatusList(),
                     caseInfoConditionParams.getCollectionStatus(),
@@ -121,33 +102,14 @@ public class CaseInfoInquiryController extends BaseController {
         log.debug("REST request to get case assist by condition");
         try {
             User tokenUser = getUserByToken(token);
-            String sort = "";
-            String newSort = "";
-            if (Objects.nonNull(caseInfoConditionParams.getSort())) {
-                sort = caseInfoConditionParams.getSort();
-                newSort = sort.replace(",", " ");
-            }
-            if (sort.contains("operatorTime") ||
-                    sort.contains("assistStatus") ||
-                    sort.contains("caseFlowinTime") ||
-                    sort.contains("leaveCaseFlag")) {
-                newSort = "a.".concat(newSort);
-            }
-            if (sort.contains("caseNumber")) {
-                String str = newSort.replace("caseNumber", "case_number");
-                newSort = "b.".concat(str);
-            }
-            if (sort.contains("overdueAmount")) {
-                String str = newSort.replace("overdueAmount", "overdue_amount");
-                newSort = "b.".concat(str);
-            }
-            PageHelper.startPage(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
+            PageHelper.startPage(caseInfoConditionParams.getPage() + 1, caseInfoConditionParams.getSize());
             List<CaseAssistModel> caseAssistModels = caseInfoMapper.getCaseAssistByCondition(StringUtils.trim(caseInfoConditionParams.getPersonalName()),
                     StringUtils.trim(caseInfoConditionParams.getMobileNo()),
                     caseInfoConditionParams.getOverdueMaxAmt(),
                     caseInfoConditionParams.getOverdueMinAmt(),
                     caseInfoConditionParams.getAssistStatusList(),
-                    tokenUser.getDepartment().getCode(), newSort,
+                    tokenUser.getDepartment().getCode(),
+                    caseInfoConditionParams.getSort() == null ? null : caseInfoConditionParams.getSort(),
                     tokenUser.getManager(),
                     tokenUser.getId());
             PageInfo<CaseAssistModel> pageInfo = new PageInfo<>(caseAssistModels);

@@ -305,7 +305,6 @@
         </if>
         and a.collectionStatus in(${collectionStatusList})
         AND a.collectionType in(${collectionType})
-
         <if test="personalName != null">
             AND b.`name` LIKE concat('%',#{personalName},'%')
         </if>
@@ -354,9 +353,6 @@
         <if test="caseMark != null">
             AND a.caseMark = #{caseMark}
         </if>
-        <if test="collectionType != null">
-            AND a.collectionType = #{collectionType}
-        </if>
         <if test="collectionStatus != null">
             AND a.collectionStatus = #{collectionStatus}
         </if>
@@ -366,9 +362,48 @@
         <if test="areaId != null">
             AND f.id = #{areaId} OR f.parent_id = #{areaId}
         </if>
-        ORDER BY a.caseMark desc,if(isnull(a.followupBack),1,0),a.followupBack asc
-        <if test="sort != null">
-            ,${sort}
+        ORDER BY a.caseMark desc
+        <if test="sort != null and sort == 'followupBack,asc'">
+            ,if(isnull(a.followupBack),1,0),a.followupBack asc
+        </if>
+        <if test="sort != null and sort == 'followupBack,desc'">
+            ,if(isnull(a.followupBack),1,0),a.followupBack desc
+        </if>
+        <if test="sort != null and sort == 'followupTime,asc'">
+            ,if(isnull(a.followupTime),1,0),a.followupTime asc
+        </if>
+        <if test="sort != null and sort == 'followupTime,desc'">
+            ,if(isnull(a.followupTime),1,0),a.followupTime desc
+        </if>
+        <if test="sort != null and sort == 'caseNumber,asc'">
+            ,a.caseNumber asc
+        </if>
+        <if test="sort != null and sort == 'caseNumber,desc'">
+            ,a.caseNumber desc
+        </if>
+        <if test="sort != null and sort == 'overdueAmount,asc'">
+            ,a.overdueAmount asc
+        </if>
+        <if test="sort != null and sort == 'overdueAmount,desc'">
+            ,a.overdueAmount desc
+        </if>
+        <if test="sort != null and sort == 'overdueDays,asc'">
+            ,a.overdueDays asc
+        </if>
+        <if test="sort != null and sort == 'overdueDays,desc'">
+            ,a.overdueDays desc
+        </if>
+        <if test="sort != null and sort == 'batchNumber,asc'">
+            ,a.batchNumber asc
+        </if>
+        <if test="sort != null and sort == 'batchNumber,desc'">
+            ,a.batchNumber desc
+        </if>
+        <if test="sort != null and sort == 'idCard,asc'">
+            ,b.id_card asc
+        </if>
+        <if test="sort != null and sort == 'idCard,desc'">
+            ,b.id_card desc
         </if>
         ,b.`name` asc
     </select>
@@ -412,9 +447,40 @@
         <if test="overdueMinAmount != null">
             AND <![CDATA[b.overdue_amount >= #{overdueMinAmount}]]>
         </if>
-        ORDER BY a.operatorTime desc
-        <if test="sort != null">
-            ,${sort}
+        ORDER BY 1
+        <if test="sort != null and sort == 'operatorTime,desc'">
+            ,a.operatorTime desc
         </if>
+        <if test="sort != null and sort == 'assistStatus,asc'">
+            ,a.assistStatus asc
+        </if>
+        <if test="sort != null and sort == 'assistStatus,desc'">
+            ,a.assistStatus desc
+        </if>
+        <if test="sort != null and sort == 'caseFlowinTime,asc'">
+            ,a.caseFlowinTime asc
+        </if>
+        <if test="sort != null and sort == 'caseFlowinTime,desc'">
+            ,a.caseFlowinTime desc
+        </if>
+        <if test="sort != null and sort == 'leaveCaseFlag,asc'">
+            ,a.leaveCaseFlag asc
+        </if>
+        <if test="sort != null and sort == 'leaveCaseFlag,desc'">
+            ,a.leaveCaseFlag desc
+        </if>
+        <if test="sort != null and sort == 'caseNumber,asc'">
+            ,b.case_number asc
+        </if>
+        <if test="sort != null and sort == 'caseNumber,desc'">
+            ,b.case_number desc
+        </if>
+        <if test="sort != null and sort == 'overdueAmount,asc'">
+            ,b.overdue_amount asc
+        </if>
+        <if test="sort != null and sort == 'overdueAmount,desc'">
+            ,b.overdue_amount desc
+        </if>
+        ,g.`name` asc
     </select>
 </mapper>
