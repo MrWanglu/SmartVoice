@@ -78,7 +78,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(CollectPage);
         }catch (Exception e){
             log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","系统异常!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","查询周月完成进度失败")).body(null);
         }
     }
 
@@ -98,7 +98,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(previewTotalFollowModel);
         }catch (Exception e){
             log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","查询跟催量总览失败")).body(null);
         }
     }
 
@@ -118,7 +118,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(caseStatusTotalPreview);
         }catch (Exception e){
             log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","查询案件状况总览失败")).body(null);
         }
     }
 
@@ -138,7 +138,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(caseInfoRank);
         }catch (Exception e){
             log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","查询回款金额排名失败")).body(null);
         }
     }
 
@@ -158,7 +158,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(caseInfoRank);
         }catch (Exception e){
             log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","查询跟催量排名失败")).body(null);
         }
     }
 
@@ -211,7 +211,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","催收员排行榜统计错误!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","委外方排行榜统计错误!")).body(null);
         }
     }
 

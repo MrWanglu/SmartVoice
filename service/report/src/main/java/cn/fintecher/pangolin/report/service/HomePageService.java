@@ -226,6 +226,10 @@ public class HomePageService {
                 backAmtModels.remove(backAmtModels.get(i));
             }else {
                 if(user.getRealName().equals(backAmtModels.get(i).getCollectionName())){
+                    if(i==0){
+                        i=+1;
+                    }
+                    //添加该催收员的排名
                     caseInfoRank.setCollectRank(i);
                 }
             }

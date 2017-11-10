@@ -59,12 +59,12 @@
         </if>
         GROUP BY a.out_id) as c
         LEFT JOIN
-        (SELECT outs_name,id FROM outsource)as d ON c.out_id=d.id GROUP BY d.outs_name, c.contract_amt,c.out_back_amt,c.total_count
+        (SELECT outs_name,id FROM outsource)as d ON c.out_id=d.id GROUP BY d.outs_name, c.contract_amt,c.out_back_amt,c.total_count,c.out_back_count
         <if test="rankType == 0">
             ORDER BY c.contract_amt DESC
         </if>
         <if test="rankType == 1">
-            ORDER BY c.total_count DESC
+            ORDER BY c.out_back_count DESC
         </if>
         <if test="rankType == 2">
             ORDER BY out_back_rate DESC
