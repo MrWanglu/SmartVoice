@@ -177,6 +177,7 @@ public class UserVideoController {
                     }
                 } else {
                     logger.error("日期下面没有找到催收员对应的文件夹");
+                    logger.error(filePath.concat(ZWDateUtil.getFormatNowDate("yyyyMMdd")));
                 }
             }
             //创建新文件 下一天用
