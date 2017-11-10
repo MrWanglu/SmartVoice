@@ -185,15 +185,17 @@
 
     <!--回款金额排名-->
     <select id="getCaseInfoBackRank" resultMap="backAmtModel">
-        SELECT a.apply_real_name, a.apply_pay_back_amt, IFNULL((a.apply_pay_back_amt/b.apply_pay_total_amt),0.00) as apply_pay_amt_rate, a.apply_pay_count
-        FROM (
-             SELECT apply_real_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
-                   FROM case_pay_apply
-                   WHERE (approve_result = 62 OR approve_status = 58) GROUP BY apply_real_name) as a
-             INNER JOIN (
-                   SELECT apply_real_name, IFNULL(SUM(case_amt),0.00) as apply_pay_total_amt FROM case_pay_apply
-                   GROUP BY apply_real_name) as b
-             ON a.apply_real_name = b.apply_real_name GROUP BY a.apply_real_name
+        SELECT d.real_name,c.apply_pay_back_amt, c.apply_pay_amt_rate, c.apply_pay_count FROM (
+           SELECT a.apply_user_name, a.apply_pay_back_amt, IFNULL((a.apply_pay_back_amt/b.apply_pay_total_amt),0.00) as apply_pay_amt_rate, a.apply_pay_count
+           FROM (SELECT apply_user_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
+           FROM case_pay_apply
+           WHERE (approve_result = 62 OR approve_status = 58) GROUP BY apply_user_name) as a
+           INNER JOIN (
+           SELECT apply_user_name, IFNULL(SUM(case_amt),0.00) as apply_pay_total_amt FROM case_pay_apply
+           GROUP BY apply_user_name) as b
+           ON a.apply_user_name = b.apply_user_name GROUP BY a.apply_user_name) as c
+        LEFT JOIN (SELECT user_name, real_name FROM `user`) as d
+        ON c.apply_user_name=d.user_name ORDER BY apply_pay_amt_rate DESC
     </select>
 
     <!--承诺还款案件数-->
@@ -211,7 +213,7 @@
     </select>
 
     <resultMap id="backAmtModel" type="cn.fintecher.pangolin.report.model.BackAmtModel">
-        <result column="apply_real_name" property="collectionName"/>
+        <result column="real_name" property="collectionName"/>
         <result column="apply_pay_amt_rate" property="backRate"/>
         <result column="apply_pay_back_amt" property="backMoney"/>
         <result column="apply_pay_count" property="backCount"/>

@@ -200,6 +200,20 @@ public class HomePageController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","快速催收失败")).body(null);
         }
     }
+    @GetMapping("/outsourceRanking")
+    @ApiOperation(value = "管理员首页委外方排行榜", notes = "管理员首页委外方排行榜")
+    public ResponseEntity<Page<OutsourceRankingModel>> outsourceRanking(CollectorRankingParams params,
+                                                                        @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            List<OutsourceRankingModel> outsourceRankingModels = adminPageMapper.OutsourceRanking(params);
+            Page<OutsourceRankingModel> page = new PageImpl(outsourceRankingModels);
+            return ResponseEntity.ok().body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","催收员排行榜统计错误!")).body(null);
+        }
+    }
 
 
 }

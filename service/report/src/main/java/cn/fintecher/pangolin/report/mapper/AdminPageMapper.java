@@ -1,10 +1,7 @@
 package cn.fintecher.pangolin.report.mapper;
 
 import cn.fintecher.pangolin.entity.User;
-import cn.fintecher.pangolin.report.model.CollectorRankingModel;
-import cn.fintecher.pangolin.report.model.CollectorRankingParams;
-import cn.fintecher.pangolin.report.model.PageSortResult;
-import cn.fintecher.pangolin.report.model.WeekCountResult;
+import cn.fintecher.pangolin.report.model.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,6 +21,12 @@ public interface AdminPageMapper {
      */
     List<CollectorRankingModel> collectorRanking(CollectorRankingParams params);
 
+    /**
+     * 催收员排行榜
+     * @param params
+     * @return
+     */
+    List<OutsourceRankingModel> OutsourceRanking(CollectorRankingParams params);
 
 
     /**以上是新版本*/

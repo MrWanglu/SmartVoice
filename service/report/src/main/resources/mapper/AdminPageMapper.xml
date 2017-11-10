@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="cn.fintecher.pangolin.report.mapper.AdminPageMapper">
 
-
+    <!--管理员首页催收员排行榜-->
     <select id="collectorRanking" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultType="cn.fintecher.pangolin.report.model.CollectorRankingModel">
         SELECT a.uname, a.rname AS name, b.amount/10000 AS amount, b.count AS count, a.payCount AS payCount, a.payAmount/10000 AS payAmount, payAmount/amount AS payRate FROM (
             SELECT c.uname AS uname, c.rname AS rname, COUNT(*) AS payCount,SUM(c.payAmount) AS payAmount FROM (
@@ -43,7 +43,42 @@
         </if>
         LIMIT 0, 6
     </select>
-
+    <!--管理员首页委外方排行榜-->
+    <select id="OutsourceRanking" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultMap="outsourceRankingModel">
+        SELECT d.outs_name, c.contract_amt, c.out_back_amt, c.total_count, (c.out_back_amt/c.contract_amt) AS out_back_rate, c.out_back_count FROM
+        (SELECT a.out_id,SUM(a.contract_amt) AS contract_amt, SUM(a.out_back_amt) AS out_back_amt,COUNT(*) as total_count, count(CASE WHEN a.out_back_amt != 0.0000 then a.id END) as out_back_count FROM outsource_pool a INNER JOIN case_info b ON a.case_id=b.id
+        WHERE b.case_pool_type=226 and b.recover_remark=0 AND a.out_status != 167
+        <if test="timeType == 0">
+            AND YEAR(a.out_time) = YEAR(NOW())
+        </if>
+        <if test="timeType == 1">
+            AND MONTH(a.out_time) = MONTH(NOW())
+        </if>
+        <if test="timeType == 2">
+            AND WEEK(a.out_time) = WEEK(NOW())
+        </if>
+        GROUP BY a.out_id) as c
+        LEFT JOIN
+        (SELECT outs_name,id FROM outsource)as d ON c.out_id=d.id GROUP BY d.outs_name, c.contract_amt,c.out_back_amt,c.total_count
+        <if test="rankType == 0">
+            ORDER BY c.contract_amt DESC
+        </if>
+        <if test="rankType == 1">
+            ORDER BY c.total_count DESC
+        </if>
+        <if test="rankType == 2">
+            ORDER BY out_back_rate DESC
+        </if>
+        LIMIT 0, 5
+    </select>
+    <resultMap id="outsourceRankingModel" type="cn.fintecher.pangolin.report.model.OutsourceRankingModel">
+        <result column="outs_name" property="name"/>
+        <result column="contract_amt" property="amount"/>
+        <result column="out_back_amt" property="payAmount"/>
+        <result column="total_count" property="count"/>
+        <result column="out_back_count" property="payCount"/>
+        <result column="out_back_rate" property="payRate"/>
+    </resultMap>
 
     <!--以上是新版管理员首页SQL-->
     <!-- ############################################################################################################### -->
