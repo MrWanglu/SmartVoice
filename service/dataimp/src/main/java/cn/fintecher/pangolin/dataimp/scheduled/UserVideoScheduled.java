@@ -43,18 +43,18 @@ public class UserVideoScheduled {
     UserVideoRepository userVideoRepository;
 
     @Scheduled(cron = "0 0 23 * * ?")
-    public void autoUserVideo() throws Exception {
+    public void autoUserVideo() {
 
         String filePath = String.format("%shome%sdata%s", spliterStr, spliterStr, spliterStr);
         String ffmpeg = String.format("%susr%sbin%sffmpeg", spliterStr, spliterStr, spliterStr);
 
-        //获取所有的催收用户
-        ResponseEntity<Iterable> userIterables = restTemplate.getForEntity("http://business-service/api/userResource/getAllUsers".concat("?companyCode=0001"), Iterable.class);
-        if (Objects.isNull(userIterables) || !userIterables.hasBody())
-            return;
-        //得到今天的录音文件夹
-        String dateDir = filePath + ZWDateUtil.getFormatNowDate("yyyyMMdd");
         try {
+            //获取所有的催收用户
+            ResponseEntity<Iterable> userIterables = restTemplate.getForEntity("http://business-service/api/userResource/getAllUsers".concat("?companyCode=0001"), Iterable.class);
+            if (Objects.isNull(userIterables) || !userIterables.hasBody())
+                return;
+            //得到今天的录音文件夹
+            String dateDir = filePath + ZWDateUtil.getFormatNowDate("yyyyMMdd");
             File file = new File(dateDir);
             if (Objects.isNull(file)) {
                 logger.error("访问录音文件夹失败：" + dateDir);
@@ -127,7 +127,7 @@ public class UserVideoScheduled {
         //新增记录
         UserVideo userVideo = new UserVideo();
         userVideo.setCompanyCode("0001");
-        userVideo.setVideoName(fileName.toString());
+        userVideo.setVideoName(fileName.replace("WAV", "mp3"));
         userVideo.setDeptCode(((Map) mapUser.get("department")).get("code").toString());
         userVideo.setDeptName(((Map) mapUser.get("department")).get("name").toString());
         userVideo.setOperatorTime(ZWDateUtil.getNowDateTime());
