@@ -27,11 +27,38 @@ public interface AdminPageMapper {
     /**
      * 催收员排行榜
      *
+     * 委外方排行榜
      * @param params
      * @return
      */
     List<OutsourceRankingModel> OutsourceRanking(CollectorRankingParams params);
+    /**
+     * 内催分布于各省份的金额和数量
+     * @param params
+     * @return
+     */
+    ProvinceCollectionDateModel getInnerCollectionDate(CollectorRankingParams params);
 
+    /**
+     * 内催分布于各省份的金额和数量
+     * @param params
+     * @return
+     */
+    ProvinceCollectionDateModel getOutsourceCollectionDate(CollectorRankingParams params);
+
+    /**
+     * 内催分布于各省份的金额和数量
+     * @param params
+     * @return
+     */
+    List<ProvinceCollectionDateModel> getProvinceInnerCollectionDate(CollectorRankingParams params);
+
+    /**
+     * 委外分布于各省份的金额和数量
+     * @param params
+     * @return
+     */
+    List<ProvinceCollectionDateModel> getProvinceOutsourceCollectionDate(CollectorRankingParams params);
 
     /**以上是新版本*/
     /**############################################################################################################*/

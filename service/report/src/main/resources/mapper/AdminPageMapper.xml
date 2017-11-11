@@ -45,6 +45,7 @@
         </if>
         LIMIT 0, 6
     </select>
+
     <!--管理员首页委外方排行榜-->
     <select id="OutsourceRanking" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultMap="outsourceRankingModel">
@@ -78,6 +79,55 @@
         </if>
         LIMIT 0, 5
     </select>
+
+    <!--管理员首页内催催收数据-->
+    <select id="getInnerCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
+        SELECT SUM(overdue_amount) as collectingAmt, count(*) as collectingCount FROM case_info as a LEFT JOIN department as b on a.depart_id=b.id
+        WHERE a.collection_status=21 AND a.case_pool_type=225 AND a.recover_remark=0 and b.code like CONCAT(#{deptCode},'%')
+    </select>
+    <!--管理员首页委外催收数据-->
+    <select id="getOutsourceCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
+        SELECT SUM(a.contract_amt) as collectingAmt, count(*) as collectingCount FROM outsource_pool a LEFT JOIN case_info b ON a.case_id and b.id
+        WHERE a.out_status=168 AND b.case_pool_type=226 AND b.recover_remark=0 AND a.company_code = #{companyCode}
+    </select>
+    <!--管理员首页内催分布于各省份的金额和数量-->
+    <select id="getProvinceInnerCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
+        SELECT dd.proviceAmt as collectingAmt, dd.proviceNum as collectingCount, ff.areaName as provinceName FROM
+        (SELECT SUM(aa.proviceAmt) as proviceAmt, SUM(aa.proviceNum) as proviceNum, cc.parent_id FROM
+        (SELECT SUM(overdue_amount) as proviceAmt, count(*) as proviceNum, area_id FROM case_info as a LEFT JOIN department as b on a.depart_id=b.id where b.code like CONCAT(#{deptCode},'%')
+        AND a.collection_status=21 AND a.case_pool_type=225 AND a.recover_remark=0 GROUP BY a.area_id) as aa
+        LEFT JOIN area_code as cc on aa.area_id=cc.id GROUP BY parent_id) as dd
+        LEFT JOIN (SELECT area_name as areaName, id from area_code) as ff on dd.parent_id=ff.id GROUP BY areaName
+    </select>
+    <!--管理员首页委外分布于各省份的金额和数量-->
+    <select id="getProvinceOutsourceCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
+        SELECT dd.proviceOutsourceAmt as collectingAmt, dd.proviceOutsourceCount as collectingCount, ff.areaName as provinceName FROM
+        (SELECT SUM(aa.proviceOutsourceAmt) as proviceOutsourceAmt, SUM(aa.proviceOutsourceCount) as proviceOutsourceCount, cc.parent_id FROM
+        (SELECT SUM(a.contract_amt) as proviceOutsourceAmt, count(*) as proviceOutsourceCount, b.area_id FROM outsource_pool a INNER JOIN case_info as b on a.case_id=b.id WHERE out_status=168 and b.case_pool_type=226 and b.recover_remark=0 AND a.company_code=#{companyCode}
+        GROUP BY b.area_id) as aa
+        LEFT JOIN area_code as cc on aa.area_id=cc.id GROUP BY parent_id) as dd
+        LEFT JOIN (SELECT area_name as areaName, id from area_code) as ff on dd.parent_id=ff.id GROUP BY areaName
+    </select>
+
+    <resultMap id="innerPromiseBackModel" type="cn.fintecher.pangolin.report.model.InnerPromiseBackModel">
+        <result column="promise_amt1" property="innerPromisedAmt"/>
+        <result column="promise_count" property="innerPromisedCount"/>
+        <result column="follow_amt" property="innerFollowAmt"/>
+        <result column="follow_count" property="innerFollowCount"/>
+        <result column="reject_amt" property="innerRejectAmt"/>
+        <result column="reject_count" property="innerRejectCount"/>
+        <result column="other_amt" property="innerOtherAmt"/>
+        <result column="other_count" property="innerOtherCount"/>
+        <result column="out_back_amt" property="outsourcePromisedAmt"/>
+        <result column="total_count" property="outsourcePromisedCount"/>
+        <result column="out_back_count" property="outsourceFollowAmt"/>
+        <result column="out_back_rate" property="outsourceFollowCount"/>
+        <result column="outs_name" property="outsourceRejectAmt"/>
+        <result column="contract_amt" property="outsourceRejectCount"/>
+        <result column="out_back_amt" property="outsourceOtherAmt"/>
+        <result column="total_count" property="outsourceOtherCount"/>
+    </resultMap>
+
     <resultMap id="outsourceRankingModel" type="cn.fintecher.pangolin.report.model.OutsourceRankingModel">
         <result column="outs_name" property="name"/>
         <result column="contract_amt" property="amount"/>

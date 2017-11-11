@@ -303,6 +303,7 @@ public class HomePageService {
         return caseInfoModel;
     }
 
+    //催收员首页 - 快速催收
     private HomePageResult getCollectPage(User user) {
         HomePageResult<CupoPage> homePageResult = new HomePageResult<>();
         homePageResult.setType(user.getManager());
@@ -354,6 +355,24 @@ public class HomePageService {
         cupoPage.setBackCash(backCash);
         homePageResult.setData(cupoPage);
         return homePageResult;
+    }
+    //管理员首页第二部分 案件还款意向数据
+    public InnerPromiseBackModel getCaseBackDate(User user, CollectorRankingParams caseInfoConditionParams){
+        InnerPromiseBackModel innerPromiseBackModel = new InnerPromiseBackModel();
+
+
+        return innerPromiseBackModel;
+    }
+
+    //管理员首页第四部分 催收中催收数据
+    public CollectionDateModel getCollectionedDate(User user, CollectorRankingParams caseInfoConditionParams){
+        CollectionDateModel collectionDateModel = new CollectionDateModel();
+        if(caseInfoConditionParams.getType()==1){
+
+        }
+
+
+        return collectionDateModel;
     }
 
     private List<WeekCountResult> addWeekListZero (List<WeekCountResult> weekCountResults){
