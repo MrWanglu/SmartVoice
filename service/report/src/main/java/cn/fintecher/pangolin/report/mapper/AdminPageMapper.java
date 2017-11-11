@@ -2,8 +2,10 @@ package cn.fintecher.pangolin.report.mapper;
 
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.model.*;
+import org.apache.ibatis.annotations.Param;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -16,6 +18,7 @@ public interface AdminPageMapper {
 
     /**
      * 催收员排行榜
+     *
      * @param params
      * @return
      */
@@ -23,6 +26,7 @@ public interface AdminPageMapper {
 
     /**
      * 催收员排行榜
+     *
      * @param params
      * @return
      */
@@ -35,6 +39,7 @@ public interface AdminPageMapper {
 
     /**
      * 获取部门下所有用户
+     *
      * @param deptCode
      * @return
      */
@@ -42,6 +47,7 @@ public interface AdminPageMapper {
 
     /**
      * 获取公司下所有用户
+     *
      * @param companyCode
      * @return
      */
@@ -49,13 +55,15 @@ public interface AdminPageMapper {
 
     /**
      * 部门下案件总金额
+     *
      * @param deptCode
      * @return
      */
-    BigDecimal getCaseSumAmt (String deptCode);
+    BigDecimal getCaseSumAmt(String deptCode);
 
     /**
      * 部门下案件已还款总额
+     *
      * @param deptCode
      * @return
      */
@@ -63,6 +71,7 @@ public interface AdminPageMapper {
 
     /**
      * 部门下客户总数
+     *
      * @param deptCode
      * @return
      */
@@ -70,6 +79,7 @@ public interface AdminPageMapper {
 
     /**
      * 部门下客户在案总数
+     *
      * @param deptCode
      * @return
      */
@@ -77,6 +87,7 @@ public interface AdminPageMapper {
 
     /**
      * 周回款统计
+     *
      * @param deptCode
      * @return
      */
@@ -84,6 +95,7 @@ public interface AdminPageMapper {
 
     /**
      * 周催计数
+     *
      * @param deptCode
      * @return
      */
@@ -91,6 +103,7 @@ public interface AdminPageMapper {
 
     /**
      * 周结案数
+     *
      * @param deptCode
      * @return
      */
@@ -98,6 +111,7 @@ public interface AdminPageMapper {
 
     /**
      * 催收员排名
+     *
      * @param deptCode
      * @return
      */
@@ -105,8 +119,14 @@ public interface AdminPageMapper {
 
     /**
      * 客户排名
+     *
      * @param deptCode
      * @return
      */
     List<PageSortResult> getCustSort(String deptCode);
+
+    /**
+     * 获取所有的案件时间
+     */
+    CaseDateModel getCaseDate(@Param("queryType") String queryType, @Param("companyCode") String companyCode);
 }

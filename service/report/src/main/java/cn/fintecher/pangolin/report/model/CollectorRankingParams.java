@@ -16,8 +16,11 @@ public class CollectorRankingParams {
     private Integer timeType = 0;
     @ApiModelProperty("部门Code(前端不需要传)")
     private String deptCode;
-    @ApiModelProperty(notes = "类型:0-内催,1-委外")
-    private Integer outType = 0;
+    @ApiModelProperty("催收类型 0 全部 1 内崔 2 委外 3 核销 4 司法 ")
+    private Integer queryType;
+    @ApiModelProperty("查询年份")
+    private Integer queryYear;
+
 
     /**
      * 排名类型枚举
@@ -53,26 +56,6 @@ public class CollectorRankingParams {
         private String remark;
 
         TimeType(Integer value, String remark) {
-            this.value = value;
-            this.remark = remark;
-        }
-
-        public Integer getValue() {
-            return value;
-        }
-    }
-
-    /**
-     * 内催，委外
-     */
-    public enum OutType {
-        INNER(0, "内催"),
-        OUTSOURCE(1, "委外");
-
-        private Integer value;
-        private String remark;
-
-        OutType(Integer value, String remark) {
             this.value = value;
             this.remark = remark;
         }

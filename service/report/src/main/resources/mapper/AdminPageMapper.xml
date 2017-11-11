@@ -3,32 +3,34 @@
 <mapper namespace="cn.fintecher.pangolin.report.mapper.AdminPageMapper">
 
     <!--管理员首页催收员排行榜-->
-    <select id="collectorRanking" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultType="cn.fintecher.pangolin.report.model.CollectorRankingModel">
-        SELECT a.uname, a.rname AS name, b.amount/10000 AS amount, b.count AS count, a.payCount AS payCount, a.payAmount/10000 AS payAmount, payAmount/amount AS payRate FROM (
-            SELECT c.uname AS uname, c.rname AS rname, COUNT(*) AS payCount,SUM(c.payAmount) AS payAmount FROM (
-                SELECT apply_user_name AS uname,apply.apply_real_name AS rname,SUM(apply_pay_amt) AS payAmount
-                FROM case_pay_apply apply
-                LEFT JOIN department dept ON apply.depart_id = dept.id
-                WHERE (apply.approve_result = 62 OR apply.approve_status = 58)
-                AND dept.`code` LIKE concat(#{deptCode},'%')
-                <if test="timeType == 0">
-                    AND YEAR(apply.approve_pay_datetime) = YEAR(NOW())
-                </if>
-                <if test="timeType == 1">
-                    AND MONTH(apply.approve_pay_datetime) = MONTH(NOW())
-                </if>
-                <if test="timeType == 2">
-                    AND WEEK(apply.approve_pay_datetime) = WEEK(NOW())
-                </if>
-                GROUP BY apply.apply_user_name,apply.apply_real_name,apply.case_id
-            ) AS c
-            GROUP BY c.uname,c.rname
+    <select id="collectorRanking" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.CollectorRankingModel">
+        SELECT a.uname, a.rname AS name, b.amount/10000 AS amount, b.count AS count, a.payCount AS payCount,
+        a.payAmount/10000 AS payAmount, payAmount/amount AS payRate FROM (
+        SELECT c.uname AS uname, c.rname AS rname, COUNT(*) AS payCount,SUM(c.payAmount) AS payAmount FROM (
+        SELECT apply_user_name AS uname,apply.apply_real_name AS rname,SUM(apply_pay_amt) AS payAmount
+        FROM case_pay_apply apply
+        LEFT JOIN department dept ON apply.depart_id = dept.id
+        WHERE (apply.approve_result = 62 OR apply.approve_status = 58)
+        AND dept.`code` LIKE concat(#{deptCode},'%')
+        <if test="timeType == 0">
+            AND YEAR(apply.approve_pay_datetime) = YEAR(NOW())
+        </if>
+        <if test="timeType == 1">
+            AND MONTH(apply.approve_pay_datetime) = MONTH(NOW())
+        </if>
+        <if test="timeType == 2">
+            AND WEEK(apply.approve_pay_datetime) = WEEK(NOW())
+        </if>
+        GROUP BY apply.apply_user_name,apply.apply_real_name,apply.case_id
+        ) AS c
+        GROUP BY c.uname,c.rname
         ) AS a
         LEFT JOIN (
-            SELECT u.user_name AS uname, SUM(c.overdue_amount) AS amount, COUNT(*) AS count FROM `user` u
-            LEFT JOIN case_info c ON (c.current_collector = u.id OR c.assist_collector = u.id)
-            GROUP BY u.user_name
-            HAVING amount IS NOT NULL
+        SELECT u.user_name AS uname, SUM(c.overdue_amount) AS amount, COUNT(*) AS count FROM `user` u
+        LEFT JOIN case_info c ON (c.current_collector = u.id OR c.assist_collector = u.id)
+        GROUP BY u.user_name
+        HAVING amount IS NOT NULL
         ) AS b
         ON a.uname = b.uname
         WHERE b.amount IS NOT NULL
@@ -44,9 +46,13 @@
         LIMIT 0, 6
     </select>
     <!--管理员首页委外方排行榜-->
-    <select id="OutsourceRanking" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultMap="outsourceRankingModel">
-        SELECT d.outs_name, c.contract_amt, c.out_back_amt, c.total_count, (c.out_back_amt/c.contract_amt) AS out_back_rate, c.out_back_count FROM
-        (SELECT a.out_id,SUM(a.contract_amt) AS contract_amt, SUM(a.out_back_amt) AS out_back_amt,COUNT(*) as total_count, count(CASE WHEN a.out_back_amt != 0.0000 then a.id END) as out_back_count FROM outsource_pool a INNER JOIN case_info b ON a.case_id=b.id
+    <select id="OutsourceRanking" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultMap="outsourceRankingModel">
+        SELECT d.outs_name, c.contract_amt, c.out_back_amt, c.total_count, (c.out_back_amt/c.contract_amt) AS
+        out_back_rate, c.out_back_count FROM
+        (SELECT a.out_id,SUM(a.contract_amt) AS contract_amt, SUM(a.out_back_amt) AS out_back_amt,COUNT(*) as
+        total_count, count(CASE WHEN a.out_back_amt != 0.0000 then a.id END) as out_back_count FROM outsource_pool a
+        INNER JOIN case_info b ON a.case_id=b.id
         WHERE b.case_pool_type=226 and b.recover_remark=0 AND a.out_status != 167
         <if test="timeType == 0">
             AND YEAR(a.out_time) = YEAR(NOW())
@@ -59,7 +65,8 @@
         </if>
         GROUP BY a.out_id) as c
         LEFT JOIN
-        (SELECT outs_name,id FROM outsource)as d ON c.out_id=d.id GROUP BY d.outs_name, c.contract_amt,c.out_back_amt,c.total_count,c.out_back_count
+        (SELECT outs_name,id FROM outsource)as d ON c.out_id=d.id GROUP BY d.outs_name,
+        c.contract_amt,c.out_back_amt,c.total_count,c.out_back_count
         <if test="rankType == 0">
             ORDER BY c.contract_amt DESC
         </if>
@@ -130,7 +137,8 @@
     </select>
 
     <!--周回款统计-->
-    <select id="getWeekRepaySumAmt" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
+    <select id="getWeekRepaySumAmt" parameterType="string"
+            resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
         SELECT SUM(apply_pay_amt) AS amount,WEEKDAY(approve_pay_datetime) AS dayOfWeek FROM case_pay_apply
         LEFT JOIN department
         ON case_pay_apply.depart_id = department.id
@@ -142,7 +150,8 @@
     </select>
 
     <!--周催计数-->
-    <select id="getWeekFollCount" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
+    <select id="getWeekFollCount" parameterType="string"
+            resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
         SELECT COUNT(*) AS num,WEEKDAY(record.operator_time) AS dayOfWeek
         FROM case_followup_record AS record
         LEFT JOIN `user`
@@ -156,7 +165,8 @@
     </select>
 
     <!--周结案数-->
-    <select id="getWeekCaseEndCount" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
+    <select id="getWeekCaseEndCount" parameterType="string"
+            resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
         SELECT SUM(m.num) AS num,m.operator_time AS dayOfWeek FROM (
             SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS operator_time FROM case_info
             LEFT JOIN department
@@ -238,4 +248,23 @@
         ORDER BY rate DESC
         LIMIT 0,3
     </select>
+
+    <!--管理員首页查询所有案件的时间-->
+    <select id="getCaseDate" parameterType="String" resultType="cn.fintecher.pangolin.report.model.CaseDateModel">
+        select DATE_FORMAT(min(case_follow_in_time),'%Y') as
+        minCaseYear,DATE_FORMAT(min(case_follow_in_time),'%Y-%m') as minCaseYearMonth from case_info where
+        collection_status !=24 and company_code = #{companyCode}
+        <!--内催-->
+        <if test="queryType != null and queryType == '1'">
+            and case_pool_type=255
+        </if>
+        <!--委外-->
+        <if test="queryType != null and queryType == '2'">
+            and case_pool_type=256
+        </if>
+    </select>
+
+
+
+
 </mapper>
