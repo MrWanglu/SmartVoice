@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.inject.Inject;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @Author : sunyanping
@@ -260,5 +261,25 @@ public class HomePageController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "催收数据查询失败!")).body(null);
         }
     }
+
+    @GetMapping("/getCollectionedDate")
+    @ApiOperation(value = "管理员首页获取催收中数据", notes = "管理员首页获取催收中数据")
+    public ResponseEntity<CollectionDateModel> getCollectionedDate(CollectorRankingParams params,
+                                                              @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            String code = user.getDepartment().getCode();
+            params.setDeptCode(code);
+            if(Objects.nonNull(user.getCompanyCode())){
+                params.setCompanyCode(user.getCompanyCode());
+            }
+            CollectionDateModel collectionDateModel = homePageService.getCollectionedDate(params);
+            return ResponseEntity.ok().body(collectionDateModel);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","委外方排行榜统计错误!")).body(null);
+        }
+    }
+
 
 }

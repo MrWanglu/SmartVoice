@@ -20,5 +20,5 @@ public class ProvinceCollectionDateModel {
     @ApiModelProperty(notes = "催收中总数量")
     private Integer collectingCount;
     @ApiModelProperty(notes = "省份名称")
-    private BigDecimal provinceName;
+    private String provinceName;
 }
