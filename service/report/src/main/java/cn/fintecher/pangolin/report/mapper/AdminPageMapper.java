@@ -2,10 +2,8 @@ package cn.fintecher.pangolin.report.mapper;
 
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.model.*;
-import org.apache.ibatis.annotations.Param;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -153,7 +151,12 @@ public interface AdminPageMapper {
     /**
      * 获取所有的案件时间
      */
-    CaseDateModel getCaseDate(@Param("queryType") String queryType, @Param("companyCode") String companyCode);
+    CaseDateModel getCaseDate(CollectorRankingParams collectorRankingParams);
+
+    /**
+     * 获取所有的案件时间
+     */
+    CaseDateModel getCaseAmtAndCount(CollectorRankingParams collectorRankingParams);
 
     /**
      * 某个年度不同催收方式的每月催记数量和外呼数量

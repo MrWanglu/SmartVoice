@@ -81,17 +81,21 @@
     </select>
 
     <!--管理员首页内催催收数据-->
-    <select id="getInnerCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
+    <select id="getInnerCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
         SELECT SUM(overdue_amount) as collectingAmt, count(*) as collectingCount FROM case_info as a LEFT JOIN department as b on a.depart_id=b.id
         WHERE a.collection_status=21 AND a.case_pool_type=225 AND a.recover_remark=0 and b.code like CONCAT(#{deptCode},'%')
     </select>
     <!--管理员首页委外催收数据-->
-    <select id="getOutsourceCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
+    <select id="getOutsourceCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
         SELECT SUM(a.contract_amt) as collectingAmt, count(*) as collectingCount FROM outsource_pool a LEFT JOIN case_info b ON a.case_id and b.id
         WHERE a.out_status=168 AND b.case_pool_type=226 AND b.recover_remark=0 AND a.company_code = #{companyCode}
     </select>
     <!--管理员首页内催分布于各省份的金额和数量-->
-    <select id="getProvinceInnerCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
+    <select id="getProvinceInnerCollectionDate"
+            parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
         SELECT dd.proviceAmt as collectingAmt, dd.proviceNum as collectingCount, ff.areaName as provinceName FROM
         (SELECT SUM(aa.proviceAmt) as proviceAmt, SUM(aa.proviceNum) as proviceNum, cc.parent_id FROM
         (SELECT SUM(overdue_amount) as proviceAmt, count(*) as proviceNum, area_id FROM case_info as a LEFT JOIN department as b on a.depart_id=b.id where b.code like CONCAT(#{deptCode},'%')
@@ -100,7 +104,9 @@
         LEFT JOIN (SELECT area_name as areaName, id from area_code) as ff on dd.parent_id=ff.id GROUP BY areaName
     </select>
     <!--管理员首页委外分布于各省份的金额和数量-->
-    <select id="getProvinceOutsourceCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
+    <select id="getProvinceOutsourceCollectionDate"
+            parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
         SELECT dd.proviceOutsourceAmt as collectingAmt, dd.proviceOutsourceCount as collectingCount, ff.areaName as provinceName FROM
         (SELECT SUM(aa.proviceOutsourceAmt) as proviceOutsourceAmt, SUM(aa.proviceOutsourceCount) as proviceOutsourceCount, cc.parent_id FROM
         (SELECT SUM(a.contract_amt) as proviceOutsourceAmt, count(*) as proviceOutsourceCount, b.area_id FROM outsource_pool a INNER JOIN case_info as b on a.case_id=b.id WHERE out_status=168 and b.case_pool_type=226 and b.recover_remark=0 AND a.company_code=#{companyCode}
@@ -283,8 +289,7 @@
     <!--客户排名-->
     <select id="getCustSort" parameterType="string" resultType="cn.fintecher.pangolin.report.model.PageSortResult">
         SELECT name,amount,payed,payed/amount as rate FROM (
-        SELECT SUM(apply_pay_amt) AS payed,case_pay_apply.personal_name AS name,case_pay_apply.personal_id AS pid FROM
-        case_pay_apply
+        SELECT SUM(apply_pay_amt) AS payed,case_pay_apply.personal_name AS name,case_pay_apply.personal_id AS pid FROM case_pay_apply
         LEFT JOIN department
         ON case_pay_apply.depart_id = department.id
         WHERE (case_pay_apply.approve_status = 58 OR case_pay_apply.approve_result =62)
@@ -302,10 +307,12 @@
     </select>
 
     <!--管理員首页查询所有案件的时间-->
-    <select id="getCaseDate" parameterType="String" resultType="cn.fintecher.pangolin.report.model.CaseDateModel">
+    <select id="getCaseDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.CaseDateModel">
         select DATE_FORMAT(min(case_follow_in_time),'%Y') as
-        minCaseYear,DATE_FORMAT(min(case_follow_in_time),'%Y-%m') as minCaseYearMonth from case_info where
-        collection_status !=24 and company_code = #{companyCode}
+        minCaseYear,DATE_FORMAT(min(case_follow_in_time),'%Y-%m') as minCaseYearMonth from case_info
+        where collection_status !=24
+        and deppart_id in (select id from department where code like concat(#{deptCode},'%'))
         <!--内催-->
         <if test="queryType != null and queryType == '1'">
             and case_pool_type=255
@@ -316,22 +323,41 @@
         </if>
     </select>
 
-    <!--查询某个年度不同催收方式的每月催记数量和外呼数量-->
-    <select id="getFollowRecordReport" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
-            resultMap="cn/fintecher/pangolin/report/model/CaseDateModel">
-        select MONTH(b.operator_time),b.collection_way,count(*) from case_info a
-        left join case_followup_record b on a.id = b.case_id
+    <!--管理员首页 查询已还款案件金额 已还款案件数量-->
+    <select id="getCaseAmtAndCount" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.CollectorRankingModel">
+        SELECT
+        DATE_FORMAT(case_follow_in_time, '%m') as monthNum,
+        count(id) AS caseCount,
+        sum(overdue_amount) as caseAmount
+        FROM
+        case_info
+        WHERE
+        end_type = 110
+        AND deppart_id in (select id from department where code like concat(#{deptCode},'%'))
+        AND DATE_FORMAT(case_follow_in_time, '%Y') = #{queryYear}
+        AND company_Code = #{companyCode}
+        GROUP BY
+        DATE_FORMAT(case_follow_in_time, '%m');
+    </select>
+
+    <!--管理員首頁 查询某个年度不同催收方式的每月催记数量和外呼数量-->
+    <select id="getRecordReport" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultMap="cn.fintecher.pangolin.report.model.GroupMonthFollowRecord">
+        select MONTH(b.operator_time) as currentMonth ,b.collection_way as wayType ,count(b.collection_way)
+        as typeCount from case_info a
+        RIGHT join case_followup_record b on a.id = b.case_id
         where a.depart_id in (select id from department where code like concat(#{deptCode},'%') and
         <!--内催+委外-->
-        <if test="queryType == '0'">
+        <if test="queryType == 0">
             a.case_pool_type in(255,256)
         </if>
         <!--内催-->
-        <if test="queryType == '1'">
+        <if test="queryType == 1">
             a.case_pool_type =255
         </if>
         <!--委外-->
-        <if test="queryType == '2'">
+        <if test="queryType == 2">
             a.case_pool_type =256
         </if>
         and Year(b.operator_time) = #{queryYear}
