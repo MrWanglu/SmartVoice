@@ -16,10 +16,14 @@ public class CollectorRankingParams {
     private Integer timeType = 0;
     @ApiModelProperty("部门Code(前端不需要传)")
     private String deptCode;
-    @ApiModelProperty("催收类型 0 全部 1 内崔 2 委外 3 核销 4 司法 ")
+    @ApiModelProperty(notes = "催收类型 0 全部 1 内崔 2 委外 3 核销 4 司法 ", required = true)
     private Integer queryType;
-    @ApiModelProperty("查询年份")
+    @ApiModelProperty(notes = "查询年份", required = true)
     private Integer queryYear;
+    @ApiModelProperty(notes = "查询月份", required = true)
+    private String queryMonth;
+    @ApiModelProperty(notes = "查询周", required = true)
+    private String queryWeek;
     @ApiModelProperty("公司标识码")
     private String companyCode;
 
