@@ -15,5 +15,5 @@ public class GroupMonthFollowRecord {
     //类型 0:外呼 1：催记
     private Integer wayType;
     //当前月份某种类型的记录数
-    private Integer typeCount;
+    private Integer typeCount = 0;
 }

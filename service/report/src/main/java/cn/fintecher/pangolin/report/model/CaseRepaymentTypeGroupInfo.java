@@ -16,9 +16,9 @@ public class CaseRepaymentTypeGroupInfo {
     //还款类型
     private String rePaymentType;
     //共计还款金额
-    private BigDecimal totalRePaymentMoney;
+    private BigDecimal totalRePaymentMoney = new BigDecimal(0);
     //总共案件数量
-    private  Integer totalCaseNumber;
+    private  Integer totalCaseNumber = 0;
 
 }
 

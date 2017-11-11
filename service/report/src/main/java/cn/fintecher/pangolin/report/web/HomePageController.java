@@ -298,7 +298,7 @@ public class HomePageController extends BaseController {
     }
 
     @GetMapping("/getCaseGroupInfo")
-    @ApiOperation(value = "管理员首页获取案件根据不同时间类型统计金额和数量",notes = "管理员首页获取案件根据不同时间类型统计金额和数量")
+    @ApiOperation(value = "管理员首页获获取某时间段根据回款类型分组得到案件金额和数量",notes = "管理员首页获获取某时间段根据回款类型分组得到案件金额和数量")
     public ResponseEntity<List<CaseRepaymentTypeGroupInfo>> getCaseGroupInfo(CollectorRankingParams params,
                                                     @RequestHeader(value = "X-UserToKen") String token){
         try {
@@ -309,7 +309,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "催收数据查询失败!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "获取催收回款类型出错!")).body(null);
         }
     }
 
