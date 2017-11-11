@@ -11,18 +11,17 @@ import cn.fintecher.pangolin.report.service.HomePageService;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import net.sf.jsqlparser.expression.DateTimeLiteralExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -44,9 +43,9 @@ public class HomePageController extends BaseController {
     private AdminPageMapper adminPageMapper;
 
     @GetMapping(value = "/getHomePageInformation")
-    @ApiOperation(value = "统计首页数据",notes = "统计首页数据")
-    public ResponseEntity getHomePageInformation(@RequestHeader(value = "X-UserToken") String token){
-        log.debug("REST request to get getHomePageInformation : {}",token);
+    @ApiOperation(value = "统计首页数据", notes = "统计首页数据")
+    public ResponseEntity getHomePageInformation(@RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get getHomePageInformation : {}", token);
         User user = null;
         try {
             user = getUserByToken(token);
@@ -57,16 +56,16 @@ public class HomePageController extends BaseController {
         try {
             HomePageResult homePageResult = homePageService.getHomePageInformation(user);
             return ResponseEntity.ok().body(homePageResult);
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","系统异常!")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", "系统异常!")).body(null);
         }
     }
 
     @GetMapping(value = "/getHomePageCollectedPage")
-    @ApiOperation(value = "统计催收员首页周月完成数据",notes = "统计催收员首页周月完成数据")
-    public ResponseEntity getHomePageCollectedPage(@RequestHeader(value = "X-UserToken") String token){
-        log.debug("REST request to get getHomePageCollectedPage : {}",token);
+    @ApiOperation(value = "统计催收员首页周月完成数据", notes = "统计催收员首页周月完成数据")
+    public ResponseEntity getHomePageCollectedPage(@RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get getHomePageCollectedPage : {}", token);
         User user = null;
         try {
             user = getUserByToken(token);
@@ -77,16 +76,16 @@ public class HomePageController extends BaseController {
         try {
             CollectPage CollectPage = homePageService.getCollectedWeekOrMonthPage(user);
             return ResponseEntity.ok().body(CollectPage);
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","查询周月完成进度失败")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", "查询周月完成进度失败")).body(null);
         }
     }
 
     @GetMapping(value = "/getHomePagePreviewTotalFollow")
-    @ApiOperation(value = "统计催收员首页跟催量总览",notes = "统计催收员首页跟催量总览")
-    public ResponseEntity getHomePagePreviewTotalFollow(@RequestHeader(value = "X-UserToken") String token){
-        log.debug("REST request to get getHomePageCollectedPage : {}",token);
+    @ApiOperation(value = "统计催收员首页跟催量总览", notes = "统计催收员首页跟催量总览")
+    public ResponseEntity getHomePagePreviewTotalFollow(@RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get getHomePageCollectedPage : {}", token);
         User user = null;
         try {
             user = getUserByToken(token);
@@ -97,16 +96,16 @@ public class HomePageController extends BaseController {
         try {
             PreviewTotalFollowModel previewTotalFollowModel = homePageService.getPreviewTotal(user);
             return ResponseEntity.ok().body(previewTotalFollowModel);
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","查询跟催量总览失败")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", "查询跟催量总览失败")).body(null);
         }
     }
 
     @GetMapping(value = "/getHomePageCaseFollowedPreview")
-    @ApiOperation(value = "统计催收员首页案件状况总览",notes = "统计催收员首页案件状况总览")
-    public ResponseEntity getHomePageCaseFollowedPreview(@RequestHeader(value = "X-UserToken") String token){
-        log.debug("REST request to get getHomePageCollectedPage : {}",token);
+    @ApiOperation(value = "统计催收员首页案件状况总览", notes = "统计催收员首页案件状况总览")
+    public ResponseEntity getHomePageCaseFollowedPreview(@RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get getHomePageCollectedPage : {}", token);
         User user = null;
         try {
             user = getUserByToken(token);
@@ -117,16 +116,16 @@ public class HomePageController extends BaseController {
         try {
             CaseStatusTotalPreview caseStatusTotalPreview = homePageService.getPreviewCaseStatus(user);
             return ResponseEntity.ok().body(caseStatusTotalPreview);
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","查询案件状况总览失败")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", "查询案件状况总览失败")).body(null);
         }
     }
 
     @GetMapping(value = "/getHomePageCollectedCaseBackRank")
-    @ApiOperation(value = "统计催收员首页回款金额排名",notes = "统计催收员首页回款金额排名")
-    public ResponseEntity getHomePageCollectedCaseBackRank(@RequestHeader(value = "X-UserToken") String token){
-        log.debug("REST request to get getHomePageCollectedPage : {}",token);
+    @ApiOperation(value = "统计催收员首页回款金额排名", notes = "统计催收员首页回款金额排名")
+    public ResponseEntity getHomePageCollectedCaseBackRank(@RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get getHomePageCollectedPage : {}", token);
         User user = null;
         String depCode = null;
         try {
@@ -139,16 +138,16 @@ public class HomePageController extends BaseController {
         try {
             CaseInfoRank caseInfoRank = homePageService.getCollectedCaseBackRank(user, depCode);
             return ResponseEntity.ok().body(caseInfoRank);
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","查询回款金额排名失败")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", "查询回款金额排名失败")).body(null);
         }
     }
 
     @GetMapping(value = "/getHomePageCollectedFollowedRank")
-    @ApiOperation(value = "统计催收员首页跟催量排名",notes = "统计催收员首页跟催量排名")
-    public ResponseEntity getHomePageCollectedFollowedRank(@RequestHeader(value = "X-UserToken") String token){
-        log.debug("REST request to get getHomePageCollectedPage : {}",token);
+    @ApiOperation(value = "统计催收员首页跟催量排名", notes = "统计催收员首页跟催量排名")
+    public ResponseEntity getHomePageCollectedFollowedRank(@RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get getHomePageCollectedPage : {}", token);
         User user = null;
         String depName = null;
         try {
@@ -161,9 +160,9 @@ public class HomePageController extends BaseController {
         try {
             CaseInfoRank caseInfoRank = homePageService.getCollectedFollowedRank(user, depName);
             return ResponseEntity.ok().body(caseInfoRank);
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController","getHomePageInformation","查询跟催量排名失败")).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", "查询跟催量排名失败")).body(null);
         }
     }
 
@@ -171,7 +170,7 @@ public class HomePageController extends BaseController {
     @GetMapping("/collectorRanking")
     @ApiOperation(value = "管理员首页催收员排行榜", notes = "管理员首页催收员排行榜")
     public ResponseEntity<Page<CollectorRankingModel>> collectorRanking(CollectorRankingParams params,
-                                           @RequestHeader(value = "X-UserToken") String token) {
+                                                                        @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
             String code = user.getDepartment().getCode();
@@ -181,7 +180,7 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","催收员排行榜统计错误!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "催收员排行榜统计错误!")).body(null);
         }
     }
 
@@ -192,9 +191,9 @@ public class HomePageController extends BaseController {
             User user = getUserByToken(token);
             CaseInfoConditionParams caseInfoConditionParams = new CaseInfoConditionParams();
             //1代表催收员是电催部门
-            if(user.getType()==1){
+            if (user.getType() == 1) {
                 caseInfoConditionParams.setCollectionType(CaseInfo.CollectionType.TEL.getValue().toString());//电催
-            } else if(user.getType()==2){ //2代表催收员是外访部门
+            } else if (user.getType() == 2) { //2代表催收员是外访部门
                 caseInfoConditionParams.setCollectionType(CaseInfo.CollectionType.VISIT.getValue().toString());//外访
             } else {
                 caseInfoConditionParams.setCollectionType(CaseInfo.CollectionType.COMPLEX.getValue().toString());//综合
@@ -205,9 +204,10 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(caseInfoModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","快速催收失败")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "快速催收失败")).body(null);
         }
     }
+
     @GetMapping("/outsourceRanking")
     @ApiOperation(value = "管理员首页委外方排行榜", notes = "管理员首页委外方排行榜")
     public ResponseEntity<Page<OutsourceRankingModel>> outsourceRanking(CollectorRankingParams params,
@@ -219,9 +219,21 @@ public class HomePageController extends BaseController {
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","委外方排行榜统计错误!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "委外方排行榜统计错误!")).body(null);
         }
     }
 
+    @GetMapping("/getCaseDate")
+    @ApiOperation(value = "获取案件池中所有的日期", notes = "获取案件池中所有的日期")
+    public ResponseEntity<CaseDateModel> getCaseDate(@RequestParam(value = "查询类别(0 全部 1 内催 2 委外)") String queryType,
+                                                     @RequestParam(value = "公司Code") String companyCode) {
+        try {
+            CaseDateModel caseDateModel = adminPageMapper.getCaseDate(queryType, companyCode);
+            return ResponseEntity.ok().body(caseDateModel);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "获取案件时间失败!")).body(null);
+        }
+    }
 
 }
