@@ -13,12 +13,12 @@ import java.math.BigDecimal;
 @Data
 public class CaseRepaymentTypeGroupInfo {
 
-    //还款类型
+    //催收反馈
     private String rePaymentType;
     //共计还款金额
     private BigDecimal totalRePaymentMoney = new BigDecimal(0);
     //总共案件数量
-    private  Integer totalCaseNumber = 0;
+    private Integer totalCaseNumber = 0;
 
 }
 

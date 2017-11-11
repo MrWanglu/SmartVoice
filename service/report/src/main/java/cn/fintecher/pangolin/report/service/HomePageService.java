@@ -360,7 +360,7 @@ public class HomePageService {
     }
 
     //管理员首页第二部分 案件还款意向数据
-    public InnerPromiseBackModel getCaseBackDate(User user, CollectorRankingParams caseInfoConditionParams){
+    public InnerPromiseBackModel getCaseBackDate(User user, CollectorRankingParams caseInfoConditionParams) {
         InnerPromiseBackModel innerPromiseBackModel = new InnerPromiseBackModel();
 
 
@@ -368,53 +368,53 @@ public class HomePageService {
     }
 
     //管理员首页第四部分 催收中催收数据
-    public CollectionDateModel getCollectionedDate(CollectorRankingParams caseInfoConditionParams){
+    public CollectionDateModel getCollectionedDate(CollectorRankingParams caseInfoConditionParams) {
         CollectionDateModel collectionDateModel = new CollectionDateModel();
         ProvinceCollectionDateModel provinceModel;
         List<ProvinceCollectionDateModel> list;
         ProvinceCollectionDateModel provinceModelOutsource;
         List<ProvinceCollectionDateModel> listOutsource;
         //查询内催
-        if(caseInfoConditionParams.getQueryType()==1){
+        if (caseInfoConditionParams.getQueryType() == 1) {
             provinceModel = adminPageMapper.getInnerCollectionDate(caseInfoConditionParams);
             //获取内催案件催收中总金额
-            collectionDateModel.setInnerCollectingAmt(Objects.isNull(provinceModel.getCollectingAmt())?BigDecimal.ZERO: provinceModel.getCollectingAmt());
+            collectionDateModel.setInnerCollectingAmt(Objects.isNull(provinceModel.getCollectingAmt()) ? BigDecimal.ZERO : provinceModel.getCollectingAmt());
             //获取内催案件催收中总数量
-            collectionDateModel.setInnerCollectingCount(Objects.isNull(provinceModel.getCollectingCount())?0:provinceModel.getCollectingCount());
+            collectionDateModel.setInnerCollectingCount(Objects.isNull(provinceModel.getCollectingCount()) ? 0 : provinceModel.getCollectingCount());
             //获取内催各省份的案件金额和案件总数
             list = adminPageMapper.getProvinceInnerCollectionDate(caseInfoConditionParams);
-            collectionDateModel.setInnerProvinceCollectionCount(Objects.isNull(list)||list.size()==0?null:list);
+            collectionDateModel.setInnerProvinceCollectionCount(Objects.isNull(list) || list.size() == 0 ? null : list);
         }
         //查询委外
-        if(caseInfoConditionParams.getQueryType()==2){
+        if (caseInfoConditionParams.getQueryType() == 2) {
             provinceModel = adminPageMapper.getOutsourceCollectionDate(caseInfoConditionParams);
             //获取内催案件催收中总金额
-            collectionDateModel.setOutsourceCollectingAmt(Objects.isNull(provinceModel.getCollectingAmt())?BigDecimal.ZERO: provinceModel.getCollectingAmt());
+            collectionDateModel.setOutsourceCollectingAmt(Objects.isNull(provinceModel.getCollectingAmt()) ? BigDecimal.ZERO : provinceModel.getCollectingAmt());
             //获取内催案件催收中总数量
-            collectionDateModel.setOutsourceCollectingCount(Objects.isNull(provinceModel.getCollectingCount())?0:provinceModel.getCollectingCount());
+            collectionDateModel.setOutsourceCollectingCount(Objects.isNull(provinceModel.getCollectingCount()) ? 0 : provinceModel.getCollectingCount());
             //获取内催各省份的案件金额和案件总数
             list = adminPageMapper.getProvinceOutsourceCollectionDate(caseInfoConditionParams);
-            collectionDateModel.setOutsourceProvinceCollectionCount(Objects.isNull(list)||list.size()==0?null:list);
+            collectionDateModel.setOutsourceProvinceCollectionCount(Objects.isNull(list) || list.size() == 0 ? null : list);
         }
         //查询委外+内催
-        if(caseInfoConditionParams.getQueryType()==0){
+        if (caseInfoConditionParams.getQueryType() == 0) {
             provinceModel = adminPageMapper.getInnerCollectionDate(caseInfoConditionParams);
             //获取内催案件催收中总金额
-            collectionDateModel.setInnerCollectingAmt(Objects.isNull(provinceModel.getCollectingAmt())?BigDecimal.ZERO: provinceModel.getCollectingAmt());
+            collectionDateModel.setInnerCollectingAmt(Objects.isNull(provinceModel.getCollectingAmt()) ? BigDecimal.ZERO : provinceModel.getCollectingAmt());
             //获取内催案件催收中总数量
-            collectionDateModel.setInnerCollectingCount(Objects.isNull(provinceModel.getCollectingCount())?0:provinceModel.getCollectingCount());
+            collectionDateModel.setInnerCollectingCount(Objects.isNull(provinceModel.getCollectingCount()) ? 0 : provinceModel.getCollectingCount());
             //获取内催各省份的案件金额和案件总数
             list = adminPageMapper.getProvinceInnerCollectionDate(caseInfoConditionParams);
-            collectionDateModel.setInnerProvinceCollectionCount(Objects.isNull(list)||list.size()==0?null:list);
+            collectionDateModel.setInnerProvinceCollectionCount(Objects.isNull(list) || list.size() == 0 ? null : list);
 
             provinceModelOutsource = adminPageMapper.getOutsourceCollectionDate(caseInfoConditionParams);
             //获取内催案件催收中总金额
-            collectionDateModel.setOutsourceCollectingAmt(Objects.isNull(provinceModelOutsource.getCollectingAmt())?BigDecimal.ZERO: provinceModelOutsource.getCollectingAmt());
+            collectionDateModel.setOutsourceCollectingAmt(Objects.isNull(provinceModelOutsource.getCollectingAmt()) ? BigDecimal.ZERO : provinceModelOutsource.getCollectingAmt());
             //获取内催案件催收中总数量
-            collectionDateModel.setOutsourceCollectingCount(Objects.isNull(provinceModelOutsource.getCollectingCount())?0:provinceModelOutsource.getCollectingCount());
+            collectionDateModel.setOutsourceCollectingCount(Objects.isNull(provinceModelOutsource.getCollectingCount()) ? 0 : provinceModelOutsource.getCollectingCount());
             //获取内催各省份的案件金额和案件总数
             listOutsource = adminPageMapper.getProvinceOutsourceCollectionDate(caseInfoConditionParams);
-            collectionDateModel.setOutsourceProvinceCollectionCount(Objects.isNull(listOutsource)||listOutsource.size()==0?null:listOutsource);
+            collectionDateModel.setOutsourceProvinceCollectionCount(Objects.isNull(listOutsource) || listOutsource.size() == 0 ? null : listOutsource);
         }
 
         return collectionDateModel;
@@ -502,9 +502,11 @@ public class HomePageService {
      * @param collectorRankingParams
      * @return
      */
-    public List<CollectorRankingModel> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams) {
-        List<CollectorRankingModel> collectorRankingModels = new ArrayList<>();
-        return collectorRankingModels;
+    public List<AdminCasePaymentModel> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams) {
+        List<AdminCasePaymentModel> paymentModels = adminPageMapper.getCaseAmtAndCount(collectorRankingParams);
+        List<AdminCasePaymentModel> paymentApplyModels = adminPageMapper.getCaseApplyAmtAndCount(collectorRankingParams);
+        paymentModels.addAll(paymentApplyModels);
+        return paymentModels;
     }
 
 }

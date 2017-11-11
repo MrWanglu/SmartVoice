@@ -4,7 +4,6 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.util.Date;
 
 /**
  * Created by sunyanping on 2017/11/8.
@@ -12,17 +11,17 @@ import java.util.Date;
 @Data
 @ApiModel("管理员首页催收员排行榜传值参数")
 public class CollectorRankingParams {
-    @ApiModelProperty(notes = "排名类型:0-按回款金额排名,1-按回款案件数排名,2-按回款率排名", required = true)
+    @ApiModelProperty(value = "排名类型:0-按回款金额排名,1-按回款案件数排名,2-按回款率排名", required = true)
     private Integer rankType = 0;
-    @ApiModelProperty(notes = "时间类型:0-年,1-月,2-周", required = true)
+    @ApiModelProperty(value = "时间类型:0-年,1-月,2-周", required = true)
     private Integer timeType = 0;
     @ApiModelProperty("部门Code(前端不需要传)")
     private String deptCode;
-    @ApiModelProperty(notes = "催收类型 0 全部 1 内崔 2 委外 3 核销 4 司法 ", required = true)
+    @ApiModelProperty(value = "催收类型 0 全部 1 内崔 2 委外 3 核销 4 司法 ", required = true)
     private Integer queryType;
-    @ApiModelProperty(notes = "查询起始日期 年 20170101 月 20170101 周 20170104", required = true)
+    @ApiModelProperty(value = "查询起始日期 年 20170101 月 20170101 周 20170104", required = true)
     private String startDate;
-    @ApiModelProperty(notes = "查询终止日期 年 20180101 月 20170201 走 20170112" , required = true)
+    @ApiModelProperty(value = "查询终止日期 年 20180101 月 20170201 走 20170112", required = true)
     private String endDate;
     @ApiModelProperty("公司标识码")
     private String companyCode;

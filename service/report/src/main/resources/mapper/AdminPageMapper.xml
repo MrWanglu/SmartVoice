@@ -297,8 +297,7 @@
     <!--客户排名-->
     <select id="getCustSort" parameterType="string" resultType="cn.fintecher.pangolin.report.model.PageSortResult">
         SELECT name,amount,payed,payed/amount as rate FROM (
-        SELECT SUM(apply_pay_amt) AS payed,case_pay_apply.personal_name AS name,case_pay_apply.personal_id AS pid FROM
-        case_pay_apply
+        SELECT SUM(apply_pay_amt) AS payed,case_pay_apply.personal_name AS name,case_pay_apply.personal_id AS pid FROM case_pay_apply
         LEFT JOIN department
         ON case_pay_apply.depart_id = department.id
         WHERE (case_pay_apply.approve_status = 58 OR case_pay_apply.approve_result =62)
@@ -322,32 +321,100 @@
         minCaseYear,DATE_FORMAT(min(case_follow_in_time),'%Y-%m') as minCaseYearMonth from case_info
         where collection_status !=24
         and deppart_id in (select id from department where code like concat(#{deptCode},'%'))
+        <!--全部-->
+        <if test="queryType != null and queryType == 0">
+            and case_pool_type in (225,226)
+        </if>
         <!--内催-->
-        <if test="queryType != null and queryType == '1'">
-            and case_pool_type=255
+        <if test="queryType != null and queryType == 1">
+            and case_pool_type=225
         </if>
         <!--委外-->
-        <if test="queryType != null and queryType == '2'">
-            and case_pool_type=256
+        <if test="queryType != null and queryType == 2">
+            and case_pool_type=226
         </if>
     </select>
 
     <!--管理员首页 查询已还款案件金额 已还款案件数量-->
     <select id="getCaseAmtAndCount" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
-            resultType="cn.fintecher.pangolin.report.model.CollectorRankingModel">
+            resultType="cn.fintecher.pangolin.report.model.AdminCasePaymentModel">
         SELECT
-        DATE_FORMAT(case_follow_in_time, '%m') as monthNum,
-        count(id) AS caseCount,
-        sum(overdue_amount) as caseAmount
+        <if test="timeType!=null and timeType==0">
+            <!--年 显示1-12月-->
+            DATE_FORMAT(case_follow_in_time, '%m') as caseCount,
+        </if>
+        <if test="timeType!=null and timeType==1">
+            <!--月 显示1-31天 周 显示 周一到周日-->
+            DATE_FORMAT(case_follow_in_time, '%Y%m%d') as caseCount,
+        </if>
+        count(id) AS totalCaseCount,
+        sum(overdue_amount)/10000 as totalAmount,
+        0 as collectionStatus
         FROM
         case_info
         WHERE
         end_type = 110
-        AND deppart_id in (select id from department where code like concat(#{deptCode},'%'))
-        AND DATE_FORMAT(case_follow_in_time, '%Y') = #{queryYear}
+        AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        AND case_follow_in_time between #{startDate} and #{endDate}
         AND company_Code = #{companyCode}
-        GROUP BY
-        DATE_FORMAT(case_follow_in_time, '%m');
+        <!--全部-->
+        <if test="queryType != null and queryType == 0">
+            and case_pool_type in (225,226)
+        </if>
+        <!--内催-->
+        <if test="queryType != null and queryType == 1">
+            and case_pool_type=225
+        </if>
+        <!--委外-->
+        <if test="queryType != null and queryType == 2">
+            and case_pool_type=226
+        </if>
+        <if test="timeType!=null and timeType==0">
+            group by DATE_FORMAT(case_follow_in_time, '%m')
+        </if>
+        <if test="timeType!=null and timeType==1">
+            group by DATE_FORMAT(case_follow_in_time, '%Y%m%d')
+        </if>
+    </select>
+
+    <!--管理员首页 查询还款审核中案件金额 还款审核中案件数量-->
+    <select id="getCaseApplyAmtAndCount" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.AdminCasePaymentModel">
+        SELECT
+        <if test="timeType!=null and timeType==0">
+            DATE_FORMAT(case_follow_in_time, '%m') as caseCount,
+        </if>
+        <if test="timeType!=null and timeType==1">
+            DATE_FORMAT(case_follow_in_time, '%Y%m%d') as caseCount,
+        </if>
+        count(id) AS totalCaseCount,
+        sum(overdue_amount)/10000 as totalAmount,
+        1 as collectionStatus
+        FROM
+        case_info
+        WHERE
+        collection_status in (23,24)
+        AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        AND case_follow_in_time between #{startDate} and #{endDate}
+        AND company_Code = #{companyCode}
+        <!--全部-->
+        <if test="queryType != null and queryType == 0">
+            and case_pool_type in (225,226)
+        </if>
+        <!--内催-->
+        <if test="queryType != null and queryType == 1">
+            and case_pool_type=225
+        </if>
+        <!--委外-->
+        <if test="queryType != null and queryType == 2">
+            and case_pool_type=226
+        </if>
+        <if test="timeType!=null and timeType==0">
+            group by DATE_FORMAT(case_follow_in_time, '%m')
+        </if>
+        <if test="timeType!=null and timeType==1">
+            group by DATE_FORMAT(case_follow_in_time, '%Y%m%d')
+        </if>
     </select>
 
     <!--管理員首頁 查询某个年度不同催收方式的每月催记数量和外呼数量-->
@@ -378,36 +445,36 @@
     <select id="getCaseGroupInfo" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.CaseRepaymentTypeGroupInfo">
         SELECT t.c1 AS rePaymentType,
-            ROUND(sum(t.c2) / 10000, 2) AS totalRePaymentMoney,
-            sum(t.c3) AS totalCaseNumber
+        ROUND(sum(t.c2) / 10000, 2) AS totalRePaymentMoney,
+        sum(t.c3) AS totalCaseNumber
         FROM (
-            <!--第一次根据回款方式进行数据统计，第二次再根据统计回款方式-->
-            SELECT
-                CASE B.collection_feedback
-                    WHEN 90 THEN '承诺还款'
-                    WHEN 91 THEN '协商跟进'
-                    WHEN 92 THEN '拒绝还款'
-                    ELSE '继续施压' END AS c1,
-                SUM(A.overdue_amount) AS c2,
-                COUNT(B.collection_feedback) AS c3
-            FROM case_info A
-            LEFT JOIN case_followup_record B ON A.id = B.case_id
-            WHERE
-                B.collection_feedback IS NOT NULL
-                AND B.operator_time BETWEEN #{startDate} AND #{endDate} AND
-                <!--内催+委外-->
-                <if test="queryType == 0">
-                    A.case_pool_type in(225,226)
-                </if>
-                <!--内催-->
-                <if test="queryType == 1">
-                    A.case_pool_type =225
-                </if>
-                <!--委外-->
-                <if test="queryType == 2">
-                    A.case_pool_type =226
-                </if>
-            GROUP BY B.collection_feedback
+        <!--第一次根据回款方式进行数据统计，第二次再根据统计回款方式-->
+        SELECT
+        CASE B.collection_feedback
+        WHEN 90 THEN '承诺还款'
+        WHEN 91 THEN '协商跟进'
+        WHEN 92 THEN '拒绝还款'
+        ELSE '继续施压' END AS c1,
+        SUM(A.overdue_amount) AS c2,
+        COUNT(B.collection_feedback) AS c3
+        FROM case_info A
+        LEFT JOIN case_followup_record B ON A.id = B.case_id
+        WHERE
+        B.collection_feedback IS NOT NULL
+        AND B.operator_time BETWEEN #{startDate} AND #{endDate} AND
+        <!--内催+委外-->
+        <if test="queryType == 0">
+            A.case_pool_type in(225,226)
+        </if>
+        <!--内催-->
+        <if test="queryType == 1">
+            A.case_pool_type =225
+        </if>
+        <!--委外-->
+        <if test="queryType == 2">
+            A.case_pool_type =226
+        </if>
+        GROUP BY B.collection_feedback
         ) t
         GROUP BY t.c1
     </select>

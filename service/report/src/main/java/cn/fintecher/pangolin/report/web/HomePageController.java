@@ -238,9 +238,13 @@ public class HomePageController extends BaseController {
 
     @GetMapping("/getCaseAmtAndCount")
     @ApiOperation(value = "管理员首页 获取已还款案件金额/获取还款审核中案件金额/", notes = " 管理员首页 获取已还款案件数量/获取还款审核中案件数量/")
-    public ResponseEntity<List<CollectorRankingModel>> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams) {
+    public ResponseEntity<List<AdminCasePaymentModel>> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams,
+                                                                          @RequestHeader(value = "X-UserToken") String token) {
         try {
-            List<CollectorRankingModel> collectorRankingModels = homePageService.getCaseAmtAndCount(collectorRankingParams);
+            User user = getUserByToken(token);
+            String code = user.getDepartment().getCode();
+            collectorRankingParams.setDeptCode(code);
+            List<AdminCasePaymentModel> collectorRankingModels = homePageService.getCaseAmtAndCount(collectorRankingParams);
             return ResponseEntity.ok().body(collectorRankingModels);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -281,19 +285,19 @@ public class HomePageController extends BaseController {
     @GetMapping("/getCollectionedDate")
     @ApiOperation(value = "管理员首页获取催收中数据", notes = "管理员首页获取催收中数据")
     public ResponseEntity<CollectionDateModel> getCollectionedDate(CollectorRankingParams params,
-                                                              @RequestHeader(value = "X-UserToken") String token) {
+                                                                   @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
             String code = user.getDepartment().getCode();
             params.setDeptCode(code);
-            if(Objects.nonNull(user.getCompanyCode())){
+            if (Objects.nonNull(user.getCompanyCode())) {
                 params.setCompanyCode(user.getCompanyCode());
             }
             CollectionDateModel collectionDateModel = homePageService.getCollectionedDate(params);
             return ResponseEntity.ok().body(collectionDateModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","委外方排行榜统计错误!")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "委外方排行榜统计错误!")).body(null);
         }
     }
 

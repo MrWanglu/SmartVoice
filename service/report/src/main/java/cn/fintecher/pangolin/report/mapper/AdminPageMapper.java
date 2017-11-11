@@ -24,12 +24,15 @@ public interface AdminPageMapper {
 
     /**
      * 委外方排行榜
+     *
      * @param params
      * @return
      */
     List<OutsourceRankingModel> OutsourceRanking(CollectorRankingParams params);
+
     /**
      * 内催分布于各省份的金额和数量
+     *
      * @param params
      * @return
      */
@@ -37,6 +40,7 @@ public interface AdminPageMapper {
 
     /**
      * 内催分布于各省份的金额和数量
+     *
      * @param params
      * @return
      */
@@ -44,6 +48,7 @@ public interface AdminPageMapper {
 
     /**
      * 内催分布于各省份的金额和数量
+     *
      * @param params
      * @return
      */
@@ -51,6 +56,7 @@ public interface AdminPageMapper {
 
     /**
      * 委外分布于各省份的金额和数量
+     *
      * @param params
      * @return
      */
@@ -154,9 +160,15 @@ public interface AdminPageMapper {
     CaseDateModel getCaseDate(CollectorRankingParams collectorRankingParams);
 
     /**
-     * 获取所有的案件时间
+     * 查詢已还款案件金额 已还款案件数量
      */
-    CaseDateModel getCaseAmtAndCount(CollectorRankingParams collectorRankingParams);
+    List<AdminCasePaymentModel> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams);
+
+    /**
+     * 查詢还款审核中的案件金额 还款审核中的案件数量
+     */
+    List<AdminCasePaymentModel> getCaseApplyAmtAndCount(CollectorRankingParams collectorRankingParams);
+
 
     /**
      * 某个年度不同催收方式的每月催记数量和外呼数量

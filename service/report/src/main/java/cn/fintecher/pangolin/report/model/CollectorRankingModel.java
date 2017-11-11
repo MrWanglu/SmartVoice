@@ -24,8 +24,4 @@ public class CollectorRankingModel {
     private Integer payCount = 0;
     @ApiModelProperty("回款率(%)")
     private Double payRate = new Double("0");
-    @ApiModelProperty("查询年份")
-    private String queryYear;
-    @ApiModelProperty("查询月份")
-    private String queryMonth;
 }
