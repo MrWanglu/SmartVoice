@@ -162,4 +162,9 @@ public interface AdminPageMapper {
      * 某个年度不同催收方式的每月催记数量和外呼数量
      */
     List<GroupMonthFollowRecord> getRecordReport(CollectorRankingParams collectorrankingparams);
+
+    /**
+     * 根据不同的日期类型获取案件当前情况。包含不同还款类型的金额和数量
+     */
+    List<CaseRepaymentTypeGroupInfo> getCaseGroupInfo(CollectorRankingParams parm);
 }

@@ -343,7 +343,7 @@
 
     <!--管理員首頁 查询某个年度不同催收方式的每月催记数量和外呼数量-->
     <select id="getRecordReport" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
-            resultMap="cn.fintecher.pangolin.report.model.GroupMonthFollowRecord">
+            resultType="cn.fintecher.pangolin.report.model.GroupMonthFollowRecord">
         select MONTH(b.operator_time) as currentMonth ,b.collection_way as wayType ,count(b.collection_way)
         as typeCount from case_info a
         RIGHT join case_followup_record b on a.id = b.case_id
@@ -360,10 +360,17 @@
         <if test="queryType == 2">
             a.case_pool_type =256
         </if>
-        and Year(b.operator_time) = #{queryYear}
+        and b.operator_time between #{startDate} and #{endDate}
         and b.collection_way in (0,1)
         group by MONTH(b.operator_time),b.collection_way
     </select>
 
+    <!--根据不同的日期类型查询并统计不同还款类型的数据-->
+    <select id="getCaseGroupInfo" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+        resultType="cn.fintecher.pangolin.report.model.CaseRepaymentTypeGroupInfo">
+
+
+
+    </select>
 
 </mapper>

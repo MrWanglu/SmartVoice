@@ -4,6 +4,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * Created by sunyanping on 2017/11/8.
  */
@@ -18,12 +20,10 @@ public class CollectorRankingParams {
     private String deptCode;
     @ApiModelProperty(notes = "催收类型 0 全部 1 内崔 2 委外 3 核销 4 司法 ", required = true)
     private Integer queryType;
-    @ApiModelProperty(notes = "查询年份", required = true)
-    private Integer queryYear;
-    @ApiModelProperty(notes = "查询月份", required = true)
-    private Integer queryMonth;
-    @ApiModelProperty(notes = "查询周", required = true)
-    private Integer queryWeek;
+    @ApiModelProperty(notes = "查询起始日期 年 20170101 月 20170101 周 20170104", required = true)
+    private String startDate;
+    @ApiModelProperty(notes = "查询终止日期 年 20180101 月 20170201 走 20170112" , required = true)
+    private String endDate;
     @ApiModelProperty("公司标识码")
     private String companyCode;
 

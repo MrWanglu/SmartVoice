@@ -297,5 +297,21 @@ public class HomePageController extends BaseController {
         }
     }
 
+    @GetMapping("/getCaseGroupInfo")
+    @ApiOperation(value = "管理员首页获取案件根据不同时间类型统计金额和数量",notes = "管理员首页获取案件根据不同时间类型统计金额和数量")
+    public ResponseEntity<List<CaseRepaymentTypeGroupInfo>> getCaseGroupInfo(CollectorRankingParams params,
+                                                    @RequestHeader(value = "X-UserToKen") String token){
+        try {
+            User user = getUserByToken(token);
+            String code = user.getDepartment().getCode();
+            params.setDeptCode(code);
+            List<CaseRepaymentTypeGroupInfo> result = adminPageMapper.getCaseGroupInfo(params);
+            return ResponseEntity.ok().body(result);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "催收数据查询失败!")).body(null);
+        }
+    }
+
 
 }
