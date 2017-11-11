@@ -168,23 +168,23 @@
     <select id="getWeekCaseEndCount" parameterType="string"
             resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
         SELECT SUM(m.num) AS num,m.operator_time AS dayOfWeek FROM (
-            SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS operator_time FROM case_info
-            LEFT JOIN department
-            ON case_info.depart_id = department.id
-            WHERE department.`code` LIKE concat(#{deptCode},'%')
-            AND case_info.collection_status = 24
-            AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
-            GROUP BY WEEKDAY(operator_time)
-          UNION ALL
-            SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS operator_time FROM case_info
-            LEFT JOIN `user`
-            ON `user`.id = case_info.assist_collector
-            LEFT JOIN department
-            ON `user`.dept_id = department.id
-            WHERE department.`code` LIKE concat(#{deptCode},'%')
-            AND case_info.collection_status = 24
-            AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
-            GROUP BY WEEKDAY(operator_time)
+        SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS operator_time FROM case_info
+        LEFT JOIN department
+        ON case_info.depart_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+        AND case_info.collection_status = 24
+        AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        GROUP BY WEEKDAY(operator_time)
+        UNION ALL
+        SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS operator_time FROM case_info
+        LEFT JOIN `user`
+        ON `user`.id = case_info.assist_collector
+        LEFT JOIN department
+        ON `user`.dept_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+        AND case_info.collection_status = 24
+        AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        GROUP BY WEEKDAY(operator_time)
         ) AS m
         GROUP BY m.operator_time
         ORDER BY dayOfWeek
@@ -194,35 +194,36 @@
     <select id="getCupoSort" parameterType="string" resultType="cn.fintecher.pangolin.report.model.PageSortResult">
         select n.uname as uname,n.rname as name,m.amt as amount,n.pamt as payed,pamt/amt as rate from
         (
-            select apply.apply_user_name as uname,apply.apply_real_name as rname,sum(apply.apply_pay_amt) as pamt from case_pay_apply as apply
-            left join department
-            on apply.depart_id = department.id
-            where (apply.approve_status = 58 OR apply.approve_result =62)
-            and department.code like concat(#{deptCode},'%')
-            and year(apply.approve_pay_datetime) = year(NOW())
-            and month(apply.approve_pay_datetime) = month(NOW())
-            group by apply.apply_user_name,apply.apply_real_name
+        select apply.apply_user_name as uname,apply.apply_real_name as rname,sum(apply.apply_pay_amt) as pamt from
+        case_pay_apply as apply
+        left join department
+        on apply.depart_id = department.id
+        where (apply.approve_status = 58 OR apply.approve_result =62)
+        and department.code like concat(#{deptCode},'%')
+        and year(apply.approve_pay_datetime) = year(NOW())
+        and month(apply.approve_pay_datetime) = month(NOW())
+        group by apply.apply_user_name,apply.apply_real_name
         ) as n
         left join
         (
-            select sum(amt) as amt,coll from (
-                    (
-                            select sum(case_info.overdue_amount) as amt,`user`.user_name as coll from case_info
-                            left join `user`
-                            on `user`.id = case_info.current_collector
-                            group by case_info.current_collector
-                            having coll is not null
-                    )
-                    union all
-                    (
-                            select sum(case_info.overdue_amount) as amt,`user`.user_name as coll from case_info
-                            left join `user`
-                            on `user`.id = case_info.assist_collector
-                            group by case_info.assist_collector
-                            having coll is not null
-                    )
-            ) as c
-            group by c.coll
+        select sum(amt) as amt,coll from (
+        (
+        select sum(case_info.overdue_amount) as amt,`user`.user_name as coll from case_info
+        left join `user`
+        on `user`.id = case_info.current_collector
+        group by case_info.current_collector
+        having coll is not null
+        )
+        union all
+        (
+        select sum(case_info.overdue_amount) as amt,`user`.user_name as coll from case_info
+        left join `user`
+        on `user`.id = case_info.assist_collector
+        group by case_info.assist_collector
+        having coll is not null
+        )
+        ) as c
+        group by c.coll
         ) as m
         on n.uname = m.coll
         order by rate desc
@@ -232,7 +233,8 @@
     <!--客户排名-->
     <select id="getCustSort" parameterType="string" resultType="cn.fintecher.pangolin.report.model.PageSortResult">
         SELECT name,amount,payed,payed/amount as rate FROM (
-        SELECT SUM(apply_pay_amt) AS payed,case_pay_apply.personal_name AS name,case_pay_apply.personal_id AS pid FROM case_pay_apply
+        SELECT SUM(apply_pay_amt) AS payed,case_pay_apply.personal_name AS name,case_pay_apply.personal_id AS pid FROM
+        case_pay_apply
         LEFT JOIN department
         ON case_pay_apply.depart_id = department.id
         WHERE (case_pay_apply.approve_status = 58 OR case_pay_apply.approve_result =62)
@@ -264,7 +266,28 @@
         </if>
     </select>
 
-
+    <!--查询某个年度不同催收方式的每月催记数量和外呼数量-->
+    <select id="getFollowRecordReport" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultMap="cn/fintecher/pangolin/report/model/CaseDateModel">
+        select MONTH(b.operator_time),b.collection_way,count(*) from case_info a
+        left join case_followup_record b on a.id = b.case_id
+        where a.depart_id in (select id from department where code like concat(#{deptCode},'%') and
+        <!--内催+委外-->
+        <if test="queryType == '0'">
+            a.case_pool_type in(255,256)
+        </if>
+        <!--内催-->
+        <if test="queryType == '1'">
+            a.case_pool_type =255
+        </if>
+        <!--委外-->
+        <if test="queryType == '2'">
+            a.case_pool_type =256
+        </if>
+        and Year(b.operator_time) = #{queryYear}
+        and b.collection_way in (0,1)
+        group by MONTH(b.operator_time),b.collection_way
+    </select>
 
 
 </mapper>

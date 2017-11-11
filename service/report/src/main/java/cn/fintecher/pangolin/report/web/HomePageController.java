@@ -236,4 +236,16 @@ public class HomePageController extends BaseController {
         }
     }
 
+    @GetMapping("/getRecordReport")
+    @ApiOperation(value = "根据年份查询该年度各月的催记，外呼数据量", notes = "根据年份查询该年度各月的催记，外呼数据量")
+    public ResponseEntity<List<GroupMonthFollowRecord>> getFollowRecordReport(CollectorRankingParams collectorRankingParams) {
+        try {
+            List<GroupMonthFollowRecord> result = adminPageMapper.getRecordReport(collectorRankingParams);
+            return ResponseEntity.ok().body(result);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "催收数据查询失败!")).body(null);
+        }
+    }
+
 }

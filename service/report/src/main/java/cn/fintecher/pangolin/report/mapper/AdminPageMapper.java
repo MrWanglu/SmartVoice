@@ -129,4 +129,9 @@ public interface AdminPageMapper {
      * 获取所有的案件时间
      */
     CaseDateModel getCaseDate(@Param("queryType") String queryType, @Param("companyCode") String companyCode);
+
+    /**
+     * 某个年度不同催收方式的每月催记数量和外呼数量
+     */
+    List<GroupMonthFollowRecord> getRecordReport(CollectorRankingParams collectorrankingparams);
 }
