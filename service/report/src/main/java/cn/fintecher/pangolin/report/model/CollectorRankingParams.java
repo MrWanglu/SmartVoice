@@ -21,9 +21,9 @@ public class CollectorRankingParams {
     @ApiModelProperty(notes = "查询年份", required = true)
     private Integer queryYear;
     @ApiModelProperty(notes = "查询月份", required = true)
-    private String queryMonth;
+    private Integer queryMonth;
     @ApiModelProperty(notes = "查询周", required = true)
-    private String queryWeek;
+    private Integer queryWeek;
     @ApiModelProperty("公司标识码")
     private String companyCode;
 
