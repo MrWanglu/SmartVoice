@@ -25,8 +25,6 @@ public interface AdminPageMapper {
     List<CollectorRankingModel> collectorRanking(CollectorRankingParams params);
 
     /**
-     * 催收员排行榜
-     *
      * 委外方排行榜
      * @param params
      * @return
