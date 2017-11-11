@@ -20,6 +20,8 @@ public class CollectorRankingParams {
     private Integer queryType;
     @ApiModelProperty("查询年份")
     private Integer queryYear;
+    @ApiModelProperty("公司标识码")
+    private String companyCode;
 
 
     /**
