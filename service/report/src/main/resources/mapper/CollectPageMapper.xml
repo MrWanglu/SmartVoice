@@ -179,7 +179,7 @@
 
     <!--承诺还款案件数-->
     <select id="getCaseInfoPromisedCount" parameterType="string" resultType="integer">
-        SELECT COUNT(*) FROM case_followup_record WHERE promise_flag = 1
+        SELECT COUNT(*) FROM case_followup_record WHERE collection_feedback = 90
         AND operator = #{userName}
     </select>
 

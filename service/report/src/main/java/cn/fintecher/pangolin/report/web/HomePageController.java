@@ -235,6 +235,19 @@ public class HomePageController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "获取案件时间失败!")).body(null);
         }
     }
+    @GetMapping("/caseBackDate")
+    @ApiOperation(value = "管理员首页案件还款意向数据", notes = "管理员首页案件还款意向数据")
+    public ResponseEntity<InnerPromiseBackModel> caseBackDate(CollectorRankingParams params,
+                                                                    @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            InnerPromiseBackModel outsourceRankingModels = homePageService.getCaseBackDate(user, params);
+            return ResponseEntity.ok().body(outsourceRankingModels);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,"","委外方排行榜统计错误!")).body(null);
+        }
+    }
 
     @GetMapping("/getRecordReport")
     @ApiOperation(value = "根据年份查询该年度各月的催记，外呼数据量", notes = "根据年份查询该年度各月的催记，外呼数据量")

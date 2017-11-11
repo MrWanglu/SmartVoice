@@ -21,6 +21,7 @@ public class CollectorRankingParams {
     @ApiModelProperty("查询年份")
     private Integer queryYear;
 
+
     /**
      * 排名类型枚举
      */
