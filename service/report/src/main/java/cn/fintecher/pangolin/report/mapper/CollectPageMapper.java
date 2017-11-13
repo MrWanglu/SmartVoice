@@ -43,7 +43,7 @@ public interface CollectPageMapper {
      * 本周需回款总案件个数
      *
      */
-    Integer getWeekTotalBackCash(String userName);
+    Integer getWeekTotalBackCash(String userId);
 
     /**
      * 本周已回款案件个数
@@ -55,7 +55,7 @@ public interface CollectPageMapper {
      * 本月需回款总金额
      *
      */
-    Integer getMonthTotalBackCash(String userName);
+    Integer getMonthTotalBackCash(String userId);
 
     /**
      * 本月已回款总金额

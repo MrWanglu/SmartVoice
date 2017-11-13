@@ -4,13 +4,9 @@
 
     <!-- 催收员本周流入案件总数（包含已结案的）-->
     <select id="getCaseInfoWeekAllCount" parameterType="string" resultType="integer">
-        SELECT COUNT(*) FROM (
-        SELECT case_info.id FROM case_info
-        WHERE YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(NOW(),1) and current_collector = #{userId}
-        UNION ALL
-        SELECT case_assist.id FROM case_assist
-        WHERE YEARWEEK(DATE_FORMAT(case_flowin_time,'%Y-%m-%d'),1) = YEARWEEK(NOW(),1) and assist_collector = #{userId}
-        ) AS m
+        SELECT COUNT(*) FROM case_turn_record
+        where YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(CURDATE(),1)
+        AND receive_user_id = #{userId}
     </select>
 
     <!-- 催收员本周完成已结案案件总数-->
@@ -26,13 +22,9 @@
 
     <!-- 催收员本月流入案件总数（包含已结案的）-->
     <select id="getCaseInfoMonthAllCount" parameterType="string" resultType="integer">
-        SELECT COUNT(*) FROM (
-        SELECT case_info.id FROM case_info
-        WHERE DATE_FORMAT(operator_time,'%Y-%m') = DATE_FORMAT(NOW(),'%Y-%m') and current_collector = #{userId}
-        UNION ALL
-        SELECT case_assist.id FROM case_assist
-        WHERE DATE_FORMAT(case_flowin_time,'%Y-%m') = DATE_FORMAT(NOW(),'%Y-%m') and assist_collector = #{userId}
-        ) AS m
+        SELECT COUNT(*) FROM case_turn_record
+        where DATE_FORMAT(operator_time,'%Y-%m') = DATE_FORMAT(NOW(),'%Y-%m')
+        AND receive_user_id = #{userId}
     </select>
 
     <!-- 催收员本月完成已结案案件总数-->
@@ -48,9 +40,9 @@
 
     <!--本周需回款总金额-->
     <select id="getWeekTotalBackCash" parameterType="string" resultType="integer">
-        SELECT count(*) FROM case_pay_apply
-        WHERE YEARWEEK(DATE_FORMAT(apply_date, '%Y-%m-%d'),1) = YEARWEEK(curdate(),1)
-        AND apply_user_name = #{userName}
+        SELECT count(*) FROM case_turn_record
+        where YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(CURDATE(),1)
+        AND receive_user_id = #{userId}
     </select>
 
     <!--本周已回款总金额-->
@@ -63,9 +55,9 @@
 
     <!--本月需回款总金额-->
     <select id="getMonthTotalBackCash" parameterType="string" resultType="integer">
-        SELECT count(*) FROM case_pay_apply
-        WHERE DATE_FORMAT(approve_pay_datetime, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m')
-        AND apply_user_name = #{userName}
+        SELECT count(*) FROM case_turn_record
+        WHERE DATE_FORMAT(operator_time, '%Y%m') = DATE_FORMAT(curdate(),'%Y%m')
+        AND receive_user_id = #{userId}
     </select>
 
     <!--本月已回款总金额-->

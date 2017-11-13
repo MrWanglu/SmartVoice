@@ -135,23 +135,23 @@ public class HomePageService {
         //本周已回款案件个数
         Integer caseWeekBackFinishedCount = collectPageMapper.getWeekHadBackCash(user.getId());
         //本月流入案件总数
-        Integer caseMonthTotalCount = collectPageMapper.getCaseInfoMonthAllCount(user.getUserName());
+        Integer caseMonthTotalCount = collectPageMapper.getCaseInfoMonthAllCount(user.getId());
         //本月已结案案件总数
         Integer caseMonthFinishedCount = collectPageMapper.getCaseInfoMonthClosedCount(user.getUserName());
         //本月需回款总案件个数
-        Integer caseMonthBackTotalCount = collectPageMapper.getMonthTotalBackCash(user.getUserName());
+        Integer caseMonthBackTotalCount = collectPageMapper.getMonthTotalBackCash(user.getId());
         //本月已回款案件个数
         Integer caseMonthBackFinishedCount = collectPageMapper.getMonthHadBackCash(user.getUserName());
 
-        collectPage.setCaseWeekTotalCount(Objects.nonNull(caseWeekTotalCount) ? 0 : caseWeekTotalCount);
-        collectPage.setCaseWeekFinishedCount(Objects.nonNull(caseWeekFinishedCount) ? 0 : caseWeekFinishedCount);
-        collectPage.setCaseWeekBackTotalCount(Objects.nonNull(caseWeekBackTotalCount) ? 0 : caseWeekBackTotalCount);
-        collectPage.setCaseWeekBackFinishedCount(Objects.nonNull(caseWeekBackFinishedCount) ? 0 : caseWeekBackFinishedCount);
+        collectPage.setCaseWeekTotalCount(Objects.isNull(caseWeekTotalCount) ? 0 : caseWeekTotalCount);
+        collectPage.setCaseWeekFinishedCount(Objects.isNull(caseWeekFinishedCount) ? 0 : caseWeekFinishedCount);
+        collectPage.setCaseWeekBackTotalCount(Objects.isNull(caseWeekBackTotalCount) ? 0 : caseWeekBackTotalCount);
+        collectPage.setCaseWeekBackFinishedCount(Objects.isNull(caseWeekBackFinishedCount) ? 0 : caseWeekBackFinishedCount);
 
-        collectPage.setCaseMonthTotalCount(Objects.nonNull(caseMonthTotalCount) ? 0 : caseMonthTotalCount);
-        collectPage.setCaseMonthFinishedCount(Objects.nonNull(caseMonthFinishedCount) ? 0 : caseMonthFinishedCount);
-        collectPage.setCaseMonthBackTotalCount(Objects.nonNull(caseMonthBackTotalCount) ? 0 : caseMonthBackTotalCount);
-        collectPage.setCaseMonthBackFinishedCount(Objects.nonNull(caseMonthBackFinishedCount) ? 0 : caseMonthBackFinishedCount);
+        collectPage.setCaseMonthTotalCount(Objects.isNull(caseMonthTotalCount) ? 0 : caseMonthTotalCount);
+        collectPage.setCaseMonthFinishedCount(Objects.isNull(caseMonthFinishedCount) ? 0 : caseMonthFinishedCount);
+        collectPage.setCaseMonthBackTotalCount(Objects.isNull(caseMonthBackTotalCount) ? 0 : caseMonthBackTotalCount);
+        collectPage.setCaseMonthBackFinishedCount(Objects.isNull(caseMonthBackFinishedCount) ? 0 : caseMonthBackFinishedCount);
         return collectPage;
     }
 
@@ -181,12 +181,12 @@ public class HomePageService {
         String onLine = df.format(onlineTime);
         //离线时长
         Integer offlineTime = 24 - Integer.parseInt(onLine);
-        previewTotalFollowModel.setCurrentDayCalled(Objects.nonNull(currentDayCalled) ? 0 : currentDayCalled);
-        previewTotalFollowModel.setCurrentWeekCalled(Objects.nonNull(currentWeekCalled) ? 0 : currentWeekCalled);
-        previewTotalFollowModel.setCurrentMonthCalled(Objects.nonNull(currentMonthCalled) ? 0 : currentMonthCalled);
-        previewTotalFollowModel.setCurrentDayCount(Objects.nonNull(currentDayCount) ? 0 : currentDayCount);
-        previewTotalFollowModel.setCurrentWeekCount(Objects.nonNull(currentWeekCount) ? 0 : currentWeekCount);
-        previewTotalFollowModel.setCurrentMonthCount(Objects.nonNull(currentMonthCount) ? 0 : currentMonthCount);
+        previewTotalFollowModel.setCurrentDayCalled(Objects.isNull(currentDayCalled) ? 0 : currentDayCalled);
+        previewTotalFollowModel.setCurrentWeekCalled(Objects.isNull(currentWeekCalled) ? 0 : currentWeekCalled);
+        previewTotalFollowModel.setCurrentMonthCalled(Objects.isNull(currentMonthCalled) ? 0 : currentMonthCalled);
+        previewTotalFollowModel.setCurrentDayCount(Objects.isNull(currentDayCount) ? 0 : currentDayCount);
+        previewTotalFollowModel.setCurrentWeekCount(Objects.isNull(currentWeekCount) ? 0 : currentWeekCount);
+        previewTotalFollowModel.setCurrentMonthCount(Objects.isNull(currentMonthCount) ? 0 : currentMonthCount);
         previewTotalFollowModel.setOnlineTime(Integer.parseInt(onLine));
         previewTotalFollowModel.setOfflineTime(offlineTime);
         return previewTotalFollowModel;
@@ -208,12 +208,12 @@ public class HomePageService {
         Integer finishCaseToday = collectPageMapper.getFinishCaseToday(user.getId());
         //今日流出案件
         Integer flowOutCaseToday = collectPageMapper.getFlowOutCaseToday(user.getId());
-        caseStatusTotalPreview.setToFollowCaseCount(Objects.nonNull(toFollowCaseCount) ? 0 : toFollowCaseCount);
-        caseStatusTotalPreview.setFollowingCaseCount(Objects.nonNull(followingCaseCount) ? 0 : followingCaseCount);
-        caseStatusTotalPreview.setCommitmentBackCaseCount(Objects.nonNull(commitmentBackCaseCount) ? 0 : commitmentBackCaseCount);
-        caseStatusTotalPreview.setFlowInCaseToday(Objects.nonNull(flowInCaseToday) ? 0 : flowInCaseToday);
-        caseStatusTotalPreview.setFinishCaseToday(Objects.nonNull(finishCaseToday) ? 0 : finishCaseToday);
-        caseStatusTotalPreview.setFlowOutCaseToday(Objects.nonNull(flowOutCaseToday) ? 0 : flowOutCaseToday);
+        caseStatusTotalPreview.setToFollowCaseCount(Objects.isNull(toFollowCaseCount) ? 0 : toFollowCaseCount);
+        caseStatusTotalPreview.setFollowingCaseCount(Objects.isNull(followingCaseCount) ? 0 : followingCaseCount);
+        caseStatusTotalPreview.setCommitmentBackCaseCount(Objects.isNull(commitmentBackCaseCount) ? 0 : commitmentBackCaseCount);
+        caseStatusTotalPreview.setFlowInCaseToday(Objects.isNull(flowInCaseToday) ? 0 : flowInCaseToday);
+        caseStatusTotalPreview.setFinishCaseToday(Objects.isNull(finishCaseToday) ? 0 : finishCaseToday);
+        caseStatusTotalPreview.setFlowOutCaseToday(Objects.isNull(flowOutCaseToday) ? 0 : flowOutCaseToday);
         return caseStatusTotalPreview;
     }
 
@@ -367,6 +367,7 @@ public class HomePageService {
         List<ProvinceCollectionDateModel> list;
         ProvinceDateModel provinceModelOutsource;
         List<ProvinceCollectionDateModel> listOutsource;
+        List<ProvinceCollectionDateModel> totalProvinceCollectionCount ;
         //查询内催
         if (caseInfoConditionParams.getQueryType() == 1) {
             provinceModel = adminPageMapper.getInnerCollectionDate(caseInfoConditionParams);
@@ -416,9 +417,10 @@ public class HomePageService {
 
             collectionDateModel.setTotalCollectionAmt(Objects.isNull(totalAmt)?BigDecimal.ZERO:totalAmt);
             collectionDateModel.setTotalCollectionCount(Objects.isNull(totalCount)?0:totalCount);
-
+            totalProvinceCollectionCount = adminPageMapper.getTotalProvinceCollectionDate(caseInfoConditionParams);
+            //合并内崔与委外的各省份的催收数量
+            collectionDateModel.setTotalProvinceCollectionCount(Objects.isNull(totalProvinceCollectionCount) || totalProvinceCollectionCount.size() == 0 ?null:totalProvinceCollectionCount);
         }
-
         return collectionDateModel;
     }
 
