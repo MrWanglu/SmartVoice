@@ -13,10 +13,10 @@ import java.math.BigDecimal;
  */
 @Entity
 @Data
-public class ProvinceCollectionDateModel {
+public class ProvinceDateModel {
 
+    @ApiModelProperty(notes = "催收中总金额")
+    private BigDecimal collectingAmt = new BigDecimal(0.00);
     @ApiModelProperty(notes = "催收中总数量")
-    private Integer value;
-    @ApiModelProperty(notes = "省份名称")
-    private String name;
+    private Integer collectingCount;
 }

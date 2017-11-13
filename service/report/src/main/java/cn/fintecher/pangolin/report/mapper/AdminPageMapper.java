@@ -36,7 +36,7 @@ public interface AdminPageMapper {
      * @param params
      * @return
      */
-    ProvinceCollectionDateModel getInnerCollectionDate(CollectorRankingParams params);
+    ProvinceDateModel getInnerCollectionDate(CollectorRankingParams params);
 
     /**
      * 内催分布于各省份的金额和数量
@@ -44,7 +44,7 @@ public interface AdminPageMapper {
      * @param params
      * @return
      */
-    ProvinceCollectionDateModel getOutsourceCollectionDate(CollectorRankingParams params);
+    ProvinceDateModel getOutsourceCollectionDate(CollectorRankingParams params);
 
     /**
      * 内催分布于各省份的金额和数量
