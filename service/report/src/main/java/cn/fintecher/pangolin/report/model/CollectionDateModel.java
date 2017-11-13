@@ -32,4 +32,6 @@ public class CollectionDateModel {
     private List<ProvinceCollectionDateModel> innerProvinceCollectionCount;
     @ApiModelProperty(notes = "委外各省份总金额和数量")
     private List<ProvinceCollectionDateModel> outsourceProvinceCollectionCount;
+    @ApiModelProperty(notes = "内催+委外总金额和数量")
+    private List<ProvinceCollectionDateModel> totalProvinceCollectionCount;
 }

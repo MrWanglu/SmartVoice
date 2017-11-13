@@ -62,6 +62,14 @@ public interface AdminPageMapper {
      */
     List<ProvinceCollectionDateModel> getProvinceOutsourceCollectionDate(CollectorRankingParams params);
 
+    /**
+     * 内崔+委外分布于各省份的金额和数量
+     *
+     * @param params
+     * @return
+     */
+    List<ProvinceCollectionDateModel> getTotalProvinceCollectionDate(CollectorRankingParams params);
+
     /**以上是新版本*/
     /**############################################################################################################*/
     /**以下是旧版本*/
