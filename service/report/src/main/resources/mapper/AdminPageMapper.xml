@@ -49,8 +49,11 @@
     <!--管理员首页委外方排行榜-->
     <select id="OutsourceRanking" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultMap="outsourceRankingModel">
-        SELECT d.outs_name, c.contract_amt, c.out_back_amt, c.total_count, (c.out_back_amt/c.contract_amt) AS out_back_rate, c.out_back_count FROM
-        (SELECT a.out_id,SUM(a.contract_amt) AS contract_amt, SUM(a.out_back_amt) AS out_back_amt,COUNT(*) as total_count, count(CASE WHEN a.out_back_amt != 0.0000 then a.id END) as out_back_count FROM outsource_pool a INNER JOIN case_info b ON a.case_id=b.id
+        SELECT d.outs_name, c.contract_amt, c.out_back_amt, c.total_count, (c.out_back_amt/c.contract_amt) AS
+        out_back_rate, c.out_back_count FROM
+        (SELECT a.out_id,SUM(a.contract_amt) AS contract_amt, SUM(a.out_back_amt) AS out_back_amt,COUNT(*) as
+        total_count, count(CASE WHEN a.out_back_amt != 0.0000 then a.id END) as out_back_count FROM outsource_pool a
+        INNER JOIN case_info b ON a.case_id=b.id
         WHERE b.case_pool_type=226 and b.recover_remark=0 AND a.out_status != 167 and a.company_code=#{companyCode}
         <if test="timeType == 0">
             AND YEAR(a.out_time) = YEAR(NOW())
@@ -400,17 +403,18 @@
     <!--管理员首页 查询已还款案件金额 已还款案件数量-->
     <select id="getCaseAmtAndCount" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.AdminCasePaymentModel">
+        select a.*,b.totalCaseCount,b.totalCaseAmount from (
         SELECT
         <if test="timeType!=null and timeType==0">
             <!--年 显示1-12月-->
-            DATE_FORMAT(case_follow_in_time, '%m') as caseCount,
+            DATE_FORMAT(case_follow_in_time, '%m') as queryMonth,
         </if>
         <if test="timeType!=null and timeType==1">
             <!--月 显示1-31天 周 显示 周一到周日-->
-            DATE_FORMAT(case_follow_in_time, '%Y%m%d') as caseCount,
+            DATE_FORMAT(case_follow_in_time, '%Y%m%d') as queryDate,
         </if>
-        count(id) AS totalCaseCount,
-        sum(overdue_amount)/10000 as totalAmount,
+        count(id) AS caseCount,
+        sum(overdue_amount)/10000 as caseAmount,
         0 as collectionStatus
         FROM
         case_info
@@ -437,25 +441,53 @@
         <if test="timeType!=null and timeType==1">
             group by DATE_FORMAT(case_follow_in_time, '%Y%m%d')
         </if>
+        ) a left join (
+        SELECT
+        sum(id) AS totalCaseCount,
+        sum(overdue_amount)/10000 as totalCaseAmount,
+        0 as collectionStatus
+        FROM
+        case_info
+        WHERE
+        end_type = 110
+        AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        AND case_follow_in_time between #{startDate} and #{endDate}
+        AND company_Code = #{companyCode}
+        <!--全部-->
+        <if test="queryType != null and queryType == 0">
+            and case_pool_type in (225,226)
+        </if>
+        <!--内催-->
+        <if test="queryType != null and queryType == 1">
+            and case_pool_type=225
+        </if>
+        <!--委外-->
+        <if test="queryType != null and queryType == 2">
+            and case_pool_type=226
+        </if>
+        ) b on a.collectionStatus=b.collectionStatus
     </select>
 
     <!--管理员首页 查询还款审核中案件金额 还款审核中案件数量-->
     <select id="getCaseApplyAmtAndCount" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.AdminCasePaymentModel">
+        select a.*,b.totalCaseCount,b.totalCaseAmount from (
         SELECT
         <if test="timeType!=null and timeType==0">
-            DATE_FORMAT(case_follow_in_time, '%m') as caseCount,
+            <!--年 显示1-12月-->
+            DATE_FORMAT(case_follow_in_time, '%m') as queryMonth,
         </if>
         <if test="timeType!=null and timeType==1">
-            DATE_FORMAT(case_follow_in_time, '%Y%m%d') as caseCount,
+            <!--月 显示1-31天 周 显示 周一到周日-->
+            DATE_FORMAT(case_follow_in_time, '%Y%m%d') as queryDate,
         </if>
-        count(id) AS totalCaseCount,
-        sum(overdue_amount)/10000 as totalAmount,
+        count(id) AS caseCount,
+        sum(overdue_amount)/10000 as caseAmount,
         1 as collectionStatus
         FROM
         case_info
         WHERE
-        collection_status in (23,24)
+        end_type = 110
         AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
         AND case_follow_in_time between #{startDate} and #{endDate}
         AND company_Code = #{companyCode}
@@ -477,6 +509,31 @@
         <if test="timeType!=null and timeType==1">
             group by DATE_FORMAT(case_follow_in_time, '%Y%m%d')
         </if>
+        ) a left join (
+        SELECT
+        sum(id) AS totalCaseCount,
+        sum(overdue_amount)/10000 as totalCaseAmount,
+        1 as collectionStatus
+        FROM
+        case_info
+        WHERE
+        collection_status in (23,24)
+        AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        AND case_follow_in_time between #{startDate} and #{endDate}
+        AND company_Code = #{companyCode}
+        <!--全部-->
+        <if test="queryType != null and queryType == 0">
+            and case_pool_type in (225,226)
+        </if>
+        <!--内催-->
+        <if test="queryType != null and queryType == 1">
+            and case_pool_type=225
+        </if>
+        <!--委外-->
+        <if test="queryType != null and queryType == 2">
+            and case_pool_type=226
+        </if>
+        ) b on a.collectionStatus=b.collectionStatus
     </select>
 
     <!--管理員首頁 查询某个年度不同催收方式的每月催记数量和外呼数量-->
