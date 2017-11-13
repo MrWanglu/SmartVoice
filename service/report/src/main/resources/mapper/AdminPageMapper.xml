@@ -105,7 +105,7 @@
         department as b on a.depart_id=b.id where b.code like CONCAT(#{deptCode},'%')
         AND a.collection_status=21 AND a.case_pool_type=225 AND a.recover_remark=0 GROUP BY a.area_id) as aa
         LEFT JOIN area_code as cc on aa.area_id=cc.id GROUP BY parent_id) as dd
-        LEFT JOIN (SELECT area_name as areaName, id from area_code) as ff on dd.parent_id=ff.id GROUP BY areaName
+        LEFT JOIN (SELECT area_name as areaName, id from area_code) as ff on dd.parent_id=ff.id GROUP BY areaName, collectingAmt, collectingCount
     </select>
     <!--管理员首页委外分布于各省份的金额和数量-->
     <select id="getProvinceOutsourceCollectionDate"
@@ -120,7 +120,7 @@
         b.recover_remark=0 AND a.company_code=#{companyCode}
         GROUP BY b.area_id) as aa
         LEFT JOIN area_code as cc on aa.area_id=cc.id GROUP BY parent_id) as dd
-        LEFT JOIN (SELECT area_name as areaName, id from area_code) as ff on dd.parent_id=ff.id GROUP BY areaName
+        LEFT JOIN (SELECT area_name as areaName, id from area_code) as ff on dd.parent_id=ff.id GROUP BY areaName,collectingAmt, collectingCount
     </select>
 
     <resultMap id="innerPromiseBackModel" type="cn.fintecher.pangolin.report.model.InnerPromiseBackModel">

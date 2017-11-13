@@ -359,13 +359,6 @@ public class HomePageService {
         return homePageResult;
     }
 
-    //管理员首页第二部分 案件还款意向数据
-    public InnerPromiseBackModel getCaseBackDate(User user, CollectorRankingParams caseInfoConditionParams) {
-        InnerPromiseBackModel innerPromiseBackModel = new InnerPromiseBackModel();
-
-
-        return innerPromiseBackModel;
-    }
 
     //管理员首页第四部分 催收中催收数据
     public CollectionDateModel getCollectionedDate(CollectorRankingParams caseInfoConditionParams) {
@@ -415,6 +408,15 @@ public class HomePageService {
             //获取内催各省份的案件金额和案件总数
             listOutsource = adminPageMapper.getProvinceOutsourceCollectionDate(caseInfoConditionParams);
             collectionDateModel.setOutsourceProvinceCollectionCount(Objects.isNull(listOutsource) || listOutsource.size() == 0 ? null : listOutsource);
+
+            //内催和委外总金额
+            BigDecimal totalAmt = collectionDateModel.getInnerCollectingAmt().add(collectionDateModel.getOutsourceCollectingAmt());
+            //内催和委外总数量
+            Integer totalCount = collectionDateModel.getInnerCollectingCount()+collectionDateModel.getOutsourceCollectingCount();
+
+            collectionDateModel.setTotalCollectionAmt(Objects.isNull(totalAmt)?BigDecimal.ZERO:totalAmt);
+            collectionDateModel.setTotalCollectionCount(Objects.isNull(totalCount)?0:totalCount);
+
         }
 
         return collectionDateModel;
