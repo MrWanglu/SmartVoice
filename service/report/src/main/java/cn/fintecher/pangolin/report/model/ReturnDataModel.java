@@ -15,21 +15,21 @@ import java.util.List;
  */
 @Entity
 @Data
-public class ReturnDateModel {
+public class ReturnDataModel {
     @ApiModelProperty(notes = "已还款年/月/周案件金额集合")
-    private List<BigDecimal>  hadHAmtList = new ArrayList<>();
+    private List<BigDecimal> hadAmountList = new ArrayList<>();
     @ApiModelProperty(notes = "已还款年/月/周案件数量集合")
-    private List<Integer>  hadCountList = new ArrayList<>();
+    private List<Integer> hadCountList = new ArrayList<>();
     @ApiModelProperty(notes = "还款审核中年/月/周金额集合")
-    private List<BigDecimal>  AmtList = new ArrayList<>();
+    private List<BigDecimal> applyAmountList = new ArrayList<>();
+    @ApiModelProperty(notes = "还款审核中年/月/周案件数量集合")
+    private List<Integer> applyCountList = new ArrayList<>();
     @ApiModelProperty(notes = "已还款案件金额")
-    private BigDecimal caseAmt = new BigDecimal(0.00);
+    private BigDecimal hadTotalCaseAmount = new BigDecimal(0.00);
     @ApiModelProperty(notes = "已还款案件数量")
-    private Integer caseCount;
+    private Integer hadTotalCaseCount = 0;
     @ApiModelProperty(notes = "还款审核中案件金额")
-    private BigDecimal backCaseAmt = new BigDecimal(0.00);
+    private BigDecimal applyTotalCaseAmount = new BigDecimal(0.00);
     @ApiModelProperty(notes = "还款审核中案件数量")
-    private Integer backCaseCount;
-    @ApiModelProperty("还款类型 0 已还款 1 还款审核中")
-    private Integer collectionStatus;
+    private Integer applyTotalCaseCount = 0;
 }

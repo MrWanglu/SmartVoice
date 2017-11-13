@@ -505,29 +505,67 @@ public class HomePageService {
 
     /**
      * 管理员首页 查询 已还款案件金额 已还款案件数量 还款审核中案件金额 还款审核中案件数量
-     *  胡艳敏
+     * 胡艳敏
+     *
      * @param collectorRankingParams
      * @return
      */
-    public List<AdminCasePaymentModel> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams) throws ParseException {
+    public ReturnDataModel getCaseAmtAndCount(CollectorRankingParams collectorRankingParams) throws ParseException {
+
+        ReturnDataModel returnDataModel = new ReturnDataModel();
+        List<BigDecimal> hadAmountList = new ArrayList<>();
+        List<Integer> hadCountList = new ArrayList<>();
+        List<BigDecimal> applyAmountList = new ArrayList<>();
+        List<Integer> applyCountList = new ArrayList<>();
+        BigDecimal hadTotalAmount = new BigDecimal(0);
+        Integer hadTotalCount = 0;
+        BigDecimal applyTotalAmount = new BigDecimal(0);
+        Integer applyTotalCount = 0;
 
         List<AdminCasePaymentModel> paymentModels = adminPageMapper.getCaseAmtAndCount(collectorRankingParams);
         List<AdminCasePaymentModel> paymentApplyModels = adminPageMapper.getCaseApplyAmtAndCount(collectorRankingParams);
-
         if (Objects.equals(collectorRankingParams.getTimeType(), CollectorRankingParams.TimeType.YEAR.getValue())) {
             //年
-            for (String temp : Constants.monthList) {
-                for (AdminCasePaymentModel adminCasePaymentModel : paymentModels) {
-                    if (!Objects.equals(temp, adminCasePaymentModel.getQueryMonth())) {
-
-                    }
-                }
+            for (String tempMonth : Constants.monthList) {
+                SetReturnData(paymentModels, tempMonth, hadAmountList, hadCountList, hadTotalAmount, hadTotalCount, collectorRankingParams.getTimeType());
+                SetReturnData(paymentApplyModels, tempMonth, applyAmountList, applyCountList, applyTotalAmount, applyTotalCount, collectorRankingParams.getTimeType());
+            }
+        } else {
+            for (String tempDay : Constants.dayList) {
+                SetReturnData(paymentModels, tempDay, hadAmountList, hadCountList, hadTotalAmount, hadTotalCount, collectorRankingParams.getTimeType());
+                SetReturnData(paymentApplyModels, tempDay, applyAmountList, applyCountList, applyTotalAmount, applyTotalCount, collectorRankingParams.getTimeType());
             }
         }
 
+        returnDataModel.setHadAmountList(hadAmountList);
+        returnDataModel.setHadCountList(hadCountList);
+        returnDataModel.setHadTotalCaseAmount(hadTotalAmount);
+        returnDataModel.setHadTotalCaseCount(hadTotalCount);
+        returnDataModel.setApplyAmountList(applyAmountList);
+        returnDataModel.setApplyCountList(applyCountList);
+        returnDataModel.setApplyTotalCaseAmount(applyTotalAmount);
+        returnDataModel.setApplyTotalCaseCount(applyTotalCount);
+        return returnDataModel;
+    }
 
-        paymentModels.addAll(paymentApplyModels);
-        return paymentModels;
+    /*
+    将数据库查询出来的数据组装成前端需要的数据
+     */
+    public void SetReturnData(List<AdminCasePaymentModel> paymentApplyModels, String temp, List<BigDecimal> applyAmountList, List<Integer> applyCountList, BigDecimal applyTotalAmount, Integer applyTotalCount, Integer timeType) {
+        boolean isExist = false;
+        for (AdminCasePaymentModel adminCasePaymentModel : paymentApplyModels) {
+            if (adminCasePaymentModel.getQueryMonth().endsWith(temp)) {
+                applyAmountList.add(adminCasePaymentModel.getCaseAmount());
+                applyCountList.add(adminCasePaymentModel.getCaseCount());
+                applyTotalAmount = applyTotalAmount.add(adminCasePaymentModel.getCaseAmount());
+                applyTotalCount += adminCasePaymentModel.getCaseCount();
+                isExist = true;
+            }
+        }
+        if (!isExist) {
+            applyAmountList.add(new BigDecimal(0));
+            applyCountList.add(0);
+        }
     }
 
 }

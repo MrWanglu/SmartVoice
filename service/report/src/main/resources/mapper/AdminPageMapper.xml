@@ -188,10 +188,10 @@
         proviceNum
     </select>
 
-     <!--管理员首页内崔+委外分布于各省份的金额和数量-->
+    <!--管理员首页内崔+委外分布于各省份的金额和数量-->
     <select id="getTotalProvinceCollectionDate"
-        parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
-        resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
+            parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
         SELECT a.`name`, SUM(a.`value`) as `value`
         FROM (SELECT t.area_name as `name`, c.proviceNum as `value`
         FROM
@@ -447,7 +447,6 @@
     <!--管理员首页 查询已还款案件金额 已还款案件数量-->
     <select id="getCaseAmtAndCount" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.AdminCasePaymentModel">
-        select a.queryMonth,a.caseCount,a.caseAmount,b.totalCaseCount,b.totalCaseAmount from (
         SELECT
         <if test="timeType!=null and timeType==0">
             <!--年 显示1-12月-->
@@ -458,8 +457,7 @@
             DATE_FORMAT(case_follow_in_time, '%Y%m%d') as queryDate,
         </if>
         count(id) AS caseCount,
-        sum(overdue_amount)/10000 as caseAmount,
-        0 as collectionStatus
+        sum(overdue_amount)/10000 as caseAmount
         FROM
         case_info
         WHERE
@@ -485,37 +483,11 @@
         <if test="timeType!=null and timeType==1">
             group by DATE_FORMAT(case_follow_in_time, '%Y%m%d')
         </if>
-        ) a left join (
-        SELECT
-        count(id) AS totalCaseCount,
-        sum(overdue_amount)/10000 as totalCaseAmount,
-        0 as collectionStatus
-        FROM
-        case_info
-        WHERE
-        end_type = 110
-        AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
-        AND case_follow_in_time between #{startDate} and #{endDate}
-        AND company_Code = #{companyCode}
-        <!--全部-->
-        <if test="queryType != null and queryType == 0">
-            and case_pool_type in (225,226)
-        </if>
-        <!--内催-->
-        <if test="queryType != null and queryType == 1">
-            and case_pool_type=225
-        </if>
-        <!--委外-->
-        <if test="queryType != null and queryType == 2">
-            and case_pool_type=226
-        </if>
-        ) b on a.collectionStatus=b.collectionStatus
     </select>
 
     <!--管理员首页 查询还款审核中案件金额 还款审核中案件数量-->
     <select id="getCaseApplyAmtAndCount" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.AdminCasePaymentModel">
-        select a.*,b.totalCaseCount,b.totalCaseAmount from (
         SELECT
         <if test="timeType!=null and timeType==0">
             <!--年 显示1-12月-->
@@ -526,8 +498,7 @@
             DATE_FORMAT(case_follow_in_time, '%Y%m%d') as queryDate,
         </if>
         count(id) AS caseCount,
-        sum(overdue_amount)/10000 as caseAmount,
-        1 as collectionStatus
+        sum(overdue_amount)/10000 as caseAmount
         FROM
         case_info
         WHERE
@@ -553,31 +524,6 @@
         <if test="timeType!=null and timeType==1">
             group by DATE_FORMAT(case_follow_in_time, '%Y%m%d')
         </if>
-        ) a left join (
-        SELECT
-        sum(id) AS totalCaseCount,
-        sum(overdue_amount)/10000 as totalCaseAmount,
-        1 as collectionStatus
-        FROM
-        case_info
-        WHERE
-        collection_status in (23,24)
-        AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
-        AND case_follow_in_time between #{startDate} and #{endDate}
-        AND company_Code = #{companyCode}
-        <!--全部-->
-        <if test="queryType != null and queryType == 0">
-            and case_pool_type in (225,226)
-        </if>
-        <!--内催-->
-        <if test="queryType != null and queryType == 1">
-            and case_pool_type=225
-        </if>
-        <!--委外-->
-        <if test="queryType != null and queryType == 2">
-            and case_pool_type=226
-        </if>
-        ) b on a.collectionStatus=b.collectionStatus
     </select>
 
     <!--管理員首頁 查询某个年度不同催收方式的每月催记数量和外呼数量-->
@@ -586,7 +532,7 @@
         select MONTH(b.operator_time) as currentMonth ,b.collection_way as wayType ,count(b.collection_way)
         as typeCount from case_info a
         RIGHT join case_followup_record b on a.id = b.case_id
-        where a.depart_id in (select id from department where code like concat(#{deptCode},'%') and
+        where a.depart_id in (select id from department where code like concat(#{deptCode},'%')) and
         <!--内催+委外-->
         <if test="queryType == 0">
             a.case_pool_type in(225,226)

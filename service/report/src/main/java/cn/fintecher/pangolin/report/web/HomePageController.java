@@ -241,13 +241,13 @@ public class HomePageController extends BaseController {
 
     @GetMapping("/getCaseAmtAndCount")
     @ApiOperation(value = "管理员首页 获取已还款案件金额/获取还款审核中案件金额/", notes = " 管理员首页 获取已还款案件数量/获取还款审核中案件数量/")
-    public ResponseEntity<List<AdminCasePaymentModel>> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams,
-                                                                          @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<ReturnDataModel> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams,
+                                                              @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
             String code = user.getDepartment().getCode();
             collectorRankingParams.setDeptCode(code);
-            List<AdminCasePaymentModel> collectorRankingModels = homePageService.getCaseAmtAndCount(collectorRankingParams);
+            ReturnDataModel collectorRankingModels = homePageService.getCaseAmtAndCount(collectorRankingParams);
             return ResponseEntity.ok().body(collectorRankingModels);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -291,9 +291,9 @@ public class HomePageController extends BaseController {
     }
 
     @GetMapping("/getCaseGroupInfo")
-    @ApiOperation(value = "管理员首页获获取某时间段根据回款类型分组得到案件金额和数量",notes = "管理员首页获获取某时间段根据回款类型分组得到案件金额和数量")
+    @ApiOperation(value = "管理员首页获获取某时间段根据回款类型分组得到案件金额和数量", notes = "管理员首页获获取某时间段根据回款类型分组得到案件金额和数量")
     public ResponseEntity<List<CaseRepaymentTypeGroupInfo>> getCaseGroupInfo(CollectorRankingParams params,
-                                                    @RequestHeader(value = "X-UserToKen") String token){
+                                                                             @RequestHeader(value = "X-UserToKen") String token) {
         try {
             User user = getUserByToken(token);
             String code = user.getDepartment().getCode();
