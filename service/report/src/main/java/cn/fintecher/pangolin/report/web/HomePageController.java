@@ -215,6 +215,9 @@ public class HomePageController extends BaseController {
                                                                         @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
+            if (Objects.nonNull(user.getCompanyCode())) {
+                params.setCompanyCode(user.getCompanyCode());
+            }
             List<OutsourceRankingModel> outsourceRankingModels = adminPageMapper.OutsourceRanking(params);
             Page<OutsourceRankingModel> page = new PageImpl(outsourceRankingModels);
             return ResponseEntity.ok().body(page);
