@@ -363,9 +363,9 @@ public class HomePageService {
     //管理员首页第四部分 催收中催收数据
     public CollectionDateModel getCollectionedDate(CollectorRankingParams caseInfoConditionParams) {
         CollectionDateModel collectionDateModel = new CollectionDateModel();
-        ProvinceCollectionDateModel provinceModel;
+        ProvinceDateModel provinceModel;
         List<ProvinceCollectionDateModel> list;
-        ProvinceCollectionDateModel provinceModelOutsource;
+        ProvinceDateModel provinceModelOutsource;
         List<ProvinceCollectionDateModel> listOutsource;
         //查询内催
         if (caseInfoConditionParams.getQueryType() == 1) {
