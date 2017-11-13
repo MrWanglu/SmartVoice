@@ -447,7 +447,7 @@
     <!--管理员首页 查询已还款案件金额 已还款案件数量-->
     <select id="getCaseAmtAndCount" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.AdminCasePaymentModel">
-        select a.*,b.totalCaseCount,b.totalCaseAmount from (
+        select a.queryMonth,a.caseCount,a.caseAmount,b.totalCaseCount,b.totalCaseAmount from (
         SELECT
         <if test="timeType!=null and timeType==0">
             <!--年 显示1-12月-->
@@ -487,7 +487,7 @@
         </if>
         ) a left join (
         SELECT
-        sum(id) AS totalCaseCount,
+        count(id) AS totalCaseCount,
         sum(overdue_amount)/10000 as totalCaseAmount,
         0 as collectionStatus
         FROM

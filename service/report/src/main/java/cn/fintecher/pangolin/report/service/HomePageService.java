@@ -1,11 +1,13 @@
 package cn.fintecher.pangolin.report.service;
 
 import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.report.mapper.AdminPageMapper;
 import cn.fintecher.pangolin.report.mapper.CaseInfoMapper;
 import cn.fintecher.pangolin.report.mapper.CollectPageMapper;
 import cn.fintecher.pangolin.report.mapper.CupoPageMapper;
 import cn.fintecher.pangolin.report.model.*;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -367,7 +370,7 @@ public class HomePageService {
         List<ProvinceCollectionDateModel> list;
         ProvinceDateModel provinceModelOutsource;
         List<ProvinceCollectionDateModel> listOutsource;
-        List<ProvinceCollectionDateModel> totalProvinceCollectionCount ;
+        List<ProvinceCollectionDateModel> totalProvinceCollectionCount;
         //查询内催
         if (caseInfoConditionParams.getQueryType() == 1) {
             provinceModel = adminPageMapper.getInnerCollectionDate(caseInfoConditionParams);
@@ -413,13 +416,13 @@ public class HomePageService {
             //内催和委外总金额
             BigDecimal totalAmt = collectionDateModel.getInnerCollectingAmt().add(collectionDateModel.getOutsourceCollectingAmt());
             //内催和委外总数量
-            Integer totalCount = collectionDateModel.getInnerCollectingCount()+collectionDateModel.getOutsourceCollectingCount();
+            Integer totalCount = collectionDateModel.getInnerCollectingCount() + collectionDateModel.getOutsourceCollectingCount();
 
-            collectionDateModel.setTotalCollectionAmt(Objects.isNull(totalAmt)?BigDecimal.ZERO:totalAmt);
-            collectionDateModel.setTotalCollectionCount(Objects.isNull(totalCount)?0:totalCount);
+            collectionDateModel.setTotalCollectionAmt(Objects.isNull(totalAmt) ? BigDecimal.ZERO : totalAmt);
+            collectionDateModel.setTotalCollectionCount(Objects.isNull(totalCount) ? 0 : totalCount);
             totalProvinceCollectionCount = adminPageMapper.getTotalProvinceCollectionDate(caseInfoConditionParams);
             //合并内崔与委外的各省份的催收数量
-            collectionDateModel.setTotalProvinceCollectionCount(Objects.isNull(totalProvinceCollectionCount) || totalProvinceCollectionCount.size() == 0 ?null:totalProvinceCollectionCount);
+            collectionDateModel.setTotalProvinceCollectionCount(Objects.isNull(totalProvinceCollectionCount) || totalProvinceCollectionCount.size() == 0 ? null : totalProvinceCollectionCount);
         }
         return collectionDateModel;
     }
@@ -502,13 +505,27 @@ public class HomePageService {
 
     /**
      * 管理员首页 查询 已还款案件金额 已还款案件数量 还款审核中案件金额 还款审核中案件数量
-     *
+     *  胡艳敏
      * @param collectorRankingParams
      * @return
      */
-    public List<AdminCasePaymentModel> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams) {
+    public List<AdminCasePaymentModel> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams) throws ParseException {
+
         List<AdminCasePaymentModel> paymentModels = adminPageMapper.getCaseAmtAndCount(collectorRankingParams);
         List<AdminCasePaymentModel> paymentApplyModels = adminPageMapper.getCaseApplyAmtAndCount(collectorRankingParams);
+
+        if (Objects.equals(collectorRankingParams.getTimeType(), CollectorRankingParams.TimeType.YEAR.getValue())) {
+            //年
+            for (String temp : Constants.monthList) {
+                for (AdminCasePaymentModel adminCasePaymentModel : paymentModels) {
+                    if (!Objects.equals(temp, adminCasePaymentModel.getQueryMonth())) {
+
+                    }
+                }
+            }
+        }
+
+
         paymentModels.addAll(paymentApplyModels);
         return paymentModels;
     }
