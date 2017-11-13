@@ -42,7 +42,7 @@ public class UserVideoScheduled {
     @Autowired
     UserVideoRepository userVideoRepository;
 
-    @Scheduled(cron = "0 0 23 * * ?")
+    @Scheduled(cron = "0 0 15 * * ?")
     public void autoUserVideo() {
 
         String filePath = String.format("%shome%sdata%s", spliterStr, spliterStr, spliterStr);

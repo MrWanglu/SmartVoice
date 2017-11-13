@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -29,6 +30,7 @@ public class UserVideo implements Serializable {
     @ApiModelProperty("文件长度")
     private String videoLength;
     @ApiModelProperty("操作时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date operatorTime;
     @ApiModelProperty("公司Code")
     private String companyCode;
