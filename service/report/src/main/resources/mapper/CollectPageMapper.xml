@@ -219,6 +219,6 @@
         <result column="real_name" property="collectionFollowName"/>
         <result column="call_count" property="calledCount"/>
         <result column="follow_count" property="followedCount"/>
-        <result column="followed_count" property="followedNumber"/>
+        <result column="total_followed_count" property="followedNumber"/>
     </resultMap>
 </mapper>
