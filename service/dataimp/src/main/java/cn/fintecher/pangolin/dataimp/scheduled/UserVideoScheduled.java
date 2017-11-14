@@ -42,7 +42,7 @@ public class UserVideoScheduled {
     @Autowired
     UserVideoRepository userVideoRepository;
 
-    @Scheduled(cron = "0 0 12 * * ?")
+    @Scheduled(cron = "0 0 14 * * ?")
     public void autoUserVideo() {
         logger.debug("开始生成催收员录音......");
         String filePath = String.format("%shome%sdata%s", spliterStr, spliterStr, spliterStr);
