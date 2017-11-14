@@ -42,7 +42,7 @@ public class UserVideoScheduled {
     @Autowired
     UserVideoRepository userVideoRepository;
 
-    @Scheduled(cron = "0 30 23 * * ?")
+    @Scheduled(cron = "0 0 10 * * ?")
     public void autoUserVideo() {
 
         String filePath = String.format("%shome%sdata%s", spliterStr, spliterStr, spliterStr);
@@ -54,10 +54,9 @@ public class UserVideoScheduled {
             if (Objects.isNull(userIterables) || !userIterables.hasBody())
                 return;
             //得到今天的录音文件夹
-            String dateDir = filePath + ZWDateUtil.getFormatNowDate("yyyyMMdd");
-            File file = new File(dateDir);
+            File file = new File(filePath);
             if (Objects.isNull(file)) {
-                logger.error("访问录音文件夹失败：" + dateDir);
+                logger.error("访问录音文件夹失败：" + filePath);
                 return;
             }
             for (Object object : userIterables.getBody()) {
@@ -71,7 +70,7 @@ public class UserVideoScheduled {
 
                         //根据匹配的催收员匹配下一层文件夹 取 WAV文件
                         //eg: /home/data/20171010/pingping
-                        String userDir = dateDir + spliterStr + fileName;
+                        String userDir = filePath + spliterStr + fileName;
                         String[] fileNewList = (new File(userDir)).list();
                         if (Objects.nonNull(fileNewList) && fileNewList.length > 0) {
                             for (String recFile : fileNewList) {
@@ -85,11 +84,6 @@ public class UserVideoScheduled {
                     }
                 }
             }
-            //创建新文件 下一天用
-            Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.DATE, 1);
-            Date date = calendar.getTime();
-            new File(filePath.concat(ZWDateUtil.fomratterDate(date, "yyyyMMdd"))).mkdirs();
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
         }
@@ -123,7 +117,6 @@ public class UserVideoScheduled {
             logger.error("获取文件上传路径出错");
             return;
         }
-
         //新增记录
         UserVideo userVideo = new UserVideo();
         userVideo.setCompanyCode("0001");
@@ -136,6 +129,9 @@ public class UserVideoScheduled {
         userVideo.setVideoUrl(url);
         userVideo.setVideoLength(videoLength);
         userVideoRepository.save(userVideo);
+        //保存成功后删除文件
+        new File(convertFilePath).delete();
+        new File(newPath).delete();
     }
 
 }
