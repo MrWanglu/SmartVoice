@@ -53,7 +53,9 @@ public interface CaseInfoMapper extends MyMapper<CaseInfo> {
             @Param("areaId") Integer areaId,
             @Param("type") Integer type,
             @Param("isManager") Integer isManager,
-            @Param("userId") String userId);
+            @Param("userId") String userId,
+            @Param("realPayMaxAmt")BigDecimal realPayMaxAmt,
+            @Param("realPayMinAmt") BigDecimal realPayMinAmt);
 
     /**
      * @Description 多条件查询协催案件信息

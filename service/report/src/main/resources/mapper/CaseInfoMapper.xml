@@ -362,6 +362,12 @@
         <if test="areaId != null">
             AND f.id = #{areaId} OR f.parent_id = #{areaId}
         </if>
+        <if test="realPayMaxAmt != null">
+           AND <![CDATA[a.realPayAmount <= #{realPayMaxAmt}]]>
+        </if>
+        <if test="realPayMinAmt != null">
+           AND <![CDATA[a.realPayAmount >= #{realPayMinAmt}]]>
+        </if>
         ORDER BY a.caseMark desc
         <if test="sort != null and sort == 'followupBack,asc'">
             ,if(isnull(a.followupBack),1,0),a.followupBack asc
