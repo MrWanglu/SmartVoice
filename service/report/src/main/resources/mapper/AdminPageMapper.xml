@@ -85,7 +85,7 @@
             resultType="cn.fintecher.pangolin.report.model.ProvinceDateModel">
         SELECT SUM(overdue_amount) as collectingAmt, count(*) as collectingCount FROM case_info as a LEFT JOIN
         department as b on a.depart_id=b.id
-        WHERE a.collection_status=21 AND a.case_pool_type=225 AND a.recover_remark=0 and b.code like
+        WHERE a.collection_status IN (21, 22, 23, 172)  AND a.case_pool_type=225 AND a.recover_remark=0 and b.code like
         CONCAT(#{deptCode},'%')
     </select>
     <!--管理员首页委外催收数据-->
@@ -105,7 +105,7 @@
         FROM
         (
         SELECT
-        REPLACE(SUBSTR(SUBSTR(b.tree_path FROM 1 FOR 6) FROM 3 FOR 4),"/","") as tree_path,
+        CASE WHEN SUBSTR(b.tree_path FROM 1 FOR 6) = '1/' THEN aa.area_id ELSE REPLACE(SUBSTR(SUBSTR(b.tree_path FROM 1 FOR 6) FROM 3 FOR 4),"/","") END AS tree_path,
         aa.proviceNum
         FROM
         (
@@ -151,7 +151,7 @@
         FROM
         (
         SELECT
-        REPLACE(SUBSTR(SUBSTR(b.tree_path FROM 1 FOR 6) FROM 3 FOR 4),"/","") as tree_path,
+        CASE WHEN SUBSTR(b.tree_path FROM 1 FOR 6) = '1/' THEN aa.area_id ELSE REPLACE(SUBSTR(SUBSTR(b.tree_path FROM 1 FOR 6) FROM 3 FOR 4),"/","") END AS tree_path,
         aa.proviceNum
         FROM
         (
@@ -196,7 +196,9 @@
         FROM (SELECT t.area_name as `name`, c.proviceNum as `value`
         FROM
         (
-        SELECT REPLACE(SUBSTR(SUBSTR(b.tree_path FROM 1 FOR 6) FROM 3 FOR 4),"/","") as tree_path, aa.proviceNum
+        SELECT
+        CASE WHEN SUBSTR(b.tree_path FROM 1 FOR 6) = '1/' THEN aa.area_id ELSE REPLACE(SUBSTR(SUBSTR(b.tree_path FROM 1 FOR 6) FROM 3 FOR 4),"/","") END AS tree_path,
+        aa.proviceNum
         FROM
         (SELECT count(*) AS proviceNum,area_id
         FROM case_info AS a
@@ -215,7 +217,9 @@
         SELECT t.area_name as `name`, c.proviceNum as `value`
         FROM
         (
-        SELECT REPLACE(SUBSTR(SUBSTR(b.tree_path FROM 1 FOR 6) FROM 3 FOR 4),"/","") as tree_path, aa.proviceNum
+        SELECT
+        CASE WHEN SUBSTR(b.tree_path FROM 1 FOR 6) = '1/' THEN aa.area_id ELSE REPLACE(SUBSTR(SUBSTR(b.tree_path FROM 1 FOR 6) FROM 3 FOR 4),"/","") END AS tree_path,
+        aa.proviceNum
         FROM
         (SELECT count(*) AS proviceNum,b.area_id
         FROM outsource_pool a
@@ -456,6 +460,10 @@
             <!--月 显示1-31天 周 显示 周一到周日-->
             DATE_FORMAT(case_follow_in_time, '%Y%m%d') as queryDate,
         </if>
+        <if test="timeType!=null and timeType==2">
+            <!--周 显示 周一到周日-->
+            DATE_FORMAT(case_follow_in_time, '%Y-%m-%w') as queryWeek,
+        </if>
         count(id) AS caseCount,
         sum(overdue_amount)/10000 as caseAmount
         FROM
@@ -463,7 +471,15 @@
         WHERE
         end_type = 110
         AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
-        AND case_follow_in_time between #{startDate} and #{endDate}
+        <if test="timeType!=null and timeType==0">
+            AND case_follow_in_time between #{startDate} and #{endDate}
+        </if>
+        <if test="timeType!=null and timeType==1">
+            AND case_follow_in_time between #{startDate} and #{endDate}
+        </if>
+        <if test="timeType!=null and timeType==2">
+            AND DATE_FORMAT(case_follow_in_time, '%Y-%m-%w') = DATE_FORMAT(#{startDate}, '%Y-%m-%w')
+        </if>
         AND company_Code = #{companyCode}
         <!--全部-->
         <if test="queryType != null and queryType == 0">
@@ -482,6 +498,10 @@
         </if>
         <if test="timeType!=null and timeType==1">
             group by DATE_FORMAT(case_follow_in_time, '%Y%m%d')
+        </if>
+        <if test="timeType!=null and timeType==2">
+            <!--周 显示 周一到周日-->
+            group by DATE_FORMAT(case_follow_in_time, '%Y-%m-%w')
         </if>
     </select>
 
@@ -494,17 +514,29 @@
             DATE_FORMAT(case_follow_in_time, '%m') as queryMonth,
         </if>
         <if test="timeType!=null and timeType==1">
-            <!--月 显示1-31天 周 显示 周一到周日-->
+            <!--月 显示1-31天 -->
             DATE_FORMAT(case_follow_in_time, '%Y%m%d') as queryDate,
+        </if>
+        <if test="timeType!=null and timeType==2">
+            <!--周 显示 周一到周日-->
+            DATE_FORMAT(case_follow_in_time, '%Y-%m-%w') as queryWeek,
         </if>
         count(id) AS caseCount,
         sum(overdue_amount)/10000 as caseAmount
         FROM
         case_info
         WHERE
-        end_type = 110
+        collection_status in (22,23)
         AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
-        AND case_follow_in_time between #{startDate} and #{endDate}
+        <if test="timeType!=null and timeType==0">
+            AND case_follow_in_time between #{startDate} and #{endDate}
+        </if>
+        <if test="timeType!=null and timeType==1">
+            AND case_follow_in_time between #{startDate} and #{endDate}
+        </if>
+        <if test="timeType!=null and timeType==2">
+            AND DATE_FORMAT(case_follow_in_time, '%Y-%m-%w') = DATE_FORMAT(#{startDate}, '%Y-%m-%w')
+        </if>
         AND company_Code = #{companyCode}
         <!--全部-->
         <if test="queryType != null and queryType == 0">
@@ -524,30 +556,30 @@
         <if test="timeType!=null and timeType==1">
             group by DATE_FORMAT(case_follow_in_time, '%Y%m%d')
         </if>
+        <if test="timeType!=null and timeType==2">
+            <!--周 显示 周一到周日-->
+            group by DATE_FORMAT(case_follow_in_time, '%Y-%m-%w')
+        </if>
     </select>
 
     <!--管理員首頁 查询某个年度不同催收方式的每月催记数量和外呼数量-->
     <select id="getRecordReport" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.GroupMonthFollowRecord">
-        select MONTH(b.operator_time) as currentMonth ,b.collection_way as wayType ,count(b.collection_way)
-        as typeCount from case_info a
-        RIGHT join case_followup_record b on a.id = b.case_id
-        where a.depart_id in (select id from department where code like concat(#{deptCode},'%')) and
-        <!--内催+委外-->
-        <if test="queryType == 0">
-            a.case_pool_type in(225,226)
-        </if>
-        <!--内催-->
-        <if test="queryType == 1">
-            a.case_pool_type =225
-        </if>
-        <!--委外-->
-        <if test="queryType == 2">
-            a.case_pool_type =226
-        </if>
-        and b.operator_time between #{startDate} and #{endDate}
-        and b.collection_way in (0,1)
-        group by MONTH(b.operator_time),b.collection_way
+        select DATE_FORMAT(b.operator_time, '%Y-%m-%d') as currentMonth ,b.collection_way as wayType , count(*) as typeCount
+        from case_followup_record b
+        LEFT JOIN case_info a on a.id = b.case_id
+        where a.depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        and DATE_FORMAT(b.operator_time, '%Y-%m')=DATE_FORMAT(#{startDate}, '%Y-%m')
+        AND b.collection_way =1
+        group by currentMonth,b.collection_way HAVING b.collection_way is not NULL
+        UNION ALL
+        select DATE_FORMAT(b.operator_time, '%Y-%m-%d') as currentMonth ,b.collection_way as wayType, count(*) as typeCount
+        from case_followup_record b
+        LEFT JOIN case_info a on a.id = b.case_id
+        where a.depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        and DATE_FORMAT(b.operator_time, '%Y-%m')=DATE_FORMAT(#{startDate}, '%Y-%m')
+        AND b.collection_way =0
+        group by currentMonth,b.collection_way HAVING b.collection_way is not NULL
     </select>
 
     <!--根据不同的日期类型查询并统计不同还款类型的数据-->
@@ -570,18 +602,26 @@
         LEFT JOIN case_followup_record B ON A.id = B.case_id
         WHERE
         B.collection_feedback IS NOT NULL
-        AND B.operator_time BETWEEN #{startDate} AND #{endDate} AND
+        <if test="timeType!=null and timeType==0">
+            AND DATE_FORMAT(B.operator_time, '%Y') = DATE_FORMAT(#{startDate}, '%Y')
+        </if>
+        <if test="timeType!=null and timeType==1">
+            AND DATE_FORMAT(B.operator_time, '%Y-%m') = DATE_FORMAT(#{startDate}, '%Y-%m')
+        </if>
+        <if test="timeType!=null and timeType==2">
+            AND DATE_FORMAT(B.operator_time, '%Y-%m-%w') = DATE_FORMAT(#{startDate}, '%Y-%m-%w')
+        </if>
         <!--内催+委外-->
         <if test="queryType == 0">
-            A.case_pool_type in(225,226)
+            AND A.case_pool_type in(225,226)
         </if>
         <!--内催-->
         <if test="queryType == 1">
-            A.case_pool_type =225
+            AND A.case_pool_type =225
         </if>
         <!--委外-->
         <if test="queryType == 2">
-            A.case_pool_type =226
+            AND A.case_pool_type =226
         </if>
         GROUP BY B.collection_feedback
         ) t

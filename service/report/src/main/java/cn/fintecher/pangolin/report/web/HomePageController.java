@@ -247,6 +247,9 @@ public class HomePageController extends BaseController {
             User user = getUserByToken(token);
             String code = user.getDepartment().getCode();
             collectorRankingParams.setDeptCode(code);
+            if (Objects.nonNull(user.getCompanyCode())) {
+                collectorRankingParams.setCompanyCode(user.getCompanyCode());
+            }
             ReturnDataModel collectorRankingModels = homePageService.getCaseAmtAndCount(collectorRankingParams);
             return ResponseEntity.ok().body(collectorRankingModels);
         } catch (Exception e) {
@@ -257,13 +260,13 @@ public class HomePageController extends BaseController {
 
     @GetMapping("/getRecordReport")
     @ApiOperation(value = "根据年份查询该年度各月的催记，外呼数据量", notes = "根据年份查询该年度各月的催记，外呼数据量")
-    public ResponseEntity<List<GroupMonthFollowRecord>> getRecordReport(CollectorRankingParams collectorRankingParams,
+    public ResponseEntity<FollowCalledDateModel> getRecordReport(CollectorRankingParams collectorRankingParams,
                                                                         @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
             String code = user.getDepartment().getCode();
             collectorRankingParams.setDeptCode(code);
-            List<GroupMonthFollowRecord> result = adminPageMapper.getRecordReport(collectorRankingParams);
+            FollowCalledDateModel result = homePageService.getRecordReport(collectorRankingParams);
             return ResponseEntity.ok().body(result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -292,13 +295,13 @@ public class HomePageController extends BaseController {
 
     @GetMapping("/getCaseGroupInfo")
     @ApiOperation(value = "管理员首页获获取某时间段根据回款类型分组得到案件金额和数量", notes = "管理员首页获获取某时间段根据回款类型分组得到案件金额和数量")
-    public ResponseEntity<List<CaseRepaymentTypeGroupInfo>> getCaseGroupInfo(CollectorRankingParams params,
+    public ResponseEntity<PromisedDateModel> getCaseGroupInfo(CollectorRankingParams params,
                                                                              @RequestHeader(value = "X-UserToKen") String token) {
         try {
             User user = getUserByToken(token);
             String code = user.getDepartment().getCode();
             params.setDeptCode(code);
-            List<CaseRepaymentTypeGroupInfo> result = adminPageMapper.getCaseGroupInfo(params);
+            PromisedDateModel result = homePageService.getCaseGroupInfo(params);
             return ResponseEntity.ok().body(result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

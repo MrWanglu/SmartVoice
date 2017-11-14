@@ -165,7 +165,7 @@ public final class Constants {
 
     public static final List<String> monthList = Arrays.asList("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
     public static final List<String> dayList = Arrays.asList("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31");
-
+    public static final List<String> weekList = Arrays.asList("0","1", "2", "3", "4", "5", "6");
     /**
      * 数据来源
      */

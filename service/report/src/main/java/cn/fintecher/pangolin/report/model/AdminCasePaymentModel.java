@@ -20,4 +20,6 @@ public class AdminCasePaymentModel {
     private String queryMonth;
     @ApiModelProperty("日")
     private String queryDate;
+    @ApiModelProperty("周")
+    private String queryWeek;
 }

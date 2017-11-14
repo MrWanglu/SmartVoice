@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.report.service;
 
+import cn.fintecher.pangolin.entity.CaseFollowupRecord;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.report.mapper.AdminPageMapper;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import javax.persistence.OneToMany;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -526,19 +528,39 @@ public class HomePageService {
 
         List<AdminCasePaymentModel> paymentModels = adminPageMapper.getCaseAmtAndCount(collectorRankingParams);
         List<AdminCasePaymentModel> paymentApplyModels = adminPageMapper.getCaseApplyAmtAndCount(collectorRankingParams);
+        //获取已还款案件的金额和总数量
+        for (AdminCasePaymentModel ad : paymentModels) {
+            if (Objects.nonNull(ad.getCaseAmount())) {
+                hadTotalAmount = hadTotalAmount.add(ad.getCaseAmount());
+                hadTotalCount = +ad.getCaseCount();
+            }
+        }
+        //获取还款审核中案件的金额和总数量
+        for (AdminCasePaymentModel ad : paymentApplyModels) {
+            if (Objects.nonNull(ad.getCaseAmount())) {
+                applyTotalAmount = applyTotalAmount.add(ad.getCaseAmount());
+                applyTotalCount = +ad.getCaseCount();
+            }
+        }
         if (Objects.equals(collectorRankingParams.getTimeType(), CollectorRankingParams.TimeType.YEAR.getValue())) {
             //年
             for (String tempMonth : Constants.monthList) {
-                SetReturnData(paymentModels, tempMonth, hadAmountList, hadCountList, hadTotalAmount, hadTotalCount, collectorRankingParams.getTimeType());
-                SetReturnData(paymentApplyModels, tempMonth, applyAmountList, applyCountList, applyTotalAmount, applyTotalCount, collectorRankingParams.getTimeType());
+                setReturnData(paymentModels, tempMonth, hadAmountList, hadCountList);
+                setReturnData(paymentApplyModels, tempMonth, applyAmountList, applyCountList);
             }
-        } else {
+            //月
+        } else if (Objects.equals(collectorRankingParams.getTimeType(), CollectorRankingParams.TimeType.MONTH.getValue())) {
             for (String tempDay : Constants.dayList) {
-                SetReturnData(paymentModels, tempDay, hadAmountList, hadCountList, hadTotalAmount, hadTotalCount, collectorRankingParams.getTimeType());
-                SetReturnData(paymentApplyModels, tempDay, applyAmountList, applyCountList, applyTotalAmount, applyTotalCount, collectorRankingParams.getTimeType());
+                setReturnData(paymentModels, tempDay, hadAmountList, hadCountList);
+                setReturnData(paymentApplyModels, tempDay, applyAmountList, applyCountList);
+            }
+            //周
+        } else {
+            for (String tempDay : Constants.weekList) {
+                setReturnData(paymentModels, tempDay, hadAmountList, hadCountList);
+                setReturnData(paymentApplyModels, tempDay, applyAmountList, applyCountList);
             }
         }
-
         returnDataModel.setHadAmountList(hadAmountList);
         returnDataModel.setHadCountList(hadCountList);
         returnDataModel.setHadTotalCaseAmount(hadTotalAmount);
@@ -553,14 +575,25 @@ public class HomePageService {
     /*
     将数据库查询出来的数据组装成前端需要的数据
      */
-    public void SetReturnData(List<AdminCasePaymentModel> paymentApplyModels, String temp, List<BigDecimal> applyAmountList, List<Integer> applyCountList, BigDecimal applyTotalAmount, Integer applyTotalCount, Integer timeType) {
+    public void setReturnData(List<AdminCasePaymentModel> paymentApplyModels, String temp, List<BigDecimal> applyAmountList, List<Integer> applyCountList) {
         boolean isExist = false;
         for (AdminCasePaymentModel adminCasePaymentModel : paymentApplyModels) {
-            if (adminCasePaymentModel.getQueryMonth().endsWith(temp)) {
-                applyAmountList.add(adminCasePaymentModel.getCaseAmount());
-                applyCountList.add(adminCasePaymentModel.getCaseCount());
-                applyTotalAmount = applyTotalAmount.add(adminCasePaymentModel.getCaseAmount());
-                applyTotalCount += adminCasePaymentModel.getCaseCount();
+            //年-获取每个月
+            if (Objects.nonNull(adminCasePaymentModel.getQueryMonth()) && adminCasePaymentModel.getQueryMonth().equals(temp)) {
+                applyAmountList.add(Objects.isNull(adminCasePaymentModel.getCaseAmount()) ? BigDecimal.ZERO : adminCasePaymentModel.getCaseAmount());
+                applyCountList.add(Objects.isNull(adminCasePaymentModel.getCaseCount()) ? 0 : adminCasePaymentModel.getCaseCount());
+                isExist = true;
+            }
+            //月- 获取当月的每一天
+            if (Objects.nonNull(adminCasePaymentModel.getQueryDate()) && adminCasePaymentModel.getQueryDate().substring(6, 8).equals(temp)) {
+                applyAmountList.add(Objects.isNull(adminCasePaymentModel.getCaseAmount()) ? BigDecimal.ZERO : adminCasePaymentModel.getCaseAmount());
+                applyCountList.add(Objects.isNull(adminCasePaymentModel.getCaseCount()) ? 0 : adminCasePaymentModel.getCaseCount());
+                isExist = true;
+            }
+            //周- 获取周的每一天
+            if (Objects.nonNull(adminCasePaymentModel.getQueryWeek()) && adminCasePaymentModel.getQueryWeek().substring(8, 9).equals(temp)) {
+                applyAmountList.add(Objects.isNull(adminCasePaymentModel.getCaseAmount()) ? BigDecimal.ZERO : adminCasePaymentModel.getCaseAmount());
+                applyCountList.add(Objects.isNull(adminCasePaymentModel.getCaseCount()) ? 0 : adminCasePaymentModel.getCaseCount());
                 isExist = true;
             }
         }
@@ -568,6 +601,124 @@ public class HomePageService {
             applyAmountList.add(new BigDecimal(0));
             applyCountList.add(0);
         }
+    }
+
+    //管理员首页第三部分
+    public PromisedDateModel getCaseGroupInfo(CollectorRankingParams params) {
+        PromisedDateModel promisedDateModel = new PromisedDateModel();
+        //案件还款意向数据案件金额集合
+        List<PromisedModel> totalAmtList = new ArrayList<>();
+        //案件还款意向数据案件数量集合
+        List<PromisedModel> totalCountList = new ArrayList<>();
+        List<CaseRepaymentTypeGroupInfo> modeList = adminPageMapper.getCaseGroupInfo(params);
+        if (Objects.nonNull(modeList) && modeList.size() != 0) {
+            //案件还款意向数据案件金额集合
+            for (CaseRepaymentTypeGroupInfo ca : modeList) {
+                PromisedModel pro = new PromisedModel();
+                pro.setName(ca.getRePaymentType());
+                pro.setValue(ca.getTotalRePaymentMoney().toString());
+                totalAmtList.add(pro);
+            }
+            //案件还款意向数据案件数量集合
+            for (CaseRepaymentTypeGroupInfo ca : modeList) {
+                PromisedModel pro = new PromisedModel();
+                pro.setName(ca.getRePaymentType());
+                pro.setValue(ca.getTotalCaseNumber().toString());
+                totalCountList.add(pro);
+            }
+        } else {
+            //配合前端，如果查到空数据，需要对其值塞入0
+            CaseFollowupRecord.EffectiveCollection[] feedBacks = CaseFollowupRecord.EffectiveCollection.values(); //有效催收反馈
+            for (int i=0; i<feedBacks.length;i++) {
+                PromisedModel pro = new PromisedModel();
+                if(i==3){
+                    pro.setName("继续施压");
+                }else {
+                    pro.setName(feedBacks[i].getRemark().toString());
+                }
+                pro.setValue("0");
+                totalAmtList.add(pro);
+                totalCountList.add(pro);
+            }
+        }
+        promisedDateModel.setTotalAmtList(totalAmtList);
+        promisedDateModel.setTotalCountList(totalCountList);
+        return promisedDateModel;
+    }
+
+    //管理员首页第三部分
+    public FollowCalledDateModel getRecordReport(CollectorRankingParams params) {
+
+        FollowCalledDateModel followCalledDateModel = new FollowCalledDateModel();
+        //接收外呼数
+        List<GroupMonthFollowRecord> callRecordList = new ArrayList<>();
+        //接收催记数
+        List<GroupMonthFollowRecord> followRecordList = new ArrayList<>();
+        //接收外呼数
+        List<Integer> callRecordListEmpty = new ArrayList<>();
+        //接收催记数
+        List<Integer> followRecordListEmpty = new ArrayList<>();
+        //获取所选月份每一天的催记数和外呼数
+        List<GroupMonthFollowRecord> result = adminPageMapper.getRecordReport(params);
+        Integer followTotalCount = 0;
+        Integer callTotalCount = 0;
+        //催记平均数量
+        Integer followAvgCount = 0;
+        //呼叫平均数量
+        Integer callAvgCount = 0;
+        //分离外呼和催记数
+        for (GroupMonthFollowRecord record : result) {
+            if (Objects.nonNull(record.getWayType())) {
+                //催记数
+                if (record.getWayType() == 1) {
+                    followRecordList.add(record);
+                    followTotalCount = +record.getTypeCount();
+                } else {
+                    callRecordList.add(record);
+                    callTotalCount = +record.getTypeCount();
+                }
+            }
+        }
+        if (Objects.nonNull(followRecordList.size()) && followRecordList.size() != 0) {
+            followAvgCount = followTotalCount / followRecordList.size();
+        }
+        if (Objects.nonNull(callRecordList.size()) && callRecordList.size() != 0) {
+            callAvgCount = callTotalCount / callRecordList.size();
+        }
+
+        followCalledDateModel.setFollowTotalCount(followTotalCount);
+        followCalledDateModel.setFollowAvgCount(followAvgCount);
+        followCalledDateModel.setCallTotalCount(callTotalCount);
+        followCalledDateModel.setCallAvgCount(callAvgCount);
+
+        for (String tempDay : Constants.dayList) {
+            followRecordListEmpty = setFollowCalledReturnData(followRecordList, tempDay, followRecordListEmpty);
+            callRecordListEmpty = setFollowCalledReturnData(callRecordList, tempDay, callRecordListEmpty);
+        }
+        followCalledDateModel.setFollowCountList(followRecordListEmpty);
+        followCalledDateModel.setCallCountList(callRecordListEmpty);
+        return followCalledDateModel;
+    }
+
+    /**
+     * 将所选月份的每一天的天数及count返回
+     */
+    public List<Integer> setFollowCalledReturnData(List<GroupMonthFollowRecord> recordList, String tempDay, List<Integer> recordListEmpty) {
+
+        boolean isExist = false;
+        if (Objects.nonNull(recordList) && recordList.size() != 0) {
+            for (GroupMonthFollowRecord GroupMonthFollowRecord : recordList) {
+                if (GroupMonthFollowRecord.getCurrentMonth().substring(8, 10).equals(tempDay)) {
+                    recordListEmpty.add(GroupMonthFollowRecord.getTypeCount());
+                    isExist = true;
+                }
+            }
+        }
+
+        if (!isExist) {
+            recordListEmpty.add(0);
+        }
+        return recordListEmpty;
     }
 
 }
