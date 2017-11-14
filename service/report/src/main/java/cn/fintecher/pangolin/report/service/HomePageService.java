@@ -302,7 +302,9 @@ public class HomePageService {
                 caseInfoConditionParams.getAreaId(),
                 user.getType(),
                 user.getManager(),
-                user.getId());
+                user.getId(),
+                caseInfoConditionParams.getRealPayMaxAmt(),
+                caseInfoConditionParams.getRealPayMinAmt());
         //获取待催收安建宁的第一条案件进行快速催收
         CaseInfoModel caseInfoModel = caseInfoModels.get(0);
         return caseInfoModel;
