@@ -42,9 +42,9 @@ public class UserVideoScheduled {
     @Autowired
     UserVideoRepository userVideoRepository;
 
-    @Scheduled(cron = "0 0 10 * * ?")
+    @Scheduled(cron = "0 0 12 * * ?")
     public void autoUserVideo() {
-
+        logger.debug("开始生成催收员录音......");
         String filePath = String.format("%shome%sdata%s", spliterStr, spliterStr, spliterStr);
         String ffmpeg = String.format("%susr%sbin%sffmpeg", spliterStr, spliterStr, spliterStr);
 
