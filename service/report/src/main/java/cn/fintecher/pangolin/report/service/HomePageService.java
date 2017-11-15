@@ -232,11 +232,8 @@ public class HomePageService {
                 backAmtModels.remove(backAmtModels.get(i));
             } else {
                 if (user.getRealName().equals(backAmtModels.get(i).getCollectionName())) {
-                    if (i == 0) {
-                        i = +1;
-                    }
-                    //添加该催收员的排名
-                    caseInfoRank.setCollectRank(i);
+                    //添加该催收员的排名,加1是因为list是从0开始的
+                    caseInfoRank.setCollectRank(i+1);
                 }
             }
             if (Objects.nonNull(backAmtModels.get(i).getBackRate())) {

@@ -58,7 +58,7 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
         list.add("M3");
         list.add("M4");
         list.add("M5");
-        bindings.bind(root.caseInfo.payStatus).first((path, value) -> {
+        bindings.bind(root.overduePeriods).first((path, value) -> {
             if (Objects.equals(StringUtils.trim(value), CaseInfo.PayStatus.M6_PLUS.getRemark())) {
                 return path.notIn(list);
             } else {
@@ -146,18 +146,6 @@ public interface OutsourcePoolRepository extends QueryDslPredicateExecutor<Outso
             } else {
                 //大于等于
                 return path.goe(firstCommissionRate);
-            }
-        });
-
-        //逾期天数
-        bindings.bind(root.caseInfo.overdueDays).all((path, value) -> {
-            Iterator<? extends Integer> it = value.iterator();
-            Integer firstOverdueDays = it.next();
-            if (it.hasNext()) {
-                Integer secondOverdueDays = it.next();
-                return path.between(firstOverdueDays, secondOverdueDays);
-            } else {
-                return path.goe(firstOverdueDays);
             }
         });
     }

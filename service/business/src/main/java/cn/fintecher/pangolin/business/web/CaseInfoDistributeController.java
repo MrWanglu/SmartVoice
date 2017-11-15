@@ -300,7 +300,7 @@ public class CaseInfoDistributeController extends BaseController {
             return ResponseEntity.ok().body(model);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "统计策略分配情况错误")).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
         }
     }
 

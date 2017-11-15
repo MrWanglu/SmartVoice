@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="cn.fintecher.pangolin.report.mapper.CollectPageMapper">
 
-    <!-- 催收员本周流入案件总数（包含已结案的）-->
+    <!-- 催收员本周案件总数（包含已结案的）-->
     <select id="getCaseInfoWeekAllCount" parameterType="string" resultType="integer">
         SELECT COUNT(*) FROM case_turn_record
         where YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(CURDATE(),1)
@@ -20,7 +20,7 @@
         ) AS m
     </select>
 
-    <!-- 催收员本月流入案件总数（包含已结案的）-->
+    <!-- 催收员本月案件总数（包含已结案的）-->
     <select id="getCaseInfoMonthAllCount" parameterType="string" resultType="integer">
         SELECT COUNT(*) FROM case_turn_record
         where DATE_FORMAT(operator_time,'%Y-%m') = DATE_FORMAT(NOW(),'%Y-%m')
@@ -177,7 +177,7 @@
 
     <!--回款金额排名-->
     <select id="getCaseInfoBackRank" parameterType="string" resultMap="backAmtModel">
-        SELECT d.real_name,c.apply_pay_back_amt, c.apply_pay_amt_rate, c.apply_pay_count
+        SELECT d.real_name,c.apply_pay_back_amt/10000, c.apply_pay_amt_rate, c.apply_pay_count
         FROM (SELECT a.apply_user_name, a.apply_pay_back_amt, IFNULL((a.apply_pay_back_amt/b.apply_pay_total_amt),0.00) as apply_pay_amt_rate, a.apply_pay_count
         FROM (SELECT apply_user_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
         FROM case_pay_apply as app LEFT JOIN department ON app.depart_id=department.id
