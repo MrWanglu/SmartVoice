@@ -165,9 +165,6 @@ public class OutsourcePoolService {
                         OutsourcePool outsourcePool = outsourcePoolRepository.findOne(QOutsourcePool.outsourcePool.caseInfo.id.eq(caseId));
                         CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
                         if (Objects.nonNull(outsourcePool) && Objects.nonNull(caseInfo)) {
-                            if(Objects.nonNull(caseInfo.getRealPayAmount())){
-                                caseInfo.setRealPayAmount(BigDecimal.ZERO);
-                            }
                             BigDecimal amount = caseInfo.getOverdueAmount().subtract(caseInfo.getRealPayAmount()); //案件需要委外的金额
                             outDistributeInfo.setCaseDistributeMoneyCount(outDistributeInfo.getCaseDistributeMoneyCount().add(amount));
                         }

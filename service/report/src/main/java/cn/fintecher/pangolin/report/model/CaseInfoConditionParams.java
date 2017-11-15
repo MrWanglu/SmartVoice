@@ -33,6 +33,8 @@ public class CaseInfoConditionParams {
     private String collectionType; //催收类型
     private Integer areaId; //所属城市ID
     private Integer parentAreaId; //省ID
+    private BigDecimal realPayMaxAmt; //最大还款金额
+    private BigDecimal realPayMinAmt; //最小还款金额
     private Integer page; //页数
     private Integer size; //每页条数
     private String sort; //排序

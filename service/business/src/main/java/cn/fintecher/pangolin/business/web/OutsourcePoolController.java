@@ -34,7 +34,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.*;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -48,16 +47,11 @@ import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.inject.Inject;
-import javax.persistence.Convert;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
-import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by  baizhangyu.
@@ -322,7 +316,7 @@ public class OutsourcePoolController extends BaseController {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
+            Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName).and(QOutsource.outsource.companyCode.eq(user.getCompanyCode()).and(QOutsource.outsource.flag.eq(0))));
             Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(QOutsourcePool.outsourcePool.outStatus.eq(OutsourcePool.OutStatus.OUTSIDING.getCode())
                     .and(QCaseInfo.caseInfo.companyCode.eq(user.getCompanyCode())).and(QOutsourcePool.outsourcePool.outBatch.eq(batchNumber)).and(QOutsourcePool.outsourcePool.outsource.eq(outsource))
                     .and(QCaseInfo.caseInfo.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())));
@@ -452,6 +446,8 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qCaseInfoReturn.companyCode.eq(user.getCompanyCode()));
             }
             builder.and(qCaseInfoReturn.source.eq(CaseInfo.CasePoolType.OUTER.getValue())); //委外
+            // 按照回收时间排序
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(Sort.Direction.DESC, "operatorTime"));
             Page<CaseInfoReturn> page = caseInfoReturnRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
@@ -1441,7 +1437,7 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qOutsourcePool.outBatch.eq(batchNumber));
             }
             if (Objects.nonNull(outsName)) {
-                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName));
+                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsName).and(QOutsource.outsource.companyCode.eq(user.getCompanyCode())).and(QOutsource.outsource.flag.eq(0)));
                 builder.and(qOutsourcePool.outsource.id.eq(outsource.getId()));
             }
             builder.and(qOutsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue()));
@@ -1497,7 +1493,7 @@ public class OutsourcePoolController extends BaseController {
                 builder.and(qOutsourcePool.outsource.in(outsourceList));
             }
             if (StringUtils.isNotBlank(outsBatchlist.getOutsName())) {
-                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsBatchlist.getOutsName()));
+                Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsBatchlist.getOutsName()).and(QOutsource.outsource.companyCode.eq(user.getCompanyCode()).and(QOutsource.outsource.flag.eq(0))));
                 builder.and(qOutsourcePool.outsource.eq(outsource));
             }
             if (Objects.nonNull(outsBatchlist.getOutTimeStart()) && !("").equals(outsBatchlist.getOutTimeStart())) {

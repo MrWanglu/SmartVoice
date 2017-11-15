@@ -40,4 +40,7 @@ public class CaseInfoJudicial extends BaseEntity{
 
     @ApiModelProperty("公司code")
     private String companyCode;
+
+    @ApiModelProperty("司法说明")
+    private String state;
 }

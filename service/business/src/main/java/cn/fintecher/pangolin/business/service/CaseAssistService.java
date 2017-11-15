@@ -140,7 +140,7 @@ public class CaseAssistService {
     public AssistingStatisticsModel getDepartmentEndAssist(Department department) {
         QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
         //找到所有协催结束的协催案件
-        BooleanExpression exp = qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue());
+        BooleanExpression exp = qCaseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()).and(qCaseAssist.departId.isNotNull());
         List<CaseAssist> all = IterableUtils.toList(caseAssistRepository.findAll(exp));
         if (all.isEmpty()) {
             return null;

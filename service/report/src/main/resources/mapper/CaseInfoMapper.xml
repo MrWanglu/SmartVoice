@@ -274,12 +274,12 @@
     <select id="getCaseInfoByCondition" parameterType="cn.fintecher.pangolin.report.model.CaseInfoConditionParams"
             resultType="cn.fintecher.pangolin.report.model.CaseInfoModel">
         SELECT
-        a.caseId,a.caseNumber as caseNumber,a.batchNumber as batchNumber,a.collectionType,a.overdueAmount as overdueAmount,a.payStatus,a.overdueDays as overdueDays,a.collectionStatus,a.followupTime as followupTime,
-        a.caseFollowInTime,a.followupBack as followupBack,a.assistWay,a.holdDays,a.leftDays,a.leaveCaseFlag,b.`name` as
+        a.caseId,a.caseNumber,a.batchNumber,a.collectionType,a.overdueAmount,a.payStatus,a.overdueDays,a.collectionStatus,a.followupTime,
+        a.caseFollowInTime,a.followupBack,a.assistWay,a.holdDays,a.leftDays,a.leaveCaseFlag,b.`name` as
         personalName,b.mobile_no as mobileNo,b.id_card as idCard,c.`name` as principalName,c.id as principalId,
         d.real_name as collectorName,e.`code` as deptCode,a.caseMark,a.case_pool_type,b.id as
         personalId,a.promiseAmt,a.promiseTime,f.area_name as cityName,f.id as areaId,g.id as
-        parentAreaId,a.operatorTime,a.realPayAmount from
+        parentAreaId,a.operatorTime,a.realPayAmount,a.endRemark from
         (SELECT id as caseId,case_number as caseNumber,batch_number as batchNumber,overdue_amount as
         overdueAmount,pay_status as payStatus,overdue_days as overdueDays,collection_status as
         collectionStatus,followup_time
@@ -288,7 +288,7 @@
         as holdDays,left_days as leftDays,leave_case_flag as
         leaveCaseFlag,personal_id,principal_id,current_collector,depart_id,collection_type as collectionType,case_mark
         as caseMark,case_pool_type,promise_amt as promiseAmt,promise_time as promiseTime,area_id,operator_time as
-        operatorTime,real_pay_amount as realPayAmount from
+        operatorTime,real_pay_amount as realPayAmount,end_remark as endRemark from
         case_info where current_collector is not null) a
         LEFT JOIN personal b on a.personal_id = b.id
         LEFT JOIN principal c on a.principal_id = c.id
@@ -296,9 +296,15 @@
         LEFT JOIN department e on a.depart_id = e.id
         LEFT JOIN area_code f on a.area_id = f.id
         LEFT JOIN area_code g on f.parent_id = g.id
-        where e.`code` LIKE concat(#{code},'%')
-        and a.case_pool_type = 225 and a.collectionStatus in(${collectionStatusList}) and a.collectionType
-        in(${collectionType})
+        where a.case_pool_type = 225
+        <if test="isManager == 1">
+            AND e.`code` LIKE concat(#{code},'%')
+        </if>
+        <if test="isManager == 0">
+            AND a.current_collector = #{userId}
+        </if>
+        and a.collectionStatus in(${collectionStatusList})
+        AND a.collectionType in(${collectionType})
         <if test="personalName != null">
             AND b.`name` LIKE concat('%',#{personalName},'%')
         </if>
@@ -347,9 +353,6 @@
         <if test="caseMark != null">
             AND a.caseMark = #{caseMark}
         </if>
-        <if test="collectionType != null">
-            AND a.collectionType = #{collectionType}
-        </if>
         <if test="collectionStatus != null">
             AND a.collectionStatus = #{collectionStatus}
         </if>
@@ -359,14 +362,56 @@
         <if test="areaId != null">
             AND f.id = #{areaId} OR f.parent_id = #{areaId}
         </if>
-        ORDER BY a.caseMark desc,
-        <if test="sort != null">
-            ${sort},
+        <if test="realPayMaxAmt != null">
+           AND <![CDATA[a.realPayAmount <= #{realPayMaxAmt}]]>
         </if>
-        <if test="sort != 'a.followupBack desc' and sort != 'a.followupBack asc'">
-        if(isnull(a.followupBack),1,0),a.followupBack asc,
+        <if test="realPayMinAmt != null">
+           AND <![CDATA[a.realPayAmount >= #{realPayMinAmt}]]>
         </if>
-        b.`name` asc
+        ORDER BY a.caseMark desc
+        <if test="sort != null and sort == 'followupBack,asc'">
+            ,if(isnull(a.followupBack),1,0),a.followupBack asc
+        </if>
+        <if test="sort != null and sort == 'followupBack,desc'">
+            ,if(isnull(a.followupBack),1,0),a.followupBack desc
+        </if>
+        <if test="sort != null and sort == 'followupTime,asc'">
+            ,if(isnull(a.followupTime),1,0),a.followupTime asc
+        </if>
+        <if test="sort != null and sort == 'followupTime,desc'">
+            ,if(isnull(a.followupTime),1,0),a.followupTime desc
+        </if>
+        <if test="sort != null and sort == 'caseNumber,asc'">
+            ,a.caseNumber asc
+        </if>
+        <if test="sort != null and sort == 'caseNumber,desc'">
+            ,a.caseNumber desc
+        </if>
+        <if test="sort != null and sort == 'overdueAmount,asc'">
+            ,a.overdueAmount asc
+        </if>
+        <if test="sort != null and sort == 'overdueAmount,desc'">
+            ,a.overdueAmount desc
+        </if>
+        <if test="sort != null and sort == 'overdueDays,asc'">
+            ,a.overdueDays asc
+        </if>
+        <if test="sort != null and sort == 'overdueDays,desc'">
+            ,a.overdueDays desc
+        </if>
+        <if test="sort != null and sort == 'batchNumber,asc'">
+            ,a.batchNumber asc
+        </if>
+        <if test="sort != null and sort == 'batchNumber,desc'">
+            ,a.batchNumber desc
+        </if>
+        <if test="sort != null and sort == 'idCard,asc'">
+            ,b.id_card asc
+        </if>
+        <if test="sort != null and sort == 'idCard,desc'">
+            ,b.id_card desc
+        </if>
+        ,b.`name` asc
     </select>
 
     <!-- 多条件查询协催案件信息 -->
@@ -389,7 +434,13 @@
         LEFT JOIN `user` f on a.operator = f.id
         LEFT JOIN personal g on b.personal_id = g.id
         LEFT JOIN department h on b.depart_id = h.id
-        where a.assistStatus in(${assistStatusList}) and h.`code` LIKE concat(#{deptCode},'%')
+        where a.assistStatus in(${assistStatusList})
+        <if test="isManager == 1">
+            and h.`code` LIKE concat(#{deptCode},'%')
+        </if>
+        <if test="isManager == 0">
+            and a.assistCollectorId = #{userId}
+        </if>
         <if test="personalName != null">
             AND g.`name` LIKE concat('%',#{personalName},'%')
         </if>
@@ -402,12 +453,40 @@
         <if test="overdueMinAmount != null">
             AND <![CDATA[b.overdue_amount >= #{overdueMinAmount}]]>
         </if>
---         ORDER BY
-        <!--<if test="sort != null and sort != ''">-->
-            <!--${sort}-->
-        <!--</if>-->
-        <!--<if test="sort != 'a.operatorTime desc' and sort != 'a.operatorTime asc'">-->
-            <!--a.operatorTime desc-->
-        <!--</if>-->
+        ORDER BY 1
+        <if test="sort != null and sort == 'operatorTime,desc'">
+            ,a.operatorTime desc
+        </if>
+        <if test="sort != null and sort == 'assistStatus,asc'">
+            ,a.assistStatus asc
+        </if>
+        <if test="sort != null and sort == 'assistStatus,desc'">
+            ,a.assistStatus desc
+        </if>
+        <if test="sort != null and sort == 'caseFlowinTime,asc'">
+            ,a.caseFlowinTime asc
+        </if>
+        <if test="sort != null and sort == 'caseFlowinTime,desc'">
+            ,a.caseFlowinTime desc
+        </if>
+        <if test="sort != null and sort == 'leaveCaseFlag,asc'">
+            ,a.leaveCaseFlag asc
+        </if>
+        <if test="sort != null and sort == 'leaveCaseFlag,desc'">
+            ,a.leaveCaseFlag desc
+        </if>
+        <if test="sort != null and sort == 'caseNumber,asc'">
+            ,b.case_number asc
+        </if>
+        <if test="sort != null and sort == 'caseNumber,desc'">
+            ,b.case_number desc
+        </if>
+        <if test="sort != null and sort == 'overdueAmount,asc'">
+            ,b.overdue_amount asc
+        </if>
+        <if test="sort != null and sort == 'overdueAmount,desc'">
+            ,b.overdue_amount desc
+        </if>
+        ,g.`name` asc
     </select>
 </mapper>

@@ -1,9 +1,6 @@
 package cn.fintecher.pangolin.report.service;
 
-import cn.fintecher.pangolin.entity.AreaCode;
-import cn.fintecher.pangolin.entity.CaseFollowupRecord;
-import cn.fintecher.pangolin.entity.Personal;
-import cn.fintecher.pangolin.entity.PersonalContact;
+import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.report.model.ExcportOutsourceResultModel;
 import cn.fintecher.pangolin.report.model.FollowupExportModel;
 import cn.fintecher.pangolin.util.ZWDateUtil;
@@ -156,7 +153,15 @@ public class OutsourceFollowRecordExportService {
         followupExportModel.setLeftDays(excportResultModel.getLeftDays());//剩余天数
         followupExportModel.setPayStatus(excportResultModel.getPayStatus());//还款状态
         followupExportModel.setPrincipalName(excportResultModel.getPrincipalName());//委托方
-        followupExportModel.setCollectionStatus(excportResultModel.getCollectionStatus());//催收状态
+        CaseInfo.CollectionStatus[] followType = CaseInfo.CollectionStatus.values(); //催收状态
+        for (int j = 0; j < followType.length; j++) {
+            if (Objects.nonNull(record.getType())) {
+                if (Objects.equals(record.getType(), followType[j].getValue())) {
+                    followupExportModel.setCollectionStatus(followType[j].getRemark());
+                    break;
+                }
+            }
+        }
         followupExportModel.setCommissionRate(excportResultModel.getCommissionRate());//佣金比例(%)
         followupExportModel.setLoanDate(excportResultModel.getLoanDate());//贷款日期
         followupExportModel.setOverdueManageFee(excportResultModel.getOverdueManageFee());//逾期管理费
@@ -171,10 +176,10 @@ public class OutsourceFollowRecordExportService {
         followupExportModel.setEndOutTime(excportResultModel.getEndOutTime());//结案日期
         followupExportModel.setOverOutTime(excportResultModel.getOverOutsourceTime());//委案到期日期
         if (excportResultModel.getOutStatus() == 168) {
-            followupExportModel.setOutsourceCaseStatus("催收中");
+            followupExportModel.setCollectionStatus("催收中");//催收状态
         }
         if (excportResultModel.getOutStatus() == 170) {
-            followupExportModel.setOutsourceCaseStatus("已结案");
+            followupExportModel.setCollectionStatus("已结案");//催收状态
         }
         followupExportModel.setCommissionRateOutsource(excportResultModel.getCommissionRateOutsource());//委外佣金比例
 

@@ -42,7 +42,7 @@ import java.util.Objects;
 @Api(value = "CaseInfoExceptionController", description = "异常案件操作")
 public class CaseInfoExceptionController extends BaseController {
 
-    private final Logger log = LoggerFactory.getLogger(CaseInfoController.class);
+    private final Logger log = LoggerFactory.getLogger(CaseInfoExceptionController.class);
     private static final String ENTITY_NAME = "caseInfoException";
     private static final String CASE_INFO_ENTITY = "caseInfo";
     @Autowired
@@ -205,7 +205,7 @@ public class CaseInfoExceptionController extends BaseController {
             }
             return ResponseEntity.ok().body(null);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "系统异常!")).body(null);
         }
     }

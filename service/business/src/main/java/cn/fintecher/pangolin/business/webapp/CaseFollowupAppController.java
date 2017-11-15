@@ -73,7 +73,7 @@ public class CaseFollowupAppController extends BaseController {
             }
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/CaseFollowupAppController");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);
-        }catch(Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "CaseFollowupRecord", "查询失败")).body(null);
         }
     }
@@ -111,16 +111,16 @@ public class CaseFollowupAppController extends BaseController {
                 one.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COLLECTING.getValue());
                 caseAssistRepository.save(one);
             }
-            if(Objects.equals(caseInfo.getAssistFlag(), CaseInfo.AssistFlag.YES_ASSIST.getValue())){
+            if (Objects.equals(caseInfo.getAssistFlag(), CaseInfo.AssistFlag.YES_ASSIST.getValue())) {
                 caseFollowupParams.setSource(CaseFollowupRecord.Source.ASSIST.getValue());
                 caseFollowupParams.setType(CaseFollowupRecord.Type.ASSIST.getValue());
-            }else{
+            } else {
                 caseFollowupParams.setSource(CaseFollowupRecord.Source.VISIT.getValue());
                 caseFollowupParams.setType(CaseFollowupRecord.Type.VISIT.getValue());
             }
             caseFollowupParams.setCaseNumber(caseInfo.getCaseNumber());
-            if(Objects.nonNull(caseFollowupParams.getFollnextDate())){
-                caseFollowupParams.setFollnextDate(ZWDateUtil.fomratterDate( ZWDateUtil.getUtilDate(caseFollowupParams.getFollnextDate().replace("Z"," UTC"),"yyyy-MM-dd'T'HH:mm:ss.SSS Z"),null));
+            if (Objects.nonNull(caseFollowupParams.getFollnextDate())) {
+                caseFollowupParams.setFollnextDate(ZWDateUtil.fomratterDate(ZWDateUtil.getUtilDate(caseFollowupParams.getFollnextDate().replace("Z", " UTC"), "yyyy-MM-dd'T'HH:mm:ss.SSS Z"), null));
             }
             CaseFollowupRecord result = caseInfoService.saveFollowupRecord(caseFollowupParams, user);
             if (Objects.nonNull(caseFollowupParams.getFileIds())) {
@@ -140,6 +140,7 @@ public class CaseFollowupAppController extends BaseController {
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("添加跟进记录成功", "CaseFollowupRecord")).body(result);
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "CaseFollowupRecord", "添加失败")).body(null);
         }
     }

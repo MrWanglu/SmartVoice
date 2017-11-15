@@ -273,7 +273,7 @@ public class CaseInfoController extends BaseController {
     @PostMapping(value = "/distributePreview")
     @ApiOperation(value = "内催待分配预览", notes = "内催待分配预览")
     public ResponseEntity<PreviewModel> distributePreview(@RequestBody AccCaseInfoDisModel accCaseInfoDisModel,
-                                                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                                          @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         log.debug("REST request to distributeCeaseInfo");
         User user = null;
         try {
@@ -283,7 +283,7 @@ public class CaseInfoController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "distributeCeaseInfoAgain", e.getMessage())).body(null);
         }
         try {
-            PreviewModel previewModel = caseInfoService.distributePreview(accCaseInfoDisModel,user);
+            PreviewModel previewModel = caseInfoService.distributePreview(accCaseInfoDisModel, user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", ENTITY_NAME)).body(previewModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -779,8 +779,8 @@ public class CaseInfoController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    if(Objects.nonNull(caseInfo.getArea())){
-                        if(Objects.nonNull(caseInfo.getArea().getParent())){
+                    if (Objects.nonNull(caseInfo.getArea())) {
+                        if (Objects.nonNull(caseInfo.getArea().getParent())) {
                             scoreRuleModel.setProId(caseInfo.getArea().getParent().getId());//省份id
                         }
                     }
@@ -850,8 +850,8 @@ public class CaseInfoController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    if(Objects.nonNull(caseInfo.getArea())){
-                        if(Objects.nonNull(caseInfo.getArea().getParent())){
+                    if (Objects.nonNull(caseInfo.getArea())) {
+                        if (Objects.nonNull(caseInfo.getArea().getParent())) {
                             scoreRuleModel.setProId(caseInfo.getArea().getParent().getId());//省份id
                         }
                     }
@@ -863,7 +863,7 @@ public class CaseInfoController extends BaseController {
                     }
                     kieSession.insert(scoreRuleModel);//插入
                     kieSession.fireAllRules();//执行规则
-                    if(scoreRuleModel.getCupoScore() != 0) {
+                    if (scoreRuleModel.getCupoScore() != 0) {
                         caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
                         caseInfoList1.add(caseInfo);
                     }
@@ -872,7 +872,7 @@ public class CaseInfoController extends BaseController {
                 caseInfoRepository.save(caseInfoList1);
                 watch1.stop();
                 log.info("耗时：" + watch1.getTotalTimeMillis());
-                if(caseInfoList1.size() == 0){
+                if (caseInfoList1.size() == 0) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "没有符合策略的案件")).body(null);
                 }
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
@@ -931,8 +931,8 @@ public class CaseInfoController extends BaseController {
                     scoreRuleModel.setAge(age);
                     scoreRuleModel.setOverDueAmount(caseInfo.getOverdueAmount().doubleValue());
                     scoreRuleModel.setOverDueDays(caseInfo.getOverdueDays());
-                    if(Objects.nonNull(caseInfo.getArea())){
-                        if(Objects.nonNull(caseInfo.getArea().getParent())){
+                    if (Objects.nonNull(caseInfo.getArea())) {
+                        if (Objects.nonNull(caseInfo.getArea().getParent())) {
                             scoreRuleModel.setProId(caseInfo.getArea().getParent().getId());//省份id
                         }
                     }
@@ -945,7 +945,7 @@ public class CaseInfoController extends BaseController {
                     kieSession.insert(scoreRuleModel);//插入
                     kieSession.fireAllRules();//执行规则
 
-                    if(scoreRuleModel.getCupoScore() != 0) {
+                    if (scoreRuleModel.getCupoScore() != 0) {
                         caseInfo.setScore(new BigDecimal(scoreRuleModel.getCupoScore()));
                         caseInfoList1.add(caseInfo);
                     }
@@ -954,7 +954,7 @@ public class CaseInfoController extends BaseController {
                 caseInfoRepository.save(caseInfoList1);
                 watch1.stop();
                 log.info("耗时：" + watch1.getTotalTimeMillis());
-                if(caseInfoList1.size() == 0){
+                if (caseInfoList1.size() == 0) {
                     return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("caseinfo", "failure", "没有符合策略的案件")).body(null);
                 }
                 return ResponseEntity.ok().headers(HeaderUtil.createAlert("评分完成", "success")).body(scoreNumbersModel);
@@ -1201,7 +1201,7 @@ public class CaseInfoController extends BaseController {
                 builder.and(qCaseInfoReturn.caseId.companyCode.eq(user.getCompanyCode()));//公司
             }
             builder.and(qCaseInfoReturn.caseId.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));//内催
-//            builder.and(qCaseInfoReturn.caseId.department.code.startsWith(user.getDepartment().getCode()));//部门下
+            pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(Sort.Direction.DESC, "operatorTime"));
             Page<CaseInfoReturn> all = caseInfoReturnRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(all);
         } catch (Exception e) {
@@ -1371,10 +1371,12 @@ public class CaseInfoController extends BaseController {
      */
     @GetMapping("/getCommonCaseCount")
     @ApiOperation(value = "查询共债案件数量", notes = "查询共债案件数量")
-    public ResponseEntity<CommonCaseCountModel> getCommonCaseCount(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId) {
+    public ResponseEntity<CommonCaseCountModel> getCommonCaseCount(@RequestParam @ApiParam(value = "案件ID", required = true) String caseId,
+                                                                   @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get common case count");
         try {
-            CommonCaseCountModel commonCaseCountModel = caseInfoService.getCommonCaseCount(caseId);
+            User user = getUserByToken(token);
+            CommonCaseCountModel commonCaseCountModel = caseInfoService.getCommonCaseCount(caseId,user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(commonCaseCountModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

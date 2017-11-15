@@ -2,6 +2,273 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="cn.fintecher.pangolin.report.mapper.AdminPageMapper">
 
+    <!--管理员首页催收员排行榜-->
+    <select id="collectorRanking" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.CollectorRankingModel">
+        SELECT a.uname, a.rname AS name, b.amount/10000 AS amount, b.count AS count, a.payCount AS payCount,
+        a.payAmount/10000 AS payAmount, payAmount/amount AS payRate FROM (
+        SELECT c.uname AS uname, c.rname AS rname, COUNT(*) AS payCount,SUM(c.payAmount) AS payAmount FROM (
+        SELECT apply_user_name AS uname,apply.apply_real_name AS rname,SUM(apply_pay_amt) AS payAmount
+        FROM case_pay_apply apply
+        LEFT JOIN department dept ON apply.depart_id = dept.id
+        WHERE (apply.approve_result = 62 OR apply.approve_status = 58)
+        AND dept.`code` LIKE concat(#{deptCode},'%')
+        <if test="timeType == 0">
+            AND YEAR(apply.approve_pay_datetime) = YEAR(NOW())
+        </if>
+        <if test="timeType == 1">
+            AND MONTH(apply.approve_pay_datetime) = MONTH(NOW())
+        </if>
+        <if test="timeType == 2">
+            AND WEEK(apply.approve_pay_datetime) = WEEK(NOW())
+        </if>
+        GROUP BY apply.apply_user_name,apply.apply_real_name,apply.case_id
+        ) AS c
+        GROUP BY c.uname,c.rname
+        ) AS a
+        LEFT JOIN (
+        SELECT u.user_name AS uname, SUM(c.overdue_amount) AS amount, COUNT(*) AS count FROM `user` u
+        LEFT JOIN case_info c ON (c.current_collector = u.id OR c.assist_collector = u.id)
+        GROUP BY u.user_name
+        HAVING amount IS NOT NULL
+        ) AS b
+        ON a.uname = b.uname
+        WHERE b.amount IS NOT NULL
+        <if test="rankType == 0">
+            ORDER BY payAmount DESC
+        </if>
+        <if test="rankType == 1">
+            ORDER BY payCount DESC
+        </if>
+        <if test="rankType == 2">
+            ORDER BY payRate DESC
+        </if>
+        LIMIT 0, 6
+    </select>
+
+    <!--管理员首页委外方排行榜-->
+    <select id="OutsourceRanking" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultMap="outsourceRankingModel">
+        SELECT d.outs_name, c.contract_amt, c.out_back_amt, c.total_count, (c.out_back_amt/c.contract_amt) AS
+        out_back_rate, c.out_back_count FROM
+        (SELECT a.out_id,SUM(a.contract_amt) AS contract_amt, SUM(a.out_back_amt) AS out_back_amt,COUNT(*) as
+        total_count, count(CASE WHEN a.out_back_amt != 0.0000 then a.id END) as out_back_count FROM outsource_pool a
+        INNER JOIN case_info b ON a.case_id=b.id
+        WHERE b.case_pool_type=226 and b.recover_remark=0 AND a.out_status != 167 and a.company_code=#{companyCode}
+        <if test="timeType == 0">
+            AND YEAR(a.out_time) = YEAR(NOW())
+        </if>
+        <if test="timeType == 1">
+            AND MONTH(a.out_time) = MONTH(NOW())
+        </if>
+        <if test="timeType == 2">
+            AND WEEK(a.out_time) = WEEK(NOW())
+        </if>
+        GROUP BY a.out_id) as c
+        LEFT JOIN
+        (SELECT outs_name,id FROM outsource where company_code=#{companyCode})
+        as d ON c.out_id=d.id GROUP BY d.outs_name, c.contract_amt,c.out_back_amt,c.total_count,c.out_back_count
+        <if test="rankType == 0">
+            ORDER BY c.contract_amt DESC
+        </if>
+        <if test="rankType == 1">
+            ORDER BY c.total_count DESC
+        </if>
+        <if test="rankType == 2">
+            ORDER BY out_back_rate DESC
+        </if>
+        LIMIT 0, 5
+    </select>
+
+    <!--管理员首页内催催收数据-->
+    <select id="getInnerCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.ProvinceDateModel">
+        SELECT SUM(overdue_amount) as collectingAmt, count(*) as collectingCount FROM case_info as a LEFT JOIN
+        department as b on a.depart_id=b.id
+        WHERE a.collection_status IN (21, 22, 23, 172)  AND a.case_pool_type=225 AND a.recover_remark=0 and b.code like
+        CONCAT(#{deptCode},'%')
+    </select>
+    <!--管理员首页委外催收数据-->
+    <select id="getOutsourceCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.ProvinceDateModel">
+        SELECT SUM(a.contract_amt) as collectingAmt, count(*) as collectingCount FROM outsource_pool a LEFT JOIN
+        case_info b ON a.case_id = b.id
+        WHERE a.out_status=168 AND b.case_pool_type=226 AND b.recover_remark=0 AND a.company_code = #{companyCode}
+    </select>
+    <!--管理员首页内催分布于各省份的金额和数量-->
+    <select id="getProvinceInnerCollectionDate"
+            parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
+        SELECT
+        c.proviceNum as `value`,
+        t.area_name as `name`
+        FROM
+        (
+        SELECT
+        CASE WHEN SUBSTR(b.tree_path FROM 1 FOR 6) = '1/' THEN aa.area_id ELSE REPLACE(SUBSTR(SUBSTR(b.tree_path FROM 1 FOR 6) FROM 3 FOR 4),"/","") END AS tree_path,
+        aa.proviceNum
+        FROM
+        (
+        SELECT
+        count(*) AS proviceNum,
+        area_id
+        FROM
+        case_info AS a
+        LEFT JOIN department AS b ON a.depart_id = b.id
+        WHERE
+        b.CODE LIKE CONCAT(#{deptCode}, '%')
+        AND a.collection_status IN (21, 22, 23, 172)
+        AND a.case_pool_type = 225
+        AND a.recover_remark = 0
+        GROUP BY
+        area_id
+        ) AS aa,
+        area_code b
+        WHERE
+        aa.area_id = b.id
+        ) c
+        LEFT JOIN (
+        SELECT
+        area_name,
+        tree_path,
+        id
+        FROM
+        area_code
+        WHERE
+        tree_path LIKE '1/'
+        ) t ON c.tree_path = t.id
+        GROUP BY
+        t.area_name,
+        proviceNum
+    </select>
+    <!--管理员首页委外分布于各省份的金额和数量-->
+    <select id="getProvinceOutsourceCollectionDate"
+            parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
+        SELECT
+        c.proviceNum as `value`,
+        t.area_name as `name`
+        FROM
+        (
+        SELECT
+        CASE WHEN SUBSTR(b.tree_path FROM 1 FOR 6) = '1/' THEN aa.area_id ELSE REPLACE(SUBSTR(SUBSTR(b.tree_path FROM 1 FOR 6) FROM 3 FOR 4),"/","") END AS tree_path,
+        aa.proviceNum
+        FROM
+        (
+        SELECT
+        count(*) AS proviceNum,
+        b.area_id
+        FROM
+        outsource_pool a
+        LEFT JOIN case_info AS b ON a.case_id = b.id
+        WHERE
+        out_status = 168
+        AND b.case_pool_type = 226
+        AND b.recover_remark = 0
+        AND a.company_code = #{companyCode}
+        GROUP BY
+        b.area_id
+        ) AS aa,
+        area_code b
+        WHERE
+        aa.area_id = b.id
+        ) c
+        LEFT JOIN (
+        SELECT
+        area_name,
+        tree_path,
+        id
+        FROM
+        area_code
+        WHERE
+        tree_path LIKE '1/'
+        ) t ON t.id = c.tree_path
+        GROUP BY
+        t.area_name,
+        proviceNum
+    </select>
+
+    <!--管理员首页内崔+委外分布于各省份的金额和数量-->
+    <select id="getTotalProvinceCollectionDate"
+            parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
+        SELECT a.`name`, SUM(a.`value`) as `value`
+        FROM (SELECT t.area_name as `name`, c.proviceNum as `value`
+        FROM
+        (
+        SELECT
+        CASE WHEN SUBSTR(b.tree_path FROM 1 FOR 6) = '1/' THEN aa.area_id ELSE REPLACE(SUBSTR(SUBSTR(b.tree_path FROM 1 FOR 6) FROM 3 FOR 4),"/","") END AS tree_path,
+        aa.proviceNum
+        FROM
+        (SELECT count(*) AS proviceNum,area_id
+        FROM case_info AS a
+        LEFT JOIN department AS b ON a.depart_id = b.id
+        WHERE b.CODE LIKE CONCAT(#{deptCode}, '%')
+        AND a.collection_status IN (21, 22, 23, 172) AND a.case_pool_type = 225 AND a.recover_remark = 0
+        GROUP BY area_id
+        ) AS aa, area_code b WHERE aa.area_id = b.id
+        ) as c
+        LEFT JOIN (
+        SELECT area_name,tree_path,id
+        FROM area_code WHERE tree_path LIKE '1/'
+        ) as t ON c.tree_path = t.id
+        GROUP BY t.area_name, proviceNum
+        UNION ALL
+        SELECT t.area_name as `name`, c.proviceNum as `value`
+        FROM
+        (
+        SELECT
+        CASE WHEN SUBSTR(b.tree_path FROM 1 FOR 6) = '1/' THEN aa.area_id ELSE REPLACE(SUBSTR(SUBSTR(b.tree_path FROM 1 FOR 6) FROM 3 FOR 4),"/","") END AS tree_path,
+        aa.proviceNum
+        FROM
+        (SELECT count(*) AS proviceNum,b.area_id
+        FROM outsource_pool a
+        LEFT JOIN case_info AS b ON a.case_id = b.id
+        WHERE out_status = 168 AND b.case_pool_type = 226 AND b.recover_remark = 0 AND a.company_code = #{companyCode}
+        GROUP BY b.area_id
+        ) AS aa,area_code b
+        WHERE aa.area_id = b.id
+        ) as c
+        LEFT JOIN (
+        SELECT area_name,tree_path,id
+        FROM area_code
+        WHERE tree_path LIKE '1/'
+        ) t ON t.id = c.tree_path
+        GROUP BY t.area_name,proviceNum) as a GROUP BY `name`
+    </select>
+    <resultMap id="innerPromiseBackModel" type="cn.fintecher.pangolin.report.model.InnerPromiseBackModel">
+        <result column="promise_amt1" property="innerPromisedAmt"/>
+        <result column="promise_count" property="innerPromisedCount"/>
+        <result column="follow_amt" property="innerFollowAmt"/>
+        <result column="follow_count" property="innerFollowCount"/>
+        <result column="reject_amt" property="innerRejectAmt"/>
+        <result column="reject_count" property="innerRejectCount"/>
+        <result column="other_amt" property="innerOtherAmt"/>
+        <result column="other_count" property="innerOtherCount"/>
+        <result column="out_back_amt" property="outsourcePromisedAmt"/>
+        <result column="total_count" property="outsourcePromisedCount"/>
+        <result column="out_back_count" property="outsourceFollowAmt"/>
+        <result column="out_back_rate" property="outsourceFollowCount"/>
+        <result column="outs_name" property="outsourceRejectAmt"/>
+        <result column="contract_amt" property="outsourceRejectCount"/>
+        <result column="out_back_amt" property="outsourceOtherAmt"/>
+        <result column="total_count" property="outsourceOtherCount"/>
+    </resultMap>
+
+    <resultMap id="outsourceRankingModel" type="cn.fintecher.pangolin.report.model.OutsourceRankingModel">
+        <result column="outs_name" property="name"/>
+        <result column="contract_amt" property="amount"/>
+        <result column="out_back_amt" property="payAmount"/>
+        <result column="total_count" property="count"/>
+        <result column="out_back_count" property="payCount"/>
+        <result column="out_back_rate" property="payRate"/>
+    </resultMap>
+
+    <!--以上是新版管理员首页SQL-->
+    <!-- ############################################################################################################### -->
+    <!--以下是旧版管理员首页统计SQL-->
+
+
     <!--获取部门下所有用户-->
     <select id="getAllUserOnDepartment" parameterType="string" resultType="cn.fintecher.pangolin.entity.User">
         SELECT `user`.* FROM `user`
@@ -47,7 +314,8 @@
     </select>
 
     <!--周回款统计-->
-    <select id="getWeekRepaySumAmt" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
+    <select id="getWeekRepaySumAmt" parameterType="string"
+            resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
         SELECT SUM(apply_pay_amt) AS amount,WEEKDAY(approve_pay_datetime) AS dayOfWeek FROM case_pay_apply
         LEFT JOIN department
         ON case_pay_apply.depart_id = department.id
@@ -59,7 +327,8 @@
     </select>
 
     <!--周催计数-->
-    <select id="getWeekFollCount" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
+    <select id="getWeekFollCount" parameterType="string"
+            resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
         SELECT COUNT(*) AS num,WEEKDAY(record.operator_time) AS dayOfWeek
         FROM case_followup_record AS record
         LEFT JOIN `user`
@@ -73,25 +342,26 @@
     </select>
 
     <!--周结案数-->
-    <select id="getWeekCaseEndCount" parameterType="string" resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
+    <select id="getWeekCaseEndCount" parameterType="string"
+            resultType="cn.fintecher.pangolin.report.model.WeekCountResult">
         SELECT SUM(m.num) AS num,m.operator_time AS dayOfWeek FROM (
-            SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS operator_time FROM case_info
-            LEFT JOIN department
-            ON case_info.depart_id = department.id
-            WHERE department.`code` LIKE concat(#{deptCode},'%')
-            AND case_info.collection_status = 24
-            AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
-            GROUP BY WEEKDAY(operator_time)
-          UNION ALL
-            SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS operator_time FROM case_info
-            LEFT JOIN `user`
-            ON `user`.id = case_info.assist_collector
-            LEFT JOIN department
-            ON `user`.dept_id = department.id
-            WHERE department.`code` LIKE concat(#{deptCode},'%')
-            AND case_info.collection_status = 24
-            AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
-            GROUP BY WEEKDAY(operator_time)
+        SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS operator_time FROM case_info
+        LEFT JOIN department
+        ON case_info.depart_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+        AND case_info.collection_status = 24
+        AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        GROUP BY WEEKDAY(operator_time)
+        UNION ALL
+        SELECT COUNT(*) AS num,WEEKDAY(operator_time) AS operator_time FROM case_info
+        LEFT JOIN `user`
+        ON `user`.id = case_info.assist_collector
+        LEFT JOIN department
+        ON `user`.dept_id = department.id
+        WHERE department.`code` LIKE concat(#{deptCode},'%')
+        AND case_info.collection_status = 24
+        AND YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        GROUP BY WEEKDAY(operator_time)
         ) AS m
         GROUP BY m.operator_time
         ORDER BY dayOfWeek
@@ -101,35 +371,36 @@
     <select id="getCupoSort" parameterType="string" resultType="cn.fintecher.pangolin.report.model.PageSortResult">
         select n.uname as uname,n.rname as name,m.amt as amount,n.pamt as payed,pamt/amt as rate from
         (
-            select apply.apply_user_name as uname,apply.apply_real_name as rname,sum(apply.apply_pay_amt) as pamt from case_pay_apply as apply
-            left join department
-            on apply.depart_id = department.id
-            where (apply.approve_status = 58 OR apply.approve_result =62)
-            and department.code like concat(#{deptCode},'%')
-            and year(apply.approve_pay_datetime) = year(NOW())
-            and month(apply.approve_pay_datetime) = month(NOW())
-            group by apply.apply_user_name,apply.apply_real_name
+        select apply.apply_user_name as uname,apply.apply_real_name as rname,sum(apply.apply_pay_amt) as pamt from
+        case_pay_apply as apply
+        left join department
+        on apply.depart_id = department.id
+        where (apply.approve_status = 58 OR apply.approve_result =62)
+        and department.code like concat(#{deptCode},'%')
+        and year(apply.approve_pay_datetime) = year(NOW())
+        and month(apply.approve_pay_datetime) = month(NOW())
+        group by apply.apply_user_name,apply.apply_real_name
         ) as n
         left join
         (
-            select sum(amt) as amt,coll from (
-                    (
-                            select sum(case_info.overdue_amount) as amt,`user`.user_name as coll from case_info
-                            left join `user`
-                            on `user`.id = case_info.current_collector
-                            group by case_info.current_collector
-                            having coll is not null
-                    )
-                    union all
-                    (
-                            select sum(case_info.overdue_amount) as amt,`user`.user_name as coll from case_info
-                            left join `user`
-                            on `user`.id = case_info.assist_collector
-                            group by case_info.assist_collector
-                            having coll is not null
-                    )
-            ) as c
-            group by c.coll
+        select sum(amt) as amt,coll from (
+        (
+        select sum(case_info.overdue_amount) as amt,`user`.user_name as coll from case_info
+        left join `user`
+        on `user`.id = case_info.current_collector
+        group by case_info.current_collector
+        having coll is not null
+        )
+        union all
+        (
+        select sum(case_info.overdue_amount) as amt,`user`.user_name as coll from case_info
+        left join `user`
+        on `user`.id = case_info.assist_collector
+        group by case_info.assist_collector
+        having coll is not null
+        )
+        ) as c
+        group by c.coll
         ) as m
         on n.uname = m.coll
         order by rate desc
@@ -155,4 +426,206 @@
         ORDER BY rate DESC
         LIMIT 0,3
     </select>
+
+    <!--管理員首页查询所有案件的时间-->
+    <select id="getCaseDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.CaseDateModel">
+        select DATE_FORMAT(min(case_follow_in_time),'%Y') as
+        minCaseYear,DATE_FORMAT(min(case_follow_in_time),'%Y-%m') as minCaseYearMonth from case_info
+        where collection_status !=24
+        and deppart_id in (select id from department where code like concat(#{deptCode},'%'))
+        <!--全部-->
+        <if test="queryType != null and queryType == 0">
+            and case_pool_type in (225,226)
+        </if>
+        <!--内催-->
+        <if test="queryType != null and queryType == 1">
+            and case_pool_type=225
+        </if>
+        <!--委外-->
+        <if test="queryType != null and queryType == 2">
+            and case_pool_type=226
+        </if>
+    </select>
+
+    <!--管理员首页 查询已还款案件金额 已还款案件数量-->
+    <select id="getCaseAmtAndCount" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.AdminCasePaymentModel">
+        SELECT
+        <if test="timeType!=null and timeType==0">
+            <!--年 显示1-12月-->
+            DATE_FORMAT(case_follow_in_time, '%m') as queryMonth,
+        </if>
+        <if test="timeType!=null and timeType==1">
+            <!--月 显示1-31天 周 显示 周一到周日-->
+            DATE_FORMAT(case_follow_in_time, '%Y%m%d') as queryDate,
+        </if>
+        <if test="timeType!=null and timeType==2">
+            <!--周 显示 周一到周日-->
+            DATE_FORMAT(case_follow_in_time, '%Y-%m-%w') as queryWeek,
+        </if>
+        count(id) AS caseCount,
+        sum(overdue_amount)/10000 as caseAmount
+        FROM
+        case_info
+        WHERE
+        end_type = 110
+        AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        <if test="timeType!=null and timeType==0">
+            AND case_follow_in_time between #{startDate} and #{endDate}
+        </if>
+        <if test="timeType!=null and timeType==1">
+            AND case_follow_in_time between #{startDate} and #{endDate}
+        </if>
+        <if test="timeType!=null and timeType==2">
+            AND DATE_FORMAT(case_follow_in_time, '%Y-%m-%w') = DATE_FORMAT(#{startDate}, '%Y-%m-%w')
+        </if>
+        AND company_Code = #{companyCode}
+        <!--全部-->
+        <if test="queryType != null and queryType == 0">
+            and case_pool_type in (225,226)
+        </if>
+        <!--内催-->
+        <if test="queryType != null and queryType == 1">
+            and case_pool_type=225
+        </if>
+        <!--委外-->
+        <if test="queryType != null and queryType == 2">
+            and case_pool_type=226
+        </if>
+        <if test="timeType!=null and timeType==0">
+            group by DATE_FORMAT(case_follow_in_time, '%m')
+        </if>
+        <if test="timeType!=null and timeType==1">
+            group by DATE_FORMAT(case_follow_in_time, '%Y%m%d')
+        </if>
+        <if test="timeType!=null and timeType==2">
+            <!--周 显示 周一到周日-->
+            group by DATE_FORMAT(case_follow_in_time, '%Y-%m-%w')
+        </if>
+    </select>
+
+    <!--管理员首页 查询还款审核中案件金额 还款审核中案件数量-->
+    <select id="getCaseApplyAmtAndCount" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.AdminCasePaymentModel">
+        SELECT
+        <if test="timeType!=null and timeType==0">
+            <!--年 显示1-12月-->
+            DATE_FORMAT(case_follow_in_time, '%m') as queryMonth,
+        </if>
+        <if test="timeType!=null and timeType==1">
+            <!--月 显示1-31天 -->
+            DATE_FORMAT(case_follow_in_time, '%Y%m%d') as queryDate,
+        </if>
+        <if test="timeType!=null and timeType==2">
+            <!--周 显示 周一到周日-->
+            DATE_FORMAT(case_follow_in_time, '%Y-%m-%w') as queryWeek,
+        </if>
+        count(id) AS caseCount,
+        sum(overdue_amount)/10000 as caseAmount
+        FROM
+        case_info
+        WHERE
+        collection_status in (22,23)
+        AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        <if test="timeType!=null and timeType==0">
+            AND case_follow_in_time between #{startDate} and #{endDate}
+        </if>
+        <if test="timeType!=null and timeType==1">
+            AND case_follow_in_time between #{startDate} and #{endDate}
+        </if>
+        <if test="timeType!=null and timeType==2">
+            AND DATE_FORMAT(case_follow_in_time, '%Y-%m-%w') = DATE_FORMAT(#{startDate}, '%Y-%m-%w')
+        </if>
+        AND company_Code = #{companyCode}
+        <!--全部-->
+        <if test="queryType != null and queryType == 0">
+            and case_pool_type in (225,226)
+        </if>
+        <!--内催-->
+        <if test="queryType != null and queryType == 1">
+            and case_pool_type=225
+        </if>
+        <!--委外-->
+        <if test="queryType != null and queryType == 2">
+            and case_pool_type=226
+        </if>
+        <if test="timeType!=null and timeType==0">
+            group by DATE_FORMAT(case_follow_in_time, '%m')
+        </if>
+        <if test="timeType!=null and timeType==1">
+            group by DATE_FORMAT(case_follow_in_time, '%Y%m%d')
+        </if>
+        <if test="timeType!=null and timeType==2">
+            <!--周 显示 周一到周日-->
+            group by DATE_FORMAT(case_follow_in_time, '%Y-%m-%w')
+        </if>
+    </select>
+
+    <!--管理員首頁 查询某个年度不同催收方式的每月催记数量和外呼数量-->
+    <select id="getRecordReport" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.GroupMonthFollowRecord">
+        select DATE_FORMAT(b.operator_time, '%Y-%m-%d') as currentMonth ,b.collection_way as wayType , count(*) as typeCount
+        from case_followup_record b
+        LEFT JOIN case_info a on a.id = b.case_id
+        where a.depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        and DATE_FORMAT(b.operator_time, '%Y-%m')=DATE_FORMAT(#{startDate}, '%Y-%m')
+        AND b.collection_way =1
+        group by currentMonth,b.collection_way HAVING b.collection_way is not NULL
+        UNION ALL
+        select DATE_FORMAT(b.operator_time, '%Y-%m-%d') as currentMonth ,b.collection_way as wayType, count(*) as typeCount
+        from case_followup_record b
+        LEFT JOIN case_info a on a.id = b.case_id
+        where a.depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        and DATE_FORMAT(b.operator_time, '%Y-%m')=DATE_FORMAT(#{startDate}, '%Y-%m')
+        AND b.collection_way =0
+        group by currentMonth,b.collection_way HAVING b.collection_way is not NULL
+    </select>
+
+    <!--根据不同的日期类型查询并统计不同还款类型的数据-->
+    <select id="getCaseGroupInfo" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.CaseRepaymentTypeGroupInfo">
+        SELECT t.c1 AS rePaymentType,
+        ROUND(sum(t.c2) / 10000, 2) AS totalRePaymentMoney,
+        sum(t.c3) AS totalCaseNumber
+        FROM (
+        <!--第一次根据回款方式进行数据统计，第二次再根据统计回款方式-->
+        SELECT
+        CASE B.collection_feedback
+        WHEN 90 THEN '承诺还款'
+        WHEN 91 THEN '协商跟进'
+        WHEN 92 THEN '拒绝还款'
+        ELSE '继续施压' END AS c1,
+        SUM(A.overdue_amount) AS c2,
+        COUNT(B.collection_feedback) AS c3
+        FROM case_info A
+        LEFT JOIN case_followup_record B ON A.id = B.case_id
+        WHERE
+        B.collection_feedback IS NOT NULL
+        <if test="timeType!=null and timeType==0">
+            AND DATE_FORMAT(B.operator_time, '%Y') = DATE_FORMAT(#{startDate}, '%Y')
+        </if>
+        <if test="timeType!=null and timeType==1">
+            AND DATE_FORMAT(B.operator_time, '%Y-%m') = DATE_FORMAT(#{startDate}, '%Y-%m')
+        </if>
+        <if test="timeType!=null and timeType==2">
+            AND DATE_FORMAT(B.operator_time, '%Y-%m-%w') = DATE_FORMAT(#{startDate}, '%Y-%m-%w')
+        </if>
+        <!--内催+委外-->
+        <if test="queryType == 0">
+            AND A.case_pool_type in(225,226)
+        </if>
+        <!--内催-->
+        <if test="queryType == 1">
+            AND A.case_pool_type =225
+        </if>
+        <!--委外-->
+        <if test="queryType == 2">
+            AND A.case_pool_type =226
+        </if>
+        GROUP BY B.collection_feedback
+        ) t
+        GROUP BY t.c1
+    </select>
+
 </mapper>

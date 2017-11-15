@@ -1,15 +1,14 @@
 package cn.fintecher.pangolin.business.web;
 
-import cn.fintecher.pangolin.business.repository.ProductSeriesRepository;
-import cn.fintecher.pangolin.entity.ProductSeries;
-import cn.fintecher.pangolin.entity.QProductSeries;
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.entity.CaseInfo;
+import cn.fintecher.pangolin.entity.QCaseInfo;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.apache.commons.collections4.IterableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -34,7 +31,7 @@ public class ProductSeriesController extends BaseController{
     private final Logger log = LoggerFactory.getLogger(ProductSeriesController.class);
 
     @Inject
-    private ProductSeriesRepository productSeriesRepository;
+    private CaseInfoRepository caseInfoRepository;
 
     @GetMapping("/getProductSeriesName")
     @ApiOperation(value = "获取所有的产品名称",notes = "获取所有的产品名称")
@@ -49,16 +46,15 @@ public class ProductSeriesController extends BaseController{
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("ProductSeriesController", "getProductSeriesName", e.getMessage())).body(null);
         }
         try {
-            QProductSeries qProductSeries = QProductSeries.productSeries;
-            BooleanBuilder exp = new BooleanBuilder();
-            if (Objects.nonNull(user.getCompanyCode())) {
-                exp.and(qProductSeries.companyCode.eq(user.getCompanyCode()));
-            }
-            Iterable<ProductSeries> all = productSeriesRepository.findAll(exp);
-            List<ProductSeries> productSeries = IterableUtils.toList(all);
+            QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+            BooleanBuilder builder = new BooleanBuilder();
+            builder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+            builder.and(qCaseInfo.product.isNotNull());
+            builder.and(qCaseInfo.product.productSeries.isNotNull());
+            Iterable<CaseInfo> caseInfos = caseInfoRepository.findAll(builder);
             Set<String> set = new HashSet<>();
-            for (ProductSeries ps : productSeries) {
-                set.add(ps.getSeriesName());
+            for (CaseInfo caseInfo : caseInfos) {
+                set.add(caseInfo.getProduct().getProductSeries().getSeriesName());
             }
             return ResponseEntity.ok().body(set);
         } catch (Exception e) {
