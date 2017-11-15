@@ -1376,7 +1376,7 @@ public class CaseInfoController extends BaseController {
         log.debug("REST request to get common case count");
         try {
             User user = getUserByToken(token);
-            CommonCaseCountModel commonCaseCountModel = caseInfoService.getCommonCaseCount(caseId,user);
+            CommonCaseCountModel commonCaseCountModel = caseInfoService.getCommonCaseCount(caseId, user);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", "")).body(commonCaseCountModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -1462,7 +1462,25 @@ public class CaseInfoController extends BaseController {
         }
     }
 
-
+    /**
+     * @Description 一键审批提前流转
+     */
+    @PostMapping("/approveAllAdvanceTurn")
+    @ApiOperation(value = "一键审批提前流转", notes = "一键审批提前流转")
+    public ResponseEntity<Void> approvedAllAdvanceTurn(@RequestBody PaymentParams paymentParams, @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to approve all advance turn");
+        try {
+            User tokenUser = getUserByToken(token);
+            caseInfoService.approveAllAdvanceTurn(paymentParams.getResult(), paymentParams.getFlag(), tokenUser);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功", ENTITY_NAME)).body(null);
+        } catch (GeneralException ge) {
+            log.error(ge.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", ge.getMessage())).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "审批失败")).body(null);
+        }
+    }
 }
 
 
