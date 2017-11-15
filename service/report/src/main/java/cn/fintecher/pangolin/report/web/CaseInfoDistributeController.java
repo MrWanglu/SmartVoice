@@ -48,7 +48,7 @@ public class CaseInfoDistributeController extends BaseController {
             if (Objects.nonNull(user.getCompanyCode())) {
                 params.setCompanyCode(user.getCompanyCode());
             }
-            PageHelper.startPage(params.getPage(), params.getSize());
+            PageHelper.startPage(params.getPage() + 1, params.getSize());
             List<CaseInfoDistributed> caseInfoDistributes = caseInfoDistributeMapper.findCaseInfoDistribute(params);
             PageInfo<CaseInfoDistributed> pageInfo = new PageInfo<>(caseInfoDistributes);
             Pageable pageable = new PageRequest(params.getPage(), params.getSize());
