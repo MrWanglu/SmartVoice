@@ -2,10 +2,8 @@ package cn.fintecher.pangolin.report.mapper;
 
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.model.*;
-import org.apache.ibatis.annotations.Param;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,13 +23,52 @@ public interface AdminPageMapper {
     List<CollectorRankingModel> collectorRanking(CollectorRankingParams params);
 
     /**
-     * 催收员排行榜
+     * 委外方排行榜
      *
      * @param params
      * @return
      */
     List<OutsourceRankingModel> OutsourceRanking(CollectorRankingParams params);
 
+    /**
+     * 内催分布于各省份的金额和数量
+     *
+     * @param params
+     * @return
+     */
+    ProvinceDateModel getInnerCollectionDate(CollectorRankingParams params);
+
+    /**
+     * 内催分布于各省份的金额和数量
+     *
+     * @param params
+     * @return
+     */
+    ProvinceDateModel getOutsourceCollectionDate(CollectorRankingParams params);
+
+    /**
+     * 内催分布于各省份的金额和数量
+     *
+     * @param params
+     * @return
+     */
+    List<ProvinceCollectionDateModel> getProvinceInnerCollectionDate(CollectorRankingParams params);
+
+    /**
+     * 委外分布于各省份的金额和数量
+     *
+     * @param params
+     * @return
+     */
+    List<ProvinceCollectionDateModel> getProvinceOutsourceCollectionDate(CollectorRankingParams params);
+
+    /**
+     * 内崔+委外分布于各省份的金额和数量
+     *
+     * @param params
+     * @return
+     */
+    List<ProvinceCollectionDateModel> getTotalProvinceCollectionDate(CollectorRankingParams params);
 
     /**以上是新版本*/
     /**############################################################################################################*/
@@ -128,5 +165,26 @@ public interface AdminPageMapper {
     /**
      * 获取所有的案件时间
      */
-    CaseDateModel getCaseDate(@Param("queryType") String queryType, @Param("companyCode") String companyCode);
+    CaseDateModel getCaseDate(CollectorRankingParams collectorRankingParams);
+
+    /**
+     * 查詢已还款案件金额 已还款案件数量
+     */
+    List<AdminCasePaymentModel> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams);
+
+    /**
+     * 查詢还款审核中的案件金额 还款审核中的案件数量
+     */
+    List<AdminCasePaymentModel> getCaseApplyAmtAndCount(CollectorRankingParams collectorRankingParams);
+
+
+    /**
+     * 某个年度不同催收方式的每月催记数量和外呼数量
+     */
+    List<GroupMonthFollowRecord> getRecordReport(CollectorRankingParams collectorrankingparams);
+
+    /**
+     * 根据不同的日期类型获取案件当前情况。包含不同还款类型的金额和数量
+     */
+    List<CaseRepaymentTypeGroupInfo> getCaseGroupInfo(CollectorRankingParams parm);
 }

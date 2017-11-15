@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.inject.Inject;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @Author : sunyanping
@@ -214,6 +215,9 @@ public class HomePageController extends BaseController {
                                                                         @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
+            if (Objects.nonNull(user.getCompanyCode())) {
+                params.setCompanyCode(user.getCompanyCode());
+            }
             List<OutsourceRankingModel> outsourceRankingModels = adminPageMapper.OutsourceRanking(params);
             Page<OutsourceRankingModel> page = new PageImpl(outsourceRankingModels);
             return ResponseEntity.ok().body(page);
@@ -225,15 +229,85 @@ public class HomePageController extends BaseController {
 
     @GetMapping("/getCaseDate")
     @ApiOperation(value = "获取案件池中所有的日期", notes = "获取案件池中所有的日期")
-    public ResponseEntity<CaseDateModel> getCaseDate(@RequestParam(value = "查询类别(0 全部 1 内催 2 委外)") String queryType,
-                                                     @RequestParam(value = "公司Code") String companyCode) {
+    public ResponseEntity<CaseDateModel> getCaseDate(CollectorRankingParams collectorRankingParams) {
         try {
-            CaseDateModel caseDateModel = adminPageMapper.getCaseDate(queryType, companyCode);
+            CaseDateModel caseDateModel = adminPageMapper.getCaseDate(collectorRankingParams);
             return ResponseEntity.ok().body(caseDateModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "获取案件时间失败!")).body(null);
         }
     }
+
+    @GetMapping("/getCaseAmtAndCount")
+    @ApiOperation(value = "管理员首页 获取已还款案件金额/获取还款审核中案件金额/", notes = " 管理员首页 获取已还款案件数量/获取还款审核中案件数量/")
+    public ResponseEntity<ReturnDataModel> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams,
+                                                              @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            String code = user.getDepartment().getCode();
+            collectorRankingParams.setDeptCode(code);
+            if (Objects.nonNull(user.getCompanyCode())) {
+                collectorRankingParams.setCompanyCode(user.getCompanyCode());
+            }
+            ReturnDataModel collectorRankingModels = homePageService.getCaseAmtAndCount(collectorRankingParams);
+            return ResponseEntity.ok().body(collectorRankingModels);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "获取案件时间失败!")).body(null);
+        }
+    }
+
+    @GetMapping("/getRecordReport")
+    @ApiOperation(value = "根据年份查询该年度各月的催记，外呼数据量", notes = "根据年份查询该年度各月的催记，外呼数据量")
+    public ResponseEntity<FollowCalledDateModel> getRecordReport(CollectorRankingParams collectorRankingParams,
+                                                                        @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            String code = user.getDepartment().getCode();
+            collectorRankingParams.setDeptCode(code);
+            FollowCalledDateModel result = homePageService.getRecordReport(collectorRankingParams);
+            return ResponseEntity.ok().body(result);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "催收数据查询失败!")).body(null);
+        }
+    }
+
+    @GetMapping("/getCollectionedDate")
+    @ApiOperation(value = "管理员首页获取催收中数据", notes = "管理员首页获取催收中数据")
+    public ResponseEntity<CollectionDateModel> getCollectionedDate(CollectorRankingParams params,
+                                                                   @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            String code = user.getDepartment().getCode();
+            params.setDeptCode(code);
+            if (Objects.nonNull(user.getCompanyCode())) {
+                params.setCompanyCode(user.getCompanyCode());
+            }
+            CollectionDateModel collectionDateModel = homePageService.getCollectionedDate(params);
+            return ResponseEntity.ok().body(collectionDateModel);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "委外方排行榜统计错误!")).body(null);
+        }
+    }
+
+    @GetMapping("/getCaseGroupInfo")
+    @ApiOperation(value = "管理员首页获获取某时间段根据回款类型分组得到案件金额和数量", notes = "管理员首页获获取某时间段根据回款类型分组得到案件金额和数量")
+    public ResponseEntity<PromisedDateModel> getCaseGroupInfo(CollectorRankingParams params,
+                                                                             @RequestHeader(value = "X-UserToKen") String token) {
+        try {
+            User user = getUserByToken(token);
+            String code = user.getDepartment().getCode();
+            params.setDeptCode(code);
+            PromisedDateModel result = homePageService.getCaseGroupInfo(params);
+            return ResponseEntity.ok().body(result);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "获取催收回款类型出错!")).body(null);
+        }
+    }
+
 
 }

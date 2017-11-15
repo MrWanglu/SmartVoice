@@ -205,7 +205,7 @@ public class CaseInfoExceptionController extends BaseController {
             }
             return ResponseEntity.ok().body(null);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "系统异常!")).body(null);
         }
     }

@@ -1940,10 +1940,10 @@ public class CaseInfoService {
         Collections.sort(caseInfoYes, (o1, o2) -> {
             return o2.getOverdueAmount().compareTo(o1.getOverdueAmount());
         });
-        int start = (int)Math.round(caseInfoYes.size()*0.25);
-        int end = (int)Math.round(caseInfoYes.size()*0.75);
+        int start = (int) Math.round(caseInfoYes.size() * 0.25);
+        int end = (int) Math.round(caseInfoYes.size() * 0.75);
         List<CaseInfo> numAvgList = new ArrayList<>();
-        for(int i = start; i< end; i++){
+        for (int i = start; i < end; i++) {
             numAvgList.add(caseInfoYes.get(start));
             caseInfoYes.remove(start);
         }
@@ -1978,10 +1978,10 @@ public class CaseInfoService {
             }
         }
         Collections.shuffle(numAvgList);
-        for(DisModel model : disModels){
-            List<CaseInfo> temp = numAvgList.subList(0,model.getNum());
-            numAvgList = numAvgList.subList(model.getNum(),numAvgList.size());
-            for(CaseInfo caseInfo:temp){
+        for (DisModel model : disModels) {
+            List<CaseInfo> temp = numAvgList.subList(0, model.getNum());
+            numAvgList = numAvgList.subList(model.getNum(), numAvgList.size());
+            for (CaseInfo caseInfo : temp) {
                 model.setAmt(model.getAmt().add(caseInfo.getOverdueAmount()));
                 model.getCaseIds().add(caseInfo.getId());
                 model.getCaseInfos().add(caseInfo);
@@ -2971,7 +2971,7 @@ public class CaseInfoService {
     /**
      * @Description 计算共债案件数量
      */
-    public CommonCaseCountModel getCommonCaseCount(String caseId) {
+    public CommonCaseCountModel getCommonCaseCount(String caseId, User user) {
         CaseInfo caseInfo = caseInfoRepository.findOne(caseId); //获取案件信息
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
@@ -2982,10 +2982,15 @@ public class CaseInfoService {
             return commonCaseCountModel;
         }
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+        booleanBuilder.and(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard()));
+        booleanBuilder.and(qCaseInfo.personalInfo.name.eq(caseInfo.getPersonalInfo().getName()));
+        booleanBuilder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue(), CaseInfo.CollectionStatus.CASE_OUT.getValue()));
+        if (Objects.isNull(user.getCompanyCode())) {
+            booleanBuilder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+        }
         //计算共债案件数量
-        long count = caseInfoRepository.count(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard()).
-                and(qCaseInfo.personalInfo.name.eq(caseInfo.getPersonalInfo().getName())).
-                and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue(), CaseInfo.CollectionStatus.CASE_OUT.getValue()))); //不包括已结案和已委外的案件
+        long count = caseInfoRepository.count(booleanBuilder);
         commonCaseCountModel.setCount((int) count - 1);
         return commonCaseCountModel;
     }

@@ -279,7 +279,7 @@
         personalName,b.mobile_no as mobileNo,b.id_card as idCard,c.`name` as principalName,c.id as principalId,
         d.real_name as collectorName,e.`code` as deptCode,a.caseMark,a.case_pool_type,b.id as
         personalId,a.promiseAmt,a.promiseTime,f.area_name as cityName,f.id as areaId,g.id as
-        parentAreaId,a.operatorTime,a.realPayAmount from
+        parentAreaId,a.operatorTime,a.realPayAmount,a.endRemark from
         (SELECT id as caseId,case_number as caseNumber,batch_number as batchNumber,overdue_amount as
         overdueAmount,pay_status as payStatus,overdue_days as overdueDays,collection_status as
         collectionStatus,followup_time
@@ -288,7 +288,7 @@
         as holdDays,left_days as leftDays,leave_case_flag as
         leaveCaseFlag,personal_id,principal_id,current_collector,depart_id,collection_type as collectionType,case_mark
         as caseMark,case_pool_type,promise_amt as promiseAmt,promise_time as promiseTime,area_id,operator_time as
-        operatorTime,real_pay_amount as realPayAmount from
+        operatorTime,real_pay_amount as realPayAmount,end_remark as endRemark from
         case_info where current_collector is not null) a
         LEFT JOIN personal b on a.personal_id = b.id
         LEFT JOIN principal c on a.principal_id = c.id
@@ -361,6 +361,12 @@
         </if>
         <if test="areaId != null">
             AND f.id = #{areaId} OR f.parent_id = #{areaId}
+        </if>
+        <if test="realPayMaxAmt != null">
+           AND <![CDATA[a.realPayAmount <= #{realPayMaxAmt}]]>
+        </if>
+        <if test="realPayMinAmt != null">
+           AND <![CDATA[a.realPayAmount >= #{realPayMinAmt}]]>
         </if>
         ORDER BY a.caseMark desc
         <if test="sort != null and sort == 'followupBack,asc'">

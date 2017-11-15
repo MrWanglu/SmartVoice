@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author : xiaqun
@@ -81,7 +80,9 @@ public class CaseInfoInquiryController extends BaseController {
                     caseInfoConditionParams.getAreaId(),
                     tokenUser.getType(),
                     tokenUser.getManager(),
-                    tokenUser.getId());
+                    tokenUser.getId(),
+                    caseInfoConditionParams.getRealPayMaxAmt(),
+                    caseInfoConditionParams.getRealPayMinAmt());
             PageInfo<CaseInfoModel> pageInfo = new PageInfo<>(caseInfoModels);
             Pageable pageable = new PageRequest(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
             Page<CaseInfoModel> page = new PageImpl<>(caseInfoModels, pageable, pageInfo.getTotal());
