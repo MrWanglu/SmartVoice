@@ -418,7 +418,8 @@ public class CaseInfoVerificationService {
             caseInfoVerificationRepository.save(caseInfoVerification);
             caseInfoVerification.setOperator(user.getRealName()); // 操作人
             caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
-            caseInfoVerification.setState(caseInfoVerficationModel.getState()); // 核销说明
+            CaseInfoVerificationApply apply = caseInfoVerificationApplyRepository.findOne(QCaseInfoVerificationApply.caseInfoVerificationApply.caseId.eq(caseInfo.getId()));
+            caseInfoVerification.setState(apply.getApplicationReason()); // 核销说明--申请理由
             caseInfoVerification.setPackingStatus(CaseInfoVerification.PackingStatus.NO_PACKED.getValue());// 打包状态
             caseInfoVerificationApplyRepository.save(caseInfoVerificationApply);
             //消息提醒

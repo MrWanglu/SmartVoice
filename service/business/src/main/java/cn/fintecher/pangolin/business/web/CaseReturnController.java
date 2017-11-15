@@ -145,6 +145,7 @@ public class CaseReturnController extends BaseController {
                 judicial.setCompanyCode(caseInfo.getCompanyCode());
                 judicial.setOperatorTime(new Date());
                 judicial.setOperatorUserName(user.getUserName());
+                judicial.setState(params.getMemo());
                 judicialList.add(judicial);
             }
             caseAssistRepository.save(caseAssistList);

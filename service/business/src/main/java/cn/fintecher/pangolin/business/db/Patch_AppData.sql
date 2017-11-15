@@ -239,3 +239,9 @@ UPDATE `pangolin_business`.`sys_param` SET `name`='协催申请失效天数(天)
 UPDATE `pangolin_business`.`sys_param` SET `name`='消息提醒批量(时分秒)' WHERE name = '消息提醒批量';
 UPDATE `pangolin_business`.`sys_param` SET `name`='案件到期批量回收、回收提醒调度时间(时分秒)' WHERE name = '案件到期批量回收、回收提醒调度时间';
 UPDATE `pangolin_business`.`sys_param` SET `name`='案件分案撤销时长(分钟)' WHERE name = '案件分案撤销时长';
+
+--2017-11-15
+--司法表增加说明字段
+--袁艳婷
+ALTER TABLE `case_info_judicial`
+ADD COLUMN `state`  varchar(255) NULL AFTER `company_code`;
