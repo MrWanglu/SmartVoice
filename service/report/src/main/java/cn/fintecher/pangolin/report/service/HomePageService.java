@@ -138,11 +138,11 @@ public class HomePageService {
         //本周需回款总案件个数
         Integer caseWeekBackTotalCount = collectPageMapper.getWeekTotalBackCash(user.getId());
         //本周已回款案件个数
-        Integer caseWeekBackFinishedCount = collectPageMapper.getWeekHadBackCash(user.getId());
+        Integer caseWeekBackFinishedCount = collectPageMapper.getWeekHadBackCash(user.getUserName());
         //本月流入案件总数
         Integer caseMonthTotalCount = collectPageMapper.getCaseInfoMonthAllCount(user.getId());
         //本月已结案案件总数
-        Integer caseMonthFinishedCount = collectPageMapper.getCaseInfoMonthClosedCount(user.getUserName());
+        Integer caseMonthFinishedCount = collectPageMapper.getCaseInfoMonthClosedCount(user.getId());
         //本月需回款总案件个数
         Integer caseMonthBackTotalCount = collectPageMapper.getMonthTotalBackCash(user.getId());
         //本月已回款案件个数
@@ -202,9 +202,9 @@ public class HomePageService {
 
         CaseStatusTotalPreview caseStatusTotalPreview = new CaseStatusTotalPreview();
         //未催收案件数
-        Integer toFollowCaseCount = collectPageMapper.getCaseInfoToFollowCount(user.getUserName());
+        Integer toFollowCaseCount = collectPageMapper.getCaseInfoToFollowCount(user.getId());
         //催收中案件数
-        Integer followingCaseCount = collectPageMapper.getCaseInfoFollowingCount(user.getUserName());
+        Integer followingCaseCount = collectPageMapper.getCaseInfoFollowingCount(user.getId());
         //承诺还款案件数
         Integer commitmentBackCaseCount = collectPageMapper.getCaseInfoPromisedCount(user.getUserName());
         //今日流入案件

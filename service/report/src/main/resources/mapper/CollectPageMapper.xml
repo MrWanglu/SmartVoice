@@ -41,7 +41,7 @@
     <!--本周需回款总金额-->
     <select id="getWeekTotalBackCash" parameterType="string" resultType="integer">
         SELECT count(*) FROM case_turn_record
-        where YEARWEEK(DATE_FORMAT(operator_time,'%Y-%m-%d'),1) = YEARWEEK(CURDATE(),1)
+        where DATE_FORMAT(operator_time,'%Y-%m-%w')= DATE_FORMAT(CURDATE(),'%Y-%m-%w')
         AND receive_user_id = #{userId}
     </select>
 
@@ -49,7 +49,7 @@
     <select id="getWeekHadBackCash" parameterType="string" resultType="integer">
         SELECT count(*) FROM case_pay_apply
         WHERE (approve_result = 62 OR approve_status = 58)
-        AND YEARWEEK(DATE_FORMAT(approve_pay_datetime, '%Y-%m-%d'),1) = YEARWEEK(curdate(),1)
+        AND DATE_FORMAT(approve_pay_datetime, '%Y-%m-%w') = DATE_FORMAT(curdate(),'%Y-%m-%w')
         AND apply_user_name = #{userName}
     </select>
 
@@ -72,7 +72,7 @@
     <select id="getCalledDay" parameterType="string" resultType="integer">
         SELECT count(*) FROM case_followup_record
         WHERE collection_way = 0
-        AND date_format(operator_time,'%Y-%m-%d') = CURDATE()
+        AND date_format(operator_time,'%Y-%m-%d') = date_format(CURDATE(),'%Y-%m-%d')
         AND operator = #{userName}
     </select>
 
@@ -80,7 +80,7 @@
     <select id="getCalledWeek" parameterType="string" resultType="integer">
         SELECT count(*) FROM case_followup_record
         WHERE collection_way = 0
-        AND YEARWEEK(date_format(operator_time,'%Y-%m-%d'),1) = YEARWEEK(now(),1)
+        AND DATE_FORMAT(operator_time,'%Y-%m-%w') = DATE_FORMAT(now(),'%Y-%m-%w')
         AND operator = #{userName}
     </select>
 
@@ -156,7 +156,7 @@
     <!--未催收案件数-->
     <select id="getCaseInfoToFollowCount" parameterType="string" resultType="integer">
         SELECT COUNT(*) FROM case_info
-        WHERE collection_status NOT IN (24,25,166)
+        WHERE collection_status = 20
         AND (current_collector = #{userId}
         OR assist_collector = #{userId})
     </select>
@@ -164,7 +164,7 @@
     <!--催收中案件数-->
     <select id="getCaseInfoFollowingCount" parameterType="string" resultType="integer">
         SELECT COUNT(*) FROM case_info
-        WHERE collection_status NOT IN (24,25,166)
+        WHERE collection_status NOT IN (20,24,25,166)
         AND (current_collector = #{userId}
         OR assist_collector = #{userId})
     </select>
