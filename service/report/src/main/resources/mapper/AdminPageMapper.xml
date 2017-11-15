@@ -69,10 +69,10 @@
         (SELECT outs_name,id FROM outsource where company_code=#{companyCode})
         as d ON c.out_id=d.id GROUP BY d.outs_name, c.contract_amt,c.out_back_amt,c.total_count,c.out_back_count
         <if test="rankType == 0">
-            ORDER BY c.contract_amt DESC
+            ORDER BY c.out_back_amt DESC
         </if>
         <if test="rankType == 1">
-            ORDER BY c.total_count DESC
+            ORDER BY c.out_back_count DESC
         </if>
         <if test="rankType == 2">
             ORDER BY out_back_rate DESC
@@ -595,6 +595,7 @@
         WHEN 90 THEN '承诺还款'
         WHEN 91 THEN '协商跟进'
         WHEN 92 THEN '拒绝还款'
+        WHEN 93 THEN '客户已还款'
         ELSE '继续施压' END AS c1,
         SUM(A.overdue_amount) AS c2,
         COUNT(B.collection_feedback) AS c3

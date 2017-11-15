@@ -28,4 +28,6 @@ public class FollowCalledDateModel {
     private Integer callTotalCount;
     @ApiModelProperty(notes = "呼叫平均数量")
     private Integer callAvgCount;
+    @ApiModelProperty(notes = "每个月的每一天")
+    private List<String> dayList;//配合前段
 }

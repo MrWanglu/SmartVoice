@@ -32,4 +32,6 @@ public class ReturnDataModel {
     private BigDecimal applyTotalCaseAmount = new BigDecimal(0.00);
     @ApiModelProperty(notes = "还款审核中案件数量")
     private Integer applyTotalCaseCount = 0;
+    @ApiModelProperty(notes = "每个月的每一天")
+    private List<String> dayList;//配合前段
 }
