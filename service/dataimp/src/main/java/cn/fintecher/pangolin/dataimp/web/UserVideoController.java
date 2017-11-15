@@ -5,40 +5,24 @@ import cn.fintecher.pangolin.dataimp.entity.UserVideo;
 import cn.fintecher.pangolin.dataimp.repository.UserVideoRepository;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
-import cn.fintecher.pangolin.util.VideoSwitchUtil;
 import cn.fintecher.pangolin.util.ZWDateUtil;
-import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import io.swagger.annotations.*;
-import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.omg.CORBA.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
-import sun.swing.FilePane;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 /**
  * Created by qijigui on 2017-11-08.

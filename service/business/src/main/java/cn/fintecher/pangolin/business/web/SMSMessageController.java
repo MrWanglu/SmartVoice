@@ -165,11 +165,11 @@ public class SMSMessageController extends BaseController {
             user = getUserByToken(token);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(messageService.parseErrorList(null));
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
         Template template = templateRepository.findOne(capaMessageParams.getTesmId());
         if (Objects.isNull(template)) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "没有找到模板")).body(messageService.parseErrorList(null));
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "没有找到模板")).body(null);
         }
         //获取短信发送系统参数
         BooleanBuilder exp = new BooleanBuilder();
@@ -178,7 +178,7 @@ public class SMSMessageController extends BaseController {
         exp.and(QSysParam.sysParam.status.eq(SysParam.StatusEnum.Start.getValue()));
         SysParam sysParam = sysParamRepository.findOne(exp);
         if(Objects.isNull(sysParam)){
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先配置系统参数")).body(messageService.parseErrorList(null));
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请先配置系统参数")).body(null);
         }
         String type = sysParam.getValue();
         Template temp = new Template();
