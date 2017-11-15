@@ -487,6 +487,5 @@
         <if test="sort != null and sort == 'overdueAmount,desc'">
             ,b.overdue_amount desc
         </if>
-        ,g.`name` asc
     </select>
 </mapper>
