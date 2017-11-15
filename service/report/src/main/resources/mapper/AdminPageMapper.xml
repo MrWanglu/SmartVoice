@@ -77,7 +77,7 @@
         <if test="rankType == 2">
             ORDER BY out_back_rate DESC
         </if>
-        LIMIT 0, 5
+        LIMIT 0, 6
     </select>
 
     <!--管理员首页内催催收数据-->
@@ -586,7 +586,7 @@
     <select id="getCaseGroupInfo" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.CaseRepaymentTypeGroupInfo">
         SELECT t.c1 AS rePaymentType,
-        ROUND(sum(t.c2) / 10000, 2) AS totalRePaymentMoney,
+        sum(t.c2) / 10000 AS totalRePaymentMoney,
         sum(t.c3) AS totalCaseNumber
         FROM (
         <!--第一次根据回款方式进行数据统计，第二次再根据统计回款方式-->
