@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 public class CaseRepaymentTypeGroupInfo {
 
     //催收反馈
-    private String rePaymentType;
+    private Integer rePaymentType;
     //共计还款金额
     private BigDecimal totalRePaymentMoney = new BigDecimal(0);
     //总共案件数量

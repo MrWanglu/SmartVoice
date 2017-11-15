@@ -13,9 +13,8 @@ import javax.persistence.Entity;
 @Entity
 @Data
 public class PromisedModel {
-
-    @ApiModelProperty(notes = "催收中总数量或金额")
+    @ApiModelProperty(notes = "催收反馈中总数量或金额")
     private String value;
-    @ApiModelProperty(notes = "省份名称")
-    private String name;
+    @ApiModelProperty(notes = "催收反馈名称")
+    private Integer name;
 }

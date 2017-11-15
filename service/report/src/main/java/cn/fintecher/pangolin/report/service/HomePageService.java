@@ -607,49 +607,34 @@ public class HomePageService {
 
     //管理员首页第三部分
     public PromisedDateModel getCaseGroupInfo(CollectorRankingParams params) {
-        PromisedDateModel promisedDateModel = new PromisedDateModel();
         //案件还款意向数据案件金额集合
+        PromisedDateModel promisedDateModel = new PromisedDateModel();
         List<PromisedModel> totalAmtList = new ArrayList<>();
         //案件还款意向数据案件数量集合
         List<PromisedModel> totalCountList = new ArrayList<>();
         List<CaseRepaymentTypeGroupInfo> modeList = adminPageMapper.getCaseGroupInfo(params);
         if (Objects.nonNull(modeList) && modeList.size() != 0) {
             //案件还款意向数据案件金额集合
-            for (CaseRepaymentTypeGroupInfo ca : modeList) {
-                PromisedModel pro = new PromisedModel();
-                //无客户已还款，所以剔除该选项
-                if(!("客户已还款").equals(ca.getRePaymentType())){
-                    pro.setName(ca.getRePaymentType());
-                    pro.setValue(ca.getTotalRePaymentMoney().toString());
-                }
-                totalAmtList.add(pro);
-            }
-            //案件还款意向数据案件数量集合
-            for (CaseRepaymentTypeGroupInfo ca : modeList) {
-                PromisedModel pro = new PromisedModel();
-                //无客户已还款，所以剔除该选项
-                if(!("客户已还款").equals(ca.getRePaymentType())){
-                    pro.setName(ca.getRePaymentType());
-                    pro.setValue(ca.getTotalCaseNumber().toString());
-                }
-                totalCountList.add(pro);
+            for (CaseRepaymentTypeGroupInfo caseRepaymentTypeGroupInfo : modeList) {
+                PromisedModel proAmount = new PromisedModel();
+                proAmount.setName(caseRepaymentTypeGroupInfo.getRePaymentType());
+                proAmount.setValue(caseRepaymentTypeGroupInfo.getTotalRePaymentMoney().toString());
+                totalAmtList.add(proAmount);
+
+                PromisedModel proCount = new PromisedModel();
+                proCount.setName(caseRepaymentTypeGroupInfo.getRePaymentType());
+                proCount.setValue(caseRepaymentTypeGroupInfo.getTotalRePaymentMoney().toString());
+                totalCountList.add(proCount);
             }
         } else {
             //配合前端，如果查到空数据，需要对其值塞入0
             CaseFollowupRecord.EffectiveCollection[] feedBacks = CaseFollowupRecord.EffectiveCollection.values(); //有效催收反馈
-            for (int i=0; i<feedBacks.length;i++) {
-                PromisedModel pro = new PromisedModel();
-                if(i==4){
-                    pro.setName("继续施压");
-                }else {
-                    //无客户已还款，所以剔除该选项
-                    if(!("客户已还款").equals(feedBacks[i].getRemark().toString())){
-                        pro.setName(feedBacks[i].getRemark().toString());
-                    }
-                }
-                pro.setValue("0");
-                totalAmtList.add(pro);
-                totalCountList.add(pro);
+            for (int i = 0; i < feedBacks.length; i++) {
+                PromisedModel promisedModel = new PromisedModel();
+                promisedModel.setName(feedBacks[i].getValue());
+                promisedModel.setValue("0");
+                totalAmtList.add(promisedModel);
+                totalCountList.add(promisedModel);
             }
         }
         promisedDateModel.setTotalAmtList(totalAmtList);
@@ -735,10 +720,10 @@ public class HomePageService {
     /**
      * 某一年某个月的每一天
      */
-    public List<String> getMonthFullDay(String date){
+    public List<String> getMonthFullDay(String date) {
         List<String> fullDayList = new ArrayList<String>();
-        int year = Integer.parseInt(date.substring(0,4));
-        int month = Integer.parseInt(date.substring(5,7));
+        int year = Integer.parseInt(date.substring(0, 4));
+        int month = Integer.parseInt(date.substring(5, 7));
         int day = 1;// 所有月份从1号开始
         Calendar cal = Calendar.getInstance();// 获得当前日期对象
         cal.clear();// 清除信息
@@ -746,8 +731,8 @@ public class HomePageService {
         cal.set(Calendar.MONTH, month - 1);// 1月从0开始
         cal.set(Calendar.DAY_OF_MONTH, day);
         int count = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-        for (int j = 0; j <= (count-1);) {
-            if(sdf.format(cal.getTime()).equals(getLastDay(year, month)))
+        for (int j = 0; j <= (count - 1); ) {
+            if (sdf.format(cal.getTime()).equals(getLastDay(year, month)))
                 break;
             cal.add(Calendar.DAY_OF_MONTH, j == 0 ? +0 : +1);
             j++;
@@ -755,21 +740,23 @@ public class HomePageService {
         }
         return fullDayList;
     }
-    public String getLastDay(int year,int month){
+
+    public String getLastDay(int year, int month) {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.YEAR, year);
         cal.set(Calendar.MONTH, month);
         cal.set(Calendar.DAY_OF_MONTH, 0);
         return sdf.format(cal.getTime());
     }
+
     /**
      * 获取每一天
-     * */
-    public List<String> getMonthDay(String date){
+     */
+    public List<String> getMonthDay(String date) {
         List<String> list = getMonthFullDay(date);
         List<String> listDay = new ArrayList<>();
-        for(String date1 : list){
-            listDay.add(date1.substring(8,10));
+        for (String date1 : list) {
+            listDay.add(date1.substring(8, 10));
         }
         return listDay;
     }

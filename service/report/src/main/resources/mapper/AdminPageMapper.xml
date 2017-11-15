@@ -591,12 +591,7 @@
         FROM (
         <!--第一次根据回款方式进行数据统计，第二次再根据统计回款方式-->
         SELECT
-        CASE B.collection_feedback
-        WHEN 90 THEN '承诺还款'
-        WHEN 91 THEN '协商跟进'
-        WHEN 92 THEN '拒绝还款'
-        WHEN 93 THEN '客户已还款'
-        ELSE '继续施压' END AS c1,
+        B.collection_feedback as c1,
         SUM(A.overdue_amount) AS c2,
         COUNT(B.collection_feedback) AS c3
         FROM case_info A

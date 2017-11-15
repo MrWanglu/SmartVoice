@@ -11,7 +11,6 @@ import cn.fintecher.pangolin.report.service.HomePageService;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import net.sf.jsqlparser.expression.DateTimeLiteralExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -261,7 +259,7 @@ public class HomePageController extends BaseController {
     @GetMapping("/getRecordReport")
     @ApiOperation(value = "根据年份查询该年度各月的催记，外呼数据量", notes = "根据年份查询该年度各月的催记，外呼数据量")
     public ResponseEntity<FollowCalledDateModel> getRecordReport(CollectorRankingParams collectorRankingParams,
-                                                                        @RequestHeader(value = "X-UserToken") String token) {
+                                                                 @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
             String code = user.getDepartment().getCode();
@@ -294,9 +292,9 @@ public class HomePageController extends BaseController {
     }
 
     @GetMapping("/getCaseGroupInfo")
-    @ApiOperation(value = "管理员首页获获取某时间段根据回款类型分组得到案件金额和数量", notes = "管理员首页获获取某时间段根据回款类型分组得到案件金额和数量")
+    @ApiOperation(value = "管理员首页 案件催收反馈数据 获获取某时间段根据回款类型分组得到案件金额和数量", notes = "管理员首页 案件催收反馈数据 获取某时间段根据回款类型分组得到案件金额和数量")
     public ResponseEntity<PromisedDateModel> getCaseGroupInfo(CollectorRankingParams params,
-                                                                             @RequestHeader(value = "X-UserToKen") String token) {
+                                                              @RequestHeader(value = "X-UserToKen") String token) {
         try {
             User user = getUserByToken(token);
             String code = user.getDepartment().getCode();
