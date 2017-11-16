@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.business.job.CaseRecoverJob;
 import cn.fintecher.pangolin.business.job.OverNightJob;
 import cn.fintecher.pangolin.business.job.RecordDownLoadJob;
 import cn.fintecher.pangolin.business.job.ReminderTimingJob;
+import cn.fintecher.pangolin.business.model.UrlParams;
 import cn.fintecher.pangolin.business.repository.SysParamRepository;
 import cn.fintecher.pangolin.business.service.JobTaskService;
 import cn.fintecher.pangolin.entity.QSysParam;
@@ -11,13 +12,11 @@ import cn.fintecher.pangolin.entity.SysParam;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.EntityUtil;
+import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -284,5 +283,29 @@ public class SysParamController extends BaseController {
         }
         SysParam sysParam1 = sysParamRepository.save(sysParam);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "")).body(sysParam1);
+    }
+
+    /**
+     * @Description 上传模版, 修改模版参数
+     */
+    @PostMapping("/modifyTemplateUrl")
+    @ApiOperation(value = "上传模版,修改模版参数", notes = "上传模版,修改模版参数")
+    public ResponseEntity<Void> modifyTemplateUrl(@RequestBody UrlParams urlParams, @RequestHeader(value = "X-UserToken") String token) {
+        logger.debug("REST request to modify template url");
+        try {
+            User tokenUser = getUserByToken(token);
+            SysParam sysParam = sysParamRepository.findOne(urlParams.getId()); //获取系统参数
+            if (Objects.isNull(sysParam)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "sysParam", "系统参数未找到")).body(null);
+            }
+            sysParam.setValue(urlParams.getUrl());
+            sysParam.setOperator(tokenUser.getUserName());
+            sysParam.setOperateTime(ZWDateUtil.getNowDateTime());
+            sysParamRepository.save(sysParam);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("修改成功", ENTITY_NAME)).body(null);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "sysParam", "修改失败")).body(null);
+        }
     }
 }
