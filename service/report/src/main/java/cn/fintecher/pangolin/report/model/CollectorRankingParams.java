@@ -25,6 +25,8 @@ public class CollectorRankingParams {
     private String endDate;
     @ApiModelProperty("公司标识码")
     private String companyCode;
+    @ApiModelProperty("部门名称")
+    private String deptName;
 
 
     /**

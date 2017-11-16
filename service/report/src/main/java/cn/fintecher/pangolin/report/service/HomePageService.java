@@ -131,32 +131,28 @@ public class HomePageService {
     public CollectPage getCollectedWeekOrMonthPage(User user) {
 
         CollectPage collectPage = new CollectPage();
-        //本周流入案件总数
-        Integer caseWeekTotalCount = collectPageMapper.getCaseInfoWeekAllCount(user.getId());
+        //催收员案件总数
+        Integer caseTotalCount = collectPageMapper.getCaseInfoWeekAllCount(user.getId());
         //本周已结案案件总数
         Integer caseWeekFinishedCount = collectPageMapper.getCaseInfoWeekClosedCount(user.getId());
-        //本周需回款总案件个数
-        Integer caseWeekBackTotalCount = collectPageMapper.getWeekTotalBackCash(user.getId());
-        //本周已回款案件个数
-        Integer caseWeekBackFinishedCount = collectPageMapper.getWeekHadBackCash(user.getUserName());
-        //本月流入案件总数
-        Integer caseMonthTotalCount = collectPageMapper.getCaseInfoMonthAllCount(user.getId());
+        //催收员回款总金额
+        BigDecimal caseBackTotalAmt = collectPageMapper.getWeekTotalBackCash(user.getId());
+        //本周已回款总金额
+        BigDecimal caseWeekBackFinishedAmt= collectPageMapper.getWeekHadBackCash(user.getUserName());
         //本月已结案案件总数
         Integer caseMonthFinishedCount = collectPageMapper.getCaseInfoMonthClosedCount(user.getId());
-        //本月需回款总案件个数
-        Integer caseMonthBackTotalCount = collectPageMapper.getMonthTotalBackCash(user.getId());
-        //本月已回款案件个数
-        Integer caseMonthBackFinishedCount = collectPageMapper.getMonthHadBackCash(user.getUserName());
+        //本月已回款总金额
+        BigDecimal caseMonthBackFinishedAmt = collectPageMapper.getMonthHadBackCash(user.getUserName());
 
-        collectPage.setCaseWeekTotalCount(Objects.isNull(caseWeekTotalCount) ? 0 : caseWeekTotalCount);
+        collectPage.setCaseWeekTotalCount(Objects.isNull(caseTotalCount) ? 0 : caseTotalCount);
         collectPage.setCaseWeekFinishedCount(Objects.isNull(caseWeekFinishedCount) ? 0 : caseWeekFinishedCount);
-        collectPage.setCaseWeekBackTotalCount(Objects.isNull(caseWeekBackTotalCount) ? 0 : caseWeekBackTotalCount);
-        collectPage.setCaseWeekBackFinishedCount(Objects.isNull(caseWeekBackFinishedCount) ? 0 : caseWeekBackFinishedCount);
+        collectPage.setCaseWeekBackTotalAmt(Objects.isNull(caseBackTotalAmt) ? BigDecimal.ZERO: caseBackTotalAmt);
+        collectPage.setCaseWeekBackFinishedAmt(Objects.isNull(caseWeekBackFinishedAmt) ? BigDecimal.ZERO: caseWeekBackFinishedAmt);
 
-        collectPage.setCaseMonthTotalCount(Objects.isNull(caseMonthTotalCount) ? 0 : caseMonthTotalCount);
+        collectPage.setCaseMonthTotalCount(Objects.isNull(caseTotalCount) ? 0 : caseTotalCount);
         collectPage.setCaseMonthFinishedCount(Objects.isNull(caseMonthFinishedCount) ? 0 : caseMonthFinishedCount);
-        collectPage.setCaseMonthBackTotalCount(Objects.isNull(caseMonthBackTotalCount) ? 0 : caseMonthBackTotalCount);
-        collectPage.setCaseMonthBackFinishedCount(Objects.isNull(caseMonthBackFinishedCount) ? 0 : caseMonthBackFinishedCount);
+        collectPage.setCaseMonthBackTotalAmt(Objects.isNull(caseBackTotalAmt) ? BigDecimal.ZERO: caseBackTotalAmt);
+        collectPage.setCaseMonthBackFinishedAmt(Objects.isNull(caseMonthBackFinishedAmt) ? BigDecimal.ZERO: caseMonthBackFinishedAmt);
         return collectPage;
     }
 
@@ -223,10 +219,10 @@ public class HomePageService {
     }
 
     //催收员首页 - 第五部分 催收员回款排名
-    public CaseInfoRank getCollectedCaseBackRank(User user, String depCode) {
+    public CaseInfoRank getCollectedCaseBackRank(User user, CollectorRankingParams params) {
 
         CaseInfoRank caseInfoRank = new CaseInfoRank();
-        List<BackAmtModel> backAmtModels = collectPageMapper.getCaseInfoBackRank(depCode);
+        List<BackAmtModel> backAmtModels = collectPageMapper.getCaseInfoBackRank(params);
         for (int i = 0; i < backAmtModels.size(); i++) {
             if (Objects.isNull(backAmtModels.get(i).getCollectionName())) {
                 backAmtModels.remove(backAmtModels.get(i));
@@ -246,10 +242,10 @@ public class HomePageService {
     }
 
     //催收员首页 - 第六部分 催收计数排名
-    public CaseInfoRank getCollectedFollowedRank(User user, String depName) {
+    public CaseInfoRank getCollectedFollowedRank(User user,  CollectorRankingParams params) {
 
         CaseInfoRank caseInfoRank = new CaseInfoRank();
-        List<FollowCountModel> followCountModels = collectPageMapper.getCaseInfoFollowRank(depName);
+        List<FollowCountModel> followCountModels = collectPageMapper.getCaseInfoFollowRank(params);
         for (int i = 0; i < followCountModels.size(); i++) {
             if (Objects.isNull(followCountModels.get(i).getCollectionFollowName())) {
                 followCountModels.remove(followCountModels.get(i));
@@ -620,7 +616,7 @@ public class HomePageService {
 
                 PromisedModel proCount = new PromisedModel();
                 proCount.setName(caseRepaymentTypeGroupInfo.getRePaymentType());
-                proCount.setValue(caseRepaymentTypeGroupInfo.getTotalRePaymentMoney().toString());
+                proCount.setValue(caseRepaymentTypeGroupInfo.getTotalCaseNumber().toString());
                 totalCountList.add(proCount);
             }
         } else {

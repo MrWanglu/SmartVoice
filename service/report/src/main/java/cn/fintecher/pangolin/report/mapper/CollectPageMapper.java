@@ -1,9 +1,6 @@
 package cn.fintecher.pangolin.report.mapper;
 
-import cn.fintecher.pangolin.report.model.BackAmtModel;
-import cn.fintecher.pangolin.report.model.CaseCountResult;
-import cn.fintecher.pangolin.report.model.FollowCountModel;
-import cn.fintecher.pangolin.report.model.WeekCountResult;
+import cn.fintecher.pangolin.report.model.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,7 +13,7 @@ import java.util.List;
 public interface CollectPageMapper {
 
     /**
-     * 本周流入案件总数（包含已结案的）
+     * 催收员的案件总数（包含已结案的）
      *
      */
     Integer getCaseInfoWeekAllCount(String userId);
@@ -28,40 +25,28 @@ public interface CollectPageMapper {
     Integer getCaseInfoWeekClosedCount(String userId);
 
     /**
-     * 本月流入案件总数（包含已结案的）
-     *
-     */
-    Integer getCaseInfoMonthAllCount(String userId);
-
-    /**
      * 本月完成已结案案件总数
      *
      */
     Integer getCaseInfoMonthClosedCount(String userId);
 
     /**
-     * 本周需回款总案件个数
+     * 催收员回款总金额
      *
      */
-    Integer getWeekTotalBackCash(String userId);
+    BigDecimal getWeekTotalBackCash(String userId);
 
     /**
      * 本周已回款案件个数
      *
      */
-    Integer getWeekHadBackCash(String userName);
-
-    /**
-     * 本月需回款总金额
-     *
-     */
-    Integer getMonthTotalBackCash(String userId);
+    BigDecimal getWeekHadBackCash(String userName);
 
     /**
      * 本月已回款总金额
      *
      */
-    Integer getMonthHadBackCash(String userName);
+    BigDecimal getMonthHadBackCash(String userName);
 
     /**
      * 今日外呼
@@ -153,11 +138,11 @@ public interface CollectPageMapper {
      * 回款金额排名
      *
      */
-    List<BackAmtModel> getCaseInfoBackRank(String depCode);
+    List<BackAmtModel> getCaseInfoBackRank(CollectorRankingParams params);
 
     /**
      * 跟催量排名
      *
      */
-    List<FollowCountModel> getCaseInfoFollowRank(String depName);
+    List<FollowCountModel> getCaseInfoFollowRank(CollectorRankingParams params);
 }

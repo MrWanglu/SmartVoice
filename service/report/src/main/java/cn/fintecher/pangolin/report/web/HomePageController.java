@@ -123,19 +123,21 @@ public class HomePageController extends BaseController {
 
     @GetMapping(value = "/getHomePageCollectedCaseBackRank")
     @ApiOperation(value = "统计催收员首页回款金额排名", notes = "统计催收员首页回款金额排名")
-    public ResponseEntity getHomePageCollectedCaseBackRank(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity getHomePageCollectedCaseBackRank(CollectorRankingParams params,
+                                                           @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get getHomePageCollectedPage : {}", token);
         User user = null;
-        String depCode = null;
+        String depName = null;
         try {
             user = getUserByToken(token);
-            depCode = user.getDepartment().getCode();
+            depName = user.getDepartment().getName();
+            params.setDeptName(depName);
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
         }
         try {
-            CaseInfoRank caseInfoRank = homePageService.getCollectedCaseBackRank(user, depCode);
+            CaseInfoRank caseInfoRank = homePageService.getCollectedCaseBackRank(user, params);
             return ResponseEntity.ok().body(caseInfoRank);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -145,19 +147,21 @@ public class HomePageController extends BaseController {
 
     @GetMapping(value = "/getHomePageCollectedFollowedRank")
     @ApiOperation(value = "统计催收员首页跟催量排名", notes = "统计催收员首页跟催量排名")
-    public ResponseEntity getHomePageCollectedFollowedRank(@RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity getHomePageCollectedFollowedRank(CollectorRankingParams params,
+                                                           @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get getHomePageCollectedPage : {}", token);
         User user = null;
         String depName = null;
         try {
             user = getUserByToken(token);
             depName = user.getDepartment().getName();
+            params.setDeptName(depName);
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
         }
         try {
-            CaseInfoRank caseInfoRank = homePageService.getCollectedFollowedRank(user, depName);
+            CaseInfoRank caseInfoRank = homePageService.getCollectedFollowedRank(user, params);
             return ResponseEntity.ok().body(caseInfoRank);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

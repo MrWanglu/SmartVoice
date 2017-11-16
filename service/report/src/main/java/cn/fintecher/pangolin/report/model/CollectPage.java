@@ -19,18 +19,18 @@ public class CollectPage {
     private Integer caseWeekTotalCount;
     @ApiModelProperty(notes = "案件完成总数")
     private Integer caseWeekFinishedCount;
-    @ApiModelProperty(notes = "回款案件总数")
-    private Integer caseWeekBackTotalCount;
-    @ApiModelProperty(notes = "回款完成案件总数")
-    private Integer caseWeekBackFinishedCount;
+    @ApiModelProperty(notes = "回款案件金额")
+    private BigDecimal caseWeekBackTotalAmt;
+    @ApiModelProperty(notes = "回款完成案件金额")
+    private BigDecimal caseWeekBackFinishedAmt;
 
     // 第二部分 月完成进度
     @ApiModelProperty(notes = "案件总数")
     private Integer caseMonthTotalCount;
     @ApiModelProperty(notes = "案件完成总数")
     private Integer caseMonthFinishedCount;
-    @ApiModelProperty(notes = "回款案件总数")
-    private Integer caseMonthBackTotalCount;
-    @ApiModelProperty(notes = "回款完成案件总数")
-    private Integer caseMonthBackFinishedCount;
+    @ApiModelProperty(notes = "回款案件总金额")
+    private BigDecimal caseMonthBackTotalAmt;
+    @ApiModelProperty(notes = "回款完成案件金额")
+    private BigDecimal caseMonthBackFinishedAmt;
 }
