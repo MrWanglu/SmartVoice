@@ -15,6 +15,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -47,6 +48,8 @@ public class FileUploadController {
     @Autowired
     UploadFileCridFsService uploadFileCridFsService;
 
+    private org.slf4j.Logger logger = LoggerFactory.getLogger(FileUploadController.class);
+
     @CrossOrigin(origins = "*", maxAge = 3600)
     @RequestMapping(value = "/upload", method = RequestMethod.POST, headers = {"content-type=multipart/mixed", "content-type=multipart/form-data"}, consumes = {"multipart/form-data"})
     @ResponseBody
@@ -68,15 +71,20 @@ public class FileUploadController {
     @ResponseBody
     @ApiOperation(value = "Grid方式上传文件", notes = "返回JSON data 为UploadFile 对象")
     ResponseEntity<UploadFile> uploadFileGrid(@RequestParam("file") MultipartFile file, @RequestHeader(value = "X-UserToken") String token) throws Exception {
-        if (Objects.isNull(file)) {
-            throw new RuntimeException("MultipartFile是空的");
+        try {
+            if (Objects.isNull(file)) {
+                throw new RuntimeException("MultipartFile是空的");
+            }
+            ResponseEntity<User> entity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+            if (Objects.isNull(entity)) {
+                throw new RuntimeException("请先登录");
+            }
+            UploadFile uploadFile = uploadFileCridFsService.uploadFile(file);
+            return new ResponseEntity<>(uploadFile, HttpStatus.OK);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "上传失败")).body(null);
         }
-        ResponseEntity<User> entity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-        if (Objects.isNull(entity)) {
-            throw new RuntimeException("请先登录");
-        }
-        UploadFile uploadFile = uploadFileCridFsService.uploadFile(file);
-        return new ResponseEntity<>(uploadFile, HttpStatus.OK);
     }
 
 
@@ -91,10 +99,10 @@ public class FileUploadController {
         if (StringUtils.isBlank(request.getBatchNum())) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createAlert("批次号是空的", "")).body(null);
         }
-        ResponseEntity<User> userResponseEntity=null;
+        ResponseEntity<User> userResponseEntity = null;
         try {
             userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", "")).body(null);
         }
         User user = userResponseEntity.getBody();
@@ -124,6 +132,7 @@ public class FileUploadController {
         List<UploadFile> uploadFiles = Lists.newArrayList(uploadFileRepository.findAll(fileIds));
         return ResponseEntity.ok(uploadFiles);
     }
+
     /**
      * 在线显示文件
      *
@@ -150,6 +159,7 @@ public class FileUploadController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File was not fount");
         }
     }
+
     /**
      * 下载文件
      *

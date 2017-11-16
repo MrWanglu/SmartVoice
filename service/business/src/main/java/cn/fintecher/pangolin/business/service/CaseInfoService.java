@@ -1940,10 +1940,10 @@ public class CaseInfoService {
         Collections.sort(caseInfoYes, (o1, o2) -> {
             return o2.getOverdueAmount().compareTo(o1.getOverdueAmount());
         });
-        int start = (int)Math.round(caseInfoYes.size()*0.25);
-        int end = (int)Math.round(caseInfoYes.size()*0.75);
+        int start = (int) Math.round(caseInfoYes.size() * 0.25);
+        int end = (int) Math.round(caseInfoYes.size() * 0.75);
         List<CaseInfo> numAvgList = new ArrayList<>();
-        for(int i = start; i< end; i++){
+        for (int i = start; i < end; i++) {
             numAvgList.add(caseInfoYes.get(start));
             caseInfoYes.remove(start);
         }
@@ -1978,10 +1978,10 @@ public class CaseInfoService {
             }
         }
         Collections.shuffle(numAvgList);
-        for(DisModel model : disModels){
-            List<CaseInfo> temp = numAvgList.subList(0,model.getNum());
-            numAvgList = numAvgList.subList(model.getNum(),numAvgList.size());
-            for(CaseInfo caseInfo:temp){
+        for (DisModel model : disModels) {
+            List<CaseInfo> temp = numAvgList.subList(0, model.getNum());
+            numAvgList = numAvgList.subList(model.getNum(), numAvgList.size());
+            for (CaseInfo caseInfo : temp) {
                 model.setAmt(model.getAmt().add(caseInfo.getOverdueAmount()));
                 model.getCaseIds().add(caseInfo.getId());
                 model.getCaseInfos().add(caseInfo);
@@ -2971,7 +2971,7 @@ public class CaseInfoService {
     /**
      * @Description 计算共债案件数量
      */
-    public CommonCaseCountModel getCommonCaseCount(String caseId) {
+    public CommonCaseCountModel getCommonCaseCount(String caseId, User user) {
         CaseInfo caseInfo = caseInfoRepository.findOne(caseId); //获取案件信息
         if (Objects.isNull(caseInfo)) {
             throw new RuntimeException("该案件未找到");
@@ -2982,10 +2982,15 @@ public class CaseInfoService {
             return commonCaseCountModel;
         }
         QCaseInfo qCaseInfo = QCaseInfo.caseInfo;
+        BooleanBuilder booleanBuilder = new BooleanBuilder();
+        booleanBuilder.and(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard()));
+        booleanBuilder.and(qCaseInfo.personalInfo.name.eq(caseInfo.getPersonalInfo().getName()));
+        booleanBuilder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue(), CaseInfo.CollectionStatus.CASE_OUT.getValue()));
+        if (Objects.isNull(user.getCompanyCode())) {
+            booleanBuilder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
+        }
         //计算共债案件数量
-        long count = caseInfoRepository.count(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard()).
-                and(qCaseInfo.personalInfo.name.eq(caseInfo.getPersonalInfo().getName())).
-                and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue(), CaseInfo.CollectionStatus.CASE_OUT.getValue()))); //不包括已结案和已委外的案件
+        long count = caseInfoRepository.count(booleanBuilder);
         commonCaseCountModel.setCount((int) count - 1);
         return commonCaseCountModel;
     }
@@ -3206,5 +3211,137 @@ public class CaseInfoService {
         }
         caseRevokeDistributeModel.setReason(reason); //原因
         return caseRevokeDistributeModel;
+    }
+
+    /**
+     * @Description 一键审批提前流转
+     */
+    public void approveAllAdvanceTurn(Integer result, Integer flag, User tokenUser) throws Exception {
+        //result 审批结果 0-通过 1-拒绝
+        //flag 类型 0-电催 1-外访
+        QCaseAdvanceTurnApplay qCaseAdvanceTurnApplay = QCaseAdvanceTurnApplay.caseAdvanceTurnApplay;
+        Iterable<CaseAdvanceTurnApplay> caseAdvanceTurnApplays;
+        if (Objects.equals(0, flag)) { //电催审批
+            //获取所有未审批的电催提前流转申请
+            caseAdvanceTurnApplays = caseAdvanceTurnApplayRepository.findAll(qCaseAdvanceTurnApplay.departId.startsWith(tokenUser.getDepartment().getCode()). //权限控制
+                    and(qCaseAdvanceTurnApplay.collectionType.eq(0)). //电催
+                    and(qCaseAdvanceTurnApplay.companyCode.eq(tokenUser.getCompanyCode())). //公司code码
+                    and(qCaseAdvanceTurnApplay.approveResult.eq(CaseAdvanceTurnApplay.CirculationStatus.PHONE_WAITING.getValue()))); //213-待审批
+        } else { //外访审批
+            //获取所有未审批的外访提前流转申请
+            caseAdvanceTurnApplays = caseAdvanceTurnApplayRepository.findAll(qCaseAdvanceTurnApplay.departId.startsWith(tokenUser.getDepartment().getCode()). //权限控制
+                    and(qCaseAdvanceTurnApplay.collectionType.eq(1)). //电催
+                    and(qCaseAdvanceTurnApplay.companyCode.eq(tokenUser.getCompanyCode())). //公司code码
+                    and(qCaseAdvanceTurnApplay.approveResult.eq(CaseAdvanceTurnApplay.CirculationStatus.PHONE_WAITING.getValue()))); //213-待审批
+        }
+        if (!caseAdvanceTurnApplays.iterator().hasNext()) {
+            throw new GeneralException("没有审批");
+        }
+        List<CaseAdvanceTurnApplay> caseAdvanceTurnApplayList = IterableUtils.toList(caseAdvanceTurnApplays);
+        for (CaseAdvanceTurnApplay caseAdvanceTurnApplay : caseAdvanceTurnApplayList) {
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseAdvanceTurnApplay.getCaseId());
+            if (Objects.isNull(caseInfo)) {
+                throw new GeneralException("案件信息未找到");
+            }
+            String userIdForRemind = caseInfo.getCurrentCollector().getId();
+            if (Objects.equals(0, result)) { //通过
+                if (Objects.equals(0, flag)) {
+                    caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.PHONE_PASS.getValue()); //198-电催流转通过
+                    if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标志
+                        if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
+                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseInfo.getId(), tokenUser, "流转强制拒绝", CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
+                            caseAssistApplyRepository.saveAndFlush(caseAssistApply);
+                        } else { //有协催案件
+                            QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+                            CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseInfo.getId()).
+                                    and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
+                            if (Objects.isNull(caseAssist)) {
+                                throw new RuntimeException("协催案件未找到");
+                            }
+                            caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
+                            caseAssist.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                            caseAssist.setOperator(tokenUser); //操作员
+                            caseAssistRepository.saveAndFlush(caseAssist);
+
+                            //协催结束新增一条流转记录
+                            CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+                            BeanUtils.copyProperties(caseInfo, caseTurnRecord); //将案件信息复制到流转记录
+                            caseTurnRecord.setId(null); //主键置空
+                            caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
+                            caseTurnRecord.setDepartId(caseInfo.getCurrentCollector().getDepartment().getId()); //部门ID
+                            caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
+                            caseTurnRecord.setReceiveDeptName(caseInfo.getCurrentCollector().getDepartment().getName()); //接收部门名称
+                            caseTurnRecord.setReceiveUserId(caseInfo.getCurrentCollector().getId()); //接受人ID
+                            caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
+                            caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
+                            caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员
+                            caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                            caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
+                        }
+                    }
+                    //更新原案件状态
+                    caseInfo.setCaseType(CaseInfo.CaseType.PHNONEFAHEADTURN.getValue());
+                } else {
+                    caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.VISIT_PASS.getValue()); //201-外访流转通过
+                    caseInfo.setCaseType(CaseInfo.CaseType.OUTFAHEADTURN.getValue());
+                }
+                //更新原案件
+                caseInfo.setAssistCollector(null); //协催员置空
+                caseInfo.setAssistWay(null); //协催方式置空
+                caseInfo.setAssistFlag(0); //协催标识 0-否
+                caseInfo.setAssistStatus(null); //协催状态置空
+                caseInfo.setFollowupBack(null); //催收反馈置空
+                caseInfo.setFollowupTime(null); //跟进时间置空
+                caseInfo.setPromiseAmt(null); //承诺还款金额置空
+                caseInfo.setPromiseTime(null); //承诺还款时间置空
+                caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上一个催收员变为当前催收员
+                caseInfo.setCurrentCollector(null); //当前催收员变为审批人
+                caseInfo.setHoldDays(0); //持案天数归0
+                caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue()); //案件标记为无色
+                caseInfo.setFollowUpNum(caseInfo.getFollowUpNum() + 1); //流转次数加一
+                caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //流入时间
+                caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态 20-待催收
+                caseInfo.setLeaveCaseFlag(0); //留案标识置0
+
+                //通过后添加一条流转记录
+                CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
+                BeanUtils.copyProperties(caseInfo, caseTurnRecord);
+                caseTurnRecord.setId(null);
+                caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
+                caseTurnRecord.setDepartId(tokenUser.getDepartment().getId()); //部门ID
+                caseTurnRecord.setReceiveUserRealName(tokenUser.getRealName()); //接受人名称
+                caseTurnRecord.setReceiveDeptName(tokenUser.getDepartment().getName()); //接收部门名称
+                caseTurnRecord.setReceiveUserId(tokenUser.getId()); //接受人ID
+                caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
+                caseTurnRecord.setCirculationType(1); //流转类型 1-手动流转
+                caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
+                caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+                caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
+                caseAdvanceTurnApplay.setApproveResult(CaseAdvanceTurnApplay.CirculationStatus.PHONE_PASS.getValue());//通过
+            } else { //拒绝
+                if (Objects.equals(flag, 0)) {
+                    caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.PHONE_REFUSE.getValue()); //199-电催流转拒绝
+                } else {
+                    caseInfo.setCirculationStatus(CaseInfo.CirculationStatus.VISIT_REFUSE.getValue()); //202-外访流转拒绝
+                }
+                caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型恢复为193-案件分配
+                caseAdvanceTurnApplay.setApproveResult(CaseAdvanceTurnApplay.CirculationStatus.PHONE_REFUSE.getValue());//拒绝
+            }
+            caseAdvanceTurnApplay.setApproveRealName(tokenUser.getRealName());
+            caseAdvanceTurnApplay.setApproveDatetime(ZWDateUtil.getNowDateTime());
+            caseAdvanceTurnApplay.setApproveUserName(tokenUser.getUserName());
+            caseAdvanceTurnApplayRepository.save(caseAdvanceTurnApplay);
+            caseInfo.setOperator(tokenUser); //操作人
+            caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
+            caseInfoRepository.saveAndFlush(caseInfo);
+
+            //消息提醒
+            SendReminderMessage sendReminderMessage = new SendReminderMessage();
+            sendReminderMessage.setUserId(userIdForRemind);
+            sendReminderMessage.setTitle("客户 [" + caseInfo.getPersonalInfo().getName() + "] 的案件提前流转申请" + (result == 0 ? "已通过" : "被拒绝"));
+            sendReminderMessage.setContent(caseAdvanceTurnApplay.getApproveMemo());
+            sendReminderMessage.setType(ReminderType.CIRCULATION);
+            reminderService.sendReminder(sendReminderMessage);
+        }
     }
 }

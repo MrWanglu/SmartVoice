@@ -57,64 +57,88 @@ public class RecordDownLoadJob implements Job {
 
     @Override
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
-        DateTime dateTime;
-        Iterator<CaseFollowupRecord> caseFollowupRecords;
-        List<CaseFollowupRecord> caseFollowupRecordList;
-        QSysParam qSysParam = QSysParam.sysParam;
-        SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYSPARAM_RECORD_STATUS));
-        try {
-            if (Objects.equals("0", sysParam.getValue())) {
-                sysParam.setValue("1");
-                sysParamRepository.save(sysParam);
-                logger.info("录音下载批量.......");
-                //erpv3 的录音下载
-                logger.info("erpv3 的录音下载" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
-                dateTime = new DateTime();
-                caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.opUrl.isNull().and(qCaseFollowupRecord.operatorTime.gt(dateTime.minusWeeks(1).toDate()))
-                        .and(qCaseFollowupRecord.callType.eq(CaseFollowupRecord.CallType.ERPV3.getValue())).and(qCaseFollowupRecord.taskId.isNotNull())
-                        .and(qCaseFollowupRecord.recoderId.isNotNull()).and(qCaseFollowupRecord.taskcallerId.isNotNull())).iterator();
-                caseFollowupRecordList = IteratorUtils.toList(caseFollowupRecords);
-                HttpHeaders headers = new HttpHeaders();
-                HttpEntity<String> entity = new HttpEntity<>(headers);
-                for (CaseFollowupRecord caseFollowupRecord : caseFollowupRecordList) {
-                    SysParam sysParam1 = sysParamRepository.findOne(qSysParam.companyCode.eq(caseFollowupRecord.getCompanyCode())
-                            .and(qSysParam.code.eq(Constants.RECORD_DOWNLOAD_STATUS_CODE)
-                                    .and(qSysParam.type.eq(Constants.RECORD_DOWNLOAD_STATUS_TYPE))));
-                    if (Objects.equals(StringUtils.trim(sysParam1.getValue()), "1")) {
-                        continue;
-                    }
-                    try {
-                        if (Objects.nonNull(caseFollowupRecord.getTaskcallerId())) {
-                            logger.info("定时调度 录音文件开始更新 {} ", caseFollowupRecord.getTaskcallerId());
-                            AddTaskVoiceFileMessage addTaskVoiceFileMessage = new AddTaskVoiceFileMessage();
-                            addTaskVoiceFileMessage.setTaskid(caseFollowupRecord.getTaskId());
-                            addTaskVoiceFileMessage.setRecorderId(caseFollowupRecord.getRecoderId());
-                            addTaskVoiceFileMessage.setTaskcallerId(caseFollowupRecord.getTaskcallerId());
-                            ResponseEntity<String> responseEntity = null;
-                            try {
-                                HttpEntity<AddTaskVoiceFileMessage> entity1 = new HttpEntity<AddTaskVoiceFileMessage>(addTaskVoiceFileMessage, headers);
-                                responseEntity = restTemplate.exchange("http://common-service/api/smaResource/addTaskVoiceFileByTaskId", HttpMethod.POST, entity1, String.class);
-                            } catch (Exception e) {
-                                e.printStackTrace();
+        List<Company> companyList = companyRepository.findAll();
+        for (Company company : companyList) {
+            QCaseFollowupRecord qCaseFollowupRecord = QCaseFollowupRecord.caseFollowupRecord;
+            DateTime dateTime;
+            Iterator<CaseFollowupRecord> caseFollowupRecords;
+            List<CaseFollowupRecord> caseFollowupRecordList;
+            QSysParam qSysParam = QSysParam.sysParam;
+            SysParam sysParam = sysParamRepository.findOne(qSysParam.code.eq(Constants.SYSPARAM_RECORD_STATUS).and(qSysParam.companyCode.eq(company.getCode())));
+            try {
+                if (Objects.equals("0", sysParam.getValue())) {
+                    sysParam.setValue("1");
+                    sysParamRepository.save(sysParam);
+                    logger.info("录音下载批量.......");
+                    //erpv3 的录音下载
+                    logger.info("erpv3 的录音下载" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
+                    dateTime = new DateTime();
+                    caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.opUrl.isNull().and(qCaseFollowupRecord.operatorTime.gt(dateTime.minusWeeks(1).toDate()))
+                            .and(qCaseFollowupRecord.callType.eq(CaseFollowupRecord.CallType.ERPV3.getValue())).and(qCaseFollowupRecord.taskId.isNotNull())
+                            .and(qCaseFollowupRecord.recoderId.isNotNull()).and(qCaseFollowupRecord.taskcallerId.isNotNull())).iterator();
+                    caseFollowupRecordList = IteratorUtils.toList(caseFollowupRecords);
+                    HttpHeaders headers = new HttpHeaders();
+                    HttpEntity<String> entity = new HttpEntity<>(headers);
+                    for (CaseFollowupRecord caseFollowupRecord : caseFollowupRecordList) {
+                        SysParam sysParam1 = sysParamRepository.findOne(qSysParam.companyCode.eq(caseFollowupRecord.getCompanyCode())
+                                .and(qSysParam.code.eq(Constants.RECORD_DOWNLOAD_STATUS_CODE)
+                                        .and(qSysParam.type.eq(Constants.RECORD_DOWNLOAD_STATUS_TYPE))));
+                        if (Objects.equals(StringUtils.trim(sysParam1.getValue()), "1")) {
+                            continue;
+                        }
+                        try {
+                            if (Objects.nonNull(caseFollowupRecord.getTaskcallerId())) {
+                                logger.info("定时调度 录音文件开始更新 {} ", caseFollowupRecord.getTaskcallerId());
+                                AddTaskVoiceFileMessage addTaskVoiceFileMessage = new AddTaskVoiceFileMessage();
+                                addTaskVoiceFileMessage.setTaskid(caseFollowupRecord.getTaskId());
+                                addTaskVoiceFileMessage.setRecorderId(caseFollowupRecord.getRecoderId());
+                                addTaskVoiceFileMessage.setTaskcallerId(caseFollowupRecord.getTaskcallerId());
+                                ResponseEntity<String> responseEntity = null;
+                                try {
+                                    HttpEntity<AddTaskVoiceFileMessage> entity1 = new HttpEntity<AddTaskVoiceFileMessage>(addTaskVoiceFileMessage, headers);
+                                    responseEntity = restTemplate.exchange("http://common-service/api/smaResource/addTaskVoiceFileByTaskId", HttpMethod.POST, entity1, String.class);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                if (Objects.nonNull(responseEntity) && responseEntity.getStatusCode().is2xxSuccessful()) {
+                                    if (responseEntity.hasBody()) {
+                                        String url = responseEntity.getBody();
+                                        //audio/mpeg
+                                        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+                                        RestTemplate restTemplate1 = new RestTemplate();
+                                        ResponseEntity<byte[]> response = restTemplate1.exchange(url, HttpMethod.GET, entity, byte[].class);
+                                        String filePath = FileUtils.getTempDirectoryPath().concat("record.mp3");
+                                        FileOutputStream output = new FileOutputStream(new File(filePath));
+                                        IOUtils.write(response.getBody(), output);
+                                        IOUtils.closeQuietly(output);
+                                        FileSystemResource resource = new FileSystemResource(new File(filePath));
+                                        MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+                                        param.add("file", resource);
+                                        url = restTemplate.postForObject("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
+                                        logger.debug("upload file path:{}", url);
+                                        caseFollowupRecord.setOpUrl(url);
+                                        caseFollowupRecordRepository.save(caseFollowupRecord);
+                                    }
+                                }
                             }
-                            if (Objects.nonNull(responseEntity) && responseEntity.getStatusCode().is2xxSuccessful()) {
-                                if (responseEntity.hasBody()) {
-                                    String url = responseEntity.getBody();
-                                    //audio/mpeg
-                                    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-                                    RestTemplate restTemplate1 = new RestTemplate();
-                                    ResponseEntity<byte[]> response = restTemplate1.exchange(url, HttpMethod.GET, entity, byte[].class);
-                                    String filePath = FileUtils.getTempDirectoryPath().concat("record.mp3");
-                                    FileOutputStream output = new FileOutputStream(new File(filePath));
-                                    IOUtils.write(response.getBody(), output);
-                                    IOUtils.closeQuietly(output);
-                                    FileSystemResource resource = new FileSystemResource(new File(filePath));
-                                    MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
-                                    param.add("file", resource);
-                                    url = restTemplate.postForObject("http://file-service/api/uploadFile/addUploadFileUrl", param, String.class);
-                                    logger.debug("upload file path:{}", url);
-                                    caseFollowupRecord.setOpUrl(url);
+                        } catch (Exception e) {
+                            logger.error(e.getMessage(), e);
+                        }
+                    }
+
+                    //中通天鸿的录音下载
+                    logger.info("定时调度 中通天鸿的录音调度" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
+                    try {
+                        dateTime = new DateTime();
+                        caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.opUrl.isNull().and(qCaseFollowupRecord.operatorTime.gt(dateTime.minusWeeks(1).toDate())).and(qCaseFollowupRecord.callType.eq(CaseFollowupRecord.CallType.TIANHONG.getValue())).and(qCaseFollowupRecord.taskId.isNotNull())).iterator();
+                        caseFollowupRecordList = IteratorUtils.toList(caseFollowupRecords);
+                        if (Objects.nonNull(caseFollowupRecordList)) {
+                            for (CaseFollowupRecord caseFollowupRecord : caseFollowupRecordList) {
+                                logger.info("定时调度 中通天鸿的录音调度 ", caseFollowupRecord.getTaskId());
+                                String callId = caseFollowupRecord.getTaskId();
+                                ResponseEntity<String> result = restTemplate.getForEntity("http://common-service/api/smaResource/getRecordingByCallId?callId=" + callId, String.class);
+                                if (Objects.nonNull(result.getBody()) && !Objects.equals("fail", result.getBody())) {
+                                    caseFollowupRecord.setOpUrl(result.getBody());
                                     caseFollowupRecordRepository.save(caseFollowupRecord);
                                 }
                             }
@@ -123,33 +147,13 @@ public class RecordDownLoadJob implements Job {
                         logger.error(e.getMessage(), e);
                     }
                 }
-
-                //中通天鸿的录音下载
-                logger.info("定时调度 中通天鸿的录音调度" + new DateTime().toString("yyyy-MM-dd HH:mm:ss"));
-                try {
-                    dateTime = new DateTime();
-                    caseFollowupRecords = caseFollowupRecordRepository.findAll(qCaseFollowupRecord.opUrl.isNull().and(qCaseFollowupRecord.operatorTime.gt(dateTime.minusWeeks(1).toDate())).and(qCaseFollowupRecord.callType.eq(CaseFollowupRecord.CallType.TIANHONG.getValue())).and(qCaseFollowupRecord.taskId.isNotNull())).iterator();
-                    caseFollowupRecordList = IteratorUtils.toList(caseFollowupRecords);
-                    if (Objects.nonNull(caseFollowupRecordList)) {
-                        for (CaseFollowupRecord caseFollowupRecord : caseFollowupRecordList) {
-                            logger.info("定时调度 中通天鸿的录音调度 ", caseFollowupRecord.getTaskId());
-                            String callId = caseFollowupRecord.getTaskId();
-                            ResponseEntity<String> result = restTemplate.getForEntity("http://common-service/api/smaResource/getRecordingByCallId?callId=" + callId, String.class);
-                            if (Objects.nonNull(result.getBody()) && !Objects.equals("fail", result.getBody())) {
-                                caseFollowupRecord.setOpUrl(result.getBody());
-                                caseFollowupRecordRepository.save(caseFollowupRecord);
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+            } finally {
+                sysParam.setValue("0");
+                sysParamRepository.save(sysParam);
             }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        } finally {
-            sysParam.setValue("0");
-            sysParamRepository.save(sysParam);
+
         }
     }
 
@@ -173,7 +177,7 @@ public class RecordDownLoadJob implements Job {
                     JobDataMap jobDataMap = new JobDataMap();
                     jobDataMap.put("companyCode", company.getCode());
                     jobDataMap.put("sysParamCode", Constants.SYSPARAM_RECORD_STATUS);
-                    if(!schedFactory.getScheduler().checkExists(jobDetail.getKey())) {
+                    if (!schedFactory.getScheduler().checkExists(jobDetail.getKey())) {
                         if (schedFactory.getScheduler().getTriggersOfJob(jobDetail.getKey()).isEmpty()) {
                             CronTriggerFactoryBean cronTriggerFactoryBean = ConfigureQuartz.createCronTrigger(Constants.RECORD_TRIGGER_GROUP,
                                     Constants.RECORD_TRIGGER_NAME.concat("_").concat(company.getCode()),

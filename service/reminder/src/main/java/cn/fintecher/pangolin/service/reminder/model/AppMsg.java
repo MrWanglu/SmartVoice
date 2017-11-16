@@ -35,7 +35,7 @@ public class AppMsg implements Serializable {
     @ApiModelProperty(notes = "相关属性")
     private Map<String, Object> params;
     @ApiModelProperty(notes = "app未读消息数量")
-    private Integer appMsgUnRead;
+    private Integer appMsgUnRead = 0;
 
 }
 

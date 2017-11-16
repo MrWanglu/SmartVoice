@@ -75,11 +75,12 @@ public class ZWStringUtils {
 
     /**
      * 将链表集合转为String字符串
+     *
      * @param collection
      * @param separator
      * @return
      */
-    public static String collectionToString(Collection collection,String separator){
+    public static String collectionToString(Collection collection, String separator) {
         StringBuilder sb = new StringBuilder();
         Stream.of(collection).forEach(item -> sb.append(item).append(separator));
         sb.deleteCharAt(sb.lastIndexOf(separator));

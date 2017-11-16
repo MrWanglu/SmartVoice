@@ -1234,7 +1234,7 @@ public class ReportService {
         String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId()).
                 concat("&").concat("code").concat("=").concat(Constants.BACK_MONEY_REPORT_EXCEL_URL_CODE).
                 concat("&").concat("type").concat("=").concat(Constants.BACK_MONEY_REPORT_EXCEL_URL_TYPE).
-                concat("&").concat("companyCode").concat("=").concat("0001");
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode());
 
         log.debug(requestUrl);
         //下载模版
@@ -1369,7 +1369,7 @@ public class ReportService {
         String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId()).
                 concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_REPORT_EXCEL_URL_CODE).
                 concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_REPORT_EXCEL_URL_TYPE).
-                concat("&").concat("companyCode").concat("=").concat("0001");
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode());
 
         log.debug(requestUrl);
         //下载模版
@@ -1619,7 +1619,7 @@ public class ReportService {
         String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId()).
                 concat("&").concat("code").concat("=").concat(Constants.DAILY_PROCESS_REPORT_EXCEL_URL_CODE).
                 concat("&").concat("type").concat("=").concat(Constants.DAILY_PROCESS_REPORT_EXCEL_URL_TYPE).
-                concat("&").concat("companyCode").concat("=").concat("0001");
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode());
 
         log.debug(requestUrl);
         //下载模版
@@ -1874,7 +1874,7 @@ public class ReportService {
         String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId()).
                 concat("&").concat("code").concat("=").concat(Constants.DAILY_RESULT_REPORT_EXCEL_URL_CODE).
                 concat("&").concat("type").concat("=").concat(Constants.DAILY_RESULT_REPORT_EXCEL_URL_TYPE).
-                concat("&").concat("companyCode").concat("=").concat("0001");
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode());
 
         log.debug(requestUrl);
         //下载模版
@@ -2119,7 +2119,7 @@ public class ReportService {
         String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId()).
                 concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_RANKING_REPORT_EXCEL_URL_CODE).
                 concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_RANKING_REPORT_EXCEL_URL_TYPE).
-                concat("&").concat("companyCode").concat("=").concat("0001");
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode());
 
         log.debug(requestUrl);
         //下载模版
@@ -2229,7 +2229,7 @@ public class ReportService {
         String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId()).
                 concat("&").concat("code").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_CODE).
                 concat("&").concat("type").concat("=").concat(Constants.PERFORMANCE_SUMMARY_REPORT_EXCEL_URL_TYPE).
-                concat("&").concat("companyCode").concat("=").concat("0001");
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode());
 
         log.debug(requestUrl);
         //下载模版
@@ -2345,7 +2345,7 @@ public class ReportService {
         String requestUrl = Constants.SYSPARAM_URL.concat("?").concat("userId").concat("=").concat(tokenUser.getId()).
                 concat("&").concat("code").concat("=").concat(Constants.SMS_REPORT_EXCEL_URL_CODE).
                 concat("&").concat("type").concat("=").concat(Constants.SMS_REPORT_EXCEL_URL_TYPE).
-                concat("&").concat("companyCode").concat("=").concat("0001");
+                concat("&").concat("companyCode").concat("=").concat(tokenUser.getCompanyCode());
 
         log.debug(requestUrl);
         //下载模版

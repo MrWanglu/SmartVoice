@@ -36,11 +36,12 @@
         INNER JOIN outsource_pool f on e.id=f.out_id
         LEFT JOIN case_info g on g.id = f.case_id
         where g.case_pool_type=226 GROUP BY f.out_batch,e.outs_name, f.company_code,g.case_pool_type) as dd
-        LEFT JOIN (SELECT g.case_pool_type,a.out_batch,c.outs_name,count(*) as end_outsource_count,sum(case when a.out_back_amt=0.0000 then a.contract_amt ELSE 0.0000 end) as end_total_outsource_amt, a.company_code, a.out_back_amt
+        LEFT JOIN (SELECT g.case_pool_type,a.out_batch,c.outs_name,count(*) as end_outsource_count,sum(case when a.out_back_amt=0.0000 then a.contract_amt ELSE 0.0000 end) as end_total_outsource_amt, a.company_code
         FROM outsource c
         INNER JOIN outsource_pool a on c.id=a.out_id
         LEFT JOIN case_info g on g.id = a.case_id
-        WHERE a.out_status=170 and g.case_pool_type=226 GROUP BY a.out_batch,c.outs_name, a.company_code, a.out_back_amt,g.case_pool_type) as ff on ff.out_batch=dd.out_batch and ff.outs_name=dd.outs_name and ff.company_code=dd.company_code) as cc on bb.out_batch=cc.out_batch and bb.outs_name=cc.outs_name and cc.company_code=bb.company_code
+        WHERE a.out_status=170 and g.case_pool_type=226 GROUP BY a.out_batch,c.outs_name, a.company_code,g.case_pool_type) as ff on ff.out_batch=dd.out_batch and ff.outs_name=dd.outs_name and ff.company_code=dd.company_code) as cc on bb.out_batch=cc.out_batch and bb.outs_name=cc.outs_name and cc.company_code=bb.company_code
+        WHERE 1=1
         <if test="companyCode != null and companyCode != ''">
             AND bb.company_code = #{companyCode}
         </if>
@@ -85,6 +86,7 @@
         INNER JOIN outsource_pool a on c.id=a.out_id
         LEFT JOIN case_info g on g.id = a.case_id
         WHERE a.out_status=170 and g.case_pool_type=226 GROUP BY c.outs_name, a.company_code) as ff on ff.outs_name=dd.outs_name and ff.company_code=dd.company_code) as cc on bb.outs_name=cc.outs_name and cc.company_code=bb.company_code
+        WHERE 1=1
         <if test="companyCode != null and companyCode != ''">
             AND bb.company_code = #{companyCode}
         </if>

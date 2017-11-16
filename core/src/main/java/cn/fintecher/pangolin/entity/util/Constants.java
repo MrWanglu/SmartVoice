@@ -1,7 +1,6 @@
 package cn.fintecher.pangolin.entity.util;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @Author: PeiShouWen
@@ -58,7 +57,7 @@ public final class Constants {
     //Excel数据导入格式
     public static final String EXCEL_TYPE_XLS = "xls";
     public static final String EXCEL_TYPE_XLSX = "xlsx";
-     //软件注册
+    //软件注册
     public static final String REGISTER_SOFTWARE_CODE = "SysParam.registersoftware";
     public static final String REGISTER_SOFTWARE_TYPE = "9001";
 
@@ -164,6 +163,8 @@ public final class Constants {
     // Excel sheet页最大个数
     public static final int SHEET_MAX = 255;
 
+    public static final List<String> monthList = Arrays.asList("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
+    public static final List<String> weekList = Arrays.asList("0","1", "2", "3", "4", "5", "6");
     /**
      * 数据来源
      */

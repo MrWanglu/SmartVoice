@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.fintecher.pangolin.report.mapper.ResourceRightMapper">
+    <resultMap id="resource" type="cn.fintecher.pangolin.entity.Resource">
+        <id column="id" property="id"/>
+        <result column="pid" property="pid"/>
+        <result column="sys_name" property="sysName"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="level" property="level"/>
+        <result column="status" property="status"/>
+        <result column="path" property="path"/>
+        <result column="icon" property="icon"/>
+        <result column="type" property="type"/>
+        <result column="file_type" property="fileType"/>
+        <result column="remark" property="remark"/>
+        <result column="operator" property="operator"/>
+        <result column="operate_time" property="operateTime"/>
+        <result column="field" property="field"/>
+        <result column="flag" property="flag"/>
+    </resultMap>
+
+    <!--获取所有的资源-->
+    <select id="getAllResource" resultMap="resource">
+        SELECT id,pid,sys_name,name,code,level,status,path,icon,type,file_type,remark,operator,operate_time,field,flag FROM  resource
+    </select>
+
+    <select id="getResourceRolesList" resultMap="resource" parameterType="cn.fintecher.pangolin.entity.Role">
+      SELECT res.id,pid,sys_name,name,code,level,status,path,icon,type,file_type,remark,operator,operate_time,field,flag from resource res
+        , (
+        SELECT
+        role.id AS id,role.company_code AS companyCode,role.`name` AS roleName,roleRes.reso_id AS rolesId
+        FROM	role role,role_resource roleRes
+        WHERE
+        role.id = roleRes.role_id
+        <if test="id != null and id != ''">
+            AND role.id = #{id}
+        </if>
+        <if test="companyCode != null and companyCode != ''">
+            AND role.company_code = #{companyCode}
+        </if>
+        ) B WHERE res.id=B.rolesId
+        ORDER BY res.flag
+    </select>
+
+
+</mapper>

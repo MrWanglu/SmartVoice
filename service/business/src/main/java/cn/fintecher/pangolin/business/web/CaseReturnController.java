@@ -10,7 +10,6 @@ import cn.fintecher.pangolin.business.repository.CaseInfoReturnRepository;
 import cn.fintecher.pangolin.business.repository.CaseInfoVerificationRepository;
 import cn.fintecher.pangolin.business.service.RecoverCaseService;
 import cn.fintecher.pangolin.entity.*;
-import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -102,7 +101,7 @@ public class CaseReturnController extends BaseController {
                 CaseInfoVerification verification = new CaseInfoVerification();
                 verification.setCaseInfo(caseInfo);
                 verification.setOperator(user.getRealName());
-                verification.setOperatorTime(ZWDateUtil.getNowDateTime());
+                verification.setOperatorTime(new Date());
                 verification.setCompanyCode(caseInfo.getCompanyCode());
                 // 核销说明
                 verification.setState(params.getMemo());
@@ -144,8 +143,9 @@ public class CaseReturnController extends BaseController {
                 judicial.setCaseInfo(caseInfo);
                 judicial.setOperatorRealName(user.getRealName());
                 judicial.setCompanyCode(caseInfo.getCompanyCode());
-                judicial.setOperatorTime(ZWDateUtil.getNowDateTime());
+                judicial.setOperatorTime(new Date());
                 judicial.setOperatorUserName(user.getUserName());
+                judicial.setState(params.getMemo());
                 judicialList.add(judicial);
             }
             caseAssistRepository.save(caseAssistList);

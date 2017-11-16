@@ -44,22 +44,22 @@ public class CaseFollowRecordScheduled {
                 CaseFollowupRecord caseFollowupRecord = iterator.next();
                 SysParam param = restTemplate.getForEntity("http://business-service/api/sysParamResource?companyCode=" + caseFollowupRecord.getCompanyCode() + "&code=" + Constants.PHONE_BF_URL + "&type=" + Constants.PHONE_BF_TYPE, SysParam.class).getBody();
                 RestTemplate template = new RestTemplate();
-                ResponseEntity entity = template.getForEntity("http://"+param.getValue()+"/getfilelength?filepath="+caseFollowupRecord.getFilePath()+"&filename="+caseFollowupRecord.getFileName(),String.class);
+                ResponseEntity entity = template.getForEntity("http://" + param.getValue() + "/getfilelength?filepath=" + caseFollowupRecord.getFilePath() + "&filename=" + caseFollowupRecord.getFileName(), String.class);
                 String fileName = caseFollowupRecord.getFileName();
 //                String[] fileNames = fileName.split("=");
 //                String startTime = fileNames[1];
-                String startTime = fileName.substring(0,15).replaceAll("-","");//去"-"
-                startTime = startTime.substring(0,4)+"-"+startTime.substring(4,6)+"-"+startTime.substring(6,8)+" "+startTime.substring(8,10)+":"+startTime.substring(10,12)+":"+startTime.substring(12,14);
+                String startTime = fileName.substring(0, 15).replaceAll("-", "");//去"-"
+                startTime = startTime.substring(0, 4) + "-" + startTime.substring(4, 6) + "-" + startTime.substring(6, 8) + " " + startTime.substring(8, 10) + ":" + startTime.substring(10, 12) + ":" + startTime.substring(12, 14);
                 Date startDate = ZWDateUtil.getFormatDateTime(startTime);
-                caseFollowupRecord.setOpUrl("http://"+param.getValue()+"/getfile?filepath="+caseFollowupRecord.getFilePath()+"&filename="+caseFollowupRecord.getFileName());
+                caseFollowupRecord.setOpUrl("http://" + param.getValue() + "/getfile?filepath=" + caseFollowupRecord.getFilePath() + "&filename=" + caseFollowupRecord.getFileName());
                 caseFollowupRecord.setStartTime(startDate);//录音开始时间
-                if (entity.hasBody()){
+                if (entity.hasBody()) {
                     String fileStr = entity.getBody().toString();
                     JSONObject json = JSONObject.parseObject(fileStr);
                     int talktime = Integer.parseInt(json.get("talktime").toString());
                     caseFollowupRecord.setConnSecs(talktime);//通话时长(s)
-                    long endTime = startDate.getTime()+1000*talktime;
-                    Date endDate= new Date(endTime);
+                    long endTime = startDate.getTime() + 1000 * talktime;
+                    Date endDate = new Date(endTime);
                     caseFollowupRecord.setEndTime(endDate);//录音结束时间
                 }
                 caseFollowupRecordRepository.save(caseFollowupRecord);
