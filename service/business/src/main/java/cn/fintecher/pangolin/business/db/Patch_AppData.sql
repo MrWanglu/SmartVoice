@@ -207,7 +207,7 @@ INSERT INTO `data_dict` (`id`, `type_code`, `code`, `name`, `sort`) VALUES ('249
 --2017-10-31
 --新增数据字典项
 --夏群
-INSERT INTO `data_dict` VALUES ('246', '0008', null, '还款强制拒绝', '6');
+INSERT INTO `data_dict` VALUES ('253', '0008', null, '还款强制拒绝', '6');
 
 --2017-10-31
 --新增已结案设置导出项权限码

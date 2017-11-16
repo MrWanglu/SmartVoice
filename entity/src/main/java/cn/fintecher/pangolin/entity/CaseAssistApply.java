@@ -140,7 +140,7 @@ public class CaseAssistApply extends BaseEntity {
         VISIT_REJECT(38, "外访审批拒绝"),
         VISIT_PASS(39, "外访审批通过"),
         FORCED_REJECT(40, "流转强制拒绝"),
-        PAY_REJECT(246, "还款强制拒绝"),
+        PAY_REJECT(253, "还款强制拒绝"),
         OUT_DATE(211, "过期");
 
         private Integer value;
