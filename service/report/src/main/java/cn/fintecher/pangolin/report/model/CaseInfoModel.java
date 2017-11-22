@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.report.model;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -33,6 +34,7 @@ public class CaseInfoModel {
     private Integer leftDays; //剩余天数
     private Integer leaveCaseFlag; //留案标识
     private String deptCode; //部门code码
+    private String deptName; //部门名称
     private Integer collectionType; //催收类型
     private Integer caseMark; //案件标记
     private String personalId; //客户信息ID
@@ -42,6 +44,10 @@ public class CaseInfoModel {
     private String cityName; //归属城市
     private Integer parentAreaId; //省ID
     private BigDecimal realPayAmount; //已还金额
-    private String endRemark; //結案説明
     private Date operatorTime; //操作时间
+    @ApiModelProperty("结案说明")
+    private String endRemark;
+    private Date delegationDate; //委案日期
+    private Date closeDate; //结案日期
+    private BigDecimal score; //案件评分
 }

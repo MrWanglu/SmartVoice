@@ -69,4 +69,9 @@ public interface CaseInfoMapper extends MyMapper<CaseInfo> {
                                                    @Param("sort") String sort,
                                                    @Param("isManager") Integer isManager,
                                                    @Param("userId") String userId);
+
+    /**
+     * @Description 多条件查询协催案件信息
+     */
+    List<CaseInfoModel> getInnerCaseInfoByCondition(CaseInfoConditionParams caseInfoConditionParams);
 }

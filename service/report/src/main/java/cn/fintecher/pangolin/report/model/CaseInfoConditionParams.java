@@ -33,9 +33,18 @@ public class CaseInfoConditionParams {
     private String collectionType; //催收类型
     private Integer areaId; //所属城市ID
     private Integer parentAreaId; //省ID
+    private String startFollowDate; //根据时间开始
+    private String endFollowDate; //跟进时间结束
+    private String cardNumber; //银行卡号
     private BigDecimal realPayMaxAmt; //最大还款金额
     private BigDecimal realPayMinAmt; //最小还款金额
+    private String userId; //用户ID
+    private Integer isManager; //是否是管理员
+    private String companyCode; //公司code
+    private Integer feedBack; //催收反馈
+    private String code; //催收反馈
     private Integer page; //页数
     private Integer size; //每页条数
     private String sort; //排序
+
 }

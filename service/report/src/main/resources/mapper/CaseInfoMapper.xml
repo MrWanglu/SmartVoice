@@ -274,8 +274,9 @@
     <select id="getCaseInfoByCondition" parameterType="cn.fintecher.pangolin.report.model.CaseInfoConditionParams"
             resultType="cn.fintecher.pangolin.report.model.CaseInfoModel">
         SELECT
-        a.caseId,a.caseNumber,a.batchNumber,a.collectionType,a.overdueAmount,a.payStatus,a.overdueDays,a.collectionStatus,a.followupTime,
-        a.caseFollowInTime,a.followupBack,a.assistWay,a.holdDays,a.leftDays,a.leaveCaseFlag,b.`name` as
+        a.caseId,a.caseNumber as caseNumber,a.batchNumber as batchNumber,a.collectionType,a.overdueAmount as
+        overdueAmount,a.payStatus,a.overdueDays as overdueDays,a.collectionStatus,a.followupTime as followupTime,
+        a.caseFollowInTime,a.followupBack as followupBack,a.assistWay,a.holdDays,a.leftDays,a.leaveCaseFlag,b.`name` as
         personalName,b.mobile_no as mobileNo,b.id_card as idCard,c.`name` as principalName,c.id as principalId,
         d.real_name as collectorName,e.`code` as deptCode,a.caseMark,a.case_pool_type,b.id as
         personalId,a.promiseAmt,a.promiseTime,f.area_name as cityName,f.id as areaId,g.id as
@@ -288,31 +289,25 @@
         as holdDays,left_days as leftDays,leave_case_flag as
         leaveCaseFlag,personal_id,principal_id,current_collector,depart_id,collection_type as collectionType,case_mark
         as caseMark,case_pool_type,promise_amt as promiseAmt,promise_time as promiseTime,area_id,operator_time as
-        operatorTime,real_pay_amount as realPayAmount,end_remark as endRemark from
-        case_info where current_collector is not null) a
+        operatorTime,real_pay_amount as realPayAmount, end_remark AS endRemark from
+        case_info where current_collector is not null and company_code = #{companyCode}) a
         LEFT JOIN personal b on a.personal_id = b.id
         LEFT JOIN principal c on a.principal_id = c.id
         LEFT JOIN `user` d on a.current_collector = d.id
         LEFT JOIN department e on a.depart_id = e.id
         LEFT JOIN area_code f on a.area_id = f.id
         LEFT JOIN area_code g on f.parent_id = g.id
-        where a.case_pool_type = 225
+        LEFT JOIN personal_bank pb on a.personal_id = pb.personal_id
+        where a.case_pool_type = 225 and a.collectionStatus in(${collectionStatusList}) and a.collectionType
+        in(${collectionType})
         <if test="isManager == 1">
             AND e.`code` LIKE concat(#{code},'%')
         </if>
         <if test="isManager == 0">
             AND a.current_collector = #{userId}
         </if>
-        and a.collectionStatus in(${collectionStatusList})
-        AND a.collectionType in(${collectionType})
         <if test="personalName != null">
             AND b.`name` LIKE concat('%',#{personalName},'%')
-        </if>
-        <if test="mobileNo != null">
-            AND b.mobile_no = #{mobileNo}
-        </if>
-        <if test="deptCode != null">
-            AND e.`code` LIKE concat(#{deptCode},'%')
         </if>
         <if test="collectorName != null">
             AND d.real_name LIKE concat('%',#{collectorName},'%')
@@ -363,10 +358,22 @@
             AND f.id = #{areaId} OR f.parent_id = #{areaId}
         </if>
         <if test="realPayMaxAmt != null">
-           AND <![CDATA[a.realPayAmount <= #{realPayMaxAmt}]]>
+            AND <![CDATA[a.realPayAmount <= #{realPayMaxAmt}]]>
         </if>
         <if test="realPayMinAmt != null">
-           AND <![CDATA[a.realPayAmount >= #{realPayMinAmt}]]>
+            AND <![CDATA[a.realPayAmount >= #{realPayMinAmt}]]>
+        </if>
+        <if test="startFollowDate != null and startFollowDate != ''">
+            AND <![CDATA[a.followupTime >= #{startFollowDate}]]>
+        </if>
+        <if test="endFollowDate != null and endFollowDate != ''">
+            AND <![CDATA[a.followupTime <= #{endFollowDate}]]>
+        </if>
+        <if test="cardNumber != null and cardNumber != ''">
+            AND pb.card_number = #{cardNumber}
+        </if>
+        <if test="mobileNo != null and mobileNo != ''">
+            AND b.mobile_no = trim(#{mobileNo})
         </if>
         ORDER BY a.caseMark desc
         <if test="sort != null and sort == 'followupBack,asc'">
@@ -426,7 +433,7 @@
         currentCollectorId,assist_collector as assistCollectorId,leave_case_flag as leaveCaseFlag,mark_id as
         markId,case_flowin_time as caseFlowinTime,operator,assist_way as assistWay,assist_status as
         assistStatus,operator_time as operatorTime from
-        case_assist) a
+        case_assist where company_code = #{companyCode}) a
         LEFT JOIN case_info b on a.caseId = b.id
         LEFT JOIN `user` c on a.latelyCollectorId = c.id
         LEFT JOIN `user` d on a.currentCollectorId = d.id
@@ -434,12 +441,10 @@
         LEFT JOIN `user` f on a.operator = f.id
         LEFT JOIN personal g on b.personal_id = g.id
         LEFT JOIN department h on b.depart_id = h.id
+        LEFT JOIN personal_bank pb on b.personal_id = pb.personal_id
         where a.assistStatus in(${assistStatusList})
-        <if test="isManager == 1">
-            and h.`code` LIKE concat(#{deptCode},'%')
-        </if>
         <if test="isManager == 0">
-            and a.assistCollectorId = #{userId}
+            AND a.assistCollectorId = #{userId}
         </if>
         <if test="personalName != null">
             AND g.`name` LIKE concat('%',#{personalName},'%')
@@ -453,7 +458,19 @@
         <if test="overdueMinAmount != null">
             AND <![CDATA[b.overdue_amount >= #{overdueMinAmount}]]>
         </if>
-        ORDER BY 1
+        <if test="startFollowDate != null and startFollowDate != ''">
+            AND <![CDATA[a.followupTime >= #{startFollowDate}]]>
+        </if>
+        <if test="endFollowDate != null and endFollowDate != ''">
+            AND <![CDATA[a.followupTime <= #{endFollowDate}]]>
+        </if>
+        <if test="cardNumber != null and cardNumber != ''">
+            AND pb.card_number = #{cardNumber}
+        </if>
+        <if test="mobileNo != null and mobileNo != ''">
+            AND b.mobile_no = trim(#{mobileNo})
+        </if>
+        ORDER BY a.markId asc
         <if test="sort != null and sort == 'operatorTime,desc'">
             ,a.operatorTime desc
         </if>
@@ -487,5 +504,161 @@
         <if test="sort != null and sort == 'overdueAmount,desc'">
             ,b.overdue_amount desc
         </if>
+    </select>
+
+    <!-- 多条件查询内催案件信息 根据 批次号 委托方 查询案件信息 -->
+    <select id="getInnerCaseInfoByCondition" parameterType="cn.fintecher.pangolin.report.model.CaseInfoConditionParams"
+            resultType="cn.fintecher.pangolin.report.model.CaseInfoModel">
+        SELECT
+        a.caseId,a.caseNumber as caseNumber,a.batchNumber as batchNumber,a.collectionType,a.overdueAmount as
+        overdueAmount,a.payStatus,a.overdueDays as overdueDays,a.collectionStatus,a.followupTime as followupTime,
+        a.caseFollowInTime,a.followupBack as followupBack,a.assistWay,a.holdDays,a.leftDays,a.leaveCaseFlag,b.`name` as
+        personalName,b.mobile_no as mobileNo,b.id_card as idCard,c.`name` as principalName,c.id as principalId,
+        d.real_name as collectorName,e.`code` as deptCode,a.caseMark,a.case_pool_type,b.id as
+        personalId,a.promiseAmt,a.promiseTime,f.area_name as cityName,f.id as areaId,g.id as
+        parentAreaId,a.operatorTime,a.realPayAmount,a.endRemark,a.score,a.delegationDate,a.closeDate,e.name as deptName
+        from
+        (SELECT id as caseId,case_number as caseNumber,batch_number as batchNumber,overdue_amount as
+        overdueAmount,pay_status as payStatus,overdue_days as overdueDays,collection_status as
+        collectionStatus,followup_time
+        as followupTime,case_follow_in_time as caseFollowInTime,followup_back as followupBack,assist_way as
+        assistWay,hold_days
+        as holdDays,left_days as leftDays,leave_case_flag as
+        leaveCaseFlag,personal_id,principal_id,current_collector,depart_id,collection_type as collectionType,case_mark
+        as caseMark,case_pool_type,promise_amt as promiseAmt,promise_time as promiseTime,area_id,operator_time as
+        operatorTime,real_pay_amount as realPayAmount, end_remark AS endRemark,score,delegation_date as
+        delegationDate,close_date as closeDate from
+        case_info where current_collector is not null and company_code = #{companyCode}) a
+        LEFT JOIN personal b on a.personal_id = b.id
+        LEFT JOIN principal c on a.principal_id = c.id
+        LEFT JOIN `user` d on a.current_collector = d.id
+        LEFT JOIN department e on a.depart_id = e.id
+        LEFT JOIN area_code f on a.area_id = f.id
+        LEFT JOIN area_code g on f.parent_id = g.id
+        LEFT JOIN personal_bank pb on a.personal_id = pb.personal_id
+        where a.case_pool_type = 225 and a.collectionStatus in(${collectionStatusList}) and a.collectionType
+        in(${collectionType})
+        <if test="isManager == 1">
+            AND e.`code` LIKE concat(trim(#{code}),'%')
+        </if>
+        <if test="isManager == 0">
+            AND a.current_collector = trim(#{userId})
+        </if>
+        <if test="personalName != null">
+            AND b.`name` LIKE concat('%',trim(#{personalName}),'%')
+        </if>
+        <if test="collectorName != null">
+            AND d.real_name LIKE concat('%',trim(#{collectorName}),'%')
+        </if>
+        <if test="overdueMaxAmt != null">
+            AND <![CDATA[a.overdueAmount <= trim(#{overdueMaxAmt})]]>
+        </if>
+        <if test="overdueMinAmt != null">
+            AND <![CDATA[a.overdueAmount >= trim(#{overdueMinAmt})]]>
+        </if>
+        <if test="payStatus != null and payStatus == 'M6'">
+            AND a.payStatus not in ('M0','M1','M2','M3','M4','M5')
+        </if>
+        <if test="payStatus != null and payStatus != 'M6'">
+            AND a.payStatus = trim(#{payStatus})
+        </if>
+        <if test="overMaxDay != null">
+            AND <![CDATA[a.overdueDays <= trim(#{overMaxDay})]]>
+        </if>
+        <if test="overMinDay != null">
+            AND <![CDATA[a.overdueDays >= trim(#{overMinDay})]]>
+        </if>
+        <if test="batchNumber != null">
+            AND a.batchNumber = trim(#{batchNumber})
+        </if>
+        <if test="principalId != null">
+            AND c.id = trim(#{principalId})
+        </if>
+        <if test="idCard != null">
+            AND b.id_card = trim(#{idCard})
+        </if>
+        <if test="feedBack != null">
+            AND a.followupBack = trim(#{feedBack})
+        </if>
+        <if test="assistWay != null">
+            AND a.assistWay = trim(#{assistWay})
+        </if>
+        <if test="caseMark != null">
+            AND a.caseMark = trim(#{caseMark})
+        </if>
+        <if test="collectionStatus != null">
+            AND a.collectionStatus = trim(#{collectionStatus})
+        </if>
+        <if test="parentAreaId != null">
+            AND g.id = trim(#{parentAreaId})
+        </if>
+        <if test="areaId != null">
+            AND f.id = trim(#{areaId}) OR f.parent_id = trim(#{areaId})
+        </if>
+        <if test="realPayMaxAmt != null">
+            AND <![CDATA[a.realPayAmount <= trim(#{realPayMaxAmt})]]>
+        </if>
+        <if test="realPayMinAmt != null">
+            AND <![CDATA[a.realPayAmount >= trim(#{realPayMinAmt})]]>
+        </if>
+        <if test="startFollowDate != null and startFollowDate != ''">
+            AND <![CDATA[a.followupTime >= trim(#{startFollowDate})]]>
+        </if>
+        <if test="endFollowDate != null and endFollowDate != ''">
+            AND <![CDATA[a.followupTime <= trim(#{endFollowDate})]]>
+        </if>
+        <if test="cardNumber != null and cardNumber != ''">
+            AND pb.card_number = trim(#{cardNumber})
+        </if>
+        <if test="mobileNo != null and mobileNo != ''">
+            AND b.mobile_no = trim(#{mobileNo})
+        </if>
+        <if test="deptCode != null and deptCode != ''">
+            AND e.code = trim(#{deptCode})
+        </if>
+        ORDER BY a.caseMark desc
+        <if test="sort != null and sort == 'followupBack,asc'">
+            ,if(isnull(a.followupBack),1,0),a.followupBack asc
+        </if>
+        <if test="sort != null and sort == 'followupBack,desc'">
+            ,if(isnull(a.followupBack),1,0),a.followupBack desc
+        </if>
+        <if test="sort != null and sort == 'followupTime,asc'">
+            ,if(isnull(a.followupTime),1,0),a.followupTime asc
+        </if>
+        <if test="sort != null and sort == 'followupTime,desc'">
+            ,if(isnull(a.followupTime),1,0),a.followupTime desc
+        </if>
+        <if test="sort != null and sort == 'caseNumber,asc'">
+            ,a.caseNumber asc
+        </if>
+        <if test="sort != null and sort == 'caseNumber,desc'">
+            ,a.caseNumber desc
+        </if>
+        <if test="sort != null and sort == 'overdueAmount,asc'">
+            ,a.overdueAmount asc
+        </if>
+        <if test="sort != null and sort == 'overdueAmount,desc'">
+            ,a.overdueAmount desc
+        </if>
+        <if test="sort != null and sort == 'overdueDays,asc'">
+            ,a.overdueDays asc
+        </if>
+        <if test="sort != null and sort == 'overdueDays,desc'">
+            ,a.overdueDays desc
+        </if>
+        <if test="sort != null and sort == 'batchNumber,asc'">
+            ,a.batchNumber asc
+        </if>
+        <if test="sort != null and sort == 'batchNumber,desc'">
+            ,a.batchNumber desc
+        </if>
+        <if test="sort != null and sort == 'idCard,asc'">
+            ,b.id_card asc
+        </if>
+        <if test="sort != null and sort == 'idCard,desc'">
+            ,b.id_card desc
+        </if>
+        ,b.`name` asc
     </select>
 </mapper>

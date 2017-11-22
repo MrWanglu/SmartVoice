@@ -122,4 +122,30 @@ public class CaseInfoInquiryController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_ASSIST, "caseAssist", "查询失败")).body(null);
         }
     }
+
+    /**
+     * @Description 多条件查询内催案件 催收中案件 查看 接口
+     */
+    @GetMapping("/getInnerCaseInfoByCondition")
+    @ApiOperation(value = "多条件查询内催案件 催收中案件 查看 接口", notes = "多条件查询内催案件 催收中案件 查看 接口")
+    public ResponseEntity<Page<CaseInfoModel>> getInnerCaseInfoByCondition(CaseInfoConditionParams caseInfoConditionParams,
+                                                                           @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get inner case info by condition");
+        try {
+            User tokenUser = getUserByToken(token);
+            caseInfoConditionParams.setCode(tokenUser.getDepartment().getCode());
+            caseInfoConditionParams.setUserId(tokenUser.getId());
+            caseInfoConditionParams.setCompanyCode(tokenUser.getCompanyCode());
+            caseInfoConditionParams.setIsManager(tokenUser.getManager());
+            PageHelper.startPage(caseInfoConditionParams.getPage() + 1, caseInfoConditionParams.getSize());
+            List<CaseInfoModel> caseInfoModels = caseInfoMapper.getInnerCaseInfoByCondition(caseInfoConditionParams);
+            PageInfo<CaseInfoModel> pageInfo = new PageInfo<>(caseInfoModels);
+            Pageable pageable = new PageRequest(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
+            Page<CaseInfoModel> page = new PageImpl<>(caseInfoModels, pageable, pageInfo.getTotal());
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASE_INFO)).body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_INFO, "caseInfo", "查询失败")).body(null);
+        }
+    }
 }
