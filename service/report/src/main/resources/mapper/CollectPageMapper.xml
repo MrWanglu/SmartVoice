@@ -163,7 +163,7 @@
 
     <!--回款金额排名-->
     <select id="getCaseInfoBackRank" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultMap="backAmtModel">
-        SELECT d.real_name,(c.apply_pay_back_amt/10000) as apply_pay_back_amt, c.apply_pay_amt_rate, c.apply_pay_count
+        SELECT d.real_name,(c.apply_pay_back_amt) as apply_pay_back_amt, c.apply_pay_amt_rate, c.apply_pay_count
         FROM (SELECT a.apply_user_name, a.apply_pay_back_amt, IFNULL((a.apply_pay_back_amt/b.pay_total_amt),0.00) as apply_pay_amt_rate, a.apply_pay_count
         FROM (SELECT app.depart_id,app.apply_user_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
         FROM case_pay_apply as app LEFT JOIN department ON app.depart_id=department.id

@@ -303,6 +303,9 @@ public class HomePageController extends BaseController {
             User user = getUserByToken(token);
             String code = user.getDepartment().getCode();
             params.setDeptCode(code);
+            if(Objects.nonNull(user.getCompanyCode())){
+                params.setCompanyCode(user.getCompanyCode());
+            }
             PromisedDateModel result = homePageService.getCaseGroupInfo(params);
             return ResponseEntity.ok().body(result);
         } catch (Exception e) {

@@ -168,9 +168,13 @@ public interface AdminPageMapper {
     CaseDateModel getCaseDate(CollectorRankingParams collectorRankingParams);
 
     /**
-     * 查詢已还款案件金额 已还款案件数量
+     * 查詢内催已还款案件金额 已还款案件数量
      */
     List<AdminCasePaymentModel> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams);
+    /**
+     * 查詢委外已还款案件金额 已还款案件数量
+     */
+    List<AdminCasePaymentModel> getOutCaseAmtAndCount(CollectorRankingParams collectorRankingParams);
 
     /**
      * 查詢还款审核中的案件金额 还款审核中的案件数量

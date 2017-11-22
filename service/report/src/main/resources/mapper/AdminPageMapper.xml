@@ -448,7 +448,7 @@
         </if>
     </select>
 
-    <!--管理员首页 查询已还款案件金额 已还款案件数量-->
+    <!--管理员首页 查询内催已还款案件金额 已还款案件数量-->
     <select id="getCaseAmtAndCount" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.AdminCasePaymentModel">
         SELECT
@@ -472,36 +472,73 @@
         end_type = 110
         AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
         <if test="timeType!=null and timeType==0">
-            AND DATE_FORMAT(case_follow_in_time, '%m') = DATE_FORMAT(#{startDate}, '%m')
+            AND YEAR(case_follow_in_time) = YEAR(#{startDate})
         </if>
         <if test="timeType!=null and timeType==1">
-            AND DATE_FORMAT(case_follow_in_time, '%Y-%m-%d') = DATE_FORMAT(#{startDate}, '%Y-%m-%d')
+            AND MONTH(case_follow_in_time) = MONTH(#{startDate})
         </if>
         <if test="timeType!=null and timeType==2">
-            AND DATE_FORMAT(case_follow_in_time, '%Y-%m-%w') = DATE_FORMAT(#{startDate}, '%Y-%m-%w')
+            AND WEEK(case_follow_in_time) = WEEK(#{startDate})
         </if>
         AND company_Code = #{companyCode}
-        <!--全部-->
-        <if test="queryType != null and queryType == 0">
-            and case_pool_type in (225,226)
-        </if>
-        <!--内催-->
-        <if test="queryType != null and queryType == 1">
-            and case_pool_type=225
-        </if>
-        <!--委外-->
-        <if test="queryType != null and queryType == 2">
-            and case_pool_type=226
-        </if>
+        AND case_pool_type=225
         <if test="timeType!=null and timeType==0">
-            group by DATE_FORMAT(case_follow_in_time, '%m')
+            group by queryMonth
         </if>
         <if test="timeType!=null and timeType==1">
-            group by DATE_FORMAT(case_follow_in_time, '%Y%m%d')
+            group by queryDate
         </if>
         <if test="timeType!=null and timeType==2">
             <!--周 显示 周一到周日-->
-            group by DATE_FORMAT(case_follow_in_time, '%Y-%m-%w')
+            group by queryWeek
+        </if>
+    </select>
+
+    <!--管理员首页 查询委外已还款案件金额 已还款案件数量-->
+    <select id="getOutCaseAmtAndCount" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultType="cn.fintecher.pangolin.report.model.AdminCasePaymentModel">
+        SELECT
+        <if test="timeType!=null and timeType==0">
+            <!--年 显示1-12月-->
+            DATE_FORMAT(a.out_time, '%m') as queryMonth,
+        </if>
+        <if test="timeType!=null and timeType==1">
+            <!--月 显示1-31天 周 显示 周一到周日-->
+            DATE_FORMAT(a.out_time, '%Y-%m-%d') as queryDate,
+        </if>
+        <if test="timeType!=null and timeType==2">
+            <!--周 显示 周一到周日-->
+            DATE_FORMAT(a.out_time, '%Y-%m-%w') as queryWeek,
+        </if>
+        SUM(b.overdue_amount) / 10000 as caseAmount,
+        COUNT(*) as caseCount
+        FROM
+        outsource_pool a
+        LEFT JOIN case_info b ON a.case_id = b.id
+        WHERE
+        a.out_status = 168
+        AND a.company_code = #{companyCode}
+        AND out_back_amt != 0
+        AND b.case_pool_type = 226
+        AND b.recover_remark = 0
+        <if test="timeType!=null and timeType==0">
+            AND YEAR(out_time) = YEAR(#{startDate})
+        </if>
+        <if test="timeType!=null and timeType==1">
+            AND MONTH(out_time) = MONTH(#{startDate})
+        </if>
+        <if test="timeType!=null and timeType==2">
+            AND WEEK(out_time) = WEEK(#{startDate})
+        </if>
+        <if test="timeType!=null and timeType==0">
+            group by queryMonth
+        </if>
+        <if test="timeType!=null and timeType==1">
+            group by queryDate
+        </if>
+        <if test="timeType!=null and timeType==2">
+            <!--周 显示 周一到周日-->
+            group by queryWeek
         </if>
     </select>
 
@@ -515,7 +552,7 @@
         </if>
         <if test="timeType!=null and timeType==1">
             <!--月 显示1-31天 -->
-            DATE_FORMAT(case_follow_in_time, '%Y%m%d') as queryDate,
+            DATE_FORMAT(case_follow_in_time, '%Y-%m-%d') as queryDate,
         </if>
         <if test="timeType!=null and timeType==2">
             <!--周 显示 周一到周日-->
@@ -529,13 +566,13 @@
         collection_status in (22,23)
         AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
         <if test="timeType!=null and timeType==0">
-            AND DATE_FORMAT(case_follow_in_time, '%m') = DATE_FORMAT(#{startDate}, '%m'),
+            AND YEAR(case_follow_in_time) = YEAR(#{startDate})
         </if>
         <if test="timeType!=null and timeType==1">
-            AND DATE_FORMAT(case_follow_in_time, '%Y%m%d') = DATE_FORMAT(#{startDate},'%Y%m%d'),
+            AND MONTH(case_follow_in_time) = MONTH(#{startDate})
         </if>
         <if test="timeType!=null and timeType==2">
-            AND DATE_FORMAT(case_follow_in_time, '%Y-%m-%w') = DATE_FORMAT(#{startDate}, '%Y-%m-%w'),
+            AND WEEK(case_follow_in_time) = WEEK(#{startDate})
         </if>
         AND company_Code = #{companyCode}
         <!--全部-->
@@ -551,14 +588,14 @@
             and case_pool_type=226
         </if>
         <if test="timeType!=null and timeType==0">
-            group by DATE_FORMAT(case_follow_in_time, '%m')
+            group by queryMonth
         </if>
         <if test="timeType!=null and timeType==1">
-            group by DATE_FORMAT(case_follow_in_time, '%Y%m%d')
+            group by queryDate
         </if>
         <if test="timeType!=null and timeType==2">
             <!--周 显示 周一到周日-->
-            group by DATE_FORMAT(case_follow_in_time, '%Y-%m-%w')
+            group by queryWeek
         </if>
     </select>
 
@@ -585,43 +622,41 @@
     <!--根据不同的日期类型查询并统计不同还款类型的数据-->
     <select id="getCaseGroupInfo" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.CaseRepaymentTypeGroupInfo">
-        SELECT t.c1 AS rePaymentType,
-        sum(t.c2) / 10000 AS totalRePaymentMoney,
-        sum(t.c3) AS totalCaseNumber
-        FROM (
-        <!--第一次根据回款方式进行数据统计，第二次再根据统计回款方式-->
         SELECT
-        B.collection_feedback as c1,
-        SUM(A.overdue_amount) AS c2,
-        COUNT(B.collection_feedback) AS c3
-        FROM case_info A
-        LEFT JOIN case_followup_record B ON A.id = B.case_id
+        followup_back AS rePaymentType,
+        SUM(overdue_amount)/10000 AS totalRePaymentMoney,
+        COUNT(*) AS totalCaseNumber
+        FROM
+        case_info
         WHERE
-        B.collection_feedback IS NOT NULL
-        <if test="timeType!=null and timeType==0">
-            AND DATE_FORMAT(B.operator_time, '%Y') = DATE_FORMAT(#{startDate}, '%Y')
-        </if>
-        <if test="timeType!=null and timeType==1">
-            AND DATE_FORMAT(B.operator_time, '%Y-%m') = DATE_FORMAT(#{startDate}, '%Y-%m')
-        </if>
-        <if test="timeType!=null and timeType==2">
-            AND DATE_FORMAT(B.operator_time, '%Y-%m-%w') = DATE_FORMAT(#{startDate}, '%Y-%m-%w')
-        </if>
+        followup_back IN (90, 91, 92, 93)
         <!--内催+委外-->
         <if test="queryType == 0">
-            AND A.case_pool_type in(225,226)
+            AND case_pool_type in(225,226)
         </if>
         <!--内催-->
         <if test="queryType == 1">
-            AND A.case_pool_type =225
+            AND case_pool_type = 225
         </if>
         <!--委外-->
         <if test="queryType == 2">
-            AND A.case_pool_type =226
+            AND case_followup_type =226
         </if>
-        GROUP BY B.collection_feedback
-        ) t
-        GROUP BY t.c1
+        AND recover_remark = 0
+        <if test="companyCode != null">
+            AND company_code = #{companyCode}
+        </if>
+        <if test="timeType!=null and timeType==0">
+            AND YEAR(followup_time) = YEAR(#{startDate})
+        </if>
+        <if test="timeType!=null and timeType==1">
+            AND MONTH(followup_time) = MONTH(#{startDate})
+        </if>
+        <if test="timeType!=null and timeType==2">
+            AND WEEK(followup_time) = WEEK(#{startDate})
+        </if>
+        GROUP BY
+        followup_back
     </select>
 
 </mapper>

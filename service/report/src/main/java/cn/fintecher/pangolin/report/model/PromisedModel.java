@@ -16,5 +16,7 @@ public class PromisedModel {
     @ApiModelProperty(notes = "催收反馈中总数量或金额")
     private String value;
     @ApiModelProperty(notes = "催收反馈名称")
-    private Integer name;
+    private String name;
+    @ApiModelProperty(notes = "催收反馈value")
+    private Integer index;
 }

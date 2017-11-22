@@ -737,6 +737,7 @@ public class CaseInfoController extends BaseController {
         }
         if (Objects.nonNull(caseInfo.getPersonalInfo())) {
             builder.and(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard())).
+                    and(qCaseInfo.personalInfo.name.eq(caseInfo.getPersonalInfo().getName())).
                     and(qCaseInfo.id.ne(caseInfo.getId())).
                     and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue(), CaseInfo.CollectionStatus.CASE_OUT.getValue()));
         }
