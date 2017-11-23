@@ -2,6 +2,9 @@ package cn.fintecher.pangolin.gateway;
 
 
 import cn.fintecher.pangolin.gateway.filter.AccessFilter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.web.MultipartProperties;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.cloud.client.SpringCloudApplication;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -12,9 +15,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import javax.servlet.MultipartConfigElement;
+
 @EnableZuulProxy
 @SpringCloudApplication
 public class PangolinZuulServerApplication {
+
+    @Autowired
+    private MultipartProperties multipartProperties;
 
     public static void main(String[] args) {
         new SpringApplicationBuilder(PangolinZuulServerApplication.class).web(true).run(args);
@@ -45,6 +53,14 @@ public class PangolinZuulServerApplication {
         corsConfig.addAllowedMethod("PATCH");
         urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfig);
         return new CorsFilter(urlBasedCorsConfigurationSource);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public MultipartConfigElement multipartConfigElement() {
+        this.multipartProperties.setMaxFileSize("1024MB");
+        this.multipartProperties.setMaxRequestSize("1024MB");
+        return this.multipartProperties.createMultipartConfig();
     }
 
     @Bean
