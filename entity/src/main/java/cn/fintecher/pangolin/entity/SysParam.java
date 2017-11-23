@@ -40,24 +40,63 @@ public class SysParam extends BaseEntity {
     private String remark;
     @ApiModelProperty("备用字段")
     private String field;
+    @ApiModelProperty("参数类型")
+    private Integer style;
 
     /**
      * 参数启用停用
      */
-    public enum StatusEnum{
-        Start(0,"启用"),Stop(1,"停用");
+    public enum StatusEnum {
+        Start(0, "启用"), Stop(1, "停用");
         Integer value;
-        String  code;
-        StatusEnum(Integer value,String code){
-            this.value=value;
-            this.code=code;
+        String code;
+
+        StatusEnum(Integer value, String code) {
+            this.value = value;
+            this.code = code;
         }
 
         public Integer getValue() {
             return value;
         }
+
         public String getCode() {
             return code;
+        }
+    }
+
+    /**
+     * @Descritpion 参数类型枚举类
+     */
+    public enum Style {
+        //流转参数
+        CIRCULATION(0, "流转参数"),
+        //批量参数
+        BATCH(1, "批量参数"),
+        //模版参数
+        TEMPLATE(2, "模版参数"),
+        //呼叫中心参数
+        CALL(3, "呼叫中心参数"),
+        //短信发送参数
+        SMS(4, "短信参数"),
+        //其他参数
+        OTHER(5, "其他参数");
+
+        private Integer value;
+
+        private String remark;
+
+        Style(Integer value, String remark) {
+            this.value = value;
+            this.remark = remark;
+        }
+
+        public Integer getValue() {
+            return value;
+        }
+
+        public String getRemark() {
+            return remark;
         }
     }
 }
