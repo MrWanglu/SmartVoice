@@ -81,6 +81,7 @@ public class CaseInfoInquiryController extends BaseController {
                     tokenUser.getType(),
                     tokenUser.getManager(),
                     tokenUser.getId(),
+                    tokenUser.getCompanyCode(),
                     caseInfoConditionParams.getRealPayMaxAmt(),
                     caseInfoConditionParams.getRealPayMinAmt());
             PageInfo<CaseInfoModel> pageInfo = new PageInfo<>(caseInfoModels);
@@ -112,7 +113,8 @@ public class CaseInfoInquiryController extends BaseController {
                     tokenUser.getDepartment().getCode(),
                     caseInfoConditionParams.getSort() == null ? null : caseInfoConditionParams.getSort(),
                     tokenUser.getManager(),
-                    tokenUser.getId());
+                    tokenUser.getId(),
+                    tokenUser.getCompanyCode());
             PageInfo<CaseAssistModel> pageInfo = new PageInfo<>(caseAssistModels);
             Pageable pageable = new PageRequest(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
             Page<CaseAssistModel> page = new PageImpl<>(caseAssistModels, pageable, pageInfo.getTotal());

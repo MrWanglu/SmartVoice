@@ -300,6 +300,7 @@ public class HomePageService {
                 user.getType(),
                 user.getManager(),
                 user.getId(),
+                user.getCompanyCode(),
                 caseInfoConditionParams.getRealPayMaxAmt(),
                 caseInfoConditionParams.getRealPayMinAmt());
         //获取待催收安建宁的第一条案件进行快速催收

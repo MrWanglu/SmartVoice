@@ -54,7 +54,8 @@ public interface CaseInfoMapper extends MyMapper<CaseInfo> {
             @Param("type") Integer type,
             @Param("isManager") Integer isManager,
             @Param("userId") String userId,
-            @Param("realPayMaxAmt")BigDecimal realPayMaxAmt,
+            @Param("companyCode") String companyCode,
+            @Param("realPayMaxAmt") BigDecimal realPayMaxAmt,
             @Param("realPayMinAmt") BigDecimal realPayMinAmt);
 
     /**
@@ -68,7 +69,8 @@ public interface CaseInfoMapper extends MyMapper<CaseInfo> {
                                                    @Param("deptCode") String deptCode,
                                                    @Param("sort") String sort,
                                                    @Param("isManager") Integer isManager,
-                                                   @Param("userId") String userId);
+                                                   @Param("userId") String userId,
+                                                   @Param("companyCode") String companyCode);
 
     /**
      * @Description 多条件查询协催案件信息

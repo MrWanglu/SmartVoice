@@ -363,15 +363,6 @@
         <if test="realPayMinAmt != null">
             AND <![CDATA[a.realPayAmount >= #{realPayMinAmt}]]>
         </if>
-        <if test="startFollowDate != null and startFollowDate != ''">
-            AND <![CDATA[a.followupTime >= #{startFollowDate}]]>
-        </if>
-        <if test="endFollowDate != null and endFollowDate != ''">
-            AND <![CDATA[a.followupTime <= #{endFollowDate}]]>
-        </if>
-        <if test="cardNumber != null and cardNumber != ''">
-            AND pb.card_number = #{cardNumber}
-        </if>
         <if test="mobileNo != null and mobileNo != ''">
             AND b.mobile_no = trim(#{mobileNo})
         </if>
@@ -457,15 +448,6 @@
         </if>
         <if test="overdueMinAmount != null">
             AND <![CDATA[b.overdue_amount >= #{overdueMinAmount}]]>
-        </if>
-        <if test="startFollowDate != null and startFollowDate != ''">
-            AND <![CDATA[a.followupTime >= #{startFollowDate}]]>
-        </if>
-        <if test="endFollowDate != null and endFollowDate != ''">
-            AND <![CDATA[a.followupTime <= #{endFollowDate}]]>
-        </if>
-        <if test="cardNumber != null and cardNumber != ''">
-            AND pb.card_number = #{cardNumber}
         </if>
         <if test="mobileNo != null and mobileNo != ''">
             AND b.mobile_no = trim(#{mobileNo})
@@ -600,15 +582,6 @@
         </if>
         <if test="realPayMinAmt != null">
             AND <![CDATA[a.realPayAmount >= trim(#{realPayMinAmt})]]>
-        </if>
-        <if test="startFollowDate != null and startFollowDate != ''">
-            AND <![CDATA[a.followupTime >= trim(#{startFollowDate})]]>
-        </if>
-        <if test="endFollowDate != null and endFollowDate != ''">
-            AND <![CDATA[a.followupTime <= trim(#{endFollowDate})]]>
-        </if>
-        <if test="cardNumber != null and cardNumber != ''">
-            AND pb.card_number = trim(#{cardNumber})
         </if>
         <if test="mobileNo != null and mobileNo != ''">
             AND b.mobile_no = trim(#{mobileNo})
