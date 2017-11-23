@@ -170,26 +170,16 @@ public class ExportFollowupController extends BaseController {
         final String userId = user.getId();
         exportFollowupParams.setCompanyCode(user.getCompanyCode());
         ResponseEntity<ItemsModel> entity = null;
-        if (exportFollowupParams.getType()==0){
-            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getExportItems?token="+token, ItemsModel.class);
-        }else {
-            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getExportItemsClosed?token="+token, ItemsModel.class);
+        if (exportFollowupParams.getType() == 0) {
+            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getExportItems?token=" + token, ItemsModel.class);
+        } else {
+            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getExportItemsClosed?token=" + token, ItemsModel.class);
         }
 
         ItemsModel itemsModel = entity.getBody();
-        if(itemsModel.getPersonalItems().isEmpty() && itemsModel.getJobItems().isEmpty() && itemsModel.getConnectItems().isEmpty()
-                && itemsModel.getCaseItems().isEmpty() && itemsModel.getBankItems().isEmpty() && itemsModel.getFollowItems().isEmpty()){
-            ProgressMessage progressMessage1 = new ProgressMessage();
-            List<String> urls = new ArrayList<>();
-            ListResult listResult = new ListResult();
-            listResult.setUser(userId);
-            urls.add("请先设置导出项");
-            listResult.setResult(urls);
-            listResult.setStatus(ListResult.Status.FAILURE.getVal()); // 1-失败
-            restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", listResult, Void.class);
-            progressMessage1.setCurrent(5);
-            rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage1);
-            return ResponseEntity.ok().body(null);
+        if (itemsModel.getPersonalItems().isEmpty() && itemsModel.getJobItems().isEmpty() && itemsModel.getConnectItems().isEmpty()
+                && itemsModel.getCaseItems().isEmpty() && itemsModel.getBankItems().isEmpty() && itemsModel.getFollowItems().isEmpty()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请设置导出项")).body(null);
         }
         List<String> items = new ArrayList<>();
         items.addAll(itemsModel.getPersonalItems());
@@ -197,7 +187,7 @@ public class ExportFollowupController extends BaseController {
         items.addAll(itemsModel.getCaseItems());
         items.addAll(followRecordExportService.parseConnect(itemsModel.getConnectItems()));
         items.addAll(itemsModel.getBankItems());
-        items.addAll(followRecordExportService.parseFollow(itemsModel.getFollowItems()));
+        items.addAll(itemsModel.getFollowItems());
         exportFollowupParams.setExportItemList(items);
 
         try {
@@ -220,9 +210,9 @@ public class ExportFollowupController extends BaseController {
                     progressMessage.setText("正在处理数据");
                     rabbitTemplate.convertAndSend(Constants.FOLLOWUP_EXPORT_QE, progressMessage);
                     List<ExcportResultModel> all = new ArrayList<>();
-                    if(Objects.equals(exportFollowupParams.getType(),1)) {
+                    if (Objects.equals(exportFollowupParams.getType(), 1)) {
                         all = queryFollowupMapper.findFollowupRecord(exportFollowupParams);
-                    }else{
+                    } else {
                         all = queryFollowupMapper.findCollingFollowupRecord(exportFollowupParams);
                     }
                     ResponseEntity<String> url = null;

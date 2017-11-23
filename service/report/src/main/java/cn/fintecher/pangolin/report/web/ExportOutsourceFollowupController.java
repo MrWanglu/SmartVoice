@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -60,7 +61,7 @@ public class ExportOutsourceFollowupController extends BaseController {
     @PostMapping(value = "/exportOutsourceFollowupRecord")
     @ApiOperation(notes = "导出委外跟进记录", value = "导出委外跟进记录")
     public ResponseEntity<String> exportOutsourceFollowupRecord(@RequestBody ExportOutsourceFollowRecordParams exportOutsourceFollowRecordParams,
-                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                                                @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         User user = null;
         try {
             user = getUserByToken(token);
@@ -73,27 +74,17 @@ public class ExportOutsourceFollowupController extends BaseController {
         }
         final String userId = user.getId();
         ResponseEntity<ItemsModel> entity = null;
-        if(exportOutsourceFollowRecordParams.getType()==0){
-            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceExportItems?token="+token, ItemsModel.class);
-        }else if(exportOutsourceFollowRecordParams.getType()==1){
-            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceFollowUpExportItems?token="+token, ItemsModel.class);
-        }else {
-            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceClosedFollowUpExportItems?token="+token, ItemsModel.class);
+        if (exportOutsourceFollowRecordParams.getType() == 0) {
+            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceExportItems?token=" + token, ItemsModel.class);
+        } else if (exportOutsourceFollowRecordParams.getType() == 1) {
+            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceFollowUpExportItems?token=" + token, ItemsModel.class);
+        } else {
+            entity = restTemplate.getForEntity("http://business-service/api/exportItemResource/getOutsourceClosedFollowUpExportItems?token=" + token, ItemsModel.class);
         }
         ItemsModel itemsModel = entity.getBody();
-        if(itemsModel.getPersonalItems().isEmpty() && itemsModel.getJobItems().isEmpty() && itemsModel.getConnectItems().isEmpty()
-                && itemsModel.getCaseItems().isEmpty() && itemsModel.getBankItems().isEmpty() && itemsModel.getFollowItems().isEmpty()){
-            ProgressMessage progressMessage1 = new ProgressMessage();
-            List<String> urls = new ArrayList<>();
-            ListResult listResult = new ListResult();
-            listResult.setUser(userId);
-            urls.add("请先设置导出项");
-            listResult.setResult(urls);
-            listResult.setStatus(ListResult.Status.FAILURE.getVal()); // 1-失败
-            restTemplate.postForEntity("http://reminder-service/api/listResultMessageResource", listResult, Void.class);
-            progressMessage1.setCurrent(5);
-            rabbitTemplate.convertAndSend(Constants.FOLLOWUP_OUTSOURCE_EXPORT_QE, progressMessage1);
-            return ResponseEntity.ok().body(null);
+        if (itemsModel.getPersonalItems().isEmpty() && itemsModel.getJobItems().isEmpty() && itemsModel.getConnectItems().isEmpty()
+                && itemsModel.getCaseItems().isEmpty() && itemsModel.getBankItems().isEmpty() && itemsModel.getFollowItems().isEmpty()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请设置导出项")).body(null);
         }
         List<String> items = new ArrayList<>();
         items.addAll(itemsModel.getPersonalItems());

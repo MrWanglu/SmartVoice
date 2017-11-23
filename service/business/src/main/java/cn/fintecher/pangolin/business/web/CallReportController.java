@@ -87,8 +87,10 @@ public class CallReportController extends BaseController {
      */
     @PostMapping("/getCountSmaRecord")
     @ApiOperation(notes = "双向外呼通话个数统计", value = "双向外呼通话个数统计")
-    public ResponseEntity<List<SmaRecordReturn>> getCountSmaRecord(@RequestBody SmaRecordReport request) {
+    public ResponseEntity<List<SmaRecordReturn>> getCountSmaRecord(@RequestBody SmaRecordReport request, @RequestHeader(value = "X-UserToken") String token) {
         try {
+            User user = getUserByToken(token);
+            request.setCompanyCode(user.getCompanyCode());
             SysParam param = restTemplate.getForEntity("http://business-service/api/sysParamResource?companyCode=" + request.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
             List<Object[]> objects = caseFollowupRecordRepository.getCountSmaRecord(request.getStartTime(), request.getEndTime(), request.getCompanyCode(), Integer.parseInt(param.getValue().trim()));
             List<SmaRecordReturn> smaRecordReturns = new ArrayList<>();
@@ -111,8 +113,10 @@ public class CallReportController extends BaseController {
      */
     @PostMapping("/getCountTimeSmaRecord")
     @ApiOperation(notes = "双向外呼通话时长统计", value = "双向外呼通话时长统计")
-    public ResponseEntity<List<SmaRecordReturn>> getCountTimeSmaRecord(@RequestBody SmaRecordReport request) {
+    public ResponseEntity<List<SmaRecordReturn>> getCountTimeSmaRecord(@RequestBody SmaRecordReport request, @RequestHeader(value = "X-UserToken") String token) {
         try {
+            User user = getUserByToken(token);
+            request.setCompanyCode(user.getCompanyCode());
             SysParam param = restTemplate.getForEntity("http://business-service/api/sysParamResource?companyCode=" + request.getCompanyCode() + "&code=" + Constants.PHONE_CALL_CODE + "&type=" + Constants.PHONE_CALL_TYPE, SysParam.class).getBody();
             List<Object[]> objects = caseFollowupRecordRepository.getCountTimeSmaRecord(request.getStartTime(), request.getEndTime(), request.getCompanyCode(), Integer.parseInt(param.getValue().trim()));
             List<SmaRecordReturn> smaRecordReturns = new ArrayList<>();
