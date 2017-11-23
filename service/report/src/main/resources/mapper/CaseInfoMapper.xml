@@ -352,10 +352,10 @@
             AND a.collectionStatus = #{collectionStatus}
         </if>
         <if test="parentAreaId != null">
-            AND g.id = #{parentAreaId}
+            AND (g.id = #{parentAreaId} or f.id = #{parentAreaId})
         </if>
         <if test="areaId != null">
-            AND f.id = #{areaId} OR f.parent_id = #{areaId}
+            AND (f.id = #{areaId} OR f.parent_id = #{areaId})
         </if>
         <if test="realPayMaxAmt != null">
             AND <![CDATA[a.realPayAmount <= #{realPayMaxAmt}]]>
