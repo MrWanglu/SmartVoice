@@ -3216,7 +3216,7 @@ public class CaseInfoService {
     /**
      * @Description 一键审批提前流转
      */
-    public void approveAllAdvanceTurn(Integer result, Integer flag, User tokenUser) throws Exception {
+    public void approveAllAdvanceTurn(Integer result, Integer flag, String remark, User tokenUser) throws Exception {
         //result 审批结果 0-通过 1-拒绝
         //flag 类型 0-电催 1-外访
         QCaseAdvanceTurnApplay qCaseAdvanceTurnApplay = QCaseAdvanceTurnApplay.caseAdvanceTurnApplay;
@@ -3330,6 +3330,7 @@ public class CaseInfoService {
             caseAdvanceTurnApplay.setApproveRealName(tokenUser.getRealName());
             caseAdvanceTurnApplay.setApproveDatetime(ZWDateUtil.getNowDateTime());
             caseAdvanceTurnApplay.setApproveUserName(tokenUser.getUserName());
+            caseAdvanceTurnApplay.setApproveMemo(remark);
             caseAdvanceTurnApplayRepository.save(caseAdvanceTurnApplay);
             caseInfo.setOperator(tokenUser); //操作人
             caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
