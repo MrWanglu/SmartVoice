@@ -12,12 +12,12 @@ spring:
     data:
         mongodb:
             uri: mongodb://192.168.3.10:27017
-            database: pangolin_file_db
+            database: pangolin_file_db_classic
     rabbitmq:
-        username: dev
-        password: dev
+        username: classic
+        password: classic
         host: 192.168.3.10
-        virtual-host: dev
+        virtual-host: classic
         port: 5672
     jmx:
         enabled: false

@@ -11,7 +11,7 @@ spring:
         serialization.indent_output: true
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
-        url: jdbc:mysql://192.168.3.10:3306/pangolin_business?useUnicode=true&characterEncoding=utf8&useSSL=false
+        url: jdbc:mysql://192.168.3.10:3306/pangolin_business_classic?useUnicode=true&characterEncoding=utf8&useSSL=false
         name:
         username: pangolin
         password: Pangolin123!
@@ -23,17 +23,17 @@ spring:
                 useServerPrepStmts: true
             maximumPoolSize: 50
     rabbitmq:
-        username: dev
-        password: dev
+        username: classic
+        password: classic
         host: 192.168.3.10
-        virtual-host: dev
+        virtual-host: classic
         port: 5672
 
     cache:
         jcache:
             config: ehcache.xml
     redis:
-        database: 0
+        database: 8
         host: 192.168.3.10
         port: 6379
 
