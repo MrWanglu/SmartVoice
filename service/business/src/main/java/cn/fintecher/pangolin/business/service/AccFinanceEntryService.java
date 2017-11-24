@@ -44,8 +44,6 @@ public class AccFinanceEntryService {
             List dataList = null;
             if(Objects.nonNull(excelSheetObj)){
                 dataList = excelSheetObj.getDatasList();
-            }else{
-                throw new RuntimeException("数据不能为空");
             }
             //导入错误信息
             errorList = excelSheetObj.getCellErrorList();
@@ -69,6 +67,12 @@ public class AccFinanceEntryService {
             AccFinanceDataExcel accFinanceDataExcel = (AccFinanceDataExcel) obj;
 
             afe.setFileId(accFinanceEntry.getFileId());
+
+            //验证必要数据的合法性
+            if (!validityFinance(errorList, afe)) {
+                return;
+            }
+
             if(Objects.nonNull(accFinanceDataExcel.getCaseNum())){
                 afe.setFienCasenum(accFinanceDataExcel.getCaseNum());
             }
@@ -84,18 +88,15 @@ public class AccFinanceEntryService {
 
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             if(Objects.nonNull(accFinanceDataExcel.getCaseNum())) {
-                Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(qOutsourcePool.caseInfo.caseNumber.eq(accFinanceDataExcel.getCaseNum()));
-                if (Objects.nonNull(outsourcePools) && outsourcePools.iterator().hasNext()) {
-                    afe.setFienBatchnum(outsourcePools.iterator().next().getOutBatch());
-                    if (Objects.nonNull(outsourcePools.iterator().next().getOutsource())) {
-                        afe.setFienFgname(outsourcePools.iterator().next().getOutsource().getOutsName());
+                OutsourcePool outsourcePool = outsourcePoolRepository.findOne(qOutsourcePool.caseInfo.caseNumber.eq(accFinanceDataExcel.getCaseNum()));
+                if (Objects.nonNull(outsourcePool)) {
+                    afe.setFienBatchnum(outsourcePool.getOutBatch());
+                    if (Objects.nonNull(outsourcePool.getOutsource())) {
+                        afe.setFienFgname(outsourcePool.getOutsource().getOutsName());
                     }
-
+                }else {
+                    errorList.add(new CellError("", 0, 0, "", "", "案件编号非委外案件编号！",null));
                 }
-            }
-            //验证必要数据的合法性
-            if (!validityFinance(errorList, afe)) {
-                return;
             }
             accFinanceEntryRepository.save(afe);
         }
@@ -215,8 +216,6 @@ public class AccFinanceEntryService {
             outList.add(out);
         }
         caseFollowupRecordRepository.save(outList);
-
-
     }
 }
 
