@@ -215,18 +215,19 @@
     <select id="queryCollectingCase" parameterType="cn.fintecher.pangolin.report.model.CollectingCaseParams"
             resultType="cn.fintecher.pangolin.report.model.CollectingCaseInfo">
         select a.batch_number as
-        batchNumber,a.name,a.caseFollowInTime,a.delegationDate,a.closeDate,a.leftDays,a.caseNum,a.caseAmt,a.endCaseAmt,ifnull(b.endCaseNum,0)
-        as endCaseNum,truncate(ifnull(( b.endCaseNum/caseNum),0),4) as numRate,truncate((endCaseAmt/caseAmt),4) as
+        batchNumber,a.name,a.caseFollowInTime,a.delegationDate,a.closeDate,a.leftDays,a.caseNum,a.caseAmt,a.endCaseAmt,ifnull(endCaseNum,0)
+        as endCaseNum,truncate(ifnull(( endCaseNum/caseNum),0),4) as numRate,truncate((endCaseAmt/caseAmt),4) as
         amtRate
         from
         (
         select
-        aa.batch_number,aa.caseFollowInTime,aa.delegationDate,aa.closeDate,aa.leftDays,aa.caseNum,aa.caseAmt,aa.endCaseAmt,ab.name
+        aa.batch_number,aa.caseFollowInTime,aa.delegationDate,aa.closeDate,aa.leftDays,aa.caseNum,aa.caseAmt,aa.endCaseAmt,ab.name, aa.endCaseNum
         from
         (
         select batch_number,principal_id,MIN(case_follow_in_time) as caseFollowInTime ,MIN(delegation_date) as
         delegationDate,Max(close_date) as closeDate,Min(left_days) as leftDays,count(*) as caseNum,sum(overdue_amount)
-        as caseAmt,sum(real_pay_amount+early_real_settle_amt) as endCaseAmt
+        as caseAmt,sum(real_pay_amount+early_real_settle_amt) as endCaseAmt,
+        count(case when real_pay_amount!=0.00 then 0 end) as endCaseNum
         from case_info cc
         left join department on cc.depart_id = department.id
         where 1 = 1
@@ -259,15 +260,6 @@
         on aa.principal_id = ab.id
         )
         as a
-        left join
-        (
-        select batch_number,count(id) as endCaseNum
-        from case_info
-        where collection_status = 171
-        and case_pool_type = 225
-        GROUP BY batch_number
-        ) as b
-        on a.batch_number = b.batch_number
     </select>
 
     <!-- 多条件查询案件信息 -->

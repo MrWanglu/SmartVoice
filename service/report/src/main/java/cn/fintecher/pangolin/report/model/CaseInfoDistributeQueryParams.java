@@ -48,4 +48,6 @@ public class CaseInfoDistributeQueryParams {
     private Integer size = 10;
     @ApiModelProperty("排序")
     private String sort;
+    @ApiModelProperty("操作人")
+    private String operator;
 }
