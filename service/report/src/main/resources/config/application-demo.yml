@@ -54,3 +54,13 @@ cuibei:
   baiduMap:
     webUrl: http://api.map.baidu.com/place/v2/search?region=全国&ak=
     webAk: lHaYCXlRADlhW0fnv8tpIhCfqD85pTSr
+
+
+threadPool:
+   corePoolSize: 10
+   maxPoolSize: 200
+   keepAliveSeconds: 60
+   keepAliveTime: 20
+   queueCapacity: 500
+   allowCoreThreadTimeout: false
+   threadNamePrefix: pangolin-
