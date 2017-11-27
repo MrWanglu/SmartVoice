@@ -88,12 +88,12 @@ public class AppMsgServiceImpl implements AppMsgService {
                 .setPlatform(Platform.android_ios())
                 .setAudience(Audience.alias(MD5.MD5Encode(request.getUserId())))
                 .setNotification(Notification.newBuilder()
-                        /*.addPlatformNotification(AndroidNotification.newBuilder()
+                        .addPlatformNotification(AndroidNotification.newBuilder()
                                 .setTitle(request.getTitle())
                                 .setAlert(request.getContent())
                                 .setBuilderId(2) //设置1是简单的一个文本，2是提醒
                                 .addExtra("jsonObject", value)
-                                .build())*/
+                                .build())
                         .addPlatformNotification(IosNotification.newBuilder()
                                 .setAlert(request.getTitle() + "\n" + request.getContent())
                                 .incrBadge(1)
