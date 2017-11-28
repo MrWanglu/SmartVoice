@@ -4,6 +4,7 @@ import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.AccFinanceEntryService;
 import cn.fintecher.pangolin.business.service.OutsourcePoolService;
+import cn.fintecher.pangolin.dataimp.service.ParseExcelService;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
@@ -20,6 +21,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.joda.time.DateTime;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
@@ -999,19 +1001,21 @@ public class OutsourcePoolController extends BaseController {
                 }
             }
 
-            //查找上传文件
-            ResponseEntity<UploadFile> uploadFileResult = null;
-            UploadFile uploadFile = null;
+            //获取上传的文件
+            ResponseEntity<UploadFile> fileResponseEntity = null;
             try {
-                uploadFileResult = restTemplate.getForEntity("http://file-service/api/uploadFile/" + fileId, UploadFile.class);
-                if (!uploadFileResult.hasBody()) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取上传文件失败", "", "获取上传文件失败")).body(null);
-                } else {
-                    uploadFile = uploadFileResult.getBody();
-                }
+                fileResponseEntity = restTemplate.getForEntity(Constants.FILEID_SERVICE_URL.concat("uploadFile/").concat(fileId), UploadFile.class);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
-                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("获取上传文件失败", "", e.getMessage())).body(null);
+                throw new Exception("获取上传文件失败");
+            }
+            UploadFile file = fileResponseEntity.getBody();
+            if (Objects.isNull(file)) {
+                throw new Exception("获取Excel数据失败");
+            }
+            //判断文件类型是否为Excel
+            if (!Constants.EXCEL_TYPE_XLS.equals(file.getType()) && !Constants.EXCEL_TYPE_XLSX.equals(file.getType())) {
+                throw new Exception("数据文件为非Excel数据");
             }
 
             List<CellError> errorList = null;
@@ -1019,11 +1023,11 @@ public class OutsourcePoolController extends BaseController {
                 if (type == 0) {
                     Class<?>[] dataClass = {AccFinanceDataExcel.class};
                     //解析Excel并保存到临时表中
-                    errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), uploadFile.getType(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
+                    errorList = accFinanceEntryService.importAccFinanceData(file.getLocalUrl(), file.getType(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
                 } else {
                     Class<?>[] dataClass = {OutsourceFollowUpRecordModel.class};
                     //解析Excel并保存到临时表中
-                    errorList = accFinanceEntryService.importAccFinanceData(uploadFile.getLocalUrl(), uploadFile.getType(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
+                    errorList = accFinanceEntryService.importAccFinanceData(file.getLocalUrl(), file.getType(), startRow, startCol, dataClass, accFinanceEntry, outsourceFollowRecord, type);
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
