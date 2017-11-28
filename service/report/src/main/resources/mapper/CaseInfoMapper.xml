@@ -503,7 +503,7 @@
         as caseMark,case_pool_type,promise_amt as promiseAmt,promise_time as promiseTime,area_id,operator_time as
         operatorTime,real_pay_amount as realPayAmount, end_remark AS endRemark,score,delegation_date as
         delegationDate,close_date as closeDate from
-        case_info where current_collector is not null and company_code = #{companyCode}) a
+        case_info where company_code = #{companyCode}) a
         LEFT JOIN personal b on a.personal_id = b.id
         LEFT JOIN principal c on a.principal_id = c.id
         LEFT JOIN `user` d on a.current_collector = d.id
@@ -512,7 +512,7 @@
         LEFT JOIN area_code g on f.parent_id = g.id
         LEFT JOIN personal_bank pb on a.personal_id = pb.personal_id
         where a.case_pool_type = 225 and a.collectionStatus in(${collectionStatusList})
-        and (a.collectionType in(${collectionType}) or a.collectionType is null)
+        and (a.collectionType in(${collectionType}) or a.current_collector is NULL )
         <if test="isManager == 1">
             AND e.`code` LIKE concat(trim(#{code}),'%')
         </if>
