@@ -12,6 +12,7 @@ import java.util.Date;
  */
 @Data
 public class CaseInfoDistributedListResponse {
+    private String id;
     @ApiModelProperty("案件编号")
     private String caseNumber;
     @ApiModelProperty("批次号")
