@@ -2,6 +2,7 @@ package cn.fintecher.pangolin.report.web;
 
 import cn.fintecher.pangolin.entity.CaseInfoDistributed;
 import cn.fintecher.pangolin.entity.User;
+import cn.fintecher.pangolin.report.entity.response.CaseInfoDistributedListResponse;
 import cn.fintecher.pangolin.report.mapper.CaseInfoDistributeMapper;
 import cn.fintecher.pangolin.report.model.CaseInfoDistributeQueryParams;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -12,6 +13,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -40,7 +43,7 @@ public class CaseInfoDistributeController extends BaseController {
 
     @PostMapping(value = "/findCaseInfoDistribute")
     @ApiOperation(notes = "多条件查询待分配案件", value = "多条件查询待分配案件")
-    public ResponseEntity<Page<CaseInfoDistributed>> findCaseInfoDistribute(@RequestBody CaseInfoDistributeQueryParams params,
+    public ResponseEntity<Page<CaseInfoDistributedListResponse>> findCaseInfoDistribute(@RequestBody CaseInfoDistributeQueryParams params,
                                                  @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         logger.debug("REST request to findCaseInfoDistribute");
         try {
@@ -55,7 +58,16 @@ public class CaseInfoDistributeController extends BaseController {
             PageInfo<CaseInfoDistributed> pageInfo = new PageInfo<>(caseInfoDistributes);
             Pageable pageable = new PageRequest(params.getPage(), params.getSize());
             Page<CaseInfoDistributed> page = new PageImpl<>(caseInfoDistributes, pageable, pageInfo.getTotal());
-            return ResponseEntity.ok().body(page);
+            Page<CaseInfoDistributedListResponse> voPage=page.map(caseInfoDistributed -> {
+                CaseInfoDistributedListResponse response=new CaseInfoDistributedListResponse();
+                BeanUtils.copyProperties(caseInfoDistributed,response);
+                response.setPersonalName(caseInfoDistributed.getPersonalInfo().getName());
+                response.setCityCode(caseInfoDistributed.getArea().getAreaName());
+                response.setMobileNo(caseInfoDistributed.getPersonalInfo().getMobileNo());
+
+                return response;
+            });
+            return ResponseEntity.ok().body(voPage);
         } catch (Exception e) {
             logger.debug(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
