@@ -14,9 +14,7 @@ import io.swagger.annotations.ApiParam;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -63,10 +61,7 @@ public class CaseInfoDistributeController extends BaseController {
             Pageable pageable = new PageRequest(params.getPage(), params.getSize());
             Page<CaseInfoDistributed> page = new PageImpl<>(caseInfoDistributes, pageable, pageInfo.getTotal());
             Page<CaseInfoDistributedListResponse> voPage=page.map(caseInfoDistributed -> {
-
                 CaseInfoDistributedListResponse response = modelMapper.map(caseInfoDistributed, CaseInfoDistributedListResponse.class);
-
-
                 return response;
             });
             return ResponseEntity.ok().body(voPage);
