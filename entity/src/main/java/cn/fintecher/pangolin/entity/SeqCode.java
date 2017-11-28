@@ -22,6 +22,7 @@ public class SeqCode implements Serializable {
     @Id
     @ApiModelProperty(notes = "序列名称")
     private String name;
+
     @ApiModelProperty(notes = "序列当前值")
     private Integer currentValue;
 }

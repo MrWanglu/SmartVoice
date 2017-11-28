@@ -16,24 +16,24 @@ import java.util.Date;
 public class CaseInfoVerification extends BaseEntity {
 
     @OneToOne
-    @ApiModelProperty("案件Id")
+    @ApiModelProperty(notes = "案件Id")
     @JoinColumn(name = "case_id")
     private CaseInfo caseInfo;
 
-    @ApiModelProperty("公司code码")
+    @ApiModelProperty(notes = "公司code码")
     private String companyCode;
 
-    @ApiModelProperty("当前催收员")
+    @ApiModelProperty(notes = "当前催收员")
     private String operator;
 
-    @ApiModelProperty("操作时间")
+    @ApiModelProperty(notes = "操作时间")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date operatorTime;
 
-    @ApiModelProperty("核销说明")
+    @ApiModelProperty(notes = "核销说明")
     private String state;
 
-    @ApiModelProperty("打包状态")
+    @ApiModelProperty(notes = "打包状态")
     private Integer packingStatus;
 
     /**

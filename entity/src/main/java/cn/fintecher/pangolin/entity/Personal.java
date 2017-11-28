@@ -15,34 +15,88 @@ import java.util.Set;
 @Table(name = "Personal")
 @Data
 public class Personal extends BaseEntity {
+    @ApiModelProperty(notes = "姓名")
     private String name;
-    private Integer sex; //0-男 1-女
+
+    @ApiModelProperty(notes = "性别")
+    private Integer sex;
+
+    @ApiModelProperty(notes = "婚姻状态")
     private Integer marital;
+
+    @ApiModelProperty(notes = "教育程度")
     private Integer education;
+
+    @ApiModelProperty(notes = "毕业学校")
     private String school;
+
+    @ApiModelProperty(notes = "年龄")
     private Integer age;
+
+    @ApiModelProperty(notes = "手机号码")
     private String mobileNo;
+
+    @ApiModelProperty(notes = "手机号码状态")
     private Integer mobileStatus;
+
+    @ApiModelProperty(notes = "身份证号码")
     private String idCard;
+
+    @ApiModelProperty(notes = "微信号")
     private String wechat;
+
+    @ApiModelProperty(notes = "QQ号")
     private String qq;
+
+    @ApiModelProperty(notes = "电子邮箱地址")
     private String email;
+
+    @ApiModelProperty(notes = "身份证有效期")
     private Integer idCardValidityPeriod;
-    private String idCardIssuingAuthority; //身份证发证机关
+
+    @ApiModelProperty(notes = "身份证发证机关")
+    private String idCardIssuingAuthority;
+
+    @ApiModelProperty(notes = "身份证地址")
     private String idCardAddress;
+
+    @ApiModelProperty(notes = "本市生活时长")
     private String cityLiveTime;
+
+    @ApiModelProperty(notes = "现居生活时长")
     private String localLiveTime;
+
+    @ApiModelProperty(notes = "居住地家庭座机")
     private String localPhoneNo;
+
+    @ApiModelProperty(notes = "现居住地址")
     private String localHomeAddress;
+
+    @ApiModelProperty(notes = "电费户名")
     private String electricityAccount;
+
+    @ApiModelProperty(notes = "电费密码")
     private String electricityPwd;
+
+    @ApiModelProperty(notes = "产品内外部标识0-Excel,1-接口同步")
     private Integer dataSource;
+
+    @ApiModelProperty(notes = "操作员")
     private String operator;
+
+    @ApiModelProperty(notes = "操作时间")
     private Date operatorTime;
+
+    @ApiModelProperty(notes = "公司code码")
     private String companyCode;
+
+    @ApiModelProperty(notes = "经度")
     private BigDecimal longitude;
+
+    @ApiModelProperty(notes = "纬度")
     private BigDecimal latitude;
-    @ApiModelProperty("客户号")
+
+    @ApiModelProperty(notes = "客户号")
     private String number;
 
     @OneToMany(cascade = CascadeType.REFRESH)

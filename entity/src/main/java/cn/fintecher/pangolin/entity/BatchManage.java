@@ -20,16 +20,22 @@ import java.util.Date;
 public class BatchManage extends BaseEntity{
     @ApiModelProperty("批量名称")
     private String batchName;
+
     @ApiModelProperty("批量代码")
     private String batchValue;
+
     @ApiModelProperty("开始时间")
     private Date startTime;
+
     @ApiModelProperty("结束时间")
     private Date endTime;
+
     @ApiModelProperty("状态 0-成功 1-失败")
     private Integer status;
+
     @ApiModelProperty("当前日期")
     private Date sysDate;
+
     @ApiModelProperty("处理数量")
     private Integer sum;
 }
