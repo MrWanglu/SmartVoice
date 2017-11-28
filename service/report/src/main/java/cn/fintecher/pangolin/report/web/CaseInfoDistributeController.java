@@ -11,9 +11,11 @@ import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -40,6 +42,8 @@ public class CaseInfoDistributeController extends BaseController {
 
     @Inject
     private CaseInfoDistributeMapper caseInfoDistributeMapper;
+    @Autowired
+    private ModelMapper modelMapper;
 
     @PostMapping(value = "/findCaseInfoDistribute")
     @ApiOperation(notes = "多条件查询待分配案件", value = "多条件查询待分配案件")
@@ -59,11 +63,9 @@ public class CaseInfoDistributeController extends BaseController {
             Pageable pageable = new PageRequest(params.getPage(), params.getSize());
             Page<CaseInfoDistributed> page = new PageImpl<>(caseInfoDistributes, pageable, pageInfo.getTotal());
             Page<CaseInfoDistributedListResponse> voPage=page.map(caseInfoDistributed -> {
-                CaseInfoDistributedListResponse response=new CaseInfoDistributedListResponse();
-                BeanUtils.copyProperties(caseInfoDistributed,response);
-                response.setPersonalName(caseInfoDistributed.getPersonalInfo().getName());
-                response.setCityCode(caseInfoDistributed.getArea().getAreaName());
-                response.setMobileNo(caseInfoDistributed.getPersonalInfo().getMobileNo());
+
+                CaseInfoDistributedListResponse response = modelMapper.map(caseInfoDistributed, CaseInfoDistributedListResponse.class);
+
 
                 return response;
             });

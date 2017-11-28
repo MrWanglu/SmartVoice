@@ -20,11 +20,11 @@ public class CaseInfoDistributedListResponse {
     @ApiModelProperty("委托方")
     private String principalName;
     @ApiModelProperty("申请城市")
-    private String cityCode;
+    private String areaAreaName;
     @ApiModelProperty("客户姓名")
-    private String personalName;
+    private String personalInfoName;
     @ApiModelProperty("手机号")
-    private String mobileNo;
+    private String personalInfoMobileNo;
     @ApiModelProperty("逾期天数")
     private Integer overdueDays;
     @ApiModelProperty("逾期期数")
