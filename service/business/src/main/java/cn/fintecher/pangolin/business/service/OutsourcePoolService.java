@@ -11,8 +11,6 @@ import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import freemarker.template.Configuration;
-import io.swagger.models.auth.In;
-import javassist.bytecode.stackmap.BasicBlock;
 import org.apache.commons.lang3.StringUtils;
 import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
@@ -23,12 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+
 import java.util.*;
 
 /**
@@ -59,8 +54,7 @@ public class OutsourcePoolService {
 
     @Inject
     RunCaseStrategyService runCaseStrategyService;
-    @Autowired
-    private EntityManager entityManager;
+
 
     /**
      * @Description 委外待分配按数量平均分配预览
@@ -658,51 +652,4 @@ public class OutsourcePoolService {
             }
         }
     }
-/*
-    public List<OutsourcePool> getOutsourcePool(OurBatchList outsBatchlist, User user) throws ParseException {
-
-        List<OutsourcePool> outsourcePoolList = new ArrayList<>();
-        StringBuilder query = new StringBuilder("SELECT a.id, a.case_id,a.out_id,a.out_time,a.over_outsource_time,a.overdue_periods,a.out_status from outsource_pool a LEFT JOIN case_info b on a.case_id = b.id where a.out_status=168 and b.case_pool_type=226 and b.recover_remark=0 and a.company_code='");
-        if (Objects.nonNull(user.getCompanyCode())) {
-            query.append(user.getCompanyCode()).append("' ");
-        }
-        if (Objects.nonNull(outsBatchlist.getOurBatchList()) && outsBatchlist.getOurBatchList().size()!=0) {
-            query.append(" and a.out_batch in (").append(StringUtils.trim(outsBatchlist.getOurBatchList().toString())).append(")");
-        }
-        if (Objects.nonNull(outsBatchlist.getOutsNameList()) && outsBatchlist.getOutsNameList().size()!=0) {
-            List<String> outsourceList = new ArrayList<>();
-            Iterable<Outsource> outsources=outsourceRepository.findAll(QOutsource.outsource.outsName.in(outsBatchlist.getOutsNameList()));
-            outsources.forEach(single ->{outsourceList.add(single.getId());});
-            query.append(" and a.out_id in (").append(StringUtils.trim(outsourceList.toString())).append(")");
-        }
-        if (StringUtils.isNotBlank(outsBatchlist.getOutsName())) {
-            Outsource outsource = outsourceRepository.findOne(QOutsource.outsource.outsName.eq(outsBatchlist.getOutsName()));
-            query.append(" and a.out_id =").append(StringUtils.trim(outsource.getId()));
-        }
-
-        if (Objects.nonNull(outsBatchlist.getOutTimeStart()) && !("").equals(outsBatchlist.getOutTimeStart())) {
-            String outTimeStart = outsBatchlist.getOutTimeStart().substring(0,10)+" 00:00:00";
-            query.append(" and a.out_time >=").append("'").append(StringUtils.trim(outTimeStart)).append("'");
-        }
-        if (Objects.nonNull(outsBatchlist.getOutTimeEnd()) && !("").equals(outsBatchlist.getOutTimeEnd())) {
-            String outTimeEnd =outsBatchlist.getOutTimeEnd().substring(0,10)+" 23:59:59";
-            query.append(" and a.out_time <=").append("'").append(StringUtils.trim(outTimeEnd)).append("'");
-        }
-        List<Object[]> resultList = entityManager.createNativeQuery(query.toString()).getResultList();
-        SimpleDateFormat dateFm = new SimpleDateFormat("yyyy-MM-dd");
-        for(Object[] obj : resultList){
-            OutsourcePool outsourcePool = new OutsourcePool();
-            outsourcePool.setId(Objects.isNull(obj[0]) ? null : obj[0].toString());
-            CaseInfo caseInfo = caseInfoRepository.findOne(Objects.isNull(obj[1]) ? null : obj[1].toString());
-            outsourcePool.setCaseInfo(caseInfo);
-            Outsource outsource = outsourceRepository.findOne(Objects.isNull(obj[2]) ? null : obj[2].toString());
-            outsourcePool.setOutsource(outsource);
-            outsourcePool.setOutTime(Objects.isNull(obj[3]) ? null : dateFm.parse(obj[3].toString()));
-            outsourcePool.setOverOutsourceTime(Objects.isNull(obj[4]) ? null : dateFm.parse(obj[4].toString()));
-            outsourcePool.setOverduePeriods(Objects.isNull(obj[5]) ? null : obj[5].toString());
-            outsourcePool.setOutStatus(Objects.isNull(obj[6]) ? null : Integer.parseInt(obj[6].toString()));
-            outsourcePoolList.add(outsourcePool);
-        }
-        return outsourcePoolList;
-    }*/
 }
