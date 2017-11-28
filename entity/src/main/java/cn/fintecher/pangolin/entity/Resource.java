@@ -16,40 +16,53 @@ import java.util.Set;
 @Data
 @ApiModel(value = "resource", description = "资源管理")
 public class Resource extends BaseEntity {
-    @ApiModelProperty("系统名称")
+    @ApiModelProperty(notes = "系统名称")
     private String sysName;
-    @ApiModelProperty("资源名称")
+
+    @ApiModelProperty(notes = "资源名称")
     private String name;
-    @ApiModelProperty("资源码")
+
+    @ApiModelProperty(notes = "资源码")
     private String code;
-    @ApiModelProperty("资源级别")
+
+    @ApiModelProperty(notes = "资源级别")
     private Integer level;
-    @ApiModelProperty("状态")
+
+    @ApiModelProperty(notes = "状态")
     private Integer status;
-    @ApiModelProperty("资源路径")
+
+    @ApiModelProperty(notes = "资源路径")
     private String path;
-    @ApiModelProperty("资源图标")
+
+    @ApiModelProperty(notes = "资源图标")
     private String icon;
-    @ApiModelProperty("资源类型")
+
+    @ApiModelProperty(notes = "资源类型")
     private Integer type;
-    @ApiModelProperty("资源文件类型")
+
+    @ApiModelProperty(notes = "资源文件类型")
     private Integer fileType;
-    @ApiModelProperty("备注")
+
+    @ApiModelProperty(notes = "备注")
     private String remark;
-    @ApiModelProperty("创建人")
+
+    @ApiModelProperty(notes = "创建人")
     private String operator;
-    @ApiModelProperty("创建日期")
+
+    @ApiModelProperty(notes = "创建日期")
     private Date operateTime;
-    @ApiModelProperty("备用字段")
+
+    @ApiModelProperty(notes = "备用字段")
     private String field;
-    @ApiModelProperty("数据库排序标识")
+
+    @ApiModelProperty(notes = "数据库排序标识")
     private Integer flag;
 
-    @ApiModelProperty("父id")
+    @ApiModelProperty(notes = "父id")
     private String pid;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "role_resource", joinColumns = @JoinColumn(name = "reso_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
-    @ApiModelProperty("关联的角色")
+    @ApiModelProperty(notes = "关联的角色")
     private Set<Role> roles;
 }

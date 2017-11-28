@@ -18,16 +18,21 @@ import java.util.Date;
 @Data
 @ApiModel(value = "SystemBackup", description = "系统备份实体")
 public class SystemBackup extends BaseEntity {
-    @ApiModelProperty("特定公司的标识")
+    @ApiModelProperty(notes = "特定公司的标识")
     private String companyCode;
-    @ApiModelProperty("备份类型 0：自动 1：手动")
+
+    @ApiModelProperty(notes = "备份类型 0：自动 1：手动")
     private Integer type;
-    @ApiModelProperty("mysql数据库文件名称")
+
+    @ApiModelProperty(notes = "mysql数据库文件名称")
     private String mysqlName;
-    @ApiModelProperty("mongdb数据库名称")
+
+    @ApiModelProperty(notes = "mongdb数据库名称")
     private String mongdbName;
-    @ApiModelProperty("操作人")
+
+    @ApiModelProperty(notes = "操作人")
     private String operator;
-    @ApiModelProperty("备份时间")
+
+    @ApiModelProperty(notes = "备份时间")
     private Date operateTime;
 }

@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.entity;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -14,15 +15,32 @@ import java.util.Date;
 @Table(name = "message_push")
 @Data
 public class MessagePush extends BaseEntity{
-    private String companyCode; //公司标识
-    private String pushRegid; //推送标识
-    private String deviceCode; //设备码
-    private String deviceType; //设备类型
-    private String systemVersion; //操作系统版本
-    private Integer pushStatus; //推送接收的启用停用（0是启用 1是停用）
-    private String operator; //操作人
-    private Date operateTime; //操作时间
-    private String field; //备用字段
+    @ApiModelProperty(notes = "公司标识")
+    private String companyCode;
+
+    @ApiModelProperty(notes = "推送标识")
+    private String pushRegid;
+
+    @ApiModelProperty(notes = "设备码")
+    private String deviceCode;
+
+    @ApiModelProperty(notes = "设备类型")
+    private String deviceType;
+
+    @ApiModelProperty(notes = "操作系统版本")
+    private String systemVersion;
+
+    @ApiModelProperty(notes = "推送接收的启用停用（0是启用 1是停用）")
+    private Integer pushStatus;
+
+    @ApiModelProperty(notes = "操作人")
+    private String operator;
+
+    @ApiModelProperty(notes = "操作时间")
+    private Date operateTime;
+
+    @ApiModelProperty(notes = "备用字段")
+    private String field;
 
     public enum PushStatus {
         Enable(0,"启用"), Disable(1,"停用");

@@ -17,61 +17,62 @@ import java.util.Date;
 public class OutsourcePool extends BaseEntity {
     @ManyToOne
     @JoinColumn(name="case_id")
+    @ApiModelProperty(notes = "案件ID")
     private CaseInfo caseInfo;
 
     @ManyToOne
     @JoinColumn(name="out_id")
     private Outsource outsource;
 
-    @ApiModelProperty("委外时间")
+    @ApiModelProperty(notes = "委外时间")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date outTime;
 
-    @ApiModelProperty("操作时间")
+    @ApiModelProperty(notes = "操作时间")
     private Date operateTime;
 
-    @ApiModelProperty("操作人")
+    @ApiModelProperty(notes = "操作人")
     private String operator;
 
-    @ApiModelProperty("委外状态")
+    @ApiModelProperty(notes = "委外状态")
     private Integer outStatus;
 
-    @ApiModelProperty("委外批次号")
+    @ApiModelProperty(notes = "委外批次号")
     private String outBatch;
 
-    @ApiModelProperty("委外回款金额")
+    @ApiModelProperty(notes = "委外回款金额")
     private BigDecimal outBackAmt = new BigDecimal(0);
 
-    @ApiModelProperty("逾期时段")
+    @ApiModelProperty(notes = "逾期时段")
     private String overduePeriods;
 
-    @ApiModelProperty("案件金额")
+    @ApiModelProperty(notes = "案件金额")
     private BigDecimal contractAmt = new BigDecimal(0);
 
     //Added by huyanmin 2017/9/5
-    @ApiModelProperty("委外操作状态")
+    @ApiModelProperty(notes = "委外操作状态")
     private Integer outoperationStatus; //回款 204，回退 205，修复 206
 
     //Added by huyanmin 2017/9/25
-    @ApiModelProperty("公司标识符")
+    @ApiModelProperty(notes = "公司标识符")
     private String companyCode;
 
     //Added by huyanmin 2017/9/25
-    @ApiModelProperty("委外到期时间")
+    @ApiModelProperty(notes = "委外到期时间")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date overOutsourceTime;
 
     //Added by huyanmin 2017/9/25
-    @ApiModelProperty("委外结案日期")
+    @ApiModelProperty(notes = "委外结案日期")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date endOutsourceTime;
 
     //Added by huyanmin 2017/9/25
-    @ApiModelProperty("佣金比例")
+    @ApiModelProperty(notes = "佣金比例")
     private BigDecimal commissionRate = new BigDecimal(0.00);
 
     //Added by huyanmin 2017/9/25
-    @ApiModelProperty("佣金金额")
+    @ApiModelProperty(notes = "佣金金额")
     private BigDecimal commission  = new BigDecimal(0);
 
 

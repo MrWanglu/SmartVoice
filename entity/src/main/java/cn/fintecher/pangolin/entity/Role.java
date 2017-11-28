@@ -17,18 +17,24 @@ import java.util.Set;
 @Data
 @ApiModel(value = "role", description = "角色信息管理")
 public class Role extends BaseEntity {
-    @ApiModelProperty("特定公司的标识")
+    @ApiModelProperty(notes = "特定公司的标识")
     private String companyCode;
-    @ApiModelProperty("角色名称")
+
+    @ApiModelProperty(notes = "角色名称")
     private String name;
-    @ApiModelProperty("角色状态 0：启用 1：停用")
+
+    @ApiModelProperty(notes = "角色状态 0：启用 1：停用")
     private Integer status;
-    @ApiModelProperty("描述")
+
+    @ApiModelProperty(notes = "描述")
     private String remark;
-    @ApiModelProperty("创建人用户名")
+
+    @ApiModelProperty(notes = "创建人用户名")
     private String operator;
-    @ApiModelProperty("创建时间")
+
+    @ApiModelProperty(notes = "创建时间")
     private Date operateTime;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "role_resource", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "reso_id"))
     @Transient

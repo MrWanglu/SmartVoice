@@ -17,9 +17,7 @@ import java.util.Date;
 @Data
 @Table(name = "outsource_follow_record")
 public class OutsourceFollowRecord extends BaseEntity {
-
-
-    @ApiModelProperty("公司标识符")
+    @ApiModelProperty(notes = "公司标识符")
     private String companyCode;
 
     @ApiModelProperty(notes = "案件ID")
