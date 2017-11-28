@@ -17,22 +17,22 @@ import java.util.Date;
 @Data
 public class CaseInfoVerificationApply extends BaseEntity {
 
-    @ApiModelProperty("公司code码")
+    @ApiModelProperty(notes = "公司code码")
     private String companyCode;
 
-    @ApiModelProperty("审批人")
+    @ApiModelProperty(notes = "审批人")
     private String operator;
 
-    @ApiModelProperty("案件Id")
+    @ApiModelProperty(notes = "案件Id")
     private String caseId;
 
-    @ApiModelProperty("批次号")
+    @ApiModelProperty(notes = "批次号")
     private String batchNumber;
 
-    @ApiModelProperty("案件编号")
+    @ApiModelProperty(notes = "案件编号")
     private String caseNumber;
 
-    @ApiModelProperty("操作时间")
+    @ApiModelProperty(notes = "操作时间")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date operatorTime;
 
@@ -119,7 +119,7 @@ public class CaseInfoVerificationApply extends BaseEntity {
     @ApiModelProperty(notes = "佣金比例")
     private BigDecimal commissionRate;
 
-    @ApiModelProperty("内催 225 委外 226 司法 227 核销 228")
+    @ApiModelProperty(notes = "内催 225 委外 226 司法 227 核销 228")
     private Integer source;
 
     /**

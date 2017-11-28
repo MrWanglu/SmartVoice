@@ -19,6 +19,7 @@ import javax.persistence.Table;
 public class BatchSeq extends BaseEntity{
     @ApiModelProperty("序列名称")
     private String seqName;
+
     @ApiModelProperty("当前值")
     private Integer currentSeq;
 }

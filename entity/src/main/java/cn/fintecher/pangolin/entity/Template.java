@@ -63,6 +63,7 @@ public class Template extends BaseEntity {
 
     @ApiModelProperty(notes = "更新时间")
     private Date updateTime;
+
     @ApiModelProperty(notes = "公司编码")
     private String companyCode;
 }

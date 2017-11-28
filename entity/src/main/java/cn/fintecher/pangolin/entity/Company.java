@@ -18,34 +18,48 @@ import java.util.Date;
 @Data
 @ApiModel(value = "company", description = "注册公司的信息")
 public class Company extends BaseEntity {
-    @ApiModelProperty("公司中文名称")
+    @ApiModelProperty(notes = "公司中文名称")
     private String chinaName;
-    @ApiModelProperty("公司英文名称")
+
+    @ApiModelProperty(notes = "公司英文名称")
     private String engName;
-    @ApiModelProperty("状态")
+
+    @ApiModelProperty(notes = "状态")
     private Integer status;
-    @ApiModelProperty("公司code")
+
+    @ApiModelProperty(notes = "公司code")
     private String code;
-    @ApiModelProperty("公司法人")
+
+    @ApiModelProperty(notes = "公司法人")
     private String legPerson;
-    @ApiModelProperty("公司地址")
+
+    @ApiModelProperty(notes = "公司地址")
     private String address;
-    @ApiModelProperty("公司城市")
+
+    @ApiModelProperty(notes = "公司城市")
     private String city;
-    @ApiModelProperty("公司电话")
+
+    @ApiModelProperty(notes = "公司电话")
     private String phone;
-    @ApiModelProperty("公司传真")
+
+    @ApiModelProperty(notes = "公司传真")
     private String fax;
-    @ApiModelProperty("公司联系人")
+
+    @ApiModelProperty(notes = "公司联系人")
     private String contactPerson;
-    @ApiModelProperty("创建人")
+
+    @ApiModelProperty(notes = "创建人")
     private String operator;
-    @ApiModelProperty("创建时间")
+
+    @ApiModelProperty(notes = "创建时间")
     private Date operateTime;
-    @ApiModelProperty("备用字段")
+
+    @ApiModelProperty(notes = "备用字段")
     private String field;
-    @ApiModelProperty("公司序列码")
+
+    @ApiModelProperty(notes = "公司序列码")
     private String sequence;
-    @ApiModelProperty("注册天数")
+
+    @ApiModelProperty(notes = "注册天数")
     private Integer registerDay;
 }

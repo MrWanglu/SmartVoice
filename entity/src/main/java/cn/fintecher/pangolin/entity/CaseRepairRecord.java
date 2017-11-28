@@ -32,15 +32,16 @@ public class CaseRepairRecord extends BaseEntity {
     @ApiModelProperty(notes = "文件地址")
     private String fileUrl;
 
-    @ApiModelProperty("修复说明")
+    @ApiModelProperty(notes = "修复说明")
     private String repairMemo;
 
-    @ApiModelProperty("操作员")
+    @ApiModelProperty(notes = "操作员")
     private String operator;
 
-    @ApiModelProperty("操作时间")
+    @ApiModelProperty(notes = "操作时间")
     private Date operatorTime;
 
+    @ApiModelProperty(notes = "案件ID")
     private String caseId;
 
 }

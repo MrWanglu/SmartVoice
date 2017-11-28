@@ -12,33 +12,34 @@ import java.util.Date;
 public class OutsourceRecord extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "case_id")
+    @ApiModelProperty(notes = "案件ID")
     private CaseInfo caseInfo;
 
     @ManyToOne
     @JoinColumn(name = "outs_id")
     private Outsource outsource;
 
-    @ApiModelProperty("案件编号")
+    @ApiModelProperty(notes = "案件编号")
     private String ouorOrdernum;
 
-    @ApiModelProperty("批次")
+    @ApiModelProperty(notes = "批次")
     private String ouorBatch;
 
-    @ApiModelProperty("委案日期")
+    @ApiModelProperty(notes = "委案日期")
     private Date ouorDate;
 
-    @ApiModelProperty("备注")
+    @ApiModelProperty(notes = "备注")
     private String memo;
 
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty(notes = "创建时间")
     private Date createTime;
 
-    @ApiModelProperty("操作人")
+    @ApiModelProperty(notes = "操作人")
     private String creator;
 
-    @ApiModelProperty("状态 0正常  1删除")
+    @ApiModelProperty(notes = "状态 0正常  1删除")
     private Integer flag;
 
-    @ApiModelProperty("佣金回款 204 回款 205 回退 206 修复")
+    @ApiModelProperty(notes = "佣金回款 204 回款 205 回退 206 修复")
     private Integer operationType;
 }

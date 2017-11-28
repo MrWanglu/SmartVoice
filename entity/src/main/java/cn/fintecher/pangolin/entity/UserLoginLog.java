@@ -23,14 +23,18 @@ public class UserLoginLog implements Serializable{
 
     @Id
     private String id;
-    @ApiModelProperty("登陆时间")
+    @ApiModelProperty(notes = "登陆时间")
     private Date loginTime;
-    @ApiModelProperty("登出时间")
+
+    @ApiModelProperty(notes = "登出时间")
     private Date logoutTime;
-    @ApiModelProperty("用户ID")
+
+    @ApiModelProperty(notes = "用户ID")
     private String userId;
-    @ApiModelProperty("用户账号")
+
+    @ApiModelProperty(notes = "用户账号")
     private String userName;
-    @ApiModelProperty("持续时间")
+
+    @ApiModelProperty(notes = "持续时间")
     private Long duration;
 }
