@@ -221,7 +221,8 @@
         from
         (
         select
-        aa.batch_number,aa.caseFollowInTime,aa.delegationDate,aa.closeDate,aa.leftDays,aa.caseNum,aa.caseAmt,aa.endCaseAmt,ab.name, aa.endCaseNum
+        aa.batch_number,aa.caseFollowInTime,aa.delegationDate,aa.closeDate,aa.leftDays,aa.caseNum,aa.caseAmt,aa.endCaseAmt,ab.name,
+        aa.endCaseNum
         from
         (
         select batch_number,principal_id,MIN(case_follow_in_time) as caseFollowInTime ,MIN(delegation_date) as
@@ -510,8 +511,8 @@
         LEFT JOIN area_code f on a.area_id = f.id
         LEFT JOIN area_code g on f.parent_id = g.id
         LEFT JOIN personal_bank pb on a.personal_id = pb.personal_id
-        where a.case_pool_type = 225 and a.collectionStatus in(${collectionStatusList}) and a.collectionType
-        in(${collectionType})
+        where a.case_pool_type = 225 and a.collectionStatus in(${collectionStatusList})
+        and (a.collectionType in(${collectionType}) or a.collectionType is null)
         <if test="isManager == 1">
             AND e.`code` LIKE concat(trim(#{code}),'%')
         </if>
