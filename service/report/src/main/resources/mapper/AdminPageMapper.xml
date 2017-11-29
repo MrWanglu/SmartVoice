@@ -100,7 +100,7 @@
             parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
         SELECT
-        c.proviceNum as `value`,
+        SUM(c.proviceNum) as `value`,
         t.area_name as `name`
         FROM
         (
@@ -146,7 +146,7 @@
             parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
         SELECT
-        c.proviceNum as `value`,
+        SUM(c.proviceNum) as `value`,
         t.area_name as `name`
         FROM
         (
@@ -193,7 +193,7 @@
             parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.ProvinceCollectionDateModel">
         SELECT a.`name`, SUM(a.`value`) as `value`
-        FROM (SELECT t.area_name as `name`, c.proviceNum as `value`
+        FROM (SELECT t.area_name as `name`, SUM(c.proviceNum) as `value`
         FROM
         (
         SELECT
@@ -214,7 +214,7 @@
         ) as t ON c.tree_path = t.id
         GROUP BY t.area_name, proviceNum
         UNION ALL
-        SELECT t.area_name as `name`, c.proviceNum as `value`
+        SELECT t.area_name as `name`, SUM(c.proviceNum) as `value`
         FROM
         (
         SELECT

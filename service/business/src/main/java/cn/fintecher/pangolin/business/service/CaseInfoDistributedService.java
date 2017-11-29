@@ -6,8 +6,8 @@ import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.util.ZWDateUtil;
-import cn.fintecher.pangolin.util.ZWStringUtils;
 import org.apache.commons.collections4.IterableUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -397,55 +397,91 @@ public class CaseInfoDistributedService {
      * @param user  用户
      * @return
      */
-    public void strategyAllocation(CountStrategyAllocationModel model, User user) {
+    public void strategyAllocation(CaseInfoStrategyModel model, User user) {
         try {
-            List<CountAllocationModel> modelList = model.getModelList();
+            List<CaseInfoStrategyResultModel> modelList = model.getModelList();
 
             // 策略分配
             List<CaseInfoDistributed> caseInfoDistributedList = new ArrayList<>();
-            List<CaseInfo> caseInfoList = new ArrayList<>(); // 分配到CaseInfo的案件
-            List<CaseRepair> caseRepairList = new ArrayList<>(); // 分配到内催时添加修复池也新增
-            List<OutsourcePool> outsourcePoolList = new ArrayList<>(); // 分到委外时需要OutsourcePool新增
-            List<CaseInfoRemark> caseInfoRemarkList = new ArrayList<>(); // 分配时备注表新增
-            List<CaseDistributedTemporary> caseDistributedTemporaryList = new ArrayList<>();
-            for (CountAllocationModel aModel : modelList) {
-                List<CaseInfoDistributed> all = caseInfoDistributedRepository.findAll(aModel.getIds());
-                if (Objects.equals(aModel.getType(), 0)) { // 内催
+            // 分配到CaseInfo的案件
+            List<CaseInfo> caseInfoList = new ArrayList<>();
+            // 分配到内催时添加修复池也新增
+            List<CaseRepair> caseRepairList = new ArrayList<>();
+            // 分配时备注表新增
+            List<CaseInfoRemark> caseInfoRemarkList = new ArrayList<>();
+            // 流转记录
+            List<CaseTurnRecord> caseTurnRecordList = new ArrayList<>();
+            for (CaseInfoStrategyResultModel aModel : modelList) {
+                List<CaseInfoDistributed> all = caseInfoDistributedRepository.findAll(aModel.getDistributeIds());
+                String username = aModel.getUsername();
+                if (StringUtils.isNotBlank(username)) {
                     for (CaseInfoDistributed caseInfoDistributed : all) {
                         CaseInfo caseInfo = new CaseInfo();
-                        setCaseInfo(caseInfoDistributed, caseInfo, user, null);
+                        BeanUtils.copyProperties(caseInfoDistributed, caseInfo);
+                        caseInfo.setId(null);
+                        caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型-案件分配
+                        caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //案件流入时间
+                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态-待催收 //催收状态-待分配
+                        caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
+                        caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
+                        caseInfo.setLeftDays(ZWDateUtil.getBetween(ZWDateUtil.getNowDate(), caseInfo.getCloseDate(), ChronoUnit.DAYS));//案件剩余天数(结案日期-当前日期)
+                        caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue());//打标标记
+                        caseInfo.setFollowUpNum(0);//流转次数
+                        caseInfo.setOperator(user);
+                        caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+                        User user1 = userRepository.findByUserName(username);
+                        caseInfo.setCurrentCollector(user1);
                         caseInfo.setCasePoolType(CaseInfo.CasePoolType.INNER.getValue());
+                        caseInfo.setDepartment(user1.getDepartment());
+                        caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
+                        caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
+                        caseInfo.setPromiseAmt(new BigDecimal(0));
+                        caseInfoService.setCollectionType(caseInfo, null, user1);
                         caseInfoList.add(caseInfo);
                         addCaseRepair(caseRepairList, caseInfo, user);//修复池增加案件
+                        addCaseTurnRecord(caseTurnRecordList, caseInfo, user);
                         caseInfoDistributedList.add(caseInfoDistributed);
                     }
-                }
-                if (Objects.equals(aModel.getType(), 1)) { // 委外
+                } else {
                     for (CaseInfoDistributed caseInfoDistributed : all) {
                         CaseInfo caseInfo = new CaseInfo();
-                        setCaseInfo(caseInfoDistributed, caseInfo, user, null);
-                        caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue());
+                        BeanUtils.copyProperties(caseInfoDistributed, caseInfo);
+                        caseInfo.setId(null);
+                        caseInfo.setCaseType(CaseInfo.CaseType.DISTRIBUTE.getValue()); //案件类型-案件分配
+                        caseInfo.setCaseFollowInTime(ZWDateUtil.getNowDateTime()); //案件流入时间
+                        caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue()); //催收状态-待分配
+                        caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue()); //留案标识默认-非留案
+                        caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
+                        caseInfo.setLeftDays(ZWDateUtil.getBetween(ZWDateUtil.getNowDate(), caseInfo.getCloseDate(), ChronoUnit.DAYS));//案件剩余天数(结案日期-当前日期)
+                        caseInfo.setCaseMark(CaseInfo.Color.NO_COLOR.getValue());//打标标记
+                        caseInfo.setFollowUpNum(0);//流转次数
+                        caseInfo.setOperator(user);
+                        caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+                        caseInfo.setCasePoolType(CaseInfo.CasePoolType.INNER.getValue());
+                        Department department = departmentRepository.getOne(aModel.getDepartId());
+                        caseInfo.setDepartment(department);
+                        caseInfoService.setCollectionType(caseInfo, department, null);
+                        caseInfo.setAssistFlag(CaseInfo.AssistFlag.NO_ASSIST.getValue());
+                        caseInfo.setPromiseAmt(new BigDecimal(0));
                         caseInfoList.add(caseInfo);
-                        OutsourcePool outsourcePool = new OutsourcePool();
-                        outsourcePool.setCaseInfo(caseInfo);
-                        outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
-                        outsourcePool.setOverOutsourceTime(caseInfoDistributed.getCloseDate());
-                        outsourcePool.setOverduePeriods(caseInfo.getPayStatus());
-                        outsourcePool.setCompanyCode(caseInfo.getCompanyCode());
-                        outsourcePoolList.add(outsourcePool);
+                        addCaseRepair(caseRepairList, caseInfo, user);//修复池增加案件
+                        addCaseTurnRecord(caseTurnRecordList, caseInfo, user);
                         caseInfoDistributedList.add(caseInfoDistributed);
                     }
                 }
             }
             List<CaseInfo> save = caseInfoRepository.save(caseInfoList);
-            List<CaseRepair> save2 = caseRepairRepository.save(caseRepairList);
-            List<OutsourcePool> save1 = outsourcePoolRepository.save(outsourcePoolList);
-            caseDistributedTemporary(save, save1, save2, caseInfoRemarkList,user,caseDistributedTemporaryList);
-            caseDistributedTemporaryRepository.save(caseDistributedTemporaryList);
+            caseRepairRepository.save(caseRepairList);
+            if (!save.isEmpty()) {
+                for (CaseInfo caseInfo : save) {
+                    addCaseInfoRemark(caseInfoRemarkList, caseInfo, user);
+                }
+                caseInfoRemarkRepository.save(caseInfoRemarkList);
+            }
             caseInfoDistributedRepository.delete(caseInfoDistributedList);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw  new RuntimeException("分配失败");
+            throw new RuntimeException("分配失败");
         }
     }
 
@@ -496,20 +532,14 @@ public class CaseInfoDistributedService {
      * @param user           用户
      * @return
      */
-    public CountStrategyAllocationModel countStrategyAllocation(CaseInfoIdList caseInfoIdList, User user) {
-        List<CaseInfoDistributed> all = null;
-        try {
-            all = new ArrayList<>();
-            if (Objects.isNull(caseInfoIdList.getIds()) || caseInfoIdList.getIds().isEmpty()) {
-                Iterable<CaseInfoDistributed> all1 = caseInfoDistributedRepository.findAll(QCaseInfoDistributed.caseInfoDistributed.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())
-                        .and(QCaseInfoDistributed.caseInfoDistributed.companyCode.eq(user.getCompanyCode())));
-                all = IterableUtils.toList(all1);
-            } else {
-                all = caseInfoDistributedRepository.findAll(caseInfoIdList.getIds());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("策略分案错误!");
+    public List<CaseInfoStrategyResultModel> countStrategyAllocation(CaseInfoIdList caseInfoIdList, User user) {
+        List<CaseInfoDistributed> all = new ArrayList<>();
+        if (Objects.isNull(caseInfoIdList.getIds()) || caseInfoIdList.getIds().isEmpty()) {
+            Iterable<CaseInfoDistributed> all1 = caseInfoDistributedRepository.findAll(QCaseInfoDistributed.caseInfoDistributed.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())
+                    .and(QCaseInfoDistributed.caseInfoDistributed.companyCode.eq(user.getCompanyCode())));
+            all = IterableUtils.toList(all1);
+        } else {
+            all = caseInfoDistributedRepository.findAll(caseInfoIdList.getIds());
         }
         if (all.isEmpty()) {
             throw new RuntimeException("待分配案件为空!");
@@ -520,7 +550,7 @@ public class CaseInfoDistributedService {
             };
             forEntity = restTemplate.exchange(Constants.CASE_STRATEGY_URL
                     .concat("companyCode=").concat(user.getCompanyCode())
-                    .concat("&strategyType=").concat(CaseStrategy.StrategyType.IMPORT.getValue().toString()), HttpMethod.GET, null, responseType);
+                    .concat("&strategyType=").concat(CaseStrategy.StrategyType.INNER.getValue().toString()), HttpMethod.GET, null, responseType);
         } catch (RestClientException e) {
             logger.error(e.getMessage(), e);
             throw new RuntimeException("获取策略错误");
@@ -530,52 +560,215 @@ public class CaseInfoDistributedService {
             throw new RuntimeException("未找到需要执行的策略");
         }
         // 策略分配
-        try {
-            CountStrategyAllocationModel model = new CountStrategyAllocationModel();
-            CountAllocationModel modelInner = new CountAllocationModel();
-            modelInner.setType(0);
-            CountAllocationModel modelOuter = new CountAllocationModel();
-            modelOuter.setType(1);
-            for (CaseStrategy caseStrategy : caseStrategies) {
-                List<CaseInfoDistributed> checkedList = new ArrayList<>(); // 策略匹配到的案件
-                KieSession kieSession = null;
-                try {
-                    kieSession = runCaseStrategyService.runCaseRule(checkedList, caseStrategy,Constants.CASE_INFO_DISTRIBUTE_RULE);
-                } catch (Exception e) {
-                    logger.error(e.getMessage(), e);
-                    throw new RuntimeException(e.getMessage());
-                }
-                for (CaseInfoDistributed caseInfoDistributed : all) {
-                    if (ZWStringUtils.isNotEmpty(caseInfoDistributed.getProduct()) && ZWStringUtils.isNotEmpty(caseInfoDistributed.getProduct().getProductSeries())) {
-                        kieSession.insert(caseInfoDistributed);//插入
-                        kieSession.fireAllRules();//执行规则
-                    }
-                }
-                kieSession.dispose();
-                if (checkedList.isEmpty()) {
-                    continue;
-                }
-                if (Objects.equals(caseStrategy.getAssignType(), 2)) { // 内催
-                    for (CaseInfoDistributed caseInfoDistributed : checkedList) {
-                        countAllocation(caseInfoDistributed, modelInner);
-                    }
-                }
-                if (Objects.equals(caseStrategy.getAssignType(), 3)) { // 委外
-                    for (CaseInfoDistributed caseInfoDistributed : checkedList) {
-                        countAllocation(caseInfoDistributed, modelOuter);
-                    }
-                }
-                all.removeAll(checkedList);
+        HashMap<String, CaseInfoStrategyResultModel> modelMap = new LinkedHashMap<>();
+        for (CaseStrategy caseStrategy : caseStrategies) {
+            List<CaseInfoDistributed> checkedList = new ArrayList<>(); // 策略匹配到的案件
+            KieSession kieSession = null;
+            try {
+                kieSession = runCaseStrategyService.runCaseRule(checkedList, caseStrategy, Constants.CASE_INFO_DISTRIBUTE_RULE);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                throw new RuntimeException(e.getMessage());
             }
-            List<CountAllocationModel> modelList = model.getModelList();
-            modelList.add(modelInner);
-            modelList.add(modelOuter);
-            model.setModelList(modelList);
-            return model;
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw new RuntimeException("策略分案错误!");
+            List<CaseInfoDistributed> distributedList = all;
+            Iterator<CaseInfoDistributed> iterator = distributedList.iterator();
+            if (StringUtils.isNotBlank(caseStrategy.getStrategyText())) {
+                if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_AREA_ID)) {
+                    while (iterator.hasNext()) {
+                        CaseInfoDistributed next = iterator.next();
+                        if (Objects.isNull(next.getArea())) {
+                            iterator.remove();
+                        }
+                    }
+                }
+                if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_PRODUCT_SERIES)) {
+                    while (iterator.hasNext()) {
+                        CaseInfoDistributed next = iterator.next();
+                        if (Objects.isNull(next.getProduct())) {
+                            iterator.remove();
+                        } else if (Objects.isNull(next.getProduct().getProductSeries())) {
+                            iterator.remove();
+                        }
+                    }
+                }
+            }
+            for (CaseInfoDistributed caseInfoDistributed : distributedList) {
+                kieSession.insert(caseInfoDistributed);
+                kieSession.fireAllRules();
+            }
+            kieSession.dispose();
+            if (checkedList.isEmpty()) {
+                continue;
+            }
+            // 策略指定的是部门
+            if (Objects.equals(caseStrategy.getAssignType(), CaseStrategy.AssignType.DEPART.getValue())) {
+                // 获取到所有部门的ID
+                List<String> departments = caseStrategy.getDepartments();
+                // 按照部门平均分配
+                Integer numAvg = checkedList.size() / departments.size();
+                Integer num = checkedList.size() % departments.size();
+                int m = 0;
+                int n = 0;
+                for (int i = 0; i < departments.size(); i++) {
+                    String departId = departments.get(i);
+                    // 部门所持有案件总数
+                    Integer deptCaseCount = caseInfoRepository.getDeptCaseCount(departId);
+                    // 部门案件总金额
+                    BigDecimal deptCaseAmt = caseInfoRepository.getDeptCaseAmt(departId);
+                    if (modelMap.containsKey(departId)) {
+                        CaseInfoStrategyResultModel model = modelMap.get(departId);
+                        Department one = departmentRepository.getOne(departId);
+                        model.setDepartId(departId);
+                        model.setDepartName(one.getName());
+                        model.setHandNum(deptCaseCount);
+                        model.setHandAmount(deptCaseAmt);
+                        List<String> distributeIds = model.getDistributeIds();
+                        if (num > 0) {
+                            model.setDistributeNum(model.getDistributeNum() + numAvg + 1);
+                            BigDecimal amount = new BigDecimal(0);
+                            for (int k = m; k < m + 1 + numAvg; k++, m++) {
+                                amount = amount.add(checkedList.get(k).getOverdueAmount());
+                                distributeIds.add(checkedList.get(k).getId());
+                            }
+                            model.setDistributeAmount(model.getDistributeAmount().add(amount));
+                            model.setDistributeIds(distributeIds);
+                        } else {
+                            model.setDistributeNum(model.getDistributeNum() + numAvg);
+                            BigDecimal amount = new BigDecimal(0);
+                            for (int k = m; k < m + numAvg; k++, m++) {
+                                amount = amount.add(checkedList.get(k).getOverdueAmount());
+                                distributeIds.add(checkedList.get(k).getId());
+                            }
+                            model.setDistributeAmount(model.getDistributeAmount().add(amount));
+                            model.setDistributeIds(distributeIds);
+                        }
+                        modelMap.put(departId, model);
+                    } else {
+                        CaseInfoStrategyResultModel model = new CaseInfoStrategyResultModel();
+                        Department one = departmentRepository.getOne(departId);
+                        model.setDepartId(departId);
+                        model.setDepartName(one.getName());
+                        model.setHandNum(deptCaseCount);
+                        model.setHandAmount(deptCaseAmt);
+                        List<String> distributeIds = model.getDistributeIds();
+                        if (num > 0) {
+                            model.setDistributeNum(model.getDistributeNum() + numAvg + 1);
+                            BigDecimal amount = new BigDecimal(0);
+                            for (int k = m; k < n + 1 + numAvg; k++, m++) {
+                                amount = amount.add(checkedList.get(k).getOverdueAmount());
+                                distributeIds.add(checkedList.get(k).getId());
+                            }
+                            n = m;
+                            model.setDistributeAmount(model.getDistributeAmount().add(amount));
+                            model.setDistributeIds(distributeIds);
+                        } else {
+                            model.setDistributeNum(model.getDistributeNum() + numAvg);
+                            BigDecimal amount = new BigDecimal(0);
+                            for (int k = m; k < n + numAvg; k++, m++) {
+                                amount = amount.add(checkedList.get(k).getOverdueAmount());
+                                distributeIds.add(checkedList.get(k).getId());
+                            }
+                            n = m;
+                            model.setDistributeAmount(model.getDistributeAmount().add(amount));
+                            model.setDistributeIds(distributeIds);
+                        }
+                        modelMap.put(departId, model);
+                    }
+                }
+            }
+            // 策略指定的是催收员
+            if (Objects.equals(caseStrategy.getAssignType(), CaseStrategy.AssignType.COLLECTOR.getValue())) {
+                List<String> users = caseStrategy.getUsers();
+                // 按照用户平均分配
+                Integer numAvg = checkedList.size() / users.size();
+                Integer num = checkedList.size() % users.size();
+                int m = 0;
+                int n = 0;
+                for (int i = 0; i < users.size(); i++) {
+                    String userId = users.get(i);
+                    // 部门所持有案件总数
+                    Integer caseCount = caseInfoRepository.getCaseCount(userId);
+                    // 部门案件总金额
+                    BigDecimal userCaseAmt = caseInfoRepository.getUserCaseAmt(userId);
+                    if (modelMap.containsKey(userId)) {
+                        CaseInfoStrategyResultModel model = modelMap.get(userId);
+                        User one = userRepository.getOne(userId);
+                        Department department = one.getDepartment();
+                        model.setDepartId(department.getId());
+                        model.setDepartName(department.getName());
+                        model.setHandNum(caseCount);
+                        model.setHandAmount(userCaseAmt);
+                        List<String> distributeIds = model.getDistributeIds();
+
+                        // 将余数分给每个催收员
+                        if (num > 0) {
+                            model.setDistributeNum(model.getDistributeNum() + numAvg + 1);
+                            BigDecimal amount = new BigDecimal(0);
+                            for (int k = m; k < n + 1 + numAvg; k++, m++) {
+                                amount = amount.add(checkedList.get(k).getOverdueAmount());
+                                distributeIds.add(checkedList.get(k).getId());
+                            }
+                            n = m;
+                            model.setDistributeAmount(model.getDistributeAmount().add(amount));
+                            model.setDistributeIds(distributeIds);
+                        } else {
+                            model.setDistributeNum(model.getDistributeNum() + numAvg);
+                            BigDecimal amount = new BigDecimal(0);
+                            for (int k = m; k < n + numAvg; k++, m++) {
+                                amount = amount.add(checkedList.get(k).getOverdueAmount());
+                                distributeIds.add(checkedList.get(k).getId());
+                            }
+                            n = m;
+                            model.setDistributeAmount(model.getDistributeAmount().add(amount));
+                            model.setDistributeIds(distributeIds);
+                        }
+                        modelMap.put(userId, model);
+                    } else {
+                        CaseInfoStrategyResultModel model = new CaseInfoStrategyResultModel();
+                        User one = userRepository.getOne(userId);
+                        Department department = one.getDepartment();
+                        model.setDepartId(department.getId());
+                        model.setDepartName(department.getName());
+                        model.setHandNum(caseCount);
+                        model.setHandAmount(userCaseAmt);
+                        model.setUsername(one.getUserName());
+                        model.setRealName(one.getRealName());
+                        List<String> distributeIds = model.getDistributeIds();
+                        if (num > 0) {
+                            model.setDistributeNum(model.getDistributeNum() + numAvg + 1);
+                            BigDecimal amount = new BigDecimal(0);
+                            for (int k = m; k < n + 1 + numAvg; k++, m++) {
+                                amount = amount.add(checkedList.get(k).getOverdueAmount());
+                                distributeIds.add(checkedList.get(k).getId());
+                            }
+                            n = m;
+                            model.setDistributeAmount(model.getDistributeAmount().add(amount));
+                            model.setDistributeIds(distributeIds);
+                        } else {
+                            model.setDistributeNum(model.getDistributeNum() + numAvg);
+                            BigDecimal amount = new BigDecimal(0);
+                            for (int k = m; k < n + numAvg; k++, m++) {
+                                amount = amount.add(checkedList.get(k).getOverdueAmount());
+                                distributeIds.add(checkedList.get(k).getId());
+                            }
+                            n = m;
+                            model.setDistributeAmount(model.getDistributeAmount().add(amount));
+                            model.setDistributeIds(distributeIds);
+                        }
+                        modelMap.put(userId, model);
+                    }
+                    num--;
+                }
+            }
+            all.removeAll(checkedList);
         }
+        List<CaseInfoStrategyResultModel> modelList = new ArrayList<>();
+        Iterator<Map.Entry<String, CaseInfoStrategyResultModel>> iterator = modelMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, CaseInfoStrategyResultModel> next = iterator.next();
+            modelList.add(next.getValue());
+        }
+        return modelList;
     }
 
     private void countAllocation(CaseInfoDistributed caseInfoDistributed, CountAllocationModel model) {
