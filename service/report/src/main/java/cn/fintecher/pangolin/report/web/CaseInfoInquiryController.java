@@ -63,7 +63,7 @@ public class CaseInfoInquiryController extends BaseController {
                     StringUtils.trim(caseInfoConditionParams.getCollectorName()),
                     caseInfoConditionParams.getOverdueMaxAmt(),
                     caseInfoConditionParams.getOverdueMinAmt(),
-                    caseInfoConditionParams.getPayStatus(),
+                    StringUtils.trim(caseInfoConditionParams.getPayStatus()),
                     caseInfoConditionParams.getOverMaxDay(),
                     caseInfoConditionParams.getOverMinDay(),
                     StringUtils.trim(caseInfoConditionParams.getBatchNumber()),
