@@ -347,7 +347,7 @@ public class DepartmentController extends BaseController {
             builder.and(QDepartment.department.companyCode.eq(user.getCompanyCode()));
         }
         builder.and(QDepartment.department.type.in(Department.Type.TELEPHONE_COLLECTION.getValue(), Department.Type.OUTBOUND_COLLECTION.getValue(), Department.Type.SYNTHESIZE_MANAGEMENT.getValue()));
-        //builder.and(QDepartment.department.id.eq(user.getDepartment().getId()));
+        builder.and(QDepartment.department.code.startsWith(user.getDepartment().getCode()));
         Iterator<Department> departmentIterator = departmentRepository.findAll(builder).iterator();
         List<Department> departmentList = IteratorUtils.toList(departmentIterator);
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(departmentList);
