@@ -2049,6 +2049,10 @@ public class CaseInfoService {
         List<CaseInfo> caseInfoObjList = new ArrayList<>();
         //流转记录列表
         List<CaseTurnRecord> caseTurnRecordList = new ArrayList<>();
+        //案件修复列表
+        List<CaseRepair> caseRepairList = new ArrayList<>();
+        //案件标记列表
+        List<CaseInfoRemark> caseInfoRemarkList = new ArrayList<>();
         int alreadyCaseNum = 0; //已经分配的案件数量
         List<String> deptOrUserList = null; //接收案件列表信息
         //机构分配
@@ -2211,11 +2215,15 @@ public class CaseInfoService {
                 caseRepair.setOperator(user);
                 caseRepair.setRepairStatus(CaseRepair.CaseRepairStatus.REPAIRING.getValue()); // 修复状态-待修复
                 caseRepair.setCompanyCode(caseInfo1.getCompanyCode());
-                caseRepairRepository.save(caseRepair);
-                caseTurnRecordRepository.save(caseTurnRecord);
-                caseInfoRemarkRepository.save(caseInfoRemark);
+                caseTurnRecordList.add(caseTurnRecord);
+                caseRepairList.add(caseRepair);
+                caseInfoRemarkList.add(caseInfoRemark);
+
             }
         }
+        caseRepairRepository.save(caseRepairList);
+        caseTurnRecordRepository.save(caseTurnRecordList);
+        caseInfoRemarkRepository.save(caseInfoRemarkList);
     }
 
 
