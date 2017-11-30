@@ -46,7 +46,7 @@ public class CaseInfoDistributeController extends BaseController {
     @PostMapping(value = "/findCaseInfoDistribute")
     @ApiOperation(notes = "多条件查询待分配案件", value = "多条件查询待分配案件")
     public ResponseEntity<Page<CaseInfoDistributedListResponse>> findCaseInfoDistribute(@RequestBody CaseInfoDistributeQueryParams params,
-                                                 @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
+                                                                                        @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) {
         logger.debug("REST request to findCaseInfoDistribute");
         try {
             User user = getUserByToken(token);
@@ -60,7 +60,7 @@ public class CaseInfoDistributeController extends BaseController {
             PageInfo<CaseInfoDistributed> pageInfo = new PageInfo<>(caseInfoDistributes);
             Pageable pageable = new PageRequest(params.getPage(), params.getSize());
             Page<CaseInfoDistributed> page = new PageImpl<>(caseInfoDistributes, pageable, pageInfo.getTotal());
-            Page<CaseInfoDistributedListResponse> voPage=page.map(caseInfoDistributed -> {
+            Page<CaseInfoDistributedListResponse> voPage = page.map(caseInfoDistributed -> {
                 CaseInfoDistributedListResponse response = modelMapper.map(caseInfoDistributed, CaseInfoDistributedListResponse.class);
                 return response;
             });

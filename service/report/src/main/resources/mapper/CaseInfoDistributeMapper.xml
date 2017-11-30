@@ -70,6 +70,7 @@
         <result column="overdue_amount" property="overdueAmount"/>
         <result column="delegation_date" property="delegationDate"/>
         <result column="overdue_days" property="overdueDays"/>
+        <result column="overdue_periods" property="overduePeriods"/>
         <result column="score" property="score"></result>
         <result column="commission_rate" property="commissionRate"/>
         <result column="close_date" property="closeDate"></result>
