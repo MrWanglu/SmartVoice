@@ -186,7 +186,7 @@ public class CaseInfoAppController extends BaseController {
             user = getUserByToken(token);
         } catch (final Exception e) {
             log.debug(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "endCaseAssist", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "endCaseAssist", "用户未找到")).body(null);
         }
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(QCaseAssist.caseAssist.caseId.id.eq(caseId));
@@ -194,7 +194,7 @@ public class CaseInfoAppController extends BaseController {
                 QCaseAssist.caseAssist.assistStatus.eq(CaseInfo.AssistStatus.ASSIST_WAIT_ACC.getValue()));
         CaseAssist caseAssist = caseAssistRepository.findOne(builder);
         if (Objects.isNull(caseAssist)) {
-            throw new RuntimeException("该协催未找到");
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "endCaseAssist", "该协催未找到")).body(null);
         }
         caseAssist.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
         caseAssist.setAssistCloseFlag(0);
@@ -203,7 +203,7 @@ public class CaseInfoAppController extends BaseController {
         caseAssistRepository.saveAndFlush(caseAssist);
         CaseInfo caseInfo = caseInfoRepository.findOne(caseAssist.getCaseId().getId());
         if (Objects.isNull(caseInfo)) {
-            throw new RuntimeException("该案件未找到");
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("CaseAssistController", "endCaseAssist", "该案件未找到")).body(null);
         }
         caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue()); //协催状态 29-协催完成
         caseInfo.setAssistCollector(null); //协催员置空
