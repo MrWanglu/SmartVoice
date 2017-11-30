@@ -187,7 +187,8 @@
 
     <!--跟催量排名-->
     <select id="getCaseInfoFollowRank" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"  resultMap="followCountModel">
-        SELECT d.real_name, IFNULL(b.call_count,0) as call_count, c.follow_count, a.total_followed_count
+        SELECT d.real_name, IFNULL(b.call_count,0) as call_count, IFNULL(c.follow_count,0) as follow_count,
+        IFNULL(a.total_followed_count,0) as total_followed_count
         FROM
         (SELECT count(*) as total_followed_count, operator FROM
         (SELECT case_id,operator FROM case_followup_record WHERE operator_dept_name = #{deptName}

@@ -658,5 +658,60 @@
         GROUP BY
         followup_back
     </select>
+    <!--管理员跟催量排名-->
+    <select id="getCaseInfoRecordFollowRank" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
+            resultMap="followCountModel">
+        SELECT d.real_name, IFNULL(b.call_count,0) as call_count, IFNULL(c.follow_count,0) as follow_count,
+        IFNULL(a.total_followed_count,0) as total_followed_count
+        FROM
+        (SELECT count(*) as total_followed_count, operator FROM
+        (SELECT case_id,operator FROM case_followup_record
+        WHERE 1=1
+        <if test="timeType == 0">
+            AND YEAR(operator_time) = YEAR(NOW())
+        </if>
+        <if test="timeType == 1">
+            AND MONTH(operator_time) = MONTH(NOW())
+        </if>
+        <if test="timeType == 2">
+            AND WEEK(operator_time) = WEEK(NOW())
+        </if>
+        GROUP BY case_id,operator) as caseInfo
+        GROUP BY operator)as a
+        LEFT JOIN
+        (SELECT count(*) as call_count, operator FROM case_followup_record WHERE collection_way = 0
+        <if test="timeType == 0">
+            AND YEAR(operator_time) = YEAR(NOW())
+        </if>
+        <if test="timeType == 1">
+            AND MONTH(operator_time) = MONTH(NOW())
+        </if>
+        <if test="timeType == 2">
+            AND WEEK(operator_time) = WEEK(NOW())
+        </if>
+        GROUP BY operator) as b
+        ON a.operator=b.operator
+        LEFT JOIN
+        (SELECT IFNULL(count(*),0) as follow_count,operator FROM case_followup_record WHERE collection_way=1
+        <if test="timeType == 0">
+            AND YEAR(operator_time) = YEAR(NOW())
+        </if>
+        <if test="timeType == 1">
+            AND MONTH(operator_time) = MONTH(NOW())
+        </if>
+        <if test="timeType == 2">
+            AND WEEK(operator_time) = WEEK(NOW())
+        </if>
+        GROUP BY operator) as c
+        ON a.operator=c.operator
+        LEFT JOIN
+        (SELECT user_name,real_name FROM `user`) as d ON a.operator=d.user_name
+    </select>
 
+    <resultMap id="followCountModel" type="cn.fintecher.pangolin.report.model.FollowCountModel">
+        <result column="real_name" property="collectionFollowName"/>
+        <result column="call_count" property="calledCount"/>
+        <result column="follow_count" property="followedCount"/>
+        <result column="total_followed_count" property="followedNumber"/>
+    </resultMap>
 </mapper>

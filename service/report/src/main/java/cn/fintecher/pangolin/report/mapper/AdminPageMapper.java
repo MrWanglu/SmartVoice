@@ -171,6 +171,7 @@ public interface AdminPageMapper {
      * 查詢内催已还款案件金额 已还款案件数量
      */
     List<AdminCasePaymentModel> getCaseAmtAndCount(CollectorRankingParams collectorRankingParams);
+
     /**
      * 查詢委外已还款案件金额 已还款案件数量
      */
@@ -181,7 +182,6 @@ public interface AdminPageMapper {
      */
     List<AdminCasePaymentModel> getCaseApplyAmtAndCount(CollectorRankingParams collectorRankingParams);
 
-
     /**
      * 某个年度不同催收方式的每月催记数量和外呼数量
      */
@@ -191,4 +191,9 @@ public interface AdminPageMapper {
      * 根据不同的日期类型获取案件当前情况。包含不同还款类型的金额和数量
      */
     List<CaseRepaymentTypeGroupInfo> getCaseGroupInfo(CollectorRankingParams parm);
+
+    /**
+     * 管理员首页按照当前年月周查询跟催量排名
+     **/
+    List<FollowCountModel> getCaseInfoRecordFollowRank(CollectorRankingParams params);
 }

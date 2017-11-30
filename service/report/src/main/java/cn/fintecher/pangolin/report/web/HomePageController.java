@@ -3,9 +3,6 @@ package cn.fintecher.pangolin.report.web;
 import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.report.mapper.AdminPageMapper;
-import cn.fintecher.pangolin.report.model.CollectorRankingModel;
-import cn.fintecher.pangolin.report.model.CollectorRankingParams;
-import cn.fintecher.pangolin.report.model.HomePageResult;
 import cn.fintecher.pangolin.report.model.*;
 import cn.fintecher.pangolin.report.service.HomePageService;
 import cn.fintecher.pangolin.web.HeaderUtil;
@@ -17,7 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -314,5 +314,16 @@ public class HomePageController extends BaseController {
         }
     }
 
+    @GetMapping(value = "/getHomePageFollowedRank")
+    @ApiOperation(value = "统计管理员首页跟催量排名", notes = "统计管理员首页跟催量排名")
+    public ResponseEntity getHomePageFollowedRank(CollectorRankingParams params) {
+        try {
+            CaseInfoRank caseInfoRank = homePageService.getCaseInfoRecordFollowRank(params);
+            return ResponseEntity.ok().body(caseInfoRank);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", "查询跟催量排名失败")).body(null);
+        }
+    }
 
 }

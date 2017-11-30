@@ -1,7 +1,6 @@
 package cn.fintecher.pangolin.report.service;
 
 import cn.fintecher.pangolin.entity.CaseFollowupRecord;
-import cn.fintecher.pangolin.entity.CaseInfo;
 import cn.fintecher.pangolin.entity.User;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.report.mapper.AdminPageMapper;
@@ -9,7 +8,6 @@ import cn.fintecher.pangolin.report.mapper.CaseInfoMapper;
 import cn.fintecher.pangolin.report.mapper.CollectPageMapper;
 import cn.fintecher.pangolin.report.mapper.CupoPageMapper;
 import cn.fintecher.pangolin.report.model.*;
-import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import javax.persistence.OneToMany;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -564,7 +561,7 @@ public class HomePageService {
     }
 
     /**
-     *
+     *获取总的金额和数量
      *
      * */
     public ReturnDataModel getCaseAmt(List<AdminCasePaymentModel> paymentModels, List<AdminCasePaymentModel> paymentApplyModels, CollectorRankingParams collectorRankingParams, ReturnDataModel returnDataModel) throws ParseException {
@@ -788,6 +785,15 @@ public class HomePageService {
         }
         followCalledDateModel.setDayList(dayListNew);
         return followCalledDateModel;
+    }
+
+    //管理员催收员首页 - 第六部分 催收计数排名
+    public CaseInfoRank getCaseInfoRecordFollowRank(CollectorRankingParams params) {
+
+        CaseInfoRank caseInfoRank = new CaseInfoRank();
+        List<FollowCountModel> followCountModels = adminPageMapper.getCaseInfoRecordFollowRank(params);
+        caseInfoRank.setFollowCountModels(followCountModels);
+        return caseInfoRank;
     }
 
     /**
