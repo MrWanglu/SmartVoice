@@ -14,8 +14,8 @@ spring:
             uri: mongodb://localhost:27017
             database: pangolin_file_db
     rabbitmq:
-        username: guest
-        password: guest
+        username: admin
+        password: admin
         host: 127.0.0.1
         virtual-host: /
         port: 5672

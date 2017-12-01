@@ -23,8 +23,8 @@ spring:
                 useServerPrepStmts: true
             maximumPoolSize: 50
     rabbitmq:
-        username: guest
-        password: guest
+        username: admin
+        password: admin
         host: 127.0.0.1
         virtual-host: /
         port: 5672
