@@ -278,7 +278,7 @@ public class CaseInfoDistributeController extends BaseController {
 
     @PostMapping("/strategyAllocation")
     @ApiOperation(notes = "案件导入分配策略分案", value = "案件导入分配策略分案")
-    public ResponseEntity strategyAllocation(@RequestBody CountStrategyAllocationModel model,
+    public ResponseEntity strategyAllocation(@RequestBody CaseInfoStrategyModel model,
                                              @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
@@ -292,18 +292,19 @@ public class CaseInfoDistributeController extends BaseController {
 
     @PostMapping("/countStrategyAllocation")
     @ApiOperation(notes = "策略分配情况统计", value = "策略分配情况统计")
-    public ResponseEntity<CountStrategyAllocationModel> countStrategyAllocation(@RequestBody CaseInfoIdList caseInfoIdList,
-                                                                                @RequestHeader(value = "X-UserToken") String token) {
+    public ResponseEntity<CaseInfoStrategyModel> countStrategyAllocation(@RequestBody CaseInfoIdList caseInfoIdList,
+                                                                         @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
-            CountStrategyAllocationModel model = caseInfoDistributedService.countStrategyAllocation(caseInfoIdList, user);
+            List<CaseInfoStrategyResultModel> modelList = caseInfoDistributedService.countStrategyAllocation(caseInfoIdList, user);
+            CaseInfoStrategyModel model = new CaseInfoStrategyModel();
+            model.setModelList(modelList);
             return ResponseEntity.ok().body(model);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "统计策略分配情况错误")).body(null);
         }
     }
-
     @PostMapping("/previewResult")
     @ApiOperation(value = "策略预览结果", notes = "策略预览结果")
     @ApiImplicitParams({
@@ -637,7 +638,7 @@ public class CaseInfoDistributeController extends BaseController {
             }
             KieSession kieSession = null;
             try {
-                kieSession = runCaseStrategyService.createSorceRule(user.getCompanyCode(), CaseStrategy.StrategyType.IMPORT.getValue());
+                kieSession = runCaseStrategyService.createSorceRule(user.getCompanyCode(), CaseStrategy.StrategyType.INNER.getValue());
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", e.getMessage())).body(null);
