@@ -18,6 +18,9 @@
         <if test="companyCode != null and companyCode !=''">
             AND a.company_code = #{companyCode}
         </if>
+        <if test="batchNumber != null and batchNumber !=''">
+            AND a.batch_number = #{batchNumber}
+        </if>
         <if test="operator != null and operator !=''">
             AND a.operator = #{operator}
         </if>
