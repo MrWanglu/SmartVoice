@@ -87,7 +87,7 @@ public class CaseInfoExceptionController extends BaseController {
             } else {
                 builder.and(qCaseInfoException.companyCode.eq(user.getCompanyCode()));
             }
-            Page<CaseInfoException> page = caseInfoExceptionRepository.findAll(predicate, pageable);
+            Page<CaseInfoException> page = caseInfoExceptionRepository.findAll(builder, pageable);
             return ResponseEntity.ok().body(page);
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -140,6 +140,7 @@ public class CaseInfoExceptionController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "新增失败!")).body(null);
         }
     }
+
     /**
      * 更新案件
      *
@@ -229,7 +230,7 @@ public class CaseInfoExceptionController extends BaseController {
     @PostMapping("/updateExceptionCase")
     @ApiOperation(value = "更新案件", notes = "更新案件")
     public ResponseEntity<CaseInfo> updateExceptionCase(@RequestBody CaseUpdateParams caseUpdateParams,
-                                                            @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
+                                                        @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token) throws Exception {
         try {
             log.debug("REST request to update CaseInfo");
             User user = getUserByToken(token);
@@ -265,7 +266,7 @@ public class CaseInfoExceptionController extends BaseController {
             }
             caseInfoExceptionRepository.delete(caseInfoException);
             return ResponseEntity.ok().body(null);
-        }catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "更新失败")).body(null);
         }
     }
@@ -273,17 +274,17 @@ public class CaseInfoExceptionController extends BaseController {
     @GetMapping("/findRepeatCaseInfo")
     @ApiOperation(value = "获取重复案件", notes = "获取重复案件")
     public ResponseEntity<Page<CaseInfo>> findRepeatCaseInfo(@QuerydslPredicate(root = CaseInfoException.class) Predicate predicate,
-                                                                       @ApiIgnore Pageable pageable,
-                                                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
-                                                                       @RequestParam(value = "caseInfoExceptionId", required = true) @ApiParam("异常案件ID") String caseInfoExceptionId) {
+                                                             @ApiIgnore Pageable pageable,
+                                                             @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                             @RequestParam(value = "caseInfoExceptionId", required = true) @ApiParam("异常案件ID") String caseInfoExceptionId) {
         try {
             CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseInfoExceptionId);
             String assigned = caseInfoException.getAssignedRepeat();
             assigned = assigned.substring(1, assigned.length() - 1);
             String[] assigneds = assigned.split(",");
-            Page<CaseInfo> page = caseInfoRepository.findAll(QCaseInfo.caseInfo.id.in(assigneds),pageable);
+            Page<CaseInfo> page = caseInfoRepository.findAll(QCaseInfo.caseInfo.id.in(assigneds), pageable);
             return ResponseEntity.ok().body(page);
-        }catch(Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
         }
     }
@@ -296,10 +297,10 @@ public class CaseInfoExceptionController extends BaseController {
     @GetMapping("/findAllRepeatCaseInfo")
     @ApiOperation(value = "获取所有重复案件", notes = "获取所有重复案件")
     public ResponseEntity<Page<RepeatCaseModel>> findAllRepeatCaseInfo(@QuerydslPredicate(root = CaseInfoException.class) Predicate predicate,
-                                                                               @ApiIgnore Pageable pageable,
-                                                                               @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
-                                                                               @RequestParam(value = "caseInfoExceptionId", required = true) @ApiParam("异常案件ID") String caseInfoExceptionId,
-                                                                               @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
+                                                                       @ApiIgnore Pageable pageable,
+                                                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
+                                                                       @RequestParam(value = "caseInfoExceptionId", required = true) @ApiParam("异常案件ID") String caseInfoExceptionId,
+                                                                       @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
         try {
             CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseInfoExceptionId);
             String assigned = caseInfoException.getAssignedRepeat();
@@ -325,7 +326,7 @@ public class CaseInfoExceptionController extends BaseController {
             }
             Page<RepeatCaseModel> page = new PageImpl<RepeatCaseModel>(repeatCaseModels, pageable, repeatCaseModels.size());
             return ResponseEntity.ok().body(page);
-        }catch(Exception e){
+        } catch (Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
         }
     }
