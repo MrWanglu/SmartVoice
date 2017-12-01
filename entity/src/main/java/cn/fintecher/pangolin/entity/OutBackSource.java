@@ -18,25 +18,25 @@ import java.util.Date;
 @Data
 public class OutBackSource extends BaseEntity {
 
-    @ApiModelProperty("委外方ID")
+    @ApiModelProperty(notes = "委外方ID")
     private String outId;
 
-    @ApiModelProperty("委外案件case ID")
+    @ApiModelProperty(notes = "委外案件case ID")
     private String outcaseId;
 
-    @ApiModelProperty("委外案件ID")
+    @ApiModelProperty(notes = "委外案件ID")
     private String operator;
 
-    @ApiModelProperty("操作时间")
+    @ApiModelProperty(notes = "操作时间")
     private Date operateTime;
 
-    @ApiModelProperty("特定公司的标识")
+    @ApiModelProperty(notes = "特定公司的标识")
     private String companyCode;
 
-    @ApiModelProperty("回款金额")
+    @ApiModelProperty(notes = "回款金额")
     private BigDecimal backAmt = new BigDecimal(0);
 
-    @ApiModelProperty("操作类型")
+    @ApiModelProperty(notes = "操作类型")
     private Integer operationType;
 
 

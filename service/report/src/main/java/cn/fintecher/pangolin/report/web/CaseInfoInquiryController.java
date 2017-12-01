@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author : xiaqun
@@ -62,7 +63,7 @@ public class CaseInfoInquiryController extends BaseController {
                     StringUtils.trim(caseInfoConditionParams.getCollectorName()),
                     caseInfoConditionParams.getOverdueMaxAmt(),
                     caseInfoConditionParams.getOverdueMinAmt(),
-                    caseInfoConditionParams.getPayStatus(),
+                    StringUtils.trim(caseInfoConditionParams.getPayStatus()),
                     caseInfoConditionParams.getOverMaxDay(),
                     caseInfoConditionParams.getOverMinDay(),
                     StringUtils.trim(caseInfoConditionParams.getBatchNumber()),
@@ -76,7 +77,7 @@ public class CaseInfoInquiryController extends BaseController {
                     tokenUser.getDepartment().getCode(),
                     caseInfoConditionParams.getCollectionStatusList(),
                     caseInfoConditionParams.getCollectionStatus(),
-                    caseInfoConditionParams.getParentAreaId(),
+                    Objects.isNull(caseInfoConditionParams.getAreaId()) ? caseInfoConditionParams.getParentAreaId() : null,
                     caseInfoConditionParams.getAreaId(),
                     tokenUser.getType(),
                     tokenUser.getManager(),

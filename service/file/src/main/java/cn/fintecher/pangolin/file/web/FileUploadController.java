@@ -87,6 +87,32 @@ public class FileUploadController {
         }
     }
 
+    @CrossOrigin(origins = "*", maxAge = 3600)
+    @RequestMapping(value = "/uploadFilePhoto", method = RequestMethod.POST, headers = {"content-type=multipart/mixed", "content-type=multipart/form-data"}, consumes = {"multipart/form-data"})
+    @ResponseBody
+    @ApiOperation(value = "Grid方式上传图片", notes = "返回JSON data 为UploadFile 对象")
+    ResponseEntity<UploadFile> uploadFilePhoto(@RequestParam("file") MultipartFile file, @RequestHeader(value = "X-UserToken") String token) throws Exception {
+        User user;
+        try {
+            if (Objects.isNull(file)) {
+                throw new RuntimeException("MultipartFile是空的");
+            }
+            ResponseEntity<User> entity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+            if (Objects.isNull(entity)) {
+                throw new RuntimeException("请先登录");
+            }else {
+                user = entity.getBody();
+            }
+            UploadFile uploadFile = uploadFileCridFsService.uploadFile(file);
+            user.setPhoto(uploadFile.getUrl());
+            restTemplate.postForEntity(Constants.USERNAME_SERVICE_URL.concat("saveUser"),user,User.class);
+            return new ResponseEntity<>(uploadFile, HttpStatus.OK);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "上传失败")).body(null);
+        }
+    }
+
 
     @PostMapping("/unZipCaseFile")
     @ResponseBody

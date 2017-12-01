@@ -26,7 +26,7 @@ public class AppVersion {
     private String os;
     @NotEmpty
     @ApiModelProperty(notes = "版本号")
-    private String appVersion;
+    private String mobileVersion;
     @NotNull
     @ApiModelProperty(notes = "是否静默安装,0否,1是")
     private Integer silentInstall;

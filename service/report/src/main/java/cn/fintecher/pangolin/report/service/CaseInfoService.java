@@ -25,32 +25,32 @@ public class CaseInfoService {
     @Autowired
     CaseInfoMapper caseInfoMapper;
 
-    public List<CaseInfo> getAll(CaseInfo caseInfo){
-        caseInfo=new CaseInfo();
-        if (Objects.nonNull(caseInfo)&& caseInfo.getPage() != null && caseInfo.getRows() != null) {
+    public List<CaseInfo> getAll(CaseInfo caseInfo) {
+        caseInfo = new CaseInfo();
+        if (Objects.nonNull(caseInfo) && caseInfo.getPage() != null && caseInfo.getRows() != null) {
             PageHelper.startPage(caseInfo.getPage(), caseInfo.getRows());
         }
-       return caseInfoMapper.selectAll();
+        return caseInfoMapper.selectAll();
     }
 
-    public List<CaseInfo> queryWaitCollectCase(CaseInfoParams caseInfoParams,int page, int size,User user){
+    public List<CaseInfo> queryWaitCollectCase(CaseInfoParams caseInfoParams, int page, int size, User user) {
         List<CaseInfo> list = null;
-        PageHelper.startPage(page, size);
-        if (Objects.equals(user.getManager(),User.MANAGER_TYPE.DATA_AUTH.getValue())) {
+        PageHelper.startPage(page + 1, size);
+        if (Objects.equals(user.getManager(), User.MANAGER_TYPE.DATA_AUTH.getValue())) {
             list = caseInfoMapper.queryWaitCollectCase(caseInfoParams);
-        }else{
+        } else {
             list = caseInfoMapper.queryWaitOwnCollectCase(caseInfoParams);
         }
         return list;
     }
 
-    public void updateLngLat(Personal personal){
+    public void updateLngLat(Personal personal) {
         caseInfoMapper.updateLngLat(personal);
     }
 
-    public List<CollectingCaseInfo> queryCollectingCase(CollectingCaseParams collectingCaseParams, int page, int size){
+    public List<CollectingCaseInfo> queryCollectingCase(CollectingCaseParams collectingCaseParams, int page, int size) {
         List<CollectingCaseInfo> list = null;
-        PageHelper.startPage(page+1, size);
+        PageHelper.startPage(page + 1, size);
         list = caseInfoMapper.queryCollectingCase(collectingCaseParams);
         return list;
     }

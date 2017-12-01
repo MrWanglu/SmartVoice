@@ -118,7 +118,7 @@ public class UserController extends BaseController {
             int size = Integer.parseInt(sysParamsNumber.getValue());
             if (userNum > size) {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME,
-                        "New user has reached the online", "新增用户已达到上线")).body(null);
+                        "New user has reached the online", "新增用户已达到上限")).body(null);
             }
         }
         //用户名不能重复

@@ -18,7 +18,7 @@ import java.util.Date;
 @Data
 public class OutSourceCommssion extends BaseEntity {
 
-    @ApiModelProperty("特定公司的标识")
+    @ApiModelProperty(notes = "特定公司的标识")
     private String companyCode;
 
     /*@ManyToOne
@@ -26,36 +26,36 @@ public class OutSourceCommssion extends BaseEntity {
     @ApiModelProperty("委外方")
     private Outsource outsource;*/
 
-    @ApiModelProperty("委外方")
+    @ApiModelProperty(notes = "委外方")
     private String outsId;
 
-    @ApiModelProperty("逾期时段")
+    @ApiModelProperty(notes = "逾期时段")
     private String overdueTime;
 
-    @ApiModelProperty("回款金额")
+    @ApiModelProperty(notes = "回款金额")
     private BigDecimal returnMoney = new BigDecimal(0);
 
-    @ApiModelProperty("回款户数")
+    @ApiModelProperty(notes = "回款户数")
     private BigDecimal returnHouseholds;
 
-    @ApiModelProperty("回退金额")
+    @ApiModelProperty(notes = "回退金额")
     private BigDecimal rollbackMoney = new BigDecimal(0);
 
-    @ApiModelProperty("回退户数")
+    @ApiModelProperty(notes = "回退户数")
     private BigDecimal rollbackHouseholds;
 
-    @ApiModelProperty("修复金额")
+    @ApiModelProperty(notes = "修复金额")
     private BigDecimal repairMoney = new BigDecimal(0);
 
-    @ApiModelProperty("回退户数")
+    @ApiModelProperty(notes = "回退户数")
     private BigDecimal repairHouseholds;
 
-    @ApiModelProperty("创建人用户id")
+    @ApiModelProperty(notes = "创建人用户id")
     private String operator;
 
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty(notes = "创建时间")
     private Date operateTime;
 
-    @ApiModelProperty("描述")
+    @ApiModelProperty(notes = "描述")
     private String remark;
 }

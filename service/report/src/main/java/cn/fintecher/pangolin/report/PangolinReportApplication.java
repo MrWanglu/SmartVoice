@@ -1,5 +1,7 @@
 package cn.fintecher.pangolin.report;
 
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.mybatis.spring.annotation.MapperScan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ public class PangolinReportApplication {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
+
     public static void main(String[] args) throws UnknownHostException {
         SpringApplication app = new SpringApplication(PangolinReportApplication.class);
         Environment env = app.run(args).getEnvironment();
@@ -43,5 +46,12 @@ public class PangolinReportApplication {
                 InetAddress.getLocalHost().getHostAddress(),
                 env.getProperty("server.port"),
                 env.getProperty("server.port"));
+    }
+
+    @Bean
+    public ModelMapper modelMapper() {
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
+        return modelMapper;
     }
 }

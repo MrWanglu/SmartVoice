@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.entity;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -10,17 +11,29 @@ import java.util.List;
 @Entity
 @Table(name = "case_repair")
 public class CaseRepair extends BaseEntity{
+  @ApiModelProperty(notes = "主键ID")
   private String id;
+
+  @ApiModelProperty(notes = "修复状态 0-待修复，1-修复完成，2-已分配")
   private Integer repairStatus;
+
+  @ApiModelProperty(notes = "操作员")
   @ManyToOne
   @JoinColumn(name = "operator")
   private User operator;
+
+  @ApiModelProperty(notes = "操作时间")
   private Date operatorTime;
+
+  @ApiModelProperty(notes = "公司code码")
   private String companyCode;
+
+  @ApiModelProperty(notes = "案件ID")
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "case_id")
   private CaseInfo caseId;
 
+  @ApiModelProperty(notes = "案件修复ID")
   @OneToMany
   @JoinColumn(name = "repair_id")
   private List<CaseRepairRecord> caseRepairRecordList;

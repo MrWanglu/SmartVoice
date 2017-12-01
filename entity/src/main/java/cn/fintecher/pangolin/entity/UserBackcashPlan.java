@@ -19,20 +19,27 @@ import java.util.Date;
 @Data
 @ApiModel(value = "UserBackcashPlan", description = "用户计划回款金额")
 public class UserBackcashPlan extends BaseEntity {
-    @ApiModelProperty("用户名")
+    @ApiModelProperty(notes = "用户名")
     private String userName;
-    @ApiModelProperty("姓名")
+
+    @ApiModelProperty(notes = "姓名")
     private String realName;
-    @ApiModelProperty("年份")
+
+    @ApiModelProperty(notes = "年份")
     private Integer year;
-    @ApiModelProperty("月份")
+
+    @ApiModelProperty(notes = "月份")
     private Integer month;
+
     @ApiModelProperty(notes = "回款金额")
     private BigDecimal backCash;
-    @ApiModelProperty("创建人用户名")
+
+    @ApiModelProperty(notes = "创建人用户名")
     private String operator;
-    @ApiModelProperty("创建时间")
+
+    @ApiModelProperty(notes = "创建时间")
     private Date operateTime;
-    @ApiModelProperty("特定公司的标识")
+
+    @ApiModelProperty(notes = "特定公司的标识")
     private String companyCode;
 }

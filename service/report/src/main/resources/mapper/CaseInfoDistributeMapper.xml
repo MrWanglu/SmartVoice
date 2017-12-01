@@ -6,16 +6,20 @@
     <select id="findCaseInfoDistribute" parameterType="cn.fintecher.pangolin.report.model.CaseInfoDistributeQueryParams"
             resultMap="caseInfoDistributeResultMap">
         SELECT a.id,a.case_number,a.batch_number,a.hand_number,a.personal_id,a.principal_id,a.area_id,
-        a.overdue_amount,a.periods,a.overdue_periods,a.overdue_days,a.commission_rate,a.delegation_date,a.close_date,a.score
+        a.overdue_amount,a.periods,a.overdue_periods,a.overdue_days,a.commission_rate,a.delegation_date,a.close_date,a.score,a.operator
         FROM case_info_distributed a
         LEFT JOIN personal c ON a.personal_id = c.id
         LEFT JOIN product d ON a.product_id = d.id
         LEFT JOIN principal e ON a.principal_id = e.id
         LEFT JOIN area_code f ON a.area_id = f.id
+        LEFT JOIN user g ON a.operator = g.id
         WHERE 1=1
         AND a.recover_remark = 0
         <if test="companyCode != null and companyCode !=''">
             AND a.company_code = #{companyCode}
+        </if>
+        <if test="operator != null and operator !=''">
+            AND a.operator = #{operator}
         </if>
         <if test="personalName != null and personalName !=''">
             AND c.name LIKE concat('%', #{personalName},'%')
@@ -66,12 +70,14 @@
         <result column="overdue_amount" property="overdueAmount"/>
         <result column="delegation_date" property="delegationDate"/>
         <result column="overdue_days" property="overdueDays"/>
+        <result column="overdue_periods" property="overduePeriods"/>
         <result column="score" property="score"></result>
         <result column="commission_rate" property="commissionRate"/>
         <result column="close_date" property="closeDate"></result>
         <association property="personalInfo" column="personal_id" select="selectPersonal"></association>
         <association property="area" column="area_id" select="selectCityArea"></association>
         <association property="principalId" column="principal_id" select="selectPrincipal"></association>
+        <association property="operator" column="operator" select="selectOperator"></association>
     </resultMap>
 
     <select id="selectPersonal" parameterType="string" resultMap="personalResultMap">
@@ -110,6 +116,14 @@
     <resultMap id="principalResultMap" type="cn.fintecher.pangolin.entity.Principal">
         <id column="id" property="id"/>
         <result column="name" property="name"/>
+    </resultMap>
+
+    <select id="selectOperator" resultMap="UserResultMap">
+        select id from user where id = #{operator}
+    </select>
+
+    <resultMap id="UserResultMap" type="cn.fintecher.pangolin.entity.User">
+        <id column="id" property="id"/>
     </resultMap>
 
 </mapper>

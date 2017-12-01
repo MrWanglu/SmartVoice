@@ -151,8 +151,6 @@ public class CaseInfoReportController extends BaseController{
         } catch (final Exception e) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败")).body(null);
         }
-
-
     }
 
 }

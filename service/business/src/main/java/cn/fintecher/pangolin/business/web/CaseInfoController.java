@@ -1472,7 +1472,7 @@ public class CaseInfoController extends BaseController {
         log.debug("REST request to approve all advance turn");
         try {
             User tokenUser = getUserByToken(token);
-            caseInfoService.approveAllAdvanceTurn(paymentParams.getResult(), paymentParams.getFlag(), tokenUser);
+            caseInfoService.approveAllAdvanceTurn(paymentParams.getResult(), paymentParams.getFlag(), paymentParams.getOpinion(), tokenUser);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("审批成功", ENTITY_NAME)).body(null);
         } catch (GeneralException ge) {
             log.error(ge.getMessage());

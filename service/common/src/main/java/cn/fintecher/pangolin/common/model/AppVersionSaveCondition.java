@@ -22,7 +22,7 @@ public class AppVersionSaveCondition {
 
     @NotEmpty
     @ApiModelProperty(notes = "app版本号")
-    private String appVersion;
+    private String mobileVersion;
 
     @NotNull
     @ApiModelProperty(notes = "是否静默安装,0否,1是")

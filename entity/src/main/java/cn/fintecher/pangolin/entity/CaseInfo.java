@@ -15,116 +15,252 @@ import java.util.Date;
 @Table(name = "case_info")
 @Data
 public class CaseInfo extends BaseEntity {
+    @ApiModelProperty(notes = "批次号")
     private String batchNumber;
+
+    @ApiModelProperty(notes = "案件编号")
     private String caseNumber;
+
+    @ApiModelProperty(notes = "催收类型(电催、外访、司法、委外、提醒)")
     private Integer collectionType;
+
+    @ApiModelProperty(notes = "合同编号")
     private String contractNumber;
+
+    @ApiModelProperty(notes = "合同金额")
     private BigDecimal contractAmount;
+
+    @ApiModelProperty(notes = "逾期总金额")
     private BigDecimal overdueAmount;
+
+    @ApiModelProperty(notes = "逾期本金")
     private BigDecimal overdueCapital;
+
+    @ApiModelProperty(notes = "逾期利息")
     private BigDecimal overdueInterest;
+
+    @ApiModelProperty(notes = "逾期罚息")
     private BigDecimal overdueFine;
+
+    @ApiModelProperty(notes = "逾期滞纳金")
     private BigDecimal overdueDelayFine;
+
+    @ApiModelProperty(notes = "还款期数")
     private Integer periods;
-    private Date perDueDate; //逾期日期
+
+    @ApiModelProperty(notes = "每期还款日")
+    private Date perDueDate;
+
+    @ApiModelProperty(notes = "每期还款金额")
     private BigDecimal perPayAmount;
+
+    @ApiModelProperty(notes = "逾期期数")
     private Integer overduePeriods;
+
+    @ApiModelProperty(notes = "逾期天数")
     private Integer overdueDays;
+
+    @ApiModelProperty(notes = "逾期日期")
     private Date overDueDate;
-    private BigDecimal hasPayAmount = new BigDecimal(0); //逾期已还款金额
+
+    @ApiModelProperty(notes = "逾期已还款金额")
+    private BigDecimal hasPayAmount = new BigDecimal(0);
+
+    @ApiModelProperty(notes = "已还款期数")
     private Integer hasPayPeriods;
+
+    @ApiModelProperty(notes = "最近还款日期")
     private Date latelyPayDate;
+
+    @ApiModelProperty(notes = "最近还款金额")
     private BigDecimal latelyPayAmount;
-    @ApiModelProperty("协催标识：0-未协催，1-协催")
+
+    @ApiModelProperty(notes = "协催标识：0-未协催，1-协催")
     private Integer assistFlag;
+
+    @ApiModelProperty(notes = "协催状态")
     private Integer assistStatus;
+
+    @ApiModelProperty(notes = "协催方式")
     private Integer assistWay;
+
+    @ApiModelProperty(notes = "持案天数")
     private Integer holdDays;
+
+    @ApiModelProperty(notes = "剩余天数")
     private Integer leftDays;
+
+    @ApiModelProperty(notes = "")
     private Integer caseType;
+
     @ApiModelProperty("0-未留案，1-留案")
     private Integer leaveCaseFlag = 0;
+
+    @ApiModelProperty(notes = "案件类型(0-案件分配 1-电催小流转 2-电催强制流转 3-电催提前流转 4-电催保留流转 5-外访小流转 6-外访提前流转 7-外访强制流转 8-外访保留流转)")
     private Date leaveDate;
+
+    @ApiModelProperty(notes = "已留案天数")
     private Integer hasLeaveDays;
+
+    @ApiModelProperty(notes = "案件流转次数")
     private Integer followUpNum = 0;
+
+    @ApiModelProperty(notes = "流入时间")
     private Date caseFollowInTime;
+
+    @ApiModelProperty(notes = "还款状态")
     private String payStatus;
+
+    @ApiModelProperty(notes = "订单ID")
     private String orderId;
+
+    @ApiModelProperty(notes = "催收状态")
     private Integer collectionStatus;
-    @ApiModelProperty("委案日期")
+
+    @ApiModelProperty(notes = "委案日期")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date delegationDate;
-    @ApiModelProperty("结案日期")
+
+    @ApiModelProperty(notes = "结案日期")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date closeDate;
-    private BigDecimal commissionRate;
-    private Integer handNumber;
-    private Date loanDate;
-    private BigDecimal overdueManageFee;
-    private Integer handUpFlag;
-    private BigDecimal derateAmt = new BigDecimal(0); //逾期减免金额
-    private BigDecimal realPayAmount = new BigDecimal(0); //逾期实际还款金额
-    private BigDecimal earlySettleAmt = new BigDecimal(0); //提前结清已还款金额
-    private BigDecimal earlyRealSettleAmt = new BigDecimal(0); //提前结清实际还款金额
-    private BigDecimal earlyDerateAmt = new BigDecimal(0); //提前结清减免金额
-    private BigDecimal otherAmt;
-    private BigDecimal score;
-    private String companyCode;
-    private BigDecimal leftCapital; //剩余本金
-    private BigDecimal leftInterest; //剩余利息
-    private String endRemark; //结案说明
-    private Integer endType; //结案方式
-    private Date followupTime; //最新跟进时间
-    private Integer followupBack; //催收反馈
-    private BigDecimal promiseAmt; //承诺还款金额
-    private Date promiseTime; //承诺还款日期
-    private BigDecimal creditAmount; //授信金额
-    private Integer circulationStatus; //流转审批状态
 
+    @ApiModelProperty(notes = "佣金比例")
+    private BigDecimal commissionRate;
+
+    @ApiModelProperty(notes = "案件手数")
+    private Integer handNumber;
+
+    @ApiModelProperty(notes = "贷款日期")
+    private Date loanDate;
+
+    @ApiModelProperty(notes = "逾期管理费")
+    private BigDecimal overdueManageFee;
+
+    @ApiModelProperty(notes = "挂起标识")
+    private Integer handUpFlag;
+
+    @ApiModelProperty(notes = "逾期减免金额")
+    private BigDecimal derateAmt = new BigDecimal(0);
+
+    @ApiModelProperty(notes = "逾期实际还款金额")
+    private BigDecimal realPayAmount = new BigDecimal(0);
+
+    @ApiModelProperty(notes = "提前结清已还款金额")
+    private BigDecimal earlySettleAmt = new BigDecimal(0);
+
+    @ApiModelProperty(notes = "提前结清实际还款金额")
+    private BigDecimal earlyRealSettleAmt = new BigDecimal(0);
+
+    @ApiModelProperty(notes = "提前结清减免金额")
+    private BigDecimal earlyDerateAmt = new BigDecimal(0);
+
+    @ApiModelProperty(notes = "其他金额")
+    private BigDecimal otherAmt;
+
+    @ApiModelProperty(notes = "案件评分")
+    private BigDecimal score;
+
+    @ApiModelProperty(notes = "公司code码")
+    private String companyCode;
+
+    @ApiModelProperty(notes = "剩余本金")
+    private BigDecimal leftCapital;
+
+    @ApiModelProperty(notes = "剩余利息")
+    private BigDecimal leftInterest;
+
+    @ApiModelProperty(notes = "结案说明")
+    private String endRemark;
+
+    @ApiModelProperty(notes = "结案方式")
+    private Integer endType;
+
+    @ApiModelProperty(notes = "最新跟进时间")
+    private Date followupTime;
+
+    @ApiModelProperty(notes = "催收反馈")
+    private Integer followupBack;
+
+    @ApiModelProperty(notes = "承诺还款金额")
+    private BigDecimal promiseAmt;
+
+    @ApiModelProperty(notes = "承诺还款日期")
+    private Date promiseTime;
+
+    @ApiModelProperty(notes = "授信金额")
+    private BigDecimal creditAmount;
+
+    @ApiModelProperty(notes = "流转审批状态")
+    private Integer circulationStatus;
+
+    @ApiModelProperty(notes = "操作时间")
     private Date operatorTime;
+
+    @ApiModelProperty(notes = "打标标记")
     private Integer caseMark = 126;
-    @ApiModelProperty("备注")
+
+    @ApiModelProperty(notes = "备注")
     private String memo;
-    @ApiModelProperty("首次还款日期")
+
+    @ApiModelProperty(notes = "首次还款日期")
     private Date firstPayDate;
-    @ApiModelProperty("账龄")
+
+    @ApiModelProperty(notes = "账龄")
     private String accountAge;
-    @ApiModelProperty("案件到期回收方式：0-自动回收，1-手动回收")
+
+    @ApiModelProperty(notes = "案件到期回收方式：0-自动回收，1-手动回收")
     private Integer recoverWay;
+
     @ApiModelProperty("回收标志：0-未回收，1-已回收")
     private Integer recoverRemark;
+
     @ApiModelProperty("内催 225 委外 226 司法 227 核销 228")
     private Integer casePoolType;
 
     @ManyToOne
     @JoinColumn(name = "personal_id")
+    @ApiModelProperty(notes = "客户信息ID")
     private Personal personalInfo;
 
     @ManyToOne
     @JoinColumn(name = "depart_id")
+    @ApiModelProperty(notes = "部门ID")
     private Department department;
+
     @ManyToOne
     @JoinColumn(name = "area_id")
+    @ApiModelProperty(notes = "省份编号")
     private AreaCode area;
+
     @ManyToOne
     @JoinColumn(name = "product_id")
+    @ApiModelProperty(notes = "产品名称ID")
     private Product product;
+
     @ManyToOne
     @JoinColumn(name = "lately_collector")
+    @ApiModelProperty(notes = "")
     private User latelyCollector;
+
     @ManyToOne
     @JoinColumn(name = "current_collector")
+    @ApiModelProperty(notes = "当前催员")
     private User currentCollector;
+
     @ManyToOne
     @JoinColumn(name = "assist_collector")
+    @ApiModelProperty(notes = "协催员")
     private User assistCollector;
 
     @ManyToOne
     @JoinColumn(name = "principal_id")
+    @ApiModelProperty(notes = "委托方ID")
     private Principal principalId;
 
     @ManyToOne
     @JoinColumn(name = "operator")
+    @ApiModelProperty(notes = "操作员")
     private User operator;
 
     /**

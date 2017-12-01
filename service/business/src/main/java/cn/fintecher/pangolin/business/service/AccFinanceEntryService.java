@@ -3,13 +3,16 @@ package cn.fintecher.pangolin.business.service;
 import cn.fintecher.pangolin.business.model.OutsourceFollowUpRecordModel;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.util.ZWStringUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -45,15 +48,15 @@ public class AccFinanceEntryService {
             if(Objects.nonNull(excelSheetObj)){
                 dataList = excelSheetObj.getDatasList();
             }else{
-                throw new RuntimeException("数据不能为空");
+                throw new RuntimeException("数据不能为空!");
             }
             //导入错误信息
             errorList = excelSheetObj.getCellErrorList();
             if (errorList.isEmpty()) {
                 if (type == 0) {
-                    processFinanceData(dataList, accFinanceEntry, errorList);
+                    errorList = processFinanceData(dataList, accFinanceEntry, errorList);
                 } else {
-                    processFinanceDataFollowup(dataList, outsourceFollowRecord, errorList);
+                    errorList = processFinanceDataFollowup(dataList, outsourceFollowRecord, errorList);
                 }
             }
         } catch (Exception e) {
@@ -63,14 +66,22 @@ public class AccFinanceEntryService {
         return errorList;
     }
 
-    private void processFinanceData(List datalist, AccFinanceEntry accFinanceEntry, List<CellError> errorList) {
-        for (Object obj : datalist) {
-            AccFinanceEntry afe = new AccFinanceEntry();
-            AccFinanceDataExcel accFinanceDataExcel = (AccFinanceDataExcel) obj;
+    private List<CellError> processFinanceData(List datalist, AccFinanceEntry accFinanceEntry, List<CellError> errorList) {
 
+        for (int i =0; i<datalist.size();i++) {
+            AccFinanceEntry afe = new AccFinanceEntry();
+            AccFinanceDataExcel accFinanceDataExcel = (AccFinanceDataExcel) datalist.get(i);
             afe.setFileId(accFinanceEntry.getFileId());
-            if(Objects.nonNull(accFinanceDataExcel.getCaseNum())){
+
+            if (Objects.nonNull(accFinanceDataExcel.getCaseNum())) {
                 afe.setFienCasenum(accFinanceDataExcel.getCaseNum());
+            } else {
+                errorList.add(new CellError("",  i+1, 1, "", "", "案件编号不存在", null));
+            }
+            //验证必要数据的合法性
+            errorList = validityFinance(errorList, accFinanceDataExcel);
+            if(errorList.size()!=0){
+                return errorList;
             }
             afe.setFienCustname(accFinanceDataExcel.getCustName());
             afe.setFienIdcard(accFinanceDataExcel.getIdCardNumber());
@@ -84,57 +95,50 @@ public class AccFinanceEntryService {
 
             QOutsourcePool qOutsourcePool = QOutsourcePool.outsourcePool;
             if(Objects.nonNull(accFinanceDataExcel.getCaseNum())) {
-                Iterable<OutsourcePool> outsourcePools = outsourcePoolRepository.findAll(qOutsourcePool.caseInfo.caseNumber.eq(accFinanceDataExcel.getCaseNum()));
-                if (Objects.nonNull(outsourcePools) && outsourcePools.iterator().hasNext()) {
-                    afe.setFienBatchnum(outsourcePools.iterator().next().getOutBatch());
-                    if (Objects.nonNull(outsourcePools.iterator().next().getOutsource())) {
-                        afe.setFienFgname(outsourcePools.iterator().next().getOutsource().getOutsName());
+                OutsourcePool outsourcePool = outsourcePoolRepository.findOne(qOutsourcePool.caseInfo.caseNumber.eq(accFinanceDataExcel.getCaseNum()));
+                if (Objects.nonNull(outsourcePool)) {
+                    afe.setFienBatchnum(outsourcePool.getOutBatch());
+                    if (Objects.nonNull(outsourcePool.getOutsource())) {
+                        afe.setFienFgname(outsourcePool.getOutsource().getOutsName());
                     }
-
+                }else {
+                    errorList.add(new CellError("", 0, 0, "", "", "案件编号非委外案件编号！",null));
+                    return errorList;
                 }
-            }
-            //验证必要数据的合法性
-            if (!validityFinance(errorList, afe)) {
-                return;
             }
             accFinanceEntryRepository.save(afe);
         }
+        return errorList;
     }
 
-    private Boolean validityFinance(List<CellError> errorList, AccFinanceEntry afe) {
-        if (ZWStringUtils.isEmpty(afe.getFienCustname())) {
+    private List<CellError> validityFinance(List<CellError> errorList, AccFinanceDataExcel afe) {
+        if (ZWStringUtils.isEmpty(afe.getCustName())) {
             CellError cellError = new CellError();
             cellError.setErrorMsg("客户姓名为空");
             errorList.add(cellError);
-            return false;
+            return errorList;
         }
-        if (ZWStringUtils.isEmpty(afe.getFienCasenum())) {
+        if (StringUtils.isBlank(afe.getIdCardNumber())) {
             CellError cellError = new CellError();
-            cellError.setErrorMsg("客户[".concat(afe.getFienCustname()).concat("]的案件编号为空"));
+            cellError.setErrorMsg("客户[".concat(afe.getIdCardNumber()).concat("]的身份证号为空"));
             errorList.add(cellError);
-            return false;
-        }
-        if (StringUtils.isBlank(afe.getFienIdcard())) {
-            CellError cellError = new CellError();
-            cellError.setErrorMsg("客户[".concat(afe.getFienCustname()).concat("]的身份证号为空"));
-            errorList.add(cellError);
-            return false;
+            return errorList;
         } else {
-            if (!IdcardUtils.validateCard(afe.getFienIdcard())) {
+            if (!IdcardUtils.validateCard(afe.getIdCardNumber())) {
                 CellError cellError = new CellError();
-                cellError.setErrorMsg("客户[".concat(afe.getFienCustname()).concat("]的身份证号[").concat(afe.getFienIdcard()).concat("]不合法"));
+                cellError.setErrorMsg("客户[".concat(afe.getCustName()).concat("]的身份证号[").concat(afe.getIdCardNumber()).concat("]不合法"));
                 errorList.add(cellError);
-                return false;
+                return errorList;
             }
         }
-        return true;
+        return errorList;
     }
 
     /**
      * Created by huyanmin 2017/9/26
      * 将Excel中的数据存入数据库中
      */
-    public void processFinanceDataFollowup(List datalist, CaseFollowupRecord outsourceFollowRecord, List<CellError> errorList) {
+    public List<CellError> processFinanceDataFollowup(List datalist, CaseFollowupRecord outsourceFollowRecord, List<CellError> errorList) {
 
         List<CaseFollowupRecord> outList = new ArrayList<>();
         for (int m = 0; m < datalist.size(); m++) {
@@ -149,9 +153,11 @@ public class AccFinanceEntryService {
                     out.setCaseId(caseInfo.getId());
                 } else {
                     errorList.add(new CellError("", m + 1, 1, "", "", "客户[".concat(out.getCaseNumber()).concat("]的案件编号不存在"), null));
+                    return errorList;
                 }
             } else {
                 errorList.add(new CellError("", m + 1, 1, "", "", "案件编号不存在", null));
+                return errorList;
             }
             CaseFollowupRecord.Type[] followTypes = CaseFollowupRecord.Type.values();//跟进方式
             Integer followtype = 0;
@@ -215,8 +221,8 @@ public class AccFinanceEntryService {
             outList.add(out);
         }
         caseFollowupRecordRepository.save(outList);
-
-
+        return errorList;
     }
+
 }
 

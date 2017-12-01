@@ -37,21 +37,21 @@ public class CaseInfoReturn extends BaseEntity {
     @ApiModelProperty(notes = "退回来源 内催，委外，司法，核销")
     private Integer source;
 
-    @ApiModelProperty("委外方名称")
+    @ApiModelProperty(notes = "委外方名称")
     private String outsName;
 
-    @ApiModelProperty("委外时间")
+    @ApiModelProperty(notes = "委外时间")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date outTime;
 
-    @ApiModelProperty("委外到期日期")
+    @ApiModelProperty(notes = "委外到期日期")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date overOutsourceTime;
 
-    @ApiModelProperty("委外批次号")
+    @ApiModelProperty(notes = "委外批次号")
     private String outBatch;
 
-    @ApiModelProperty("公司Code")
+    @ApiModelProperty(notes = "公司Code")
     private String companyCode;
 
     /**

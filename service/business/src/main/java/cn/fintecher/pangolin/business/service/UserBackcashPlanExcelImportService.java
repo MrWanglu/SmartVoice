@@ -16,6 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -39,13 +41,13 @@ public class UserBackcashPlanExcelImportService {
         List<CellError> cellErrorList = null;
         try {
             //从文件服务器上获取Excel文件并解析：
-            ExcelSheetObj excelSheetObj = ExcelUtil.parseExcelSingle(params.getLocalUrl(),params.getType(), params.getDataClass(), params.getStartRow(), params.getStartCol());
+            ExcelSheetObj excelSheetObj = ExcelUtil.parseExcelSingle(params.getLocalUrl(), params.getType(), params.getDataClass(), params.getStartRow(), params.getStartCol());
             List dataList = excelSheetObj.getDatasList();
             //导入错误信息
             cellErrorList = excelSheetObj.getCellErrorList();
             if (cellErrorList.isEmpty()) {
                 //临时回款计划信息
-                goalExcelImportStrategic(dataList, params.getUsernameList(), params.getUserPlan(), params.getOperator(), params.getCompanyCode(),cellErrorList);
+                goalExcelImportStrategic(dataList, params.getUsernameList(), params.getUserPlan(), params.getOperator(), params.getCompanyCode(), cellErrorList);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -57,7 +59,7 @@ public class UserBackcashPlanExcelImportService {
     /**
      * Excel导入策略
      */
-    public void goalExcelImportStrategic(List dataList, List<String> userList, List<UserBackcashPlan> userPlan, String operator,String companyCode,List<CellError> cellErrorList) throws Exception {
+    public void goalExcelImportStrategic(List dataList, List<String> userList, List<UserBackcashPlan> userPlan, String operator, String companyCode, List<CellError> cellErrorList) throws Exception {
 
         // 将数据验证通过的存在List中（不存在计划的）
         List<UserBackcashPlan> passList = new ArrayList<>();
@@ -83,7 +85,7 @@ public class UserBackcashPlanExcelImportService {
                     UserBackcashPlan userBackcashPlan = userBackcashPlanRepository.findOne(qUserBackcashPlan.userName.eq(data.getUserName()).and(qUserBackcashPlan.year.eq(data.getYear())).and(qUserBackcashPlan.month.eq(data.getMonth())));
                     // 要导入的某个用户已经存在
                     if (Objects.isNull(userBackcashPlan)) {
-                        add(passList, data, operator,companyCode);
+                        add(passList, data, operator, companyCode);
                     } else {
                         // 要导入的用户名、年份、月份已经存在就是修改
                         UserBackcashPlan userBackcashPlan1 = new UserBackcashPlan();
@@ -92,14 +94,14 @@ public class UserBackcashPlanExcelImportService {
                         userBackcashPlan1.setRealName(data.getRealName());
                         userBackcashPlan1.setYear(data.getYear());
                         userBackcashPlan1.setMonth(data.getMonth());
-                        userBackcashPlan1.setBackCash(data.getBackCash());
+                        userBackcashPlan1.setBackCash(negativeCheck(data.getBackCash()) ? new BigDecimal(0) : data.getBackCash());
                         userBackcashPlan1.setOperateTime(new Date());
                         userBackcashPlan1.setOperator(operator);
                         userBackcashPlan1.setCompanyCode(companyCode);
                         passPlanList.add(userBackcashPlan1);
                     }
                 } else {
-                    add(passList, data, operator,companyCode);
+                    add(passList, data, operator, companyCode);
                 }
             }
         } catch (Exception e) {
@@ -193,9 +195,16 @@ public class UserBackcashPlanExcelImportService {
             // 判断用户名和姓名是否对应正确
             String realName = data.getRealName();
             User user = userRepository.findOne(QUser.user.userName.eq(username));
-            if (!Objects.equals(user.getRealName(),realName)) {
+            if (!Objects.equals(user.getRealName(), realName)) {
                 CellError cellError = new CellError();
                 cellError.setErrorMsg("导入的用户名 [" + username + "] 和姓名 [" + realName + "] 不对应");
+                cellErrorList.add(cellError);
+                return false;
+            }
+            //判断金额是否为负数
+            if (negativeCheck(data.getBackCash())) {
+                CellError cellError = new CellError();
+                cellError.setErrorMsg("导入的用户 [" + username + "] 的目标金额不能为负数！");
                 cellErrorList.add(cellError);
                 return false;
             }
@@ -206,7 +215,7 @@ public class UserBackcashPlanExcelImportService {
     /**
      * 向List中添加数据
      */
-    private void add(List passList, UploadUserBackcashPlanExcelModel data, String operator,String companyCode) {
+    private void add(List passList, UploadUserBackcashPlanExcelModel data, String operator, String companyCode) {
         UserBackcashPlan userBackcashPlan = new UserBackcashPlan();
         userBackcashPlan.setUserName(data.getUserName());
         userBackcashPlan.setRealName(data.getRealName());
@@ -219,4 +228,15 @@ public class UserBackcashPlanExcelImportService {
         passList.add(userBackcashPlan);
     }
 
+    /**
+     * @Description 判断负值
+     */
+    private Boolean negativeCheck(BigDecimal var) {
+        int flag = var.compareTo(new BigDecimal(0));
+        if (Objects.equals(flag, -1)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

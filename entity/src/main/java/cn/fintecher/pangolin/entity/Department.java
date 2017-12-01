@@ -15,29 +15,39 @@ import java.util.Date;
 @Data
 @ApiModel(value = "department", description = "组织机构信息管理")
 public class Department extends BaseEntity {
-    @ApiModelProperty("所属公司的特定标识")
+    @ApiModelProperty(notes = "所属公司的特定标识")
     private String companyCode;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "pid")
-    @ApiModelProperty("父机构的id")
+    @ApiModelProperty(notes = "父机构的id")
     private Department parent;
-    @ApiModelProperty("机构的名称")
+
+    @ApiModelProperty(notes = "机构的名称")
     private String name;
-    @ApiModelProperty("机构类型")
+
+    @ApiModelProperty(notes = "机构类型")
     private Integer type;
-    @ApiModelProperty("机构编号")
+
+    @ApiModelProperty(notes = "机构编号")
     private String code;
-    @ApiModelProperty("机构等级")
+
+    @ApiModelProperty(notes = "机构等级")
     private Integer level;
-    @ApiModelProperty("机构状态（0是启用  1 是停用）")
+
+    @ApiModelProperty(notes = "机构状态（0是启用  1 是停用）")
     private Integer status;
-    @ApiModelProperty("机构的描述")
+
+    @ApiModelProperty(notes = "机构的描述")
     private String remark;
-    @ApiModelProperty("创建人")
+
+    @ApiModelProperty(notes = "创建人")
     private String operator;
-    @ApiModelProperty("创建时间")
+
+    @ApiModelProperty(notes = "创建时间")
     private Date operateTime;
-    @ApiModelProperty("备用字段")
+
+    @ApiModelProperty(notes = "备用字段")
     private String field;
 
     /**

@@ -14,48 +14,49 @@ import java.util.Date;
 @Table(name = "outsource")
 @Data
 public class Outsource extends BaseEntity {
-    @ApiModelProperty("特定公司的标识")
+    @ApiModelProperty(notes = "特定公司的标识")
     private String companyCode;
 
-    @ApiModelProperty("委外方编码")
+    @ApiModelProperty(notes = "委外方编码")
     private String outsCode;
 
-    @ApiModelProperty("委外方")
+    @ApiModelProperty(notes = "委外方")
     private String outsName;
 
-    @ApiModelProperty("市的id")
+    @ApiModelProperty(notes = "市的id")
     private Integer area_id;
 
-    @ApiModelProperty("详细地址")
+    @ApiModelProperty(notes = "详细地址")
     private String outsAddress;
 
-    @ApiModelProperty("联系人")
+    @ApiModelProperty(notes = "联系人")
     private String outsContacts;
 
-    @ApiModelProperty("联系电话")
+    @ApiModelProperty(notes = "联系电话")
     private String outsPhone;
 
-    @ApiModelProperty("手机号")
+    @ApiModelProperty(notes = "手机号")
     private String outsMobile;
 
-    @ApiModelProperty("邮箱")
+    @ApiModelProperty(notes = "邮箱")
     private String outsEmail;
 
     @Size(max = 1000, message = "备注不能超过1000个字符")
-    @ApiModelProperty("备注")
+    @ApiModelProperty(notes = "备注")
     private String outsRemark;
 
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty(notes = "创建时间")
     private Date operateTime;
 
     @ManyToOne
     @JoinColumn(name = "operator")
+    @ApiModelProperty(notes = "操作员")
     private User user;
 
-    @ApiModelProperty("是否删除 0否1是")
+    @ApiModelProperty(notes = "是否删除 0否1是")
     private Integer flag;
 
-    @ApiModelProperty("机构类型")
+    @ApiModelProperty(notes = "机构类型")
     private Integer outsOrgtype;
 
     //委托方管理枚举
