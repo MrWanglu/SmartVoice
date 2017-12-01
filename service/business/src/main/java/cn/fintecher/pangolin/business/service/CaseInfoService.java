@@ -1410,20 +1410,7 @@ public class CaseInfoService {
             caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态 20-待催收
             caseInfo.setLeaveCaseFlag(0); //留案标识置0
 
-            //通过后添加一条流转记录
-            CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
-            BeanUtils.copyProperties(caseInfo, caseTurnRecord);
-            caseTurnRecord.setId(null);
-            caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
-            caseTurnRecord.setDepartId(tokenUser.getDepartment().getId()); //部门ID
-            caseTurnRecord.setReceiveUserRealName(tokenUser.getRealName()); //接受人名称
-            caseTurnRecord.setReceiveDeptName(tokenUser.getDepartment().getName()); //接收部门名称
-            caseTurnRecord.setReceiveUserId(tokenUser.getId()); //接受人ID
-            caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
-            caseTurnRecord.setCirculationType(1); //流转类型 1-手动流转
-            caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
-            caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-            caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
+            //通过后添加一条流转记录 提前流转 审批不增加流转记录 祁吉贵 代码已删除
             caseAdvanceTurnApplay.setApproveResult(CaseAdvanceTurnApplay.CirculationStatus.PHONE_PASS.getValue());//通过
         } else { //审批拒绝
             if (Objects.equals(circulationApprovalParams.getType(), 0)) { //电催小流转
@@ -1695,6 +1682,7 @@ public class CaseInfoService {
         //保存案件信息
         caseInfoRepository.save(caseInfoObjList);
     }
+
     /**
      * @Description 获取特定用户案件分配信息
      */
@@ -1734,10 +1722,8 @@ public class CaseInfoService {
     }
 
     /**
-     *
      * 案件分配预览
-     *
-     * */
+     */
     public PreviewModel distributePreview(AccCaseInfoDisModel accCaseInfoDisModel, User user) {
         //选择的案件ID列表
         List<String> caseInfoList = accCaseInfoDisModel.getCaseIdList();
@@ -3297,20 +3283,7 @@ public class CaseInfoService {
                 caseInfo.setCollectionStatus(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue()); //催收状态 20-待催收
                 caseInfo.setLeaveCaseFlag(0); //留案标识置0
 
-                //通过后添加一条流转记录
-                CaseTurnRecord caseTurnRecord = new CaseTurnRecord();
-                BeanUtils.copyProperties(caseInfo, caseTurnRecord);
-                caseTurnRecord.setId(null);
-                caseTurnRecord.setCaseId(caseInfo.getId()); //案件ID
-                caseTurnRecord.setDepartId(tokenUser.getDepartment().getId()); //部门ID
-                caseTurnRecord.setReceiveUserRealName(tokenUser.getRealName()); //接受人名称
-                caseTurnRecord.setReceiveDeptName(tokenUser.getDepartment().getName()); //接收部门名称
-                caseTurnRecord.setReceiveUserId(tokenUser.getId()); //接受人ID
-                caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //当前催收员ID
-                caseTurnRecord.setCirculationType(1); //流转类型 1-手动流转
-                caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
-                caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
-                caseTurnRecordRepository.saveAndFlush(caseTurnRecord);
+                //通过后添加一条流转记录 提前流转 审批不增加流转记录 祁吉贵 代码已删除
                 caseAdvanceTurnApplay.setApproveResult(CaseAdvanceTurnApplay.CirculationStatus.PHONE_PASS.getValue());//通过
             } else { //拒绝
                 if (Objects.equals(flag, 0)) {
