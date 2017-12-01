@@ -443,9 +443,6 @@
         <if test="overdueMinAmount != null">
             AND <![CDATA[b.overdue_amount >= #{overdueMinAmount}]]>
         </if>
-        <if test="mobileNo != null and mobileNo != ''">
-            AND b.mobile_no = trim(#{mobileNo})
-        </if>
         ORDER BY a.markId asc
         <if test="sort != null and sort == 'operatorTime,desc'">
             ,a.operatorTime desc

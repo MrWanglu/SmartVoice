@@ -43,7 +43,7 @@ public class CaseInfoHistory extends BaseEntity {
     private BigDecimal overdueInterest;
 
     @ApiModelProperty(notes = "逾期罚息")
-    private BigDecimal overdueFin;
+    private BigDecimal overdueFine;
 
     @ApiModelProperty(notes = "逾期滞纳金")
     private BigDecimal overdueDelayFine;
