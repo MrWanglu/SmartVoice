@@ -346,7 +346,7 @@ public class CaseInfoDistributeController extends BaseController {
                 }
             }
             List<StrategyPreviewModel> modelList = new ArrayList<>();
-            if (Objects.equals(previewParams.getType(), CaseStrategy.StrategyType.IMPORT.getValue())) {// 案件导入策略分配
+            if (Objects.equals(previewParams.getType(), CaseStrategy.StrategyType.INNER.getValue())) {// 案件导入策略分配
                 List<CaseInfoDistributed> checkList = new ArrayList<>();
                 QCaseInfoDistributed qCaseInfoDistributed = QCaseInfoDistributed.caseInfoDistributed;
                 BooleanBuilder builder = new BooleanBuilder();
