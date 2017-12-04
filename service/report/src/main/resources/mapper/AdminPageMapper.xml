@@ -604,16 +604,14 @@
             resultType="cn.fintecher.pangolin.report.model.GroupMonthFollowRecord">
         select DATE_FORMAT(b.operator_time, '%Y-%m-%d') as currentMonth ,b.collection_way as wayType , count(*) as typeCount
         from case_followup_record b
-        LEFT JOIN case_info a on a.id = b.case_id
-        where a.depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        WHERE operator_dept_name in (SELECT name FROM department where code like concat(#{deptCode},'%'))
         and DATE_FORMAT(b.operator_time, '%Y-%m')=DATE_FORMAT(#{startDate}, '%Y-%m')
         AND b.collection_way =1
         group by currentMonth,b.collection_way HAVING b.collection_way is not NULL
         UNION ALL
         select DATE_FORMAT(b.operator_time, '%Y-%m-%d') as currentMonth ,b.collection_way as wayType, count(*) as typeCount
         from case_followup_record b
-        LEFT JOIN case_info a on a.id = b.case_id
-        where a.depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        WHERE operator_dept_name in (SELECT name FROM department where code like concat(#{deptCode},'%'))
         and DATE_FORMAT(b.operator_time, '%Y-%m')=DATE_FORMAT(#{startDate}, '%Y-%m')
         AND b.collection_way =0
         group by currentMonth,b.collection_way HAVING b.collection_way is not NULL
@@ -666,7 +664,7 @@
         FROM
         (SELECT count(*) as total_followed_count, operator FROM
         (SELECT case_id,operator FROM case_followup_record
-        WHERE 1=1
+        WHERE operator_dept_name in (SELECT name FROM department where code like concat(#{deptCode},'%'))
         <if test="timeType == 0">
             AND YEAR(operator_time) = YEAR(NOW())
         </if>
@@ -680,6 +678,7 @@
         GROUP BY operator)as a
         LEFT JOIN
         (SELECT count(*) as call_count, operator FROM case_followup_record WHERE collection_way = 0
+        and operator_dept_name in (SELECT name FROM department where code like concat(#{deptCode},'%'))
         <if test="timeType == 0">
             AND YEAR(operator_time) = YEAR(NOW())
         </if>
@@ -693,6 +692,7 @@
         ON a.operator=b.operator
         LEFT JOIN
         (SELECT IFNULL(count(*),0) as follow_count,operator FROM case_followup_record WHERE collection_way=1
+        and operator_dept_name in (SELECT name FROM department where code like concat(#{deptCode},'%'))
         <if test="timeType == 0">
             AND YEAR(operator_time) = YEAR(NOW())
         </if>

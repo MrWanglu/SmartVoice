@@ -662,7 +662,7 @@ public class HomePageService {
         }
     }
 
-    //管理员首页第三部分
+    //管理员首页第二部分
     public PromisedDateModel getCaseGroupInfo(CollectorRankingParams params) {
         //案件还款意向数据案件金额集合
         PromisedDateModel promisedDateModel = new PromisedDateModel();
