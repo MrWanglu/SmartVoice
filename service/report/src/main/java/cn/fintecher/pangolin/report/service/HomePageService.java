@@ -820,7 +820,7 @@ public class HomePageService {
      * 某一年某个月的每一天
      */
     public List<String> getMonthFullDay(String date) {
-        List<String> fullDayList = new ArrayList<String>();
+        List<String> fullDayList = new ArrayList();
         int year = Integer.parseInt(date.substring(0, 4));
         int month = Integer.parseInt(date.substring(5, 7));
         int day = 1;// 所有月份从1号开始

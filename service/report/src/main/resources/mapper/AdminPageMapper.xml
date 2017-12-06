@@ -665,6 +665,9 @@
         (SELECT count(*) as total_followed_count, operator FROM
         (SELECT case_id,operator FROM case_followup_record
         WHERE operator_dept_name in (SELECT name FROM department where code like concat(#{deptCode},'%'))
+        <if test="companyCode != null">
+            AND company_code = #{companyCode}
+        </if>
         <if test="timeType == 0">
             AND YEAR(operator_time) = YEAR(NOW())
         </if>
@@ -679,6 +682,9 @@
         LEFT JOIN
         (SELECT count(*) as call_count, operator FROM case_followup_record WHERE collection_way = 0
         and operator_dept_name in (SELECT name FROM department where code like concat(#{deptCode},'%'))
+        <if test="companyCode != null">
+            AND company_code = #{companyCode}
+        </if>
         <if test="timeType == 0">
             AND YEAR(operator_time) = YEAR(NOW())
         </if>
@@ -706,6 +712,16 @@
         ON a.operator=c.operator
         LEFT JOIN
         (SELECT user_name,real_name FROM `user`) as d ON a.operator=d.user_name
+        <if test="rankType == 0">
+            ORDER BY call_count DESC
+        </if>
+        <if test="rankType == 1">
+            ORDER BY follow_count DESC
+        </if>
+        <if test="rankType == 2">
+            ORDER BY total_followed_count DESC
+        </if>
+        LIMIT 0,6
     </select>
 
     <resultMap id="followCountModel" type="cn.fintecher.pangolin.report.model.FollowCountModel">

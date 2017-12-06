@@ -283,7 +283,7 @@ public class HomePageController extends BaseController {
         try {
             User user = getUserByToken(token);
             String code = user.getDepartment().getCode();
-            params.setDeptCode(code);
+            params.setDeptCode("");
             if (Objects.nonNull(user.getCompanyCode())) {
                 params.setCompanyCode(user.getCompanyCode());
             }
@@ -316,8 +316,15 @@ public class HomePageController extends BaseController {
 
     @GetMapping(value = "/getHomePageFollowedRank")
     @ApiOperation(value = "统计管理员首页跟催量排名", notes = "统计管理员首页跟催量排名")
-    public ResponseEntity getHomePageFollowedRank(CollectorRankingParams params) {
+    public ResponseEntity getHomePageFollowedRank(CollectorRankingParams params,
+                                                  @RequestHeader(value = "X-UserToKen") String token) {
         try {
+            User user = getUserByToken(token);
+            String code = user.getDepartment().getCode();
+            params.setDeptCode(code);
+            if (Objects.nonNull(user.getCompanyCode())) {
+                params.setCompanyCode(user.getCompanyCode());
+            }
             CaseInfoRank caseInfoRank = homePageService.getCaseInfoRecordFollowRank(params);
             return ResponseEntity.ok().body(caseInfoRank);
         } catch (Exception e) {
