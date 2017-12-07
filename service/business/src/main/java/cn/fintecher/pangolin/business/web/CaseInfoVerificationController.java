@@ -19,9 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.querydsl.binding.QuerydslPredicate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -29,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import springfox.documentation.annotations.ApiIgnore;
+
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -177,6 +176,7 @@ public class CaseInfoVerificationController extends BaseController {
             builder.and(QCaseInfoVerificationApply.caseInfoVerificationApply.companyCode.eq(user.getCompanyCode()));
         }
         builder.and(QCaseInfoVerificationApply.caseInfoVerificationApply.approvalStatus.in(CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue(),CaseInfoVerificationApply.ApprovalStatus.approval_disapprove.getValue())); // 审批状态：待通过、审批拒绝
+        builder.and(QCaseInfoVerificationApply.caseInfoVerificationApply.deptCode.startsWith(user.getDepartment().getCode()));
         Page<CaseInfoVerificationApply> page = caseInfoVerificationApplyRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoVerification")).body(page);
     }
@@ -237,7 +237,9 @@ public class CaseInfoVerificationController extends BaseController {
         } else { // 普通管理员
             builder.and(QCaseInfoVerification.caseInfoVerification.companyCode.eq(user.getCompanyCode()));
         }
+        builder.and(QCaseInfoVerification.caseInfoVerification.caseInfo.department.code.startsWith(user.getDepartment().getCode()));
         builder.and(QCaseInfoVerification.caseInfoVerification.packingStatus.eq(CaseInfoVerification.PackingStatus.NO_PACKED.getValue()));
+        pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(Sort.Direction.DESC, "operatorTime"));
         Page<CaseInfoVerification> page = caseInfoVerificationRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoVerification")).body(page);
     }

@@ -890,7 +890,7 @@ public class AccTelPoolController extends BaseController {
             if (Objects.nonNull(approveState)) {
                 builder.and(qCaseAdvanceTurnApplay.approveResult.eq(approveState));
             }
-            builder.and(qCaseAdvanceTurnApplay.departId.startsWith(tokenUser.getDepartment().getCode())); //权限控制
+            builder.and(qCaseAdvanceTurnApplay.deptCode.startsWith(tokenUser.getDepartment().getCode())); //权限控制
             Page<CaseAdvanceTurnApplay> page = caseAdvanceTurnApplayRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/AccTelPoolController/getTelPendingCase");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);

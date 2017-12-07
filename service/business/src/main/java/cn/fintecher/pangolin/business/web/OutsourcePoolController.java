@@ -1673,4 +1673,20 @@ public class OutsourcePoolController extends BaseController {
         }
     }
 
+    @PostMapping("/revertOutCaseInfoDistribute")
+    @ApiOperation(value = "根据批次撤销分配案件", notes = "根据批次撤销分配案件")
+    public ResponseEntity revertOutCaseInfoDistribute(@RequestParam String batchNumber, @RequestHeader(value = "X-UserToken") String token) {
+        try {
+            User user = getUserByToken(token);
+            if (Objects.isNull(user)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("User", "", "获取不到登录人信息")).body(null);
+            }
+            outsourcePoolService.revertOutCaseInfoDistribute(batchNumber, user);
+            return ResponseEntity.ok().body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("核销申请失败", ENTITY_NAME1, e.getMessage())).body(null);
+        }
+    }
+
 }

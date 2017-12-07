@@ -333,6 +333,7 @@ public class CaseInfoVerificationService {
         apply.setApprovalStatus(CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue()); // 申请状态：审批待通过
         apply.setCaseId(caseInfo.getId()); // 案件Id
         apply.setSource(caseInfo.getCasePoolType()); // 案件池原类型
+        apply.setDeptCode(user.getDepartment().getCode());//设置提交申请人的部门Code add by cx.peng
         if (Objects.nonNull(caseInfo.getArea())) {
             apply.setCity(caseInfo.getArea().getId()); // 城市
             if (Objects.nonNull(caseInfo.getArea().getParent())) {
@@ -415,9 +416,9 @@ public class CaseInfoVerificationService {
             caseInfo.setCasePoolType(CaseInfo.CasePoolType.DESTORY.getValue()); // 案件池类型：核销
             caseInfoRepository.save(caseInfo);
             caseInfoVerification.setCaseInfo(caseInfo);
-            caseInfoVerificationRepository.save(caseInfoVerification);
             caseInfoVerification.setOperator(user.getRealName()); // 操作人
             caseInfoVerification.setOperatorTime(ZWDateUtil.getNowDateTime()); // 操作时间
+            caseInfoVerificationRepository.save(caseInfoVerification);
             CaseInfoVerificationApply apply = caseInfoVerificationApplyRepository.findOne(QCaseInfoVerificationApply.caseInfoVerificationApply.caseId.eq(caseInfo.getId()));
             caseInfoVerification.setState(apply.getApplicationReason()); // 核销说明--申请理由
             caseInfoVerification.setPackingStatus(CaseInfoVerification.PackingStatus.NO_PACKED.getValue());// 打包状态

@@ -19,8 +19,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 import javax.inject.Inject;
+import javax.swing.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * @author yuanyanting
@@ -47,6 +50,9 @@ public class CaseInfoJudicialController extends BaseController{
 
     @Inject
     private CaseInfoJudicialService caseInfoJudicialService;
+
+    @Inject
+    private DepartmentRepository departmentRepository;
 
     @PostMapping("/saveCaseInfoJudicial")
     @ApiOperation(value = "案件申请司法审批", notes = "案件申请司法审批")
@@ -179,6 +185,7 @@ public class CaseInfoJudicialController extends BaseController{
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(null, "Userexists", e.getMessage())).body(null);
         }
+
         BooleanBuilder builder = new BooleanBuilder(predicate);
         if (Objects.isNull(user.getCompanyCode())) {
             if (StringUtils.isNotBlank(companyCode)) {
@@ -187,6 +194,9 @@ public class CaseInfoJudicialController extends BaseController{
         } else { // 普通管理员
             builder.and(QCaseInfoJudicial.caseInfoJudicial.companyCode.eq(user.getCompanyCode()));
         }
+        //添加部门筛选条件
+        builder.and(QCaseInfoJudicial.caseInfoJudicial.caseInfo.department.code.startsWith(user.getDepartment().getCode()));
+
         Page<CaseInfoJudicial> page = caseInfoJudicialRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoJudicial")).body(page);
     }

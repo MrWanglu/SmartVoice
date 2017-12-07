@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.Date;
 import java.util.List;
 
@@ -34,7 +35,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/mailMessageController")
 @Api(value = "邮件发送", description = "邮件发送")
-public class MailMessageController extends BaseController{
+public class MailMessageController extends BaseController {
     private final static Logger log = LoggerFactory.getLogger(MailMessageController.class);
     @Autowired
     TemplateRepository templateRepository;
@@ -48,7 +49,7 @@ public class MailMessageController extends BaseController{
     @RequestMapping(value = "/sendMail", method = RequestMethod.POST)
     @ApiOperation(value = "发送邮件催收", notes = "发送邮件催收")
     public ResponseEntity sendMailMessage(@RequestBody EmailBatchSendParams emailBatchSendParams,
-                                  @RequestHeader(value = "X-UserToken") String token) {
+                                          @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
@@ -61,7 +62,7 @@ public class MailMessageController extends BaseController{
                 //根据邮件模板编号获取邮件模板
                 Template template = templateRepository.findOne(emailBatchSendParams.getTesmId());
                 Template tmp = new Template();
-                BeanUtils.copyProperties(template,tmp);
+                BeanUtils.copyProperties(template, tmp);
                 //邮件发送人员集合
                 List<EmailSendParams> emailSendParamList = emailBatchSendParams.getEmailSendParamList();
                 EmailMessage emailMessage = null;
@@ -82,14 +83,14 @@ public class MailMessageController extends BaseController{
                         emailMessage.setSendTime(currentDate);
                         emailMessage.setTitle("邮件催收");
                         rabbitTemplate.convertAndSend("mr.cui.mail.send", emailMessage);
-                        messageService.saveMessage(caseInfo,caseInfo.getPersonalInfo(),template,emailSendParam.getCustId(),user,emailBatchSendParams.getMereStyle(),0);
+                        messageService.saveMessage(caseInfo, caseInfo.getPersonalInfo(), template, emailSendParam.getCustId(), user, emailBatchSendParams.getMereStyle(), 0, null);
                     }
                 }
                 templateRepository.save(tmp);
             } else {
                 return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "邮箱为空")).body(null);
             }
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("发送成功","")).body(null);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("发送成功", "")).body(null);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "发送失败")).body(null);

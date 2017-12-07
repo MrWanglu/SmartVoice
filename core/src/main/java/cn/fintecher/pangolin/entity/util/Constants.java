@@ -39,9 +39,18 @@ public final class Constants {
     //阅读回款目前excel模板url
     public static final String BACK_CASH_PLAN_EXCEL_URL_CODE = "SysParam.backcashplanexcelurl";
     public static final String BACK_CASH_PLAN_EXCEL_URL_TYPE = "0006";
+
     //短信发送
+    //发送方式：0 erp 1 极光 2 创蓝 3 数据宝 4 阿里云 5 沃动
     public static final String SMS_PUSH_CODE = "SysParam.sms.push";
     public static final String SMS_PUSH_TYPE = "0017";
+    //发送每条短信之前的时间间隔 已毫秒为单位
+    public static final String SMS_PUSH_Interval = "SysParam.sms.interval";
+
+    //发送短信服务
+    public static final String COMMON_SERVICE_SMS = "http://common-service/api/SearchMessageController/";
+
+
     //导入批次号最大999(3位)
     public final static String ORDER_SEQ = "orderSeq";
     public final static Integer ORDER_SEQ_LENGTH = 3;
@@ -164,7 +173,8 @@ public final class Constants {
     public static final int SHEET_MAX = 255;
 
     public static final List<String> monthList = Arrays.asList("01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12");
-    public static final List<String> weekList = Arrays.asList("0","1", "2", "3", "4", "5", "6");
+    public static final List<String> weekList = Arrays.asList("0", "1", "2", "3", "4", "5", "6");
+
     /**
      * 数据来源
      */

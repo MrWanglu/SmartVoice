@@ -58,6 +58,12 @@ public class LetterController extends BaseController {
                 //不是超级管理员
                 builder.and(QCaseInfo.caseInfo.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
             }
+            //判断登陆人员是否是manager
+            if (tokenUser.getManager() == 1) {
+                builder.and(qCaseInfo.department.code.startsWith(tokenUser.getDepartment().getCode()));
+            } else {
+                builder.and(qCaseInfo.currentCollector.id.eq(tokenUser.getId()));
+            }
             builder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.WAIT_FOR_DIS.getValue(),
                     CaseInfo.CollectionStatus.CASE_OVER.getValue()));
             Page<CaseInfo> page = caseInfoRepository.findAll(builder, pageable);

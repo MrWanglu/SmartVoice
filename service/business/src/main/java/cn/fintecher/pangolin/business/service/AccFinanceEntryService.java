@@ -1,18 +1,18 @@
 package cn.fintecher.pangolin.business.service;
 
 import cn.fintecher.pangolin.business.model.OutsourceFollowUpRecordModel;
-import cn.fintecher.pangolin.business.repository.*;
+import cn.fintecher.pangolin.business.repository.AccFinanceEntryRepository;
+import cn.fintecher.pangolin.business.repository.CaseFollowupRecordRepository;
+import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
+import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
 import cn.fintecher.pangolin.entity.*;
-import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.*;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import cn.fintecher.pangolin.util.ZWStringUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -31,8 +31,6 @@ public class AccFinanceEntryService {
     AccFinanceEntryRepository accFinanceEntryRepository;
     @Autowired
     OutsourcePoolRepository outsourcePoolRepository;
-    @Autowired
-    OutsourceFollowupRecordRepository outsourceFollowupRecordRepository;
     @Autowired
     CaseFollowupRecordRepository caseFollowupRecordRepository;
     @Autowired
@@ -102,7 +100,7 @@ public class AccFinanceEntryService {
                         afe.setFienFgname(outsourcePool.getOutsource().getOutsName());
                     }
                 }else {
-                    errorList.add(new CellError("", 0, 0, "", "", "案件编号非委外案件编号！",null));
+                    errorList.add(new CellError("", 0, 0, "", "", "案件编号(".concat(accFinanceDataExcel.getCaseNum()).concat(")非委外案件编号！"), null));
                     return errorList;
                 }
             }
@@ -145,18 +143,22 @@ public class AccFinanceEntryService {
             CaseFollowupRecord out = new CaseFollowupRecord();
             OutsourceFollowUpRecordModel followUpRecordModel = (OutsourceFollowUpRecordModel) datalist.get(m);
             CaseInfo caseInfo = null;
+            OutsourcePool outsourcePool = null;
             if (Objects.nonNull(followUpRecordModel.getCaseNum())) {
                 out.setCaseNumber(followUpRecordModel.getCaseNum());
                 caseInfo = caseInfoRepository.findOne(QCaseInfo.caseInfo.caseNumber.eq(followUpRecordModel.getCaseNum()));
-                //案件编号是否存在
-                if (Objects.nonNull(caseInfo)) {
-                    out.setCaseId(caseInfo.getId());
+                outsourcePool = outsourcePoolRepository.findOne(QOutsourcePool.outsourcePool.caseInfo.caseNumber.eq(followUpRecordModel.getCaseNum()));
+                //案件是否是委外案件
+                if (Objects.nonNull(outsourcePool)) {
+                    if (Objects.nonNull(caseInfo)) {
+                        out.setCaseId(caseInfo.getId());
+                    }
                 } else {
-                    errorList.add(new CellError("", m + 1, 1, "", "", "客户[".concat(out.getCaseNumber()).concat("]的案件编号不存在"), null));
+                    errorList.add(new CellError("", m + 1, 1, "", "", "案件编号(".concat(followUpRecordModel.getCaseNum()).concat(")非委外案件编号！"), null));
                     return errorList;
                 }
             } else {
-                errorList.add(new CellError("", m + 1, 1, "", "", "案件编号不存在", null));
+                errorList.add(new CellError("", m + 1, 1, "", "", "案件编号不能为空!", null));
                 return errorList;
             }
             CaseFollowupRecord.Type[] followTypes = CaseFollowupRecord.Type.values();//跟进方式

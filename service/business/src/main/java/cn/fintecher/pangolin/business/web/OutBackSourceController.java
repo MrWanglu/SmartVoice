@@ -102,7 +102,15 @@ public class OutBackSourceController extends BaseController {
                     outBackSource.setOperateTime(ZWDateUtil.getNowDateTime());
                     outbackSourceRepository.save(outBackSource);
                 }else{
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "请操作委外中案件")).body(null);
+                    OutBackSource.operationType[] operationTypes = OutBackSource.operationType.values();
+                    String operationType = "";
+                    //循环得到不同的操作类型 204 回款， 205 回退， 206 修复
+                    for (int i = 0; i < operationTypes.length; i++) {
+                        if (operationTypes[i].getCode().equals(outBackSource.getOperationType())) {
+                            operationType = operationTypes[i].getRemark();
+                        }
+                    }
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "已结案案件不允许".concat(operationType))).body(null);
                 }
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", " ")).body(outBackSource);

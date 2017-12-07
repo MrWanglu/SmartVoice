@@ -28,8 +28,8 @@ public class CaseAdvanceTurnApplay extends BaseEntity {
   @ApiModelProperty(notes = "催收类型(电催、外访、司法、委外、提醒)")
   private Integer collectionType;
 
-  @ApiModelProperty(notes = "部门ID")
-  private String departId;
+  @ApiModelProperty(notes = "部门Code")
+  private String deptCode;
 
   @ApiModelProperty(notes = "委托方ID")
   private String principalId;

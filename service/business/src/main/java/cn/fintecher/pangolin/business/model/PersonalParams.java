@@ -16,4 +16,6 @@ public class PersonalParams {
     private String personalPhone;
     @ApiModelProperty("联系人ID")
     private String contId;
+    @ApiModelProperty("失败原因")
+    private String reason;
 }

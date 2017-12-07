@@ -97,21 +97,27 @@ public class OverNightBatchService {
                         step = "0";
                     case "0":
                         step = "1";
+                        //重置序列号
                         doOverNightOne(jobDataMap, step);
                     case "1":
                         step = "2";
+                        //案件强制流转
                         doOverNightTwo(jobDataMap, step, user);
                     case "2":
                         step = "3";
+                        //电催小流转
                         doOverNightThree(jobDataMap, step, user);
                     case "3":
                         step = "4";
+                        //留案案件流转
                         doOverNightFour(jobDataMap, step, user);
                     case "4":
                         step = "5";
+                        //更新持案天数
                         doOverNightFive(jobDataMap, step);
                     case "5":
                         step = "6";
+                        //电催审批失效处理
                         doOverNightSix(jobDataMap, step);
                     default:
                         break;

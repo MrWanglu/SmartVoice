@@ -250,7 +250,7 @@ public class CompanyController extends BaseController {
         String randomCode = String.valueOf(i);
         boolean exists = companyRepository.exists(QCompany.company.sequence.eq(randomCode));
         if (exists) {
-            req();
+            randomCode = req();
         }
         return randomCode;
     }

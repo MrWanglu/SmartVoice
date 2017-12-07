@@ -45,20 +45,26 @@ public class OutBackSource extends BaseEntity {
      */
     public enum operationType{
         //回款
-        OUTBACKAMT(204),
+        OUTBACKAMT(204, "回款"),
         //回退
-        OUTBACK(205),
+        OUTBACK(205, "回退"),
         //修复
-        OUTREPAIR(206);
+        OUTREPAIR(206, "修复");
 
         private Integer code;
+        private String remark;
 
-        operationType(Integer code) {
+        operationType(Integer code, String remark) {
             this.code = code;
+            this.remark = remark;
         }
 
         public Integer getCode() {
             return code;
+        }
+
+        public String getRemark() {
+            return remark;
         }
     }
 

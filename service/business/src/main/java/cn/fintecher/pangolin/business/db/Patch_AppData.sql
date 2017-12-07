@@ -245,6 +245,40 @@ UPDATE `pangolin_business`.`sys_param` SET `name`='案件分案撤销时长(分�
 ALTER TABLE `case_info_judicial`
 ADD COLUMN `state`  varchar(255) NULL AFTER `company_code`;
 
+
+
+--2017-12-07
+--还款申请表增加部门Code
+--祁吉贵
+ALTER TABLE `case_pay_apply`
+ADD COLUMN `dept_code`  varchar(128) NULL COMMENT '部门code' AFTER `case_amt`;
+
+
+--2017-12-07
+--电催提前流转表 修改depart_id 为 dept_code
+--彭长须
+ALTER TABLE `case_advance_turn_applay`
+change `depart_id` `dept_code` varchar(64) DEFAULT NULL COMMENT '部门Code';
+
+
+--2017-12-07
+--协催表添加外访协催审批人的部门code
+--胡艳敏
+ALTER TABLE `case_assist`
+ADD COLUMN `dept_code`  varchar(128) NULL COMMENT '外访协催审批人的部门code' AFTER `assist_close_flag`;
+
+--2017-12-07
+--case_info_verification_apply 部门Code
+--彭长须
+ALTER TABLE `case_info_verification_apply`
+ADD COLUMN `dept_code`  varchar(128) NULL COMMENT '部门code' AFTER `case_number`;
+
+--2017-12-07
+--case_assist_apply 修改depart_id 为 dept_code
+--彭长须
+ALTER TABLE `case_assist_apply`
+change `depart_id` `dept_code` varchar(64) DEFAULT NULL COMMENT '部门Code';
+
 --2017-12-07
 --协催表添加外访协催审批人的部门code
 --胡艳敏

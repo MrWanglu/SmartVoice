@@ -32,6 +32,9 @@ public class CaseInfoVerificationApply extends BaseEntity {
     @ApiModelProperty(notes = "案件编号")
     private String caseNumber;
 
+    @ApiModelProperty(notes = "部门code")
+    private String deptCode;
+
     @ApiModelProperty(notes = "操作时间")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date operatorTime;

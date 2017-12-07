@@ -164,6 +164,16 @@ public class DataInfoExcelService {
             logger.error(e.getMessage(), e);
             throw new Exception("获取公司序列号失败");
         }
+        if (Objects.isNull(templateExcelInfoList)) {
+            try {
+                boolean b = parseExcelService.checkHeader(excelSheet, 0, 0);
+                if (!b) {
+                    throw new Exception("请使用系统默认模板或者配置导入模板");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("导入失败!");
+            }
+        }
         try {
             Company company = entity.getBody();
             //批次号
@@ -180,7 +190,7 @@ public class DataInfoExcelService {
             dataInfoExcelList.clear();
             forceErrorList.clear();
             promptErrorList.clear();
-            parseExcelService.parseSheet(excelSheet, startRow,startCol, DataInfoExcel.class, dataImportRecord, templateExcelInfoList, dataInfoExcelList, forceErrorList, promptErrorList);
+            parseExcelService.parseSheet(excelSheet, startRow, startCol, DataInfoExcel.class, dataImportRecord, templateExcelInfoList, dataInfoExcelList, forceErrorList, promptErrorList);
             StopWatch watch = new StopWatch();
             watch.start();
             if (forceErrorList.isEmpty()) {
@@ -325,7 +335,7 @@ public class DataInfoExcelService {
             dataTotal = dataTotal + 1;
             DataInfoExcel dataInfoExcel = (DataInfoExcel) iterator.next();
             //包含严重错误的一批案件不允许确认
-            if (Objects.equals(dataInfoExcel.getColor(),DataInfoExcel.Color.RED.getValue())) {
+            if (Objects.equals(dataInfoExcel.getColor(), DataInfoExcel.Color.RED.getValue())) {
                 throw new RuntimeException("此批案件存在严重错误不允许确认");
             }
             DataInfoExcelModel dataInfoExcelModel = new DataInfoExcelModel();
@@ -401,13 +411,13 @@ public class DataInfoExcelService {
             throw new RuntimeException("导出错误!");
         }
         Collections.sort(dataList, Comparator.comparingInt(RowError::getRowIndex));
-        String[] title = {"Excel行号","案件编号","客户姓名","手机号","身份证号","案件金额(元)","错误内容"};
+        String[] title = {"Excel行号", "案件编号", "客户姓名", "手机号", "身份证号", "案件金额(元)", "错误内容"};
         HashMap<String, String> headMap = ExcelExportUtil.createHeadMap(title, RowError.class);
 
         File file = null;
         FileOutputStream fileOutputStream = null;
         try (SXSSFWorkbook workbook = new SXSSFWorkbook(1000);
-            ByteArrayOutputStream out = new ByteArrayOutputStream();) {
+             ByteArrayOutputStream out = new ByteArrayOutputStream();) {
             ExcelExportUtil.createExcelData(workbook, headMap, dataList, Constants.ROW_MAX - 1);
             workbook.write(out);
             String filePath = FileUtils.getTempDirectoryPath().concat(File.separator).concat(ZWDateUtil.getFormatNowDate("yyyyMMddhhmmss") + "错误报告.xlsx");

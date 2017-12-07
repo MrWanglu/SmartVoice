@@ -1,22 +1,25 @@
 package cn.fintecher.pangolin.business.service;
 
+import cn.fintecher.pangolin.business.exception.GeneralException;
 import cn.fintecher.pangolin.business.model.*;
-import cn.fintecher.pangolin.business.repository.CaseInfoRepository;
-import cn.fintecher.pangolin.business.repository.OutsourcePoolRepository;
-import cn.fintecher.pangolin.business.repository.OutsourceRecordRepository;
-import cn.fintecher.pangolin.business.repository.OutsourceRepository;
+import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import cn.fintecher.pangolin.entity.util.Constants;
 import cn.fintecher.pangolin.entity.util.LabelValue;
 import cn.fintecher.pangolin.util.ZWDateUtil;
+import cn.fintecher.pangolin.web.HeaderUtil;
+import com.mongodb.DBCollection;
 import freemarker.template.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.kie.api.runtime.KieSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -24,6 +27,7 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
@@ -44,16 +48,14 @@ public class OutsourcePoolService {
     OutsourcePoolRepository outsourcePoolRepository;
     @Autowired
     private BatchSeqService batchSeqService;
-
     @Autowired
     OutsourceRecordRepository outsourceRecordRepository;
-    @Inject
-    private Configuration freemarkerConfiguration;
     @Autowired
     RestTemplate restTemplate;
-
     @Inject
     RunCaseStrategyService runCaseStrategyService;
+    @Inject
+    SysParamRepository sysParamRepository;
 
 
     /**
@@ -82,7 +84,8 @@ public class OutsourcePoolService {
                 CaseInfo caseInfo = caseInfoYes.get(i);
                 String personalName = caseInfo.getPersonalInfo().getName();
                 String idCard = caseInfo.getPersonalInfo().getIdCard();
-                Object[] nums = (Object[])outsourcePoolRepository.getGzNum(personalName, idCard, user.getCompanyCode());;//按机构分
+                Object[] nums = (Object[]) outsourcePoolRepository.getGzNum(personalName, idCard, user.getCompanyCode());
+                ;//按机构分
                 if (Objects.nonNull(nums)) {
                     debtList.add(caseInfo.getId());
                     caseInfoYes.remove(caseInfo);
@@ -122,7 +125,7 @@ public class OutsourcePoolService {
 
         //按数量平均分配
         if (Objects.equals(rule, 2)) {
-            BeanUtils.copyProperties(distributePreviewByAmt(outsourceInfo, caseInfoYes),previewModel);
+            BeanUtils.copyProperties(distributePreviewByAmt(outsourceInfo, caseInfoYes), previewModel);
             debtList.addAll(previewModel.getCaseIds());
             previewModel.setCaseIds(debtList);
             return previewModel;
@@ -194,14 +197,14 @@ public class OutsourcePoolService {
         //存储委外方
         List<String> outsourceIds = outsourceInfo.getOutId();
         List<DisModel> outsourceDisModleList = new ArrayList();
-        for(String id : outsourceIds){
+        for (String id : outsourceIds) {
             DisModel outsourceDisModle = new DisModel();
             outsourceDisModle.setId(id);
             outsourceDisModleList.add(outsourceDisModle);
         }
 
         //将最大的放到案件
-        for (CaseInfo caseInfo: caseInfoYes) {
+        for (CaseInfo caseInfo : caseInfoYes) {
             Collections.sort(outsourceDisModleList, new Comparator<DisModel>() {
                 @Override
                 public int compare(DisModel o1, DisModel o2) {
@@ -226,7 +229,7 @@ public class OutsourcePoolService {
             outDistributeInfo.setCollectionAmt(outsourcePoolRepository.getOutsourceAmtCount(outsourceId));
             outDistributeInfo.setCaseDistributeCount(model.getCaseInfos().size());
             outDistributeInfo.setCaseDistributeMoneyCount(model.getAmt());
-            outDistributeInfo.setCaseTotalCount(outDistributeInfo.getCollectionCount()+outDistributeInfo.getCaseDistributeCount());
+            outDistributeInfo.setCaseTotalCount(outDistributeInfo.getCollectionCount() + outDistributeInfo.getCaseDistributeCount());
             outDistributeInfo.setCaseMoneyTotalCount(outDistributeInfo.getCollectionAmt().add(outDistributeInfo.getCaseDistributeMoneyCount()));
             list.add(outDistributeInfo);
         }
@@ -245,11 +248,11 @@ public class OutsourcePoolService {
         Collections.sort(caseInfoYes, (o1, o2) -> {
             return o2.getOverdueAmount().compareTo(o1.getOverdueAmount());
         });
-        int start = (int)Math.round(caseInfoYes.size()*0.25);
-        int end = (int)Math.round(caseInfoYes.size()*0.75);
+        int start = (int) Math.round(caseInfoYes.size() * 0.25);
+        int end = (int) Math.round(caseInfoYes.size() * 0.75);
         List<CaseInfo> numAvgList = new ArrayList<>();
         //取出100条案件中的25到75个案件，存放到numAvgList
-        for(int i = start; i< end; i++){
+        for (int i = start; i < end; i++) {
             numAvgList.add(caseInfoYes.get(start));
             caseInfoYes.remove(start);
         }
@@ -278,10 +281,10 @@ public class OutsourcePoolService {
         }
         Collections.shuffle(numAvgList);
         //将平均分配的案件ID和金额放入disModels中
-        for(DisModel model : disModels){
-            List<CaseInfo> temp = numAvgList.subList(0,model.getNum());
-            numAvgList = numAvgList.subList(model.getNum(),numAvgList.size());
-            for(CaseInfo caseInfo:temp){
+        for (DisModel model : disModels) {
+            List<CaseInfo> temp = numAvgList.subList(0, model.getNum());
+            numAvgList = numAvgList.subList(model.getNum(), numAvgList.size());
+            for (CaseInfo caseInfo : temp) {
                 model.setAmt(model.getAmt().add(caseInfo.getOverdueAmount()));
                 model.getCaseIds().add(caseInfo.getId());
                 model.getCaseInfos().add(caseInfo);
@@ -310,7 +313,7 @@ public class OutsourcePoolService {
             outDistributeInfo.setCollectionAmt(outsourcePoolRepository.getOutsourceAmtCount(outsourceId));
             outDistributeInfo.setCaseDistributeCount(model.getCaseInfos().size());
             outDistributeInfo.setCaseDistributeMoneyCount(model.getAmt());
-            outDistributeInfo.setCaseTotalCount(outDistributeInfo.getCollectionCount()+outDistributeInfo.getCaseDistributeCount());
+            outDistributeInfo.setCaseTotalCount(outDistributeInfo.getCollectionCount() + outDistributeInfo.getCaseDistributeCount());
             outDistributeInfo.setCaseMoneyTotalCount(outDistributeInfo.getCollectionAmt().add(outDistributeInfo.getCaseDistributeMoneyCount()));
             list.add(outDistributeInfo);
         }
@@ -355,13 +358,13 @@ public class OutsourcePoolService {
                 CaseInfo caseInfo = caseInfoRepository.findOne(outsourcePool.getCaseInfo().getId());
                 String personalName = caseInfo.getPersonalInfo().getName();
                 String idCard = caseInfo.getPersonalInfo().getIdCard();
-                String companyCode=null;
-                if(Objects.nonNull(user.getCompanyCode())){
-                    companyCode=user.getCompanyCode();
+                String companyCode = null;
+                if (Objects.nonNull(user.getCompanyCode())) {
+                    companyCode = user.getCompanyCode();
                 }
-                Object[] nums = (Object[])outsourcePoolRepository.getGzNum(personalName, idCard, companyCode);
+                Object[] nums = (Object[]) outsourcePoolRepository.getGzNum(personalName, idCard, companyCode);
                 if (Objects.nonNull(nums)) {
-                    Outsource outsource = outsourceRepository.findOne(Objects.isNull(nums[0].toString())?null:nums[0].toString());
+                    Outsource outsource = outsourceRepository.findOne(Objects.isNull(nums[0].toString()) ? null : nums[0].toString());
                     if (Objects.nonNull(outsource)) {
                         //优先将案件委外给有共债案件的委外方
                         setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
@@ -407,7 +410,7 @@ public class OutsourcePoolService {
                 }
                 String outId = caseInfoYes.get(alreadyCaseNum).getId();
                 OutsourcePool outsourcePool = outsourcePoolRepository.findOne(outId);
-                if(Objects.nonNull(outsourcePool)){
+                if (Objects.nonNull(outsourcePool)) {
                     setOutsourcePool(outsourcePool, outsource, ouorBatch, user, outsourcePoolList);
                     //添加委外记录
                     saveOutsourceRecord(outsourcePool, outsource, user, ouorBatch, outsourceRecords);
@@ -482,7 +485,7 @@ public class OutsourcePoolService {
             List<CaseInfo> caseInfoList = caseInfos;
             Iterator<CaseInfo> iterator = caseInfoList.iterator();
             if (StringUtils.isNotBlank(caseStrategy.getStrategyText())) {
-                if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_AREA_ID)){
+                if (caseStrategy.getStrategyText().contains(Constants.STRATEGY_AREA_ID)) {
                     while (iterator.hasNext()) {
                         CaseInfo next = iterator.next();
                         if (Objects.isNull(next.getArea())) {
@@ -495,7 +498,7 @@ public class OutsourcePoolService {
                         CaseInfo next = iterator.next();
                         if (Objects.isNull(next.getProduct())) {
                             iterator.remove();
-                        } else if (Objects.isNull(next.getProduct().getProductSeries())){
+                        } else if (Objects.isNull(next.getProduct().getProductSeries())) {
                             iterator.remove();
                         }
                     }
@@ -523,7 +526,7 @@ public class OutsourcePoolService {
             caseInfos.removeAll(checkedList);
         }
 
-        if(!list.isEmpty()){
+        if (!list.isEmpty()) {
             result = new ArrayList<>();
             setModelValue(list, result);
         }
@@ -600,7 +603,7 @@ public class OutsourcePoolService {
                         OutsourcePool outsourcePool = outsourcePoolRepository.findOne(QOutsourcePool.outsourcePool.caseInfo.id.eq(caseId));
                         CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
                         if (Objects.nonNull(outsourcePool) && Objects.nonNull(caseInfo)) {
-                            if(Objects.nonNull(caseInfo.getRealPayAmount())){
+                            if (Objects.nonNull(caseInfo.getRealPayAmount())) {
                                 caseInfo.setRealPayAmount(BigDecimal.ZERO);
                             }
                             BigDecimal amount = caseInfo.getOverdueAmount().subtract(caseInfo.getRealPayAmount()); //案件需要委外的金额
@@ -651,5 +654,44 @@ public class OutsourcePoolService {
                 newDistributeModel.add(oldDistributeModel);
             }
         }
+    }
+
+    /**
+     * 撤销案件分配信息
+     *
+     * @param batchNumber
+     * @param user
+     */
+    public void revertOutCaseInfoDistribute(String batchNumber, User user) throws GeneralException {
+        //判断时间 需求 超过系统设置的时间不能撤销
+        QSysParam qSysParam = QSysParam.sysParam;
+        SysParam sysParam = sysParamRepository.findOne(qSysParam.companyCode.eq(user.getCompanyCode()).
+                and(qSysParam.code.eq(Constants.SYS_REVOKE_DISTRIBUTE)).
+                and(qSysParam.status.eq(SysParam.StatusEnum.Start.getValue())));
+        if (Objects.isNull(sysParam)) {
+            throw new GeneralException("请设置系统参数-案件撤销时长");
+        }
+        Iterable<OutsourcePool> outsourcePoolRepositoryAll = outsourcePoolRepository.findAll(QOutsourcePool.outsourcePool.outBatch.eq(batchNumber).
+                and(QOutsourcePool.outsourcePool.caseInfo.companyCode.eq(user.getCompanyCode())).
+                and(QOutsourcePool.outsourcePool.caseInfo.casePoolType.eq(CaseInfo.CasePoolType.OUTER.getValue())), new Sort(Sort.Direction.ASC, "operateTime"));
+
+        if (DateTime.now().isAfter(outsourcePoolRepositoryAll.iterator().next().getOperateTime().getTime() + Integer.parseInt(sysParam.getValue()) * 60000)) {
+            throw new GeneralException("撤销案件超出了系统设置的撤回时间");
+        }
+        for (OutsourcePool outsourcePool : outsourcePoolRepositoryAll) {
+            outsourcePool.setOutStatus(OutsourcePool.OutStatus.TO_OUTSIDE.getCode());
+            outsourcePool.setContractAmt(null);
+            outsourcePool.setOverduePeriods(null);
+            outsourcePool.setEndOutsourceTime(null);
+            outsourcePool.setOverOutsourceTime(null);
+            outsourcePool.setOutsource(null);
+            outsourcePool.setOperateTime(null);
+            outsourcePool.setOperator(null);
+            outsourcePool.setOutBatch(null);
+            outsourcePool.setOutBackAmt(null);
+            outsourcePool.setOutTime(null);
+            outsourcePool.setOutoperationStatus(null);
+        }
+        outsourcePoolRepository.save(outsourcePoolRepositoryAll);
     }
 }

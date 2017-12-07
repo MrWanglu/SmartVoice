@@ -38,8 +38,8 @@ public class CaseAssistApply extends BaseEntity {
     @ApiModelProperty("催收类型(电催、外访、司法、委外、提醒)")
     private Integer collectionType;
 
-    @ApiModelProperty("部门ID")
-    private String departId;
+    @ApiModelProperty("部门Code")
+    private String deptCode;
 
     @ApiModelProperty("委托方ID")
     private String principalId;

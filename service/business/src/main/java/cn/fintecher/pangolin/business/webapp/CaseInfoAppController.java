@@ -355,6 +355,13 @@ public class CaseInfoAppController extends BaseController {
             one.setHasLeaveDays(0); //留案天数
             one.setOperator(user);
             one.setOperatorTime(ZWDateUtil.getNowDateTime());
+
+            //APP中协催留案的时候也要把主案件留案，因为如果不留案，主案件留案的时候回把协催干掉，这样不行的 对应的取消留案就需要将这个 状态还原 。祁吉贵
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+            caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.YES_LEAVE.getValue());
+            caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+            caseInfo.setOperator(user);
+
             caseAssistRepository.save(one);
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("留案成功", "")).body(null);
         } catch (Exception e) {
@@ -422,7 +429,15 @@ public class CaseInfoAppController extends BaseController {
                 throw new RuntimeException("只能对自己所持有的案件进行取消留案操作");
             }
             caseAssistService.cancelLeaveCaseAssist(caseAssist, tokenUser);
+
+            //取消留案 把原案件状态置为取消留案
+            CaseInfo caseInfo = caseInfoRepository.findOne(caseId);
+            caseInfo.setLeaveCaseFlag(CaseInfo.leaveCaseFlagEnum.NO_LEAVE.getValue());
+            caseInfo.setOperatorTime(ZWDateUtil.getNowDateTime());
+            caseInfo.setOperator(tokenUser);
+
             caseAssistRepository.save(caseAssist);
+
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("取消留案成功", "")).body(null);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

@@ -12,6 +12,7 @@ import cn.fintecher.pangolin.entity.*;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.strategy.CaseStrategy;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import cn.fintecher.pangolin.web.PaginationUtil;
 import cn.fintecher.pangolin.web.ResponseUtil;
@@ -82,8 +83,6 @@ public class CaseInfoController extends BaseController {
     @Inject
     private FollowRecordExportService followRecordExportService;
     @Inject
-    private Configuration freemarkerConfiguration;
-    @Inject
     private PersonalRepository personalRepository;
     @Inject
     private CaseInfoFileRepository caseInfoFileRepository;
@@ -97,8 +96,6 @@ public class CaseInfoController extends BaseController {
     private CaseInfoVerificationApplyRepository caseInfoVerificationApplyRepository;
     @Inject
     private CaseInfoRemarkRepository caseInfoRemarkRepository;
-    @Inject
-    CaseDistributedTemporaryRepository caseDistributedTemporaryRepository;
     @Inject
     RunCaseStrategyService runCaseStrategyService;
 
@@ -1403,67 +1400,6 @@ public class CaseInfoController extends BaseController {
     }
 
     /**
-     * @Description 多条件分页查询案件分配结果临时信息
-     */
-    @GetMapping("/getCaseDistributedTemporary")
-    @ApiOperation(value = "多条件分页查询案件分配结果临时信息", notes = "多条件分页查询案件分配结果临时信息")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", dataType = "integer", paramType = "query",
-                    value = "页数 (0..N)"),
-            @ApiImplicitParam(name = "size", dataType = "integer", paramType = "query",
-                    value = "每页大小."),
-            @ApiImplicitParam(name = "sort", allowMultiple = true, dataType = "string", paramType = "query",
-                    value = "依据什么排序: 属性名(,asc|desc). ")
-    })
-    public ResponseEntity<Page<CaseDistributedTemporary>> getCaseDistributedTemporary(@QuerydslPredicate(root = CaseDistributedTemporary.class) Predicate predicate,
-                                                                                      @ApiIgnore Pageable pageable,
-                                                                                      @RequestHeader(value = "X-UserToken") String token,
-                                                                                      @RequestParam(required = false) @ApiParam(value = "公司code码") String companyCode) {
-        log.debug("REST request to get case distributed temporary");
-        try {
-            User tokenUser = getUserByToken(token);
-            BooleanBuilder builder = new BooleanBuilder(predicate);
-            if (Objects.isNull(tokenUser.getCompanyCode())) {
-                if (Objects.isNull(companyCode)) {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_DISTRIBUTED_TEMPORARY, "caseDistributedTemporary", "请选择公司")).body(null);
-                }
-                builder.and(QCaseDistributedTemporary.caseDistributedTemporary.companyCode.eq(companyCode));
-            } else {
-                builder.and(QCaseDistributedTemporary.caseDistributedTemporary.companyCode.eq(tokenUser.getCompanyCode())); //限制公司code码
-            }
-            builder.and(QCaseDistributedTemporary.caseDistributedTemporary.operatorUserName.eq(tokenUser.getUserName()));//操作人
-//            //部门code码不为null并且为登录用户部门下的案件  或者 部门code码为null的案件
-//            builder.and(QCaseDistributedTemporary.caseDistributedTemporary.currentDepartmentCode.isNotNull().and(QCaseDistributedTemporary.caseDistributedTemporary.currentDepartmentCode.startsWith(tokenUser.getDepartment().getCode()))).or(QCaseDistributedTemporary.caseDistributedTemporary.currentDepartmentCode.isNull());
-            Page<CaseDistributedTemporary> page = caseDistributedTemporaryRepository.findAll(builder, pageable);
-            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/caseInfoController/getCaseDistributedTemporary");
-            return new ResponseEntity<>(page, headers, HttpStatus.OK);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_DISTRIBUTED_TEMPORARY, "caseDistributedTemporary", "查询失败")).body(null);
-        }
-    }
-
-    /**
-     * @Description 撤销分案
-     */
-    @PostMapping("/revokeCaseDistribute")
-    @ApiOperation(value = "撤销分案", notes = "撤销分案")
-    public ResponseEntity<List<CaseRevokeDistributeModel>> revokeCaseDistribute(@RequestBody CaseDistributedTemporaryParams caseDistributedTemporaryParams, @RequestHeader(value = "X-UserToken") String token) {
-        log.debug("REST request to revoke case distribute");
-        try {
-            User user = getUserByToken(token);
-            List<CaseRevokeDistributeModel> caseRevokeDistributeModels = caseInfoService.revokeCaseDistribute(caseDistributedTemporaryParams, user);
-            return ResponseEntity.ok().headers(HeaderUtil.createAlert("撤销成功", ENTITY_CASE_DISTRIBUTED_TEMPORARY)).body(caseRevokeDistributeModels);
-        } catch (GeneralException ge) {
-            log.error(ge.getMessage(), ge);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_DISTRIBUTED_TEMPORARY, "caseDistributedTemporary", ge.getMessage())).body(new ArrayList<>());
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_DISTRIBUTED_TEMPORARY, "caseDistributedTemporary", "撤销失败")).body(new ArrayList<>());
-        }
-    }
-
-    /**
      * @Description 一键审批提前流转
      */
     @PostMapping("/approveAllAdvanceTurn")
@@ -1480,6 +1416,52 @@ public class CaseInfoController extends BaseController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "caseInfo", "审批失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 撤销分案 根据批次号 整批撤销
+     */
+    @PostMapping("/revertCaseInfoDistribute")
+    @ApiOperation(value = "撤销分案", notes = "撤销分案")
+    public ResponseEntity<Void> revertCaseInfoDistribute(@RequestParam String batchNumber, @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to revoke case distribute {}", batchNumber);
+        if (ZWStringUtils.isEmpty(batchNumber)) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_DISTRIBUTED_TEMPORARY, "", "请选择批次信息")).body(null);
+        }
+        try {
+            User user = getUserByToken(token);
+            caseInfoService.revokeCaseDistribute(batchNumber, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("", ENTITY_CASE_DISTRIBUTED_TEMPORARY)).body(null);
+        } catch (GeneralException ge) {
+            log.error(ge.getMessage(), ge);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_DISTRIBUTED_TEMPORARY, "", ge.getMessage())).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_DISTRIBUTED_TEMPORARY, "", "撤销失败")).body(null);
+        }
+    }
+
+    /**
+     * @Description 根据案件ID撤销分案
+     */
+    @PostMapping("/revertCaseInfoDistributeByCaseId")
+    @ApiOperation(value = "撤销分案", notes = "撤销分案")
+    public ResponseEntity<Void> revertCaseInfoDistributeByCaseId(@RequestBody CaseInfoIdList caseInfoIdList, @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to revoke case distribute {}", caseInfoIdList);
+        if (Objects.isNull(caseInfoIdList) || caseInfoIdList.getIds().isEmpty()) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_DISTRIBUTED_TEMPORARY, "", "请选择批次信息")).body(null);
+        }
+        try {
+            User user = getUserByToken(token);
+            caseInfoService.revertCaseInfoDistributeByCaseId(caseInfoIdList, user);
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("", ENTITY_CASE_DISTRIBUTED_TEMPORARY)).body(null);
+        } catch (GeneralException ge) {
+            log.error(ge.getMessage(), ge);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_DISTRIBUTED_TEMPORARY, "", ge.getMessage())).body(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_DISTRIBUTED_TEMPORARY, "", "撤销失败")).body(null);
         }
     }
 }

@@ -93,13 +93,13 @@ public class CaseInfo extends BaseEntity {
     @ApiModelProperty(notes = "剩余天数")
     private Integer leftDays;
 
-    @ApiModelProperty(notes = "")
+    @ApiModelProperty(notes = "案件类型(0案件分配1电催小流转2电催强制流转3电催提前流转4电催保留流转外访小流转")
     private Integer caseType;
 
     @ApiModelProperty("0-未留案，1-留案")
     private Integer leaveCaseFlag = 0;
 
-    @ApiModelProperty(notes = "案件类型(0-案件分配 1-电催小流转 2-电催强制流转 3-电催提前流转 4-电催保留流转 5-外访小流转 6-外访提前流转 7-外访强制流转 8-外访保留流转)")
+    @ApiModelProperty(notes = "留案日期")
     private Date leaveDate;
 
     @ApiModelProperty(notes = "已留案天数")

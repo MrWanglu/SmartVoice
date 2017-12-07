@@ -6,6 +6,7 @@ import cn.fintecher.pangolin.dataimp.entity.RowError;
 import cn.fintecher.pangolin.dataimp.entity.TemplateExcelInfo;
 import cn.fintecher.pangolin.entity.file.UploadFile;
 import cn.fintecher.pangolin.entity.util.Constants;
+import cn.fintecher.pangolin.util.ZWStringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Cell;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayInputStream;
@@ -160,5 +162,22 @@ public class ParseExcelService {
         watch.stop();
         logger.debug("解析完成，共耗时{}ms", watch.getTotalTimeMillis());
         return;
+    }
+
+    public boolean checkHeader(Sheet sheet, int startRow, int startCol) {
+        boolean flag = false;
+        Row titleRow = sheet.getRow(startRow);
+        int lastCellNum = titleRow.getLastCellNum();
+        if (startCol > lastCellNum) {
+            throw new RuntimeException("Excel数据模板开始列大于数据总列数");
+        }
+        for (int columnIndex = startCol; columnIndex < titleRow.getLastCellNum(); columnIndex++) {
+            Cell cell = titleRow.getCell(columnIndex);
+            if (ZWStringUtils.isNotEmpty(cell.getStringCellValue()) && cell.getStringCellValue().equals("客户姓名")) {
+                flag = true;
+                break;
+            }
+        }
+        return flag;
     }
 }

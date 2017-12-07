@@ -23,7 +23,7 @@ public class MessageService {
     @Inject
     SendMessageRecordRepository sendMessageRecordRepository;
 
-    public SendMessageRecord saveMessage(CaseInfo caseInfo, Personal personal, Template template, String id, User user, Integer way, Integer flag) {
+    public SendMessageRecord saveMessage(CaseInfo caseInfo, Personal personal, Template template, String id, User user, Integer way, Integer flag, String messageContent) {
         SendMessageRecord sendMessageRecord = new SendMessageRecord();
         sendMessageRecord.setPersonalId(personal.getId());
         sendMessageRecord.setPersonalName(personal.getName());
@@ -35,7 +35,7 @@ public class MessageService {
         sendMessageRecord.setOperatorUserName(user.getUserName());
         sendMessageRecord.setOperatorRealName(user.getRealName());
         sendMessageRecord.setOperatorDate(ZWDateUtil.getNowDateTime());
-        sendMessageRecord.setMessageContent(template.getMessageContent());
+        sendMessageRecord.setMessageContent(messageContent);
         sendMessageRecord.setSendWay(way);
         sendMessageRecord.setFlag(flag);
         sendMessageRecord.setCaseId(caseInfo.getId());

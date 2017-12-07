@@ -123,6 +123,7 @@ public class CaseAssistApplyController extends BaseController {
             } else {
                 exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));
             }
+            exp.and(qCaseAssistApply.deptCode.startsWith(user.getDepartment().getCode()));
             // 查出所有电催待审批的案件
             Page<CaseAssistApply> page = caseAssistApplyRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);
@@ -353,7 +354,7 @@ public class CaseAssistApplyController extends BaseController {
             apply.setCaseId(caseInfo.getId()); // 案件ID
             apply.setPersonalName(caseInfo.getPersonalInfo().getName()); // 客户姓名
             apply.setPersonalId(caseInfo.getPersonalInfo().getId()); // 客户信息ID
-            apply.setDepartId(caseInfo.getDepartment().getId()); // 部门ID
+            apply.setDeptCode(caseInfo.getDepartment().getCode()); // 部门Code
             apply.setPrincipalId(caseInfo.getPrincipalId().getId()); // 委托方ID
             apply.setPrincipalName(caseInfo.getPrincipalId().getName()); // 委托方名称
             apply.setAreaId(caseInfo.getArea().getId()); // 省份编号

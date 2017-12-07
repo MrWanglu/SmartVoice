@@ -5,8 +5,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -105,5 +103,5 @@ public class RepeatCaseModel {
     private User assistCollector;
     private Principal principalId;
     private User operator;
-    private Integer repeatType;
+    private String repeatType;
 }
