@@ -2896,13 +2896,13 @@ public class CaseInfoService {
         Iterable<CaseAdvanceTurnApplay> caseAdvanceTurnApplays;
         if (Objects.equals(0, flag)) { //电催审批
             //获取所有未审批的电催提前流转申请
-            caseAdvanceTurnApplays = caseAdvanceTurnApplayRepository.findAll(qCaseAdvanceTurnApplay.departId.startsWith(tokenUser.getDepartment().getCode()). //权限控制
+            caseAdvanceTurnApplays = caseAdvanceTurnApplayRepository.findAll(qCaseAdvanceTurnApplay.deptCode.startsWith(tokenUser.getDepartment().getCode()). //权限控制
                     and(qCaseAdvanceTurnApplay.collectionType.eq(0)). //电催
                     and(qCaseAdvanceTurnApplay.companyCode.eq(tokenUser.getCompanyCode())). //公司code码
                     and(qCaseAdvanceTurnApplay.approveResult.eq(CaseAdvanceTurnApplay.CirculationStatus.PHONE_WAITING.getValue()))); //213-待审批
         } else { //外访审批
             //获取所有未审批的外访提前流转申请
-            caseAdvanceTurnApplays = caseAdvanceTurnApplayRepository.findAll(qCaseAdvanceTurnApplay.departId.startsWith(tokenUser.getDepartment().getCode()). //权限控制
+            caseAdvanceTurnApplays = caseAdvanceTurnApplayRepository.findAll(qCaseAdvanceTurnApplay.deptCode.startsWith(tokenUser.getDepartment().getCode()). //权限控制
                     and(qCaseAdvanceTurnApplay.collectionType.eq(1)). //电催
                     and(qCaseAdvanceTurnApplay.companyCode.eq(tokenUser.getCompanyCode())). //公司code码
                     and(qCaseAdvanceTurnApplay.approveResult.eq(CaseAdvanceTurnApplay.CirculationStatus.PHONE_WAITING.getValue()))); //213-待审批
