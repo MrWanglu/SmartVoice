@@ -244,3 +244,9 @@ UPDATE `pangolin_business`.`sys_param` SET `name`='案件分案撤销时长(分�
 --袁艳婷
 ALTER TABLE `case_info_judicial`
 ADD COLUMN `state`  varchar(255) NULL AFTER `company_code`;
+
+--2017-12-07
+--协催表添加外访协催审批人的部门code
+--胡艳敏
+ALTER TABLE `case_assist`
+ADD COLUMN `dept_code`  varchar(128) NULL COMMENT '外访协催审批人的部门code' AFTER `assist_close_flag`;

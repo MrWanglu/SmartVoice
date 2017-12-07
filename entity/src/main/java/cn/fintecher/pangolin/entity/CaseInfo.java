@@ -121,11 +121,11 @@ public class CaseInfo extends BaseEntity {
     private Integer collectionStatus;
 
     @ApiModelProperty(notes = "委案日期")
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date delegationDate;
 
     @ApiModelProperty(notes = "结案日期")
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date closeDate;
 
     @ApiModelProperty(notes = "佣金比例")

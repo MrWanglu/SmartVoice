@@ -78,27 +78,39 @@ public interface CaseInfoReturnRepository extends QueryDslPredicateExecutor<Case
             }
         });
         //委案日期
-        bindings.bind(root.caseId.delegationDate).all((path, value) -> {
+        bindings.bind(root.caseId.delegationDate).all((DateTimePath<Date> path, Collection<? extends Date> value) -> {
             Iterator<? extends Date> it = value.iterator();
-            Date firstDelegationDate = it.next();
+            Date operatorMinTime = it.next();
             if (it.hasNext()) {
-                Date secondDelegationDate = it.next();
-                return path.between(firstDelegationDate, secondDelegationDate);
+                String date = ZWDateUtil.fomratterDate(it.next(), "yyyy-MM-dd");
+                date = date + " 23:59:59";
+                Date operatorMaxTime = null;
+                try {
+                    operatorMaxTime = ZWDateUtil.getFormatDateTime(date);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                return path.between(operatorMinTime, operatorMaxTime);
             } else {
-                //大于等于
-                return path.goe(firstDelegationDate);
+                return path.goe(operatorMinTime);
             }
         });
         //结案日期
-        bindings.bind(root.caseId.closeDate).all((path, value) -> {
+        bindings.bind(root.caseId.closeDate).all((DateTimePath<Date> path, Collection<? extends Date> value) -> {
             Iterator<? extends Date> it = value.iterator();
-            Date firstCloseDate = it.next();
+            Date operatorMinTime = it.next();
             if (it.hasNext()) {
-                Date secondCloseDate = it.next();
-                return path.between(firstCloseDate, secondCloseDate);
+                String date = ZWDateUtil.fomratterDate(it.next(), "yyyy-MM-dd");
+                date = date + " 23:59:59";
+                Date operatorMaxTime = null;
+                try {
+                    operatorMaxTime = ZWDateUtil.getFormatDateTime(date);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                return path.between(operatorMinTime, operatorMaxTime);
             } else {
-                //大于等于
-                return path.goe(firstCloseDate);
+                return path.goe(operatorMinTime);
             }
         });
         //到期日期

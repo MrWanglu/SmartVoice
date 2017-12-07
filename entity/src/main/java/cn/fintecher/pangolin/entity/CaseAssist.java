@@ -83,6 +83,9 @@ public class CaseAssist extends BaseEntity {
     @JoinColumn(name = "operator")
     private User operator;
 
+    @ApiModelProperty("外访协催审批人的部门code")
+    private String deptCode;
+
     /**
      * @Description 协催方式枚举
      */

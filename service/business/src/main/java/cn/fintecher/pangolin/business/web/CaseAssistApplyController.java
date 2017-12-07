@@ -201,6 +201,7 @@ public class CaseAssistApplyController extends BaseController {
                 caseAssist.setOperatorTime(new Date()); // 操作时间
                 caseAssist.setCurrentCollector(caseInfo.getCurrentCollector()); //当前催收员
                 caseAssist.setOperator(user); // 操作员
+                caseAssist.setDeptCode(user.getDepartment().getCode());//添加外访协催审批人的部门code
                 //修该案件中的案件协催状态为协催待分配
                 caseInfo.setAssistStatus(CaseInfo.AssistStatus.ASSIST_WAIT_ASSIGN.getValue());
                 if (Objects.equals(caseAssist.getAssistWay(), CaseAssist.AssistWay.ONCE_ASSIST.getValue())) {

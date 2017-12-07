@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -111,37 +110,16 @@ public class CaseInfoReportController extends BaseController{
         pageInfos.setTotal(pageInfo.getTotal());
         return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功","")).body(pageInfos);
     }
+
     @GetMapping("/queryCollectingCase")
     @ApiOperation(value = "PC催收中案件查询", notes = "PC催收中案件查询")
-    public ResponseEntity<CaseInfoByBatchModel>  queryCollectingCase(@RequestHeader(value = "X-UserToken") String token,
-                                                   @RequestParam(required = true)@ApiParam(value = "页数") Integer page,
-                                                   @RequestParam(required = true)@ApiParam(value = "大小") Integer size,
-                                                   @RequestParam(required = false) @ApiParam(value = "批次号") String batchNumber,
-                                                   @RequestParam(required = false) @ApiParam(value = "委托方") String principalId,
-                                                   @RequestParam(required = false) @ApiParam(value = "委案日期") String delegationDate,
-                                                   @RequestParam(required = false) @ApiParam(value = "结案日期") String closeDate,
-                                                   @RequestParam(required = false) @ApiParam(value = "公司CODE") String companyCode) {
+    public ResponseEntity<CaseInfoByBatchModel> queryCollectingCase(CollectingCaseParams collectingCaseParams,
+                                                                    @RequestHeader(value = "X-UserToken") String token) {
         User user = null;
         try {
             user = getUserByToken(token);
-            CollectingCaseParams collectingCaseParams = new CollectingCaseParams();
             collectingCaseParams.setDeptCode(user.getDepartment().getCode());
-            if(Objects.nonNull(user.getCompanyCode())){
-                collectingCaseParams.setCompanyCode(user.getCompanyCode());
-            }
-            if(Objects.nonNull(batchNumber)){
-                collectingCaseParams.setBatchNumber(batchNumber);
-            }
-            if(Objects.nonNull(principalId)){
-                collectingCaseParams.setPrincipalId(principalId);
-            }
-            if(Objects.nonNull(delegationDate)){
-                collectingCaseParams.setDelegationDate(delegationDate);
-            }
-            if(Objects.nonNull(closeDate)){
-                collectingCaseParams.setCloseDate(closeDate);
-            }
-            List<CollectingCaseInfo> list = caseInfoService.queryCollectingCase(collectingCaseParams,page,size);
+            List<CollectingCaseInfo> list = caseInfoService.queryCollectingCase(collectingCaseParams, collectingCaseParams.getPage(), collectingCaseParams.getSize());
             PageInfo pageInfo = new PageInfo(list);
             CaseInfoByBatchModel model = new CaseInfoByBatchModel();
             model.setContent(list);

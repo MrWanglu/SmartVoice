@@ -239,11 +239,17 @@
         <if test="batchNumber != null">
             and batch_number = #{batchNumber}
         </if>
-        <if test="delegationDate != null">
-            <![CDATA[and delegation_date >= #{delegationDate} ]]>
+        <if test="delegationDateStart != null and delegationDateStart != ''">
+            AND <![CDATA[DATE_FORMAT(delegation_date,'%Y-%m-%d') >= DATE_FORMAT(#{delegationDateStart},'%Y-%m-%d')]]>
         </if>
-        <if test="closeDate != null">
-            <![CDATA[and close_date <= #{closeDate} ]]>
+        <if test="delegationDateStart != null and delegationDateStart != ''">
+            AND <![CDATA[DATE_FORMAT(delegation_date,'%Y-%m-%d') <= DATE_FORMAT(#{delegationDateEnd},'%Y-%m-%d')]]>
+        </if>
+        <if test="closeDateStart != null and closeDateStart != ''">
+            AND <![CDATA[DATE_FORMAT(close_date,'%Y-%m-%d') >= DATE_FORMAT(#{closeDateStart},'%Y-%m-%d')]]>
+        </if>
+        <if test="closeDateEnd != null and closeDateEnd != ''">
+            AND <![CDATA[DATE_FORMAT(close_date,'%Y-%m-%d') <= DATE_FORMAT(#{closeDateEnd},'%Y-%m-%d')]]>
         </if>
         <if test="companyCode != null">
             and cc.company_code = #{companyCode}
@@ -408,12 +414,14 @@
     <!-- 多条件查询协催案件信息 -->
     <select id="getCaseAssistByCondition" parameterType="cn.fintecher.pangolin.report.model.CaseInfoConditionParams"
             resultType="cn.fintecher.pangolin.report.model.CaseAssistModel">
-        SELECT a.caseId,a.assistId,a.leaveCaseFlag,a.markId,a.caseFlowinTime,a.assistWay,a.assistStatus,b.case_number as
+        SELECT a.dept_code,
+        a.caseId,a.assistId,a.leaveCaseFlag,a.markId,a.caseFlowinTime,a.assistWay,a.assistStatus,b.case_number as
         caseNumber,
         b.overdue_amount as overdueAmount,c.real_name as latelyCollectorName,d.real_name as
         currentCollectorName,e.real_name as assistCollectorName,
         f.real_name as operatorName,g.`name` as personalName,g.mobile_no as mobileNo,g.id as personalId from
-        (SELECT case_id as caseId,id as assistId,lately_collector as latelyCollectorId,current_collector as
+        (SELECT dept_code, depart_id,case_id as caseId,id as assistId,lately_collector as
+        latelyCollectorId,current_collector as
         currentCollectorId,assist_collector as assistCollectorId,leave_case_flag as leaveCaseFlag,mark_id as
         markId,case_flowin_time as caseFlowinTime,operator,assist_way as assistWay,assist_status as
         assistStatus,operator_time as operatorTime from
@@ -424,10 +432,12 @@
         LEFT JOIN `user` e on a.assistCollectorId = e.id
         LEFT JOIN `user` f on a.operator = f.id
         LEFT JOIN personal g on b.personal_id = g.id
-        LEFT JOIN department h on b.depart_id = h.id
+        LEFT JOIN department h on a.depart_id = h.id
         LEFT JOIN personal_bank pb on b.personal_id = pb.personal_id
         where a.assistStatus in(${assistStatusList})
-        and h.code like CONCAT(#{deptCode}, '%')
+        <if test="isManager == 1">
+            AND a.dept_code like concat(#{deptCode}, '%')
+        </if>
         <if test="isManager == 0">
             AND a.assistCollectorId = #{userId}
         </if>

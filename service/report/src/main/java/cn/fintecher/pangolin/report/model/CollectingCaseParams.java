@@ -9,8 +9,14 @@ import lombok.Data;
 public class CollectingCaseParams {
     private String batchNumber;
     private String principalId;
-    private String delegationDate;
-    private String closeDate;
+    private String delegationDateStart;
+    private String delegationDateEnd;
+    private String closeDateStart;
+    private String closeDateEnd;
     private String deptCode;
     private String companyCode;
+    /*页码数*/
+    private Integer page;
+    /*每一页显示的数量*/
+    private Integer size;
 }
