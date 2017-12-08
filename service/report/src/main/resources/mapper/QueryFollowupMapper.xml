@@ -233,11 +233,17 @@
         <if test="departmentCode != null and departmentCode !=''">
             AND i.code LIKE concat(#{departmentCode},'%')
         </if>
-        <if test="delegationDate != null and delegationDate != ''">
-            <![CDATA[AND a.delegation_date >= #{delegationDate} ]]>
+        <if test="delegationDateStart != null and delegationDateStart != ''">
+            AND <![CDATA[DATE_FORMAT(a.delegation_date,'%Y-%m-%d') >= DATE_FORMAT(#{delegationDateStart},'%Y-%m-%d')]]>
         </if>
-        <if test="closeDate != null and closeDate != ''">
-            <![CDATA[AND a.close_date <= #{closeDate} ]]>
+        <if test="delegationDateStart != null and delegationDateStart != ''">
+            AND <![CDATA[DATE_FORMAT(a.delegation_date'%Y-%m-%d') <= DATE_FORMAT(#{delegationDateEnd},'%Y-%m-%d')]]>
+        </if>
+        <if test="closeDateStart != null and closeDateStart != ''">
+            AND <![CDATA[DATE_FORMAT(a.close_date,'%Y-%m-%d') >= DATE_FORMAT(#{closeDateStart},'%Y-%m-%d')]]>
+        </if>
+        <if test="closeDateEnd != null and closeDateEnd != ''">
+            AND <![CDATA[DATE_FORMAT(a.close_date,'%Y-%m-%d') <= DATE_FORMAT(#{closeDateEnd},'%Y-%m-%d')]]>
         </if>
     </select>
 

@@ -313,6 +313,7 @@ public class CaseInfoService {
         casePayApply.setPersonalId(caseInfo.getPersonalInfo().getId()); //客户信息ID
         casePayApply.setCollectionType(caseInfo.getCollectionType()); //催收类型
         casePayApply.setDepartId(caseInfo.getDepartment().getId()); //部门ID
+        casePayApply.setDeptCode(tokenUser.getDepartment().getCode()); //添加部门code
         casePayApply.setApplyPayAmt(payApplyParams.getPayAmt()); //申请还款金额
         casePayApply.setApplyDerateAmt(Objects.isNull(payApplyParams.getDerateFee()) ? new BigDecimal(0) : payApplyParams.getDerateFee()); //申请减免金额
         casePayApply.setPayType(payApplyParams.getPayaType()); //还款类型
@@ -2852,7 +2853,7 @@ public class CaseInfoService {
         booleanBuilder.and(qCaseInfo.personalInfo.idCard.eq(caseInfo.getPersonalInfo().getIdCard()));
         booleanBuilder.and(qCaseInfo.personalInfo.name.eq(caseInfo.getPersonalInfo().getName()));
         booleanBuilder.and(qCaseInfo.collectionStatus.notIn(CaseInfo.CollectionStatus.CASE_OVER.getValue(), CaseInfo.CollectionStatus.CASE_OUT.getValue()));
-        if (Objects.isNull(user.getCompanyCode())) {
+        if (Objects.nonNull(user.getCompanyCode())) {
             booleanBuilder.and(qCaseInfo.companyCode.eq(user.getCompanyCode()));
         }
         //计算共债案件数量

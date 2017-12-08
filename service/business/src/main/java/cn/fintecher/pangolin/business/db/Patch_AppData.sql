@@ -278,9 +278,3 @@ ADD COLUMN `dept_code`  varchar(128) NULL COMMENT '部门code' AFTER `case_numbe
 --彭长须
 ALTER TABLE `case_assist_apply`
 change `depart_id` `dept_code` varchar(64) DEFAULT NULL COMMENT '部门Code';
-
---2017-12-07
---协催表添加外访协催审批人的部门code
---胡艳敏
-ALTER TABLE `case_assist`
-ADD COLUMN `dept_code`  varchar(128) NULL COMMENT '外访协催审批人的部门code' AFTER `assist_close_flag`;
