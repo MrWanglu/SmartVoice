@@ -438,9 +438,6 @@
         LEFT JOIN department h on a.depart_id = h.id
         LEFT JOIN personal_bank pb on b.personal_id = pb.personal_id
         where a.assistStatus in(${assistStatusList})
-        <if test="isManager == 1">
-            AND a.dept_code like concat(#{deptCode}, '%')
-        </if>
         <if test="isManager == 0">
             AND a.assistCollectorId = #{userId}
         </if>

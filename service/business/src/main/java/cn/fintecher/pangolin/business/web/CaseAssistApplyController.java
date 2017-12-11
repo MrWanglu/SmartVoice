@@ -89,6 +89,7 @@ public class CaseAssistApplyController extends BaseController {
             if (Objects.nonNull(user.getCompanyCode())) {
                 exp.and(qCaseAssistApply.companyCode.eq(user.getCompanyCode()));
             }
+            exp.and(qCaseAssistApply.deptCode.startsWith(user.getDepartment().getCode())); //huyanmin - 过滤不同部门的协催审批
             exp.and(qCaseAssistApply.approvePhoneResult.eq(CaseAssistApply.ApproveResult.TEL_PASS.getValue()));
             Page<CaseAssistApply> page = caseAssistApplyRepository.findAll(exp, pageable);
             return ResponseEntity.ok().body(page);
