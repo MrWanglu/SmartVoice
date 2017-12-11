@@ -560,7 +560,7 @@
         count(a.id) AS caseCount,
         sum(a.apply_pay_amt)/10000 as caseAmount
         FROM case_pay_apply a LEFT JOIN case_info b ON a.case_id = b.id
-        where (a.approve_result = 55 OR a.approve_status = 57)
+        where (a.approve_status = 55 OR a.approve_status = 57)
         AND a.company_Code = '0001'
         AND a.depart_id in (select id from department where code like concat(#{deptCode},'%'))
         <!--全部-->
