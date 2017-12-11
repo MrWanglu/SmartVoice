@@ -419,7 +419,8 @@
             resultType="cn.fintecher.pangolin.report.model.CaseAssistModel">
         SELECT a.dept_code,
         a.caseId,a.assistId,a.leaveCaseFlag,a.markId,a.caseFlowinTime,a.assistWay,a.assistStatus,b.case_number as
-        caseNumber,
+        caseNumber,b.followup_back as followupBack,
+        b.followup_time as followupTime,b.promise_amt as promiseAmt,b.promise_time as promiseTime,
         b.overdue_amount as overdueAmount,c.real_name as latelyCollectorName,d.real_name as
         currentCollectorName,e.real_name as assistCollectorName,
         f.real_name as operatorName,g.`name` as personalName,g.mobile_no as mobileNo,g.id as personalId from

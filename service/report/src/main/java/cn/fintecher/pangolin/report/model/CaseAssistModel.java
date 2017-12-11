@@ -29,4 +29,8 @@ public class CaseAssistModel {
     private String assistCollectorName; //催收员
     private Integer markId; //案件标色
     private String operatorName; //操作员姓名
+    private Integer followupBack; //催收反馈
+    private Date followupTime; //跟进时间
+    private BigDecimal promiseAmt; //承诺还款金额
+    private Date promiseTime; //承诺还款时间
 }
