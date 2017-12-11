@@ -127,7 +127,6 @@ public class PaymentController extends BaseController {
             }
             builder.and(QCasePayApply.casePayApply.approveStatus.in(list)); //只查限定状态的记录
             builder.and(QCasePayApply.casePayApply.approveStatus.ne(CasePayApply.ApproveStatus.REVOKE.getValue())); //不查撤回状态记录
-            builder.and(QCasePayApply.casePayApply.deptCode.startsWith(tokenUser.getDepartment().getCode())); //添加部门过滤条件
             Page<CasePayApply> page = casePayApplyRepository.findAll(builder, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/PaymentController/getAllPayment");
             return new ResponseEntity<>(page, headers, HttpStatus.OK);

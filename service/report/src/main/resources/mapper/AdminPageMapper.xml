@@ -635,7 +635,7 @@
         </if>
         <!--委外-->
         <if test="queryType == 2">
-            AND case_followup_type =226
+            AND case_pool_type =226
         </if>
         AND recover_remark = 0
         <if test="companyCode != null">
