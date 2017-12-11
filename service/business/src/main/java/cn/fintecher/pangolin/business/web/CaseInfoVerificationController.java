@@ -176,7 +176,6 @@ public class CaseInfoVerificationController extends BaseController {
             builder.and(QCaseInfoVerificationApply.caseInfoVerificationApply.companyCode.eq(user.getCompanyCode()));
         }
         builder.and(QCaseInfoVerificationApply.caseInfoVerificationApply.approvalStatus.in(CaseInfoVerificationApply.ApprovalStatus.approval_pending.getValue(),CaseInfoVerificationApply.ApprovalStatus.approval_disapprove.getValue())); // 审批状态：待通过、审批拒绝
-        builder.and(QCaseInfoVerificationApply.caseInfoVerificationApply.deptCode.startsWith(user.getDepartment().getCode()));
         Page<CaseInfoVerificationApply> page = caseInfoVerificationApplyRepository.findAll(builder, pageable);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityCreationAlert("操作成功", "caseInfoVerification")).body(page);
     }

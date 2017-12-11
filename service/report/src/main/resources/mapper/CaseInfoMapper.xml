@@ -289,7 +289,7 @@
         leaveCaseFlag,personal_id,principal_id,current_collector,depart_id,collection_type as collectionType,case_mark
         as caseMark,case_pool_type,promise_amt as promiseAmt,promise_time as promiseTime,area_id,operator_time as
         operatorTime,real_pay_amount as realPayAmount, end_remark AS endRemark from
-        case_info where current_collector is not null and company_code = #{companyCode}) a
+        case_info where recover_remark=0 and current_collector is not null and company_code = #{companyCode}) a
         LEFT JOIN personal b on a.personal_id = b.id
         LEFT JOIN principal c on a.principal_id = c.id
         LEFT JOIN `user` d on a.current_collector = d.id
@@ -307,6 +307,9 @@
         </if>
         <if test="personalName != null">
             AND b.`name` LIKE concat('%',#{personalName},'%')
+        </if>
+        <if test="deptCode != null">
+            AND e.`code` LIKE concat(#{deptCode},'%')
         </if>
         <if test="collectorName != null">
             AND d.real_name LIKE concat('%',#{collectorName},'%')

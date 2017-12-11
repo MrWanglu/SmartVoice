@@ -781,6 +781,7 @@ public class CaseInfoService {
         List<CaseInfo> caseInfos = new ArrayList<>();
         List<CaseTurnRecord> caseTurnRecords = new ArrayList<>();
         QCaseAssist qCaseAssist = QCaseAssist.caseAssist;
+        int flag = 0;
         for (BatchInfoModel batchInfoModel : batchInfoModels) {
             Integer caseCount = batchInfoModel.getDistributionCount(); //分配案件数
             if (0 == caseCount) {
@@ -788,8 +789,8 @@ public class CaseInfoService {
             }
             if (!Objects.equals(batchInfoModel.getCollectionUser().getType(), User.Type.VISIT.getValue())) { //分配给外访以外
                 for (int i = 0; i < caseCount; i++) {
-                    CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(i)); //获得案件信息
-
+                    CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(flag)); //获得案件信息
+                    flag++;
                     if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                         if (Objects.equals(caseInfo.getCollectionType(), CaseInfo.CollectionType.VISIT.getValue())) { //是协催案件
                             throw new RuntimeException("协催案件不能分配给外访以外的人员");

@@ -454,34 +454,33 @@
         SELECT
         <if test="timeType!=null and timeType==0">
             <!--年 显示1-12月-->
-            DATE_FORMAT(case_follow_in_time, '%m') as queryMonth,
+            DATE_FORMAT(a.approve_pay_datetime, '%m') as queryMonth,
         </if>
         <if test="timeType!=null and timeType==1">
             <!--月 显示1-31天 周 显示 周一到周日-->
-            DATE_FORMAT(case_follow_in_time, '%Y-%m-%d') as queryDate,
+            DATE_FORMAT(a.approve_pay_datetime, '%Y-%m-%d') as queryDate,
         </if>
         <if test="timeType!=null and timeType==2">
             <!--周 显示 周一到周日-->
-            DATE_FORMAT(case_follow_in_time, '%Y-%m-%w') as queryWeek,
+            DATE_FORMAT(a.approve_pay_datetime, '%Y-%m-%w') as queryWeek,
         </if>
-        count(id) AS caseCount,
-        sum(overdue_amount)/10000 as caseAmount
-        FROM
-        case_info
-        WHERE
-        end_type = 110
-        AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
+        count(a.id) AS caseCount,
+        sum(b.real_pay_amount)/10000 as caseAmount
+        FROM case_pay_apply a
+        LEFT JOIN case_info b on a.case_id = b.id
+        WHERE (a.approve_result = 62 OR a.approve_status = 58)
+        AND a.company_Code = '0001' AND b.case_pool_type = 225
+        AND b.recover_remark=0
+        AND a.depart_id in (select id from department where code like concat(#{deptCode},'%'))
         <if test="timeType!=null and timeType==0">
-            AND YEAR(case_follow_in_time) = YEAR(#{startDate})
+            AND YEAR(a.approve_pay_datetime) = YEAR(#{startDate})
         </if>
         <if test="timeType!=null and timeType==1">
-            AND MONTH(case_follow_in_time) = MONTH(#{startDate})
+            AND MONTH(a.approve_pay_datetime) = MONTH(#{startDate})
         </if>
         <if test="timeType!=null and timeType==2">
-            AND WEEK(case_follow_in_time) = WEEK(#{startDate})
+            AND WEEK(a.approve_pay_datetime) = WEEK(#{startDate})
         </if>
-        AND company_Code = #{companyCode}
-        AND case_pool_type=225
         <if test="timeType!=null and timeType==0">
             group by queryMonth
         </if>
@@ -548,44 +547,42 @@
         SELECT
         <if test="timeType!=null and timeType==0">
             <!--年 显示1-12月-->
-            DATE_FORMAT(case_follow_in_time, '%m') as queryMonth,
+            DATE_FORMAT(a.apply_date, '%m') as queryMonth,
         </if>
         <if test="timeType!=null and timeType==1">
             <!--月 显示1-31天 -->
-            DATE_FORMAT(case_follow_in_time, '%Y-%m-%d') as queryDate,
+            DATE_FORMAT(a.apply_date, '%Y-%m-%d') as queryDate,
         </if>
         <if test="timeType!=null and timeType==2">
             <!--周 显示 周一到周日-->
-            DATE_FORMAT(case_follow_in_time, '%Y-%m-%w') as queryWeek,
+            DATE_FORMAT(a.apply_date, '%Y-%m-%w') as queryWeek,
         </if>
-        count(id) AS caseCount,
-        sum(overdue_amount)/10000 as caseAmount
-        FROM
-        case_info
-        WHERE
-        collection_status in (22,23)
-        AND depart_id in (select id from department where code like concat(#{deptCode},'%'))
-        <if test="timeType!=null and timeType==0">
-            AND YEAR(case_follow_in_time) = YEAR(#{startDate})
-        </if>
-        <if test="timeType!=null and timeType==1">
-            AND MONTH(case_follow_in_time) = MONTH(#{startDate})
-        </if>
-        <if test="timeType!=null and timeType==2">
-            AND WEEK(case_follow_in_time) = WEEK(#{startDate})
-        </if>
-        AND company_Code = #{companyCode}
+        count(a.id) AS caseCount,
+        sum(a.apply_pay_amt)/10000 as caseAmount
+        FROM case_pay_apply a LEFT JOIN case_info b ON a.case_id = b.id
+        where (a.approve_result = 55 OR a.approve_status = 57)
+        AND a.company_Code = '0001'
+        AND a.depart_id in (select id from department where code like concat(#{deptCode},'%'))
         <!--全部-->
         <if test="queryType != null and queryType == 0">
-            and case_pool_type in (225,226)
+            and b.case_pool_type in (225,226)
         </if>
         <!--内催-->
         <if test="queryType != null and queryType == 1">
-            and case_pool_type=225
+            and b.case_pool_type=225
         </if>
         <!--委外-->
         <if test="queryType != null and queryType == 2">
-            and case_pool_type=226
+            and b.case_pool_type=226
+        </if>
+        <if test="timeType!=null and timeType==0">
+            AND YEAR(a.apply_date) = YEAR(#{startDate})
+        </if>
+        <if test="timeType!=null and timeType==1">
+            AND MONTH(a.apply_date) = MONTH(#{startDate})
+        </if>
+        <if test="timeType!=null and timeType==2">
+            AND WEEK(a.apply_date) = WEEK(#{startDate})
         </if>
         <if test="timeType!=null and timeType==0">
             group by queryMonth
