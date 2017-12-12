@@ -1196,7 +1196,6 @@ public class CaseInfoController extends BaseController {
             } else {
                 builder.and(qCaseInfoReturn.caseId.companyCode.eq(user.getCompanyCode()));//公司
             }
-            builder.and(qCaseInfoReturn.caseId.department.code.startsWith(user.getDepartment().getCode())); //huyanmin-部门code去过滤不同部门之间的回收案件
             builder.and(qCaseInfoReturn.caseId.casePoolType.eq(CaseInfo.CasePoolType.INNER.getValue()));//内催
             pageable = new PageRequest(pageable.getPageNumber(), pageable.getPageSize(), new Sort(Sort.Direction.DESC, "operatorTime"));
             Page<CaseInfoReturn> all = caseInfoReturnRepository.findAll(builder, pageable);

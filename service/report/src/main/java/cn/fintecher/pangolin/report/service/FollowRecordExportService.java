@@ -1,13 +1,15 @@
 package cn.fintecher.pangolin.report.service;
 
-import cn.fintecher.pangolin.entity.*;
+import cn.fintecher.pangolin.entity.AreaCode;
+import cn.fintecher.pangolin.entity.CaseFollowupRecord;
+import cn.fintecher.pangolin.entity.Personal;
+import cn.fintecher.pangolin.entity.PersonalContact;
 import cn.fintecher.pangolin.report.model.ExcportResultModel;
 import cn.fintecher.pangolin.report.model.ExportFollowupParams;
 import cn.fintecher.pangolin.report.model.FollowupExportModel;
 import cn.fintecher.pangolin.util.ZWDateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -265,7 +267,7 @@ public class FollowRecordExportService {
                     followupExportModel.setLatelyPayDate(excportResultModel.getLatelyPayDate());//最近还款日期
                     followupExportModel.setLatelyPayAmount(excportResultModel.getLatelyPayAmount());//最近还款金额
                     followupExportModel.setCommissionRate(excportResultModel.getCommissionRate());//佣金比例
-                    followupExportModel.setSeries(excportResultModel.getProduct().getProductSeries().getSeriesName());//产品系列
+                    followupExportModel.setSeries(Objects.isNull(excportResultModel.getProduct()) ? "" : Objects.isNull(excportResultModel.getProduct().getProductSeries()) ? "" : excportResultModel.getProduct().getProductSeries().getSeriesName());//产品系列
                     Personal personalInfo = excportResultModel.getPersonalInfo();
                     followupExportModel.setDepositBank(Objects.isNull(personalInfo) ? "" : (personalInfo.getPersonalBankInfos().isEmpty() ? "" : personalInfo.getPersonalBankInfos().iterator().next().getDepositBank()));//客户银行
                     followupExportModel.setCardNumber(Objects.isNull(personalInfo) ? "" : (personalInfo.getPersonalBankInfos().isEmpty() ? "" : personalInfo.getPersonalBankInfos().iterator().next().getCardNumber()));//客户卡号
