@@ -21,9 +21,6 @@
         <if test="batchNumber != null and batchNumber !=''">
             AND a.batch_number = #{batchNumber}
         </if>
-        <if test="operator != null and operator !=''">
-            AND a.operator = #{operator}
-        </if>
         <if test="personalName != null and personalName !=''">
             AND c.name LIKE concat('%', #{personalName},'%')
         </if>

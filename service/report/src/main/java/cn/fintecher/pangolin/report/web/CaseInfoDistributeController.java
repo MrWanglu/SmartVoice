@@ -54,8 +54,6 @@ public class CaseInfoDistributeController extends BaseController {
                 params.setCompanyCode(user.getCompanyCode());
             }
             PageHelper.startPage(params.getPage() + 1, params.getSize());
-            //待分配只能查询到当前登陆人所导入的案件
-            params.setOperator(user.getId());
             List<CaseInfoDistributed> caseInfoDistributes = caseInfoDistributeMapper.findCaseInfoDistribute(params);
             PageInfo<CaseInfoDistributed> pageInfo = new PageInfo<>(caseInfoDistributes);
             Pageable pageable = new PageRequest(params.getPage(), params.getSize());
