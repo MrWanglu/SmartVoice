@@ -127,11 +127,9 @@ public class HomePageController extends BaseController {
                                                            @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get getHomePageCollectedPage : {}", token);
         User user = null;
-        String depName = null;
         try {
             user = getUserByToken(token);
-            depName = user.getDepartment().getName();
-            params.setDeptName(depName);
+            params.setDeptCode(user.getDepartment().getCode());
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
@@ -151,11 +149,9 @@ public class HomePageController extends BaseController {
                                                            @RequestHeader(value = "X-UserToken") String token) {
         log.debug("REST request to get getHomePageCollectedPage : {}", token);
         User user = null;
-        String depName = null;
         try {
             user = getUserByToken(token);
-            depName = user.getDepartment().getName();
-            params.setDeptName(depName);
+            params.setDeptCode(user.getDepartment().getCode());
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
@@ -283,7 +279,7 @@ public class HomePageController extends BaseController {
         try {
             User user = getUserByToken(token);
             String code = user.getDepartment().getCode();
-            params.setDeptCode("");
+            params.setDeptCode(code);
             if (Objects.nonNull(user.getCompanyCode())) {
                 params.setCompanyCode(user.getCompanyCode());
             }

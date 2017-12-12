@@ -331,20 +331,21 @@ public class CaseInfoExceptionController extends BaseController {
 
     /**
      * 获取所有重复的案件（不排除本身、包括重案件类型）
+     *
      * @return CaseInfoExceptionList
      */
     @GetMapping("/getAllRepeatCaseInfo")
-    @ApiOperation(value = "获取所有重复的案件（不排除本身、包括重案件类型）",notes = "获取所有重复的案件（不排除本身、包括重案件类型）")
+    @ApiOperation(value = "获取所有重复的案件（不排除本身、包括重案件类型）", notes = "获取所有重复的案件（不排除本身、包括重案件类型）")
     public ResponseEntity<Page<RepeatCaseModel>> getAllRepeatCaseInfo(@QuerydslPredicate(root = CaseInfoException.class) Predicate predicate,
                                                                       @ApiIgnore Pageable pageable,
                                                                       @RequestHeader(value = "X-UserToken") @ApiParam("操作者的Token") String token,
                                                                       @RequestParam(value = "caseInfoExceptionId", required = true) @ApiParam("异常案件ID") String caseInfoExceptionId,
-                                                                      @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode){
-        try{
-            log.debug("获取所有重复的案件",caseInfoExceptionId);
+                                                                      @RequestParam(value = "companyCode", required = false) @ApiParam("公司Code") String companyCode) {
+        try {
+            log.debug("获取所有重复的案件", caseInfoExceptionId);
             CaseInfoException caseInfoException = caseInfoExceptionRepository.findOne(caseInfoExceptionId);
             RepeatCaseModel repeatCase = new RepeatCaseModel();
-            BeanUtils.copyProperties(caseInfoException,repeatCase);
+            BeanUtils.copyProperties(caseInfoException, repeatCase);
             Personal personal = new Personal();
             personal.setName(caseInfoException.getPersonalName());
             personal.setMobileNo(caseInfoException.getMobileNo());
@@ -352,22 +353,22 @@ public class CaseInfoExceptionController extends BaseController {
             repeatCase.setPersonalInfo(personal);
             repeatCase.setOverdueDays(caseInfoException.getOverDueDays());
             String assigned = caseInfoException.getAssignedRepeat();
-            assigned = assigned.substring(1,assigned.length()-1);
+            assigned = assigned.substring(1, assigned.length() - 1);
             String[] assigneds = assigned.split(",");
             List<RepeatCaseModel> list = new ArrayList<>();
-            list.add(repeatCase);
+//            list.add(repeatCase);
             List<CaseInfo> caseInfoList = IterableUtils.toList(caseInfoRepository.findAll(QCaseInfo.caseInfo.id.in(assigneds)));
-            for(CaseInfo caseInfo :caseInfoList){
+            for (CaseInfo caseInfo : caseInfoList) {
                 RepeatCaseModel repeatCaseModel = new RepeatCaseModel();
-                BeanUtils.copyProperties(caseInfo,repeatCaseModel);
-                if(Objects.nonNull(caseInfo.getCasePoolType())){
-                    if(Objects.equals(caseInfo.getCasePoolType(),CaseInfo.CasePoolType.INNER.getValue())){
+                BeanUtils.copyProperties(caseInfo, repeatCaseModel);
+                if (Objects.nonNull(caseInfo.getCasePoolType())) {
+                    if (Objects.equals(caseInfo.getCasePoolType(), CaseInfo.CasePoolType.INNER.getValue())) {
                         repeatCaseModel.setRepeatType(CaseInfo.CasePoolType.INNER.getRemark());
-                    }else if(Objects.equals(caseInfo.getCasePoolType(),CaseInfo.CasePoolType.OUTER.getValue())){
+                    } else if (Objects.equals(caseInfo.getCasePoolType(), CaseInfo.CasePoolType.OUTER.getValue())) {
                         repeatCaseModel.setRepeatType(CaseInfo.CasePoolType.OUTER.getRemark());
-                    }else if(Objects.equals(caseInfo.getCasePoolType(), CaseInfo.CasePoolType.DESTORY.getValue())){
+                    } else if (Objects.equals(caseInfo.getCasePoolType(), CaseInfo.CasePoolType.DESTORY.getValue())) {
                         repeatCaseModel.setRepeatType(CaseInfo.CasePoolType.DESTORY.getRemark());
-                    }else if(Objects.equals(caseInfo.getCasePoolType(), CaseInfo.CasePoolType.JUDICIAL.getValue())){
+                    } else if (Objects.equals(caseInfo.getCasePoolType(), CaseInfo.CasePoolType.JUDICIAL.getValue())) {
                         repeatCaseModel.setRepeatType(CaseInfo.CasePoolType.JUDICIAL.getRemark());
                     }
                 }
@@ -385,9 +386,9 @@ public class CaseInfoExceptionController extends BaseController {
             }
             Page<RepeatCaseModel> page = new PageImpl<RepeatCaseModel>(list, pageable, list.size());
             return ResponseEntity.ok().body(page);
-        }catch (Exception e){
-            log.debug("系统异常",e);
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("","","查询失败！")).body(null);
+        } catch (Exception e) {
+            log.debug("系统异常", e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "查询失败！")).body(null);
         }
     }
 }

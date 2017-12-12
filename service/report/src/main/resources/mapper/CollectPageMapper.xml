@@ -165,9 +165,10 @@
     <select id="getCaseInfoBackRank" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultMap="backAmtModel">
         SELECT d.real_name,(c.apply_pay_back_amt) as apply_pay_back_amt, c.apply_pay_amt_rate, c.apply_pay_count
         FROM (SELECT a.apply_user_name, a.apply_pay_back_amt, IFNULL((a.apply_pay_back_amt/b.pay_total_amt),0.00) as apply_pay_amt_rate, a.apply_pay_count
-        FROM (SELECT app.depart_id,app.apply_user_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
-        FROM case_pay_apply as app LEFT JOIN department ON app.depart_id=department.id
-        WHERE (app.approve_result = 62 OR app.approve_status = 58) and app.apply_dept_name = #{deptName}
+        FROM (SELECT cc.dept_id,aa.apply_user_name, aa.apply_pay_back_amt, aa.apply_pay_count FROM
+        (SELECT app.apply_user_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
+        FROM case_pay_apply as app
+        WHERE (app.approve_result = 62 OR app.approve_status = 58) and app.dept_code = #{deptCode}
         <if test="timeType == 0">
             AND YEAR(app.approve_pay_datetime) = YEAR(NOW())
         </if>
@@ -177,11 +178,15 @@
         <if test="timeType == 2">
             AND WEEK(app.approve_pay_datetime) = WEEK(NOW())
         </if>
-        GROUP BY app.depart_id,app.apply_user_name) as a
+        GROUP BY app.apply_user_name) aa LEFT JOIN
+        (SELECT bb.dept_id, bb.user_name FROM (SELECT dept_id,user_name from user ) bb
+        LEFT JOIN department b ON bb.dept_id = b.id where b.`code`= #{deptCode}) as cc
+        on aa.apply_user_name=cc.user_name ) as a
         INNER JOIN (
         SELECT depart_id,SUM(overdue_amount)  AS pay_total_amt FROM case_info WHERE collection_status IN (20,21,22,172)
         GROUP BY depart_id) as b
-        ON a.depart_id = b.depart_id GROUP BY a.apply_user_name,a.apply_pay_back_amt, apply_pay_amt_rate,a.apply_pay_count) as c
+        ON a.dept_id = b.depart_id GROUP BY a.apply_user_name,a.apply_pay_back_amt,
+        apply_pay_amt_rate,a.apply_pay_count) as c
         LEFT JOIN (SELECT user_name, real_name,type FROM `user`) as d ON c.apply_user_name=d.user_name ORDER BY apply_pay_amt_rate DESC
     </select>
 
@@ -191,7 +196,9 @@
         IFNULL(a.total_followed_count,0) as total_followed_count
         FROM
         (SELECT count(*) as total_followed_count, operator FROM
-        (SELECT case_id,operator FROM case_followup_record WHERE operator_dept_name = #{deptName}
+        (SELECT b.case_id, b.operator FROM
+        (SELECT case_id,operator FROM case_followup_record
+        WHERE operator_dept_name in (SELECT name FROM department where code = #{deptCode})
         <if test="timeType == 0">
             AND YEAR(operator_time) = YEAR(NOW())
         </if>
@@ -201,10 +208,11 @@
         <if test="timeType == 2">
             AND WEEK(operator_time) = WEEK(NOW())
         </if>
-        GROUP BY case_id,operator) as caseInfo
+        GROUP BY case_id,operator) as b LEFT JOIN case_info aa on aa.id = b.case_id) as caseInfo
         GROUP BY operator)as a
         LEFT JOIN
-        (SELECT count(*) as call_count, operator FROM case_followup_record WHERE collection_way = 0 AND operator_dept_name = #{deptName}
+        (SELECT count(*) as call_count, operator FROM case_followup_record WHERE collection_way = 0
+        AND operator_dept_name in (SELECT name FROM department where code = #{deptCode})
         <if test="timeType == 0">
             AND YEAR(operator_time) = YEAR(NOW())
         </if>
@@ -217,7 +225,8 @@
         GROUP BY operator) as b
         ON a.operator=b.operator
         LEFT JOIN
-        (SELECT IFNULL(count(*),0) as follow_count,operator FROM case_followup_record WHERE collection_way=1 AND operator_dept_name = #{deptName}
+        (SELECT IFNULL(count(*),0) as follow_count,operator FROM case_followup_record WHERE collection_way=1
+        AND operator_dept_name in (SELECT name FROM department where code = #{deptCode})
         <if test="timeType == 0">
             AND YEAR(operator_time) = YEAR(NOW())
         </if>
@@ -230,7 +239,7 @@
         GROUP BY operator) as c
         ON a.operator=c.operator
         LEFT JOIN
-        (SELECT user_name,real_name FROM `user`) as d ON a.operator=d.user_name
+        (SELECT user_name,real_name FROM `user`) as d ON a.operator=d.user_name ORDER BY total_followed_count DESC
     </select>
 
     <resultMap id="backAmtModel" type="cn.fintecher.pangolin.report.model.BackAmtModel">
