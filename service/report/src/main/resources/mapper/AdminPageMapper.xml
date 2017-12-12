@@ -469,7 +469,7 @@
         FROM case_pay_apply a
         LEFT JOIN case_info b on a.case_id = b.id
         WHERE (a.approve_result = 62 OR a.approve_status = 58)
-        AND a.company_Code = '0001' AND b.case_pool_type = 225
+        AND a.company_Code = #{companyCode} AND b.case_pool_type = 225
         AND b.recover_remark=0
         AND a.depart_id in (select id from department where code like concat(#{deptCode},'%'))
         <if test="timeType!=null and timeType==0">
@@ -561,7 +561,7 @@
         sum(a.apply_pay_amt)/10000 as caseAmount
         FROM case_pay_apply a LEFT JOIN case_info b ON a.case_id = b.id
         where (a.approve_status = 55 OR a.approve_status = 57)
-        AND a.company_Code = '0001'
+        AND a.company_Code = #{companyCode}
         AND a.depart_id in (select id from department where code like concat(#{deptCode},'%'))
         <!--全部-->
         <if test="queryType != null and queryType == 0">
