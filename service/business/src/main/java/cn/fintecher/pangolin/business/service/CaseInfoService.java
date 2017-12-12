@@ -1245,7 +1245,7 @@ public class CaseInfoService {
             } else {
                 caseAdvanceTurnApplay.setCollectionType(1);//外访
             }
-            caseAdvanceTurnApplay.setDeptCode(caseInfo.getDepartment().getCode());
+            caseAdvanceTurnApplay.setDeptCode(tokenUser.getDepartment().getCode());
             caseAdvanceTurnApplay.setCaseId(caseInfo.getId());
             caseAdvanceTurnApplay.setPersonalName(caseInfo.getPersonalInfo().getName());
             caseAdvanceTurnApplay.setApplayRealName(tokenUser.getRealName());
