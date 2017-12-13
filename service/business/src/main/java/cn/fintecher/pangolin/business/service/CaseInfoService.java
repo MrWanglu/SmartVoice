@@ -880,7 +880,9 @@ public class CaseInfoService {
                     caseTurnRecord.setReceiveUserRealName(batchInfoModel.getCollectionUser().getRealName()); //接受人名称
                     caseTurnRecord.setReceiveDeptName(batchInfoModel.getCollectionUser().getDepartment().getName()); //接收部门名称
                     caseTurnRecord.setReceiveUserId(batchInfoModel.getCollectionUser().getId()); //接受人ID
-                    caseTurnRecord.setCurrentCollector(caseInfo.getCurrentCollector().getId()); //当前催收员ID
+                    if (Objects.nonNull(caseInfo.getLatelyCollector())) {
+                        caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //记录分配后的前催收员ID
+                    }
                     caseTurnRecord.setCirculationType(2); //流转类型 2-正常流转
                     caseTurnRecord.setOperatorUserName(tokenUser.getUserName()); //操作员用户名
                     caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
@@ -2226,6 +2228,7 @@ public class CaseInfoService {
                 //按照用户分
                 if (Objects.nonNull(targetUser)) {
                     caseInfo.setDepartment(targetUser.getDepartment());
+                    caseInfo.setLatelyCollector(caseInfo.getCurrentCollector()); //上个催收员
                     caseInfo.setCurrentCollector(targetUser);
                     try {
                         setCollectionType(caseInfo, null, targetUser);
@@ -2280,6 +2283,9 @@ public class CaseInfoService {
                     caseTurnRecord.setReceiveUserRealName(caseInfo.getCurrentCollector().getRealName()); //接受人名称
                 } else {
                     caseTurnRecord.setReceiveDeptName(caseInfo.getDepartment().getName());
+                }
+                if (Objects.nonNull(caseInfo.getLatelyCollector())) {
+                    caseTurnRecord.setCurrentCollector(caseInfo.getLatelyCollector().getId()); //记录分配后的前催收员ID
                 }
                 caseTurnRecord.setOperatorUserName(user.getUserName()); //操作员用户名
                 caseTurnRecord.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间

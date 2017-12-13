@@ -30,6 +30,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -58,6 +59,8 @@ public class DepartmentController extends BaseController {
     CaseAssistService caseAssistService;
     @Autowired
     CompanyRepository companyRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     /**
      * @Description : 组织机构的type属性
@@ -518,8 +521,7 @@ public class DepartmentController extends BaseController {
     @ResponseBody
     @ApiOperation(value = "查询公司下的外访机构", notes = "查询公司下的外访机构")
     public ResponseEntity<List<Department>> querySubdivisions(@RequestParam(required = false) String companyCode,
-                                                              @RequestParam Integer type, @RequestHeader(value = "X-UserToken") String token,
-                                                              @ApiIgnore Pageable pageable) {
+                                                              @RequestHeader(value = "X-UserToken") String token) {
         User user;
         try {
             user = getUserByToken(token);
@@ -527,20 +529,38 @@ public class DepartmentController extends BaseController {
             e.printStackTrace();
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "User is not login", "用户未登录")).body(null);
         }
-        QDepartment qDepartment = QDepartment.department;
-        BooleanBuilder builder = new BooleanBuilder();
-        if (Objects.isNull(user.getCompanyCode())) {
-            if (Objects.nonNull(companyCode)) {
-                builder.and(QDepartment.department.companyCode.eq(companyCode));
+        try {
+            String code;
+            if (Objects.isNull(user.getCompanyCode())) {
+                if (Objects.isNull(companyCode)) {
+                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "请选择公司")).body(null);
+                }
+                code = companyCode;
+            } else {
+                code = user.getCompanyCode();
             }
-        } else {
-            builder.and(QDepartment.department.companyCode.eq(user.getCompanyCode()));
+            List<Department> departments = new ArrayList<>();
+            List<Object[]> list = entityManager.createNativeQuery("SELECT id,company_code,pid,name,type,code,level,status,remark,operator,operate_time,field from department where type = 2 and company_code = '" + code + "'").getResultList();
+            for (Object[] obj : list) {
+                Department department = new Department();
+                department.setId(Objects.isNull(obj[0]) ? null : obj[0].toString());
+                department.setCompanyCode(Objects.isNull(obj[1]) ? null : obj[1].toString());
+                department.setParent(Objects.isNull(obj[2]) ? null : departmentRepository.findOne(obj[2].toString()));
+                department.setName(Objects.isNull(obj[3]) ? null : obj[3].toString());
+                department.setType(Objects.isNull(obj[4]) ? null : Integer.parseInt(obj[4].toString()));
+                department.setCode(Objects.isNull(obj[5]) ? null : obj[5].toString());
+                department.setLevel(Objects.isNull(obj[6]) ? null : Integer.parseInt(obj[6].toString()));
+                department.setStatus(Objects.isNull(obj[7]) ? null : Integer.parseInt(obj[7].toString()));
+                department.setRemark(Objects.isNull(obj[8]) ? null : obj[8].toString());
+                department.setOperator(Objects.isNull(obj[9]) ? null : obj[9].toString());
+                department.setOperateTime(Objects.isNull(obj[10]) ? null : ZWDateUtil.getFormatDateTime(obj[10].toString()));
+                department.setField(Objects.isNull(obj[11]) ? null : obj[11].toString());
+                departments.add(department);
+            }
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(departments);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("", "", "获取失败")).body(null);
         }
-        if (Objects.nonNull(type)) {
-            builder.and(qDepartment.type.eq(type));
-        }
-        Iterator<Department> departmentList = departmentRepository.findAll(builder).iterator();
-        List<Department> departmentList1 = IteratorUtils.toList(departmentList);
-        return ResponseEntity.ok().headers(HeaderUtil.createAlert("获取成功", "")).body(departmentList1);
     }
 }

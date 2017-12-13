@@ -200,6 +200,9 @@ public class HomePageController extends BaseController {
             //待催收状态
             caseInfoConditionParams.setCollectionStatusList(CaseInfo.CollectionStatus.WAITCOLLECTION.getValue().toString());
             CaseInfoModel caseInfoModel = homePageService.quickAccessCaseInfo(user, caseInfoConditionParams);
+            if (Objects.isNull(caseInfoModel)) {
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "无可催收的案件")).body(null);
+            }
             return ResponseEntity.ok().body(caseInfoModel);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

@@ -300,8 +300,11 @@ public class HomePageService {
                 user.getCompanyCode(),
                 caseInfoConditionParams.getRealPayMaxAmt(),
                 caseInfoConditionParams.getRealPayMinAmt());
+        CaseInfoModel caseInfoModel = null;
         //获取待催收安建宁的第一条案件进行快速催收
-        CaseInfoModel caseInfoModel = caseInfoModels.get(0);
+        if (caseInfoModels.size() != 0) {
+            caseInfoModel = caseInfoModels.get(0);
+        }
         return caseInfoModel;
     }
 
