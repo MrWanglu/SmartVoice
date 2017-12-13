@@ -826,14 +826,14 @@ public class CaseInfoService {
                 }
             } else { //分配给外访
                 for (int i = 0; i < caseCount; i++) {
-                    CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(i)); //获得案件信息
-
+                    CaseInfo caseInfo = caseInfoRepository.findOne(caseIds.get(flag)); //获得案件信息
+                    flag++;
                     if (Objects.equals(caseInfo.getAssistFlag(), 1)) { //有协催标识
                         if (Objects.equals(caseInfo.getAssistStatus(), CaseInfo.AssistStatus.ASSIST_APPROVEING.getValue())) { //有协催申请
-                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseIds.get(i), tokenUser, "案件流转强制拒绝", CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
+                            CaseAssistApply caseAssistApply = getCaseAssistApply(caseInfo.getId(), tokenUser, "案件流转强制拒绝", CaseAssistApply.ApproveResult.FORCED_REJECT.getValue());
                             caseAssistApplies.add(caseAssistApply);
                         } else { //有协催案件
-                            CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseIds.get(i)).
+                            CaseAssist caseAssist = caseAssistRepository.findOne(qCaseAssist.caseId.id.eq(caseInfo.getId()).
                                     and(qCaseAssist.assistStatus.ne(CaseInfo.AssistStatus.ASSIST_COMPLATED.getValue())));
                             if (Objects.isNull(caseAssist)) {
                                 throw new RuntimeException("协催案件未找到");
@@ -887,12 +887,11 @@ public class CaseInfoService {
                     caseTurnRecords.add(caseTurnRecord);
                 }
             }
-            caseInfoRepository.save(caseInfos);
-            caseAssistRepository.save(caseAssists);
-            caseAssistApplyRepository.save(caseAssistApplies);
-            caseTurnRecordRepository.save(caseTurnRecords);
         }
-
+        caseInfoRepository.save(caseInfos);
+        caseAssistRepository.save(caseAssists);
+        caseAssistApplyRepository.save(caseAssistApplies);
+        caseTurnRecordRepository.save(caseTurnRecords);
     }
 
 
