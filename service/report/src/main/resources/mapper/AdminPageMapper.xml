@@ -120,6 +120,7 @@
         AND a.collection_status IN (21, 22, 23, 172)
         AND a.case_pool_type = 225
         AND a.recover_remark = 0
+        a.company_code = #{companyCode}
         GROUP BY
         area_id
         ) AS aa,
@@ -204,7 +205,8 @@
         FROM case_info AS a
         LEFT JOIN department AS b ON a.depart_id = b.id
         WHERE b.CODE LIKE CONCAT(#{deptCode}, '%')
-        AND a.collection_status IN (21, 22, 23, 172) AND a.case_pool_type = 225 AND a.recover_remark = 0
+        AND a.collection_status IN (21, 22, 23, 172) AND a.case_pool_type = 225 AND a.recover_remark = 0 and
+        a.company_code = #{companyCode}
         GROUP BY area_id
         ) AS aa, area_code b WHERE aa.area_id = b.id
         ) as c
