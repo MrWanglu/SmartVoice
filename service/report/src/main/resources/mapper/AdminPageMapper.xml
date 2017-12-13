@@ -83,7 +83,7 @@
     <!--管理员首页内催催收数据-->
     <select id="getInnerCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.ProvinceDateModel">
-        SELECT SUM(overdue_amount) as collectingAmt, count(*) as collectingCount FROM case_info as a LEFT JOIN
+        SELECT SUM(overdue_amount)/10000 as collectingAmt, count(*) as collectingCount FROM case_info as a LEFT JOIN
         department as b on a.depart_id=b.id
         WHERE a.collection_status IN (21, 22, 23, 172)  AND a.case_pool_type=225 AND a.recover_remark=0 and b.code like
         CONCAT(#{deptCode},'%')
@@ -91,7 +91,7 @@
     <!--管理员首页委外催收数据-->
     <select id="getOutsourceCollectionDate" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.ProvinceDateModel">
-        SELECT SUM(a.contract_amt) as collectingAmt, count(*) as collectingCount FROM outsource_pool a LEFT JOIN
+        SELECT SUM(a.contract_amt)/10000 as collectingAmt, count(*) as collectingCount FROM outsource_pool a LEFT JOIN
         case_info b ON a.case_id = b.id
         WHERE a.out_status=168 AND b.case_pool_type=226 AND b.recover_remark=0 AND a.company_code = #{companyCode}
     </select>
