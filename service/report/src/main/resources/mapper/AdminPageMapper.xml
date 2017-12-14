@@ -120,7 +120,7 @@
         AND a.collection_status IN (21, 22, 23, 172)
         AND a.case_pool_type = 225
         AND a.recover_remark = 0
-        a.company_code = #{companyCode}
+        AND a.company_code = #{companyCode}
         GROUP BY
         area_id
         ) AS aa,
