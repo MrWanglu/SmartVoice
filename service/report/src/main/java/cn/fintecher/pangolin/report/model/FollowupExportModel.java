@@ -359,7 +359,7 @@ public class FollowupExportModel {
     private String follTarget;
     @ExcelAnno(cellName = "姓名")
     private String follTargetName;
-    @ExcelAnno(cellName = "电话状态")
+    @ExcelAnno(cellName = "电话/地址")
     private String follPhoneNum;
     @ExcelAnno(cellName = "催收反馈")
     private String follFeedback;

@@ -47,7 +47,7 @@ public class FollowRecordExportService {
             if (result.contains("住宅电话")) {
                 result.add("联系人" + i + "住宅电话");
             }
-            if (result.contains("现居地址")) {
+            if (result.contains("现居住地址")) {
                 result.add("联系人" + i + "现居地址");
             }
             if (result.contains("与客户关系")) {

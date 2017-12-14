@@ -152,6 +152,9 @@ public class HomePageController extends BaseController {
         try {
             user = getUserByToken(token);
             params.setDeptCode(user.getDepartment().getCode());
+            if (Objects.nonNull(user.getCompanyCode())) {
+                params.setCompanyCode(user.getCompanyCode());
+            }
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
@@ -265,8 +268,9 @@ public class HomePageController extends BaseController {
                                                                  @RequestHeader(value = "X-UserToken") String token) {
         try {
             User user = getUserByToken(token);
-            String code = user.getDepartment().getCode();
-            collectorRankingParams.setDeptCode(code);
+            if (Objects.nonNull(user.getCompanyCode())) {
+                collectorRankingParams.setCompanyCode(user.getCompanyCode());
+            }
             FollowCalledDateModel result = homePageService.getRecordReport(collectorRankingParams);
             return ResponseEntity.ok().body(result);
         } catch (Exception e) {

@@ -199,6 +199,7 @@
         (SELECT b.case_id, b.operator FROM
         (SELECT case_id,operator FROM case_followup_record
         WHERE operator_dept_name in (SELECT name FROM department where code like concat(#{deptCode},'%'))
+        AND company_code = #{companyCode}
         <if test="timeType == 0">
             AND YEAR(operator_time) = YEAR(NOW())
         </if>
@@ -213,6 +214,7 @@
         LEFT JOIN
         (SELECT count(*) as call_count, operator FROM case_followup_record WHERE collection_way = 0
         AND operator_dept_name in (SELECT name FROM department where code like concat(#{deptCode},'%'))
+        AND company_code = #{companyCode}
         <if test="timeType == 0">
             AND YEAR(operator_time) = YEAR(NOW())
         </if>
@@ -227,6 +229,7 @@
         LEFT JOIN
         (SELECT IFNULL(count(*),0) as follow_count,operator FROM case_followup_record WHERE collection_way=1
         AND operator_dept_name in (SELECT name FROM department where code like concat(#{deptCode},'%'))
+        AND company_code = #{companyCode}
         <if test="timeType == 0">
             AND YEAR(operator_time) = YEAR(NOW())
         </if>

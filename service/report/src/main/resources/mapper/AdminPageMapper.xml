@@ -605,12 +605,14 @@
         from case_followup_record b
         WHERE operator_dept_name in (SELECT name FROM department where code like concat(#{deptCode},'%'))
         and DATE_FORMAT(b.operator_time, '%Y-%m')=DATE_FORMAT(#{startDate}, '%Y-%m')
+        AND b.company_code = #{companyCode}
         AND b.collection_way =1
         group by currentMonth,b.collection_way HAVING b.collection_way is not NULL
         UNION ALL
         select DATE_FORMAT(b.operator_time, '%Y-%m-%d') as currentMonth ,b.collection_way as wayType, count(*) as typeCount
         from case_followup_record b
         WHERE operator_dept_name in (SELECT name FROM department where code like concat(#{deptCode},'%'))
+        AND b.company_code = #{companyCode}
         and DATE_FORMAT(b.operator_time, '%Y-%m')=DATE_FORMAT(#{startDate}, '%Y-%m')
         AND b.collection_way =0
         group by currentMonth,b.collection_way HAVING b.collection_way is not NULL
@@ -624,9 +626,10 @@
         SUM(overdue_amount)/10000 AS totalRePaymentMoney,
         COUNT(*) AS totalCaseNumber
         FROM
-        case_info
+        case_info a LEFT JOIN department b on a.depart_id=b.id
         WHERE
         followup_back IN (90, 91, 92, 93)
+        AND b.code like concat(#{deptCode}, '%')
         <!--内催+委外-->
         <if test="queryType == 0">
             AND case_pool_type in(225,226)
@@ -641,7 +644,7 @@
         </if>
         AND recover_remark = 0
         <if test="companyCode != null">
-            AND company_code = #{companyCode}
+            AND a.company_code = #{companyCode}
         </if>
         <if test="timeType!=null and timeType==0">
             AND YEAR(followup_time) = YEAR(#{startDate})

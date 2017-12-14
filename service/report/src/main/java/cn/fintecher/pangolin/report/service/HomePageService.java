@@ -249,11 +249,8 @@ public class HomePageService {
                 followCountModels.remove(followCountModels.get(i));
             } else {
                 if (user.getRealName().equals(followCountModels.get(i).getCollectionFollowName())) {
-                    if (i == 0) {
-                        i = +1;
-                    }
                     //添加该催收员的排名
-                    caseInfoRank.setCollectRank(i);
+                    caseInfoRank.setCollectRank(i + 1);
                 }
             }
         }
