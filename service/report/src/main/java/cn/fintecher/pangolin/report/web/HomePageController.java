@@ -271,6 +271,7 @@ public class HomePageController extends BaseController {
             if (Objects.nonNull(user.getCompanyCode())) {
                 collectorRankingParams.setCompanyCode(user.getCompanyCode());
             }
+            collectorRankingParams.setDeptCode(user.getDepartment().getCode());
             FollowCalledDateModel result = homePageService.getRecordReport(collectorRankingParams);
             return ResponseEntity.ok().body(result);
         } catch (Exception e) {
