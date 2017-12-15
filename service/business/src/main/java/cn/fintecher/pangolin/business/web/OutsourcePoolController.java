@@ -749,7 +749,7 @@ public class OutsourcePoolController extends BaseController {
                     if (Objects.nonNull(caseInfo.getPerPayAmount())) {
                         accOutsourcePoolModel.setCurrentAmount(caseInfo.getPerPayAmount().toString());//每期还款金额
                     }
-                    accOutsourcePoolModel.setCurrentPayDate(ZWDateUtil.fomratterDate(caseInfo.getPerDueDate(), "yyyy-MM-dd"));//每期还款日
+                    accOutsourcePoolModel.setCurrentPayDate(caseInfo.getPerDueDate());//每期还款日
                     if (Objects.nonNull(caseInfo.getPersonalInfo())) {
                         accOutsourcePoolModel.setCustName(caseInfo.getPersonalInfo().getName());
                     }

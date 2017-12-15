@@ -38,7 +38,7 @@ public class ExcportOutsourceResultModel {
     private BigDecimal leftCapital;
     private Integer periods;
     private BigDecimal overdueInterest;
-    private Date perDueDate;
+    private String perDueDate;
     private Integer overduePeriods;
     private Integer overdueDays;
     private BigDecimal hasPayAmount;

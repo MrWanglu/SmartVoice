@@ -230,6 +230,8 @@ public class ProcessDataInfoExcelService {
         caseInfoDistributed.setOverdueFine(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getOverdueFine(), null, null));
         caseInfoDistributed.setOverdueDelayFine(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getOverdueDelayFine(), null, null));
         caseInfoDistributed.setPeriods(dataInfoExcelModel.getPeriods());
+        //逾期日期
+        caseInfoDistributed.setOverDueDate(dataInfoExcelModel.getOverDueDate());
         caseInfoDistributed.setPerDueDate(dataInfoExcelModel.getPerDueDate());
         caseInfoDistributed.setPerPayAmount(ZWMathUtil.DoubleToBigDecimal(dataInfoExcelModel.getPerPayAmount(), null, null));
         caseInfoDistributed.setOverduePeriods(dataInfoExcelModel.getOverDuePeriods());

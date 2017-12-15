@@ -15,7 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @Author: PeiShouWen
@@ -253,6 +255,8 @@ public class CaseInfoExceptionService {
         caseInfoDistributed.setOverdueInterest(caseInfoException.getOverDueInterest());
         caseInfoDistributed.setOverdueFine(caseInfoException.getOverdueFine());
         caseInfoDistributed.setOverdueDelayFine(caseInfoException.getOverdueDelayFine());
+        //逾期日期
+        caseInfoDistributed.setOverDueDate(caseInfoException.getOverDueDate());
         caseInfoDistributed.setPeriods(caseInfoException.getPeriods());
         caseInfoDistributed.setPerDueDate(caseInfoException.getPerDueDate());
         caseInfoDistributed.setPerPayAmount(caseInfoException.getPerPayAmount());

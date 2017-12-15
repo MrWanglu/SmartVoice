@@ -68,7 +68,7 @@ public class FollowupExportModel {
     @ExcelAnno(cellName = "案件编号")
     private String caseNumber;
     @ExcelAnno(cellName = "每期还款日")
-    private Date perDueDate;
+    private String perDueDate;
     @ExcelAnno(cellName = "剩余天数")
     private Integer leftDays;
     @ExcelAnno(cellName = "还款状态")

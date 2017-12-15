@@ -52,7 +52,7 @@ public class CaseInfoHistory extends BaseEntity {
     private Integer periods;
 
     @ApiModelProperty(notes = "每期还款日")
-    private Date perDueDate; //逾期日期
+    private String perDueDate; //逾期日期
 
     @ApiModelProperty(notes = "每期还款金额")
     private BigDecimal perPayAmount;

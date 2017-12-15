@@ -48,7 +48,7 @@ public class DataInfoExcelHis implements Serializable {
     private Integer periods = new Integer(0);
 
     @ApiModelProperty("每期还款日")
-    private Date perDueDate;
+    private String perDueDate;
 
     @ApiModelProperty("每期还款金额(元)")
     private Double perPayAmount = new Double(0);

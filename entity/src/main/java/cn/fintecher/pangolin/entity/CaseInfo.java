@@ -52,7 +52,7 @@ public class CaseInfo extends BaseEntity {
     private Integer periods;
 
     @ApiModelProperty(notes = "每期还款日")
-    private Date perDueDate;
+    private String perDueDate;
 
     @ApiModelProperty(notes = "每期还款金额")
     private BigDecimal perPayAmount;

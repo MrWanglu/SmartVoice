@@ -29,7 +29,7 @@ public class CaseInfoDistributed extends BaseEntity {
     private BigDecimal overdueFine = new BigDecimal(0);
     private BigDecimal overdueDelayFine = new BigDecimal(0);
     private Integer periods;
-    private Date perDueDate;
+    private String perDueDate;
     private BigDecimal perPayAmount = new BigDecimal(0);
     private Integer overduePeriods;
     private Integer overdueDays;

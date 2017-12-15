@@ -67,8 +67,8 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty("每期还款日")
     @ExcelAnno(cellName = "每期还款日",
-            fieldType = ExcelAnno.FieldType.DATE)
-    private Date perDueDate;
+            fieldType = ExcelAnno.FieldType.STRING)
+    private String perDueDate;
 
     @ApiModelProperty("每期还款金额(元)")
     @ExcelAnno(cellName = "每期还款金额(元)",
