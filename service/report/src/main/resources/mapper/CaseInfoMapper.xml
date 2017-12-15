@@ -266,7 +266,7 @@
         ) as ab
         on aa.principal_id = ab.id
         )
-        as a
+        as a order by a.delegationDate DESC
     </select>
 
     <!-- 多条件查询案件信息 -->

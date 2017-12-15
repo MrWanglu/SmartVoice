@@ -29,6 +29,7 @@
         LEFT JOIN (
         SELECT u.user_name AS uname, SUM(c.overdue_amount) AS amount, COUNT(*) AS count FROM `user` u
         LEFT JOIN case_info c ON (c.current_collector = u.id OR c.assist_collector = u.id)
+        where c.case_pool_type=225 and c.recover_remark = 0 and c.collection_status !=24
         GROUP BY u.user_name
         HAVING amount IS NOT NULL
         ) AS b

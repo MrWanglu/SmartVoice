@@ -163,12 +163,16 @@
 
     <!--回款金额排名-->
     <select id="getCaseInfoBackRank" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultMap="backAmtModel">
-        SELECT d.real_name,(c.apply_pay_back_amt/10000) as apply_pay_back_amt, c.apply_pay_amt_rate, c.apply_pay_count
-        FROM (SELECT a.apply_user_name, a.apply_pay_back_amt, IFNULL((a.apply_pay_back_amt/b.pay_total_amt),0.00) as apply_pay_amt_rate, a.apply_pay_count
-        FROM (SELECT cc.dept_id,aa.apply_user_name, aa.apply_pay_back_amt, aa.apply_pay_count FROM
-        (SELECT app.apply_user_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
+        SELECT d.real_name,(d.apply_pay_back_amt/10000) as apply_pay_back_amt,
+        IfNULL((d.apply_pay_back_amt/c.pay_total_amt),0.00) as apply_pay_amt_rate, d.apply_pay_count FROM
+        (SELECT aa.real_name,aa.user_name,c.apply_pay_back_amt, c.apply_pay_count FROM
+        (SELECT user_name, real_name from user a LEFT JOIN department b on a.dept_id = b.id where b.`code` like
+        concat(#{deptCode},'%')
+        and a.company_code= #{companyCode}) as aa
+        LEFT JOIN
+        (SELECT apply_user_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
         FROM case_pay_apply as app
-        WHERE (app.approve_result = 62 OR app.approve_status = 58) and app.dept_code like concat(#{deptCode},'%')
+        WHERE (approve_result = 62 OR approve_status = 58)
         <if test="timeType == 0">
             AND YEAR(app.approve_pay_datetime) = YEAR(NOW())
         </if>
@@ -178,16 +182,14 @@
         <if test="timeType == 2">
             AND WEEK(app.approve_pay_datetime) = WEEK(NOW())
         </if>
-        GROUP BY app.apply_user_name) aa LEFT JOIN
-        (SELECT bb.dept_id, bb.user_name FROM (SELECT dept_id,user_name from user ) bb
-        LEFT JOIN department b ON bb.dept_id = b.id where b.`code` like concat(#{deptCode},'%')) as cc
-        on aa.apply_user_name=cc.user_name ) as a
-        INNER JOIN (
-        SELECT depart_id,SUM(overdue_amount)  AS pay_total_amt FROM case_info WHERE collection_status IN (20,21,22,172)
-        GROUP BY depart_id) as b
-        ON a.dept_id = b.depart_id GROUP BY a.apply_user_name,a.apply_pay_back_amt,
-        apply_pay_amt_rate,a.apply_pay_count) as c
-        LEFT JOIN (SELECT user_name, real_name,type FROM `user`) as d ON c.apply_user_name=d.user_name ORDER BY apply_pay_amt_rate DESC
+        GROUP BY app.apply_user_name) as c ON aa.user_name=c.apply_user_name HAVING c. apply_pay_back_amt is not NULL)
+        as d
+        LEFT JOIN
+        (SELECT u.user_name AS uname, SUM(c.overdue_amount) AS pay_total_amt FROM `user` u
+        LEFT JOIN case_info c ON (c.current_collector = u.id OR c.assist_collector = u.id)
+        where c.case_pool_type=225 and c.recover_remark = 0 and c.collection_status !=24
+        GROUP BY u.user_name
+        HAVING pay_total_amt IS NOT NULL) as c on d.user_name=c.uname ORDER BY apply_pay_back_amt DESC
     </select>
 
     <!--跟催量排名-->

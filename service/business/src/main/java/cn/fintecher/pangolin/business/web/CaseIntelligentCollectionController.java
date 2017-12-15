@@ -138,15 +138,13 @@ public class CaseIntelligentCollectionController extends BaseController {
                 QPersonalContact qPersonalContact = QPersonalContact.personalContact;
                 //本人的数字码是69
                 Iterable<PersonalContact> personalContacts = personalContactRepository.findAll(qPersonalContact.personalId.eq(caseInfo.getPersonalInfo().getId()).and(qPersonalContact.relation.eq(69)));
-                if (personalContacts.iterator().hasNext() && Objects.nonNull(personalContacts.iterator().next().getMail())) {
+                if (personalContacts.iterator().hasNext()) {
                     EmailSendRequest emailSendRequest = new EmailSendRequest();
-                    emailSendRequest.setCustId(personalContacts.iterator().next().getId()); // 客户ID
-                    emailSendRequest.setCustName(personalContacts.iterator().next().getName()); // 客户姓名
-                    emailSendRequest.setEmail(personalContacts.iterator().next().getMail()); // 客户邮箱
+                    emailSendRequest.setCustId(Objects.isNull(personalContacts.iterator().next().getId()) ? null : personalContacts.iterator().next().getId()); // 客户ID
+                    emailSendRequest.setCustName(Objects.isNull(personalContacts.iterator().next().getName()) ? null : personalContacts.iterator().next().getName()); // 客户姓名
+                    emailSendRequest.setEmail(Objects.isNull(personalContacts.iterator().next().getMail()) ? null : personalContacts.iterator().next().getMail()); // 客户邮箱
                     emailSendRequest.setCupoId(caseInfo.getId());// 案件id
                     emailSendRequests.add(emailSendRequest);
-                } else {
-                    return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "mailAddress is null", "此客戶沒有邮箱地址")).body(null);
                 }
             }
             return ResponseEntity.ok().headers(HeaderUtil.createAlert("操作成功", "operation successfully")).body(emailSendRequests);

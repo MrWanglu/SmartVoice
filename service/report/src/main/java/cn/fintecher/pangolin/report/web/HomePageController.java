@@ -130,6 +130,9 @@ public class HomePageController extends BaseController {
         try {
             user = getUserByToken(token);
             params.setDeptCode(user.getDepartment().getCode());
+            if (Objects.nonNull(user.getCompanyCode())) {
+                params.setCompanyCode(user.getCompanyCode());
+            }
         } catch (final Exception e) {
             log.debug(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("HomePageController", "getHomePageInformation", e.getMessage())).body(null);
