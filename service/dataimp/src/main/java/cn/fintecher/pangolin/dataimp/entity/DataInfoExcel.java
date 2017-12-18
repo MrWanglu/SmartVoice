@@ -39,7 +39,7 @@ public class DataInfoExcel implements Serializable {
 
     @ApiModelProperty(notes = "手机号码")
     @ExcelAnno(cellName = "手机号码",
-            fieldCheck = ExcelAnno.FieldCheck.PHONE_NUMBER)
+            fieldCheck = ExcelAnno.FieldCheck.PERSONAL_PHONE)
     private String mobileNo;
 
     @ApiModelProperty(notes = "产品系列")
@@ -47,8 +47,7 @@ public class DataInfoExcel implements Serializable {
     private String productSeriesName;
 
     @ApiModelProperty(notes = "产品名称")
-    @ExcelAnno(cellName = "产品名称",
-            fieldCheck = ExcelAnno.FieldCheck.PRODUCT_NAME)
+    @ExcelAnno(cellName = "产品名称")
     private String productName;
 
     @ApiModelProperty(notes = "合同编号")

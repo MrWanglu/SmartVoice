@@ -275,7 +275,7 @@ public class TemplateDataModelService {
                 //实体中注解的属性名称
                 templateModel.setCellName(name.cellName());
                 if (f.getName().equals("personalName") || f.getName().equals("idCard")
-                        || f.getName().equals("productName") || f.getName().equals("overdueAmount")) {
+                        || f.getName().equals("overdueAmount")) {
                     templateModel.setFlag(0);//0：必输
                 } else {
                     templateModel.setFlag(1);//1:不是必输

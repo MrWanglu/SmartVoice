@@ -56,6 +56,7 @@ public @interface ExcelAnno {
         PRODUCT_NAME,   //产品名称
         IDCARD,     //身份证号
         PHONE_NUMBER,   //电话号码
-        CASE_AMOUNT  //案件金额
+        CASE_AMOUNT,  //案件金额
+        PERSONAL_PHONE // 客户手机号码
     }
 }

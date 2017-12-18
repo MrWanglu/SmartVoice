@@ -291,15 +291,15 @@ public class ParseExcelTask {
                 }
                 map.put(cellValue, columnError);
                 break;
-            case PRODUCT_NAME:
-                if (StringUtils.equalsIgnoreCase(cellValue, "")) {
-                    columnError.setErrorMsg("产品名称为空");
-                    columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
-                    map.put(cellValue, columnError);
-                    break;
-                }
-                map.put(cellValue, columnError);
-                break;
+//            case PRODUCT_NAME:
+//                if (StringUtils.equalsIgnoreCase(cellValue, "")) {
+//                    columnError.setErrorMsg("产品名称为空");
+//                    columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
+//                    map.put(cellValue, columnError);
+//                    break;
+//                }
+//                map.put(cellValue, columnError);
+//                break;
             case CASE_AMOUNT:
                 if (StringUtils.equalsIgnoreCase(cellValue, "")) {
                     columnError.setErrorMsg("案件金额为空");
@@ -324,7 +324,22 @@ public class ParseExcelTask {
                     columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
                     map.put(cellValue, columnError);
                     break;
-                } else if (!StringUtils.equalsIgnoreCase(cellValue, "") && !MobileUtil.checkMobile(cellValue) && !MobileUtil.checkPhone(cellValue)) {
+                } else {
+                    map.put(cellValue, columnError);
+                    break;
+                }
+            case PERSONAL_PHONE:
+                if (cellValue.length() >= 32) {
+                    columnError.setErrorMsg("电话号码长度过长");
+                    columnError.setErrorLevel(ColumnError.ErrorLevel.FORCE.getValue());
+                    map.put(cellValue, columnError);
+                    break;
+                } else if (StringUtils.equalsIgnoreCase(cellValue, "")) {
+                    columnError.setErrorMsg("电话号码为空");
+                    columnError.setErrorLevel(ColumnError.ErrorLevel.PROMPT.getValue());
+                    map.put(cellValue, columnError);
+                    break;
+                } else if (!MobileUtil.checkMobile(cellValue) && !MobileUtil.checkPhone(cellValue)) {
                     columnError.setErrorMsg("电话号码不合规");
                     columnError.setErrorLevel(ColumnError.ErrorLevel.PROMPT.getValue());
                     map.put(cellValue, columnError);
@@ -333,12 +348,9 @@ public class ParseExcelTask {
                     map.put(cellValue, columnError);
                     break;
                 }
-            case NONE:
+            default:
                 ExcelAnno.FieldType fieldType = field.getAnnotation(ExcelAnno.class).fieldType();
                 switch (fieldType) {
-                    case STRING:
-                        map.put(cellValue, columnError);
-                        break;
                     case INTEGER:
                         Integer inte = 0;
                         try {
@@ -389,10 +401,14 @@ public class ParseExcelTask {
                             map.put(ZWDateUtil.getUtilDate("1970-01-01", "yyyy-MM-dd"), columnError);
                             break;
                         }
+                    default:
+                        map.put(cellValue, columnError);
+                        break;
                 }
         }
         return map;
     }
+
 
     private String filterEmoji(String source, String slipStr) {
         if (StringUtils.isNotBlank(source)) {

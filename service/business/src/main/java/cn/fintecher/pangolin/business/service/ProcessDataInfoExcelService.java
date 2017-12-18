@@ -74,8 +74,7 @@ public class ProcessDataInfoExcelService {
 
         //案件数据信息
         String key = dataInfoExcelModel.getPersonalName().concat("_").concat(dataInfoExcelModel.getIdCard()).concat("_")
-                .concat(dataInfoExcelModel.getPrinCode()).concat("_").concat(dataInfoExcelModel.getProductName())
-                .concat("_").concat(dataInfoExcelModel.getCompanyCode());
+                .concat(dataInfoExcelModel.getPrinCode()).concat("_").concat(dataInfoExcelModel.getCompanyCode());
 
         //案件附件信息
         List<CaseInfoFile> caseInfoFileList = dataInfoExcelModel.getCaseInfoFileList();
