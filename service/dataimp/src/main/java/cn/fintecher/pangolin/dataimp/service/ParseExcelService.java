@@ -23,16 +23,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -43,6 +39,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ParseExcelService {
 
     private final Logger logger = LoggerFactory.getLogger(ParseExcelService.class);
+
+    private final static List<String> isNeedTitle = new ArrayList<>();
+
+    static {
+        isNeedTitle.add("客户姓名");
+        isNeedTitle.add("身份证号");
+        isNeedTitle.add("逾期总金额(元)");
+    }
 
     @Autowired
     private ParseExcelTask parseExcelTask;
@@ -165,19 +169,21 @@ public class ParseExcelService {
     }
 
     public boolean checkHeader(Sheet sheet, int startRow, int startCol) {
-        boolean flag = false;
         Row titleRow = sheet.getRow(startRow);
         int lastCellNum = titleRow.getLastCellNum();
         if (startCol > lastCellNum) {
             throw new RuntimeException("Excel数据模板开始列大于数据总列数");
         }
+        List<String> title = new ArrayList<>();
         for (int columnIndex = startCol; columnIndex < titleRow.getLastCellNum(); columnIndex++) {
             Cell cell = titleRow.getCell(columnIndex);
-            if (ZWStringUtils.isNotEmpty(cell.getStringCellValue()) && cell.getStringCellValue().equals("客户姓名")) {
-                flag = true;
-                break;
+            if (ZWStringUtils.isNotEmpty(cell.getStringCellValue())) {
+                title.add(cell.getStringCellValue());
             }
         }
-        return flag;
+        if (title.containsAll(isNeedTitle)) {
+            return true;
+        }
+        return false;
     }
 }

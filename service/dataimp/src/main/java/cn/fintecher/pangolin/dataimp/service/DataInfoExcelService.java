@@ -165,13 +165,14 @@ public class DataInfoExcelService {
             throw new Exception("获取公司序列号失败");
         }
         if (Objects.isNull(templateExcelInfoList)) {
+            boolean b = false;
             try {
-                boolean b = parseExcelService.checkHeader(excelSheet, 0, 0);
-                if (!b) {
-                    throw new Exception("请使用系统默认模板或者配置导入模板");
-                }
+                b = parseExcelService.checkHeader(excelSheet, 0, 0);
             } catch (Exception e) {
                 throw new RuntimeException("导入失败!");
+            }
+            if (!b) {
+                throw new Exception("请使用系统默认模板或者配置导入模板");
             }
         }
         try {
