@@ -151,4 +151,53 @@ public class CaseInfoInquiryController extends BaseController {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_INFO, "caseInfo", "查询失败")).body(null);
         }
     }
+
+    /**
+     * @Description 多条件查询内催案件 催收中案件 查看 接口
+     */
+    @GetMapping("/getCaseInfoByNoPower")
+    @ApiOperation(value = "多条件查询内催案件 催收中案件 查看 接口", notes = "多条件查询内催案件 催收中案件 查看 接口")
+    public ResponseEntity<Page<CaseInfoModel>> getCaseInfoByNoPower(CaseInfoConditionParams caseInfoConditionParams,
+                                                                    @RequestHeader(value = "X-UserToken") String token) {
+        log.debug("REST request to get case info by condition");
+        try {
+            User tokenUser = getUserByToken(token);
+            PageHelper.startPage(caseInfoConditionParams.getPage() + 1, caseInfoConditionParams.getSize());
+            List<CaseInfoModel> caseInfoModels = caseInfoMapper.getCaseInfoByCondition(StringUtils.trim(caseInfoConditionParams.getPersonalName()),
+                    StringUtils.trim(caseInfoConditionParams.getMobileNo()),
+                    caseInfoConditionParams.getDeptCode(),
+                    StringUtils.trim(caseInfoConditionParams.getCollectorName()),
+                    caseInfoConditionParams.getOverdueMaxAmt(),
+                    caseInfoConditionParams.getOverdueMinAmt(),
+                    StringUtils.trim(caseInfoConditionParams.getPayStatus()),
+                    caseInfoConditionParams.getOverMaxDay(),
+                    caseInfoConditionParams.getOverMinDay(),
+                    StringUtils.trim(caseInfoConditionParams.getBatchNumber()),
+                    caseInfoConditionParams.getPrincipalId(),
+                    StringUtils.trim(caseInfoConditionParams.getIdCard()),
+                    caseInfoConditionParams.getFollowupBack(),
+                    caseInfoConditionParams.getAssistWay(),
+                    caseInfoConditionParams.getCaseMark(),
+                    caseInfoConditionParams.getCollectionType(),
+                    caseInfoConditionParams.getSort() == null ? null : caseInfoConditionParams.getSort(),
+                    null, //不做权限控制 祁吉贵
+                    caseInfoConditionParams.getCollectionStatusList(),
+                    caseInfoConditionParams.getCollectionStatus(),
+                    Objects.isNull(caseInfoConditionParams.getAreaId()) ? caseInfoConditionParams.getParentAreaId() : null,
+                    caseInfoConditionParams.getAreaId(),
+                    tokenUser.getType(),
+                    null,//不做权限控制 祁吉贵
+                    tokenUser.getId(),
+                    tokenUser.getCompanyCode(),
+                    caseInfoConditionParams.getRealPayMaxAmt(),
+                    caseInfoConditionParams.getRealPayMinAmt());
+            PageInfo<CaseInfoModel> pageInfo = new PageInfo<>(caseInfoModels);
+            Pageable pageable = new PageRequest(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
+            Page<CaseInfoModel> page = new PageImpl<>(caseInfoModels, pageable, pageInfo.getTotal());
+            return ResponseEntity.ok().headers(HeaderUtil.createAlert("查询成功", ENTITY_CASE_INFO)).body(page);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_CASE_INFO, "caseInfo", "查询失败")).body(null);
+        }
+    }
 }
