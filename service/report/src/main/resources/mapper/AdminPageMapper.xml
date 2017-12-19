@@ -29,7 +29,7 @@
         LEFT JOIN (
         SELECT u.user_name AS uname, SUM(c.overdue_amount) AS amount, COUNT(*) AS count FROM `user` u
         LEFT JOIN case_info c ON (c.current_collector = u.id OR c.assist_collector = u.id)
-        where c.case_pool_type=225 and c.recover_remark = 0 and c.collection_status !=24
+        where c.case_pool_type=225 and c.recover_remark = 0
         GROUP BY u.user_name
         HAVING amount IS NOT NULL
         ) AS b
@@ -474,7 +474,6 @@
         WHERE (a.approve_result = 62 OR a.approve_status = 58)
         AND a.company_Code = #{companyCode} AND b.case_pool_type = 225
         AND b.recover_remark=0
-        AND b.collection_status in (21,22,23,172)
         AND a.depart_id in (select id from department where code like concat(#{deptCode},'%'))
         <if test="timeType!=null and timeType==0">
             AND YEAR(a.approve_pay_datetime) = YEAR(#{startDate})
