@@ -11,8 +11,11 @@ spring:
         serialization.indent_output: true
     data:
         mongodb:
-            uri: mongodb://192.168.3.10:27017
+            host: 192.168.3.10
+            port: 27017
             database: pangolin_common_db_classic
+            username: pangolin
+            password: pangolin
     rabbitmq:
         username: classic
         password: classic

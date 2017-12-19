@@ -243,11 +243,23 @@ public class TemplateDataModelController {
 
     @GetMapping("/checkTemplateName")
     @ApiOperation(value = "检查模板名称是否存在重复", notes = "检查模板名称是否存在重复")
-    public ResponseEntity checkTemplateName(@RequestParam(required = true) @ApiParam("模板名称") String templateName) {
+    public ResponseEntity checkTemplateName(@RequestParam(required = true) @ApiParam("模板名称") String templateName,
+                                            @RequestHeader(value = "X-UserToken") String token) {
         try {
+            ResponseEntity<User> userResponseEntity = null;
+            try {
+                userResponseEntity = restTemplate.getForEntity(Constants.USERTOKEN_SERVICE_URL.concat(token), User.class);
+            } catch (Exception e) {
+                logger.error(e.getMessage(), e);
+                return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(e.getMessage(), "user", ENTITY_NAME)).body(null);
+            }
+            User user = userResponseEntity.getBody();
             Query query = new Query();
             if (ZWStringUtils.isNotEmpty(templateName)) {
                 query.addCriteria(Criteria.where("templateName").is(templateName));
+            }
+            if (Objects.nonNull(user.getCompanyCode())) {
+                query.addCriteria(Criteria.where("companyCode").is(user.getCompanyCode()));
             }
             List<TemplateDataModel> list = mongoTemplate.find(query, TemplateDataModel.class);
             if (Objects.nonNull(list) && list.size() == 0) {

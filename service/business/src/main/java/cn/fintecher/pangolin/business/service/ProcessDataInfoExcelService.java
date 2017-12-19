@@ -87,7 +87,6 @@ public class ProcessDataInfoExcelService {
         Iterable<CaseInfoDistributed> caseInfoDistributedIterable = caseInfoDistributedRepository.findAll(qCaseInfoDistributed.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
                 .and(qCaseInfoDistributed.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
                 .and(qCaseInfoDistributed.principalId.code.eq(dataInfoExcelModel.getPrinCode()))
-                .and(qCaseInfoDistributed.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
                 .and(qCaseInfoDistributed.companyCode.eq(dataInfoExcelModel.getCompanyCode())));
         if (dataInfoExcelModelMap.containsKey(key) || caseInfoDistributedIterable.iterator().hasNext()) {
             //数据进入案件异常池
@@ -100,7 +99,6 @@ public class ProcessDataInfoExcelService {
                 Iterable<CaseInfoDistributed> cd = caseInfoDistributedRepository.findAll(qCaseInfoDistributed.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
                         .and(qCaseInfoDistributed.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
                         .and(qCaseInfoDistributed.principalId.code.eq(dataInfoExcelModel.getPrinCode()))
-                        .and(qCaseInfoDistributed.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
                         .and(qCaseInfoDistributed.companyCode.eq(dataInfoExcelModel.getCompanyCode())));
                 for (Iterator<CaseInfoDistributed> it1 = cd.iterator(); it1.hasNext(); ) {
                     caseInfoDistributedSets.add(it1.next().getId());
@@ -157,7 +155,6 @@ public class ProcessDataInfoExcelService {
         Iterable<CaseInfo> caseInfoIterable = caseInfoRepository.findAll(qCaseInfo.personalInfo.name.eq(dataInfoExcelModel.getPersonalName())
                 .and(qCaseInfo.personalInfo.idCard.eq(dataInfoExcelModel.getIdCard()))
                 .and(qCaseInfo.principalId.code.eq(dataInfoExcelModel.getPrinCode()))
-                .and(qCaseInfo.product.prodcutName.eq(dataInfoExcelModel.getProductName()))
                 .and(qCaseInfo.companyCode.eq(dataInfoExcelModel.getCompanyCode()))
                 .and(qCaseInfo.collectionStatus.ne(CaseInfo.CollectionStatus.CASE_OVER.getValue())));
         //已有的案件池

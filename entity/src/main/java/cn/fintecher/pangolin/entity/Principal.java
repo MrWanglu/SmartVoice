@@ -28,7 +28,7 @@ public class Principal extends BaseEntity {
     private String name;
 
     @ApiModelProperty(notes = "市的id")
-    private Integer area_id;
+    private Integer areaId;
 
     @ApiModelProperty(notes = "详细地址")
     private String address;

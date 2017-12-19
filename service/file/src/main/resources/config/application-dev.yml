@@ -11,8 +11,11 @@ spring:
         serialization.indent_output: true
     data:
         mongodb:
-            uri: mongodb://192.168.3.10:27017
+            host: 192.168.3.10
+            port: 27017
             database: pangolin_file_db_classic
+            username: pangolin
+            password: pangolin
     rabbitmq:
         username: classic
         password: classic
@@ -44,7 +47,7 @@ fdfs:
     - 192.168.3.10:22122
 
 gridfs:
-  path: 192.168.3.10:9000/file-service
+  path: 192.168.3.75:9000/file-service
   localPath: 127.0.0.7:9000/file-service
 
 server:
