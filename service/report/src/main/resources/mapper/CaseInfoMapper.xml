@@ -233,7 +233,7 @@
         left join department on cc.depart_id = department.id
         where 1 = 1
         and department.code like CONCAT(#{deptCode}, '%')
-        and (collection_status in (20,21,22,23,171,172) or (collection_status =25 and depart_id is not null))
+        and (collection_status in (20,21,22,23,24,171,172) or (collection_status =25 and depart_id is not null))
         and case_pool_type = 225
         and recover_remark = 0
         <if test="batchNumber != null">
@@ -242,7 +242,7 @@
         <if test="delegationDateStart != null and delegationDateStart != ''">
             AND <![CDATA[DATE_FORMAT(delegation_date,'%Y-%m-%d') >= DATE_FORMAT(#{delegationDateStart},'%Y-%m-%d')]]>
         </if>
-        <if test="delegationDateStart != null and delegationDateStart != ''">
+        <if test="delegationDateEnd != null and delegationDateEnd != ''">
             AND <![CDATA[DATE_FORMAT(delegation_date,'%Y-%m-%d') <= DATE_FORMAT(#{delegationDateEnd},'%Y-%m-%d')]]>
         </if>
         <if test="closeDateStart != null and closeDateStart != ''">
