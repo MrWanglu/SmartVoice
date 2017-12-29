@@ -70,7 +70,8 @@ public interface CaseInfoMapper extends MyMapper<CaseInfo> {
                                                    @Param("sort") String sort,
                                                    @Param("isManager") Integer isManager,
                                                    @Param("userId") String userId,
-                                                   @Param("companyCode") String companyCode);
+                                                   @Param("companyCode") String companyCode,
+                                                   @Param("followupBack") Integer followupBack);
 
     /**
      * @Description 多条件查询协催案件信息

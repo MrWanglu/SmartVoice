@@ -454,6 +454,9 @@
         <if test="overdueMinAmount != null">
             AND <![CDATA[b.overdue_amount >= #{overdueMinAmount}]]>
         </if>
+        <if test="followupBack != null">
+            AND b.followup_back = ${followupBack}
+        </if>
         ORDER BY a.markId asc
         <if test="sort != null and sort == 'operatorTime,desc'">
             ,a.operatorTime desc

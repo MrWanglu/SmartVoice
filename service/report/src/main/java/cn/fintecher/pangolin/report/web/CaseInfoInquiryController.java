@@ -115,7 +115,8 @@ public class CaseInfoInquiryController extends BaseController {
                     caseInfoConditionParams.getSort() == null ? null : caseInfoConditionParams.getSort(),
                     tokenUser.getManager(),
                     tokenUser.getId(),
-                    tokenUser.getCompanyCode());
+                    tokenUser.getCompanyCode(),
+                    caseInfoConditionParams.getFollowupBack());
             PageInfo<CaseAssistModel> pageInfo = new PageInfo<>(caseAssistModels);
             Pageable pageable = new PageRequest(caseInfoConditionParams.getPage(), caseInfoConditionParams.getSize());
             Page<CaseAssistModel> page = new PageImpl<>(caseAssistModels, pageable, pageInfo.getTotal());
