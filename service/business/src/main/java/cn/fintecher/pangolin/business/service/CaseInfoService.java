@@ -1024,11 +1024,11 @@ public class CaseInfoService {
         personalContact.setOperator(tokenUser.getUserName()); //操作人
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         personalContactRepository.saveAndFlush(personalContact);
-        //如果上传文件了将上传文件保存到caserepairrecord 中，然后在催收执行页中查看附件信息
+        //如果上传文件了将上传文件保存到caseRepairRecord 中，然后在催收执行页中查看附件信息
         if (Objects.nonNull(repairInfoModel.getFileIds()) && repairInfoModel.getFileIds().size() > 0) {
             try {
                 for (String fid : repairInfoModel.getFileIds()) {
-                    ResponseEntity<UploadFile> uploadFileResponseEntity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getUploadFile/").concat(fid), HttpMethod.GET, null, UploadFile.class);
+                    ResponseEntity<UploadFile> uploadFileResponseEntity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(fid), HttpMethod.GET, null, UploadFile.class);
                     if (Objects.nonNull(uploadFileResponseEntity.getBody())) {
                         CaseRepairRecord caseRepairRecord = new CaseRepairRecord();
                         caseRepairRecord.setFileId(uploadFileResponseEntity.getBody().getId());
