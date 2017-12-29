@@ -128,6 +128,8 @@ public class CaseInfoService {
     @Inject
     CaseInfoService caseInfoService;
 
+    @Inject
+    CaseRepairRecordRepository caseRepairRecordRepository;
 
     /**
      * @Description 重新分配
@@ -1022,6 +1024,28 @@ public class CaseInfoService {
         personalContact.setOperator(tokenUser.getUserName()); //操作人
         personalContact.setOperatorTime(ZWDateUtil.getNowDateTime()); //操作时间
         personalContactRepository.saveAndFlush(personalContact);
+        //如果上传文件了将上传文件保存到caserepairrecord 中，然后在催收执行页中查看附件信息
+        if (Objects.nonNull(repairInfoModel.getFileIds()) && repairInfoModel.getFileIds().size() > 0) {
+            try {
+                for (String fid : repairInfoModel.getFileIds()) {
+                    ResponseEntity<UploadFile> uploadFileResponseEntity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getUploadFile/").concat(fid), HttpMethod.GET, null, UploadFile.class);
+                    if (Objects.nonNull(uploadFileResponseEntity) && uploadFileResponseEntity.hasBody()) {
+                        CaseRepairRecord caseRepairRecord = new CaseRepairRecord();
+                        caseRepairRecord.setFileId(uploadFileResponseEntity.getBody().getId());
+                        caseRepairRecord.setCaseId(repairInfoModel.getCaseId());
+                        caseRepairRecord.setOperator(tokenUser.getUserName());
+                        caseRepairRecord.setOperatorTime(ZWDateUtil.getNowDateTime());
+                        caseRepairRecord.setRepairMemo(null);
+                        caseRepairRecord.setFileUrl(uploadFileResponseEntity.getBody().getUrl());
+                        caseRepairRecord.setFileType(uploadFileResponseEntity.getBody().getType());
+                        caseRepairRecordRepository.saveAndFlush(caseRepairRecord);
+                    }
+                }
+            } catch (Exception ex) {
+                log.error(ex.getMessage());
+            }
+
+        }
         return personalContact;
     }
 

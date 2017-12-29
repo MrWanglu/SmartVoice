@@ -2,6 +2,8 @@ package cn.fintecher.pangolin.business.model;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @author : xiaqun
  * @Description : 修复信息模型
@@ -21,4 +23,7 @@ public class RepairInfoModel {
     private Integer addressStatus; //地址状态
     private Integer type; //地址类型
     private String mail; //邮箱地址
+    private String caseId; //案件Id
+    private List<String> fileIds; //文件ID
+    private String remark; //修改备注
 }
