@@ -164,15 +164,18 @@
     <!--回款金额排名-->
     <select id="getCaseInfoBackRank" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams" resultMap="backAmtModel">
         SELECT d.real_name,(d.apply_pay_back_amt/10000) as apply_pay_back_amt,
-        IfNULL((d.apply_pay_back_amt/c.pay_total_amt),0.00) as apply_pay_amt_rate, d.apply_pay_count FROM
-        (SELECT aa.real_name,aa.user_name,c.apply_pay_back_amt, c.apply_pay_count FROM
-        (SELECT user_name, real_name from user a LEFT JOIN department b on a.dept_id = b.id where b.`code` like
+        IfNULL((d.apply_pay_back_amt/d.pay_total_amt),0.00) as apply_pay_amt_rate, d.apply_pay_count FROM
+        (SELECT aa.real_name,aa.user_name,c.apply_pay_back_amt, c.apply_pay_count, pay_total_amt FROM
+        (SELECT user_name, real_name from user a LEFT JOIN department b on a.dept_id = b.id where a.status = 0 and
+        b.`code` like
         concat(#{deptCode},'%')
         and a.company_code= #{companyCode}) as aa
         LEFT JOIN
-        (SELECT apply_user_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count
+        (SELECT apply_user_name, IFNULL(SUM(apply_pay_amt),0.00) as apply_pay_back_amt, count(*) as apply_pay_count,
+        SUM(overdue_amount) as pay_total_amt
         FROM case_pay_apply as app
-        WHERE (approve_result = 62 OR approve_status = 58)
+        LEFT JOIN case_info as info ON info.id = app.case_id
+        WHERE (approve_result = 62 OR approve_status = 58) AND recover_remark = 0 AND case_pool_type = 225
         <if test="timeType == 0">
             AND YEAR(app.approve_pay_datetime) = YEAR(NOW())
         </if>
@@ -184,12 +187,7 @@
         </if>
         GROUP BY app.apply_user_name) as c ON aa.user_name=c.apply_user_name HAVING c. apply_pay_back_amt is not NULL)
         as d
-        LEFT JOIN
-        (SELECT u.user_name AS uname, SUM(c.overdue_amount) AS pay_total_amt FROM `user` u
-        LEFT JOIN case_info c ON (c.current_collector = u.id OR c.assist_collector = u.id)
-        where c.case_pool_type=225 and c.recover_remark = 0 and c.collection_status !=24
-        GROUP BY u.user_name
-        HAVING pay_total_amt IS NOT NULL) as c on d.user_name=c.uname ORDER BY apply_pay_back_amt DESC
+        ORDER BY apply_pay_back_amt DESC
     </select>
 
     <!--跟催量排名-->

@@ -80,28 +80,28 @@ public class RecoverCaseService {
         List<CaseInfo> caseInfoList = new ArrayList<>();
         List<CaseAssist> caseAssistList = new ArrayList<>();
         List<CaseInfoReturn> caseInfoReturnList = new ArrayList<>();
-        List<OutsourcePool> outsourcePoolList = new ArrayList<>();
+        //List<OutsourcePool> outsourcePoolList = new ArrayList<>();
         while (iterator.hasNext()) {
             CaseInfoReturn caseInfoReturn = iterator.next();
             Integer source = caseInfoReturn.getSource();
             if (Objects.equals(source, CaseInfoReturn.Source.INTERNALCOLLECTION.getValue())) { // 内催回收的案件
                 CaseInfo caseInfo = caseInfoReturn.getCaseId();
-                setAttr(caseInfo,caseAssistList, caseInfoList,outsourcePoolList, user, params);
+                setAttr(caseInfo, caseAssistList, caseInfoList, user, params);
                 caseInfoReturnList.add(caseInfoReturn);
             }
-            if (Objects.equals(source, CaseInfoReturn.Source.OUTSOURCE.getValue())) { // 委外回收的案件
+       /*     if (Objects.equals(source, CaseInfoReturn.Source.OUTSOURCE.getValue())) { // 委外回收的案件
                 CaseInfo caseInfo = caseInfoReturn.getCaseId();
                 setAttr(caseInfo,caseAssistList, caseInfoList,outsourcePoolList, user, params);
                 caseInfoReturnList.add(caseInfoReturn);
-            }
+            }*/
         }
         caseAssistRepository.save(caseAssistList);
         caseInfoRepository.save(caseInfoList);
-        outsourcePoolRepository.save(outsourcePoolList);
+        //outsourcePoolRepository.save(outsourcePoolList);
         caseInfoReturnRepository.delete(caseInfoReturnList);
     }
 
-    private void setAttr(CaseInfo caseInfo, List<CaseAssist> caseAssistList, List<CaseInfo> caseInfoList,List<OutsourcePool> outsourcePoolList, User user, ReDisRecoverCaseParams params) {
+    private void setAttr(CaseInfo caseInfo, List<CaseAssist> caseAssistList, List<CaseInfo> caseInfoList, User user, ReDisRecoverCaseParams params) {
         caseInfo.setRecoverRemark(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue());//未回收
         caseInfo.setCollectionType(null);//催收类型
         caseInfo.setCaseType(null);//案件类型
@@ -143,7 +143,7 @@ public class RecoverCaseService {
                 caseInfo.setAssistWay(null);
                 caseInfo.setAssistCollector(null);
             }
-        } else if (Objects.equals(params.getType(), 1)){ // 分到委外池
+        } /*else if (Objects.equals(params.getType(), 1)){ // 分到委外池
             caseInfo.setCasePoolType(CaseInfo.CasePoolType.OUTER.getValue()); // 委外
             OutsourcePool outsourcePool = new OutsourcePool();
             outsourcePool.setCaseInfo(caseInfo);
@@ -155,7 +155,7 @@ public class RecoverCaseService {
             outsourcePoolList.add(outsourcePool);
         } else {
             throw new RuntimeException("选择的要分配的目标池未知");
-        }
+        }*/
         caseInfoList.add(caseInfo);
     }
 }

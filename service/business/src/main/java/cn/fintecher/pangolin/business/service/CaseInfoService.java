@@ -312,7 +312,7 @@ public class CaseInfoService {
         casePayApply.setPersonalName(caseInfo.getPersonalInfo().getName()); //客户姓名
         casePayApply.setPersonalId(caseInfo.getPersonalInfo().getId()); //客户信息ID
         casePayApply.setCollectionType(caseInfo.getCollectionType()); //催收类型
-        casePayApply.setDepartId(caseInfo.getDepartment().getId()); //部门ID
+        casePayApply.setDepartId(tokenUser.getDepartment().getId()); //部门ID
         casePayApply.setDeptCode(tokenUser.getDepartment().getCode()); //添加部门code
         casePayApply.setApplyPayAmt(payApplyParams.getPayAmt()); //申请还款金额
         casePayApply.setApplyDerateAmt(Objects.isNull(payApplyParams.getDerateFee()) ? new BigDecimal(0) : payApplyParams.getDerateFee()); //申请减免金额

@@ -5,13 +5,18 @@
     <!--管理员首页催收员排行榜-->
     <select id="collectorRanking" parameterType="cn.fintecher.pangolin.report.model.CollectorRankingParams"
             resultType="cn.fintecher.pangolin.report.model.CollectorRankingModel">
-        SELECT a.uname, a.rname AS name, b.amount/10000 AS amount, b.count AS count, a.payCount AS payCount,
-        a.payAmount/10000 AS payAmount, payAmount/amount AS payRate FROM (
-        SELECT c.uname AS uname, c.rname AS rname, COUNT(*) AS payCount,SUM(c.payAmount) AS payAmount FROM (
-        SELECT apply_user_name AS uname,apply.apply_real_name AS rname,SUM(apply_pay_amt) AS payAmount
+        SELECT a.uname, a.rname AS name, a.totalAmt/10000 AS amount, a.payCount AS count, a.payCount AS payCount,
+        a.payAmount/10000 AS payAmount, payAmount/totalAmt AS payRate FROM (
+        SELECT c.uname AS uname, c.rname AS rname, COUNT(*) AS payCount,SUM(c.payAmount) AS payAmount, SUM(c.totalAmt)
+        as totalAmt FROM (
+        SELECT apply_user_name AS uname,apply.apply_real_name AS rname,SUM(apply_pay_amt) AS payAmount,
+        SUM(overdue_amount) as totalAmt
         FROM case_pay_apply apply
         LEFT JOIN department dept ON apply.depart_id = dept.id
-        WHERE (apply.approve_result = 62 OR apply.approve_status = 58)
+        LEFT JOIN case_info info ON info.id = apply.case_id
+        LEFT JOIN user u ON u.user_name = apply.apply_user_name
+        WHERE (apply.approve_result = 62 OR apply.approve_status = 58) AND u.status = 0
+        AND recover_remark = 0 AND case_pool_type = 225
         AND dept.`code` LIKE concat(#{deptCode},'%')
         <if test="timeType == 0">
             AND YEAR(apply.approve_pay_datetime) = YEAR(NOW())
@@ -22,19 +27,11 @@
         <if test="timeType == 2">
             AND WEEK(apply.approve_pay_datetime) = WEEK(NOW())
         </if>
-        GROUP BY apply.apply_user_name,apply.apply_real_name,apply.case_id
+
+        GROUP BY apply.apply_user_name,apply.apply_real_name,apply.case_id,overdue_amount
         ) AS c
         GROUP BY c.uname,c.rname
         ) AS a
-        LEFT JOIN (
-        SELECT u.user_name AS uname, SUM(c.overdue_amount) AS amount, COUNT(*) AS count FROM `user` u
-        LEFT JOIN case_info c ON (c.current_collector = u.id OR c.assist_collector = u.id)
-        where c.case_pool_type=225 and c.recover_remark = 0
-        GROUP BY u.user_name
-        HAVING amount IS NOT NULL
-        ) AS b
-        ON a.uname = b.uname
-        WHERE b.amount IS NOT NULL
         <if test="rankType == 0">
             ORDER BY payAmount DESC
         </if>
