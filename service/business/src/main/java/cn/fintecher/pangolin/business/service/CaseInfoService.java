@@ -1028,8 +1028,8 @@ public class CaseInfoService {
         if (Objects.nonNull(repairInfoModel.getFileIds()) && repairInfoModel.getFileIds().size() > 0) {
             try {
                 for (String fid : repairInfoModel.getFileIds()) {
-                    ResponseEntity<UploadFile> uploadFileResponseEntity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getAllUploadFileByIds/").concat(fid), HttpMethod.GET, null, UploadFile.class);
-                    if (Objects.nonNull(uploadFileResponseEntity.getBody())) {
+                    ResponseEntity<UploadFile> uploadFileResponseEntity = restTemplate.exchange(Constants.FILEID_SERVICE_URL.concat("uploadFile/getUploadFile/").concat(fid), HttpMethod.GET, null, UploadFile.class);
+                    if (Objects.nonNull(uploadFileResponseEntity.getBody()) && uploadFileResponseEntity.hasBody()) {
                         CaseRepairRecord caseRepairRecord = new CaseRepairRecord();
                         caseRepairRecord.setFileId(uploadFileResponseEntity.getBody().getId());
                         caseRepairRecord.setCaseId(repairInfoModel.getCaseId());
