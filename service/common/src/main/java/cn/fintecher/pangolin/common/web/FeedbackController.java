@@ -12,7 +12,6 @@ import cn.fintecher.pangolin.util.ZWStringUtils;
 import cn.fintecher.pangolin.web.HeaderUtil;
 import com.querydsl.core.BooleanBuilder;
 import io.swagger.annotations.*;
-import io.swagger.annotations.Example;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -21,8 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.Objects;
-
-import static org.springframework.data.domain.ExampleMatcher.GenericPropertyMatchers.contains;
 
 
 /**
@@ -42,10 +39,10 @@ public class FeedbackController {
     @PostMapping("/saveFeedback")
     @ApiOperation(value = "新增反馈人信息", notes = "新增反馈人信息")
     @ResponseBody
-    public ResponseEntity saveFeedback(@RequestBody RequestFeedback request, @RequestHeader(value="X-UserToken") @ApiParam("操作者的token") String token) {
+    public ResponseEntity saveFeedback(@RequestBody RequestFeedback request, @RequestHeader(value = "X-UserToken") @ApiParam("操作者的token") String token) {
 
         User user = userClient.getUserByToken(token).getBody();
-        if(ZWStringUtils.isEmpty(user)){
+        if (ZWStringUtils.isEmpty(user)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Feedback",
                     "", "请先登录")).body(null);
         }
@@ -60,10 +57,10 @@ public class FeedbackController {
     @DeleteMapping("/deleteFeedback")
     @ApiOperation(value = "删除反馈信息", notes = "删除反馈信息")
     @ResponseBody
-    public ResponseEntity deleteFeedback(@ApiParam(value = "反馈id", required = true) @RequestParam String id,@RequestHeader(value="X-UserToken") @ApiParam("操作者的token") String token) {
+    public ResponseEntity deleteFeedback(@ApiParam(value = "反馈id", required = true) @RequestParam String id, @RequestHeader(value = "X-UserToken") @ApiParam("操作者的token") String token) {
 
         User user = userClient.getUserByToken(token).getBody();
-        if(ZWStringUtils.isEmpty(user)){
+        if (ZWStringUtils.isEmpty(user)) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("Feedback",
                     "", "请先登录")).body(null);
         }
@@ -85,7 +82,7 @@ public class FeedbackController {
     public ResponseEntity queryByName(@ApiParam(value = "反馈姓名") @RequestParam(required = false) String feedbackName, @ApiIgnore Pageable pageable) {
 
         BooleanBuilder builder = new BooleanBuilder();
-        if(Objects.nonNull(feedbackName)) {
+        if (Objects.nonNull(feedbackName)) {
             builder.and(QFeedback.feedback.feedbackName.eq(feedbackName));
         }
         Page<Feedback> page = feedbackRepository.findAll(builder, pageable);
