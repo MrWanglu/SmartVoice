@@ -61,7 +61,7 @@ public class CaseInfoException extends BaseEntity {
     private BigDecimal overdueCapital = new BigDecimal(0);
 
     @ApiModelProperty(notes = "逾期利息")
-    private BigDecimal overDueInterest = new BigDecimal(0) ;
+    private BigDecimal overDueInterest = new BigDecimal(0);
 
     @ApiModelProperty(notes = "逾期罚息")
     private BigDecimal overdueFine = new BigDecimal(0);
@@ -517,8 +517,8 @@ public class CaseInfoException extends BaseEntity {
     /**
      * 异常数据处理类型
      */
-    public enum RepeatStatusEnum{
-        PENDING(182,"待处理"),UPDATE(183,"更新"),DELETE(184,"删除"),ADD(185,"新增");
+    public enum RepeatStatusEnum {
+        PENDING(182, "待处理"), UPDATE(183, "更新"), DELETE(184, "删除"), ADD(185, "新增");
         private Integer value;
         private String remark;
 

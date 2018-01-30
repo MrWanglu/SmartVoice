@@ -92,7 +92,6 @@ public class CaseInfoDistributed extends BaseEntity {
     private String recoverMemo;
 
 
-
     @ManyToOne
     @JoinColumn(name = "personal_id")
     private Personal personalInfo;

@@ -278,3 +278,6 @@ ADD COLUMN `dept_code`  varchar(128) NULL COMMENT '部门code' AFTER `case_numbe
 --彭长须
 ALTER TABLE `case_assist_apply`
 change `depart_id` `dept_code` varchar(64) DEFAULT NULL COMMENT '部门Code';
+
+ALTER TABLE `case_assist_apply`
+ADD COLUMN `dept_code`  varchar(128) NULL COMMENT '机构code' AFTER `company_code`;

@@ -5,6 +5,7 @@ import cn.fintecher.pangolin.entity.Personal;
 import cn.fintecher.pangolin.entity.Principal;
 import cn.fintecher.pangolin.entity.Product;
 import lombok.Data;
+
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -29,7 +30,7 @@ public class CaseInfo extends BaseEntity {
     private BigDecimal overdueFine;
     private BigDecimal overdueDelayFine;
     private Integer periods;
-    private Date perDueDate; //逾期日期
+    private String perDueDate; //逾期日期
     private BigDecimal perPayAmount;
     private Integer overduePeriods;
     private Integer overdueDays;
@@ -89,8 +90,6 @@ public class CaseInfo extends BaseEntity {
     private AreaCode area;
     @Transient
     private Integer waitFlag = 1;
-
-
 
 
     /**
