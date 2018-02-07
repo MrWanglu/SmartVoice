@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.service;
 
+import cn.fintecher.pangolin.business.exception.GeneralException;
 import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.entity.*;
@@ -463,7 +464,7 @@ public class CaseInfoDistributedService {
      * @param user           用户
      * @return
      */
-    public List<CaseInfoStrategyResultModel> countStrategyAllocation(CaseInfoIdList caseInfoIdList, User user) {
+    public List<CaseInfoStrategyResultModel> countStrategyAllocation(CaseInfoIdList caseInfoIdList, User user) throws GeneralException {
         List<CaseInfoDistributed> all = new ArrayList<>();
         if (Objects.isNull(caseInfoIdList.getIds()) || caseInfoIdList.getIds().isEmpty()) {
             Iterable<CaseInfoDistributed> all1 = caseInfoDistributedRepository.findAll(QCaseInfoDistributed.caseInfoDistributed.recoverRemark.eq(CaseInfo.RecoverRemark.NOT_RECOVERED.getValue())
@@ -473,7 +474,7 @@ public class CaseInfoDistributedService {
             all = caseInfoDistributedRepository.findAll(caseInfoIdList.getIds());
         }
         if (all.isEmpty()) {
-            throw new RuntimeException("待分配案件为空!");
+            throw new GeneralException("待分配案件为空!");
         }
         ResponseEntity<List<CaseStrategy>> forEntity = null;
         try {
@@ -484,11 +485,11 @@ public class CaseInfoDistributedService {
                     .concat("&strategyType=").concat(CaseStrategy.StrategyType.INNER.getValue().toString()), HttpMethod.GET, null, responseType);
         } catch (RestClientException e) {
             logger.error(e.getMessage(), e);
-            throw new RuntimeException("获取策略错误");
+            throw new GeneralException("获取策略错误");
         }
         List<CaseStrategy> caseStrategies = forEntity.getBody();
         if (caseStrategies.isEmpty()) {
-            throw new RuntimeException("未找到需要执行的策略");
+            throw new GeneralException("未找到需要执行的策略");
         }
         // 策略分配
         HashMap<String, CaseInfoStrategyResultModel> modelMap = new LinkedHashMap<>();

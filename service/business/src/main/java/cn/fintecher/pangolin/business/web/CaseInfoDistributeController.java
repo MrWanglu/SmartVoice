@@ -1,5 +1,6 @@
 package cn.fintecher.pangolin.business.web;
 
+import cn.fintecher.pangolin.business.exception.GeneralException;
 import cn.fintecher.pangolin.business.model.*;
 import cn.fintecher.pangolin.business.repository.*;
 import cn.fintecher.pangolin.business.service.CaseInfoDistributedService;
@@ -300,11 +301,15 @@ public class CaseInfoDistributeController extends BaseController {
             CaseInfoStrategyModel model = new CaseInfoStrategyModel();
             model.setModelList(modelList);
             return ResponseEntity.ok().body(model);
+        } catch (GeneralException ge) {
+            logger.error(ge.getMessage());
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", ge.getMessage())).body(null);
         } catch (Exception e) {
             logger.error(e.getMessage());
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "", "统计策略分配情况错误")).body(null);
         }
     }
+
     @PostMapping("/previewResult")
     @ApiOperation(value = "策略预览结果", notes = "策略预览结果")
     @ApiImplicitParams({
@@ -681,7 +686,7 @@ public class CaseInfoDistributeController extends BaseController {
                 kieSession.insert(scoreRuleModel);
                 kieSession.fireAllRules();
                 if (scoreRuleModel.getCupoScore() != 0) {
-                    next.setScore(ZWMathUtil.DoubleToBigDecimal(scoreRuleModel.getCupoScore(), null,null));
+                    next.setScore(ZWMathUtil.DoubleToBigDecimal(scoreRuleModel.getCupoScore(), null, null));
                     caseInfoDistributedList.add(next);
                 }
             }
