@@ -1,0 +1,24 @@
+spring:
+    application:
+        name: business-service
+    profiles:
+        active: dev
+    jackson:
+        serialization.write_dates_as_timestamps: true
+    mvc:
+        favicon:
+            enabled: false
+
+server:
+    session:
+        cookie:
+            http-only: true
+        timeout: 36000
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 60000

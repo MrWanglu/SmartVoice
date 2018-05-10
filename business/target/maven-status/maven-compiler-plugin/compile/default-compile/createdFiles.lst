@@ -1,0 +1,4 @@
+cn\fintecher\server\BusinessApplication.class
+cn\fintecher\server\repository\AuthUserRepository.class
+cn\fintecher\server\web\UserController.class
+cn\fintecher\server\config\Swagger2Config.class
